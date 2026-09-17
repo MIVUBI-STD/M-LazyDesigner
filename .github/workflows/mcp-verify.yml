@@ -53,8 +53,31 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
-      - name: Verify executable MCP contract
-        run: bun run verify:mcp
+      # Keep the canonical verify:mcp order visible as individual CI gates so a
+      # failing owner is diagnosable without weakening or duplicating checks.
+      - name: Verify generated docs freshness
+        run: bun run docs:check
+
+      - name: Typecheck Runtime
+        run: bun run typecheck
+
+      - name: Typecheck Gateway
+        run: bun run typecheck:gateway
+
+      - name: Run Runtime regression suite
+        run: bun run test:runtime
+
+      - name: Run Authoring contract suite
+        run: bun run verify:authoring
+
+      - name: Measure MCP surface
+        run: bun run measure:surface
+
+      - name: Measure authoring phases
+        run: bun run measure:phases
+
+      - name: Build compatibility bundle
+        run: bun run build
 
       - name: Record exact-SHA build provenance
         run: bun run ./scripts/verified-build-artifact.ts write-ci
