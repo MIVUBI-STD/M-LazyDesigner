@@ -165,7 +165,9 @@ describe("local runtime gate source contract", () => {
 
     expect(runbook).toContain("cd mcp");
     expect(runbook).toContain("bun run deploy:local");
-    expect(runbook).toContain("bun run verify:stateless-local");
+    expect(runbook).toContain("verify:stateless-local");
+    expect(runbook).toContain("diagnostic only");
+    expect(runbook).toContain("Do not run it automatically before every live verifier");
     expect(runbook).toContain("build_identity");
     expect(runbook).toContain("UV Layout PASS");
     expect(runbook).toContain("Synthetic readiness never proves user asset approval");
