@@ -41,7 +41,7 @@ describe("LazyDesigner reference preparation contract", () => {
       read("../docs/02-reference/image/standard.md"),
     ]);
 
-    expect(skill).toContain("standard.md owns panel economy and layout");
+    expect(skill).toContain("owns panel economy and layout");
     expect(skill).toContain("do not generate every module by default");
     expect(standard).toContain("1 primary reference sheet per asset");
     expect(standard).toContain("geometry_ambiguity");
@@ -76,7 +76,8 @@ describe("LazyDesigner reference preparation contract", () => {
     expect(skill).toContain("never infer numeric scale from pixels");
     expect(scale).toContain("player_height");
     expect(scale).toContain("rideable_1p");
-    expect(scale).toContain("must not invent exact block values");
+    expect(scale).toContain("never invent numeric values from a relative category");
+    expect(scale).toContain("never infer precise block dimensions from image pixels alone");
   });
 
   test("sheet escalation preserves identity and scale instead of overpacking", async () => {
@@ -88,7 +89,7 @@ describe("LazyDesigner reference preparation contract", () => {
 
     expect(skill).toContain("sheet 02+");
     expect(standard).toContain("identity + scale lock / anti-drift");
-    expect(standard).toContain("later sheets elaborate rather than redesign");
+    expect(standard).toContain("additional sheets never redesign or rescale the asset");
     expect(scale).toContain("scale lock");
     expect(scale).toContain("remove p3");
     expect(scale).toContain("remove lowest-value p2");
@@ -103,7 +104,7 @@ describe("LazyDesigner reference preparation contract", () => {
     ]);
 
     expect(skill).toContain("compiled brief is internal working state");
-    expect(prompt).toContain("never generate directly from the raw conversation");
+    expect(prompt).toContain("never generate directly from the uncontrolled conversation when a compiled brief exists");
     expect(prompt).toContain("identity lock");
     expect(templates).toContain("template a");
     expect(templates).toContain("template b");
@@ -117,8 +118,7 @@ describe("LazyDesigner reference preparation contract", () => {
     ]);
 
     expect(skill).toContain("corrections use change + preserve against approved authority");
-    expect(prompt).toContain("approved current sheet");
-    expect(prompt).toContain("change");
-    expect(prompt).toContain("preserve");
+    expect(prompt).toContain("approved current visual + change + preserve + affected panels");
+    expect(prompt).toContain("bounded editing when possible");
   });
 });
