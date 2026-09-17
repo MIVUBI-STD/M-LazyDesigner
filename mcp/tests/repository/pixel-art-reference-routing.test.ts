@@ -23,9 +23,9 @@ describe("pixel-art reference specialist ownership", () => {
     expect(loading).toContain("unselected sibling reference specialists");
     expect(loading).toContain("pixel-art knowledge corpus after its artifact/profile has already been handed off");
 
-    expect(specialist).toContain("True-pixel rule");
-    expect(specialist).toContain("Style Lock");
-    expect(specialist).toContain("Relationship to Texturing");
+    expect(specialist).toContain("## True Pixel Rule");
+    expect(specialist).toContain("## Style / Series Rule");
+    expect(specialist).toContain("## Handoff Boundary");
   });
 
   test("Pixel Art is not introduced as a LazyDesigner Control authoring domain", async () => {
@@ -38,10 +38,12 @@ describe("pixel-art reference specialist ownership", () => {
     expect(developmentIntent).not.toContain('| "PIXEL_ART"');
   });
 
-  test("pixel-art domain keeps lazy-load owners available", async () => {
+  test("pixel-art domain keeps current lazy-load owners available", async () => {
     const requiredOwners = [
+      "README.md",
       "authoring-spec.md",
       "workflow.md",
+      "prompt-contract.md",
       "iconography.md",
       "object-prop.md",
       "sprites.md",
@@ -56,9 +58,9 @@ describe("pixel-art reference specialist ownership", () => {
       "minecraft-compatibility.md",
       "reference-conversion.md",
       "texture-reference.md",
+      "audit-revision.md",
       "qa.md",
       "delivery.md",
-      "knowledge-map.md",
     ];
 
     for (const file of requiredOwners) {
