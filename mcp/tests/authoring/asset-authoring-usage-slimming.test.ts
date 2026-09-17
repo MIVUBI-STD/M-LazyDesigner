@@ -29,9 +29,9 @@ describe("pre-local asset-authoring usage slimming", () => {
     ]);
 
     expect(texturing.length).toBeLessThan(16_000);
-    expect(control).toContain("GEOMETRY_CONTEXT");
-    expect(control).toContain("TEXTURE_CONTEXT");
-    expect(control).toContain("ANIMATION_CONTEXT");
+    expect(control).toContain("buildControlStageContext");
+    expect(control).toContain("contextForAuthoringDomain");
+    expect(control).toContain("stage_context");
     expect(control).toContain("knownContextIds");
     expect(control).toContain("workspace");
     expect(control).toContain("reference");
