@@ -51,8 +51,8 @@ describe("texture production discipline", () => {
 
   test("texture creation keeps 16x16 provisional defaults while production sizing and UV ownership stay explicit", async () => {
     const [standard, skill] = await Promise.all([
-      source("../docs/foundation/06-texture-standard.md"),
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../docs/03-authoring/texture/standard.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
     ]);
     const provisional = createTextureParameters.parse({ name: "fixture" });
     const shape = paintToolDocs.find((tool) => tool.name === "draw_shape_tool");
@@ -70,8 +70,7 @@ describe("texture production discipline", () => {
   });
 
   test("production standard owns one base atlas and 128-based canvases", async () => {
-    const standard = await source("../docs/foundation/06-texture-standard.md");
-    // Logical defaults/opt-in and physical texels have one cross-owner regression.
+    const standard = await source("../docs/03-authoring/texture/standard.md");
     expect(standard).toContain("128×128");
     expect(standard).toContain("256×256");
     expect(standard).toContain("384×384");
@@ -82,8 +81,8 @@ describe("texture production discipline", () => {
 
   test("Texture Styling cannot be completed by technical state or placeholder fill", async () => {
     const [standard, skill] = await Promise.all([
-      source("../docs/foundation/06-texture-standard.md"),
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../docs/03-authoring/texture/standard.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
     ]);
     expect(standard).toContain("A placeholder/flat fill may make geometry readable early");
     expect(standard).toContain("is not production completion");
@@ -147,7 +146,7 @@ describe("texture production discipline", () => {
   });
 
   test("texturing skill routes global audit first and face inspection conditionally", async () => {
-    const skill = await source("../.agents/skills/blockit-bedrock-texturing/SKILL.md");
+    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
     expect(skill).toMatch(/UV\/atlas readiness\s+→ list_textures\(diagnostics=true\)/i);
     expect(skill).toMatch(/discovery\s+→ list_textures\(diagnostics=false\)/i);
     expect(skill).toMatch(/face mapping\s+→ inspect_elements\(mode=detail\) only when needed/i);
@@ -157,7 +156,7 @@ describe("texture production discipline", () => {
 
   test("texturing uses consolidated material facade instead of public primitive aliases", async () => {
     const [skill, docs] = await Promise.all([
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("docs/api.json"),
     ]);
     expect(skill).toContain("manage_material");
@@ -170,7 +169,7 @@ describe("texture production discipline", () => {
   });
 
   test("Texturing keeps semantic ownership while using shared AUTHORING capabilities for upstream correction", async () => {
-    const skill = await source("../.agents/skills/blockit-bedrock-texturing/SKILL.md");
+    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
     expect(skill).toContain("Geometry/UV capabilities remain callable for bounded upstream correction");
     expect(skill).toContain("must not borrow Cube mutation");
     expect(skill).toContain("No Geometry↔Texturing phase switch");
