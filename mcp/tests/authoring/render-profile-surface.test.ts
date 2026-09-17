@@ -40,9 +40,9 @@ describe("render profile authoring surface", () => {
 
   test("texturing guidance routes runtime render behavior without renaming the PBR facade", async () => {
     const [skill, renderStandard, surfaceStandard] = await Promise.all([
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
-      source("../docs/foundation/11-render-profile-standard.md"),
-      source("../docs/foundation/12-surface-pattern-standard.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      source("../docs/03-authoring/texture/render-profile.md"),
+      source("../docs/03-authoring/texture/surface-pattern.md"),
     ]);
 
     expect(renderStandard).toContain("manage_render_profile");
