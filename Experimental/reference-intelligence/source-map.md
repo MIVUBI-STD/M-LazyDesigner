@@ -107,31 +107,29 @@ Observed workflow principles:
 - geometry should not be split merely because color changes;
 - dense voxel/cuboid accumulation is explicitly discouraged.
 
-### Valuable comparison against LazyDesigner
+### Deep audit result
 
-Several principles independently converge with existing LazyDesigner direction:
+Orca's strongest transferable value is not its compiler pipeline. LazyDesigner already has a more direct native Blockbench authoring/correction path and already separates technical validity from visual fidelity.
 
-```text
-reasoning authority != compiler/tool authority
-technical validity != visual acceptance
-reference analysis before mutation
-correct source/specification rather than patching generated output
-quality review from rendered evidence
-```
+The deep audit therefore rejects a second model-spec/compiler workflow and keeps only three task-local reasoning ideas for experimentation:
 
-Potential ideas to test, not copy blindly:
+1. **explicit uncertainty ownership** — record hidden/unseen/ambiguous evidence only when it can materially change construction or acceptance;
+2. **identity-critical feature ownership** — track the smallest feature set whose loss would materially reduce recognizability, with `GEOMETRY | TEXTURE | ANIMATION | MIXED` ownership;
+3. **risk-derived review targets** — choose the smallest proving view set from the diagnosed risk/difference rather than a universal screenshot checklist.
 
-1. explicit `uncertainty` recording for hidden/unseen geometry;
-2. preview-before-final-build for high-ambiguity geometry;
-3. separate geometry/anatomy specification from deterministic format emission where that reduces correction cost;
-4. explicit quality rubric targets for silhouette, proportions, attachments, identity features, and texture density;
-5. prohibit geometry splitting driven only by color/material boundaries unless transform/shape requirements justify it.
+Cross-domain support also strengthened this broader candidate principle:
 
-Important divergence:
+> geometry boundaries should be caused by form, articulation, attachment, deformation, state, or required spatial separation—not merely by appearance/color changes.
 
-Orca describes preferred cuboid-count ranges and specific route selection rules for its own compiler. These are system-specific heuristics, not LazyDesigner rules. LazyDesigner must not inherit fixed cube-count targets or alternate image-to-mesh routes merely because another system uses them.
+Important divergences retained:
 
-Status: `ACCEPTED_FOR_WORKFLOW_COMPARISON`.
+- fixed cuboid-count targets are not LazyDesigner quality rules;
+- mandatory Three.js preview is not required;
+- Orca's Route 1/2/3 architecture is not adopted;
+- a separate deterministic model-spec compiler is not adopted;
+- fixed all-angle render lists are not adopted because LazyDesigner uses Minimum Necessary Evidence.
+
+Status: `MINED_FOR_WORKFLOW_PATTERN`. See `orca-workflow-study.md`.
 
 ## S5 — FreeMinecraftModels / similar `.bbmodel` runtimes
 
@@ -162,17 +160,20 @@ Status: `DEFERRED` until a concrete LazyDesigner authoring question requires run
 | animation choreography | strong | strong | methodology | low | good cross-corpus evidence |
 | pivot/parent semantics | strong | strong | strong authority | moderate | very good |
 | agent reasoning workflow | low | low | low | strong | good |
-| visual acceptance methodology | moderate | moderate | low | strong | good |
+| visual acceptance methodology | moderate | moderate | low | strong | strong cross-system convergence |
+| uncertainty handling | moderate | implicit | low | strong | candidate improvement identified |
+| identity-feature preservation | moderate | implicit | low | strong | candidate improvement identified |
+| review evidence selection | strong | low | low | moderate | LazyDesigner stronger; Orca adds contract framing |
 | simple prop discipline | weak | weak | low | moderate | still missing |
 | furniture/environment prop | weak | weak | low | moderate | still missing |
 | texture craftsmanship | strong hard-surface | candidate organic | low | methodology | needs cross-domain study |
 
 ## Next Research Order
 
-1. Audit Orca's quality rubric/model specification for workflow ideas that reduce `Cost to Accepted Result` without creating a second LazyDesigner system.
-2. Search specifically for a high-quality simple-prop/furniture corpus; do not use old LazyDesigner fixtures as craftsmanship evidence.
-3. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
-4. Convert mechanical + organic findings into a compact cross-domain candidate role vocabulary, then test whether the vocabulary reduces correction ambiguity without increasing routine context.
+1. Search specifically for a high-quality simple-prop/furniture/environment corpus; do not use old LazyDesigner fixtures as craftsmanship evidence.
+2. Convert mechanical + organic findings into a compact cross-domain candidate role vocabulary, then test whether the vocabulary reduces correction ambiguity without increasing routine context.
+3. Test Orca-derived compact uncertainty + identity-feature + review-target metadata on LazyDesigner-owned validation assets before any canonical promotion.
+4. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
 5. Keep all candidate rules on `Ref` until a current-quality LazyDesigner-owned validation asset exists.
 
 ## Promotion Rule
