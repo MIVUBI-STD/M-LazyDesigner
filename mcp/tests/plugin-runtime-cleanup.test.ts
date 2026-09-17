@@ -19,10 +19,11 @@ describe("pre-local plugin runtime cleanup", () => {
   });
 
   test("plugin uses unique install identity and does not report ready before TCP bind", async () => {
-    const [index, runtimeHost, tools, net] = await Promise.all([
+    const [index, runtimeHost, tools, phaseControl, net] = await Promise.all([
       source("index.ts"),
       source("plugin/runtimeHost.ts"),
       source("server/tools.ts"),
+      source("server/runtime/phaseControl.ts"),
       source("server/net.ts"),
     ]);
 
@@ -45,13 +46,13 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(startCall).toBeGreaterThan(-1);
     expect(readyUi).toBeGreaterThan(startCall);
 
-    expect(tools).toMatch(/if \(!phaseSwitchHandler\).*throw/);
-    expect(tools).toContain("requestMcpPhaseSwitch");
-    expect(tools).not.toContain("phaseSwitchHandler(target_phase)");
+    expect(phaseControl).toMatch(/if \(!phaseSwitchHandler\).*throw/s);
+    expect(phaseControl).toContain("requestMcpPhaseSwitch");
+    expect(phaseControl).toContain("phaseSwitchHandler(phase)");
     expect(net).toContain("requestedAuthoringPhase === null");
     expect(net).toContain("requestMcpPhaseSwitch(envelope.targetAuthoringPhase)");
     expect(tools).not.toContain("surface_changed: true");
-    expect(tools).toContain("reload_required: false");
+    expect(phaseControl).toContain("reload_required: false");
   });
 
   test("phase switching follows the current profile and keeps Gateway clients stable", async () => {
