@@ -68,14 +68,14 @@ describe("Codex Bedrock agent legibility contract", () => {
     expect(animation).toMatch(/Bedrock Entity animation|animation/i);
   });
 
-  test("common Geometry choices remain explicit in the modelling specialist while Control owns routing", async () => {
+  test("common Geometry choices remain explicit in the modelling specialist while coordinate semantics stay centrally owned", async () => {
     const [control, modelling] = await Promise.all([
       source("gateway/control/packet.ts"),
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
     ]);
 
     expect(control).toContain("contextForAuthoringDomain");
-    expect(modelling).toContain("1 Minecraft block = 16 Blockbench units");
+    expect(BEDROCK_AUTHORING_COORDINATE_CONTRACT).toContain("16 Blockbench units=1 Minecraft block");
     expect(modelling).toContain("front_direction");
     expect(modelling).toContain("add_group");
     expect(modelling).toContain("reparent_element");
