@@ -57,7 +57,7 @@ describe("BlockIT Gateway contract", () => {
     );
     expect(classifyCapabilityTier(tools[0]!)).toBe("primary");
     expect(classifyCapabilityTier(tools[1]!)).toBe("support");
-    expect(classifyCapabilityTier(tools[2]!)).toBe("experimental");
+    expect(classifyCapabilityTier(tools[2]!)).toBe("support");
     expect(classifyCapabilityTier(tools[3]!)).toBe("maintenance");
   });
 
@@ -125,7 +125,7 @@ describe("BlockIT Gateway contract", () => {
     });
   });
 
-  test("experimental 3D Evidence remains discoverable only when relevant", () => {
+  test("3D Evidence support remains discoverable only when relevant", () => {
     const tools: BackendTool[] = [
       {
         name: "manage_geometry_reference",
@@ -139,7 +139,7 @@ describe("BlockIT Gateway contract", () => {
 
     expect(searchCapabilityCatalog(tools, "approved GLB evidence", 10)[0]).toMatchObject({
       capability_id: "manage_geometry_reference",
-      tier: "experimental",
+      tier: "support",
     });
   });
 
@@ -419,7 +419,9 @@ describe("BlockIT Gateway contract", () => {
   test("phase handoff invalidates only backend state and explicitly keeps the client task alive", async () => {
     const backendSource = await Bun.file("gateway/backend.ts").text();
 
-    expect(backendSource).toContain('capability === "switch_authoring_phase"');
+    expect(backendSource).toContain("resolveGatewayCapabilityEffects");
+    expect(backendSource).toContain('application.effects.phaseAffinity === "update_from_result"');
+    expect(backendSource).toContain("application.effects.invalidateCatalog || affinityChanged");
     expect(backendSource).toContain("await this.closeConnectionUnsafe()");
     expect(backendSource).toContain("gateway_catalog_invalidated: true");
     expect(backendSource).toContain("client_reconnect_required: false");
@@ -437,7 +439,7 @@ describe("BlockIT Gateway contract", () => {
     expect(source).toContain("compactGatewayCapabilityStructuredContent");
     expect(source).toContain("projectCapabilityInputSchema");
     expect(source).toContain("inputSchema: projection.inputSchema");
-    expect(source).toContain('max(50).default(4)');
+    expect(source).toContain(".default(CONTROL_ROUTING_POLICY.search_limit)");
     expect(backendSource).toMatch(/searchCapabilities\(\s*query: string,\s*limit: number = 4/);
     expect(source).toContain("Runtime resources and prompts are not proxied");
     expect(source).not.toContain("structuredContent: { capability: tool }");
