@@ -112,7 +112,8 @@ No automatic atlas compaction is required for acceptance. Compaction is only jus
 
 When Animation is required:
 
-- `inspect_animation(diagnostics=true)` returns existing animation/root-motion evidence plus `motion_craft_evidence`;
+- `inspect_animation(animation_id=<target>)` or the selected authored Animation returns existing animation/root-motion evidence plus `motion_craft_evidence`;
+- `bone`, `state`, and `include_effect_keyframes` are used only when their focused detail is actually required; no invented diagnostics flag is part of this call;
 - lockstep multi-bone timing and dense sampling are treated as review hints, never automatic failures;
 - action intent establishes applicable anticipation/action-or-impact/follow-through/recovery phases without turning the phase scaffold into a mandatory keyframe checklist;
 - contact/attachment invariants are inspected only for participating relationships;
