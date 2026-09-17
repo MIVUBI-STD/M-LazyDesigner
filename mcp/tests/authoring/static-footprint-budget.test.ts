@@ -51,7 +51,8 @@ describe("static footprint budget", () => {
     expect(brief).toContain("Authoring Efficiency");
     expect(brief).toContain("Static Footprint");
     expect(brief).toContain("Cost to Accepted Result");
-    expect(implementation).toContain("Cost to Accepted Result");
+    expect(implementation).toContain("one authoring system");
+    expect(implementation).toContain("Static Footprint").toBe(false);
     expect(runbook.toLowerCase()).toContain("authoring efficiency");
     expect(validation.toLowerCase()).toMatch(/static.*payload|payload.*static/);
   });
