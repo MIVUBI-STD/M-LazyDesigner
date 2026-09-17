@@ -52,8 +52,8 @@ jobs:
         with:
           bun-version-file: ".bun-version"
 
-      - name: Install runtime dependencies from lockfile
-        run: bun install --frozen-lockfile --production
+      - name: Install test dependencies from lockfile
+        run: bun install --frozen-lockfile
 
       - name: Verify authoring policy and routing
         run: bun run verify:authoring
