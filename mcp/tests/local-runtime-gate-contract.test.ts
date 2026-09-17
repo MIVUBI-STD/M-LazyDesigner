@@ -157,13 +157,13 @@ describe("local runtime gate source contract", () => {
     ]);
 
     expect(readme).toContain("dist/blockit_mcp.js");
-    expect(readme).toContain("build_identity");
-    expect(readme).toContain("HANDOFF_REQUIRED");
-    expect(readme).toContain("previous 3D-assisted/Hunyuan/PrimitiveAnything modelling path is retired");
+    expect(readme).toContain("AUTHORING↔Animation handoff");
+    expect(readme).toContain("retired 3D-assisted/Hunyuan/PrimitiveAnything path");
 
     expect(runbook).toContain("cd mcp");
     expect(runbook).toContain("bun run deploy:local");
     expect(runbook).toContain("bun run verify:stateless-local");
+    expect(runbook).toContain("build_identity");
     expect(runbook).toContain("UV Layout PASS");
     expect(runbook).toContain("Synthetic readiness never proves user asset approval");
   });
