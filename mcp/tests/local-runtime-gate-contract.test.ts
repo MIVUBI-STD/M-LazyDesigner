@@ -157,7 +157,9 @@ describe("local runtime gate source contract", () => {
     ]);
 
     expect(readme).toContain("dist/blockit_mcp.js");
-    expect(readme).toContain("AUTHORING↔Animation handoff");
+    expect(readme).toContain("AUTHORING↔Animation");
+    expect(readme).toContain("HANDOFF_REQUIRED");
+    expect(readme).toContain("switch_authoring_phase");
     expect(readme).toContain("retired 3D-assisted/Hunyuan/PrimitiveAnything path");
 
     expect(runbook).toContain("cd mcp");
