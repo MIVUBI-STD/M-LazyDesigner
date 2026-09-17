@@ -7,7 +7,7 @@ async function source(path: string): Promise<string> {
 describe("texture visual convergence contract", () => {
   test("active guidance requires fresh atlas and mapped model-view evidence", async () => {
     const [skill, workflow, texture, camera] = await Promise.all([
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
       source("server/tools/texture.ts"),
       source("server/tools/camera.ts"),
@@ -39,9 +39,9 @@ describe("texture visual convergence contract", () => {
 
   test("local texture correction proves qualitative direction instead of mutation activity", async () => {
     const [skill, workflow, validation] = await Promise.all([
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
-      source("../docs/foundation/07-visual-validation.md"),
+      source("../docs/03-authoring/validation/visual.md"),
     ]);
 
     for (const text of [skill, workflow]) {
@@ -57,7 +57,7 @@ describe("texture visual convergence contract", () => {
   test("visual convergence stays on existing evidence and Painter surfaces", async () => {
     const [profile, skill, workflow] = await Promise.all([
       source("lib/registrationProfile.ts"),
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
 
