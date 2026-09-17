@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("pre-local usage optimization contract", () => {
   test("repository work states the real contract before one coherent delivery", async () => {
-    const brief = await source("../.agents/skills/development-brief/SKILL.md");
+    const brief = await source("../.agents/skills/lazydesigner-development-brief/SKILL.md");
     expect(brief).toContain("State the contract");
     expect(brief).toContain("Preflight regressions");
     expect(brief).toContain("Success Metric");
@@ -70,7 +70,7 @@ describe("pre-local usage optimization contract", () => {
     const [profile, prompts, brief] = await Promise.all([
       source("lib/registrationProfile.ts"),
       source("server/prompts.ts"),
-      source("../.agents/skills/development-brief/SKILL.md"),
+      source("../.agents/skills/lazydesigner-development-brief/SKILL.md"),
     ]);
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
     expect(profile).not.toContain("lean_mode");
