@@ -113,7 +113,7 @@ function animationCraftRuntime(structuredContent: JsonRecord) {
   return analyzeAnimationCraftEvidence({ length: animation.length, tracks });
 }
 
-type EvidenceReader = (structuredContent: JsonRecord) => unknown;
+type EvidenceReader = (structuredContent: JsonRecord, args: unknown) => unknown;
 
 function wire(toolName: string, field: string, read: EvidenceReader): void {
   const key = `${toolName}:${field}`;
@@ -126,9 +126,11 @@ function wire(toolName: string, field: string, read: EvidenceReader): void {
     const record = objectRecord(result);
     const structured = record ? objectRecord(record.structuredContent) : null;
     if (!structured) return result;
+    const evidence = read(structured, args);
+    if (evidence === undefined) return result;
     return {
       ...record,
-      structuredContent: { ...structured, [field]: read(structured) },
+      structuredContent: { ...structured, [field]: evidence },
     } as typeof result;
   };
   wired.add(key);
@@ -137,6 +139,8 @@ function wire(toolName: string, field: string, read: EvidenceReader): void {
 /** Adds read-only deterministic evidence without expanding the public MCP catalog. */
 export function wireAuthoringEvidenceRuntime(): void {
   wire("inspect_model_bounds", "surface_integrity", () => geometrySurfaceRuntime());
-  wire("list_textures", "physical_uv_evidence", () => uvPhysicalRuntime());
-  wire("inspect_animation", "motion_craft_evidence", animationCraftRuntime);
+  wire("list_textures", "physical_uv_evidence", (_structured, args) =>
+    objectRecord(args)?.diagnostics === true ? uvPhysicalRuntime() : undefined
+  );
+  wire("inspect_animation", "motion_craft_evidence", (structured) => animationCraftRuntime(structured));
 }
