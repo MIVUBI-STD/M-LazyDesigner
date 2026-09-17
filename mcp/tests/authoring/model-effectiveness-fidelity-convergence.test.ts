@@ -39,7 +39,8 @@ describe("model creation effectiveness — fidelity convergence and evaluation i
       source("../docs/02-reference/policy.md"),
       source("../docs/03-authoring/validation/visual.md"),
     ]);
-    expect(normalized(reference)).toContain("actual approved reference image");
+    expect(normalized(reference)).toContain("approved visual reference");
+    expect(normalized(reference)).toContain("visible source evidence");
     expect(normalized(validation)).toContain("actual approved reference image");
     expect(normalized(validation)).toContain("fresh current-revision model");
     expect(normalized(validation)).toContain("difference-first");
