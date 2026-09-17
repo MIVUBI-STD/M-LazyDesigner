@@ -93,15 +93,16 @@ describe("LazyDesigner asset routing", () => {
     }
   });
 
-  test("internal extended registration identifier remains debug compatibility only", async () => {
+  test("internal extended registration identifier remains developer compatibility only", async () => {
     const [profile, settings] = await Promise.all([
       source("lib/registrationProfile.ts"),
       source("ui/settings.ts"),
     ]);
 
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
-    expect(settings).toContain('name: "Legacy UI Fallbacks (Debug)"');
-    expect(settings).toContain("not an authoring profile");
+    expect(settings).toContain('name: "Legacy Compatibility (Developer)"');
+    expect(settings).toContain("Troubleshooting support for older or generic Blockbench workflows");
+    expect(settings).toContain("Leave this off for normal use");
     expect(profile).not.toContain("routing_state");
   });
 });
