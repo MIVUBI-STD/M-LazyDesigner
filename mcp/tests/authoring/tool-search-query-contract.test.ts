@@ -2,20 +2,19 @@ import { describe, expect, test } from "bun:test";
 
 describe("Gateway capability discovery contract", () => {
   test("routing invokes known capabilities directly and defers discovery only for unknown/stale capability", async () => {
-    const [skill, routedEval, gateway] = await Promise.all([
-      Bun.file("../.agents/skills/blockit-bedrock-entity-mcp/SKILL.md").text(),
+    const [policy, routedEval, gateway] = await Promise.all([
+      Bun.file("gateway/control/routingPolicy.ts").text(),
       Bun.file("scripts/evaluate-routed-tool-loading.ts").text(),
       Bun.file("gateway/contract.ts").text(),
     ]);
 
-    expect(skill).toContain("deferred spec loading after routing");
-    expect(skill).toContain("known exact capability   → invoke directly");
-    expect(skill).toMatch(/one precise `?search_capabilities`? query/i);
-    expect(skill).toContain("`limit=4`");
-    expect(skill).toContain("`describe_capability` once");
-    expect(skill).toContain("One precise search miss");
-    expect(skill).toContain("reformulate once");
-    expect(skill).not.toContain("tool_search");
+    expect(policy).toContain('strategy: "DIRECT_FIRST"');
+    expect(policy).toContain('known_capability: "INVOKE_CAPABILITY"');
+    expect(policy).toContain('unknown_capability: "SEARCH_CAPABILITIES"');
+    expect(policy).toContain('schema_uncertain: "DESCRIBE_CAPABILITY"');
+    expect(policy).toContain('stale_or_lost_context: "STATUS"');
+    expect(policy).toContain("search_limit: 4");
+    expect(policy).not.toContain("tool_search");
 
     expect(gateway).toContain("searchCapabilityCatalog");
     expect(gateway).toContain("CapabilityTier");
