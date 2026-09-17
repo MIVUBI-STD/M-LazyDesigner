@@ -62,7 +62,11 @@ function uvPhysicalRuntime() {
         face: faceName,
         cube_size: size,
         uv: [...face.uv],
-        texture_uuid: texture?.uuid ?? (typeof face.texture === "string" ? face.texture : null),
+        texture_uuid: texture && texture !== false
+          ? texture.uuid
+          : typeof face.texture === "string"
+            ? face.texture
+            : null,
       });
     }
   }
