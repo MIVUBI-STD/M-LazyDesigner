@@ -36,29 +36,31 @@ Bias warning: weapon/mechanical-heavy. Never use this corpus alone to generalize
 
 ## S2 — Mowzie's Mobs Public
 
-Class: `CRAFTSMANSHIP_CORPUS` candidate for creature/humanoid study.
+Class: `CRAFTSMANSHIP_CORPUS` for organic/humanoid study.
 
 Observed source characteristics:
 
 - repository exposes raw `.bbmodel` authoring files in its `assets/` directory;
-- examples include player/humanoid authoring material and creature/boss-oriented Blockbench projects;
-- public source therefore permits structural inspection without reverse-engineering a compiled model format.
+- current model-side code exposes semantic bone/control usage for selected characters;
+- Umvuthi materially demonstrates distributed anatomy, phase-offset idle motion, secondary-motion families, soft-volume response, and spatially varied repeated appendages;
+- Sculptor materially demonstrates humanoid anatomy, state-visible geometry variants, attachment ownership, dynamic chains, and corrective garment/deformation relationships;
+- Biloko remains pending deeper validation and contributes no generalized rule yet.
 
-Research targets:
+Primary generic findings:
 
-1. organic/creature segment decomposition;
-2. torso/limb/head hierarchy;
-3. joint placement and rotation-friendly overlap;
-4. expressive secondary structures;
-5. large-character silhouette control;
-6. humanoid/player rig organization;
-7. contrast with Daffa's mechanically driven hierarchy.
+1. organic decomposition requires articulation and deformation responsibility in addition to independent transforms;
+2. visible actions may be distributed across anatomical chains;
+3. phase offsets and spatial variation are first-class secondary-motion tools;
+4. primary motion and secondary response should be distinguished;
+5. garments/flexible accessories may act as corrective followers of nearby anatomy;
+6. paired anatomy may share structure without identical animation timing;
+7. attachment/state presentation should remain separable from core anatomy when materially required.
 
 Rights boundary:
 
-The repository license states all rights reserved unless explicitly stated otherwise and places conditions on public use. Treat all asset study as analysis-only. Do not copy model, texture, animation, name, character design, or other asset content into LazyDesigner.
+The repository license states all rights reserved unless explicitly stated otherwise and places conditions on public use. Treat all asset study as analysis-only. Do not copy model, texture, animation, name, character design, code, or other asset content into LazyDesigner.
 
-Status: `ACCEPTED_FOR_ANALYSIS`, not yet mined into candidate rules.
+Status: `MINED_FOR_OBSERVATION_AND_PATTERN`. See `mowzies-organic-study.md`.
 
 ## S3 — GeckoLib Official Documentation
 
@@ -153,23 +155,25 @@ Status: `DEFERRED` until a concrete LazyDesigner authoring question requires run
 | --- | --- | --- | --- | --- | --- |
 | hard-surface geometry | strong | low | methodology only | moderate | good |
 | mechanical rigging | strong | low | methodology | moderate | good |
-| creature anatomy | low | strong candidate | methodology | moderate | needs mining |
-| humanoid rigging | low | strong candidate | methodology | moderate | needs mining |
-| animation choreography | strong | strong candidate | methodology | low | needs cross-corpus test |
-| pivot/parent semantics | strong | strong candidate | strong authority | moderate | very good |
+| creature anatomy | low | strong | methodology | moderate | good candidate evidence |
+| humanoid rigging | low | strong | methodology | moderate | good candidate evidence |
+| secondary/organic motion | low | strong | methodology | low | good candidate evidence |
+| corrective deformation | low | strong | low | low | newly covered |
+| animation choreography | strong | strong | methodology | low | good cross-corpus evidence |
+| pivot/parent semantics | strong | strong | strong authority | moderate | very good |
 | agent reasoning workflow | low | low | low | strong | good |
-| visual acceptance methodology | moderate | unknown | low | strong | good |
+| visual acceptance methodology | moderate | moderate | low | strong | good |
 | simple prop discipline | weak | weak | low | moderate | still missing |
 | furniture/environment prop | weak | weak | low | moderate | still missing |
 | texture craftsmanship | strong hard-surface | candidate organic | low | methodology | needs cross-domain study |
 
 ## Next Research Order
 
-1. Mine selected Mowzie `.bbmodel` projects for organic/humanoid hierarchy patterns.
-2. Compare those findings against Daffa patterns and GeckoLib methodology.
-3. Extract only patterns that survive mechanical vs organic contrast.
-4. Audit Orca's quality rubric/model specification for workflow ideas that reduce `Cost to Accepted Result` without creating a second LazyDesigner system.
-5. Search specifically for a high-quality simple-prop/furniture corpus; do not use old LazyDesigner fixtures as craftsmanship evidence.
+1. Audit Orca's quality rubric/model specification for workflow ideas that reduce `Cost to Accepted Result` without creating a second LazyDesigner system.
+2. Search specifically for a high-quality simple-prop/furniture corpus; do not use old LazyDesigner fixtures as craftsmanship evidence.
+3. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
+4. Convert mechanical + organic findings into a compact cross-domain candidate role vocabulary, then test whether the vocabulary reduces correction ambiguity without increasing routine context.
+5. Keep all candidate rules on `Ref` until a current-quality LazyDesigner-owned validation asset exists.
 
 ## Promotion Rule
 
