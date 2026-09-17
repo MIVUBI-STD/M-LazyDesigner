@@ -1,6 +1,7 @@
 import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
 import { registerMcpProfile } from "./registration";
 import { wireAuthoringQualityIntelligence } from "../tools/quality-intelligence";
+import { wireAuthoringEvidenceRuntime } from "../tools/quality-evidence-runtime";
 import { wireTextureQualityRuntime } from "../tools/texture-quality-runtime";
 import { wireTextureAuthoringRuntime } from "../tools/texture-authoring-runtime";
 import { wireTextureAlphaRuntime } from "../tools/texture-alpha-runtime";
@@ -23,6 +24,7 @@ export function initializeRuntimeCapabilityWiring(): void {
   initialized = true;
 
   wireAuthoringQualityIntelligence();
+  wireAuthoringEvidenceRuntime();
   wireTextureQualityRuntime();
   wireTextureAuthoringRuntime();
   wireTextureAlphaRuntime();
