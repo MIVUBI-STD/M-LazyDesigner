@@ -31,6 +31,7 @@ import {
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
 
+// Runtime resources and prompts are not proxied; the Gateway intentionally exposes only its four stable tools.
 const server = new McpServer(
   {
     name: GATEWAY_NAME,
