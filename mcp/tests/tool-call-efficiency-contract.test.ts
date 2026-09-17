@@ -6,7 +6,7 @@ async function read(path: string): Promise<string> {
 }
 
 function normalized(value: string): string {
-  return value.replace(/\s+/g, " ").toLowerCase();
+  return value.replace(/`/g, "").replace(/\s+/g, " ").toLowerCase();
 }
 
 describe("authoring tool-call efficiency contract", () => {
@@ -24,7 +24,7 @@ describe("authoring tool-call efficiency contract", () => {
     expect(texturing).toContain("direct routing");
     expect(texturing).toContain("no evidence-per-micro-mutation loop");
     expect(animation).toContain("direct routing");
-    expect(animation).toContain("do not call `inspect_animation` after every successful deterministic mutation");
+    expect(animation).toContain("do not call inspect_animation after every successful deterministic mutation");
     expect(evaluation).toContain("there is no universal fixed tool-call count");
   });
 
@@ -48,9 +48,9 @@ describe("authoring tool-call efficiency contract", () => {
     ]).then((values) => values.map(normalized));
 
     expect(texturing).toContain("search_capabilities(limit=4)");
-    expect(animation).toContain("known → gateway; unknown/stale → `search_capabilities`");
-    expect(modelling).toContain("same causal correction failing twice without new evidence → `blocked`");
-    expect(texturing).toContain("same texture-owned causal direction twice without new evidence → `blocked`");
+    expect(animation).toContain("known → gateway; unknown/stale → search_capabilities");
+    expect(modelling).toContain("same causal correction failing twice without new evidence → blocked");
+    expect(texturing).toContain("same texture-owned causal direction twice without new evidence → blocked");
     expect(source).toContain("same diagnosed cause twice");
     expect(source).toContain("blocked unless new decision-changing evidence exists");
   });
