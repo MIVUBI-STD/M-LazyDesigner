@@ -186,13 +186,15 @@ These are `CANDIDATE_RULE`, not canonical policy yet.
 
 ## Required Validation Before Promotion
 
-Test candidate rules on unrelated Bedrock-targeted asset families, at minimum:
+Test candidate rules on unrelated Bedrock-targeted asset families using only references/assets that are current and considered sufficiently strong quality benchmarks, at minimum:
 
-- a mechanical object such as Lift;
-- a humanoid/NPC rig;
+- a high-quality mechanical object with meaningful moving parts;
+- a high-quality humanoid/NPC rig;
 - a simple prop with little or no animation;
 - an organic/non-mechanical object;
 - one asset where over-rigging would clearly be harmful.
+
+Do not use deprecated, old, merely functional, or known-subpar LazyDesigner fixtures as quality authority. Such assets may be inspected only as historical implementation evidence when explicitly useful, never as a benchmark for craftsmanship or visual quality.
 
 For each test compare:
 
