@@ -3,6 +3,7 @@
 import { getAllToolDefinitions } from "@/lib/factories";
 import { analyzeAxisAlignedSurfaceEvidence } from "@/lib/geometrySurfaceEvidence";
 import { analyzeUvPhysicalEvidence, type UvPhysicalFaceInput } from "@/lib/uvPhysicalEvidence";
+import { analyzeAnimationCraftEvidence, type AnimationCraftTrackInput } from "@/lib/animationCraftEvidence";
 
 type JsonRecord = Record<string, unknown>;
 const FACE_KEYS = ["north", "south", "east", "west", "up", "down"] as const;
@@ -77,7 +78,40 @@ function uvPhysicalRuntime() {
   };
 }
 
-function wire(toolName: string, field: string, read: () => unknown): void {
+function animationCraftRuntime(structuredContent: JsonRecord) {
+  if (typeof AnimationItem === "undefined" || typeof BoneAnimator === "undefined") {
+    return { state: "unavailable" as const, reason: "authored_animation_runtime_unavailable" as const };
+  }
+  const animationInfo = objectRecord(structuredContent.animation);
+  const animationUuid = typeof animationInfo?.uuid === "string" ? animationInfo.uuid : null;
+  if (!animationUuid) {
+    return { state: "unavailable" as const, reason: "authored_animation_identity_unavailable" as const };
+  }
+  const item = (AnimationItem.all as unknown[]).find((candidate) => objectRecord(candidate)?.uuid === animationUuid) as _Animation | AnimationController | undefined;
+  if (!item || (typeof AnimationController !== "undefined" && item instanceof AnimationController)) {
+    return { state: "unavailable" as const, reason: "authored_animation_not_resolved" as const };
+  }
+  const animation = item as _Animation;
+  const tracks: AnimationCraftTrackInput[] = [];
+  for (const animator of Object.values(animation.animators)) {
+    if (!(animator instanceof BoneAnimator)) continue;
+    for (const channel of ["position", "rotation", "scale"] as const) {
+      const keys = (animator[channel] as _Keyframe[] | undefined) ?? [];
+      if (!keys.length) continue;
+      tracks.push({
+        group_uuid: animator.uuid,
+        group_name: animator.name,
+        channel,
+        keyframe_times: keys.map((key) => key.time),
+      });
+    }
+  }
+  return analyzeAnimationCraftEvidence({ length: animation.length, tracks });
+}
+
+type EvidenceReader = (structuredContent: JsonRecord) => unknown;
+
+function wire(toolName: string, field: string, read: EvidenceReader): void {
   const key = `${toolName}:${field}`;
   if (wired.has(key)) return;
   const definition = getAllToolDefinitions()[toolName];
@@ -90,7 +124,7 @@ function wire(toolName: string, field: string, read: () => unknown): void {
     if (!structured) return result;
     return {
       ...record,
-      structuredContent: { ...structured, [field]: read() },
+      structuredContent: { ...structured, [field]: read(structured) },
     } as typeof result;
   };
   wired.add(key);
@@ -98,6 +132,7 @@ function wire(toolName: string, field: string, read: () => unknown): void {
 
 /** Adds read-only deterministic evidence without expanding the public MCP catalog. */
 export function wireAuthoringEvidenceRuntime(): void {
-  wire("inspect_model_bounds", "surface_integrity", geometrySurfaceRuntime);
-  wire("list_textures", "physical_uv_evidence", uvPhysicalRuntime);
+  wire("inspect_model_bounds", "surface_integrity", () => geometrySurfaceRuntime());
+  wire("list_textures", "physical_uv_evidence", () => uvPhysicalRuntime());
+  wire("inspect_animation", "motion_craft_evidence", animationCraftRuntime);
 }
