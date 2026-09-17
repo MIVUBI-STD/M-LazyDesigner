@@ -6,9 +6,9 @@ async function source(path: string): Promise<string> {
 
 describe("texture render and material quality closure", () => {
   test("specialist closes technical alignment after face coverage without adding visual-score proxies", async () => {
-    const [skill, foundation] = await Promise.all([
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
-      source("../docs/foundation/06-texture-standard.md"),
+    const [skill, standard] = await Promise.all([
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      source("../docs/03-authoring/texture/standard.md"),
     ]);
     for (const marker of [
       "Face Coverage Ledger",
@@ -34,14 +34,14 @@ describe("texture render and material quality closure", () => {
       "Green=Emissive",
       "Blue=Roughness",
       "production_alignment.gate",
-    ]) expect(foundation).toContain(marker);
+    ]) expect(standard).toContain(marker);
   });
 
   test("texture alignment stays metadata-only and material corrections reuse existing MCP surfaces", async () => {
-    const [alignment, runtime, server] = await Promise.all([
+    const [alignment, runtime, bootstrap] = await Promise.all([
       source("lib/textureProductionAlignment.ts"),
       source("server/tools/texture-quality-runtime.ts"),
-      source("server/server.ts"),
+      source("server/runtime/bootstrap.ts"),
     ]);
     expect(alignment).toContain("metadata_only: true");
     expect(alignment).toContain("extra_pixel_scan: false");
@@ -50,6 +50,6 @@ describe("texture render and material quality closure", () => {
     expect(runtime).toContain('runtimeDefinition("manage_material")');
     expect(runtime).toContain("planPbrMaterialConfiguration");
     expect(runtime).toContain('color_texture="none"');
-    expect(server).toContain("wireTextureQualityRuntime()");
+    expect(bootstrap).toContain("wireTextureQualityRuntime()");
   });
 });
