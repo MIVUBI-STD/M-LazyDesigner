@@ -5,10 +5,10 @@ async function source(path: string): Promise<string> {
 }
 
 describe("texture design reasoning", () => {
-  test("foundation separates UV Layout, Texture Atlas, Texture Styling, and Texture Verify", async () => {
-    const standard = await source("../docs/foundation/06-texture-standard.md");
-    const modelling = await source("../.agents/skills/blockbench-bedrock-modelling/SKILL.md");
-    const texturing = await source("../.agents/skills/blockit-bedrock-texturing/SKILL.md");
+  test("canonical texture standard separates UV Layout, Texture Atlas, Texture Styling, and Texture Verify", async () => {
+    const standard = await source("../docs/03-authoring/texture/standard.md");
+    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
+    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
 
     for (const term of [
       "UV LAYOUT",
@@ -29,7 +29,7 @@ describe("texture design reasoning", () => {
   });
 
   test("texture workflow requires staged material and form reasoning rather than a flat color fill", async () => {
-    const texturing = await source("../.agents/skills/blockit-bedrock-texturing/SKILL.md");
+    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
 
     for (const term of [
       "palette",
@@ -55,7 +55,7 @@ describe("texture design reasoning", () => {
   });
 
   test("texturing specialist closes a face coverage ledger before visual approval", async () => {
-    const texturing = await source("../.agents/skills/blockit-bedrock-texturing/SKILL.md");
+    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
 
     expect(texturing).toContain("Face Coverage Ledger");
     for (const state of [
@@ -97,8 +97,8 @@ describe("texture design reasoning", () => {
     expect(contract).toContain("texturing: AUTHORING_WORKFLOW_SECTIONS");
   });
 
-  test("texture foundation keeps crisp pixel-art alpha intentional", async () => {
-    const standard = await source("../docs/foundation/06-texture-standard.md");
+  test("texture standard keeps crisp pixel-art alpha intentional", async () => {
+    const standard = await source("../docs/03-authoring/texture/standard.md");
     expect(standard).toContain("default authored alpha intent is **0 or 255**");
     expect(standard).toContain("Intermediate alpha is valid only when material behavior requires translucency/blending");
   });
