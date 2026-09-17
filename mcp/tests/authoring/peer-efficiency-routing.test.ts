@@ -7,11 +7,12 @@ async function source(path: string): Promise<string> {
 describe("peer-inspired authoring efficiency routing", () => {
   test("Geometry reuses fresh cohort state and batches deterministic corrections", async () => {
     const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
-    expect(modelling).toMatch(/deterministic.*TRANSLATE|TRANSLATE.*deterministic/i);
-    expect(modelling).toMatch(/fresh state/i);
+    expect(modelling).toContain("TRANSLATE placement");
+    expect(modelling).toContain("Reuse fresh exact authored state");
     expect(modelling).toContain("manage_cubes");
-    expect(modelling).toMatch(/batch|cohort/i);
-    expect(modelling).toMatch(/absolute|fail-closed/i);
+    expect(modelling).toContain("one coherent `manage_cubes` batch");
+    expect(modelling).toContain("explicit UUID/name targeting");
+    expect(modelling).toContain("Do not create one Cube per MCP call");
   });
 
   test("Texturing keeps atlas lifecycle idempotent and avoids the provisional blank default", async () => {
