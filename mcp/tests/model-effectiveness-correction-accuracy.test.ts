@@ -148,8 +148,8 @@ describe("model creation effectiveness — correction accuracy", () => {
 
   test("modelling owner requires a declared invariant before numeric correction", async () => {
     const [geometry, modelling] = await Promise.all([
-      source("../docs/foundation/05-geometry-standard.md"),
-      source("../.agents/skills/blockbench-bedrock-modelling/SKILL.md"),
+      source("../docs/03-authoring/modelling/standard.md"),
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
     ]);
     for (const text of [geometry, modelling]) {
       expect(text.toLowerCase()).toContain("invariant");
