@@ -9,7 +9,7 @@ describe("on-demand texture authoring knowledge", () => {
     const [resource, index, skill] = await Promise.all([
       source("server/resources/texture-authoring-knowledge.ts"),
       source("server/index.ts"),
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
     ]);
 
     expect(index).toContain('import "./resources/texture-authoring-knowledge"');
