@@ -160,7 +160,8 @@ describe("local runtime gate source contract", () => {
     expect(readme).toContain("AUTHORING↔Animation");
     expect(readme).toContain("HANDOFF_REQUIRED");
     expect(readme).toContain("switch_authoring_phase");
-    expect(readme).toContain("retired 3D-assisted/Hunyuan/PrimitiveAnything path");
+    expect(readme).toContain("3D-assisted/Hunyuan/PrimitiveAnything");
+    expect(readme).toContain("modelling path is retired");
 
     expect(runbook).toContain("cd mcp");
     expect(runbook).toContain("bun run deploy:local");
