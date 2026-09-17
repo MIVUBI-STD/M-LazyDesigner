@@ -9,16 +9,18 @@ function normalized(text: string): string {
 }
 
 describe("model creation effectiveness — actual reference grounding", () => {
-  test("actual approved image is required; path, prose and memory cannot substitute", async () => {
+  test("actual approved image is required for visual judgement; policy preserves evidence authority", async () => {
     const [reference, modelling, workflow, validation] = await Promise.all([
       source("../docs/02-reference/policy.md"),
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
       source("../docs/03-authoring/validation/visual.md"),
     ]);
-    for (const text of [reference, modelling, validation]) {
-      const lower = normalized(text);
-      expect(lower).toContain("actual approved reference image");
+    const referenceLower = normalized(reference);
+    expect(referenceLower).toContain("approved visual reference");
+    expect(referenceLower).toContain("visible source evidence");
+    for (const text of [modelling, validation]) {
+      expect(normalized(text)).toContain("actual approved reference image");
     }
     expect(normalized(modelling)).toContain("active multimodal context");
     expect(normalized(modelling)).toMatch(/path\/prose\/memory[^.]*not visual evidence/);
