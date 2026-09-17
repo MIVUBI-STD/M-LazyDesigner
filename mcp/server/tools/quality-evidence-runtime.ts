@@ -62,7 +62,7 @@ function uvPhysicalRuntime() {
         face: faceName,
         cube_size: size,
         uv: [...face.uv],
-        texture_uuid: texture && texture !== false
+        texture_uuid: texture
           ? texture.uuid
           : typeof face.texture === "string"
             ? face.texture
