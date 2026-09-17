@@ -15,10 +15,13 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
     ]);
 
-    for (const text of [agents, flow, workspace]) {
+    for (const text of [agents, workspace]) {
       expect(text).toContain("Geometry APPROVED");
       expect(text).toContain("UV Layout PASS");
     }
+    expect(flow).toContain("USER GEOMETRY APPROVAL");
+    expect(flow).toContain("PRODUCTION UV LAYOUT");
+    expect(flow).toContain("TEXTURING");
     expect(workspace).toContain("Texturing cannot enter `IN_PROGRESS` until `UV Layout: PASS`");
     expect(control).toContain("GEOMETRY_APPROVAL_REQUIRED");
     expect(control).toContain("UV_LAYOUT_PASS_REQUIRED");
@@ -34,14 +37,10 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
     expect(animation.toLowerCase().replaceAll("/", " ")).toContain("participating hierarchy pivots are suitable");
   });
 
-  test("existing-asset baseline policy stays with authoring owners", async () => {
-    const [modelling, workflow] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../docs/03-authoring/workflow.md"),
-    ]);
-
+  test("existing-asset baseline policy stays with the modelling owner", async () => {
+    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
     expect(modelling).toMatch(/Existing geometry is a baseline, not fidelity proof/);
-    expect(workflow.toLowerCase()).toContain("existing-asset work may accept the current asset as the task baseline");
+    expect(modelling).toContain("Existing Assets / Shared Session");
   });
 
   test("Texturing can correct upstream Geometry/UV in-session; Animation still hands back", async () => {
