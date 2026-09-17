@@ -7,9 +7,9 @@ async function source(path: string): Promise<string> {
 
 describe("texture render-aware alpha runtime", () => {
   test("get_texture keeps render-aware alpha as opt-in evidence on the existing tool", async () => {
-    const [runtime, server, prelocal] = await Promise.all([
+    const [runtime, bootstrap, prelocal] = await Promise.all([
       source("server/tools/texture-alpha-runtime.ts"),
-      source("server/server.ts"),
+      source("server/runtime/bootstrap.ts"),
       source("server/tools/prelocal-wiring.ts"),
     ]);
 
@@ -19,7 +19,7 @@ describe("texture render-aware alpha runtime", () => {
     expect(runtime).toContain("if (!intent) return result");
     expect(runtime).toContain("region_only: true");
     expect(runtime).not.toContain("createTool(");
-    expect(server).toContain("wireTextureAlphaRuntime();");
+    expect(bootstrap).toContain("wireTextureAlphaRuntime();");
     expect(prelocal).toContain("focusedGetTextureParameters.shape");
   });
 
