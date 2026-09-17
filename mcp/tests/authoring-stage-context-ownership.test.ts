@@ -21,7 +21,7 @@ describe("shared authoring stage context ownership", () => {
     const loading = await source("../../docs/04-system/ai-context-loading.md");
 
     expect(loading).toContain("one primary specialist is active");
-    expect(loading).toContain("only one primary modelling profile is loaded");
+    expect(loading).toContain("one primary modelling profile is loaded when Geometry needs one");
     expect(loading).toContain("no task uses `read all docs` as a normal boot step");
   });
 });
