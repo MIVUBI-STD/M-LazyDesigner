@@ -27,7 +27,8 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
     expect(control).toContain("UV_LAYOUT_PASS_REQUIRED");
     expect(control).toContain("TEXTURE_APPROVAL_REQUIRED");
 
-    for (const text of [agents, texturing, animation]) {
+    expect(agents).toContain("AUTHORING↔Animation handoff through Gateway");
+    for (const text of [texturing, animation]) {
       expect(text).toContain("switch_authoring_phase");
       expect(text).toContain("Gateway");
     }
