@@ -28,27 +28,28 @@ describe("LazyDesigner reference preparation contract", () => {
       read("../docs/02-reference/image/standard.md"),
     ]);
 
-    expect(policy).toContain("accept the user's actual image first");
-    expect(skill).toContain("minecraft/blockbench target interpretation only");
-    expect(standard).toContain("minecraft target only");
-    expect(standard).toContain("do not include the original real image");
+    expect(policy).toContain("a user-supplied image may already be sufficient");
+    expect(skill).toContain("visible source evidence");
+    expect(policy).toContain("approved minecraft/blockbench interpretation only");
+    expect(standard).toContain("source image = evidence");
+    expect(standard).toContain("final production sheet = approved minecraft/blockbench interpretation");
   });
 
-  test("one unified visual system uses only decision-critical panels", async () => {
+  test("one unified visual system keeps panel detail in the canonical image standard", async () => {
     const [skill, standard] = await Promise.all([
       read(REFERENCE_SKILL),
       read("../docs/02-reference/image/standard.md"),
     ]);
 
-    for (const text of [skill, standard]) {
-      expect(text).toContain("1 primary reference sheet");
-      expect(text).toContain("geometry_ambiguity");
-      expect(text).toContain("texture_ambiguity");
-      expect(text).toContain("animation_ambiguity");
-      expect(text).toContain("p1");
-      expect(text).toContain("p2");
-      expect(text).toContain("p3");
-    }
+    expect(skill).toContain("standard.md owns panel economy and layout");
+    expect(skill).toContain("do not generate every module by default");
+    expect(standard).toContain("1 primary reference sheet per asset");
+    expect(standard).toContain("geometry_ambiguity");
+    expect(standard).toContain("texture_ambiguity");
+    expect(standard).toContain("animation_ambiguity");
+    expect(standard).toContain("p1");
+    expect(standard).toContain("p2");
+    expect(standard).toContain("p3");
     expect(standard).toContain("content decides layout");
     expect(standard).not.toContain("five fixed broad preview positions");
   });
@@ -59,11 +60,10 @@ describe("LazyDesigner reference preparation contract", () => {
       read("../docs/02-reference/image/standard.md"),
     ]);
 
-    expect(policy).toContain("minimum sufficient construction evidence");
-    expect(standard).toContain("use the minimum sufficient views");
+    expect(policy).toContain("minimum evidence that materially reduces downstream uncertainty");
+    expect(standard).toContain("use minimum sufficient views");
     expect(standard).toContain("right → only when left/right asymmetry matters");
-    expect(standard).toContain("top");
-    expect(standard).toContain("only when materially useful");
+    expect(standard).toContain("top → only when footprint/depth/layout matters");
   });
 
   test("Minecraft player-relative scale is canonical without inventing exact dimensions", async () => {
@@ -72,9 +72,8 @@ describe("LazyDesigner reference preparation contract", () => {
       read("../docs/02-reference/image/scale-and-escalation.md"),
     ]);
 
-    expect(skill).toContain("minecraft player scale");
-    expect(scale).toContain("all asset sizing");
-    expect(scale).toContain("anchored to minecraft player scale");
+    expect(skill).toContain("owns player/world scale");
+    expect(skill).toContain("never infer numeric scale from pixels");
     expect(scale).toContain("player_height");
     expect(scale).toContain("rideable_1p");
     expect(scale).toContain("must not invent exact block values");
@@ -88,7 +87,8 @@ describe("LazyDesigner reference preparation contract", () => {
     ]);
 
     expect(skill).toContain("sheet 02+");
-    expect(standard).toContain("identity lock");
+    expect(standard).toContain("identity + scale lock / anti-drift");
+    expect(standard).toContain("later sheets elaborate rather than redesign");
     expect(scale).toContain("scale lock");
     expect(scale).toContain("remove p3");
     expect(scale).toContain("remove lowest-value p2");
@@ -102,7 +102,7 @@ describe("LazyDesigner reference preparation contract", () => {
       read("../docs/02-reference/image/master-templates.md"),
     ]);
 
-    expect(skill).toContain("clean compiled brief");
+    expect(skill).toContain("compiled brief is internal working state");
     expect(prompt).toContain("never generate directly from the raw conversation");
     expect(prompt).toContain("identity lock");
     expect(templates).toContain("template a");
@@ -116,8 +116,7 @@ describe("LazyDesigner reference preparation contract", () => {
       read("../docs/02-reference/image/prompt-contract.md"),
     ]);
 
-    expect(skill).toContain("change + preserve");
-    expect(skill).toContain("bounded editing");
+    expect(skill).toContain("corrections use change + preserve against approved authority");
     expect(prompt).toContain("approved current sheet");
     expect(prompt).toContain("change");
     expect(prompt).toContain("preserve");
