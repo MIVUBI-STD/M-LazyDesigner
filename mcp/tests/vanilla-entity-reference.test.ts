@@ -219,11 +219,12 @@ describe("lazy vanilla Bedrock entity reference", () => {
   });
 
   test("Gateway wiring keeps the rare reference behind existing four-tool discovery", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
-    expect(source).toContain("VANILLA_ENTITY_REFERENCE_CAPABILITY");
-    expect(source).toContain("shouldProbeVanillaEntityReference(query)");
-    expect(source).toContain("vanillaReferenceProvider.isAvailable()");
-    expect(source).toContain("vanillaReferenceProvider.invoke(args)");
+    const source = await Bun.file("gateway/localCapabilities.ts").text();
+    expect(source).toContain("LocalCapabilityRegistry");
+    expect(source).toContain("VANILLA_ENTITY_REFERENCE_TOOL");
+    expect(source).toContain("shouldProbe: shouldProbeVanillaEntityReference");
+    expect(source).toContain("isAvailable: () => vanilla.isAvailable()");
+    expect(source).toContain("invoke: (args) => vanilla.invoke(args)");
     expect(source).not.toContain('registerGatewayTool(\n  "get_vanilla_entity_reference"');
   });
 });
