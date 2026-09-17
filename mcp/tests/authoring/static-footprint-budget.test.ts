@@ -54,7 +54,7 @@ describe("static footprint budget", () => {
     expect(implementation).toContain("one authoring system");
     expect(implementation).not.toContain("Static Footprint");
     expect(runbook.toLowerCase()).toContain("authoring efficiency");
-    expect(validation.toLowerCase()).toMatch(/static.*payload|payload.*static/);
+    expect(validation.toLowerCase()).toContain("static character counts or source size alone cannot prove end-to-end usage improvement");
   });
 
   test("normal discovery and recovery reads default to compact bounds", () => {
