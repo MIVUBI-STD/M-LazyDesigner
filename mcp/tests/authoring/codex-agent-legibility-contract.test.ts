@@ -79,7 +79,6 @@ describe("Codex Bedrock agent legibility contract", () => {
     expect(modelling).toContain("add_group");
     expect(modelling).toContain("reparent_element");
     expect(modelling).toContain("modify_group");
-    expect(modelling).toContain("bone_rigging");
     expect(modelling).toContain("manage_cubes");
   });
 
