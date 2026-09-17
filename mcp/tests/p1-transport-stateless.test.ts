@@ -46,9 +46,8 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(factoriesSource).toContain(
       "Invalidate only the phase/profile-sensitive tool surface"
     );
-    expect(factoriesSource).toContain(
-      "Tool callbacks, resources and prompts are generation-stable"
-    );
+    expect(factoriesSource).toContain("Tool callbacks,");
+    expect(factoriesSource).toContain("resources and prompts are generation-stable");
     expect(factoriesSource).toContain("getToolRegistrationEntries(");
   });
 
