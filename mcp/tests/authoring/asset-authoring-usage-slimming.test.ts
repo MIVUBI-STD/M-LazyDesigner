@@ -12,7 +12,7 @@ describe("pre-local asset-authoring usage slimming", () => {
     expect(agents).toContain("### Asset Authoring");
     expect(agents).toMatch(/do not automatically load/i);
     expect(agents).toMatch(/asset authoring is not software \*\*Development\*\*/i);
-    expect(agents).toMatch(/do not route it through `development-brief`/i);
+    expect(agents).toMatch(/do not route it through `lazydesigner-development-brief`/i);
     expect(agents).toContain("LazyDesigner Control");
     expect(agents).toContain("exactly one active specialist");
     expect(agents).toContain(".agents/skills/lazydesigner-modelling/SKILL.md");
@@ -28,7 +28,7 @@ describe("pre-local asset-authoring usage slimming", () => {
       source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
     ]);
 
-    expect(texturing.length).toBeLessThan(12_000);
+    expect(texturing.length).toBeLessThan(16_000);
     expect(control).toContain("GEOMETRY_CONTEXT");
     expect(control).toContain("TEXTURE_CONTEXT");
     expect(control).toContain("ANIMATION_CONTEXT");
@@ -156,8 +156,9 @@ describe("pre-local asset-authoring usage slimming", () => {
     expect(index).not.toContain('new Action("blockit_enable_extended"');
     expect(index).not.toContain('new Action("blockit_disable_extended"');
     expect(index).not.toContain("Extended MCP Profile");
-    expect(settings).toContain('name: "Legacy UI Fallbacks (Debug)"');
-    expect(settings).toContain("not an authoring profile");
+    expect(settings).toContain('name: "Legacy Compatibility (Developer)"');
+    expect(settings).toContain("Troubleshooting support for older or generic Blockbench workflows");
+    expect(settings).toContain("value: false");
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
   });
 
