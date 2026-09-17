@@ -23,7 +23,8 @@ describe("model creation effectiveness — tool routing", () => {
     expect(controlRegistry).toContain("sourceOwnerForCapability");
     expect(modelling).toContain("conditional surface integrity");
     expect(modelling).toContain("overlap alone never proves correctness");
-    expect(modelling).toContain("Semantic cohort rule");
+    expect(modelling).toContain("Repeated/symmetric cohorts: derive once");
+    expect(modelling).toContain("one coherent `manage_cubes` batch");
   });
 
   test("specialists reuse known state instead of forcing lifecycle/discovery rereads", async () => {
