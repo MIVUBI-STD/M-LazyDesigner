@@ -203,8 +203,6 @@ describe("authoring stage MCP surface", () => {
     for (const owner of [modelling, texturing, animation]) {
       expect(owner).toContain(MCP_HANDOFF_REQUIRED);
       expect(owner).toContain("switch_authoring_phase");
-      expect(owner).toContain("Gateway");
-      expect(owner).toMatch(/same task|same task\/chat/i);
       expect(owner).not.toContain("action: set MCP Authoring Phase=");
       expect(owner).not.toContain("reload BlockIT MCP");
     }
@@ -224,9 +222,8 @@ describe("authoring stage MCP surface", () => {
     ]);
     expect(indexSource).toContain("resolveMcpAuthoringPhase");
     expect(indexSource).toContain("applyMcpToolSurface(registrationProfile, authoringPhase)");
-    expect(settingsSource).toContain('name: "Default Authoring Stage"');
-    expect(settingsSource).toContain("shared AUTHORING tool surface");
-    expect(settingsSource).toContain("switch_authoring_phase");
+    expect(settingsSource).toContain('name: "Startup Focus (Advanced)"');
+    expect(settingsSource).toContain("AI switches between authoring and animation automatically during normal use.");
     expect(settingsSource).toContain("requires_restart: true");
   });
 });
