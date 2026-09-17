@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("texture material workflow and diagnostics", () => {
   test("texturing guidance keeps the established material facade and bounded diagnostics", async () => {
-    const skill = await source("../.agents/skills/blockit-bedrock-texturing/SKILL.md");
+    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
 
     expect(skill).toContain("PBR/material semantics → manage_material / manage_material_instances");
     expect(skill).toContain("list_materials");
@@ -18,12 +18,12 @@ describe("texture material workflow and diagnostics", () => {
     expect(skill).toContain("pbr_content");
   });
 
-  test("foundation standards separate render, PBR, geometry-instance, and surface-pattern namespaces", async () => {
+  test("canonical texture standards separate render, PBR, geometry-instance, and surface-pattern namespaces", async () => {
     const [pbr, render, pattern, skill] = await Promise.all([
-      source("../docs/foundation/10-material-standard.md"),
-      source("../docs/foundation/11-render-profile-standard.md"),
-      source("../docs/foundation/12-surface-pattern-standard.md"),
-      source("../.agents/skills/blockit-bedrock-texturing/SKILL.md"),
+      source("../docs/03-authoring/texture/material.md"),
+      source("../docs/03-authoring/texture/render-profile.md"),
+      source("../docs/03-authoring/texture/surface-pattern.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
     ]);
 
     expect(pbr).toContain("MER texture + subsurface_value>0");
@@ -52,9 +52,9 @@ describe("texture material workflow and diagnostics", () => {
   });
 
   test("runtime augments existing texture/material tools instead of adding another MCP surface", async () => {
-    const [runtime, server] = await Promise.all([
+    const [runtime, bootstrap] = await Promise.all([
       source("server/tools/texture-authoring-runtime.ts"),
-      source("server/server.ts"),
+      source("server/runtime/bootstrap.ts"),
     ]);
 
     for (const tool of [
@@ -66,6 +66,6 @@ describe("texture material workflow and diagnostics", () => {
       expect(runtime).toContain(`runtimeDefinition(\"${tool}\")`);
     }
     expect(runtime).not.toContain("createTool(");
-    expect(server).toContain("wireTextureAuthoringRuntime();");
+    expect(bootstrap).toContain("wireTextureAuthoringRuntime();");
   });
 });
