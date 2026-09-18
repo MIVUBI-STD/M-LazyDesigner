@@ -2,7 +2,7 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
+import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import {
   finiteAnimationVector3Schema,
   resolveAnimationClip as resolveAnimation,
@@ -10,7 +10,6 @@ import {
   toArrayVector3,
 } from "./animation-shared";
 import {
-  createAnimationParameters,
   createAnimationToolDoc,
   registerCreateAnimationTool,
 } from "./animation-create";
@@ -19,7 +18,6 @@ export {
   normalizeBedrockAnimationName,
 } from "./animation-create";
 import {
-  animationTimelineParameters,
   animationTimelineToolDoc,
   registerAnimationTimelineTool,
 } from "./animation-timeline";
@@ -28,7 +26,6 @@ export {
   normalizeAnimationMolangProperty,
 } from "./animation-timeline";
 import {
-  boneRiggingParameters,
   boneRiggingToolDoc,
   registerBoneRiggingTool,
 } from "./animation-rigging";
@@ -40,7 +37,6 @@ export {
 } from "./animation-rigging";
 
 import {
-  vector3Schema,
   animationIdOptionalSchema,
   animationChannelEnum,
   interpolationEnum,
