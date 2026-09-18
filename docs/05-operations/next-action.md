@@ -9,7 +9,7 @@ Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/naviga
 
 ## Current State
 
-The current REMOTE_GITHUB architecture-hardening scope is in its final synchronization pass before LOCAL_CODE.
+The current REMOTE_GITHUB architecture-hardening and MCP protocol-modernization scope has exact-head verification.
 
 ```text
 Control                 SOURCE-HARDENED
@@ -20,7 +20,7 @@ Tools                   ZERO-LOSS GUARDED
 Validation / QA / Gates SOURCE-HARDENED
 Skills / Knowledge      CONTEXT-HARDENED
 Reference flow          AUDITED
-Repository contracts    SYNCHRONIZATION IN PROGRESS
+Repository contracts    SOURCE-HARDENED
 ```
 
 Current invariants:
@@ -41,16 +41,19 @@ Current invariants:
 
 ## Next Meaningful Context
 
-### REMOTE_GITHUB — current final synchronization
+### REMOTE_GITHUB — current closed source gate
 
-Finish the exact-head synchronization gate:
+Exact-head source verification is now the baseline, not pending work:
 
 ```text
-remove remaining retired-source closure
-→ regenerate canonical prompt/API outputs
-→ align stale regression contracts with current ownership
-→ bun run verify:full
-→ accept only exact-head PASS
+generated freshness PASS
+Runtime/Gateway typecheck PASS
+Runtime regression PASS
+authoring contracts PASS
+surface/phase measurement PASS
+compatibility build + exact-SHA artifact PASS
+modern MCP 2026 negotiation/list/call PASS
+legacy 2025 JSON initialize/list/call PASS
 ```
 
 No hand-editing generated docs/output. Generated prompt/API artifacts remain generator-owned.
@@ -59,7 +62,7 @@ Do not remotely force:
 
 - Tool algorithm simplification;
 - public Gateway status contract changes based only on static size;
-- Runtime transport rewrites without matching tests;
+- a third Runtime transport path;
 - capability removal for context savings;
 - compatibility identifier migration.
 
@@ -86,7 +89,7 @@ audit whether Node/SDK HTTP serving can replace the raw TCP/HTTP parser
 → delete parser code only when equivalent behavior is demonstrated
 ```
 
-Do not add a third transport path. The temporary legacy JSON leg exists only because current legacy clients/tests require that exact response shape; remove it once Gateway/client traffic is modernized and no supported consumer depends on the legacy JSON contract.
+Do not add a third transport path. Gateway traffic now prefers MCP 2026 through `versionNegotiation.mode="auto"`. The temporary legacy JSON leg remains only for supported 2025-era compatibility because server v2.0.0 currently emits SSE from its built-in legacy stateless fallback even when the modern handler is configured with `responseMode="json"`. Remove this shim only after the SDK closes that behavior gap or the legacy JSON contract is deliberately retired.
 
 From the matching clean `Local` SHA:
 
