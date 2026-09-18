@@ -90,7 +90,15 @@ type BlockITCodec = {
 
 type ExportFilesystem = {
   existsSync: (path: string) => boolean;
-  writeFileSync: (path: string, data: string | Buffer) => void;
+  lstatSync: (path: string) => {
+    isFile: () => boolean;
+    isSymbolicLink: () => boolean;
+  };
+  writeFileSync: (
+    path: string,
+    data: string | Buffer,
+    options?: { flag?: "w" | "wx" }
+  ) => void;
   statSync: (path: string) => {
     isFile: () => boolean;
     size: number;
@@ -219,6 +227,7 @@ export function registerExportTools() {
         }
 
         let exportFs: ExportFilesystem | null = null;
+        let destinationExisted = false;
         if (path) {
           const expectedExtension = (
             codec.extension ?? (codec_id === "project" ? "bbmodel" : "json")
@@ -238,7 +247,21 @@ export function registerExportTools() {
               "File system access was denied. Omit `path` to receive the compiled content in the MCP response."
             );
           }
-          if (codec_id === "bedrock" && exportFs.existsSync(path)) {
+          destinationExisted = exportFs.existsSync(path);
+          if (destinationExisted) {
+            const destination = exportFs.lstatSync(path);
+            if (destination.isSymbolicLink()) {
+              throw new Error(
+                `Refusing to write export through symbolic link ${path}. Choose the real destination path explicitly.`
+              );
+            }
+            if (!destination.isFile()) {
+              throw new Error(
+                `Refusing to replace non-file export destination ${path}.`
+              );
+            }
+          }
+          if (codec_id === "bedrock" && destinationExisted) {
             throw new Error(
               `Refusing to overwrite existing Bedrock geometry file ${path}. Native Blockbench uses codec overwrite/merge semantics for existing multi-model geometry files; export_model will not bypass that behavior. Choose a new path or use native Blockbench export/save for the existing file.`
             );
@@ -246,7 +269,7 @@ export function registerExportTools() {
           if (
             codec_id === "project" &&
             overwrite !== true &&
-            exportFs.existsSync(path)
+            destinationExisted
           ) {
             throw new Error(
               `Refusing to replace the existing .bbmodel file ${path} without explicit consent. Pass overwrite: true, choose a new path, or save from the Blockbench editor directly.`
@@ -310,7 +333,11 @@ export function registerExportTools() {
               `Codec "${codec_id}" does not implement the native afterSave() lifecycle owner required for verified filesystem writes. Omit \`path\` to receive the compiled content in the MCP response instead.`
             );
           }
-          exportFs.writeFileSync(path, binaryBuffer ?? (text ?? ""));
+          exportFs.writeFileSync(
+            path,
+            binaryBuffer ?? (text ?? ""),
+            { flag: destinationExisted ? "w" : "wx" }
+          );
           const writtenStat = exportFs.statSync(path);
           if (!writtenStat.isFile() || writtenStat.size !== byteLength) {
             throw new Error(
