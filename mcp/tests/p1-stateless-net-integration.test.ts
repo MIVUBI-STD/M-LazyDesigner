@@ -89,7 +89,7 @@ async function rawHttpRequest(request: string): Promise<string> {
     socket.on("data", (chunk: Buffer) => chunks.push(chunk));
     socket.once("error", finish);
     socket.once("end", () => finish());
-    socket.once("connect", () => socket.end(request));
+    socket.once("connect", () => socket.write(request));
   });
 }
 
