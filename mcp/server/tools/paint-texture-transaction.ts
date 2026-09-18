@@ -21,7 +21,7 @@ import {
 export const paintTextureTransactionToolDocs: ToolSpec = {
   name: PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
   description:
-    "Applies bounded set/fill/erase, mirrored copy_region, or seeded masked noise to a non-layered texture with revision protection and one native Undo. Optional output writes the final bitmap to a verified PNG path in the same transaction, so particle sprites reuse Texturing instead of adding a particle-specific save tool.",
+    "Applies bounded exact-pixel operations or Cube AO to one non-layered texture with revision protection and one Undo. Optional output atomically saves a verified PNG.",
   annotations: {
     title: "Paint Texture Transaction",
     destructiveHint: true,
