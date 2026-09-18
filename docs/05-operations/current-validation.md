@@ -73,13 +73,28 @@ Catalog invalidation after phase changes remains intentionally conservative unti
 
 ### Protocol / Transport
 
-Current source still serves the legacy 2025-era Streamable HTTP contract through the v1 MCP TypeScript SDK. The transport is stateless/request-owned by design, but that does **not** make it MCP `2026-07-28` protocol support.
+Current source is on the MCP TypeScript SDK v2 split packages and has exact-head source proof for both protocol eras on the same Runtime endpoint:
+
+```text
+MCP 2026-07-28 modern client
+→ version negotiation / server discovery
+→ tools/list
+→ tools/call
+
+legacy 2025-era client
+→ initialize
+→ tools/list
+→ tools/call
+```
+
+The modern path is owned by `createMcpHandler(..., { legacy: "reject", responseMode: "json" })`. The temporary legacy compatibility leg keeps LazyDesigner's established request-owned JSON behavior with `WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })`; both legs construct the same canonical Runtime server/tool/resource/prompt surface.
 
 Current source-proven transport properties include:
 
 ```text
 loopback-only listener
-stateless request-owned MCP server instances
+modern MCP 2026-07-28 negotiation and tool invocation
+legacy stateless JSON compatibility
 Host/Origin validation
 header/body size limits
 ambiguous/malformed HTTP header rejection
@@ -88,9 +103,7 @@ project/phase affinity enforcement
 generation-safe teardown
 ```
 
-The latest MCP `2026-07-28` revision uses the modern stateless protocol era and header-based routing. Migration is intentionally deferred to `LOCAL_CODE` because it requires an MCP SDK dependency/lockfile change and same-SHA compatibility verification. The migration target is one official SDK-owned HTTP boundary serving modern traffic plus required legacy compatibility—not a second permanent transport stack.
-
-The current custom raw HTTP parser remains technical debt. New unrelated HTTP features should not be added to it; hardening/regression fixes are allowed while the replacement boundary is being proven.
+The raw TCP/HTTP parser in `server/net.ts` remains technical debt. Do not add unrelated parser features. The next transport objective is deletion/simplification: replace parser ownership only when Node/SDK HTTP serving preserves the existing Host/Origin/body-limit/affinity/generation invariants and the modern + legacy same-endpoint proofs remain green.
 
 ### Runtime
 
@@ -228,7 +241,7 @@ Historical BlockIT native/runtime proof predates the current LazyDesigner harden
 
 ## Current Proof Ceiling
 
-REMOTE_GITHUB verification has been exercised during the current synchronization pass and has already exposed stale contracts that are being corrected. A terminal `verify:full` PASS is not yet claimed until the exact synchronized head completes successfully.
+REMOTE_GITHUB verification has been exercised during the current synchronization pass and has already exposed stale contracts that are being corrected. Exact-head REMOTE_GITHUB verification has completed successfully through generated freshness, Runtime/Gateway typecheck, Runtime regression, authoring contracts, surface/phase measurement, build, provenance, and artifact upload.
 
 The current head has **not been typechecked/executed locally** or proven live in Blockbench.
 
@@ -250,7 +263,6 @@ Still requiring terminal/current-head or higher-context proof:
 
 ```text
 terminal verify:full on synchronized exact head
-MCP 2026-07-28 SDK migration + legacy compatibility proof
 installed LazyDesigner Runtime freshness
 live Gateway survival across reload/rebuild/close-open
 native phase-switch transport behavior on the current build
