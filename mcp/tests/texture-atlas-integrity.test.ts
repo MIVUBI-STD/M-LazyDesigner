@@ -266,7 +266,10 @@ describe("texture atlas integrity", () => {
   });
 
   test("texture creation preflight runs before Undo and prevents atlas fragmentation", async () => {
-    const texture = await source("server/tools/texture-create.ts");
+    const [texture, atlas] = await Promise.all([
+      source("server/tools/texture-create.ts"),
+      source("server/tools/texture-atlas.ts"),
+    ]);
     const createBlock = texture;
 
     expect(createBlock.indexOf("requireTextureCreationPreflight")).toBeGreaterThanOrEqual(0);
@@ -281,12 +284,15 @@ describe("texture atlas integrity", () => {
       "PBR support textures require an explicit material TextureGroup",
       "match the base atlas bitmap size",
     ]) {
-      expect(texture).toContain(invariant);
+      expect(atlas).toContain(invariant);
     }
   });
 
   test("list_textures exposes atlas inventory and global UV gate without a new tool", async () => {
-    const texture = await source("server/tools/texture-read.ts");
+    const [texture, atlas] = await Promise.all([
+      source("server/tools/texture-read.ts"),
+      source("server/tools/texture-atlas.ts"),
+    ]);
     const listBlock = texture.slice(
       texture.indexOf("createTool(listTexturesToolDoc.name"),
       texture.indexOf("createTool(getTextureToolDoc.name")
@@ -313,7 +319,7 @@ describe("texture atlas integrity", () => {
       "partial_overlap",
       "production_gate",
     ]) {
-      expect(texture).toContain(auditMarker);
+      expect(atlas).toContain(auditMarker);
     }
   });
 
@@ -335,6 +341,6 @@ describe("texture atlas integrity", () => {
     expect(block).toContain('inspection: "full_atlas"');
     expect(block).toContain("textureInventoryEntry(image)");
     expect(block).toContain("imageContent({ url: image.getDataURL() })");
-    expect(texture).toContain("physical_pixels_per_uv_unit");
+    expect(atlas).toContain("physical_pixels_per_uv_unit");
   });
 });
