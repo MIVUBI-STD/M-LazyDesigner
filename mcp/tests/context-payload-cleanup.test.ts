@@ -139,7 +139,7 @@ describe("context and payload cleanup", () => {
   });
 
   test("selection-only helper is not advertised as destructive model mutation", async () => {
-    const elements = await source("server/tools/element.ts");
+    const elements = await source("server/tools/element-discovery.ts");
     const start = elements.indexOf('name: "select_all_of_type"');
     const end = elements.indexOf('name: "filter_by_material"', start);
     const block = elements.slice(start, end);
