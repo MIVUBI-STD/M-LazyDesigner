@@ -1,5 +1,3 @@
-import type { McpAuthoringPhase } from "@/lib/authoringPhase";
-import type { McpRegistrationProfile } from "@/lib/registrationProfile";
 import {
   beginRuntimeGenerationTeardown,
   isRuntimeGenerationCurrent,
@@ -14,8 +12,6 @@ const SERVER_BIND_TIMEOUT_MS = 3_000;
 export type RuntimeHostConfig = {
   port: number;
   endpoint: string;
-  profile: McpRegistrationProfile;
-  phase: McpAuthoringPhase;
 };
 
 export class RuntimeHost {
@@ -47,20 +43,6 @@ export class RuntimeHost {
 
   setConfig(config: RuntimeHostConfig): void {
     this.config = { ...config };
-  }
-
-  updateProfile(profile: McpRegistrationProfile): void {
-    if (this.config) this.config.profile = profile;
-  }
-
-  updatePhase(phase: McpAuthoringPhase): void {
-    if (this.config) this.config.phase = phase;
-  }
-
-  updateSurface(profile: McpRegistrationProfile, phase: McpAuthoringPhase): void {
-    if (!this.config) return;
-    this.config.profile = profile;
-    this.config.phase = phase;
   }
 
   private async waitForListening(server: NetServer): Promise<void> {
