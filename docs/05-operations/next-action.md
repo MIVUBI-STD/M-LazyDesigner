@@ -1,6 +1,6 @@
 # LazyDesigner Next Action
 
-Updated: 2026-09-12  
+Updated: 2026-09-18  
 Branch: `Local` only.
 
 This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/flow.md`; source/context ownership in `docs/04-system/`; proof interpretation in `docs/05-operations/current-validation.md`.
@@ -65,6 +65,20 @@ Do not remotely force:
 
 ### LOCAL_CODE — after synchronized REMOTE_GITHUB gate
 
+Before new MCP capability work, perform one bounded protocol-modernization spike against the matching clean `Local` SHA:
+
+```text
+upgrade the MCP TypeScript SDK on a dependency/lockfile-owned local checkout
+→ prove the official v2 HTTP handler can serve MCP 2026-07-28 plus legacy stateless clients
+→ map current Host/Origin/body-limit/affinity/generation invariants onto that boundary
+→ replace custom HTTP parsing only where equivalent behavior is proven
+→ keep one Runtime endpoint and one Gateway; do not add a parallel transport stack
+```
+
+Acceptance for that spike is **deletion/simplification**, not feature count. Do not merge a modern-protocol adapter that leaves the existing raw parser as an equally authoritative permanent path.
+
+The current source still targets the legacy 2025-era Streamable HTTP behavior through `@modelcontextprotocol/sdk` v1.x. Do not claim MCP 2026-07-28 support until the upgraded SDK path, wire behavior, compatibility tests and lockfile all pass from the same source SHA.
+
 From the matching clean `Local` SHA:
 
 ```text
@@ -118,6 +132,8 @@ Measure **Cost to Accepted Result** without lowering accepted quality.
 ## Stop Rules
 
 - no second Control/router/profile/state system;
+- no parallel permanent legacy/modern HTTP implementation; protocol modernization must converge on one transport owner;
+- no new custom HTTP parser features when the supported MCP SDK can own the same protocol behavior;
 - no capability/intelligence reduction for tool-count or context savings;
 - no mutation auto-retry after an unknown outcome;
 - no hand-edited generated API/prompt output;
