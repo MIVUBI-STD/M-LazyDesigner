@@ -1,6 +1,6 @@
 # LazyDesigner Modelling Profile — VEHICLE
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 This profile is a lightweight modelling knowledge layer for vehicle assets. It complements `lazydesigner-modelling` and the approved reference package. It is **not** a preset geometry recipe and must never override visible reference evidence or explicit user requirements.
 
