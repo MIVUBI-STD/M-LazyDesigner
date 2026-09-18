@@ -266,10 +266,8 @@ describe("texture atlas integrity", () => {
   });
 
   test("texture creation preflight runs before Undo and prevents atlas fragmentation", async () => {
-    const texture = await source("server/tools/texture.ts");
-    const start = texture.indexOf("createTool(textureToolDocs[0].name");
-    const end = texture.indexOf("createTool(textureToolDocs[1].name", start);
-    const createBlock = texture.slice(start, end);
+    const texture = await source("server/tools/texture-create.ts");
+    const createBlock = texture;
 
     expect(createBlock.indexOf("requireTextureCreationPreflight")).toBeGreaterThanOrEqual(0);
     expect(createBlock.indexOf("Undo.initEdit")).toBeGreaterThan(
@@ -288,10 +286,11 @@ describe("texture atlas integrity", () => {
   });
 
   test("list_textures exposes atlas inventory and global UV gate without a new tool", async () => {
-    const texture = await source("server/tools/texture.ts");
-    const start = texture.indexOf("createTool(textureToolDocs[3].name");
-    const end = texture.indexOf("createTool(textureToolDocs[4].name", start);
-    const listBlock = texture.slice(start, end);
+    const texture = await source("server/tools/texture-read.ts");
+    const listBlock = texture.slice(
+      texture.indexOf("createTool(listTexturesToolDoc.name"),
+      texture.indexOf("createTool(getTextureToolDoc.name")
+    );
 
     for (const marker of [
       "currentTextureInventory()",
@@ -327,10 +326,8 @@ describe("texture atlas integrity", () => {
   });
 
   test("full-atlas image evidence is explicit in multi-texture state and returns density metadata", async () => {
-    const texture = await source("server/tools/texture.ts");
-    const start = texture.indexOf("createTool(textureToolDocs[4].name");
-    const end = texture.indexOf("createTool(textureToolDocs[5].name", start);
-    const block = texture.slice(start, end);
+    const texture = await source("server/tools/texture-read.ts");
+    const block = texture.slice(texture.indexOf("createTool(getTextureToolDoc.name"));
 
     expect(block).toContain("available.length > 1");
     expect(block).toContain("Pass texture explicitly");

@@ -18,13 +18,13 @@ describe("create_animation contract", () => {
     expect(normalizeBedrockAnimationName("walk")).toBe("animation.walk");
     expect(normalizeBedrockAnimationName("animation.walk")).toBe("animation.walk");
 
-    const source = await Bun.file(new URL("../server/tools/animation.ts", import.meta.url)).text();
+    const source = await Bun.file(new URL("../server/tools/animation-create.ts", import.meta.url)).text();
     expect(source).toContain("normalizeBedrockAnimationName(name)");
     expect(source).not.toContain("const requestedAnimationName = `animation.${name}`");
   });
 
   test("serializer preserves accepted zero instead of treating it as omitted", async () => {
-    const source = await Bun.file(new URL("../server/tools/animation.ts", import.meta.url)).text();
+    const source = await Bun.file(new URL("../server/tools/animation-create.ts", import.meta.url)).text();
     expect(source).toContain("animation_length !== undefined && { animation_length }");
     expect(source).not.toContain("animation_length && { animation_length }");
   });
@@ -49,22 +49,18 @@ describe("create_animation contract", () => {
       sound_effects: { "0": { effect: "a" }, "0.0": { effect: "b" } },
     }).success).toBe(false);
 
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-create.ts").text();
     expect(source).toContain("...(sound_effects && { sound_effects })");
     expect(source).toContain("requested_sound_effect_count");
     expect(source).not.toContain("manage_sound_keyframes");
   });
 
   test("selects the created animation before completing the Undo edit", async () => {
-    const source = await Bun.file(new URL("../server/tools/animation.ts", import.meta.url)).text();
-    const createStart = source.indexOf("createTool(\n  animationToolDocs[0].name");
-    const createEnd = source.indexOf("createTool(\n  animationToolDocs[1].name", createStart);
-    const createBlock = source.slice(createStart, createEnd);
-
-    expect(createBlock).toContain("createdAnimation.select()");
-    expect(createBlock).toContain("AnimationItem.selected !== createdAnimation");
-    expect(createBlock.indexOf("createdAnimation.select()")).toBeLessThan(
-      createBlock.indexOf('Undo.finishEdit("Create animation"')
+    const source = await Bun.file(new URL("../server/tools/animation-create.ts", import.meta.url)).text();
+    expect(source).toContain("createdAnimation.select()");
+    expect(source).toContain("AnimationItem.selected !== createdAnimation");
+    expect(source.indexOf("createdAnimation.select()")).toBeLessThan(
+      source.indexOf('Undo.finishEdit("Create animation"')
     );
   });
 });

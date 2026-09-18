@@ -1,6 +1,6 @@
 # LazyDesigner Implementation Map
 
-Updated: 2026-09-12
+Updated: 2026-09-18
 
 This file maps **current source ownership only**. Product workflow belongs in `docs/01-product/flow.md`; AI context loading in `docs/04-system/ai-context-loading.md`; continuation/proof in `docs/05-operations/`.
 
@@ -147,6 +147,46 @@ mcp/server/runtime/animationRuntimeContracts.ts
 
 mcp/server/tools/**
 → authored Geometry / Texture / Animation / Particle / inspection / export implementations
+
+mcp/server/tools/animation.ts
+→ Animation facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/animation-create.ts
+mcp/server/tools/animation-keyframes.ts
+mcp/server/tools/animation-rigging.ts
+mcp/server/tools/animation-timeline.ts
+mcp/server/tools/animation-batch.ts
+mcp/server/tools/animation-shared.ts
+→ focused Animation capability/schema/helper owners
+
+mcp/server/tools/texture.ts
+→ Texture facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/texture-create.ts
+mcp/server/tools/texture-read.ts
+mcp/server/tools/texture-atlas.ts
+mcp/server/tools/texture-assignment.ts
+mcp/server/tools/texture-materials.ts
+→ focused Texture creation/read/atlas/assignment/material owners
+
+mcp/server/tools/paint.ts
+→ Paint facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/paint-primitives.ts
+mcp/server/tools/paint-brush.ts
+mcp/server/tools/paint-settings.ts
+mcp/server/tools/paint-selection-layers.ts
+mcp/server/tools/paint-shared.ts
+→ focused paint primitive/brush/settings/selection-layer/shared owners
+
+mcp/server/tools/element.ts
+→ Element facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/element-mutation.ts
+mcp/server/tools/element-hierarchy.ts
+mcp/server/tools/element-discovery.ts
+mcp/server/tools/element-shared.ts
+→ focused element mutation/hierarchy/discovery/shared owners
 ```
 
 Representative focused owners:

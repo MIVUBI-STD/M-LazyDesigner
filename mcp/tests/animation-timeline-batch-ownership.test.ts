@@ -22,7 +22,7 @@ describe("animation timeline and batch ownership", () => {
   });
 
   test("timeline and batch owners resolve authored Animation before global Timeline collections", async () => {
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-batch.ts").text();
 
     expect(source).toContain(
       "export function keyframeBelongsToAnimation("
