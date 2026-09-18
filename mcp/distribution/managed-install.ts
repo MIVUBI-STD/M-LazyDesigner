@@ -21,7 +21,7 @@ const END = "# END BLOCKIT MANAGED";
 export function allowedPackagePath(path: string): boolean {
   return ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt"].includes(path)
     || SKILLS.some((skill) => path === `.agents/skills/${skill}/SKILL.md`)
-    || /^docs\/foundation\/[a-zA-Z0-9_-]+\.md$/.test(path);
+    || path === "docs/03-authoring/finalization/standard.md";
 }
 
 export function parseManifest(value: unknown): Manifest {
