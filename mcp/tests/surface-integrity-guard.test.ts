@@ -149,6 +149,10 @@ describe("advertised surface and fail-closed integrity guards", () => {
     expect(exportSource).toContain(
       "Refusing to replace the existing .bbmodel"
     );
+    expect(exportSource).toContain("isSymbolicLink()");
+    expect(exportSource).toContain(
+      'flag: destinationExisted ? "w" : "wx"'
+    );
     expect(exportSource).not.toContain("listBlockItThreeDAssistedReferences");
     expect(exportSource).not.toContain("manage_geometry_reference");
 
