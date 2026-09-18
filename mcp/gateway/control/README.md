@@ -62,6 +62,8 @@ Modelling Skill
 
 Texturing and Animation receive only their active specialist by default. Unchanged context is reused by content-addressed handle; Control does not load the old router Skill or all sibling domains as reassurance.
 
+Research-derived authoring guidance stays in canonical authoring docs, the active specialist, and the selected Geometry profile. Control must not add duplicate stage-context fields or prose for ownership-reuse, variant, Locator, family-rig, or rig/clip/controller rules.
+
 ## Reference boundary
 
 `REFERENCE.json` stays the structured reference authority. Control selects only active-stage document/image identities and preserves:
