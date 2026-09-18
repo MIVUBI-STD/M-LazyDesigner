@@ -20,4 +20,18 @@ describe("animation module ownership", () => {
     expect(shared).toContain("resolveAnimationRigGroup");
     expect(shared).toContain("toArrayVector3");
   });
+  test("animation creation implementation lives outside the animation facade", async () => {
+    const [facade, creation] = await Promise.all([
+      Bun.file("server/tools/animation.ts").text(),
+      Bun.file("server/tools/animation-create.ts").text(),
+    ]);
+
+    expect(facade).toContain('from "./animation-create"');
+    expect(facade).toContain("registerCreateAnimationTool();");
+    expect(facade).toContain("createAnimationToolDoc");
+    expect(facade).not.toContain('Undo.finishEdit("Create animation"');
+    expect(creation).toContain("export const createAnimationParameters");
+    expect(creation).toContain("export function registerCreateAnimationTool");
+    expect(creation).toContain("normalizeBedrockAnimationName");
+  });
 });
