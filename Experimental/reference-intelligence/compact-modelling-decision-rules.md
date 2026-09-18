@@ -1,6 +1,6 @@
 # Compact Modelling Decision Rules — Research vs Geometry Standard
 
-Status: `REMOTE_GITHUB` synthesis on branch `Ref`. Not canonical policy.
+Status: `STATICALLY_VALIDATED_CANDIDATE` on branch `Ref`. Not canonical policy.
 
 ## Purpose
 
@@ -323,6 +323,14 @@ Locators may be animated when they own a moving attachment/reference transform.
 ```
 
 This should be preferred over loading the full research corpus.
+
+## Static Benchmark Compatibility
+
+All six additive refinements passed compatibility stress-testing against the current LazyDesigner synthetic quality benchmark contract, with scope guards.
+
+This establishes only source-contract compatibility. The benchmark explicitly has no measured baseline, so no quality or efficiency improvement is claimed.
+
+See `compact-refinements-stress-test.md`.
 
 ## Validation Required Before Local Promotion
 
