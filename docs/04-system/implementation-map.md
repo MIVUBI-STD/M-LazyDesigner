@@ -177,6 +177,15 @@ mcp/server/tools/paint-brush.ts
 mcp/server/tools/paint-state.ts
 mcp/server/tools/paint-shared.ts
 → focused paint primitive/brush/state/shared owners
+
+mcp/server/tools/element.ts
+→ Element facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/element-mutation.ts
+mcp/server/tools/element-hierarchy.ts
+mcp/server/tools/element-discovery.ts
+mcp/server/tools/element-shared.ts
+→ focused element mutation/hierarchy/discovery/shared owners
 ```
 
 Representative focused owners:
