@@ -139,270 +139,272 @@ export const elementHierarchyToolDocs: ToolSpec[] = [
     }
 ];
 
-export function registerElementHierarchyTools(): void {
+export function registerAddGroupTool(): void {
   createTool(elementHierarchyToolDocs[0].name, {
-      ...elementHierarchyToolDocs[0],
-      async execute({ name, origin, rotation, parent, groups }) {
-        requireOpenProject("adding a Group");
-        const batch =
-          groups ??
-          [
-            {
-              name: name ?? "",
-              origin,
-              rotation,
-              parent,
-            },
-          ];
-  
-        assertBatchGroupNamesAvailable(batch);
-        const parentPlan = planGroupBatchParents(batch);
-  
-        Undo.initEdit({
-          elements: [],
-          outliner: true,
-          groups: [],
-          collections: [],
-        });
-  
-        const created: Group[] = [];
-        try {
-          for (const [index, entry] of batch.entries()) {
-            const plannedParent = parentPlan[index];
-            const parentGroup =
-              typeof plannedParent === "number"
-                ? created[plannedParent]
-                : plannedParent;
-            if (!parentGroup) {
-              throw new Error(
-                `Internal Group batch parent plan ${plannedParent} was not available for entry ${index}.`
-              );
-            }
-            const group = new Group({
-              name: entry.name,
-              origin: entry.origin ?? [0, 0, 0],
-              rotation: entry.rotation ?? [0, 0, 0],
-            }).init();
-            group.addTo(parentGroup);
-            created.push(group);
-          }
-          Undo.finishEdit(
-            created.length > 1 ? "Agent added groups" : "Agent added group",
-            { outliner: true, groups: created }
-          );
-        } catch (error) {
-          Undo.cancelEdit(true);
-          Canvas.updateAll();
-          throw error;
-        }
-  
-        Canvas.updateAll();
-        const result = {
-          groups: created.map((group) => ({
-            uuid: group.uuid,
-            name: group.name,
-            parent: group.parent instanceof Group ? group.parent.uuid : "root",
-          })),
-          ...(groups
-            ? {}
-            : {
-                group: {
-                  uuid: created[0].uuid,
-                  name: created[0].name,
-                  origin: [...created[0].origin],
-                  rotation: [...created[0].rotation],
-                  parent:
-                    created[0].parent instanceof Group
-                      ? created[0].parent.uuid
-                      : "root",
-                },
-              }),
-        };
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text:
-                created.length > 1
-                  ? `Added ${created.length} Groups: ${created
-                      .map((group) => group.name)
-                      .join(", ")}.`
-                  : `Added Group ${created[0].name} (${created[0].uuid}).`,
-            },
-          ],
-          structuredContent: result,
-        };
-      },
-    }, elementHierarchyToolDocs[0].status);
-  
-    createTool("modify_group", {
-      description:
-        "Modifies one explicit Bedrock Group pivot, rotation, visibility, or translates its subtree using offset. Use rename_element for names.",
-      annotations: { title: "Modify Group", destructiveHint: true },
-      parameters: modifyGroupParameters,
-      async execute({ id, origin, rotation, visibility, offset }) {
-        requireOpenProject("modifying a Group");
-        const group = resolveCoreGroup(
-          id,
-          "Use inspect_elements(mode=search), then inspect_elements(mode=detail) to confirm the intended Group UUID."
-        );
-        if (offset !== undefined) {
-          if (offset.every(value => value === 0)) throw new Error("Translation offset has no authored effect.");
-          preflightDuplicateTranslation(group, offset);
-          const groups: Group[] = [];
-          const elements: OutlinerElement[] = [];
-          const collect = (node: Group | OutlinerElement) => {
-            if (node instanceof Group) {
-              groups.push(node);
-              node.children.forEach(child => collect(child as Group | OutlinerElement));
-            } else elements.push(node);
-          };
-          collect(group);
-          Undo.initEdit({groups, elements, outliner:true});
+        ...elementHierarchyToolDocs[0],
+        async execute({ name, origin, rotation, parent, groups }) {
+          requireOpenProject("adding a Group");
+          const batch =
+            groups ??
+            [
+              {
+                name: name ?? "",
+                origin,
+                rotation,
+                parent,
+              },
+            ];
+    
+          assertBatchGroupNamesAvailable(batch);
+          const parentPlan = planGroupBatchParents(batch);
+    
+          Undo.initEdit({
+            elements: [],
+            outliner: true,
+            groups: [],
+            collections: [],
+          });
+    
+          const created: Group[] = [];
           try {
-            translateDuplicatedSubtree(group, offset);
-            Undo.finishEdit("Agent translated Group subtree");
+            for (const [index, entry] of batch.entries()) {
+              const plannedParent = parentPlan[index];
+              const parentGroup =
+                typeof plannedParent === "number"
+                  ? created[plannedParent]
+                  : plannedParent;
+              if (!parentGroup) {
+                throw new Error(
+                  `Internal Group batch parent plan ${plannedParent} was not available for entry ${index}.`
+                );
+              }
+              const group = new Group({
+                name: entry.name,
+                origin: entry.origin ?? [0, 0, 0],
+                rotation: entry.rotation ?? [0, 0, 0],
+              }).init();
+              group.addTo(parentGroup);
+              created.push(group);
+            }
+            Undo.finishEdit(
+              created.length > 1 ? "Agent added groups" : "Agent added group",
+              { outliner: true, groups: created }
+            );
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
             throw error;
           }
+    
+          Canvas.updateAll();
+          const result = {
+            groups: created.map((group) => ({
+              uuid: group.uuid,
+              name: group.name,
+              parent: group.parent instanceof Group ? group.parent.uuid : "root",
+            })),
+            ...(groups
+              ? {}
+              : {
+                  group: {
+                    uuid: created[0].uuid,
+                    name: created[0].name,
+                    origin: [...created[0].origin],
+                    rotation: [...created[0].rotation],
+                    parent:
+                      created[0].parent instanceof Group
+                        ? created[0].parent.uuid
+                        : "root",
+                  },
+                }),
+          };
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text:
+                  created.length > 1
+                    ? `Added ${created.length} Groups: ${created
+                        .map((group) => group.name)
+                        .join(", ")}.`
+                    : `Added Group ${created[0].name} (${created[0].uuid}).`,
+              },
+            ],
+            structuredContent: result,
+          };
+        },
+      }, elementHierarchyToolDocs[0].status);
+}
+
+export function registerElementHierarchyTools(): void {
+  createTool("modify_group", {
+        description:
+          "Modifies one explicit Bedrock Group pivot, rotation, visibility, or translates its subtree using offset. Use rename_element for names.",
+        annotations: { title: "Modify Group", destructiveHint: true },
+        parameters: modifyGroupParameters,
+        async execute({ id, origin, rotation, visibility, offset }) {
+          requireOpenProject("modifying a Group");
+          const group = resolveCoreGroup(
+            id,
+            "Use inspect_elements(mode=search), then inspect_elements(mode=detail) to confirm the intended Group UUID."
+          );
+          if (offset !== undefined) {
+            if (offset.every(value => value === 0)) throw new Error("Translation offset has no authored effect.");
+            preflightDuplicateTranslation(group, offset);
+            const groups: Group[] = [];
+            const elements: OutlinerElement[] = [];
+            const collect = (node: Group | OutlinerElement) => {
+              if (node instanceof Group) {
+                groups.push(node);
+                node.children.forEach(child => collect(child as Group | OutlinerElement));
+              } else elements.push(node);
+            };
+            collect(group);
+            Undo.initEdit({groups, elements, outliner:true});
+            try {
+              translateDuplicatedSubtree(group, offset);
+              Undo.finishEdit("Agent translated Group subtree");
+            } catch (error) {
+              Undo.cancelEdit(true);
+              Canvas.updateAll();
+              throw error;
+            }
+            Canvas.updateAll();
+            return {
+              content:[{type:"text" as const,text:`Translated ${groups.length} Group(s) and ${elements.length} element(s).`}],
+              structuredContent:{execution:"applied" as const,id:group.uuid,offset,origin:[...group.origin],groups:groups.length,elements:elements.length,coordinate_space:"authored_model"},
+            };
+          }
+          const sameOrigin =
+            origin === undefined || vector3Equals(origin, group.origin);
+          const sameRotation =
+            rotation === undefined || vector3Equals(rotation, group.rotation);
+          const sameVisibility =
+            visibility === undefined || visibility === group.visibility;
+          if (sameOrigin && sameRotation && sameVisibility) {
+            throw new Error(
+              `modify_group request for Group ${group.name} (${group.uuid}) has no authored effect.`
+            );
+          }
+          if (origin !== undefined && !sameOrigin && !group.mesh) {
+            throw new Error(
+              `Group ${group.name} (${group.uuid}) has no preview mesh, so transferOrigin() cannot safely preserve descendant visual placement. No mutation was applied.`
+            );
+          }
+    
+          const changedFields = [
+            origin !== undefined && !sameOrigin ? "origin" : null,
+            rotation !== undefined && !sameRotation ? "rotation" : null,
+            visibility !== undefined && !sameVisibility ? "visibility" : null,
+          ].filter((field): field is string => field !== null);
+    
+          Undo.initEdit({
+            elements: [],
+            groups: [group],
+            outliner: true,
+            collections: [],
+          });
+          try {
+            if (origin !== undefined && !sameOrigin) {
+              group.transferOrigin(origin as [number, number, number]);
+              if (!vector3Equals(group.origin, origin)) {
+                throw new Error(
+                  `Group ${group.name} (${group.uuid}) pivot readback did not match the requested origin.`
+                );
+              }
+            }
+            group.extend({
+              ...(rotation !== undefined && !sameRotation
+                ? { rotation: rotation as [number, number, number] }
+                : {}),
+              ...(visibility !== undefined && !sameVisibility ? { visibility } : {}),
+            });
+            Undo.finishEdit("Agent modified group");
+          } catch (error) {
+            Undo.cancelEdit(true);
+            Canvas.updateAll();
+            throw error;
+          }
+    
           Canvas.updateAll();
           return {
-            content:[{type:"text" as const,text:`Translated ${groups.length} Group(s) and ${elements.length} element(s).`}],
-            structuredContent:{execution:"applied" as const,id:group.uuid,offset,origin:[...group.origin],groups:groups.length,elements:elements.length,coordinate_space:"authored_model"},
+            content: [
+              {
+                type: "text" as const,
+                text: `Modified Group ${group.name} (${group.uuid}); changed: ${changedFields.join(", ")}.`,
+              },
+            ],
+            structuredContent: {
+              execution: "applied" as const,
+              id: group.uuid,
+              name: group.name,
+              changed_fields: changedFields,
+            },
           };
-        }
-        const sameOrigin =
-          origin === undefined || vector3Equals(origin, group.origin);
-        const sameRotation =
-          rotation === undefined || vector3Equals(rotation, group.rotation);
-        const sameVisibility =
-          visibility === undefined || visibility === group.visibility;
-        if (sameOrigin && sameRotation && sameVisibility) {
-          throw new Error(
-            `modify_group request for Group ${group.name} (${group.uuid}) has no authored effect.`
-          );
-        }
-        if (origin !== undefined && !sameOrigin && !group.mesh) {
-          throw new Error(
-            `Group ${group.name} (${group.uuid}) has no preview mesh, so transferOrigin() cannot safely preserve descendant visual placement. No mutation was applied.`
-          );
-        }
-  
-        const changedFields = [
-          origin !== undefined && !sameOrigin ? "origin" : null,
-          rotation !== undefined && !sameRotation ? "rotation" : null,
-          visibility !== undefined && !sameVisibility ? "visibility" : null,
-        ].filter((field): field is string => field !== null);
-  
-        Undo.initEdit({
-          elements: [],
-          groups: [group],
-          outliner: true,
-          collections: [],
-        });
-        try {
-          if (origin !== undefined && !sameOrigin) {
-            group.transferOrigin(origin as [number, number, number]);
-            if (!vector3Equals(group.origin, origin)) {
-              throw new Error(
-                `Group ${group.name} (${group.uuid}) pivot readback did not match the requested origin.`
-              );
+        },
+      }, STATUS_STABLE);
+    
+      createTool("reparent_element", {
+        description:
+          "Moves one explicit Cube or Group to a new parent. Rejects self/circular hierarchy; local transform is preserved.",
+        annotations: { title: "Reparent Element", destructiveHint: true },
+        parameters: reparentElementParameters,
+        async execute({ id, parent }) {
+          requireOpenProject("reparenting an element");
+          const element = resolveUniqueDestructiveElement(id);
+          const nextParent = resolveParentGroup(parent);
+          const previousParent =
+            element.parent instanceof Group ? element.parent : "root";
+    
+          if (nextParent !== "root") {
+            if (nextParent === element) {
+              throw new Error("An element cannot be parented to itself.");
+            }
+            if (element instanceof Group && isDescendantOf(nextParent, element)) {
+              throw new Error("A Group cannot be reparented into its own descendant.");
             }
           }
-          group.extend({
-            ...(rotation !== undefined && !sameRotation
-              ? { rotation: rotation as [number, number, number] }
-              : {}),
-            ...(visibility !== undefined && !sameVisibility ? { visibility } : {}),
+          if (previousParent === nextParent) {
+            throw new Error(
+              `reparent_element request for ${element.name} (${element.uuid}) has no authored effect.`
+            );
+          }
+    
+          Undo.initEdit({
+            elements: element instanceof Group ? [] : [element],
+            groups: element instanceof Group ? [element] : [],
+            outliner: true,
+            collections: [],
           });
-          Undo.finishEdit("Agent modified group");
-        } catch (error) {
-          Undo.cancelEdit(true);
-          Canvas.updateAll();
-          throw error;
-        }
-  
-        Canvas.updateAll();
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Modified Group ${group.name} (${group.uuid}); changed: ${changedFields.join(", ")}.`,
-            },
-          ],
-          structuredContent: {
-            execution: "applied" as const,
-            id: group.uuid,
-            name: group.name,
-            changed_fields: changedFields,
-          },
-        };
-      },
-    }, STATUS_STABLE);
-  
-    createTool("reparent_element", {
-      description:
-        "Moves one explicit Cube or Group to a new parent. Rejects self/circular hierarchy; local transform is preserved.",
-      annotations: { title: "Reparent Element", destructiveHint: true },
-      parameters: reparentElementParameters,
-      async execute({ id, parent }) {
-        requireOpenProject("reparenting an element");
-        const element = resolveUniqueDestructiveElement(id);
-        const nextParent = resolveParentGroup(parent);
-        const previousParent =
-          element.parent instanceof Group ? element.parent : "root";
-  
-        if (nextParent !== "root") {
-          if (nextParent === element) {
-            throw new Error("An element cannot be parented to itself.");
+          try {
+            element.addTo(nextParent);
+            Undo.finishEdit("Agent reparented element");
+          } catch (error) {
+            Undo.cancelEdit(true);
+            Canvas.updateAll();
+            throw error;
           }
-          if (element instanceof Group && isDescendantOf(nextParent, element)) {
-            throw new Error("A Group cannot be reparented into its own descendant.");
-          }
-        }
-        if (previousParent === nextParent) {
-          throw new Error(
-            `reparent_element request for ${element.name} (${element.uuid}) has no authored effect.`
-          );
-        }
-  
-        Undo.initEdit({
-          elements: element instanceof Group ? [] : [element],
-          groups: element instanceof Group ? [element] : [],
-          outliner: true,
-          collections: [],
-        });
-        try {
-          element.addTo(nextParent);
-          Undo.finishEdit("Agent reparented element");
-        } catch (error) {
-          Undo.cancelEdit(true);
+    
           Canvas.updateAll();
-          throw error;
-        }
-  
-        Canvas.updateAll();
-        const currentParent =
-          element.parent instanceof Group ? element.parent.uuid : "root";
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Reparented ${element.name} (${element.uuid}): ${previousParent === "root" ? "root" : previousParent.uuid} -> ${currentParent}. Local transform preserved.`,
+          const currentParent =
+            element.parent instanceof Group ? element.parent.uuid : "root";
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Reparented ${element.name} (${element.uuid}): ${previousParent === "root" ? "root" : previousParent.uuid} -> ${currentParent}. Local transform preserved.`,
+              },
+            ],
+            structuredContent: {
+              execution: "applied" as const,
+              id: element.uuid,
+              name: element.name,
+              previous_parent:
+                previousParent === "root" ? "root" : previousParent.uuid,
+              parent: currentParent,
+              transform_policy: "preserve_local",
             },
-          ],
-          structuredContent: {
-            execution: "applied" as const,
-            id: element.uuid,
-            name: element.name,
-            previous_parent:
-              previousParent === "root" ? "root" : previousParent.uuid,
-            parent: currentParent,
-            transform_policy: "preserve_local",
-          },
-        };
-      },
-    }, STATUS_EXPERIMENTAL);
+          };
+        },
+      }, STATUS_EXPERIMENTAL);
 }
