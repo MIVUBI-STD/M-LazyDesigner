@@ -387,15 +387,12 @@ async function handleStatelessMcpRequest (
     () => createRequestServer(phase, profile, phaseScoped),
     {
       legacy: 'reject',
-      responseMode: 'json',
-      maxRequestBodySize: MAX_REQUEST_BODY_BYTES
+      responseMode: 'json'
     }
   )
 
   try {
-    const legacy = await isLegacyRequest(webRequest, undefined, {
-      maxRequestBodySize: MAX_REQUEST_BODY_BYTES
-    })
+    const legacy = await isLegacyRequest(webRequest)
     const webResponse = legacy
       ? await handleLegacyJsonMcpRequest(webRequest, phase, profile, phaseScoped)
       : await modernHandler.fetch(webRequest)
