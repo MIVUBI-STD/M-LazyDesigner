@@ -71,7 +71,9 @@ describe("pre-local asset-authoring usage slimming", () => {
     const exportSource = await source("server/tools/export.ts");
     for (const marker of [
       'destructiveHint: true',
-      'codec_id === "bedrock" && exportFs.existsSync(path)',
+      'codec_id === "bedrock" && destinationExisted',
+      "exportFs.lstatSync(path)",
+      "isSymbolicLink()",
       "exportFs.writeFileSync",
       "exportFs.statSync(path)",
       "codec.afterSave(path)",
@@ -108,7 +110,7 @@ describe("pre-local asset-authoring usage slimming", () => {
 
   test("create_texture converts RGBA byte alpha to TinyColor alpha range", async () => {
     expect(createTextureParameters.safeParse({ name: "translucent", fill_color: [255, 0, 0, 128], layer_name: "base" }).success).toBe(true);
-    const texture = await source("server/tools/texture.ts");
+    const texture = await source("server/tools/texture-create.ts");
     expect(texture).toContain("a: Number(fill_color[3] ?? 255) / 255");
   });
 
