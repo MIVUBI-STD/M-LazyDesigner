@@ -1,6 +1,9 @@
 /// <reference types="blockbench-types" />
 
+import { z } from "zod";
 import { resolveCoreGroup } from "@/lib/coreIdentity";
+
+export const finiteAnimationVector3Schema = z.array(z.number().finite()).length(3);
 
 export function toArrayVector3(values: readonly number[]): ArrayVector3 {
   if (values.length !== 3) {
