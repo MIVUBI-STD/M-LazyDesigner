@@ -194,10 +194,63 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
+  test("complete animation-effects receipt is sufficient for continuation without reread", () => {
+    const delta = buildControlDelta({
+      capability: "manage_animation_effects",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        animation: { uuid: "anim-a", name: "idle" },
+        operation_count: 2,
+        results: [
+          {
+            channel: "particle",
+            keyframe_uuid: "kf-a",
+            time: 0.25,
+            data_point_index: 0,
+            effect: "mivubi:dust",
+            locator: "hand",
+            bind_to_actor: null,
+            pre_effect_script: null,
+          },
+          {
+            channel: "sound",
+            removed: {
+              keyframe_uuid: "kf-b",
+              data_point_index: 0,
+              remaining: [],
+            },
+          },
+        ],
+      },
+    });
+
+    expect(delta.freshness.stale).toEqual(["ANIMATION_EFFECTS"]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("incomplete animation-effects receipt retains focused-read verification", () => {
+    const delta = buildControlDelta({
+      capability: "manage_animation_effects",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        animation: { uuid: "anim-a", name: "idle" },
+        operation_count: 1,
+        results: [{ channel: "particle" }],
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("animation controller, effects, and particle mutations stay change-scoped", () => {
     const cases = [
       ["manage_animation_controller", "ANIMATION_CONTROLLER"],
-      ["manage_animation_effects", "ANIMATION_EFFECTS"],
       ["manage_particle", "PARTICLE_SYSTEM"],
     ] as const;
 

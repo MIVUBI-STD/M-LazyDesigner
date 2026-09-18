@@ -72,7 +72,7 @@ CONSERVATIVE_EFFECT
 UNKNOWN_OUTCOME
 ```
 
-This allows unrelated state to remain reusable without blanket rereads while preserving fail-closed behavior after uncertain mutation outcomes. When a normally-mutating capability returns a source-proven `NO_CHANGE` receipt, the post-operation Control delta now overrides verification guidance to `receipt_only`; discovery metadata remains unchanged because branch/result semantics are not known before invocation.
+This allows unrelated state to remain reusable without blanket rereads while preserving fail-closed behavior after uncertain mutation outcomes. When a normally-mutating capability returns a source-proven `NO_CHANGE` receipt, the post-operation Control delta overrides verification guidance to `receipt_only`; discovery metadata remains unchanged because branch/result semantics are not known before invocation. `manage_animation_effects` also qualifies for `receipt_only` after a real mutation when its bounded receipt contains the final identity/time/payload or explicit removal state for every affected effect entry. Controller/material mutations remain conservative because their receipts do not yet carry complete final authored state.
 
 ### Remaining REMOTE_GITHUB refinement
 

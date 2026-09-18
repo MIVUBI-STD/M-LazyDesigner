@@ -109,6 +109,62 @@ function materialPersistenceOnly(value: unknown): boolean {
   );
 }
 
+function animationEffectsReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (
+      !record(candidate.animation) ||
+      typeof candidate.operation_count !== "number" ||
+      !Array.isArray(candidate.results)
+    ) {
+      return false;
+    }
+
+    return candidate.results.every((entry) => {
+      const result = record(entry);
+      if (!result || typeof result.channel !== "string") return false;
+
+      const removed = record(result.removed);
+      if (removed) {
+        return (
+          typeof removed.keyframe_uuid === "string" &&
+          (removed.data_point_index === null ||
+            typeof removed.data_point_index === "number")
+        );
+      }
+
+      return (
+        typeof result.keyframe_uuid === "string" &&
+        typeof result.time === "number" &&
+        (result.data_point_index === null ||
+          typeof result.data_point_index === "number")
+      );
+    });
+  });
+}
+
+function verificationClassForResult(
+  capability: string,
+  succeeded: boolean,
+  freshness: ControlDelta["freshness"],
+  result: unknown
+): ControlDelta["verification_class"] {
+  const fallback = getCapabilityMetadata(capability).verificationClass;
+  if (!succeeded) return fallback;
+
+  if (STATE_MUTATIONS.has(capability) && freshness.basis === "NO_CHANGE") {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "manage_animation_effects" &&
+    animationEffectsReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  return fallback;
+}
+
 function particleHasAuthoredEffect(value: unknown): boolean {
   const candidates = resultCandidates(value);
   if (candidates.length === 0) return true;
@@ -420,14 +476,12 @@ export function buildControlDelta(input: {
     input.succeeded,
     input.result
   );
-  const defaultVerificationClass =
-    getCapabilityMetadata(input.capability).verificationClass;
-  const verificationClass =
-    input.succeeded &&
-    STATE_MUTATIONS.has(input.capability) &&
-    freshness.basis === "NO_CHANGE"
-      ? "receipt_only"
-      : defaultVerificationClass;
+  const verificationClass = verificationClassForResult(
+    input.capability,
+    input.succeeded,
+    freshness,
+    input.result
+  );
   const particleTextureHandoff =
     input.succeeded &&
     input.capability === "manage_particle" &&
