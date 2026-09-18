@@ -285,6 +285,63 @@ Therefore `ATTACHMENT`/Locator intent is not limited to static attachment points
 
 Status: `PATTERN`.
 
+## Additional Strengthening — Friendly Fishing + Advanced Movement
+
+### S4 — Three independent authoring budgets
+
+Friendly Fishing and Advanced Movement strengthen a three-budget distinction:
+
+```text
+GEOMETRY / RIG BUDGET
+→ form + transform capability
+
+CLIP BUDGET
+→ authored motions / poses
+
+CONTROLLER BUDGET
+→ temporal/state composition
+```
+
+Evidence:
+
+- Advanced Movement has about 200 player clips over a compact recurring owner set and only a very small controller surface;
+- Friendly Fishing rod separates a small rig-only helper skeleton, a larger visible geometry payload, and a compact four-state controller;
+- Actions & Stuff already showed controller-state growth over a compact helper skeleton.
+
+Pattern:
+
+> growth in one authoring budget is not sufficient reason to grow the other two.
+
+Status: `PATTERN`.
+
+### S5 — Family-level locator contract can outlive anatomy variation
+
+Friendly Fishing fish examples share stable locator concepts such as lure/caught/lead relationships while species vary materially in bone count, body depth, fins, mouths, and tail chains.
+
+Pattern:
+
+```text
+stable family attachment contract
++
+variable species anatomy
+```
+
+Status: `PATTERN`.
+
+This suggests that reusable attachment semantics should not force identical geometry topology.
+
+### S6 — Presentation rig can be geometry-free
+
+The super-rod rig-only geometry contains four bones and zero cubes, while visible first/third-person rod variants use richer geometry.
+
+Pattern:
+
+> a reusable presentation/attachment skeleton may contain no visible geometry at all.
+
+Status: `PATTERN`.
+
+This reinforces the separation between visible form and transform ownership.
+
 ## Promotion Boundary
 
 These findings are stronger cross-corpus patterns but remain non-canonical until LazyDesigner-owned native validation demonstrates:
