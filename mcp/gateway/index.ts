@@ -27,6 +27,7 @@ import {
   capabilityNeedsPhaseSnapshot,
   deriveControlReceipt,
 } from "./controlReceipt";
+import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
@@ -363,6 +364,7 @@ registerGatewayTool(
         tool.inputSchema ?? {},
         branch
       );
+      const metadata = getCapabilityMetadata(capability);
       return {
         content: [
           {
@@ -379,6 +381,9 @@ registerGatewayTool(
             inputSchema: projection.inputSchema,
             outputSchema: tool.outputSchema ?? null,
             annotations: tool.annotations ?? {},
+            lifecycle: metadata.lifecycle,
+            execution_class: metadata.executionClass,
+            verification_class: metadata.verificationClass,
             schema_projection: {
               projected: projection.projected,
               branch: projection.branch,
