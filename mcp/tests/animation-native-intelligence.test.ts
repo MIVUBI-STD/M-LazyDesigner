@@ -240,7 +240,7 @@ describe("Bedrock animation native intelligence", () => {
   test("runtime wiring expands capability without adding another MCP tool", async () => {
     const [runtime, bootstrap, server, skill] = await Promise.all([
       Bun.file("server/tools/animation-native-intelligence.ts").text(),
-      Bun.file("server/runtime/bootstrap.ts").text(),
+      Bun.file("server/runtime/extensions.ts").text(),
       Bun.file("server/server.ts").text(),
       Bun.file("../.agents/skills/lazydesigner-animation/SKILL.md").text(),
     ]);
