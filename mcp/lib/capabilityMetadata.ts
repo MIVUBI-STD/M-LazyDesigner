@@ -10,10 +10,22 @@ export type CapabilityEffects = {
   invalidateCatalog: boolean;
 };
 
+export type CapabilityLifecycleStage = "active" | "deprecated";
+export type CapabilityExecutionClass = "fast" | "normal" | "heavy";
+export type CapabilityVerificationClass = "none" | "focused_read" | "visual";
+
+export type CapabilityLifecycle = {
+  stage: CapabilityLifecycleStage;
+  replacement: string | null;
+};
+
 export type CapabilityMetadata = {
   tier: CapabilityTier;
   searchAliases: readonly string[];
   effects: CapabilityEffects;
+  lifecycle: CapabilityLifecycle;
+  executionClass: CapabilityExecutionClass;
+  verificationClass: CapabilityVerificationClass;
 };
 
 const PRIMARY_CAPABILITIES = new Set([
@@ -184,6 +196,67 @@ const DEFAULT_EFFECTS: CapabilityEffects = {
   invalidateCatalog: false,
 };
 
+const DEFAULT_LIFECYCLE: CapabilityLifecycle = {
+  stage: "active",
+  replacement: null,
+};
+
+// Keep deprecation explicit instead of deriving it from maintenance/support
+// tiering. A deprecated capability remains callable until a separately planned
+// compatibility removal proves that no supported consumer still needs it.
+const CAPABILITY_LIFECYCLE: Readonly<Record<string, CapabilityLifecycle>> = {};
+
+const FAST_CAPABILITIES = new Set([
+  "get_project_info",
+  "inspect_elements",
+  "list_textures",
+  "get_texture",
+  "inspect_animation",
+  "inspect_particle",
+  "get_undo_stack",
+]);
+
+const HEAVY_CAPABILITIES = new Set([
+  "capture_model_views",
+  "paint_texture_transaction",
+  "export_model",
+]);
+
+const NO_VERIFICATION_CAPABILITIES = new Set([
+  "switch_authoring_phase",
+  "undo",
+  "redo",
+]);
+
+const FOCUSED_READ_VERIFICATION_CAPABILITIES = new Set([
+  "create_project",
+  "add_group",
+  "modify_group",
+  "reparent_element",
+  "remove_element",
+  "rename_element",
+  "manage_locator",
+  "manage_null_object",
+  "manage_material",
+  "manage_material_instances",
+  "manage_render_profile",
+  "manage_animation_controller",
+  "manage_animation_effects",
+  "manage_particle",
+]);
+
+function executionClassFor(name: string): CapabilityExecutionClass {
+  if (FAST_CAPABILITIES.has(name)) return "fast";
+  if (HEAVY_CAPABILITIES.has(name)) return "heavy";
+  return "normal";
+}
+
+function verificationClassFor(name: string): CapabilityVerificationClass {
+  if (NO_VERIFICATION_CAPABILITIES.has(name)) return "none";
+  if (FOCUSED_READ_VERIFICATION_CAPABILITIES.has(name)) return "focused_read";
+  return "visual";
+}
+
 const CAPABILITY_EFFECTS: Readonly<Record<string, CapabilityEffects>> = {
   create_project: {
     projectAffinity: "adopt_created_project",
@@ -221,5 +294,15 @@ export function getCapabilityMetadata(name: string): CapabilityMetadata {
     tier,
     searchAliases: SEARCH_ALIASES[name] ?? [],
     effects: CAPABILITY_EFFECTS[name] ?? DEFAULT_EFFECTS,
+    lifecycle: CAPABILITY_LIFECYCLE[name] ?? DEFAULT_LIFECYCLE,
+    executionClass: executionClassFor(name),
+    verificationClass: verificationClassFor(name),
   };
 }
+
+export const CAPABILITY_LIFECYCLE_SEARCH_PENALTY: Readonly<
+  Record<CapabilityLifecycleStage, number>
+> = {
+  active: 0,
+  deprecated: -40,
+};
