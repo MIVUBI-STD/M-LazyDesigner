@@ -22,6 +22,8 @@ describe("Runtime extension composition", () => {
   test("known overlapping capability wrappers have one reviewable order", () => {
     expect(extensionIdsFor("inspect_animation")).toEqual([
       "animation-contracts",
+      "authoring-quality",
+      "authoring-evidence",
       "animation-native",
       "animation-runtime-resources",
     ]);
