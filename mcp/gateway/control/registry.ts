@@ -229,7 +229,7 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     test_owner: "mcp/tests/paint-tool-selection.test.ts",
   },
   paint_settings: {
-    source: "mcp/server/tools/paint-state.ts",
+    source: "mcp/server/tools/paint-settings.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/paint-tool-selection.test.ts",
   },
@@ -254,12 +254,12 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     test_owner: "mcp/tests/paint-tool-selection.test.ts",
   },
   texture_selection: {
-    source: "mcp/server/tools/paint-state.ts",
+    source: "mcp/server/tools/paint-selection-layers.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/paint-tool-selection.test.ts",
   },
   texture_layer_management: {
-    source: "mcp/server/tools/paint-state.ts",
+    source: "mcp/server/tools/paint-selection-layers.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/paint-tool-selection.test.ts",
   },
