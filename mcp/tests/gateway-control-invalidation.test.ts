@@ -130,6 +130,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
       { action: "set_time", timeline_time: 0.5 },
       { action: "expand_bones", scope: "timeline_view_only" },
       { action: "copy", scope: "animation_clipboard_only", copied_keyframes: 4 },
+      { action: "loop", changed: false, loop_mode: "loop" },
     ]) {
       const delta = buildControlDelta({
         capability: "manage_animation_timeline",

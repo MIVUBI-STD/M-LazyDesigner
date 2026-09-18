@@ -299,11 +299,25 @@ export function registerAnimationTimelineTool(): void {
             if (loop_mode === undefined) {
               throw new Error("Loop mode parameter required for loop action.");
             }
-            if (loop_mode !== animation.loop) {
-              runPersistentAnimationEdit("Change animation loop mode", () => {
-                animation.setLoop(loop_mode, false);
-              });
+            if (loop_mode === animation.loop) {
+              return {
+                content: [
+                  {
+                    type: "text" as const,
+                    text: `Loop mode is already ${animation.loop}; no authored change was required.`,
+                  },
+                ],
+                structuredContent: {
+                  action,
+                  changed: false,
+                  animation: { uuid: animation.uuid, name: animation.name },
+                  loop_mode: animation.loop,
+                },
+              };
             }
+            runPersistentAnimationEdit("Change animation loop mode", () => {
+              animation.setLoop(loop_mode, false);
+            });
             result = `Set loop mode to ${animation.loop}`;
             break;
   

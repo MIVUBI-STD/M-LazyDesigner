@@ -61,6 +61,27 @@ describe("Control Texture mutation precision", () => {
     ]);
   });
 
+  test("material save preserves semantic freshness while marking persistence state changed", () => {
+    const delta = buildControlDelta({
+      capability: "manage_material",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "save",
+        scope: "material_persistence_only",
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual([]);
+    expect(delta.invalidates.workspace_projection).toBe(true);
+    expect(delta.invalidates.acceptance_gates).toBe(false);
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.freshness.stale).toEqual([]);
+    expect(delta.freshness.fresh).toHaveLength(8);
+  });
+
   test("material-instance reads preserve authored freshness while writes stay scoped", () => {
     const list = buildControlDelta({
       capability: "manage_material_instances",

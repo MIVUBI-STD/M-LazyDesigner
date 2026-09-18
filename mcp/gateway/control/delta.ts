@@ -93,11 +93,20 @@ function animationTimelineStateNeutral(value: unknown): boolean {
     const action = typeof candidate.action === "string" ? candidate.action : null;
     const scope = typeof candidate.scope === "string" ? candidate.scope : null;
     return (
+      candidate.changed === false ||
       scope === "timeline_view_only" ||
       scope === "animation_clipboard_only" ||
       (action !== null && STATE_NEUTRAL_ANIMATION_ACTIONS.has(action))
     );
   });
+}
+
+function materialPersistenceOnly(value: unknown): boolean {
+  return resultCandidates(value).some(
+    (candidate) =>
+      candidate.operation === "save" &&
+      candidate.scope === "material_persistence_only"
+  );
 }
 
 function particleHasAuthoredEffect(value: unknown): boolean {
@@ -170,6 +179,9 @@ function capabilityMutatesState(
   if (capability === "manage_animation_timeline") {
     return !animationTimelineStateNeutral(result);
   }
+  if (capability === "manage_material" && materialPersistenceOnly(result)) {
+    return false;
+  }
   if (capability === "manage_material_instances") {
     return !materialInstancesStateNeutral(result);
   }
@@ -220,6 +232,18 @@ function mutationInvalidation(
   succeeded: boolean,
   result: unknown
 ): ControlDelta["invalidates"] {
+  if (
+    succeeded &&
+    capability === "manage_material" &&
+    materialPersistenceOnly(result)
+  ) {
+    return {
+      authoring_domains: [],
+      workspace_projection: true,
+      acceptance_gates: false,
+    };
+  }
+
   const mutates = capabilityMutatesState(capability, succeeded, result);
   let affectedDomains: ControlAuthoringDomain[] = [];
   if (mutates) {

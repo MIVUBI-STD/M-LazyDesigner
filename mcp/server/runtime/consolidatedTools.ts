@@ -177,7 +177,29 @@ export function registerConsolidatedTools(
         ...consolidatedMaterialToolDocs,
         async execute(request) {
           const { operation, ...args } = request;
-          return executeConsolidated("manage_material", operation, args);
+          const result = await executeConsolidated("manage_material", operation, args);
+          if (operation !== "save") return result;
+
+          if (typeof result === "string") {
+            return {
+              content: [{ type: "text" as const, text: result }],
+              structuredContent: {
+                operation: "save",
+                scope: "material_persistence_only",
+              },
+            };
+          }
+
+          return {
+            ...result,
+            structuredContent: {
+              ...(result.structuredContent && typeof result.structuredContent === "object" && !Array.isArray(result.structuredContent)
+                ? result.structuredContent as Record<string, unknown>
+                : {}),
+              operation: "save",
+              scope: "material_persistence_only",
+            },
+          };
         },
       },
       "stable"
