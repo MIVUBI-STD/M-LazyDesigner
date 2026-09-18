@@ -185,7 +185,11 @@ export function openPromptPreviewDialog(promptName: string) {
 
   const argsShape = promptDef.argsSchema?.shape;
   const hasArgs = Boolean(argsShape && Object.keys(argsShape).length > 0);
-  const formConfig = hasArgs ? zodSchemaToFormConfig(argsShape!) : {};
+  const formConfig = hasArgs
+    ? zodSchemaToFormConfig(
+        argsShape as unknown as Record<string, z.ZodType<any, any>>
+      )
+    : {};
 
   async function generatePromptPreview(
     formResult: Record<string, unknown>
