@@ -2,7 +2,6 @@ import { z } from "zod";
 import type { IMCPTool, IMCPPrompt, IMCPResource, StatusType } from "@/types";
 import { ResourceTemplate } from "@modelcontextprotocol/server";
 import type { McpServer, GetPromptResult, PromptArgument, ToolAnnotations } from "@modelcontextprotocol/server";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 /**
  * Declarative tool spec for documentation and registration.
@@ -496,8 +495,12 @@ export function registerToolsOnServer(
       description: definition.description,
       annotations: definition.annotations,
       inputSchema: {
-        // @ts-ignore Zod recursive type instantiation
-        ...zodToJsonSchema(definition.parameterSchema, { $refStrategy: "none" }),
+        ...z.toJSONSchema(definition.parameterSchema, {
+          io: "input",
+          target: "draft-2020-12",
+          unrepresentable: "any",
+          reused: "inline",
+        }),
         type: "object" as const,
       },
     })),
