@@ -2,10 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { McpServer, WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/server";
 
 const MCP_URL = "http://127.0.0.1:3000/bb-mcp";
-// Current Codex legacy Streamable HTTP startup explicitly requests 2025-06-18.
-// The current lock resolves SDK v1.25.3. GHSA-345p-7cg4-v4c7 affects shared
-// server/transport reuse, so this fixture keeps BlockIT's request-owned pattern
-// explicit until a Bun-capable checkout can canonically upgrade the lockfile.
+// Legacy compatibility fixture: 2025-06-18 remains intentionally covered even
+// though the production Runtime also serves MCP 2026-07-28 through createMcpHandler.
+// Request-owned serving remains the invariant; this test is not the modern-era proof.
 const PROTOCOL_VERSION = "2025-06-18";
 
 function createFixtureServer(): McpServer {
