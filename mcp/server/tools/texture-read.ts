@@ -27,7 +27,7 @@ export const getTextureParameters = z.object({
 export const listTexturesToolDoc: ToolSpec = {
     name: "list_textures",
     description:
-      "Lists texture identity; diagnostics=false skips UV/pixel analysis for discovery. Default true includes UV hygiene and bounded coverage/seam/PBR diagnostics. Seam scope is intra-Cube; cross-Cube continuity is not evaluated. Coverage states.varied means pixel variation, not styling acceptance; solid_color_faces identifies flat surfaces for review. Empty scans are incomplete. Pixel-read budget counts unique texture regions per invocation; every face remains accounted. Fractional logical UV is diagnostic; NON_INTEGRAL_PIXEL_MAPPING blocks non-integral physical texels. Readiness is not visual layout approval.",
+      "Lists texture identity. diagnostics=false returns inventory only; default true adds bounded UV/coverage/seam/PBR diagnostics. Seam checks are intra-Cube, empty scans are incomplete, and pixel-read budget counts unique texture regions. NON_INTEGRAL_PIXEL_MAPPING blocks invalid physical texels. Technical readiness is not visual approval.",
     annotations: {
       title: "List Textures",
       readOnlyHint: true,
