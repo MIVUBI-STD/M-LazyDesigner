@@ -444,6 +444,7 @@ describe("BlockIT Gateway contract", () => {
     expect(source).toContain("compactGatewayCapabilityStructuredContent");
     expect(source).toContain("projectCapabilityInputSchema");
     expect(source).toContain("inputSchema: projection.inputSchema");
+    expect(source).toContain("outputSchema: tool.outputSchema ?? null");
     expect(source).toContain(".default(CONTROL_ROUTING_POLICY.search_limit)");
     expect(backendSource).toMatch(/searchCapabilities\(\s*query: string,\s*limit: number = 4/);
     expect(source).toContain("Runtime resources and prompts are not proxied");
