@@ -482,15 +482,11 @@ export default function createNetServer (
     port,
     endpoint,
     host = '127.0.0.1',
-    profile = DEFAULT_MCP_REGISTRATION_PROFILE,
-    phase = DEFAULT_MCP_AUTHORING_PHASE,
     generation = null
   }: {
     endpoint: string
     port: number
     host?: string
-    profile?: McpRegistrationProfile
-    phase?: McpAuthoringPhase
     generation?: number | null
   }
 ): NetServer {
