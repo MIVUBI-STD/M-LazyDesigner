@@ -164,17 +164,17 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     test_owner: "mcp/tests/rendered-model-bounds-numeric-safety.test.ts",
   },
   create_texture: {
-    source: "mcp/server/tools/texture.ts",
+    source: "mcp/server/tools/texture-create.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/authoring/asset-authoring-usage-slimming.test.ts",
   },
   list_textures: {
-    source: "mcp/server/tools/texture.ts",
+    source: "mcp/server/tools/texture-read.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/texture-authoring-contract.test.ts",
   },
   get_texture: {
-    source: "mcp/server/tools/texture.ts",
+    source: "mcp/server/tools/texture-read.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/texture-authoring-contract.test.ts",
   },
