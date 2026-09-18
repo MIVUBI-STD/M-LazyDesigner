@@ -28,11 +28,16 @@ const PROTOCOL_VERSION = "2025-06-18";
 // and Resource metadata ceilings move by that justified capability delta.
 // 2026-09-10: named-plugin Cube/AO/noise/copy/palette/easing schemas.
 // Loopback: 111603 response / 94148 schema / 11578 largest tool chars.
+// 2026-09-17: current default Bedrock profile intentionally exposes 54 tools after
+// retired/default-disabled compatibility helpers. Current canonical Particle and
+// exact Paint transaction schemas are larger because their strict bounded branches
+// are now fully advertised rather than hidden. Measured loopback: 112225 response /
+// 94873 schema. Keep narrow regression headroom instead of weakening the guard.
 const SURFACE_BUDGET = {
-  tool_count: 56,
+  tool_count: 54,
   initialize_instructions_chars: 700,
-  tools_list_response_chars: 112_000,
-  input_schema_chars: 94_500,
+  tools_list_response_chars: 113_000,
+  input_schema_chars: 95_500,
   description_chars: 11_500,
   max_tool_payload_chars: 3_200,
   prompt_spec_count: 1,
@@ -259,11 +264,11 @@ function assertWithinSurfaceBudget(
     const expandedSchemaLimits: Record<string, number> = {
       manage_animation_timeline: 11_650, manage_animation_controller: 10_000,
       // Explicit simplify branch adds bounded targets/rounding/dry-run fields.
-      manage_cubes: 8_400, manage_render_profile: 5_200, manage_particle: 4_400,
+      manage_cubes: 8_400, manage_render_profile: 5_200, manage_particle: 6_500,
       manage_material: 3_800, create_animation: 3_450, create_texture: 3_450,
       manage_material_instances: 3_400,
       // Explicit palette/sampler and bounded noise/copy/Cube AO inputs.
-      paint_settings: 3_500, paint_texture_transaction: 5_200,
+      paint_settings: 3_500, paint_texture_transaction: 5_600,
     };
     const limit = expandedSchemaLimits[row.name] ?? SURFACE_BUDGET.max_tool_payload_chars;
     if (row.payload_chars > limit) failures.push(`${row.name} payload=${row.payload_chars} exceeds ${limit}`);
