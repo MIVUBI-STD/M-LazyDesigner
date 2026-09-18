@@ -236,6 +236,55 @@ STATE
 
 before duplicating whole base geometry.
 
+## Case-Level Strengthening — Actions & Stuff + Truck Simulator
+
+Detailed attachable/vehicle audits strengthen two candidate principles:
+
+### S1 — Stable semantic skeleton under high presentation variance
+
+Bow/crossbow cases show dozens of geometry variants and multiple controller states over a very small transform/helper skeleton.
+
+Truck cases show many bumper/exhaust/lamp/mirror/livery/trailer geometry branches over one base truck motion vocabulary.
+
+Cross-source abstraction:
+
+```text
+presentation variance
+→ first preserve base semantic ownership
+→ replace only the smallest branch whose form/state actually changes
+```
+
+Status: `PATTERN`.
+
+### S2 — Controller/state complexity is not rig complexity
+
+Bow/crossbow controllers add state composition without requiring proportional hierarchy growth. Truck visual branch selection likewise composes presentation without rebuilding the mechanical rig.
+
+Cross-source abstraction:
+
+```text
+hierarchy
+→ transform capability
+
+clip/controller
+→ time/state composition
+
+geometry branch
+→ local visible form variation
+```
+
+Do not repair a controller/state problem by increasing rig density unless a missing transform owner is demonstrated.
+
+Status: `PATTERN`.
+
+### S3 — Animated Locator remains non-visual responsibility
+
+The truck grain-offload case shows a Locator owner participating in animation while containing no visible cubes.
+
+Therefore `ATTACHMENT`/Locator intent is not limited to static attachment points.
+
+Status: `PATTERN`.
+
 ## Promotion Boundary
 
 These findings are stronger cross-corpus patterns but remain non-canonical until LazyDesigner-owned native validation demonstrates:
