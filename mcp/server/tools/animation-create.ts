@@ -30,6 +30,7 @@ const bedrockParticleEffectSchema = z.object({
 
 const bedrockParticleEffectsSchema = z
   .record(
+    z.string(),
     z.union([
       bedrockParticleEffectSchema,
       z.array(bedrockParticleEffectSchema).min(1),
@@ -89,7 +90,7 @@ const bedrockSoundEffectSchema = z.object({
 });
 
 const bedrockSoundEffectsSchema = z
-  .record(z.union([bedrockSoundEffectSchema, z.array(bedrockSoundEffectSchema).min(1)]))
+  .record(z.string(), z.union([bedrockSoundEffectSchema, z.array(bedrockSoundEffectSchema).min(1)]))
   .superRefine((soundEffects, ctx) => {
     const effectiveTimes = new Map<number, string>();
     Object.keys(soundEffects).forEach((timestamp) => {
@@ -197,7 +198,7 @@ export const createAnimationParameters = z.object({
       "Optional animation length in seconds (0..10000)."
     ),
   bones: z
-    .record(bedrockBoneKeyframesSchema)
+    .record(z.string(), bedrockBoneKeyframesSchema)
     .describe(
       "Bone keyframes keyed by Group UUID or case-insensitively unique name; values use authored space."
     ),
