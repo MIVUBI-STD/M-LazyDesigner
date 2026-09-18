@@ -10,65 +10,39 @@ import { openPromptOverrideDialog } from "@/ui/promptOverrideDialog";
 /**
  * Extracts metadata from a Zod schema type for form generation
  */
-function getZodTypeMeta(zodType: z.ZodType): {
+function getZodTypeMeta(zodType: z.ZodType<any, any>): {
   type: FormElementOptions["type"];
   isOptional: boolean;
   description?: string;
   defaultValue?: unknown;
   enumValues?: string[];
 } {
-  const def = zodType._def as Record<string, unknown>;
-  const typeName = def.typeName as string;
+  const schema = z.toJSONSchema(zodType, {
+    io: "input",
+    target: "draft-2020-12",
+    unrepresentable: "any",
+    reused: "inline",
+  }) as Record<string, unknown>;
+  const parsedUndefined = zodType.safeParse(undefined);
+  const enumValues = Array.isArray(schema.enum)
+    ? schema.enum.filter((value): value is string => typeof value === "string")
+    : undefined;
 
-  let isOptional = false;
-  let description = def.description as string | undefined;
-  let defaultValue: unknown = undefined;
-  let enumValues: string[] | undefined;
-
-  // Unwrap optional/nullable/default types
-  if (typeName === "ZodOptional" || typeName === "ZodNullable") {
-    isOptional = true;
-    const inner = def.innerType as z.ZodType;
-    const innerMeta = getZodTypeMeta(inner);
-    return { ...innerMeta, isOptional: true };
-  }
-
-  if (typeName === "ZodDefault") {
-    defaultValue = (def.defaultValue as () => unknown)?.();
-    const inner = def.innerType as z.ZodType;
-    const innerMeta = getZodTypeMeta(inner);
-    return { ...innerMeta, defaultValue, isOptional: true };
-  }
-
-  // Handle enum types
-  if (typeName === "ZodEnum") {
-    enumValues = def.values as string[];
-  }
-
-  // Map Zod types to form types
   let type: FormElementOptions["type"] = "text";
-  switch (typeName) {
-    case "ZodString":
-      type = "text";
-      break;
-    case "ZodNumber":
-      type = "number";
-      break;
-    case "ZodBoolean":
-      type = "checkbox";
-      break;
-    case "ZodEnum":
-      type = "select";
-      break;
-    default:
-      type = "text";
-  }
+  if (schema.type === "number" || schema.type === "integer") type = "number";
+  else if (schema.type === "boolean") type = "checkbox";
+  else if (enumValues?.length) type = "select";
+  else if (schema.type === "array" || schema.type === "object") type = "textarea";
 
   return {
     type,
-    isOptional,
-    description,
-    defaultValue,
+    isOptional: parsedUndefined.success,
+    description:
+      typeof schema.description === "string" ? schema.description : undefined,
+    defaultValue:
+      parsedUndefined.success && parsedUndefined.data !== undefined
+        ? parsedUndefined.data
+        : undefined,
     enumValues,
   };
 }
@@ -77,7 +51,7 @@ function getZodTypeMeta(zodType: z.ZodType): {
  * Converts a Zod schema to Blockbench InputFormConfig
  */
 function zodSchemaToFormConfig(
-  argsSchema: Record<string, z.ZodType>
+  argsSchema: Record<string, z.ZodType<any, any>>
 ): InputFormConfig {
   const formConfig: InputFormConfig = {};
 
@@ -209,8 +183,9 @@ export function openPromptPreviewDialog(promptName: string) {
   // Close any existing dialog
   currentDialog?.hide();
 
-  const hasArgs = promptDef.argsSchema && Object.keys(promptDef.argsSchema).length > 0;
-  const formConfig = hasArgs ? zodSchemaToFormConfig(promptDef.argsSchema!) : {};
+  const argsShape = promptDef.argsSchema?.shape;
+  const hasArgs = Boolean(argsShape && Object.keys(argsShape).length > 0);
+  const formConfig = hasArgs ? zodSchemaToFormConfig(argsShape!) : {};
 
   async function generatePromptPreview(
     formResult: Record<string, unknown>
@@ -288,6 +263,6 @@ export function getPromptInfo(promptName: string): {
     name: promptName,
     title: promptDef.title,
     description: promptDef.description,
-    argumentCount: promptDef.argsSchema ? Object.keys(promptDef.argsSchema).length : 0,
+    argumentCount: promptDef.argsSchema ? Object.keys(promptDef.argsSchema.shape).length : 0,
   };
 }
