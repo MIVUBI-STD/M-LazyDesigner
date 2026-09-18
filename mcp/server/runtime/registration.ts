@@ -19,7 +19,6 @@ import { registerAnimationControllerTools } from "../tools/animation-controller"
 import { registerAnimationInspectionTools } from "../tools/animation-inspection";
 import { registerParticleTools } from "../tools/particle";
 import { registerParticleResources } from "../resources/particle";
-import { wireAnimationRuntimeContracts } from "../tools/animation-runtime-wiring";
 import { registerCubesTools } from "../tools/cubes";
 import { registerElementTools } from "../tools/element";
 import { registerElementInspectionTools } from "../tools/element-inspection";
@@ -28,10 +27,8 @@ import { registerImportTools } from "../tools/import";
 import { registerPaintTools } from "../tools/paint";
 import { registerProjectTools } from "../tools/project";
 import { registerTextureTools } from "../tools/texture";
-import {
-  registerPaintTextureTransactionTool,
-  wireTextureRuntimeContracts,
-} from "../tools/prelocal-wiring";
+import { registerPaintTextureTransactionTool } from "./textureRuntimeContracts";
+import { applyRuntimeExtensionPipeline } from "./extensions";
 import { registerUITools } from "../tools/ui";
 import { registerMaterialInstanceTools } from "../tools/material-instances";
 import { registerHistoryTools } from "../tools/history";
@@ -70,7 +67,6 @@ function registerPaintFamilyTools(): void {
 
 function registerTextureFamilyTools(): void {
   registerTextureTools();
-  wireTextureRuntimeContracts();
 }
 
 const registrationFunctions: Record<McpRegistrationFamily, RegistrationFunction> = {
@@ -157,7 +153,7 @@ export function registerMcpProfile(
   if (profile === DEFAULT_MCP_REGISTRATION_PROFILE) {
     const before = Object.keys(tools).length;
     registerConsolidatedTools(updateCatalogTool);
-    wireAnimationRuntimeContracts();
+    applyRuntimeExtensionPipeline();
     catalogChanged = Object.keys(tools).length !== before || catalogChanged;
   }
 
