@@ -19,7 +19,7 @@ export const exportModelParameters = z.object({
       "BlockIT output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`."
     ),
   options: z
-    .record(z.unknown())
+    .record(z.string(), z.unknown())
     .optional()
     .describe(
       "Optional compile options for the selected Bedrock/project codec."
