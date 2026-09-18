@@ -272,6 +272,24 @@ Key rule:
 
 This vocabulary is a reasoning overlay on existing LazyDesigner Geometry/Hierarchy/Locator concepts, not a new schema or workflow. It passed static scenario/correction stress tests and aligns with all six current LazyDesigner quality benchmark cases. See `cross-domain-responsibility-vocabulary.md`, `responsibility-vocabulary-stress-test.md`, and `quality-benchmark-crosswalk.md`.
 
+
+## Compact Modelling Decision Refinements
+
+Static comparison against `docs/03-authoring/modelling/standard.md` found that most research already confirms canonical policy and should **not** be duplicated.
+
+Only six additive candidates remain:
+
+1. stable semantic ownership should outlive clip growth;
+2. rig, clip, and controller complexity are independent budgets;
+3. presentation-context changes should preserve base ownership where possible;
+4. local visual/state variants should isolate the smallest changed branch;
+5. Locator/ATTACHMENT owners may be animated;
+6. family-level attachment contracts may remain stable while anatomy varies.
+
+The six-word responsibility vocabulary remains `REASONING_AID_ONLY`, not a stored schema.
+
+See `compact-modelling-decision-rules.md`.
+
 ## Current Coverage Matrix
 
 | Intelligence area | Daffa | Mowzie | GeckoLib docs | Orca | Current coverage |
