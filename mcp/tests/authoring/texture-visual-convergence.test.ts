@@ -9,7 +9,7 @@ describe("texture visual convergence contract", () => {
     const [skill, workflow, texture, camera] = await Promise.all([
       source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
-      source("server/tools/texture.ts"),
+      source("server/tools/texture-read.ts"),
       source("server/tools/camera.ts"),
     ]);
 
@@ -24,9 +24,7 @@ describe("texture visual convergence contract", () => {
     expect(workflow).toContain("fresh get_texture atlas");
     expect(workflow.toLowerCase()).toContain("stale");
 
-    const getTextureStart = texture.indexOf("createTool(textureToolDocs[4].name");
-    const getTextureEnd = texture.indexOf("registerTextureMaterialTools();", getTextureStart);
-    const getTexture = texture.slice(getTextureStart, getTextureEnd);
+    const getTexture = texture;
     expect(getTexture).toContain("imageContent");
     expect(getTexture).toContain("getDataURL()");
 
