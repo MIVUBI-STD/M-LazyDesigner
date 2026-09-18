@@ -103,7 +103,7 @@ project/phase affinity enforcement
 generation-safe teardown
 ```
 
-The raw TCP/HTTP parser in `server/net.ts` remains technical debt. Do not add unrelated parser features. The next transport objective is deletion/simplification: replace parser ownership only when Node/SDK HTTP serving preserves the existing Host/Origin/body-limit/affinity/generation invariants and the modern + legacy same-endpoint proofs remain green.
+Node now owns HTTP framing in `server/net.ts`; LazyDesigner still owns a bounded Node→Web Request bridge plus Host/Origin/body-limit/affinity/generation policy around MCP dispatch. The remaining transport debt is narrower: the modern 2026 path is SDK-owned, while legacy 2025 JSON uses a temporary official-SDK stateless transport shim because server v2.0.0 does not apply `responseMode="json"` to its built-in legacy fallback. Do not add another transport path or custom legacy protocol parser. Remove the shim only when the supported SDK can preserve the required legacy JSON contract itself, or when that compatibility contract is intentionally retired.
 
 ### Runtime
 
@@ -262,7 +262,6 @@ compatibility boundaries                         documented in source
 Still requiring terminal/current-head or higher-context proof:
 
 ```text
-terminal verify:full on synchronized exact head
 installed LazyDesigner Runtime freshness
 live Gateway survival across reload/rebuild/close-open
 native phase-switch transport behavior on the current build
