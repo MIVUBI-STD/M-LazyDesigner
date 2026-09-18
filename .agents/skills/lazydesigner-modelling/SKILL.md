@@ -8,7 +8,7 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 ## Modelling Core / Profile Contract
 
-This Skill is the **technical modelling core**. It owns universal Geometry, hierarchy, pivot/rig-readiness, surface, UV Layout, correction, and verification rules. Asset-class knowledge belongs in `docs/03-authoring/modelling/profiles/` and must not be duplicated here.
+This Skill is the **modelling execution specialist**. Durable Geometry, hierarchy, pivot/rig-readiness, surface, UV Layout, correction, and verification policy is owned by `docs/03-authoring/modelling/standard.md`; this Skill carries the compact operational triggers needed on the hot path. Asset-class knowledge belongs in `docs/03-authoring/modelling/profiles/` and must not be duplicated here.
 
 Canonical profile vocabulary:
 
@@ -30,7 +30,7 @@ Normal modelling context is:
 Control
 → original user intent + current target + reference readiness
 → selected_profile
-→ this modelling core
+→ this modelling specialist
 → exactly one selected profile
 → Codex
 ```

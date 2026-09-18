@@ -133,6 +133,27 @@ describe("model creation effectiveness — professional construction without pre
     expect(combined).not.toContain("one owner per visible part");
   });
 
+
+  test("durable authoring policy stays in docs while Skills remain hot-path execution projections", async () => {
+    const [taxonomy, modelling, animationSkill] = await Promise.all([
+      source("../docs/04-system/skill-taxonomy.md"),
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+    ]);
+
+    expect(taxonomy).toContain("Docs   = durable semantic policy / contracts");
+    expect(taxonomy).toContain("Skills = execution procedure and specialist operating instructions");
+
+    expect(modelling).toContain("Durable Geometry");
+    expect(modelling).toContain("docs/03-authoring/modelling/standard.md");
+    expect(modelling).toContain("compact operational triggers");
+    expect(lower(modelling)).not.toContain("it owns universal geometry");
+
+    expect(animationSkill).toContain("Durable Animation policy is owned by");
+    expect(animationSkill).toContain("docs/03-authoring/animation/standard.md");
+    expect(animationSkill).toContain("must not become a competing policy owner");
+  });
+
   test("professional samples never become callable presets, profiles, or fixture anatomy", async () => {
     const [profile, cubes, element, modelling, workflow] = await Promise.all([
       source("lib/registrationProfile.ts"),
