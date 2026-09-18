@@ -103,6 +103,11 @@ semantic parts only when decision-critical
 simplest representation preserving identity/buildability
 geometry owns material 3D form; texture owns surface-only detail
 motion ownership follows actual requirement/evidence
+stable semantic ownership should survive clip/controller/presentation growth unless capability is missing
+rig, clip, and controller complexity are separate budgets
+local state/presentation variants isolate the smallest changed branch
+Locator semantics may be animated when they own a moving attachment/reference transform
+family-level attachment semantics may stay stable without forcing identical topology
 largest structural difference first
 blocking vs non-blocking unknowns remain explicit
 ```
