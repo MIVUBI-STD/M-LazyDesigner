@@ -5,6 +5,7 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_STABLE } from "@/lib/constants";
 import { requireOpenProject } from "@/lib/util";
 import {
+  finiteElementVector3Schema,
   cubeSize,
   elementContinuationState,
   exceedsBounds,
@@ -19,12 +20,6 @@ import {
 } from "./element-shared";
 
 export const elementTypeEnum = z.enum(["cube", "group", "any"]);
-
-const finiteElementVector3Schema = z.tuple([
-  z.number().finite(),
-  z.number().finite(),
-  z.number().finite(),
-]);
 
 export const findElementsByCriteriaParameters = z.object({
   name_pattern: z
