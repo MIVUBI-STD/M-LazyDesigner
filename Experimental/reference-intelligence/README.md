@@ -57,6 +57,7 @@ Do not merge these classes into one authority hierarchy.
 - `friendly-fishing-modelling-study.md` — aquatic creature chains, distributed swim motion, held-object/rod secondary structures.
 - `compact-rig-animation-study.md` — rich animation libraries on compact stable rigs.
 - `user-corpus-modelling-synthesis.md` — compact cross-source modelling patterns for future validation.
+- `native-validation-matrix.md` — bounded baseline-vs-candidate native Blockbench validation plan for the compact modelling refinements.
 - `source-map.md` — source roles, coverage, current decisions, and next research order.
 
 ## Cross-Domain Candidate
