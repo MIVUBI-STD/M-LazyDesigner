@@ -482,7 +482,10 @@ export class BlockitRuntimeBackend {
 
     const client = new Client(
       { name: "blockit-gateway-runtime-client", version: GATEWAY_VERSION },
-      { capabilities: {} }
+      {
+        capabilities: {},
+        versionNegotiation: { mode: "auto" },
+      }
     );
     const transport = new StreamableHTTPClientTransport(new URL(this.runtimeUrl), {
       requestInit: { headers: this.runtimeRequestHeaders() },
