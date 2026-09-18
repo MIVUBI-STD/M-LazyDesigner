@@ -102,8 +102,8 @@ describe("Geometry mutation preflight ordering", () => {
 
   test("Group pivot transfer fails closed before Undo when mesh is unavailable", async () => {
     const source = await Bun.file("server/tools/element-hierarchy.ts").text();
-    const start = source.indexOf("createTool(elementHierarchyToolDocs[1].name");
-    const end = source.indexOf("createTool(elementHierarchyToolDocs[2].name", start);
+    const start = source.indexOf('createTool("modify_group"');
+    const end = source.indexOf('createTool("reparent_element"', start);
     const block = source.slice(start, end);
 
     const meshGuard = block.indexOf("!group.mesh");
