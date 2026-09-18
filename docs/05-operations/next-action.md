@@ -11,6 +11,17 @@ Canonical Control source: `mcp/gateway/control/`. The former Navigator source is
 
 Current REMOTE_GITHUB architecture is source-hardened across Control, Gateway, Runtime, Plugin, retained Tool capability, validation, context loading, and repository contracts.
 
+Exact-head baseline remains:
+
+```text
+generated freshness PASS
+Runtime/Gateway typecheck PASS
+Runtime regression PASS
+authoring contracts PASS
+surface/phase measurement PASS
+compatibility build + exact-SHA artifact PASS
+```
+
 Core invariants:
 
 - Gateway exposes only `status`, `search_capabilities`, `describe_capability`, and `invoke_capability`.
