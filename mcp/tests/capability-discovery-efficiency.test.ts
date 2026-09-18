@@ -9,11 +9,13 @@ import {
 
 describe("capability discovery efficiency", () => {
   test("Gateway discovery handles representative Indonesian authoring language", () => {
-    const tools = Object.values(getEnabledToolDefinitions()).map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      annotations: tool.annotations,
-    })) as BackendTool[];
+    const tools = Object.entries(getEnabledToolDefinitions()).map(
+      ([name, tool]) => ({
+        name,
+        description: tool.description,
+        annotations: tool.annotations,
+      })
+    ) as BackendTool[];
 
     const cases = [
       ["buat kubus baru untuk badan model", "manage_cubes"],
