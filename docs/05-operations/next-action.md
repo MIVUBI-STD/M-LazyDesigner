@@ -181,7 +181,7 @@ Measure **Cost to Accepted Result** without lowering accepted quality.
 - no hand-edited generated API/prompt output;
 - no all-profile/all-stage loading as reassurance;
 - no bulk compatibility-identifier migration;
-- no local/live PASS claims without matching proof.
+- no claim of Bun/typecheck/CI/local/live PASS until that proof actually ran.
 
 ## Proof Boundary
 
