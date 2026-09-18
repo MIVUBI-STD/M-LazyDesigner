@@ -33,6 +33,7 @@ export type BackendTool = {
   name: string;
   description?: string;
   inputSchema?: unknown;
+  outputSchema?: unknown;
   annotations?: BackendToolAnnotations;
   [key: string]: unknown;
 };
