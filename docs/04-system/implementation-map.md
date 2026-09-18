@@ -174,9 +174,10 @@ mcp/server/tools/paint.ts
 
 mcp/server/tools/paint-primitives.ts
 mcp/server/tools/paint-brush.ts
-mcp/server/tools/paint-state.ts
+mcp/server/tools/paint-settings.ts
+mcp/server/tools/paint-selection-layers.ts
 mcp/server/tools/paint-shared.ts
-→ focused paint primitive/brush/state/shared owners
+→ focused paint primitive/brush/settings/selection-layer/shared owners
 
 mcp/server/tools/element.ts
 → Element facade only: ordered docs + compatibility re-exports + focused registrar aggregation
