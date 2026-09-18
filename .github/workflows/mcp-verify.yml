@@ -55,6 +55,7 @@ jobs:
 
       # Keep the canonical verify:mcp order visible as individual CI gates so a
       # failing owner is diagnosable without weakening or duplicating checks.
+      # Exact-SHA provenance is written only after every source/build gate passes.
       - name: Verify generated docs freshness
         run: bun run docs:check
 
