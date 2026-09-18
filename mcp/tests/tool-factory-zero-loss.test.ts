@@ -49,7 +49,7 @@ describe("Tool factory zero-loss contracts", () => {
     );
 
     let callback: ((args: unknown, extra: unknown) => Promise<unknown>) | null = null;
-    let registeredDefinition: { outputSchema?: unknown } | null = null;
+    let registeredOutputSchema: unknown;
     const fakeServer = {
       registerTool(
         name: string,
@@ -58,7 +58,9 @@ describe("Tool factory zero-loss contracts", () => {
       ) {
         if (name === toolName) {
           callback = handler;
-          registeredDefinition = _definition as { outputSchema?: unknown };
+          registeredOutputSchema = (
+            _definition as { outputSchema?: unknown }
+          ).outputSchema;
         }
       },
       server: {
@@ -68,7 +70,7 @@ describe("Tool factory zero-loss contracts", () => {
 
     registerToolsOnServer(fakeServer, [toolName]);
     expect(callback).not.toBeNull();
-    expect(registeredDefinition?.outputSchema).toBe(outputSchema);
+    expect(registeredOutputSchema).toBe(outputSchema);
 
     await expect(callback!({ value: 1, extra: true }, {})).rejects.toThrow();
 
