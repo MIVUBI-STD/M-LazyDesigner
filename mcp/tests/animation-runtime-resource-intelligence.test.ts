@@ -58,14 +58,14 @@ describe("Bedrock animation runtime resources",()=>{
  test("Gateway branch projection keeps advanced Animation schema usage bounded",async()=>{
   expect(getCapabilityBranchFields("manage_animation_controller",{field:"resource_kind",value:"client_entity"})).toEqual(["resource_kind","resource_source","resource_output","resource_operations","max_content_length"]);
   expect(getCapabilityBranchFields("manage_animation_timeline",{field:"operation",value:"properties"})).toContain("start_delay");
-  const [server,bootstrap,source,skill]=await Promise.all([
+  const [server,extensions,source,skill]=await Promise.all([
     Bun.file("server/server.ts").text(),
-    Bun.file("server/runtime/bootstrap.ts").text(),
+    Bun.file("server/runtime/extensions.ts").text(),
     Bun.file("server/tools/animation-runtime-resource-intelligence.ts").text(),
     Bun.file("../.agents/skills/lazydesigner-animation/SKILL.md").text()
   ]);
   expect(server).toContain("initializeRuntimeCapabilityWiring");
-  expect(bootstrap).toContain("wireAnimationRuntimeResourceIntelligence");
+  expect(extensions).toContain("wireAnimationRuntimeResourceIntelligence");
   expect(source).toContain('getAllToolDefinitions()["manage_animation_controller"]');
   expect(source).toContain('getAllToolDefinitions()["inspect_animation"]');
   expect(source).not.toContain("createTool(");
