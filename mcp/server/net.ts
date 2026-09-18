@@ -1,4 +1,4 @@
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/server";
+import { createMcpHandler } from "@modelcontextprotocol/server";
 import type { Server as NodeNetServer, Socket } from 'node:net'
 import {
   registerToolsOnServer,
@@ -341,26 +341,22 @@ async function handleStatelessMcpRequest (
   profile: McpRegistrationProfile = DEFAULT_MCP_REGISTRATION_PROFILE,
   phaseScoped: boolean = false
 ): Promise<SerializedWebResponse> {
-  // Gateway phase affinity selects from the existing cached catalog without
-  // mutating global tools.enabled. Direct Runtime clients retain the global
-  // phase surface and existing request-owned registration path.
-  const requestServer = createMcpServer(phase, profile)
-  const scopedToolNames = phaseScoped
-    ? getMcpSurfaceToolNames(profile, phase)
-    : undefined
-  registerToolsOnServer(requestServer, scopedToolNames)
-  registerResourcesOnServer(requestServer)
-  registerPromptsOnServer(requestServer)
-
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true
+  // One official SDK handler owns both MCP eras. The default legacy='stateless'
+  // path preserves 2025 request compatibility while 2026-07-28 requests use
+  // the modern stateless protocol without a parallel Runtime transport stack.
+  const handler = createMcpHandler(() => {
+    const requestServer = createMcpServer(phase, profile)
+    const scopedToolNames = phaseScoped
+      ? getMcpSurfaceToolNames(profile, phase)
+      : undefined
+    registerToolsOnServer(requestServer, scopedToolNames)
+    registerResourcesOnServer(requestServer)
+    registerPromptsOnServer(requestServer)
+    return requestServer
   })
 
-  await requestServer.connect(transport)
-
   try {
-    const webResponse = await transport.handleRequest(webRequest)
+    const webResponse = await handler.fetch(webRequest)
     const responseHeaders: Record<string, string> = {}
     webResponse.headers.forEach((value: string, key: string) => {
       responseHeaders[key] = value
@@ -383,7 +379,7 @@ async function handleStatelessMcpRequest (
       body: await webResponse.text()
     }
   } finally {
-    await requestServer.close()
+    await handler.close()
   }
 }
 
