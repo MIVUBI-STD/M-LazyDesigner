@@ -284,6 +284,39 @@ This is a concrete anti-duplication pattern for LazyDesigner.
 
 Do not copy the opaque bone names; the relevant evidence is structural.
 
+## Case-Level Audit — Controller Composition
+
+Bow and crossbow attachables use compact animation-controller state machines over the same small helper/geometry ownership.
+
+Observed bow controllers:
+
+- one controller with 2 states;
+- one controller with 4 states.
+
+Observed crossbow controllers:
+
+- one 4-state presentation controller;
+- one 5-state presentation controller;
+- first-person and non-first-person controller paths are selected separately.
+
+Safe authoring conclusion:
+
+> controller-state growth does not require geometry-owner growth.
+
+The controller decides which authored clip/presentation state is active; the compact geometry/helper skeleton remains stable.
+
+This supports a modelling boundary:
+
+```text
+rig/hierarchy
+→ owns transform capability
+
+animation/controller
+→ owns temporal/state composition
+```
+
+Do not solve a controller-composition problem by adding model hierarchy unless the active states expose a genuinely missing transform owner.
+
 ## Current Verdict
 
 Actions & Stuff is accepted as a high-value analysis-only corpus for:
