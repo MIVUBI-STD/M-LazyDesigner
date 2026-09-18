@@ -91,9 +91,15 @@ describe("static footprint budget", () => {
   });
 
   test("optional Texture identity guidance is shared across Paint and texture reads", async () => {
-    const [paint, texture] = await Promise.all([source("server/tools/paint.ts"), source("server/tools/texture.ts")]);
-    expect((paint.match(/texture_id: textureIdOptionalSchema/g) ?? []).length).toBeGreaterThanOrEqual(7);
-    expect(texture).toContain("texture: textureIdOptionalSchema");
+    const [paintBrush, paintPrimitives, paintSelectionLayers, textureRead] = await Promise.all([
+      source("server/tools/paint-brush.ts"),
+      source("server/tools/paint-primitives.ts"),
+      source("server/tools/paint-selection-layers.ts"),
+      source("server/tools/texture-read.ts"),
+    ]);
+    const paint = [paintBrush, paintPrimitives, paintSelectionLayers].join("\n");
+    expect((paint.match(/texture_id:\s*textureIdOptionalSchema/g) ?? []).length).toBeGreaterThanOrEqual(7);
+    expect(textureRead).toContain("texture: textureIdOptionalSchema");
   });
 
   test("undo and redo return compact recovery position without a stack reread", async () => {
