@@ -20,6 +20,8 @@ Runtime regression PASS
 authoring contracts PASS
 surface/phase measurement PASS
 compatibility build + exact-SHA artifact PASS
+modern MCP 2026 negotiation/list/call PASS
+legacy 2025 JSON initialize/list/call PASS
 ```
 
 Core invariants:
