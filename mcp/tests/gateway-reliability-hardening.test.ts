@@ -65,6 +65,9 @@ describe("Gateway long-running reliability hardening", () => {
     const source = await Bun.file("gateway/backend.ts").text();
 
     expect(source).toContain(
+      'versionNegotiation: { mode: "auto" }'
+    );
+    expect(source).toContain(
       "client.connect(transport, { timeout: this.connectTimeoutMs })"
     );
     expect(source).toMatch(
