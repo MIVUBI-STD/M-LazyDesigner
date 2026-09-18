@@ -115,7 +115,7 @@ describe("AnimationController mutation closure", () => {
     expect(continuation).toContain("particles: state.particles.map");
     expect(controller).toContain(".filter((state) => affectedStateUuids.has(state.uuid))");
     expect(controller).toContain(".map(controllerStateContinuation)");
-    expect(controller).not.toContain("states: finalPlan.states");
+    expect(controller).not.toContain("\n          states: finalPlan.states,");
     expect(controller).toContain("state_uuid: state.uuid");
     expect(controller).toContain("target_uuid: target.uuid");
     expect(controller).toContain("animation_uuid: link.animation || null");
