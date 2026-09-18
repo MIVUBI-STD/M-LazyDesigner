@@ -13,15 +13,15 @@ import {
   animationChannelEnum,
   animationIdOptionalSchema,
 } from "@/lib/zodObjects";
-import { captureModelViewsParameters } from "./camera";
-import { inspectAnimationParameters } from "./animation-inspection";
+import { captureModelViewsParameters } from "../tools/camera";
+import { inspectAnimationParameters } from "../tools/animation-inspection";
 import {
   animationCopyPasteParameters,
   animationGraphEditorParameters,
   animationTimelineParameters,
   batchKeyframeOperationsParameters,
   manageKeyframesParameters,
-} from "./animation";
+} from "../tools/animation";
 
 type JsonRecord = Record<string, unknown>;
 

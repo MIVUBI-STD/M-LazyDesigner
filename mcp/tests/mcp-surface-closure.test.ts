@@ -30,7 +30,7 @@ function documentedToolNames(): Set<string> {
   );
 }
 
-describe("pre-local MCP surface closure", () => {
+describe("MCP surface closure", () => {
   test("every enabled default capability is family-owned and reachable from at least one semantic surface", () => {
     const phaseUnion = new Set(
       MCP_AUTHORING_PHASES.flatMap((phase) =>

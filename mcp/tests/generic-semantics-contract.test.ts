@@ -16,7 +16,7 @@ async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-describe("pre-local generic semantics narrowing", () => {
+describe("generic semantics narrowing contract", () => {
   test("project creation has no redundant format selector", () => {
     expect(createProjectParameters.parse({ name: "entity" })).toEqual({ name: "entity" });
     expect(createProjectParameters.safeParse({ name: "entity", format: "bedrock" }).success).toBe(false);

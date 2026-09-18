@@ -3,7 +3,7 @@ import {
   animationAwareCaptureModelViewsParameters,
   focusedInspectAnimationParameters,
   optimizedAnimationTimelineParameters,
-} from "@/server/tools/animation-runtime-wiring";
+} from "@/server/runtime/animationRuntimeContracts";
 
 describe("Animation runtime efficiency contracts", () => {
   test("multi-time canonical capture stays bounded to eight images per call", () => {

@@ -9,8 +9,8 @@ import {
   type JsonObject,
 } from "./live-e2e-common";
 
-const PROJECT_NAME = "blockit_prelocal_wiring_e2e";
-const MODEL_IDENTIFIER = "geometry.blockit_prelocal_wiring_e2e";
+const PROJECT_NAME = "blockit_texture_runtime_e2e";
+const MODEL_IDENTIFIER = "geometry.blockit_texture_runtime_e2e";
 const BASE_NAME = "wiring_base";
 const VARIANT_NAME = "wiring_variant";
 const VARIANT_GROUP = "wiring_variants";
@@ -246,7 +246,7 @@ async function main(): Promise<void> {
     JSON.stringify(
       {
         ok: true,
-        proof: "prelocal_wiring_live",
+        proof: "texture_runtime_live",
         build_identity: environment.buildIdentity,
         model_identifier: MODEL_IDENTIFIER,
         base_texture_uuid: base.uuid,

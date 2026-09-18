@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-describe("pre-local LazyDesigner plugin surface hardening", () => {
+describe("LazyDesigner plugin surface hardening", () => {
   test("surface manifest distinguishes phase, exposed, disabled, and catalog entries deterministically", () => {
     const manifest = createSurfaceManifest({
       profile: "bedrock_entity",

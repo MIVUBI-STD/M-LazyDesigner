@@ -101,7 +101,7 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
   duplicate_element: {
     source: "mcp/server/tools/element.ts",
     specialist: MODELLING_PATH,
-    test_owner: "mcp/tests/prelocal-generic-semantics.test.ts",
+    test_owner: "mcp/tests/generic-semantics-contract.test.ts",
   },
   reparent_element: {
     source: "mcp/server/tools/element.ts",
@@ -264,9 +264,9 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     test_owner: "mcp/tests/paint-tool-selection.test.ts",
   },
   paint_texture_transaction: {
-    source: "mcp/server/tools/prelocal-wiring.ts",
+    source: "mcp/server/tools/paint-texture-transaction.ts",
     specialist: TEXTURING_PATH,
-    test_owner: "mcp/tests/prelocal-wiring-policy.test.ts",
+    test_owner: "mcp/tests/texture-runtime-live-contract.test.ts",
   },
   manage_material: {
     source: "mcp/server/runtime/consolidatedTools.ts",

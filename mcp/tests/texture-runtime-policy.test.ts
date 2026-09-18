@@ -12,7 +12,7 @@ import { buildTextureEvidenceDeliveryMetadata } from "@/lib/textureEvidenceDeliv
 import { planBedrockGeometryWrite } from "@/lib/bedrockExportIntegrity";
 import { requireDirectBedrockGeometryWriteV1 } from "@/lib/bedrockExportWritePolicy";
 
-describe("pre-local wiring policy", () => {
+describe("texture runtime wiring policy", () => {
   test("new Bedrock projects own deterministic native geometry identifiers", () => {
     expect(resolveBedrockProjectModelIdentifier("Small Cannon Boat")).toBe(
       "geometry.small_cannon_boat"

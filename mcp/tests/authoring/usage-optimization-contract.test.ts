@@ -4,7 +4,7 @@ async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-describe("pre-local usage optimization contract", () => {
+describe("usage optimization contract", () => {
   test("repository work states the real contract before one coherent delivery", async () => {
     const brief = await source("../.agents/skills/lazydesigner-development-brief/SKILL.md");
     expect(brief).toContain("State the contract");
