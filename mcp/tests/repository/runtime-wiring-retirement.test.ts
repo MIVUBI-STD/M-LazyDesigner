@@ -16,9 +16,9 @@ describe("retired runtime wiring paths", () => {
   test("active repository owners do not reference retired wiring filenames", async () => {
     const roots = ["server", "build", "tests", "../docs", "../.github"];
     const retired = [
-      "server/tools/prelocal-wiring.ts",
-      "server/tools/animation-runtime-wiring.ts",
-      "scripts/verify-prelocal-wiring-live.ts",
+      "server/tools/prelocal-wiring",
+      "server/tools/animation-runtime-wiring",
+      "scripts/verify-prelocal-wiring-live",
       "verify:prelocal-wiring-live",
     ];
 
