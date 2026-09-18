@@ -5,7 +5,7 @@ Branch: `Local` only.
 
 This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/flow.md`; source/context ownership in `docs/04-system/`; proof interpretation in `docs/05-operations/current-validation.md`.
 
-Canonical Control source: `mcp/gateway/control/`. The former Navigator source is retired.
+Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/navigator/` source is removed with no alias; `Experimental/blockit-navigator/` is historical documentation only.
 
 ## Current State
 
@@ -23,6 +23,8 @@ compatibility build + exact-SHA artifact PASS
 modern MCP 2026 negotiation/list/call PASS
 legacy 2025 JSON initialize/list/call PASS
 ```
+
+No hand-editing generated docs/output. Generated prompt/API artifacts remain generator-owned.
 
 Core invariants:
 
