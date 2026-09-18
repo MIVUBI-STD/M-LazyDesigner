@@ -18,6 +18,7 @@ import {
   resolveAnimationRigGroup as resolveRigGroup,
   toArrayVector3,
 } from "./animation-shared";
+import { requireValidPlannedKeyframeTimes } from "./animation-batch";
 
 const molangTransformStringSchema = z
   .string()
