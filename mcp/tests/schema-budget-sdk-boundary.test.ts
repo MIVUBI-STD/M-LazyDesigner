@@ -5,13 +5,13 @@ import { projectCapabilityInputSchema } from "@/gateway/schemaProjection";
 // native executor is a spy; both SDK validation and BlockIT parameterSchema run.
 const sdkBoundaryProbe = String.raw`
 import assert from "node:assert/strict";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { projectCapabilityInputSchema } from "./gateway/schemaProjection.ts";
 import { toolManifest } from "./build/docs-manifest.ts";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { z } from "zod";
 import { createServer } from "./server/server.ts";
 import {
+  extractShape,
   getAllToolDefinitions,
   invalidateToolRegistrationRuntimeCaches,
   registerToolsOnServer,
@@ -57,7 +57,15 @@ try {
   assert.ok(resource.properties.resource_operations.items.anyOf.length > 1);
   for (const name of ["manage_animation_timeline", "manage_animation_controller", "inspect_elements", "inspect_particle", "manage_particle"]) {
     const spec = toolManifest.flatMap((group) => group.tools).find((tool) => tool.name === name);
-    assert.deepEqual(schemaFor(name), { ...zodToJsonSchema(spec.parameters, { $refStrategy: "none" }), type: "object" });
+    assert.deepEqual(
+      schemaFor(name),
+      z.toJSONSchema(z.object(extractShape(spec.parameters)), {
+        io: "input",
+        target: "draft-2020-12",
+        unrepresentable: "any",
+        reused: "inline",
+      })
+    );
   }
   const keyframes = Array.from({ length: 33 }, (_, i) => ({ time: i / 20, values: [i, 0, 0] }));
   const request = {
