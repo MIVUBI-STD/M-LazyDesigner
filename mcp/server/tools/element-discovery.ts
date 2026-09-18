@@ -217,264 +217,266 @@ export const elementDiscoveryToolDocs: ToolSpec[] = [
     }
 ];
 
-export function registerElementDiscoveryTools(): void {
+export function registerListOutlineTool(): void {
   createTool(elementDiscoveryToolDocs[0].name, {
-      ...elementDiscoveryToolDocs[0],
-      async execute({ include_cubes, max_depth, max_nodes }) {
-        interface IOutlineNode {
-          name: string;
-          uuid: string;
-          type: "cube" | "group";
-          children?: IOutlineNode[];
-        }
-  
-        const truncated: string[] = [];
-        let returnedNodes = 0;
-        let nodeLimitReached = false;
-  
-        const nodeFor = (el: unknown, depth: number): IOutlineNode | null => {
-          if (el instanceof Group) {
-            if (returnedNodes >= max_nodes) {
-              nodeLimitReached = true;
-              return null;
-            }
-            returnedNodes += 1;
-            const node: IOutlineNode = {
-              name: el.name,
-              uuid: el.uuid,
-              type: "group",
-              children: [],
-            };
-            if (depth >= max_depth) {
-              truncated.push(el.name);
-              delete node.children;
+        ...elementDiscoveryToolDocs[0],
+        async execute({ include_cubes, max_depth, max_nodes }) {
+          interface IOutlineNode {
+            name: string;
+            uuid: string;
+            type: "cube" | "group";
+            children?: IOutlineNode[];
+          }
+    
+          const truncated: string[] = [];
+          let returnedNodes = 0;
+          let nodeLimitReached = false;
+    
+          const nodeFor = (el: unknown, depth: number): IOutlineNode | null => {
+            if (el instanceof Group) {
+              if (returnedNodes >= max_nodes) {
+                nodeLimitReached = true;
+                return null;
+              }
+              returnedNodes += 1;
+              const node: IOutlineNode = {
+                name: el.name,
+                uuid: el.uuid,
+                type: "group",
+                children: [],
+              };
+              if (depth >= max_depth) {
+                truncated.push(el.name);
+                delete node.children;
+                return node;
+              }
+              for (const child of el.children ?? []) {
+                const childNode = nodeFor(child, depth + 1);
+                if (childNode) node.children!.push(childNode);
+                if (nodeLimitReached) break;
+              }
               return node;
             }
-            for (const child of el.children ?? []) {
-              const childNode = nodeFor(child, depth + 1);
-              if (childNode) node.children!.push(childNode);
-              if (nodeLimitReached) break;
+            if (el instanceof Cube) {
+              if (!include_cubes) return null;
+              if (returnedNodes >= max_nodes) {
+                nodeLimitReached = true;
+                return null;
+              }
+              returnedNodes += 1;
+              return { name: el.name, uuid: el.uuid, type: "cube" };
             }
-            return node;
+            return null;
+          };
+    
+          const roots: IOutlineNode[] = [];
+          for (const element of Outliner.root) {
+            const node = nodeFor(element, 0);
+            if (node) roots.push(node);
+            if (nodeLimitReached) break;
           }
-          if (el instanceof Cube) {
-            if (!include_cubes) return null;
-            if (returnedNodes >= max_nodes) {
-              nodeLimitReached = true;
-              return null;
+    
+          const counts = {
+            groups: Group.all.length,
+            cubes: Cube.all.length,
+          };
+    
+          return JSON.stringify(
+            {
+              counts,
+              returned_nodes: returnedNodes,
+              max_nodes,
+              truncated_at_max_nodes: nodeLimitReached || undefined,
+              truncated_at_max_depth: truncated.length ? truncated : undefined,
+              roots,
             }
-            returnedNodes += 1;
-            return { name: el.name, uuid: el.uuid, type: "cube" };
+          );
+        },
+      }, elementDiscoveryToolDocs[0].status);
+}
+
+export function registerElementDiscoveryTools(): void {
+  createTool(elementDiscoveryToolDocs[1].name, {
+        ...elementDiscoveryToolDocs[1],
+        async execute({
+          name_pattern,
+          name_contains,
+          type,
+          parent_group,
+          min_size,
+          max_size,
+          selected_only,
+          limit,
+        }) {
+          requireOpenProject("searching elements");
+          const regex = safeCompileRegex(name_pattern);
+          if (name_contains !== undefined && name_contains.length === 0) {
+            throw new Error("name_contains cannot be empty; omit it only when no substring filter is intended.");
           }
-          return null;
-        };
-  
-        const roots: IOutlineNode[] = [];
-        for (const element of Outliner.root) {
-          const node = nodeFor(element, 0);
-          if (node) roots.push(node);
-          if (nodeLimitReached) break;
-        }
-  
-        const counts = {
-          groups: Group.all.length,
-          cubes: Cube.all.length,
-        };
-  
-        return JSON.stringify(
-          {
-            counts,
-            returned_nodes: returnedNodes,
-            max_nodes,
-            truncated_at_max_nodes: nodeLimitReached || undefined,
-            truncated_at_max_depth: truncated.length ? truncated : undefined,
-            roots,
-          }
-        );
-      },
-    }, elementDiscoveryToolDocs[0].status);
-  
-    createTool(elementDiscoveryToolDocs[1].name, {
-      ...elementDiscoveryToolDocs[1],
-      async execute({
-        name_pattern,
-        name_contains,
-        type,
-        parent_group,
-        min_size,
-        max_size,
-        selected_only,
-        limit,
-      }) {
-        requireOpenProject("searching elements");
-        const regex = safeCompileRegex(name_pattern);
-        if (name_contains !== undefined && name_contains.length === 0) {
-          throw new Error("name_contains cannot be empty; omit it only when no substring filter is intended.");
-        }
-        const needle = name_contains?.toLowerCase() ?? null;
-        const parentScope = resolveOptionalGroupScope(parent_group);
-  
-        const candidates: Array<Cube | Group> = [
-          ...(selected_only ? Cube.selected : Cube.all),
-          ...(selected_only ? Group.all.filter((g: Group) => g.selected) : Group.all),
-        ];
-  
-        const matches: IElementMatch[] = [];
-        let truncated = false;
-  
-        for (const el of candidates) {
-          const elType = getElementType(el);
-          if (!elType) continue;
-          if (type !== "any" && elType !== type) continue;
-          if (regex && !regex.test(el.name)) continue;
-          if (needle !== null && !el.name.toLowerCase().includes(needle)) continue;
-          if (parentScope && !isDescendantOf(el, parentScope)) continue;
-  
-          if (el instanceof Cube && (min_size || max_size)) {
-            if (exceedsBounds(cubeSize(el), min_size, max_size)) continue;
-          }
-  
-          if (matches.length >= limit) {
-            truncated = true;
-            break;
-          }
-          matches.push({
-            uuid: el.uuid,
-            name: el.name,
-            type: elType,
-            parent: getParentName(el),
-          });
-        }
-  
-        return JSON.stringify(
-          {
-            count: matches.length,
-            truncated,
-            matches,
-          }
-        );
-      },
-    }, elementDiscoveryToolDocs[1].status);
-  
-    createTool(elementDiscoveryToolDocs[2].name, {
-      ...elementDiscoveryToolDocs[2],
-      async execute({ type, add_to_selection, parent_group }) {
-        requireOpenProject("selecting elements");
-        const parentScope = resolveOptionalGroupScope(parent_group);
-  
-        const pool: Array<Cube | Group> =
-          type === "cube" ? [...Cube.all] : [...Group.all];
-  
-        const targets = parentScope
-          ? pool.filter((el) => isDescendantOf(el, parentScope))
-          : pool;
-  
-        if (!add_to_selection) {
-          Cube.all.forEach((c: Cube) => c.selected && c.unselect?.());
-          Group.all.forEach((g: Group) => {
-            if (g.selected) g.selected = false;
-          });
-        }
-  
-        for (const el of targets) {
-          if (el instanceof Group) {
-            el.selected = true;
-            continue;
-          }
-          el.select?.(new MouseEvent("click", { shiftKey: true }));
-        }
-  
-        updateSelection();
-        Canvas.updateAll();
-  
-        return JSON.stringify(
-          {
-            type,
-            selected: targets.length,
-            parent_group: parentScope?.name ?? null,
-          }
-        );
-      },
-    }, elementDiscoveryToolDocs[2].status);
-  
-    createTool(elementDiscoveryToolDocs[3].name, {
-      ...elementDiscoveryToolDocs[3],
-      async execute({ texture, include_face_keys, limit }) {
-        const tex = resolveUniqueTextureForDiscovery(texture);
-        const matches: IFilterByMaterialMatch[] = [];
-        let truncated = false;
-  
-        for (const cube of Cube.all) {
-          const faceKeys: string[] = [];
-          for (const [key, face] of Object.entries(cube.faces ?? {})) {
-            const faceTexId = (face as { texture?: unknown }).texture;
-            if (faceTexId === tex.uuid || faceTexId === tex.id) {
-              faceKeys.push(key);
+          const needle = name_contains?.toLowerCase() ?? null;
+          const parentScope = resolveOptionalGroupScope(parent_group);
+    
+          const candidates: Array<Cube | Group> = [
+            ...(selected_only ? Cube.selected : Cube.all),
+            ...(selected_only ? Group.all.filter((g: Group) => g.selected) : Group.all),
+          ];
+    
+          const matches: IElementMatch[] = [];
+          let truncated = false;
+    
+          for (const el of candidates) {
+            const elType = getElementType(el);
+            if (!elType) continue;
+            if (type !== "any" && elType !== type) continue;
+            if (regex && !regex.test(el.name)) continue;
+            if (needle !== null && !el.name.toLowerCase().includes(needle)) continue;
+            if (parentScope && !isDescendantOf(el, parentScope)) continue;
+    
+            if (el instanceof Cube && (min_size || max_size)) {
+              if (exceedsBounds(cubeSize(el), min_size, max_size)) continue;
             }
-          }
-          if (faceKeys.length > 0) {
+    
             if (matches.length >= limit) {
               truncated = true;
               break;
             }
             matches.push({
-              uuid: cube.uuid,
-              name: cube.name,
-              type: "cube",
-              ...(include_face_keys ? { faces: faceKeys } : {}),
+              uuid: el.uuid,
+              name: el.name,
+              type: elType,
+              parent: getParentName(el),
             });
           }
-        }
-  
-        return JSON.stringify(
-          {
-            texture: { uuid: tex.uuid, name: tex.name },
-            count: matches.length,
-            truncated,
-            matches,
-          }
-        );
-      },
-    }, elementDiscoveryToolDocs[3].status, false);
-  
-    createTool(elementDiscoveryToolDocs[4].name, {
-      ...elementDiscoveryToolDocs[4],
-      async execute() {
-        requireOpenProject("reading the editor selection");
-        const cubes = Cube.selected.map((c: Cube) => ({
-          uuid: c.uuid,
-          name: c.name,
-          type: "cube" as const,
-        }));
-        const groups = Group.all
-          .filter((g: Group) => g.selected)
-          .map((g: Group) => ({
-            uuid: g.uuid,
-            name: g.name,
-            type: "group" as const,
-          }));
-  
-        const activeTexture = Texture.selected
-          ? {
-              uuid: Texture.selected.uuid,
-              id: Texture.selected.id,
-              name: Texture.selected.name,
-              width: Texture.selected.width,
-              height: Texture.selected.height,
+    
+          return JSON.stringify(
+            {
+              count: matches.length,
+              truncated,
+              matches,
             }
-          : null;
-  
-        return JSON.stringify(
-          {
-            counts: {
-              cubes: cubes.length,
-              groups: groups.length,
-            },
-            cubes,
-            groups,
-            active_texture: activeTexture,
+          );
+        },
+      }, elementDiscoveryToolDocs[1].status);
+    
+      createTool(elementDiscoveryToolDocs[2].name, {
+        ...elementDiscoveryToolDocs[2],
+        async execute({ type, add_to_selection, parent_group }) {
+          requireOpenProject("selecting elements");
+          const parentScope = resolveOptionalGroupScope(parent_group);
+    
+          const pool: Array<Cube | Group> =
+            type === "cube" ? [...Cube.all] : [...Group.all];
+    
+          const targets = parentScope
+            ? pool.filter((el) => isDescendantOf(el, parentScope))
+            : pool;
+    
+          if (!add_to_selection) {
+            Cube.all.forEach((c: Cube) => c.selected && c.unselect?.());
+            Group.all.forEach((g: Group) => {
+              if (g.selected) g.selected = false;
+            });
           }
-        );
-      },
-    }, elementDiscoveryToolDocs[4].status);
+    
+          for (const el of targets) {
+            if (el instanceof Group) {
+              el.selected = true;
+              continue;
+            }
+            el.select?.(new MouseEvent("click", { shiftKey: true }));
+          }
+    
+          updateSelection();
+          Canvas.updateAll();
+    
+          return JSON.stringify(
+            {
+              type,
+              selected: targets.length,
+              parent_group: parentScope?.name ?? null,
+            }
+          );
+        },
+      }, elementDiscoveryToolDocs[2].status);
+    
+      createTool(elementDiscoveryToolDocs[3].name, {
+        ...elementDiscoveryToolDocs[3],
+        async execute({ texture, include_face_keys, limit }) {
+          const tex = resolveUniqueTextureForDiscovery(texture);
+          const matches: IFilterByMaterialMatch[] = [];
+          let truncated = false;
+    
+          for (const cube of Cube.all) {
+            const faceKeys: string[] = [];
+            for (const [key, face] of Object.entries(cube.faces ?? {})) {
+              const faceTexId = (face as { texture?: unknown }).texture;
+              if (faceTexId === tex.uuid || faceTexId === tex.id) {
+                faceKeys.push(key);
+              }
+            }
+            if (faceKeys.length > 0) {
+              if (matches.length >= limit) {
+                truncated = true;
+                break;
+              }
+              matches.push({
+                uuid: cube.uuid,
+                name: cube.name,
+                type: "cube",
+                ...(include_face_keys ? { faces: faceKeys } : {}),
+              });
+            }
+          }
+    
+          return JSON.stringify(
+            {
+              texture: { uuid: tex.uuid, name: tex.name },
+              count: matches.length,
+              truncated,
+              matches,
+            }
+          );
+        },
+      }, elementDiscoveryToolDocs[3].status, false);
+    
+      createTool(elementDiscoveryToolDocs[4].name, {
+        ...elementDiscoveryToolDocs[4],
+        async execute() {
+          requireOpenProject("reading the editor selection");
+          const cubes = Cube.selected.map((c: Cube) => ({
+            uuid: c.uuid,
+            name: c.name,
+            type: "cube" as const,
+          }));
+          const groups = Group.all
+            .filter((g: Group) => g.selected)
+            .map((g: Group) => ({
+              uuid: g.uuid,
+              name: g.name,
+              type: "group" as const,
+            }));
+    
+          const activeTexture = Texture.selected
+            ? {
+                uuid: Texture.selected.uuid,
+                id: Texture.selected.id,
+                name: Texture.selected.name,
+                width: Texture.selected.width,
+                height: Texture.selected.height,
+              }
+            : null;
+    
+          return JSON.stringify(
+            {
+              counts: {
+                cubes: cubes.length,
+                groups: groups.length,
+              },
+              cubes,
+              groups,
+              active_texture: activeTexture,
+            }
+          );
+        },
+      }, elementDiscoveryToolDocs[4].status);
 }
