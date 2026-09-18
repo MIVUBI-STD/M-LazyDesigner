@@ -26,7 +26,10 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(source).not.toContain("sseHeartbeat");
     expect(source).not.toContain("setKeepAlive(");
     expect(source).toContain("socket.setTimeout(SOCKET_IDLE_TIMEOUT_MS");
-    expect(source).toContain("const result = envelope.method === 'tools/call'");
+    expect(source).toContain("const result = routedMethod === 'tools/call'");
+    expect(source).toContain("singleRequestHeader(request, 'mcp-method')");
+    expect(source).toContain("singleRequestHeader(request, 'mcp-name')");
+    expect(source).toContain("routing headers disagree with the JSON-RPC body");
     expect(source).toContain("RuntimeRequestAbandonedError");
     expect(source).toContain("request.aborted ||");
     expect(source).toContain("response.destroyed ||");
