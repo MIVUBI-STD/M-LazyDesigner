@@ -4,11 +4,10 @@ describe("Runtime project-affinity dispatch ordering", () => {
   test("queued tool calls re-check socket liveness before entering native project dispatch", async () => {
     const source = await Bun.file("server/net.ts").text();
     const queue = source.indexOf("runRuntimeOperationExclusive(generation, async () => {");
-    const liveness = source.indexOf(
-      "socket.destroyed || !socket.writable || shuttingDown",
-      queue
-    );
-    const dispatch = source.indexOf("return await dispatch()", liveness);
+    const liveness = source.indexOf("request.aborted ||", queue);
+    const responseLiveness = source.indexOf("response.destroyed ||", liveness);
+    const shutdownLiveness = source.indexOf("shuttingDown", responseLiveness);
+    const dispatch = source.indexOf("return await dispatch()", shutdownLiveness);
     const abandonedCatch = source.indexOf(
       "error instanceof RuntimeRequestAbandonedError",
       dispatch
@@ -24,7 +23,9 @@ describe("Runtime project-affinity dispatch ordering", () => {
 
     expect(queue).toBeGreaterThan(-1);
     expect(liveness).toBeGreaterThan(queue);
-    expect(dispatch).toBeGreaterThan(liveness);
+    expect(responseLiveness).toBeGreaterThan(liveness);
+    expect(shutdownLiveness).toBeGreaterThan(responseLiveness);
+    expect(dispatch).toBeGreaterThan(shutdownLiveness);
     expect(abandonedCatch).toBeGreaterThan(dispatch);
     expect(retiredCatch).toBeGreaterThanOrEqual(abandonedCatch);
     expect(projectErrorCatch).toBeGreaterThan(retiredCatch);
