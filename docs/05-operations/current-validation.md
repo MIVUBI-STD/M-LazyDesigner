@@ -81,7 +81,10 @@ server/runtime/registration.ts       registration/profile/surface ownership
 server/runtime/consolidatedRoutes.ts consolidated route descriptors
 server/runtime/consolidatedTools.ts  routing-only wrappers
 server/runtime/phaseControl.ts       authoring-focus + AUTHORING↔Animation control capability
-server/runtime/bootstrap.ts          exactly-once Runtime intelligence wiring
+server/runtime/bootstrap.ts          exactly-once Runtime initialization
+server/runtime/extensions.ts         ordered Runtime extension composition
+server/runtime/textureRuntimeContracts.ts   Texture contract enrichment
+server/runtime/animationRuntimeContracts.ts Animation contract enrichment
 server/tools/**                       domain Tool implementations
 ```
 
