@@ -7,7 +7,6 @@ import { requireOpenProject } from "@/lib/util";
 import {
   finiteElementVector3Schema,
   cubeSize,
-  elementContinuationState,
   exceedsBounds,
   getElementType,
   getParentName,
