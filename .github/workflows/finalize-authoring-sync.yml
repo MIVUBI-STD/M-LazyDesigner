@@ -1,5 +1,6 @@
 name: Final Synchronization Verification
 
+# Synchronization trigger: 2026-09-18 MCP maturity hardening pass.
 on:
   push:
     branches: [Local]
