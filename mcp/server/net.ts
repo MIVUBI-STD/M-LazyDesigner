@@ -767,7 +767,7 @@ export default function createNetServer (
           const result = envelope.method === 'tools/call'
             ? await runRuntimeOperationExclusive(generation, async () => {
                 if (
-                  request.destroyed ||
+                  request.aborted ||
                   response.destroyed ||
                   shuttingDown
                 ) {
