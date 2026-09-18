@@ -77,6 +77,8 @@ index.ts              canonical Control exports
 
 Control owns selection, projection and lifecycle orientation. It does not own Tool schemas, Runtime execution, live authored state, Skill prose or build execution.
 
+For a capability without an exact `SOURCE_BY_CAPABILITY` mapping, Control falls back to `mcp/server/runtime/registration.ts` as the Runtime **surface owner** plus the matching specialist. It must not route development ownership to the legacy `mcp/server/tools.ts` compatibility facade or guess an implementation file.
+
 ## Gateway
 
 Public AI-client surface is fixed:
@@ -210,6 +212,10 @@ It does **not** mean replacing several implementations with a weaker generic imp
 ```text
 quality intelligence
 → bounded diagnostic evidence only
+→ `server/tools/quality-intelligence.ts`: hygiene / rig graph / color / optimization / root-motion / animation-quality diagnostics
+→ `server/tools/quality-evidence-runtime.ts`: deterministic surface-integrity / physical-UV / motion-craft evidence
+→ both augment existing canonical read tools through `server/runtime/bootstrap.ts`
+→ neither creates a second public capability catalog, approval system, or quality score
 
 Blockbench Validator
 → BLOCKED | REVIEW_REQUIRED | VALIDATOR_CLEAR
