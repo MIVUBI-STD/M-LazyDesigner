@@ -1,0 +1,290 @@
+/// <reference types="blockbench-types" />
+
+import { createTool, type ToolSpec } from "@/lib/factories";
+import { bakeNativeCubeAo } from "@/lib/cubeAoRuntime";
+import { getAndActivateTexture } from "@/lib/util";
+import {
+  applyPaintTransactionRgba,
+  buildPaintTransactionReceipt,
+  paintTransactionParameters,
+} from "@/lib/paintTransaction";
+import {
+  PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
+  requirePaintTransactionV1Target,
+} from "@/lib/paintTransactionPolicy";
+import { computeTextureRevision } from "@/lib/textureRevision";
+import {
+  fullTextureRgba,
+  rgbaToPngDataUrl,
+} from "@/lib/textureBitmapRuntime";
+
+export const paintTextureTransactionToolDocs: ToolSpec = {
+  name: PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
+  description:
+    "Applies bounded set/fill/erase, mirrored copy_region, or seeded masked noise to a non-layered texture with revision protection and one native Undo. Optional output writes the final bitmap to a verified PNG path in the same transaction, so particle sprites reuse Texturing instead of adding a particle-specific save tool.",
+  annotations: {
+    title: "Paint Texture Transaction",
+    destructiveHint: true,
+  },
+  parameters: paintTransactionParameters,
+  status: "stable",
+};
+
+type TexturePngFilesystem = {
+  existsSync(path: string): boolean;
+  writeFileSync(path: string, data: Uint8Array): void;
+  statSync(path: string): { isFile(): boolean; size: number };
+  renameSync(oldPath: string, newPath: string): void;
+  unlinkSync(path: string): void;
+};
+
+type PreparedTexturePngWrite = {
+  path: string;
+  overwrite: boolean;
+  existed: boolean;
+  temp_path: string;
+  backup_path: string | null;
+  committed: boolean;
+  backup_moved: boolean;
+  byte_length: number;
+};
+
+function requireTexturePngFilesystem(path: string): TexturePngFilesystem {
+  // @ts-ignore - Blockbench desktop provides fs through requireNativeModule.
+  const fs = requireNativeModule("fs", {
+    message: `BlockIT requested write access to save texture PNG ${path}`,
+  }) as TexturePngFilesystem | undefined;
+  if (!fs) throw new Error("File system access was denied for texture PNG output.");
+  return fs;
+}
+
+function texturePngBytes(dataUrl: string): Buffer {
+  const marker = "data:image/png;base64,";
+  if (!dataUrl.startsWith(marker)) {
+    throw new Error("Texture PNG encoder did not return a base64 PNG data URL.");
+  }
+  const bytes = Buffer.from(dataUrl.slice(marker.length), "base64");
+  if (bytes.byteLength === 0) throw new Error("Texture PNG encoder returned an empty PNG.");
+  return bytes;
+}
+
+function uniqueTextureSiblingPath(
+  fs: TexturePngFilesystem,
+  targetPath: string,
+  label: "tmp" | "bak"
+): string {
+  for (let index = 0; index < 128; index += 1) {
+    const candidate = `${targetPath}.blockit-${label}-${process.pid}-${index}`;
+    if (!fs.existsSync(candidate)) return candidate;
+  }
+  throw new Error(`Could not allocate a bounded texture ${label} path beside ${targetPath}.`);
+}
+
+function prepareTexturePngWrite(
+  path: string,
+  overwrite: boolean,
+  byteLength: number
+): { fs: TexturePngFilesystem; state: PreparedTexturePngWrite } {
+  const fs = requireTexturePngFilesystem(path);
+  const existed = fs.existsSync(path);
+  if (existed && !overwrite) {
+    throw new Error(`Refusing to replace existing texture PNG ${path} without overwrite=true.`);
+  }
+  return {
+    fs,
+    state: {
+      path,
+      overwrite,
+      existed,
+      temp_path: uniqueTextureSiblingPath(fs, path, "tmp"),
+      backup_path: existed ? uniqueTextureSiblingPath(fs, path, "bak") : null,
+      committed: false,
+      backup_moved: false,
+      byte_length: byteLength,
+    },
+  };
+}
+
+function commitTexturePngWrite(
+  fs: TexturePngFilesystem,
+  state: PreparedTexturePngWrite,
+  bytes: Uint8Array
+): void {
+  fs.writeFileSync(state.temp_path, bytes);
+  const tempStat = fs.statSync(state.temp_path);
+  if (!tempStat.isFile() || tempStat.size !== state.byte_length) {
+    throw new Error(
+      `Temporary texture PNG verification failed for ${state.path}: expected ${state.byte_length} bytes, got ${tempStat.isFile() ? tempStat.size : "a non-file target"}.`
+    );
+  }
+  if (state.existed && state.backup_path) {
+    fs.renameSync(state.path, state.backup_path);
+    state.backup_moved = true;
+  }
+  fs.renameSync(state.temp_path, state.path);
+  state.committed = true;
+  const finalStat = fs.statSync(state.path);
+  if (!finalStat.isFile() || finalStat.size !== state.byte_length) {
+    throw new Error(
+      `Committed texture PNG verification failed for ${state.path}: expected ${state.byte_length} bytes, got ${finalStat.isFile() ? finalStat.size : "a non-file target"}.`
+    );
+  }
+}
+
+function rollbackTexturePngWrite(
+  fs: TexturePngFilesystem,
+  state: PreparedTexturePngWrite
+): void {
+  if (fs.existsSync(state.temp_path)) fs.unlinkSync(state.temp_path);
+  if (state.committed && fs.existsSync(state.path)) fs.unlinkSync(state.path);
+  if (state.backup_moved && state.backup_path && fs.existsSync(state.backup_path)) {
+    fs.renameSync(state.backup_path, state.path);
+    state.backup_moved = false;
+  }
+}
+
+function finalizeTexturePngWrite(
+  fs: TexturePngFilesystem,
+  state: PreparedTexturePngWrite
+): void {
+  if (!state.backup_path || !fs.existsSync(state.backup_path)) return;
+  try {
+    fs.unlinkSync(state.backup_path);
+  } catch {
+    // The authored PNG and Undo unit are already committed. A stale backup is
+    // safer than turning successful authoring into a second rollback attempt.
+  }
+}
+
+export function registerPaintTextureTransactionTool(): void {
+  createTool(
+    paintTextureTransactionToolDocs.name,
+    {
+      ...paintTextureTransactionToolDocs,
+      parameters: paintTransactionParameters,
+      async execute({ texture_id, expected_revision, operations, ambient_occlusion, output }) {
+        const texture = getAndActivateTexture(texture_id);
+        requirePaintTransactionV1Target({
+          texture_uuid: texture.uuid,
+          texture_name: texture.name,
+          layers_enabled: texture.layers_enabled,
+        });
+
+        const before = fullTextureRgba(texture);
+        const beforeRevision = await computeTextureRevision(
+          before.pixels,
+          before.width,
+          before.height
+        );
+        if (beforeRevision !== expected_revision) {
+          throw new Error(
+            `Texture "${texture.name}" changed since the caller observed it. Expected revision ${expected_revision}, actual ${beforeRevision}. Refresh texture state before retrying the mutation.`
+          );
+        }
+
+        const applied = ambient_occlusion ? bakeNativeCubeAo(texture,before.pixels,before.width,before.height,ambient_occlusion) : applyPaintTransactionRgba(
+          before.pixels,
+          before.width,
+          before.height,
+          operations!
+        );
+        const plannedAfterRevision = await computeTextureRevision(
+          applied.pixels,
+          before.width,
+          before.height
+        );
+        const plannedReceipt = buildPaintTransactionReceipt({
+          texture_uuid: texture.uuid,
+          texture_name: texture.name,
+          before_revision: beforeRevision,
+          after_revision: plannedAfterRevision,
+          operation_count: applied.operation_count,
+          pixel_writes: applied.pixel_writes,
+          affected_rect: applied.affected_rect,
+        });
+        const outputBytes = output
+          ? texturePngBytes(rgbaToPngDataUrl(applied.pixels, before.width, before.height))
+          : null;
+        const preparedOutput = output && outputBytes
+          ? prepareTexturePngWrite(output.path, output.overwrite === true, outputBytes.byteLength)
+          : null;
+
+        const undoAspects: UndoAspects = {
+          selected_texture: true,
+          bitmap: true,
+          textures: [texture],
+        };
+        Undo.initEdit(undoAspects);
+        try {
+          texture.edit(
+            (_canvas, env) => {
+              const imageData = env.ctx.createImageData(before.width, before.height);
+              imageData.data.set(applied.pixels);
+              env.ctx.putImageData(imageData, 0, 0);
+            },
+            { no_undo: true }
+          );
+
+          const actualAfter = fullTextureRgba(texture);
+          const actualAfterRevision = await computeTextureRevision(
+            actualAfter.pixels,
+            actualAfter.width,
+            actualAfter.height
+          );
+          if (actualAfterRevision !== plannedAfterRevision) {
+            throw new Error(
+              `Paint transaction postcondition mismatch: planned revision ${plannedAfterRevision}, actual ${actualAfterRevision}.`
+            );
+          }
+
+          if (preparedOutput && outputBytes) {
+            commitTexturePngWrite(preparedOutput.fs, preparedOutput.state, outputBytes);
+          }
+          Undo.finishEdit("Paint texture transaction");
+          if (preparedOutput) {
+            finalizeTexturePngWrite(preparedOutput.fs, preparedOutput.state);
+          }
+        } catch (error) {
+          if (preparedOutput) {
+            try {
+              rollbackTexturePngWrite(preparedOutput.fs, preparedOutput.state);
+            } catch (rollbackError) {
+              const reason = error instanceof Error ? error.message : String(error);
+              const rollbackReason = rollbackError instanceof Error ? rollbackError.message : String(rollbackError);
+              Undo.cancelEdit(true);
+              Canvas.updateAll();
+              throw new Error(`${reason} Texture PNG rollback also reported: ${rollbackReason}`);
+            }
+          }
+          Undo.cancelEdit(true);
+          Canvas.updateAll();
+          throw error;
+        }
+
+        Canvas.updateAll();
+        const outputReceipt = preparedOutput
+          ? {
+              path: preparedOutput.state.path,
+              byte_length: preparedOutput.state.byte_length,
+              replaced_existing: preparedOutput.state.existed,
+              verified: true as const,
+            }
+          : null;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Applied ${plannedReceipt.operation_count} texture operation(s) as one Undo transaction on "${texture.name}"${outputReceipt ? `; verified PNG saved to ${outputReceipt.path}` : ""}.`,
+            },
+          ],
+          structuredContent: {
+            ...plannedReceipt,
+            output: outputReceipt,
+          },
+        };
+      },
+    },
+    paintTextureTransactionToolDocs.status
+  );
+}
+
