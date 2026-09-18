@@ -4,7 +4,6 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import {
   imageContent,
-  getChannelTextureInfo,
   isAbsoluteFilesystemPath,
 } from "@/lib/util";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
@@ -20,7 +19,9 @@ import {
   renderSidesEnum,
 } from "@/lib/zodObjects";
 import {
+  hasExactTextureGroupNameCollision,
   registerTextureMaterialTools,
+  resolveTextureToolMaterial,
   textureMaterialToolDocs,
 } from "./texture-materials";
 export {
