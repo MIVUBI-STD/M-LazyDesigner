@@ -241,6 +241,13 @@ New cross-source patterns:
 
 No new responsibility category was required beyond `FORM | ARTICULATION | ATTACHMENT | STATE | FOLLOW | CONTROL`.
 
+Detailed case audits now additionally confirm:
+
+- high presentation-variant count can reuse a compact semantic helper skeleton;
+- controller/state complexity does not imply rig complexity;
+- vehicle upgrades/cargo can be isolated as local geometry branches over one base mechanical rig;
+- non-visible Locator/ATTACHMENT owners may participate in animation.
+
 ## Cross-Domain Responsibility Vocabulary
 
 Status: `STATICALLY_VALIDATED_CANDIDATE` synthesized from the current cross-domain studies.
