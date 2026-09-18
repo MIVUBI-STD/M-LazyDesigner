@@ -12,6 +12,7 @@ import {
   resolveAnimationClip,
   resolveAnimationRigGroup,
 } from "./animation-shared";
+import { keyframeBelongsToAnimation } from "./animation-batch";
 
 const animationTimelineRangeSchema = z
   .object({
