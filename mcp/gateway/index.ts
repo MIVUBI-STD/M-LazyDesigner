@@ -377,6 +377,7 @@ registerGatewayTool(
             name: tool.name,
             description: tool.description ?? "",
             inputSchema: projection.inputSchema,
+            outputSchema: tool.outputSchema ?? null,
             annotations: tool.annotations ?? {},
             schema_projection: {
               projected: projection.projected,
