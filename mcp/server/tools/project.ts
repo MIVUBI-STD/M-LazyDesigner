@@ -26,43 +26,6 @@ export const createProjectParameters = z
 export const getProjectInfoParameters = z.object({});
 export const inspectModelBoundsParameters = z.object({});
 
-const projectLifecycleOutputSchema = z.object({
-  name: z.string(),
-  uuid: z.string(),
-  save_path: z.string().nullable(),
-  export_path: z.string().nullable(),
-  export_codec: z.unknown().nullable(),
-  saved: z.boolean(),
-}).strict();
-
-export const createProjectOutputSchema = z.object({
-  project: projectLifecycleOutputSchema,
-  format: z.object({ id: z.literal("bedrock") }).strict(),
-  resolution: z.object({
-    texture_width: z.number().nullable(),
-    texture_height: z.number().nullable(),
-  }).strict(),
-}).strict();
-
-export const getProjectInfoOutputSchema = z.object({
-  project: projectLifecycleOutputSchema,
-  format: z.object({
-    id: z.string().nullable(),
-    name: z.string().nullable(),
-  }).strict(),
-  resolution: z.object({
-    texture_width: z.number().nullable(),
-    texture_height: z.number().nullable(),
-  }).strict(),
-  counts: z.object({
-    cubes: z.number().int().nonnegative(),
-    groups: z.number().int().nonnegative(),
-    textures: z.number().int().nonnegative(),
-    outliner_elements: z.number().int().nonnegative(),
-    root_groups: z.number().int().nonnegative(),
-  }).strict(),
-}).strict();
-
 export const projectToolDocs: ToolSpec[] = [
   {
     name: "create_project",
@@ -143,7 +106,6 @@ function currentProjectLifecycle() {
 export function registerProjectTools() {
   createTool(projectToolDocs[0].name, {
     ...projectToolDocs[0],
-    outputSchema: createProjectOutputSchema,
     async execute({ name, discard_unsaved, resolution }) {
       if (Project && Project.saved === false && discard_unsaved !== true) {
         throw new Error(
@@ -179,7 +141,6 @@ export function registerProjectTools() {
 
   createTool(projectToolDocs[1].name, {
     ...projectToolDocs[1],
-    outputSchema: getProjectInfoOutputSchema,
     async execute() {
       if (!Project) {
         throw new Error(
