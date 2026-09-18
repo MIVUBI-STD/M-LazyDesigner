@@ -339,6 +339,18 @@ Planned native task order:
 
 See `native-validation-matrix.md`.
 
+## Native Execution Readiness
+
+Repository inspection confirms there is currently **no valid current-quality LazyDesigner-owned asset** available for the native comparison:
+
+- `workspace/active/` contains only the legacy Lift project;
+- `workspace/saved/` contains no authored validation asset;
+- Lift remains explicitly excluded from craftsmanship/quality validation.
+
+Therefore native execution is blocked on authoring a fresh T1 asset through the normal LazyDesigner workflow. No external corpus model may substitute for this requirement.
+
+An execution-ready baseline-vs-candidate packet is recorded in `native-validation-execution-packet.md`.
+
 ## REMOTE_GITHUB Validation Status
 
 Completed remotely:
