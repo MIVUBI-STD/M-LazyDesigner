@@ -1,4 +1,8 @@
-import { createMcpHandler } from "@modelcontextprotocol/server";
+import {
+  createMcpHandler,
+  isLegacyRequest,
+  WebStandardStreamableHTTPServerTransport
+} from "@modelcontextprotocol/server";
 import type { IncomingMessage, Server as NodeHttpServer, ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
 import {
@@ -332,25 +336,49 @@ function createRequestServer (
   return requestServer
 }
 
+async function handleLegacyJsonMcpRequest (
+  webRequest: Request,
+  phase: McpAuthoringPhase,
+  profile: McpRegistrationProfile,
+  phaseScoped: boolean
+): Promise<Response> {
+  // SDK v2.0.0 currently ignores createMcpHandler(responseMode='json') for
+  // legacy 2025 stateless traffic and emits SSE instead. Keep this bounded
+  // official-SDK compatibility shim until that upstream behavior changes.
+  const requestServer = createRequestServer(phase, profile, phaseScoped)
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true
+  })
+  await requestServer.connect(transport)
+  try {
+    return await transport.handleRequest(webRequest)
+  } finally {
+    await requestServer.close()
+  }
+}
+
 async function handleStatelessMcpRequest (
   webRequest: Request,
   phase: McpAuthoringPhase = getActiveMcpAuthoringPhase(),
   profile: McpRegistrationProfile = DEFAULT_MCP_REGISTRATION_PROFILE,
   phaseScoped: boolean = false
 ): Promise<SerializedWebResponse> {
-  // One SDK-owned request handler serves modern 2026-07-28 traffic and the
-  // required stateless 2025 compatibility path. LazyDesigner keeps domain
-  // policy around that boundary rather than owning a second legacy transport.
-  const handler = createMcpHandler(
+  // Modern 2026-07-28 traffic is owned by createMcpHandler. Legacy 2025 JSON
+  // remains a compatibility-only SDK shim because server v2.0.0 does not yet
+  // honor responseMode='json' for its built-in legacy fallback.
+  const modernHandler = createMcpHandler(
     () => createRequestServer(phase, profile, phaseScoped),
     {
-      legacy: 'stateless',
+      legacy: 'reject',
       responseMode: 'json'
     }
   )
 
   try {
-    const webResponse = await handler.fetch(webRequest)
+    const webResponse = await isLegacyRequest(webRequest)
+      ? await handleLegacyJsonMcpRequest(webRequest, phase, profile, phaseScoped)
+      : await modernHandler.fetch(webRequest)
 
     const responseHeaders: Record<string, string> = {}
     webResponse.headers.forEach((value: string, key: string) => {
@@ -374,7 +402,7 @@ async function handleStatelessMcpRequest (
       body: await webResponse.text()
     }
   } finally {
-    await handler.close()
+    await modernHandler.close()
   }
 }
 
