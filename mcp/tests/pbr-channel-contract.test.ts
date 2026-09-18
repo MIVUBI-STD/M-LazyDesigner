@@ -53,14 +53,10 @@ describe("PBR channel identity preflight", () => {
   });
 
   test("new textures and texture groups publish native Undo post-state", async () => {
-    const [source, assignment] = await Promise.all([
-      Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text(),
+    const [textureBlock, assignment] = await Promise.all([
+      Bun.file(new URL("../server/tools/texture-create.ts", import.meta.url)).text(),
       Bun.file(new URL("../server/tools/texture-assignment.ts", import.meta.url)).text(),
     ]);
-
-    const textureStart = source.indexOf("createTool(textureToolDocs[0].name");
-    const textureEnd = source.indexOf("registerTextureAssignmentTools();", textureStart);
-    const textureBlock = source.slice(textureStart, textureEnd);
     expect(textureBlock).toContain("textures: [texture]");
 
     const groupBlock = assignment;
