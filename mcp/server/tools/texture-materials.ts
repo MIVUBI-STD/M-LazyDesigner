@@ -5,13 +5,10 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
-import { getChannelTextureInfo } from "@/lib/util";
+import { getChannelTextureInfo, isAbsoluteFilesystemPath } from "@/lib/util";
 import {
   pbrChannelEnum,
-  renderModeEnum,
-  renderSidesEnum,
   textureIdSchema,
-  textureIdOptionalSchema,
 } from "@/lib/zodObjects";
 
 export const createPbrMaterialParameters = z.object({
