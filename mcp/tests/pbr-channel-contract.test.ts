@@ -17,10 +17,8 @@ describe("PBR channel identity preflight", () => {
     expect(importedTextureGroupName("/packs/skin.texture_set.json")).toBe("skin.png material");
     expect(importedTextureGroupName("C:\\packs\\skin.texture_set.json")).toBe("skin.png material");
 
-    const source = await Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text();
-    const start = source.indexOf("createTool(textureToolDocs[9].name");
-    const end = source.indexOf("createTool(textureToolDocs[10].name", start);
-    const block = source.slice(start, end);
+    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const block = source;
     expect(block).toContain("isMinecraftTextureSetDocument(document)");
     expect(block).toContain("hasExactTextureGroupNameCollision(TextureGroup.all, expectedGroupName)");
     expect(block).toContain("createdGroups.length !== 1");
@@ -32,10 +30,8 @@ describe("PBR channel identity preflight", () => {
     expect(() => requireMaterialConfigSavePostcondition(false, true, "/tmp/mat.texture_set.json")).toThrow("save was not confirmed");
     expect(() => requireMaterialConfigSavePostcondition(true, false, "/tmp/mat.texture_set.json")).toThrow("save was not confirmed");
 
-    const source = await Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text();
-    const start = source.indexOf("createTool(textureToolDocs[11].name");
-    const end = source.indexOf("createTool(textureToolDocs[12].name", start);
-    const block = source.slice(start, end);
+    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const block = source;
     expect(block).toContain("textureGroup.material_config.save()");
     expect(block).toContain("fs.existsSync(filePath)");
     expect(block.indexOf("requireMaterialConfigSavePostcondition")).toBeLessThan(block.indexOf("return `Saved material config"));
@@ -45,29 +41,29 @@ describe("PBR channel identity preflight", () => {
     expect(hasExactTextureGroupNameCollision([{ name: "body" }], "body")).toBe(true);
     expect(hasExactTextureGroupNameCollision([{ name: "body" }], "Body")).toBe(false);
 
-    const source = await Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text();
-    const addStart = source.indexOf("createTool(textureToolDocs[2].name");
-    const addEnd = source.indexOf("createTool(textureToolDocs[3].name", addStart);
-    const addBlock = source.slice(addStart, addEnd);
+    const [assignment, materials] = await Promise.all([
+      Bun.file(new URL("../server/tools/texture-assignment.ts", import.meta.url)).text(),
+      Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text(),
+    ]);
+    const addBlock = assignment;
     expect(addBlock.indexOf("hasExactTextureGroupNameCollision")).toBeLessThan(addBlock.indexOf("Undo.initEdit"));
 
-    const pbrStart = source.indexOf("createTool(textureToolDocs[5].name");
-    const pbrEnd = source.indexOf("createTool(textureToolDocs[6].name", pbrStart);
-    const pbrBlock = source.slice(pbrStart, pbrEnd);
+    const pbrBlock = materials;
     expect(pbrBlock.indexOf("hasExactTextureGroupNameCollision")).toBeLessThan(pbrBlock.indexOf("Undo.initEdit"));
   });
 
   test("new textures and texture groups publish native Undo post-state", async () => {
-    const source = await Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text();
+    const [source, assignment] = await Promise.all([
+      Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text(),
+      Bun.file(new URL("../server/tools/texture-assignment.ts", import.meta.url)).text(),
+    ]);
 
     const textureStart = source.indexOf("createTool(textureToolDocs[0].name");
     const textureEnd = source.indexOf("createTool(textureToolDocs[1].name", textureStart);
     const textureBlock = source.slice(textureStart, textureEnd);
     expect(textureBlock).toContain("textures: [texture]");
 
-    const groupStart = source.indexOf("createTool(textureToolDocs[2].name");
-    const groupEnd = source.indexOf("createTool(textureToolDocs[3].name", groupStart);
-    const groupBlock = source.slice(groupStart, groupEnd);
+    const groupBlock = assignment;
     expect(groupBlock).toContain("texture.group = textureGroup.uuid");
     expect(groupBlock).not.toContain("texture.extend(");
     expect(groupBlock).toContain("texture_groups: [textureGroup]");
@@ -75,10 +71,8 @@ describe("PBR channel identity preflight", () => {
   });
 
   test("PBR material creation uses native channel assignment and atomic Undo ownership", async () => {
-    const source = await Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text();
-    const start = source.indexOf("createTool(textureToolDocs[5].name");
-    const end = source.indexOf("createTool(textureToolDocs[6].name", start);
-    const block = source.slice(start, end);
+    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const block = source;
 
     expect(block).toContain('colorTexture.group = textureGroup.uuid');
     expect(block).toContain('colorTexture.pbr_channel = "color"');
@@ -133,10 +127,8 @@ describe("PBR channel identity preflight", () => {
   });
 
   test("assign texture channel rejects an exact no-op before Undo", async () => {
-    const source = await Bun.file(new URL("../server/tools/texture.ts", import.meta.url)).text();
-    const start = source.indexOf("createTool(textureToolDocs[10].name");
-    const end = source.indexOf("createTool(textureToolDocs[11].name", start);
-    const block = source.slice(start, end);
+    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const block = source;
     expect(block).toContain("tex.group === textureGroup.uuid");
     expect(block).toContain("tex.pbr_channel === channel");
     expect(block).toContain("resetTextures.length === 0");
