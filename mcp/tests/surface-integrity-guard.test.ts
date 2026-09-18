@@ -137,7 +137,7 @@ describe("advertised surface and fail-closed integrity guards", () => {
     expect(historySource).toContain("Cannot undo");
     expect(historySource).toContain("Cannot redo");
 
-    const elementSource = await source("server/tools/element.ts");
+    const elementSource = await source("server/tools/element-mutation.ts");
     expect(elementSource).toContain("isRoot && newName");
 
     const projectSource = await source("server/tools/project.ts");
@@ -156,7 +156,10 @@ describe("advertised surface and fail-closed integrity guards", () => {
     expect(exportSource).not.toContain("listBlockItThreeDAssistedReferences");
     expect(exportSource).not.toContain("manage_geometry_reference");
 
-    const paintSource = await source("server/tools/paint.ts");
+    const paintSource = [
+      await source("server/tools/paint-primitives.ts"),
+      await source("server/tools/paint-brush.ts"),
+    ].join("\n");
     const boundsCalls = (
       paintSource.match(/requirePixelsWithinTexture\(texture/g) ?? []
     ).length;
