@@ -151,6 +151,12 @@ closed/open contact invariant when applicable
 
 Do not invent mechanical linkage detail merely because a real vehicle would usually contain it.
 
+Prefer a shared assembly parent when repeated parts share placement but need local articulation, for example a wheel cohort with independently rotating/steering wheel owners. The parent may be non-visible.
+
+A wheel or other visible mechanical part may participate in more than one animation channel without requiring duplicate geometry or duplicate ownership when the same semantic owner remains correct.
+
+Visual upgrades, cargo, livery-related geometry, or other local presentation variants should contribute only the smallest changed branch when the base vehicle form and articulation remain unchanged.
+
 ## Geometry vs Texture Ownership
 
 Use Geometry for:
