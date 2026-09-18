@@ -246,7 +246,10 @@ Detailed case audits now additionally confirm:
 - high presentation-variant count can reuse a compact semantic helper skeleton;
 - controller/state complexity does not imply rig complexity;
 - vehicle upgrades/cargo can be isolated as local geometry branches over one base mechanical rig;
-- non-visible Locator/ATTACHMENT owners may participate in animation.
+- non-visible Locator/ATTACHMENT owners may participate in animation;
+- geometry/rig, clip, and controller complexity are separate budgets;
+- family-level attachment/locator contracts can remain stable while species-specific anatomy varies;
+- reusable presentation rigs may legitimately contain zero visible cubes.
 
 ## Cross-Domain Responsibility Vocabulary
 
