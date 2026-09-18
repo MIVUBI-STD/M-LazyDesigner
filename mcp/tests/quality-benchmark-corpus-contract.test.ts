@@ -29,7 +29,7 @@ describe("quality benchmark corpus contracts", () => {
       expect(entry.surface.length).toBeGreaterThan(2);
       expect(entry.failure.length).toBeGreaterThan(12);
       expect(entry.invariant.length).toBeGreaterThan(12);
-      expect(entry.regression_test).toMatch(/^tests\\/.+\\.test\\.ts$/);
+      expect(entry.regression_test).toMatch(/^tests\/.+\.test\.ts$/);
       expect(await Bun.file(entry.regression_test).exists(), entry.regression_test).toBe(true);
       expect(entry.status).toBe("REGRESSION_GUARDED");
     }
