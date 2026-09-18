@@ -224,7 +224,22 @@ Realism Visuals is deferred because it contributes little direct Blockbench mode
 
 Rights boundary: all eight user-supplied archives are analysis-only unless redistribution rights are independently verified. No raw payload is promoted.
 
-Status: `MINED_FOR_MODELLING_PATTERN`. See `bedrock-pack-corpus-study.md`.
+Status: `MINED_FOR_MODELLING_PATTERN`. Deep studies completed for Actions & Stuff, Advanced Truck Simulator, Friendly Fishing, and Advanced Movement. Cross-source synthesis recorded in `user-corpus-modelling-synthesis.md`.
+
+
+### Modelling-only synthesis from user corpus
+
+New cross-source patterns:
+
+1. stable semantic rigs should outlive clip growth;
+2. first-/third-person or held/worn presentation context does not automatically justify a new base rig;
+3. Locator/ATTACHMENT intent is strongly reinforced by attachables, vehicle locators, and held-object examples;
+4. shared parent + repeated articulated children is a recurring useful structure;
+5. flexible distal segments may use phase/amplitude differences without adding unrelated owners;
+6. animation complexity and geometry complexity are independent budgets;
+7. local visual variants should isolate the smallest changed branch rather than duplicate unrelated base geometry.
+
+No new responsibility category was required beyond `FORM | ARTICULATION | ATTACHMENT | STATE | FOLLOW | CONTROL`.
 
 ## Cross-Domain Responsibility Vocabulary
 
