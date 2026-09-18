@@ -1,4 +1,4 @@
-import { wireAnimationRuntimeContracts } from "../tools/animation-runtime-wiring";
+import { wireAnimationRuntimeContracts } from "./animationRuntimeContracts";
 import { wireAuthoringQualityIntelligence } from "../tools/quality-intelligence";
 import { wireAuthoringEvidenceRuntime } from "../tools/quality-evidence-runtime";
 import { wireTextureQualityRuntime } from "../tools/texture-quality-runtime";
