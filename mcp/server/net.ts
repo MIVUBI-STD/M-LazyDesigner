@@ -422,6 +422,16 @@ function rawHeaderCount (request: IncomingMessage, name: string): number {
   return count
 }
 
+function singleRequestHeader (
+  request: IncomingMessage,
+  name: string
+): string | null {
+  const value = request.headers[name.toLowerCase()]
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim()
+    : null
+}
+
 async function readNodeRequestBody (request: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = []
   let total = 0
@@ -515,6 +525,8 @@ export default function createNetServer (
         if (
           rawHeaderCount(request, 'host') > 1 ||
           rawHeaderCount(request, 'origin') > 1 ||
+          rawHeaderCount(request, 'mcp-method') > 1 ||
+          rawHeaderCount(request, 'mcp-name') > 1 ||
           (request.httpVersion === '1.1' && hostHeader === undefined)
         ) {
           sendNodeResponse(
@@ -739,11 +751,36 @@ export default function createNetServer (
           body: body || undefined
         })
         const envelope = readRequestEnvelope(body)
-        const capabilityEffects = envelope.capability
-          ? getCapabilityMetadata(envelope.capability).effects
+        const routedMethodHeader = singleRequestHeader(request, 'mcp-method')
+        const routedNameHeader = singleRequestHeader(request, 'mcp-name')
+
+        if (
+          (routedMethodHeader && envelope.method && routedMethodHeader !== envelope.method) ||
+          (
+            routedNameHeader &&
+            envelope.capability &&
+            routedNameHeader !== envelope.capability
+          )
+        ) {
+          sendNodeResponse(
+            response,
+            400,
+            { 'content-type': 'application/json' },
+            jsonErrorBody('Bad Request: MCP routing headers disagree with the JSON-RPC body'),
+            true
+          )
+          return
+        }
+
+        const routedMethod = routedMethodHeader ?? envelope.method
+        const routedCapability = routedMethod === 'tools/call'
+          ? routedNameHeader ?? envelope.capability
+          : null
+        const capabilityEffects = routedCapability
+          ? getCapabilityMetadata(routedCapability).effects
           : null
         const needsProjectContext =
-          envelope.method === 'tools/call' && requestedProjectUuid !== null
+          routedMethod === 'tools/call' && requestedProjectUuid !== null
         const allowProjectTransition =
           capabilityEffects?.projectAffinity === 'adopt_created_project'
 
@@ -761,7 +798,7 @@ export default function createNetServer (
                 execute
               )
             : await execute()
-          const result = envelope.method === 'tools/call'
+          const result = routedMethod === 'tools/call'
             ? await runRuntimeOperationExclusive(generation, async () => {
                 if (
                   request.aborted ||
