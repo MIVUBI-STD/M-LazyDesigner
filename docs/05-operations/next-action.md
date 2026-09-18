@@ -154,18 +154,19 @@ Transport ownership reduction is lower priority. Do not add a third transport pa
 
 ## LIVE_BLOCKBENCH Residue
 
-Current source/static proof cannot establish:
+Prove the native boundaries that source/static work cannot establish:
 
 ```text
-installed Runtime freshness
-persistent Gateway survival across reload/rebuild/close-open
-native phase-switch behavior
-project affinity/rebind behavior
-interrupted mutation recovery
-Geometry / Texturing / Animation / Particle native execution
-Undo / playback / persistence / export
-visual/reference acceptance
-measured Cost to Accepted Result
+persistent Gateway survives Runtime/plugin reload
+Runtime rebuild recovery
+Blockbench close → open recovery
+AUTHORING ↔ Animation catalog handoff
+Geometry ↔ Texturing focus change preserves the shared surface
+project affinity / rebind behavior
+interrupted mutation → inspect-before-retry recovery
+Geometry / Texturing / Animation / Particle execution
+Undo / playback / persistence / export behavior
+representative accepted-result quality + efficiency
 ```
 
 Measure **Cost to Accepted Result** without lowering accepted quality.
