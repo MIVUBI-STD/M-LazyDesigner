@@ -56,7 +56,9 @@
     "inspect": "bunx @modelcontextprotocol/inspector",
     "eval:routed-tool-loading": "bun run ./scripts/evaluate-routed-tool-loading.ts",
     "verify:template-live": "bun run ./scripts/verify-template-live.ts",
-    "verify:uv-density-live": "bun run ./scripts/verify-uv-density-live.ts"
+    "verify:uv-density-live": "bun run ./scripts/verify-uv-density-live.ts",
+    "audit:unused": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "audit:unused:gateway": "tsc -p gateway/tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
