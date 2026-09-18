@@ -2120,7 +2120,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">List Textures</p>
-      <p class="card-desc">Lists texture identity; diagnostics=false skips UV/pixel analysis for discovery. Default true includes UV hygiene and bounded coverage/seam/PBR diagnostics. Seam scope is intra-Cube; cross-Cube continuity is not evaluated. Coverage states.varied means pixel variation, not styling acceptance; solid_color_faces identifies flat surfaces for review. Empty scans are incomplete. Pixel-read budget counts unique texture regions per invocation; every face remains accounted. Fractional logical UV is diagnostic; NON_INTEGRAL_PIXEL_MAPPING blocks non-integral physical texels. Readiness is not visual layout approval.</p>
+      <p class="card-desc">Lists texture identity. diagnostics=false returns inventory only; default true adds bounded UV/coverage/seam/PBR diagnostics. Seam checks are intra-Cube, empty scans are incomplete, and pixel-read budget counts unique texture regions. NON_INTEGRAL_PIXEL_MAPPING blocks invalid physical texels. Technical readiness is not visual approval.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -2530,7 +2530,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-18T10:46:35.457Z from Zod schemas
+        Generated 2026-09-18T10:54:45.843Z from Zod schemas
       </footer>
     </main>
   </div>
