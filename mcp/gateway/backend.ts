@@ -1,9 +1,4 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import {
-  StreamableHTTPClientTransport,
-  StreamableHTTPError,
-} from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import { Client, StreamableHTTPClientTransport, SdkErrorCode, SdkError, SdkHttpError } from "@modelcontextprotocol/client";
 import {
   BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER,
   BLOCKIT_PROJECT_AFFINITY_HEADER,
@@ -102,11 +97,11 @@ function isRecord(value: unknown): value is JsonRecord {
 }
 
 function isRequestTimeoutError(error: unknown): boolean {
-  return error instanceof McpError && error.code === ErrorCode.RequestTimeout;
+  return error instanceof SdkError && error.code === SdkErrorCode.RequestTimeout;
 }
 
 function isRuntimeProjectContextError(error: unknown): boolean {
-  return error instanceof StreamableHTTPError && error.code === 409;
+  return error instanceof SdkHttpError && error.status === 409;
 }
 
 function normalizePositiveInteger(
@@ -738,7 +733,6 @@ export class BlockitRuntimeBackend {
             name: capability,
             arguments: args,
           },
-          undefined,
           { timeout: this.callTimeoutMs }
         );
         const normalized = normalizeRuntimeCallResult(result);

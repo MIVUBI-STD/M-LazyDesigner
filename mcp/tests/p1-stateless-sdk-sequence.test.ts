@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { McpServer, WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/server";
 
 const MCP_URL = "http://127.0.0.1:3000/bb-mcp";
 // Current Codex legacy Streamable HTTP startup explicitly requests 2025-06-18.
@@ -25,7 +20,7 @@ function createFixtureServer(): McpServer {
   // These handlers still exercise the real SDK tools/list + tools/call protocol
   // flow that the stateless transport must carry between independent POSTs.
   server.server.registerCapabilities({ tools: {} });
-  server.server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  server.server.setRequestHandler('tools/list', async () => ({
     tools: [
       {
         name: "echo_fixture",
@@ -41,7 +36,7 @@ function createFixtureServer(): McpServer {
       },
     ],
   }));
-  server.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.server.setRequestHandler('tools/call', async (request) => {
     if (request.params.name !== "echo_fixture") {
       throw new Error(`Unexpected fixture tool: ${request.params.name}`);
     }

@@ -1,14 +1,8 @@
 import { z } from "zod";
 import type { IMCPTool, IMCPPrompt, IMCPResource, StatusType } from "@/types";
-import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { ResourceTemplate } from "@modelcontextprotocol/server";
+import type { McpServer, GetPromptResult, PromptArgument, ToolAnnotations } from "@modelcontextprotocol/server";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import type {
-  GetPromptResult,
-  PromptArgument,
-  ToolAnnotations,
-} from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Declarative tool spec for documentation and registration.
@@ -482,6 +476,7 @@ export function registerToolsOnServer(
   for (const { name, definition: toolDef } of getToolRegistrationEntries(
     allowedToolNames
   )) {
+    /* @mcp-codemod-error Could not verify `inputSchema` is a schema object. Raw shapes are deprecated in v2 — pass a Standard Schema object (e.g. z.object({ … })); no change is needed if it already is one. */
     typedServer.registerTool(
       name,
       {
@@ -495,7 +490,7 @@ export function registerToolsOnServer(
   }
   // The SDK's object-shape listing loses union-level required fields. Publish
   // the canonical validation schema through the public protocol handler.
-  typedServer.server?.setRequestHandler(ListToolsRequestSchema, () => ({
+  typedServer.server?.setRequestHandler('tools/list', () => ({
     tools: getToolRegistrationEntries(allowedToolNames).map(({ name, definition }) => ({
       name,
       title: definition.title,
@@ -734,6 +729,7 @@ export function registerPromptsOnServer(server: unknown) {
   }
 
   for (const [name, promptDef] of promptRegistrationCache) {
+    /* @mcp-codemod-error Could not verify `argsSchema` is a schema object. Raw shapes are deprecated in v2 — pass a Standard Schema object (e.g. z.object({ … })); no change is needed if it already is one. */
     typedServer.registerPrompt(
       name,
       {

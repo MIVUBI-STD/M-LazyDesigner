@@ -1,6 +1,7 @@
+import { McpServer } from "@modelcontextprotocol/server";
+
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { PRODUCT_NAME, PRODUCT_VERSION } from "@/lib/productIdentity";
 import {
   DEFAULT_MCP_AUTHORING_PHASE,
