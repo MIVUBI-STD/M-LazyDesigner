@@ -435,7 +435,12 @@ describe("BlockIT Gateway contract", () => {
     const backendSource = await Bun.file("gateway/backend.ts").text();
 
     expect(packageJson.scripts.gateway).toBe("bun run ./gateway/index.ts");
-    expect(source).toContain("new StdioServerTransport()");
+    expect(source).toContain("serveStdio(() => buildGatewayServer()");
+    expect(source).toContain("function buildGatewayServer(): McpServer");
+    expect(source).not.toContain("new StdioServerTransport()");
+    expect(source.indexOf("const backend = new BlockitRuntimeBackend()")).toBeLessThan(
+      source.indexOf("function buildGatewayServer(): McpServer")
+    );
     expect(source).toContain("compactGatewayCapabilityStructuredContent");
     expect(source).toContain("projectCapabilityInputSchema");
     expect(source).toContain("inputSchema: projection.inputSchema");
