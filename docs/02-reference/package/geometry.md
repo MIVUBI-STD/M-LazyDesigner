@@ -233,6 +233,10 @@ deformation risk
 
 Do not provide exact pivot coordinates or animation keys.
 
+When a visible state or presentation context materially changes only one local form, describe the **smallest changed semantic branch** and preserve the unchanged base assembly. Examples include open/closed mouth, local accessory configuration, cargo/upgrade branch, or held/worn presentation. Do not turn a local state difference into a second full-model blueprint.
+
+For moving attachment/reference points, record the owning semantic parent Group/Bone relationship. The downstream Locator should inherit motion from that animated parent; do not specify direct Locator keyframes.
+
 ## 8. Geometry Constraints
 
 Keep only stable asset-specific correctness constraints not already expressed more clearly elsewhere.

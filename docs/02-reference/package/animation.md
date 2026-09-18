@@ -261,6 +261,8 @@ These are correctness constraints, not keyframe coordinates.
 
 If a required invariant cannot be maintained because Geometry is wrong, mark the animation stage blocked and return the issue upstream.
 
+When an attachment/effect point is represented by a Locator, describe the semantic parent Group/Bone that drives it. Current authoring animates the parent Group/Bone; the Locator follows that transform. Do not prescribe direct Locator keyframes.
+
 ## 8. Joint / Deformation Constraints
 
 Include only motion-relevant joint risks.

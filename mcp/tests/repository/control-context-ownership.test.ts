@@ -44,6 +44,8 @@ describe("Control context ownership", () => {
       "locator_parent_motion_rule",
       "family_attachment_contract",
       "responsibility_vocabulary",
+      "presentation_variant_contract",
+      "direct_locator_animation",
     ]) {
       expect(projection).not.toContain(forbidden);
       expect(packet).not.toContain(forbidden);

@@ -106,6 +106,29 @@ describe("Reference Preparation content contract", () => {
     expect(particleSkill).toContain("Do not duplicate those details here");
   });
 
+
+  test("reference package carries variants and moving attachments through existing stage owners", async () => {
+    const [schema, geometry, animation, load] = await Promise.all([
+      text("../docs/02-reference/package/schema.md"),
+      text("../docs/02-reference/package/geometry.md"),
+      text("../docs/02-reference/package/animation.md"),
+      text("../docs/02-reference/package/load-contract.md"),
+    ]);
+
+    expect(schema).toContain("State/presentation variants do **not** require a new top-level schema field");
+    expect(schema).toContain("existing `parts`, `articulation`, `constraints`");
+    expect(schema).toContain("not by a direct Locator-animation schema");
+
+    expect(geometry).toContain("smallest changed semantic branch");
+    expect(geometry).toContain("owning semantic parent Group/Bone relationship");
+    expect(geometry).toContain("do not specify direct Locator keyframes");
+
+    expect(animation).toContain("semantic parent Group/Bone that drives it");
+    expect(animation).toContain("Do not prescribe direct Locator keyframes");
+
+    expect(load).toContain("Locator → parent Group/Bone → animation ownership");
+    expect(load).toContain("Do not add Control packet fields for them");
+  });
   test("reference handoff stays compact and delegates exact contracts", async () => {
     const handoff = await text("../docs/02-reference/package/handoff.md");
 
