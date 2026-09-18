@@ -244,3 +244,24 @@ Static character counts or source size alone cannot prove end-to-end usage impro
 ## Proof Rule
 
 Do not strengthen source/static claims into local/live/visual claims without matching evidence from the exact current source SHA.
+
+
+## Remote Quality / Representation Closure
+
+Updated: 2026-09-18
+
+REMOTE_GITHUB now has explicit representation-eligibility coverage for:
+
+```text
+SOLID_CUBOID
+PLANE_LIKE
+PLANAR_CUTOUT_CARRIER
+LAYERED_SURFACE
+SEGMENTED_FORM
+TEXTURE
+OMIT
+```
+
+The representation ladder is regression-locked to bounded one-level-at-a-time escalation, with `REDUNDANT_GEOMETRY` and minimum-sufficient-geometry rules preserved. The existing six synthetic benchmark cases cover rigid prop/furniture, vehicle, articulated character/mob, organic/curved form, mechanical assembly, and layered/cutout behavior. No seventh case is added because no uncovered material construction class was found in the current remote audit.
+
+This closes remote/source coverage only. Measured visual quality, native playback/contact, save/reopen, and installed Blockbench behavior remain `LOCAL_CODE` / `LIVE_BLOCKBENCH` proof.
