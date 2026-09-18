@@ -121,8 +121,6 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
       port: 0,
       endpoint: ENDPOINT,
       host: HOST,
-      profile: DEFAULT_MCP_REGISTRATION_PROFILE,
-      phase,
     }
   );
 
