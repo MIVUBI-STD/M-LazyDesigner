@@ -119,6 +119,114 @@ Status: `PATTERN`.
 
 Prop animation should add only the minimum articulated owners required by the motion.
 
+## Case-Level Audit — Player Clip Owner Reuse
+
+`player.json` contains about 200 clips.
+
+Representative owner scopes:
+
+- walk: `root`, `head`, both arms, both legs;
+- climb: head + both arms + both legs;
+- jump: head, body, both arms, both legs;
+- double jump / flip: body, both arms, root, both legs, head;
+- spring: head, both arms, both legs, root.
+
+These materially different actions reuse the same small semantic anatomy set.
+
+### Strong modelling conclusion
+
+```text
+action diversity
+→ clip diversity
+not automatically
+→ hierarchy diversity
+```
+
+The rig should expose useful transform capability once, then clips reuse it.
+
+## Case-Level Audit — Rocket Ride Family
+
+A very large `ride_rocket.N` clip family repeatedly targets the same five semantic owners:
+
+```text
+root
+rightArm
+leftArm
+leftLeg
+rightLeg
+```
+
+Each clip is roughly a one-second looping pose/motion state over the same owner set.
+
+There is also an `.old` family using the same owner scope.
+
+### Safe conclusion
+
+Large pose/state libraries can be represented as many authored clips over one stable rig.
+
+Do not infer that the specific number of variants is a desirable pattern; only the owner reuse is relevant.
+
+## Case-Level Audit — Small Animated Props
+
+`mvt.json` contains compact prop animation:
+
+- spring default / active;
+- cannon default / shoot;
+- rocket default;
+- other small presentation clips.
+
+Representative targeted owners:
+
+```text
+spring active → spring, spring_head
+cannon shoot → body
+rocket default → root, body
+```
+
+This reinforces Minimum Sufficient Structure:
+
+> if one or two owners express the complete required prop motion, adding helper hierarchy is not justified.
+
+## Case-Level Audit — Small Controller Surface
+
+The animation-controller file contains only two controllers:
+
+- tutorial: `default`, `recipe1`, `recipe2`;
+- rocket: `default`, `flying`.
+
+This is a useful contrast with the roughly 200 player clips.
+
+### Strong conclusion
+
+```text
+large clip library
+does not imply
+large controller graph
+```
+
+Clip inventory, rig complexity, and controller complexity are independent authoring dimensions.
+
+## Refined Modelling Principle — Three Independent Budgets
+
+Status: `PATTERN`.
+
+Treat these separately:
+
+```text
+GEOMETRY / RIG BUDGET
+→ required form + transform capability
+
+CLIP BUDGET
+→ required authored motions / poses
+
+CONTROLLER BUDGET
+→ required temporal/state composition
+```
+
+Growth in one budget is not sufficient reason to grow either of the others.
+
+This is directly useful for avoiding overdevelopment in AI-authored Blockbench assets.
+
 ## Current Verdict
 
 Advanced Movement is valuable specifically because it counters the assumption that rich animation requires dense geometry or dense hierarchy.
