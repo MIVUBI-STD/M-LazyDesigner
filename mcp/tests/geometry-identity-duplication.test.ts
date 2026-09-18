@@ -51,26 +51,27 @@ describe("Geometry identity and duplication hardening", () => {
   });
 
   test("Group creation preflights names and anchor rename retains its guard", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
+    const [hierarchy, mutation] = await Promise.all([
+      Bun.file("server/tools/element-hierarchy.ts").text(),
+      Bun.file("server/tools/element-mutation.ts").text(),
+    ]);
 
-    const addStart = source.indexOf("createTool(elementToolDocs[1].name");
-    const addEnd = source.indexOf("createTool(elementToolDocs[2].name", addStart);
-    const addBlock = source.slice(addStart, addEnd);
+    const addStart = hierarchy.indexOf("createTool(elementHierarchyToolDocs[0].name");
+    const addEnd = hierarchy.indexOf("createTool(elementHierarchyToolDocs[1].name", addStart);
+    const addBlock = hierarchy.slice(addStart, addEnd);
     expect(addBlock.indexOf("assertBatchGroupNamesAvailable(batch)")).toBeGreaterThan(-1);
     expect(addBlock.indexOf("assertBatchGroupNamesAvailable(batch)")).toBeLessThan(
       addBlock.indexOf("Undo.initEdit")
     );
 
-    const source = await Bun.file("server/tools/element-mutation.ts").text();
-    const renameStart = source.indexOf("createTool(elementMutationToolDocs[2].name");
-    const renameEnd = source.length;
-    const renameBlock = source.slice(renameStart, renameEnd);
+    const renameStart = mutation.indexOf("createTool(elementMutationToolDocs[2].name");
+    const renameBlock = mutation.slice(renameStart);
     expect(renameBlock).toContain("assertAnchorRenameAvailable(element, new_name)");
     // Group rename preflight is exercised through the executor in batch-group-rename.test.ts.
   });
 
   test("public duplicate schema remains unchanged while runtime fidelity is hardened", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
+    const source = await Bun.file("server/tools/element-mutation.ts").text();
     const schemaStart = source.indexOf("export const duplicateElementParameters");
     const schemaEnd = source.indexOf("export const renameElementParameters", schemaStart);
     const schema = source.slice(schemaStart, schemaEnd);
