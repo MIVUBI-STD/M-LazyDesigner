@@ -310,11 +310,11 @@ describe("P0 MCP contract regressions", () => {
     );
 
     const originGuard = netSource.indexOf(
-      "if (origin !== undefined && !isAllowedLocalOrigin(origin))"
+      "if (originHeader !== undefined && !isAllowedLocalOrigin(originHeader))"
     );
     const forbiddenResponse = netSource.indexOf("403", originGuard);
     const requestConstruction = netSource.indexOf(
-      "const webRequest = new Request(url, requestInit)",
+      "const webRequest = new Request(requestUrl, {",
       originGuard
     );
     const transportDispatch = netSource.indexOf(
