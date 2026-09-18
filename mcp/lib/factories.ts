@@ -11,7 +11,7 @@ export interface ToolSpec {
   name: string;
   description: string;
   annotations?: ToolAnnotations;
-  parameters: z.ZodType;
+  parameters: z.ZodType<any, any>;
   status: StatusType;
 }
 
@@ -22,7 +22,7 @@ export interface PromptSpec {
   name: string;
   description: string;
   title?: string;
-  argsSchema?: z.ZodObject<z.ZodRawShape>;
+  argsSchema?: z.ZodObject<any>;
   status: StatusType;
 }
 
