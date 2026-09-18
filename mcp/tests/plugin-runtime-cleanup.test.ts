@@ -18,7 +18,7 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(factories).toContain("registerToolsOnServer");
   });
 
-  test("plugin uses unique install identity and does not report ready before TCP bind", async () => {
+  test("plugin uses unique install identity and does not report ready before HTTP bind", async () => {
     const [index, runtimeHost, tools, phaseControl, net] = await Promise.all([
       source("index.ts"),
       source("plugin/runtimeHost.ts"),
@@ -27,7 +27,7 @@ describe("pre-local plugin runtime cleanup", () => {
       source("server/net.ts"),
     ]);
 
-    const candidateCreated = runtimeHost.indexOf("const candidate = createNetServer(this.nativeNet");
+    const candidateCreated = runtimeHost.indexOf("const candidate = createNetServer(this.nativeHttp");
     const candidateOwned = runtimeHost.indexOf("this.httpServer = candidate;", candidateCreated);
     const listeningHook = runtimeHost.indexOf('server.once("listening"');
     const errorHook = runtimeHost.indexOf('server.once("error"');
