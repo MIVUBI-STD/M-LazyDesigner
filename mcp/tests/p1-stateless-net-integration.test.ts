@@ -95,6 +95,14 @@ async function rawHttpRequest(request: string): Promise<string> {
   });
 }
 
+function rawHttpStatus(response: string): number {
+  const match = /^HTTP\/1\.\d\s+(\d{3})\b/.exec(response);
+  if (!match) {
+    throw new Error(`Expected an HTTP response status line, got: ${JSON.stringify(response.slice(0, 160))}`);
+  }
+  return Number(match[1]);
+}
+
 function percentile(values: number[], fraction: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -248,26 +256,24 @@ describe("P1.4 raw-net stateless integration", () => {
     const missingHost = await rawHttpRequest(
       `GET ${ENDPOINT}/health HTTP/1.1\r\nConnection: close\r\n\r\n`
     );
-    expect(missingHost.startsWith("HTTP/1.1 400 ")).toBe(true);
-    expect(missingHost).toContain("malformed or ambiguous HTTP headers");
+    expect(rawHttpStatus(missingHost)).toBe(400);
 
     const duplicateHost = await rawHttpRequest(
       `GET ${ENDPOINT}/health HTTP/1.1\r\nHost: ${HOST}\r\nHost: localhost\r\nConnection: close\r\n\r\n`
     );
-    expect(duplicateHost.startsWith("HTTP/1.1 400 ")).toBe(true);
+    expect(rawHttpStatus(duplicateHost)).toBe(400);
 
     const duplicateOrigin = await rawHttpRequest(
       `GET ${ENDPOINT}/health HTTP/1.1\r\nHost: ${HOST}\r\nOrigin: http://localhost\r\nOrigin: http://127.0.0.1\r\nConnection: close\r\n\r\n`
     );
-    expect(duplicateOrigin.startsWith("HTTP/1.1 400 ")).toBe(true);
+    expect(rawHttpStatus(duplicateOrigin)).toBe(400);
   });
 
   test("malformed header lines fail before MCP or health dispatch", async () => {
     const response = await rawHttpRequest(
       `GET ${ENDPOINT}/health HTTP/1.1\r\nHost: ${HOST}\r\nMalformedHeader\r\nConnection: close\r\n\r\n`
     );
-    expect(response.startsWith("HTTP/1.1 400 ")).toBe(true);
-    expect(response).toContain("malformed or ambiguous HTTP headers");
+    expect(rawHttpStatus(response)).toBe(400);
   });
 
   test("modern 2026 client negotiates and calls tools on the same Runtime endpoint", async () => {
@@ -401,10 +407,10 @@ describe("P1.4 raw-net stateless integration", () => {
     ).toEqual([{ type: "text", text: "raw-net-ok" }]);
   });
 
-  test("fragmented headers and UTF-8 bodies wait for new data before dispatch", async () => {
+  test("fragmented headers and UTF-8 bodies are reassembled by the native HTTP owner", async () => {
     const address = server.address();
     if (!address || typeof address === "string") {
-      throw new Error("Expected active TCP listener.");
+      throw new Error("Expected active HTTP listener.");
     }
 
     const body = JSON.stringify({
@@ -421,6 +427,7 @@ describe("P1.4 raw-net stateless integration", () => {
     const request = Buffer.from(header + body);
     const utf8Split = request.indexOf(Buffer.from("✓")) + 1;
     expect(utf8Split).toBeGreaterThan(Buffer.byteLength(header));
+
     const fragments = [
       request.subarray(0, 8),
       request.subarray(8, utf8Split),
@@ -429,57 +436,42 @@ describe("P1.4 raw-net stateless integration", () => {
 
     const response = await new Promise<string>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      let peer: Socket | undefined;
-      let socket: Socket;
-      let nextFragment = 1;
-      let receivedBytes = 0;
-      let sentBytes = fragments[0].length;
-      let settled = false;
-      let nextWrite: ReturnType<typeof setTimeout> | undefined;
-
-      const finish = (error?: Error) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(deadline);
-        if (nextWrite !== undefined) clearTimeout(nextWrite);
-        server.off("connection", onConnection);
-        peer?.off("data", onPeerData);
+      const socket = createConnection({ host: HOST, port: address.port });
+      let fragmentIndex = 0;
+      const timers: Array<ReturnType<typeof setTimeout>> = [];
+      const deadline = setTimeout(() => {
         socket.destroy();
-        peer?.destroy();
-        if (error) reject(error);
-        else resolve(Buffer.concat(chunks).toString("utf8"));
+        reject(new Error("Fragmented MCP request did not complete."));
+      }, 2500);
+
+      const cleanup = () => {
+        clearTimeout(deadline);
+        for (const timer of timers) clearTimeout(timer);
       };
-      const onPeerData = (chunk: Buffer) => {
-        receivedBytes += chunk.length;
-        if (receivedBytes < sentBytes || nextFragment >= fragments.length) return;
-        const fragment = fragments[nextFragment++];
-        sentBytes += fragment.length;
-        // Only feed the next fragment after the real parser has observed the
-        // previous one and yielded; TCP coalescing cannot hide the incomplete read.
-        nextWrite = setTimeout(() => {
-          if (!socket.destroyed) socket.write(fragment);
-        }, 0);
-      };
-      const onConnection = (accepted: Socket) => {
-        peer = accepted;
-        peer.on("data", onPeerData);
-      };
-      const deadline = setTimeout(
-        () => finish(new Error("Fragmented MCP request did not complete.")),
-        2500
-      );
-      server.once("connection", onConnection);
-      socket = createConnection({ host: HOST, port: address.port });
-      socket.setNoDelay(true);
+
       socket.on("data", (chunk: Buffer) => chunks.push(chunk));
-      socket.once("error", finish);
-      socket.once("end", () => finish());
-      socket.once("close", () => finish());
-      socket.once("connect", () => socket.write(fragments[0]));
+      socket.once("error", (error) => {
+        cleanup();
+        reject(error);
+      });
+      socket.once("end", () => {
+        cleanup();
+        resolve(Buffer.concat(chunks).toString("utf8"));
+      });
+      socket.once("connect", () => {
+        const writeNext = () => {
+          if (socket.destroyed || fragmentIndex >= fragments.length) return;
+          socket.write(fragments[fragmentIndex++]);
+          if (fragmentIndex < fragments.length) {
+            timers.push(setTimeout(writeNext, 5));
+          }
+        };
+        writeNext();
+      });
     });
 
-    expect(response.startsWith("HTTP/1.1 200 ")).toBe(true);
-    expect(response.match(/HTTP\/1\.1 /g)).toHaveLength(1);
+    expect(rawHttpStatus(response)).toBe(200);
+    expect(response.match(/HTTP\/1\.\d /g)).toHaveLength(1);
     const payload = JSON.parse(response.slice(response.indexOf("\r\n\r\n") + 4));
     expect(payload.id).toBe(75);
     expect(payload.result.content).toEqual([{ type: "text", text: "fragmented ✓" }]);
