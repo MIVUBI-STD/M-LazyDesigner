@@ -521,16 +521,56 @@ export default function createNetServer (
 
           const headers: Record<string, string> = {}
           const contentLengthValues: string[] = []
+          const singletonHeaderCounts = new Map<string, number>()
+          let malformedHeader = false
           for (let i = 1; i < lines.length; i++) {
             const colonIdx = lines[i].indexOf(':')
-            if (colonIdx > 0) {
-              const key = lines[i].substring(0, colonIdx).trim().toLowerCase()
-              const value = lines[i].substring(colonIdx + 1).trim()
-              if (key === 'content-length') {
-                contentLengthValues.push(value)
-              }
-              headers[key] = value
+            if (colonIdx <= 0) {
+              malformedHeader = true
+              break
             }
+
+            const rawKey = lines[i].substring(0, colonIdx).trim()
+            // RFC 9110 field names are tokens. Reject malformed names instead of
+            // silently ignoring them and letting different parsers disagree.
+            if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(rawKey)) {
+              malformedHeader = true
+              break
+            }
+
+            const key = rawKey.toLowerCase()
+            const value = lines[i].substring(colonIdx + 1).trim()
+            if (key === 'content-length') {
+              contentLengthValues.push(value)
+            }
+            if (key === 'host' || key === 'origin') {
+              singletonHeaderCounts.set(key, (singletonHeaderCounts.get(key) ?? 0) + 1)
+            }
+            headers[key] = value
+          }
+
+          if (
+            malformedHeader ||
+            singletonHeaderCounts.get('host')! > 1 ||
+            singletonHeaderCounts.get('origin')! > 1 ||
+            (version === 'HTTP/1.1' && headers['host'] === undefined)
+          ) {
+            sendResponse(
+              socket,
+              400,
+              { 'content-type': 'application/json' },
+              JSON.stringify({
+                jsonrpc: '2.0',
+                error: {
+                  code: -32000,
+                  message: 'Bad Request: malformed or ambiguous HTTP headers'
+                },
+                id: null
+              }),
+              'close'
+            )
+            buffer = Buffer.alloc(0)
+            return
           }
 
           // Chunked framing is not implemented; accepting it would leave the
