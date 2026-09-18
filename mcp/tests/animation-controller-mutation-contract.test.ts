@@ -104,15 +104,18 @@ describe("AnimationController mutation closure", () => {
     expect(controller).not.toContain("trigger_action");
   });
 
-  test("mutation result is compact continuation state rather than a controller dump", async () => {
+  test("mutation result returns final affected subgraphs without dumping untouched controller state", async () => {
     const controller = await source("server/tools/animation-controller.ts");
-    const start = controller.indexOf("function summarizeState");
+    const start = controller.indexOf("function controllerStateContinuation");
     const end = controller.indexOf("function applyOperationToPlan", start);
-    const summary = controller.slice(start, end);
-    expect(summary).toContain("animation_count: state.animations.length");
-    expect(summary).toContain("transition_count: state.transitions.length");
-    expect(summary).not.toContain("animations: state.animations.map");
-    expect(summary).not.toContain("transitions: state.transitions.map");
+    const continuation = controller.slice(start, end);
+    expect(continuation).toContain("animations: state.animations.map");
+    expect(continuation).toContain("transitions: state.transitions.map");
+    expect(continuation).toContain("sounds: state.sounds.map");
+    expect(continuation).toContain("particles: state.particles.map");
+    expect(controller).toContain(".filter((state) => affectedStateUuids.has(state.uuid))");
+    expect(controller).toContain(".map(controllerStateContinuation)");
+    expect(controller).not.toContain("states: finalPlan.states");
     expect(controller).toContain("state_uuid: state.uuid");
     expect(controller).toContain("target_uuid: target.uuid");
     expect(controller).toContain("animation_uuid: link.animation || null");
