@@ -8,6 +8,7 @@ import {
   elementIdSchema,
   textureIdSchema,
 } from "@/lib/zodObjects";
+import { hasExactTextureGroupNameCollision } from "./texture-materials";
 
 export const applyTextureParameters = z.object({
   id: elementIdSchema
@@ -275,6 +276,9 @@ export function registerTextureAssignmentTools(): void {
   
     
 
+}
+
+export function registerTextureActivationTool(): void {
   createTool(activateTextureToolDoc.name, {
       ...activateTextureToolDoc,
       parameters: activateTextureParameters,
