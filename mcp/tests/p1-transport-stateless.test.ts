@@ -26,12 +26,13 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(source).not.toContain("sseHeartbeat");
     expect(source).not.toContain("setKeepAlive(");
     expect(source).toContain("socket.setTimeout(SOCKET_IDLE_TIMEOUT_MS");
-    expect(source).toContain("socket.setTimeout(0)");
-    expect(source).toContain("const response = envelope.method === 'tools/call'");
+    expect(source).toContain("const result = envelope.method === 'tools/call'");
     expect(source).toContain("RuntimeRequestAbandonedError");
-    expect(source).toContain("socket.destroyed || !socket.writable");
-    expect(source).toContain("Close each MCP response so a client-side keep-alive socket cannot");
-    expect(source).toMatch(/response\.body,\s*'close'/);
+    expect(source).toContain("request.aborted ||");
+    expect(source).toContain("response.destroyed ||");
+    expect(source).toContain("sendNodeResponse(");
+    expect(source).toContain("result.body,");
+    expect(source).toContain("true");
   });
 
   test("request-owned reconstruction reuses registration caches until a surface mutation", async () => {
@@ -132,7 +133,7 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     }
     expect(indexSource).toContain("const runtimeHost = new RuntimeHost()");
     expect(indexSource).toContain("await runtimeHost.start(generation)");
-    expect(runtimeHostSource).toContain("const candidate = createNetServer(this.nativeNet, { ...config, generation })");
+    expect(runtimeHostSource).toContain("const candidate = createNetServer(this.nativeHttp, { ...config, generation })");
     expect(runtimeHostSource).toContain("await this.waitForListening(candidate)");
     expect(runtimeHostSource).toContain("current?.closeAndWait()");
 
@@ -175,11 +176,11 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     );
 
     const originGuard = source.indexOf(
-      "if (origin !== undefined && !isAllowedLocalOrigin(origin))"
+      "if (originHeader !== undefined && !isAllowedLocalOrigin(originHeader))"
     );
     const forbiddenResponse = source.indexOf("403", originGuard);
     const requestConstruction = source.indexOf(
-      "const webRequest = new Request(url, requestInit)",
+      "const webRequest = new Request(requestUrl, {",
       originGuard
     );
     const statelessDispatch = source.indexOf(
