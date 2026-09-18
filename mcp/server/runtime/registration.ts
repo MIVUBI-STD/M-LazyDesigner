@@ -27,6 +27,7 @@ import { registerImportTools } from "../tools/import";
 import { registerPaintTools } from "../tools/paint";
 import { registerProjectTools } from "../tools/project";
 import { registerTextureTools } from "../tools/texture";
+import { registerRenderProfileTools } from "../tools/render-profile";
 import { registerPaintTextureTransactionTool } from "./textureRuntimeContracts";
 import { applyRuntimeExtensionPipeline } from "./extensions";
 import { registerUITools } from "../tools/ui";
@@ -67,6 +68,7 @@ function registerPaintFamilyTools(): void {
 
 function registerTextureFamilyTools(): void {
   registerTextureTools();
+  registerRenderProfileTools();
 }
 
 const registrationFunctions: Record<McpRegistrationFamily, RegistrationFunction> = {
