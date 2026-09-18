@@ -55,6 +55,7 @@ export type GatewayRuntimeStatus = {
     online: boolean;
     endpoint: string;
     mcp_client_ready: boolean;
+    protocol_era?: "modern" | "legacy" | null;
     catalog_stale: boolean;
     runtime_signature: string | null;
     connected_signature: string | null;
@@ -168,6 +169,7 @@ export class BlockitRuntimeBackend {
   private readonly catalogLeaseMs: number;
   private readonly connection = new GatewayConnectionManager();
   private client: Client | null = null;
+  private connectedProtocolEra: "modern" | "legacy" | null = null;
   private connectedSignature: string | null = null;
   private catalog = new Map<string, BackendTool>();
   private catalogValidatedAt = 0;
@@ -446,6 +448,7 @@ export class BlockitRuntimeBackend {
   private async closeConnectionUnsafe(): Promise<void> {
     const client = this.client;
     this.client = null;
+    this.connectedProtocolEra = null;
     this.connectedSignature = null;
     this.catalog.clear();
     this.catalogValidatedAt = 0;
@@ -495,6 +498,7 @@ export class BlockitRuntimeBackend {
       await client.connect(transport, { timeout: this.connectTimeoutMs });
       const tools = await this.listAllTools(client);
       this.client = client;
+      this.connectedProtocolEra = client.getProtocolEra();
       this.connectedSignature = signature;
       this.catalog = new Map(tools.map((tool) => [tool.name, tool]));
       this.catalogValidatedAt = Date.now();
@@ -591,6 +595,7 @@ export class BlockitRuntimeBackend {
           online: false,
           endpoint: this.runtimeUrl,
           mcp_client_ready: false,
+          protocol_era: null,
           catalog_stale: this.catalog.size > 0,
           runtime_signature: null,
           connected_signature: this.connectedSignature,
@@ -620,6 +625,7 @@ export class BlockitRuntimeBackend {
         online: true,
         endpoint: this.runtimeUrl,
         mcp_client_ready: ready,
+        protocol_era: ready ? this.connectedProtocolEra : null,
         catalog_stale:
           this.connectedSignature !== null && this.connectedSignature !== probe.signature,
         runtime_signature: probe.signature,
