@@ -8,19 +8,19 @@ Before any mutation:
 
 ```text
 current workspace instructions
-→ blockit-bedrock-entity-mcp router
+→ LazyDesigner Control
 → exactly one matching specialist
 ```
 
 Specialists:
 
 ```text
-Geometry / rig / pivots / UV Layout → blockbench-bedrock-modelling
-Texture / Painter / PBR             → blockit-bedrock-texturing
-Animation / motion                  → blockit-bedrock-animation
+Geometry / rig / pivots / UV Layout → lazydesigner-modelling
+Texture / Painter / PBR             → lazydesigner-texturing
+Animation / motion                  → lazydesigner-animation
 ```
 
-No mutation until the router + matching specialist are loaded and prerequisite gates are satisfied.
+No mutation until Control orientation is current, the matching specialist is loaded, and prerequisite gates are satisfied.
 
 ## New Model Intake
 

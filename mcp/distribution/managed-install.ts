@@ -7,7 +7,7 @@ export const REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
 // MSIX can expose one installation through logical and physical Windows paths.
 export const sameInstalledPath = (a: string, b: string): boolean =>
   realpathSync.native(a).toLowerCase() === realpathSync.native(b).toLowerCase();
-export const SKILLS = ["blockit-bedrock-entity-mcp", "blockbench-bedrock-modelling", "blockit-bedrock-texturing", "blockit-bedrock-animation"];
+export const SKILLS = ["lazydesigner-modelling", "lazydesigner-texturing", "lazydesigner-animation"];
 export const sha256 = (bytes: Uint8Array | string): string => createHash("sha256").update(bytes).digest("hex");
 export type Manifest = { schema: 1; repository: string; source_sha: string; build_identity: string; platform: "windows-x64"; files: Array<{ path: string; size: number; sha256: string }> };
 export type InstallOptions = { root: string; workspace: string; plugin: string; config: string };

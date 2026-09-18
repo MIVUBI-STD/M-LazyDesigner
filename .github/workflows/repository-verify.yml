@@ -41,7 +41,8 @@ permissions:
 
 jobs:
   # Static repository policy/ownership only; executable MCP and packaged Windows
-  # verification remain separate gates and are compared only on the same source SHA.
+  # verification remain separate gates and are compared only on the same source SHA;
+  # packaged authoring instructions must follow the same active ownership model.
   verify:
     name: Static repository contract
     runs-on: ubuntu-latest

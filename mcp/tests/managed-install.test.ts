@@ -37,7 +37,7 @@ async function sandbox(work: (directory: string, options: InstallOptions) => Pro
 }
 
 test("package paths and complete required files are fail-closed", async () => sandbox(async d => {
-  const manifest = await fixture(join(d, "pkg")); assert.equal(parseManifest(manifest).files.length, 11);
+  const manifest = await fixture(join(d, "pkg")); assert.equal(parseManifest(manifest).files.length, 7 + SKILLS.length);
   for (const path of ["../config.toml", "C:/evil.exe", ".agents/skills/other/SKILL.md", "workspace/active/model.bbmodel"]) {
     assert.throws(() => parseManifest({ ...manifest, files: [...manifest.files, { path, size: 1, sha256: "a".repeat(64) }] }));
   }
