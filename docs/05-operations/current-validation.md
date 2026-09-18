@@ -38,7 +38,7 @@ control_delta continuation
 
 Control selects context and lifecycle state; it is not a second Runtime, recovery engine, semantic database, or persistent authored-state database.
 
-Post-operation Control deltas now retain the compatibility-level authoring-domain invalidation summary while also projecting semantic freshness scopes for Geometry structure, UV mapping, Texture appearance, material/render state, Animation motion/controller/effects, and Particle state. Successful bounded effects can therefore preserve unrelated scopes without a reassurance reread; failed/uncertain mutations report freshness as unknown instead of pretending unchanged state.
+Post-operation Control deltas now retain the compatibility-level authoring-domain invalidation summary while also projecting semantic freshness scopes for Geometry structure, UV mapping, Texture appearance, material/render state, Animation motion/controller/effects, and Particle state. Successful bounded effects can therefore preserve unrelated scopes without a reassurance reread; failed/uncertain mutations report freshness as unknown instead of pretending unchanged state. Runtime result evidence also keeps authored state fresh for Animation selection/playback/timeline-view/clipboard-copy operations and Particle preparation that performs neither a file write nor native preview.
 
 The normal authoring packet is intentionally compact. It carries decision/readiness/reference/workspace identities and does not duplicate complete Geometry/Texture/Animation semantic documents inside `stage_context`.
 

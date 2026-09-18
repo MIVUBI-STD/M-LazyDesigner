@@ -123,6 +123,73 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.freshness.fresh).toContain("PARTICLE_SYSTEM");
   });
 
+  test("selection, playback, and clipboard-only animation operations preserve authored freshness", () => {
+    for (const result of [
+      { action: "select", animation: { uuid: "a", name: "A" } },
+      { action: "play", animation: { uuid: "a", name: "A" } },
+      { action: "set_time", timeline_time: 0.5 },
+      { action: "expand_bones", scope: "timeline_view_only" },
+      { action: "copy", scope: "animation_clipboard_only", copied_keyframes: 4 },
+    ]) {
+      const delta = buildControlDelta({
+        capability: "manage_animation_timeline",
+        phaseBefore: "animation",
+        phaseAfter: "animation",
+        projectUuid: "project-a",
+        succeeded: true,
+        result,
+      });
+
+      expect(delta.invalidates.authoring_domains).toEqual([]);
+      expect(delta.invalidates.workspace_projection).toBe(false);
+      expect(delta.freshness.basis).toBe("NO_CHANGE");
+      expect(delta.freshness.stale).toEqual([]);
+      expect(delta.freshness.fresh).toHaveLength(8);
+    }
+  });
+
+  test("particle preparation without write or preview preserves authored freshness", () => {
+    const delta = buildControlDelta({
+      capability: "manage_particle",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        valid: true,
+        artifact_ready: true,
+        wrote_to_path: null,
+        preview_path: null,
+        texture_dependency: null,
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual([]);
+    expect(delta.invalidates.workspace_projection).toBe(false);
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.freshness.fresh).toHaveLength(8);
+  });
+
+  test("particle write remains a Particle-scoped authored mutation", () => {
+    const delta = buildControlDelta({
+      capability: "manage_particle",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        valid: true,
+        artifact_ready: true,
+        wrote_to_path: "/rp/example.particle.json",
+        preview_path: null,
+        texture_dependency: null,
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual(["ANIMATION"]);
+    expect(delta.freshness.stale).toEqual(["PARTICLE_SYSTEM"]);
+  });
+
   test("animation controller, effects, and particle mutations stay change-scoped", () => {
     const cases = [
       ["manage_animation_controller", "ANIMATION_CONTROLLER"],

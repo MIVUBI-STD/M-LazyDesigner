@@ -782,10 +782,27 @@ export function registerAnimationBatchTools(): void {
   
             // @ts-ignore
             global.animationClipboard = copiedData;
-  
-            return `Copied animation data from "${source.bone}" (${Object.keys(
-              copiedData.channels
-            ).join(", ")})`;
+
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Copied animation data from "${source.bone}" (${Object.keys(
+                    copiedData.channels
+                  ).join(", ")}).`,
+                },
+              ],
+              structuredContent: {
+                action: "copy",
+                scope: "animation_clipboard_only",
+                source: {
+                  animation: { uuid: srcAnimation.uuid, name: srcAnimation.name },
+                  bone: { uuid: srcBone.uuid, name: srcBone.name },
+                  channels: Object.keys(copiedData.channels),
+                },
+                copied_keyframes: copiedKeyframeCount,
+              },
+            };
           }
   
           case "paste":

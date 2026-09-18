@@ -61,16 +61,72 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function particleTextureHandoffRequired(value: unknown): boolean {
+function resultCandidates(value: unknown): Record<string, unknown>[] {
   const root = record(value);
-  if (!root) return false;
-  const candidates = [root, record(root.structuredContent)].filter(
+  if (!root) return [];
+  return [root, record(root.structuredContent)].filter(
     (entry): entry is Record<string, unknown> => entry !== null
   );
-  return candidates.some((candidate) => {
+}
+
+function particleTextureHandoffRequired(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
     const dependency = record(candidate.texture_dependency);
     return dependency?.status === "REQUIRES_TEXTURING";
   });
+}
+
+const STATE_NEUTRAL_ANIMATION_ACTIONS = new Set([
+  "select",
+  "play",
+  "pause",
+  "stop",
+  "set_time",
+  "select_range",
+  "expand_bones",
+  "collapse_bones",
+  "copy",
+]);
+
+function animationTimelineStateNeutral(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    const action = typeof candidate.action === "string" ? candidate.action : null;
+    const scope = typeof candidate.scope === "string" ? candidate.scope : null;
+    return (
+      scope === "timeline_view_only" ||
+      scope === "animation_clipboard_only" ||
+      (action !== null && STATE_NEUTRAL_ANIMATION_ACTIONS.has(action))
+    );
+  });
+}
+
+function particleHasAuthoredEffect(value: unknown): boolean {
+  const candidates = resultCandidates(value);
+  if (candidates.length === 0) return true;
+  return candidates.some((candidate) => {
+    const wroteToPath = candidate.wrote_to_path;
+    const previewPath = candidate.preview_path;
+    return (
+      (typeof wroteToPath === "string" && wroteToPath.length > 0) ||
+      (typeof previewPath === "string" && previewPath.length > 0)
+    );
+  });
+}
+
+function capabilityMutatesState(
+  capability: string,
+  succeeded: boolean,
+  result: unknown
+): boolean {
+  if (!succeeded || !STATE_MUTATIONS.has(capability)) return false;
+  if (capability === "manage_particle") {
+    if (particleTextureHandoffRequired(result)) return false;
+    return particleHasAuthoredEffect(result);
+  }
+  if (capability === "manage_animation_timeline") {
+    return !animationTimelineStateNeutral(result);
+  }
+  return true;
 }
 
 function effectChangedFields(value: unknown): string[] {
@@ -114,10 +170,7 @@ function mutationInvalidation(
   succeeded: boolean,
   result: unknown
 ): ControlDelta["invalidates"] {
-  const dependencyHandoff =
-    capability === "manage_particle" && particleTextureHandoffRequired(result);
-  const mutates =
-    succeeded && STATE_MUTATIONS.has(capability) && !dependencyHandoff;
+  const mutates = capabilityMutatesState(capability, succeeded, result);
   let affectedDomains: ControlAuthoringDomain[] = [];
   if (mutates) {
     if (domain === "GEOMETRY") affectedDomains = geometryInvalidation(capability, result);
@@ -253,9 +306,7 @@ function mutationFreshness(
     };
   }
 
-  const dependencyHandoff =
-    capability === "manage_particle" && particleTextureHandoffRequired(result);
-  const mutates = STATE_MUTATIONS.has(capability) && !dependencyHandoff;
+  const mutates = capabilityMutatesState(capability, true, result);
   if (!mutates) {
     return {
       basis: "NO_CHANGE",

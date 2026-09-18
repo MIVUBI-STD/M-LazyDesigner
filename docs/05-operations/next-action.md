@@ -76,17 +76,15 @@ This allows unrelated state to remain reusable without blanket rereads while pre
 
 ### Remaining REMOTE_GITHUB refinement
 
-Do not create another state system. Only refine the existing effect receipt when current Runtime results contain narrower evidence than capability-level semantics.
-
-Priority:
+Existing Runtime receipts now also prevent false authored-state invalidation for:
 
 ```text
-inspect existing Texture / Animation / Particle result shapes
-→ reuse existing changed/effect fields where trustworthy
-→ narrow stale scopes only when source evidence supports it
-→ keep conservative fallback for ambiguous receipts
-→ add regression coverage only for materially distinct failure modes
+Animation select / playback / timeline-view operations
+Animation clipboard copy
+Particle preparation with no file write and no native preview
 ```
+
+Continue only when a Runtime result exposes trustworthy narrower effects than the current receipt semantics. Enrich the same receipt path; keep conservative fallback for ambiguity.
 
 Do not add new revision databases, dependency graphs, mutation journals, planners, routers, or public Gateway tools.
 
