@@ -28,6 +28,18 @@ export function requestMcpPhaseSwitch(phase: McpAuthoringPhase): void {
   phaseSwitchHandler(phase);
 }
 
+export const phaseControlOutputSchema = z.object({
+  phase: z.enum(["geometry", "texturing", "animation"]),
+  runtime_surface: z.string(),
+  reason: z.string(),
+  resume_from: z.string(),
+  readiness: z.unknown().optional(),
+  readiness_summary: z.unknown().nullable(),
+  surface_changed: z.boolean(),
+  reload_required: z.literal(false),
+  action: z.string(),
+}).strict();
+
 export const phaseControlToolDocs = {
   name: "switch_authoring_phase",
   description:
@@ -50,6 +62,7 @@ export function registerPhaseControlTool(): void {
     "switch_authoring_phase",
     {
       ...phaseControlToolDocs,
+      outputSchema: phaseControlOutputSchema,
       async execute({ target_phase, reason, resume_from, readiness }) {
         if (!phaseSwitchHandler) {
           throw new Error("Runtime phase switching is unavailable; reload BlockIT.");
