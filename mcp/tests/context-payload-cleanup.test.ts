@@ -82,9 +82,9 @@ describe("context and payload cleanup", () => {
     });
     expect(listOutlineParameters.safeParse({ max_nodes: 5001 }).success).toBe(false);
 
-    const elements = await source("server/tools/element.ts");
-    const start = elements.indexOf("createTool(elementToolDocs[2].name");
-    const end = elements.indexOf("createTool(elementToolDocs[3].name", start);
+    const elements = await source("server/tools/element-discovery.ts");
+    const start = elements.indexOf("createTool(elementDiscoveryToolDocs[0].name");
+    const end = elements.indexOf("createTool(elementDiscoveryToolDocs[1].name", start);
     const outline = elements.slice(start, end);
     expect(outline).toContain("let returnedNodes = 0");
     expect(outline).toContain("returnedNodes >= max_nodes");
@@ -92,10 +92,8 @@ describe("context and payload cleanup", () => {
   });
 
   test("texture creation and material reads avoid redundant image/JSON payloads", async () => {
-    const texture = await source("server/tools/texture.ts");
-    const start = texture.indexOf("createTool(textureToolDocs[0].name");
-    const end = texture.indexOf("createTool(textureToolDocs[1].name", start);
-    const createBlock = texture.slice(start, end);
+    const texture = await source("server/tools/texture-create.ts");
+    const createBlock = texture;
     expect(createBlock).not.toContain("texture.getDataURL()");
     expect(createBlock).toContain("structuredContent: result");
     expect(createBlock).toContain("uuid: texture.uuid");
