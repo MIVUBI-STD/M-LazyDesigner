@@ -41,7 +41,7 @@ describe("texture render and material quality closure", () => {
     const [alignment, runtime, bootstrap] = await Promise.all([
       source("lib/textureProductionAlignment.ts"),
       source("server/tools/texture-quality-runtime.ts"),
-      source("server/runtime/bootstrap.ts"),
+      source("server/runtime/extensions.ts"),
     ]);
     expect(alignment).toContain("metadata_only: true");
     expect(alignment).toContain("extra_pixel_scan: false");
@@ -50,6 +50,6 @@ describe("texture render and material quality closure", () => {
     expect(runtime).toContain('runtimeDefinition("manage_material")');
     expect(runtime).toContain("planPbrMaterialConfiguration");
     expect(runtime).toContain('color_texture="none"');
-    expect(bootstrap).toContain("wireTextureQualityRuntime()");
+    expect(bootstrap).toContain("apply: wireTextureQualityRuntime");
   });
 });
