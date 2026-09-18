@@ -147,6 +147,32 @@ Not currently selected as craftsmanship evidence. Runtime capability does not es
 
 Status: `DEFERRED` until a concrete LazyDesigner authoring question requires runtime-side comparison.
 
+
+## S6 — Blockbench Workshop Simple Prop / Furniture Scout
+
+Class: `CRAFTSMANSHIP_CORPUS` candidate, evaluated per listing rather than as one global authority.
+
+Why it matters:
+
+- supplies the low-complexity counterexample missing from Daffa and Mowzie;
+- public listings expose real `.bbmodel` projects plus model counts, animation counts, texture information, creator metadata, and per-listing license terms;
+- licensed examples such as Old Shelf / Old Workbench (CC BY) demonstrate that several geometry elements can legitimately share one static owner;
+- Toolbox (CC BY) is a compact articulated prop whose moving lid justifies a second owner without requiring a large hierarchy.
+
+Primary candidate principles:
+
+1. `element decomposition != bone/owner decomposition`;
+2. static visible pieces do not need separate bones without independent responsibility;
+3. articulated subparts should receive the smallest hierarchy sufficient for their motion;
+4. hierarchy depth and bone count are not quality signals;
+5. simple props need a dedicated **Minimum Sufficient Structure** discipline.
+
+Rights boundary:
+
+Evaluate rights per listing. Prefer explicit CC0/CC BY assets. Derived facts and independently expressed principles are preferred over committing third-party payloads.
+
+Status: `SCOUTED_FOR_SIMPLE_PROP_DISCIPLINE`. See `prop-furniture-scout.md`.
+
 ## Current Coverage Matrix
 
 | Intelligence area | Daffa | Mowzie | GeckoLib docs | Orca | Current coverage |
@@ -164,14 +190,14 @@ Status: `DEFERRED` until a concrete LazyDesigner authoring question requires run
 | uncertainty handling | moderate | implicit | low | strong | candidate improvement identified |
 | identity-feature preservation | moderate | implicit | low | strong | candidate improvement identified |
 | review evidence selection | strong | low | low | moderate | LazyDesigner stronger; Orca adds contract framing |
-| simple prop discipline | weak | weak | low | moderate | still missing |
-| furniture/environment prop | weak | weak | low | moderate | still missing |
+| simple prop discipline | weak | weak | low | moderate | scout evidence added |
+| furniture/environment prop | weak | weak | low | moderate | licensed scout corpus found; deep mining pending |
 | texture craftsmanship | strong hard-surface | candidate organic | low | methodology | needs cross-domain study |
 
 ## Next Research Order
 
-1. Search specifically for a high-quality simple-prop/furniture/environment corpus; do not use old LazyDesigner fixtures as craftsmanship evidence.
-2. Convert mechanical + organic findings into a compact cross-domain candidate role vocabulary, then test whether the vocabulary reduces correction ambiguity without increasing routine context.
+1. Deep-inspect a small licensed prop/furniture family and one compact articulated prop from the Blockbench Workshop scout; compare actual `.bbmodel` organization, texture allocation, and pivot use.
+2. Convert mechanical + organic + simple-prop findings into a compact cross-domain candidate role vocabulary, then test whether the vocabulary reduces correction ambiguity without increasing routine context.
 3. Test Orca-derived compact uncertainty + identity-feature + review-target metadata on LazyDesigner-owned validation assets before any canonical promotion.
 4. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
 5. Keep all candidate rules on `Ref` until a current-quality LazyDesigner-owned validation asset exists.
