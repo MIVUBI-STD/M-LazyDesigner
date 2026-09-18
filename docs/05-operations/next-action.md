@@ -40,67 +40,27 @@ Core invariants:
 
 ## Current High-End Continuation
 
-The freshness/invalidation pass is now implemented in source:
+Control freshness is source-implemented with semantic scopes for Geometry, UV, Texture, Material/Render, Animation motion/controller/effects, and Particle state. Receipts report `NO_CHANGE`, precise/conservative effects, or unknown outcomes; failed/ambiguous operations remain fail-closed.
+
+Current receipt-economy rules:
 
 ```text
-semantic freshness receipt            → implemented
-Texture vs Material invalidation split → implemented
-Animation motion/controller/effects    → implemented
-Particle freshness isolation           → implemented
-failed mutation freshness              → fail-closed as UNKNOWN
+NO_CHANGE / read-only / compile-only / persistence-only
+→ receipt_only
+
+complete final affected-state receipt
+→ receipt_only
+
+partial mutation receipt
+→ focused_read
+
+Cube / animation-motion mutation
+→ visual remains required
 ```
 
-`control_delta` now keeps compatibility-level `invalidates.authoring_domains` while also reporting semantic freshness scopes:
+Complete mutation receipts now cover Animation Effects, affected Animation Controller state subgraphs, PBR Material create/configure/assign, Material Instance face changes, Locator/Null Object state, bounded Group add/modify, and reparent final parent. Subtree translation remains focused-read because descendant final state is summarized only. Cube simplify dry-run/unchanged is state-neutral.
 
-```text
-GEOMETRY_STRUCTURE
-UV_MAPPING
-TEXTURE_APPEARANCE
-MATERIAL_RENDER
-ANIMATION_MOTION
-ANIMATION_CONTROLLER
-ANIMATION_EFFECTS
-PARTICLE_SYSTEM
-```
-
-Each receipt classifies scope state as `stale`, `fresh`, or `unknown` with one basis:
-
-```text
-NO_CHANGE
-PRECISE_EFFECT
-CONSERVATIVE_EFFECT
-UNKNOWN_OUTCOME
-```
-
-This allows unrelated state to remain reusable without blanket rereads while preserving fail-closed behavior after uncertain mutation outcomes. When a normally-mutating capability returns a source-proven `NO_CHANGE` receipt, the post-operation Control delta overrides verification guidance to `receipt_only`; discovery metadata remains unchanged because branch/result semantics are not known before invocation. `manage_animation_effects` also qualifies for `receipt_only` after a real mutation when its bounded receipt contains the final identity/time/payload or explicit removal state for every affected effect entry. Controller/material mutations remain conservative because their receipts do not yet carry complete final authored state.
-
-### Remaining REMOTE_GITHUB refinement
-
-Existing Runtime receipts now also prevent false authored-state invalidation for:
-
-```text
-Animation select / playback / timeline-view operations
-Animation clipboard copy
-Particle preparation with no file write and no native preview
-Material-instance list/get reads
-Render-profile inspect
-Render-profile compile-only operations with no output write
-Material save persistence without authored material change
-Animation loop requests already equal to current loop mode
-```
-
-Real-mutation receipt completion is now source-implemented:
-
-```text
-animation effects      → final affected entries/removals → receipt_only
-animation controller   → final affected state subgraphs → receipt_only
-material create/configure/assign → final channels/config → receipt_only
-material instances set/bulk/clear → exact final face changes → receipt_only
-```
-
-Controller receipts include only affected final subgraphs, never untouched-state dumps. Geometry continuation is now similarly bounded: Locator/Null Object mutations return final authored state; add/modify Group returns final Group state; reparent returns explicit final parent with preserve-local policy. These complete receipts use `receipt_only`, while subtree translation remains `focused_read` because descendants are summarized rather than enumerated. Cube simplify dry-run/unchanged is `NO_CHANGE → receipt_only`; actual Cube and animation-motion mutations remain `visual` because structural receipts do not prove reference fidelity or motion quality. Incomplete/legacy shapes remain conservative.
-
-Do not add new revision databases, dependency graphs, mutation journals, planners, routers, or public Gateway tools.
+Incomplete/legacy shapes stay conservative. Do not add dependency databases, planners, extra routers, or public Gateway tools.
 
 ## Deferred A/B Decision
 

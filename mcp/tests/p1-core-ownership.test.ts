@@ -222,7 +222,8 @@ describe("P1.3 core identity ownership", () => {
     expect(cubes).not.toContain("cube: after,");
 
     expect(hierarchy).toContain("structuredContent: result");
-    expect(hierarchy).toContain("group: {");
+    expect(hierarchy).toContain("function groupContinuationState");
+    expect(hierarchy).toContain("group: groupContinuationState(created[0])");
     expect(mutation).toContain("structuredContent: result");
     expect(elementShared).toContain("function elementContinuationState");
     expect(elementShared).toContain('if (element instanceof Locator) return "locator";');
