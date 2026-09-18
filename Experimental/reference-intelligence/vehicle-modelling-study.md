@@ -392,6 +392,67 @@ Safe conclusion:
 
 This parallels first-/third-person presentation findings from Actions & Stuff and Friendly Fishing: **context change does not automatically imply new semantic hierarchy**.
 
+## Case-Level Audit — Modular Client Geometry Composition
+
+The `cubed:truck1` client entity composes a single presentation surface from distinct geometry aliases:
+
+- base truck;
+- bumper variants;
+- exhaust variants;
+- lamp variants;
+- mirror variants;
+- spike variants;
+- livery variants;
+- coupled trailer variants;
+- coupled cargo variants.
+
+The authored animation set remains compact:
+
+- truck wheels;
+- steering;
+- trailer wheels;
+- trailer rotation;
+- truck root rotation;
+- exhaust presentation controller.
+
+### Strong modelling conclusion
+
+One semantic vehicle can be assembled from multiple **local geometry branches** while sharing the same base motion vocabulary.
+
+```text
+base mechanical rig
++ selected visual branches
++ selected coupled attachment branch
+→ one composed presentation asset
+```
+
+This is strong evidence against duplicating a complete truck for every bumper/livery/trailer combination.
+
+### Variant responsibility split
+
+```text
+base Truck / wheel / steering owners
+→ ARTICULATION + FORM
+
+bumper / exhaust / lamps / mirrors / livery
+→ local FORM / STATE presentation branches
+
+coupled trailer
+→ ATTACHMENT + independent articulated subassembly
+```
+
+This uses the existing responsibility vocabulary without adding a vehicle-specific schema.
+
+## Case-Level Audit — Trailer Content Variants
+
+A simple trailer client entity can select among cargo-specific geometry branches such as bricks, container, and logs while retaining the same semantic trailer presentation surface.
+
+Safe conclusion:
+
+> cargo/content presentation can be a replaceable local branch when the trailer's underlying articulation remains unchanged.
+
+This is another instance of the smallest-changed-branch rule.
+
 ## Current Verdict
 
 Advanced Truck Simulator materially strengthens LazyDesigner knowledge for:
