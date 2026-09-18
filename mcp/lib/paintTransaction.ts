@@ -55,15 +55,15 @@ export const paintTransactionOperationSchema = z.union([
     target: paintTransactionCoordinateSchema,
     flip_x: z.boolean().optional(),
     flip_y: z.boolean().optional(),
-  }).strict().describe("Copy an explicit same-atlas region, optionally mirrored, with RGBA preserved. Caller owns matching entity UV regions; no player-skin layout is assumed."),
+  }).strict().describe("Copy/mirror one explicit same-atlas RGBA region."),
   z.object({
     operation: z.literal("noise"),
     rect: paintTransactionRectSchema,
     seed: z.number().int().min(0).max(0xffffffff),
-    amplitude: z.number().int().min(1).max(255).describe("Maximum signed channel adjustment, not a styling quality setting."),
+    amplitude: z.number().int().min(1).max(255).describe("Maximum signed channel adjustment."),
     channels: z.array(z.enum(["r", "g", "b", "a"])).min(1).max(4).refine(channels => new Set(channels).size === channels.length, "Duplicate noise channels."),
-    mask: z.array(paintTransactionCoordinateSchema).min(1).optional().describe("Optional explicit pixel selection within rect; unselected pixels stay unchanged."),
-    preserve_transparent: z.boolean().optional().describe("Defaults true: do not color fully transparent atlas pixels. Alpha changes require channel a."),
+    mask: z.array(paintTransactionCoordinateSchema).min(1).optional().describe("Optional explicit pixels within rect."),
+    preserve_transparent: z.boolean().optional().describe("Default true; preserves fully transparent pixels."),
   }).strict(),
 ]);
 
@@ -94,10 +94,10 @@ export const paintTransactionParameters = z
       bias:z.number().finite().positive().default(.001),
       strength:z.number().finite().positive().max(1).default(.5),
     }).strict().refine(v=>v.bias<v.radius,"AO bias must be smaller than radius.").optional()
-      .describe("Bedrock Cube AO at the current preview pose. Explicit targets, visible Cubes as occluders; preserves alpha, rejects conflicting UV. Repeated bakes darken again; use Undo to restore. Exclusive with operations."),
+      .describe("Bedrock Cube AO for explicit targets at the current pose. Preserves alpha; exclusive with operations."),
     output: paintTransactionOutputSchema
       .optional()
-      .describe("Optional verified PNG output for the final authored bitmap. Used by particle sprites and other external texture assets without adding a second save tool."),
+      .describe("Optional verified PNG output for the final bitmap."),
   })
   .strict().refine(v=>(v.operations!==undefined)!==(v.ambient_occlusion!==undefined),"Provide operations or ambient_occlusion, exclusively.");
 
