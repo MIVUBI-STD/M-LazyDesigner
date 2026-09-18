@@ -86,7 +86,7 @@ describe("particle end-to-end static contract", () => {
       "manage_particle",
     ]);
 
-    const wiring = await source("server/tools/prelocal-wiring.ts");
+    const wiring = await source("server/tools/paint-texture-transaction.ts");
     expect(wiring).toContain("commitTexturePngWrite");
     expect(wiring).toContain("rollbackTexturePngWrite");
     expect(wiring).toContain("Undo.cancelEdit(true)");
