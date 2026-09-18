@@ -118,7 +118,7 @@ describe("model creation effectiveness — professional construction without pre
     expect(lower(modelling)).toContain("more clips or controller states");
     expect(geometry).toContain("Growth in one budget is not sufficient reason");
     for (const text of [modelling, geometry]) {
-      expect(lower(text)).toMatch(/locator.*moving attachment|moving attachment.*locator/);
+      expect(lower(text)).toMatch(/locator.*parent.*group\/bone|group\/bone.*locator/);
     }
 
     for (const text of [animationSkill, animation]) {
