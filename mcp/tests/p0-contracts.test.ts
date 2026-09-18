@@ -27,6 +27,29 @@ interface CapturedRegistration {
   callback: CapturedToolCallback;
 }
 
+function advertisedFields(schema: unknown): string[] {
+  const json = z.toJSONSchema(schema as z.ZodType<any, any>, {
+    io: "input",
+    target: "draft-2020-12",
+    unrepresentable: "any",
+    reused: "inline",
+  }) as Record<string, unknown>;
+  const fields = new Set<string>();
+  const visit = (node: unknown) => {
+    if (!node || typeof node !== "object" || Array.isArray(node)) return;
+    const record = node as Record<string, unknown>;
+    if (record.properties && typeof record.properties === "object" && !Array.isArray(record.properties)) {
+      Object.keys(record.properties as Record<string, unknown>).forEach((name) => fields.add(name));
+    }
+    for (const key of ["anyOf", "oneOf", "allOf"] as const) {
+      const variants = record[key];
+      if (Array.isArray(variants)) variants.forEach(visit);
+    }
+  };
+  visit(json);
+  return [...fields].sort();
+}
+
 function createCaptureServer() {
   const registrations = new Map<string, CapturedRegistration>();
 
@@ -211,8 +234,7 @@ describe("P0 MCP contract regressions", () => {
     expect(registration).toBeDefined();
     if (!registration) throw new Error("Discriminated union fixture was not registered.");
 
-    const advertised = registration.definition.inputSchema as z.ZodObject<any>;
-    expect(Object.keys(advertised.shape).sort()).toEqual([
+    expect(advertisedFields(registration.definition.inputSchema)).toEqual([
       "action",
       "id",
       "name",
@@ -256,8 +278,7 @@ describe("P0 MCP contract regressions", () => {
     expect(registration).toBeDefined();
     if (!registration) throw new Error("Union/intersection fixture was not registered.");
 
-    const advertised = registration.definition.inputSchema as z.ZodObject<any>;
-    expect(Object.keys(advertised.shape).sort())
+    expect(advertisedFields(registration.definition.inputSchema))
       .toEqual(["elements", "id", "name", "operation"].sort());
   });
 
