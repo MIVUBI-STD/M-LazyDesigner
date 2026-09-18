@@ -40,10 +40,8 @@ describe("animation Molang property mutation", () => {
   });
 
   test("timeline source preserves Molang text and rejects no-op before Undo", async () => {
-    const source = await Bun.file("server/tools/animation.ts").text();
-    const start = source.indexOf("createTool(\n  animationToolDocs[4].name");
-    const end = source.indexOf("createTool(\n  animationToolDocs[5].name", start);
-    const block = source.slice(start, end);
+    const source = await Bun.file("server/tools/animation-timeline.ts").text();
+    const block = source;
     const molangCase = block.slice(block.indexOf('case "set_anim_time_update":'));
 
     expect(molangCase).toContain('case "set_blend_weight":');
