@@ -58,7 +58,8 @@
     "verify:uv-density-live": "bun run ./scripts/verify-uv-density-live.ts",
     "audit:unused": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "audit:unused:gateway": "tsc -p gateway/tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters",
-    "verify:texture-runtime-live": "bun run ./scripts/verify-texture-runtime-live.ts"
+    "verify:texture-runtime-live": "bun run ./scripts/verify-texture-runtime-live.ts",
+    "conformance:serve": "bun run ./scripts/serve-conformance-runtime.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
