@@ -33,7 +33,7 @@ describe("texture production discipline", () => {
       })
     ).toThrow("owns bitmap generation");
 
-    const texture = await source("server/tools/texture.ts");
+    const texture = await source("server/tools/texture-create.ts");
     for (const marker of [
       'if (type === "template")',
       "TextureGenerator",
@@ -99,7 +99,7 @@ describe("texture production discipline", () => {
   });
 
   test("global UV audit is owned by list_textures instead of element inspection", async () => {
-    const textureSource = await source("server/tools/texture.ts");
+    const textureSource = await source("server/tools/texture-read.ts");
     const list = textureToolDocs.find((tool) => tool.name === "list_textures");
     expect(list).toBeDefined();
     expect(textureSource).toContain("buildUvAtlasAudit(");
