@@ -1,7 +1,7 @@
 import {test,expect} from "bun:test";
 import {Mesh,PlaneGeometry,MeshBasicMaterial,Texture as ThreeTexture,Group} from "three";
 import {bakeNativeCubeAo} from "@/lib/cubeAoRuntime";
-import {registerPaintTextureTransactionTool} from "@/server/tools/prelocal-wiring";
+import {registerPaintTextureTransactionTool} from "@/server/tools/paint-texture-transaction";
 import {getAllToolDefinitions} from "@/lib/factories";
 import {computeTextureRevision} from "@/lib/textureRevision";
 test("AO adapter and transaction preserve revision, target and Undo boundaries",async()=>{
