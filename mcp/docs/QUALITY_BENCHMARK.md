@@ -1,8 +1,10 @@
-# BlockIT Authoring Quality Benchmark
+# LazyDesigner Authoring Quality Benchmark
 
 This is an evaluation contract for comparing authoring quality and efficiency across representative asset classes. It is **not** a new Runtime tool, authoring workflow, score engine, or acceptance authority.
 
 Canonical machine-readable cases live in `mcp/tests/fixtures/quality-benchmark-cases.json`.
+
+The checked-in cases are **synthetic contract fixtures**, not measured quality baselines. They may prove coverage and evaluation semantics, but they must not be presented as empirical authoring-performance results. A measured baseline requires an actual approved asset/reference, environment/version provenance, captured evidence, acceptance state, and observed cost-to-accepted-result.
 
 ## Purpose
 
@@ -22,12 +24,14 @@ There is no aggregate quality score. A critical visual/structural failure cannot
 
 ## Representative Profiles
 
-The benchmark set intentionally spans four materially different construction problems:
+The benchmark set intentionally spans six materially different construction problems:
 
 1. `PROP_FURNITURE` — rigid structure, attachment/contact, negative space, material identity.
 2. `VEHICLE` — multi-part rigid structure, depth, repeated/mechanical forms, optional articulation.
 3. `CHARACTER_MOB` — articulated hierarchy, joint closure, deformation readability, pose/motion fidelity.
 4. `ORGANIC_CURVED` — non-boxy silhouette, segmentation quality, depth continuity, curve interpretation.
+5. `MECHANICAL` — articulated hard-surface structure, pivots, clearance/contact, surface integrity, physical UV evidence.
+6. `GENERIC` layered/cutout — layered carriers, coplanar-risk, physical UV fidelity, and alpha-cutout boundary evidence.
 
 These are evaluation profiles, not geometry presets. They must not force a modelling method or cube count.
 
@@ -125,7 +129,7 @@ The target is **Cost to Accepted Result**, not minimum tool calls in isolation.
 
 ## Future Local Benchmark Run
 
-When local testing is authorized, run all four profiles with fixed reference/constraint inputs and retain:
+When local testing is authorized, run all six profiles with fixed reference/constraint inputs and retain:
 
 ```text
 input reference revision

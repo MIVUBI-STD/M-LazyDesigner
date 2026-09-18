@@ -11,11 +11,13 @@ function requireDimensions(entry: BenchmarkCase, expected: readonly string[]) {
   }
 }
 
-describe("BlockIT authoring quality benchmark contract", () => {
+describe("LazyDesigner authoring quality benchmark contract", () => {
   test("uses categorical evidence verdicts rather than an aggregate quality score", () => {
     expect(benchmark.aggregate_score).toBe(false);
     expect(benchmark.quality_precedes_efficiency).toBe(true);
     expect(benchmark.verdicts).toEqual(["PASS", "FAIL", "UNVERIFIED"]);
+    expect(benchmark.evidence_class).toBe("synthetic_contract_fixture");
+    expect(benchmark.measured_baseline).toBe(false);
   });
 
   test("covers six representative quality cases without creating a scoring system", () => {
