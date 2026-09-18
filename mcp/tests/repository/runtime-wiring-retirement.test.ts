@@ -34,4 +34,16 @@ describe("retired runtime wiring paths", () => {
     }
     expect(violations).toEqual([]);
   });
+
+  test("active implementation and test paths do not use historical prelocal naming", async () => {
+    const roots = ["server", "scripts", "tests"];
+    const historical: string[] = [];
+    for (const root of roots) {
+      for (const file of await walk(root)) {
+        if (file.toLowerCase().includes("prelocal")) historical.push(file);
+      }
+    }
+    expect(historical).toEqual([]);
+  });
+
 });
