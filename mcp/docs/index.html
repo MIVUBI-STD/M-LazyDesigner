@@ -608,12 +608,12 @@ bun run docs:check
       <td class="col-desc">Non-empty Bedrock Group/bone name. <span class="param-meta">[minLength: 1]</span></td>
     </tr><tr>
       <td class="col-name">origin</td>
-      <td class="col-type">unknown[]</td>
+      <td class="col-type">array</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">Finite Bedrock bone pivot/origin; omit for organizational Groups unless a joint/attachment needs it. <span class="param-meta">(default: <code>[0,0,0]</code>) [minItems: 3, maxItems: 3]</span></td>
     </tr><tr>
       <td class="col-name">rotation</td>
-      <td class="col-type">unknown[]</td>
+      <td class="col-type">array</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">Finite initial Bedrock bone rotation; omit for neutral zero rotation. <span class="param-meta">(default: <code>[0,0,0]</code>) [minItems: 3, maxItems: 3]</span></td>
     </tr><tr>
@@ -657,7 +657,7 @@ bun run docs:check
       <td class="col-desc">Exact Cube or Group UUID, or exact unique name. Ambiguous names are rejected before duplication. <span class="param-meta">[minLength: 1]</span></td>
     </tr><tr>
       <td class="col-name">offset</td>
-      <td class="col-type">unknown[]</td>
+      <td class="col-type">array</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">Finite translation offset [x,y,z] applied to the duplicated Cube/Group subtree. <span class="param-meta">(default: <code>[0,0,0]</code>) [minItems: 3, maxItems: 3]</span></td>
     </tr><tr>
@@ -802,12 +802,12 @@ bun run docs:check
       <td class="col-desc">Exact Group UUID or unique exact name. <span class="param-meta">[minLength: 1]</span></td>
     </tr><tr>
       <td class="col-name">origin</td>
-      <td class="col-type">unknown[]</td>
+      <td class="col-type">array</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">New Group pivot/origin. <span class="param-meta">[minItems: 3, maxItems: 3]</span></td>
     </tr><tr>
       <td class="col-name">rotation</td>
-      <td class="col-type">unknown[]</td>
+      <td class="col-type">array</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">New Group rotation [x,y,z]. <span class="param-meta">[minItems: 3, maxItems: 3]</span></td>
     </tr><tr>
@@ -817,7 +817,7 @@ bun run docs:check
       <td class="col-desc">New Group visibility.</td>
     </tr><tr>
       <td class="col-name">offset</td>
-      <td class="col-type">unknown[]</td>
+      <td class="col-type">array</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">Translate Group subtree in authored model coordinates, including bounds/pivots/anchors. Use alone; preserves UV and animation keys. Not a camera-relative drag. <span class="param-meta">[minItems: 3, maxItems: 3]</span></td>
     </tr></tbody>
@@ -1820,7 +1820,7 @@ bun run docs:check
       <td class="col-name">target_index</td>
       <td class="col-type">integer</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">0-based final layer index. <span class="param-meta">[min: 0]</span></td>
+      <td class="col-desc">0-based final layer index. <span class="param-meta">[min: 0, max: 9007199254740991]</span></td>
     </tr></tbody>
     </table>
       </div>
@@ -1909,7 +1909,7 @@ bun run docs:check
       <td class="col-desc">Discard unsaved changes in the open project; required when it currently has unsaved work.</td>
     </tr><tr>
       <td class="col-name">resolution</td>
-      <td class="col-type">&quot;128&quot; | &quot;256&quot;</td>
+      <td class="col-type">number | number</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">Logical UV canvas edge; 128 (default) or 256.</td>
     </tr></tbody>
@@ -2530,7 +2530,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-18T10:58:42.806Z from Zod schemas
+        Generated 2026-09-18T15:35:27.277Z from Zod schemas
       </footer>
     </main>
   </div>
