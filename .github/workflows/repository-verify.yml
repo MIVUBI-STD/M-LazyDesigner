@@ -40,6 +40,8 @@ permissions:
   contents: read
 
 jobs:
+  # Static repository policy/ownership only; executable MCP and packaged Windows
+  # verification remain owned by their dedicated workflows.
   verify:
     name: Static repository contract
     runs-on: ubuntu-latest

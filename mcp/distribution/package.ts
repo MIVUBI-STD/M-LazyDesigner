@@ -25,7 +25,12 @@ async function main(): Promise<void> {
   const smoke = JSON.parse(await run([join(packageDir, "blockit.exe"), "self-test"]));
   if (smoke.status !== "PASS" || smoke.platform !== "win32" || smoke.arch !== "x64") throw new Error("Compiled manager failed its platform smoke test.");
   await writeFile(join(packageDir, "blockit_mcp.js"), plugin);
-  const sources = ["LICENSE", "workspace/README.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`), ...(await readdir(join(repo, "docs/foundation"))).filter(n => /^[a-zA-Z0-9_-]+\.md$/.test(n)).map(n => `docs/foundation/${n}`)];
+  const sources = [
+    "LICENSE",
+    "workspace/README.md",
+    "docs/03-authoring/finalization/standard.md",
+    ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`),
+  ];
   for (const path of sources) { await mkdir(dirname(join(packageDir, path)), { recursive: true }); await cp(join(repo, path), join(packageDir, path)); }
   await cp(join(repo, "mcp/distribution/authoring-AGENTS.md"), join(packageDir, "AGENTS.md"));
   const bunLicense = await fetch(`https://raw.githubusercontent.com/oven-sh/bun/bun-v${Bun.version}/LICENSE.md`);
