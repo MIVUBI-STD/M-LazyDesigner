@@ -1,0 +1,152 @@
+{
+  "schema": "lazydesigner-golden-tasks-v1",
+  "policy": {
+    "purpose": "Fixed end-to-end tasks for future live Cost to Accepted Result measurement.",
+    "execution_state": "UNMEASURED",
+    "acceptance_rule": "No task is PASS until matching reference evidence, current artifact evidence, and human acceptance exist."
+  },
+  "tasks": [
+    {
+      "id": "golden-prop-chair",
+      "profile": "PROP_FURNITURE",
+      "request": "Create a Minecraft Bedrock wooden chair from an approved front/side reference with explicit block dimensions.",
+      "phases": [
+        "geometry",
+        "texturing"
+      ],
+      "acceptance": [
+        "silhouette",
+        "cross_view_proportion",
+        "part_completeness",
+        "attachment_contact",
+        "texture_identity",
+        "seam_control"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-mechanical-lift",
+      "profile": "MECHANICAL",
+      "request": "Create a Bedrock lift with explicit body/door dimensions and native open/close animation.",
+      "phases": [
+        "geometry",
+        "texturing",
+        "animation"
+      ],
+      "acceptance": [
+        "mechanical_structure",
+        "pivot_correctness",
+        "clearance_contact",
+        "texture_identity",
+        "animation_contact",
+        "loop_or_handoff_continuity"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-humanoid-fisherman",
+      "profile": "CHARACTER_MOB",
+      "request": "Create a humanoid fisherman with rod attachment, readable rig, idle loop, and reel action.",
+      "phases": [
+        "geometry",
+        "texturing",
+        "animation"
+      ],
+      "acceptance": [
+        "silhouette",
+        "required_parts",
+        "rig_suitability",
+        "attachment_contact",
+        "texture_identity",
+        "pose_fidelity",
+        "motion_readability"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-organic-flower",
+      "profile": "ORGANIC_CURVED",
+      "request": "Create an organic flower/foliage asset whose curved silhouette is represented with minimum sufficient Bedrock geometry.",
+      "phases": [
+        "geometry",
+        "texturing"
+      ],
+      "acceptance": [
+        "silhouette",
+        "curve_segmentation",
+        "depth_continuity",
+        "minimum_sufficient_geometry",
+        "palette_correspondence"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-layered-cutout-display",
+      "profile": "GENERIC",
+      "request": "Create a layered/cutout display with intentional planar carriers, alpha boundaries, and no accidental coplanar artifacts.",
+      "phases": [
+        "geometry",
+        "texturing"
+      ],
+      "acceptance": [
+        "layering",
+        "negative_space",
+        "coplanar_risk",
+        "alpha_cutout_boundary",
+        "uv_fidelity"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-pbr-machine",
+      "profile": "MECHANICAL",
+      "request": "Create a compact machine prop with one base atlas plus normal/MER material support.",
+      "phases": [
+        "geometry",
+        "texturing"
+      ],
+      "acceptance": [
+        "structure",
+        "atlas_integrity",
+        "pixel_density",
+        "pbr_channel_correctness",
+        "mapped_surface_continuity"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-particle-smoke",
+      "profile": "GENERIC",
+      "request": "Create a Bedrock smoke particle, bind its texture, attach it to the intended locator, and trigger it from animation.",
+      "phases": [
+        "geometry",
+        "texturing",
+        "animation"
+      ],
+      "acceptance": [
+        "locator_binding",
+        "particle_identifier",
+        "texture_binding",
+        "trigger_timing",
+        "in_game_visibility"
+      ],
+      "execution_state": "UNMEASURED"
+    },
+    {
+      "id": "golden-existing-model-correction",
+      "profile": "PROP_FURNITURE",
+      "request": "Correct one known existing model from reference evidence without rebuilding unaffected geometry or rereading unrelated state.",
+      "phases": [
+        "geometry",
+        "texturing"
+      ],
+      "acceptance": [
+        "targeted_correction",
+        "unaffected_state_preserved",
+        "reference_fidelity",
+        "bounded_correction_rounds"
+      ],
+      "execution_state": "UNMEASURED"
+    }
+  ]
+}
