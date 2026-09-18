@@ -305,7 +305,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Bone Rigging</p>
-      <p class="card-desc">Creates or edits Bedrock Group hierarchy, pivots, IK, and mirroring. Use for rig structure; use add_group for normal bone creation.</p>
+      <p class="card-desc">Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring; legacy overlapping actions remain for compatibility.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -881,7 +881,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Manage Bedrock Locator</p>
-      <p class="card-desc">Creates or updates a Locator. Create requires name+parent; update requires id plus an authored field. Rename/delete use rename_element/remove_element.</p>
+      <p class="card-desc">Creates or updates a Locator. Create requires name+parent; update requires id plus an authored field. For a moving attachment/reference point, parent the Locator to the animated Group/Bone; current animation tools keyframe Groups/Bones, not Locator elements directly. Rename/delete use rename_element/remove_element.</p>
       <div class="overflow-x">
         <p class="empty-params">No parameters</p>
       </div>
@@ -2530,7 +2530,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-12T07:33:16.402Z from Zod schemas
+        Generated 2026-09-18T10:46:35.457Z from Zod schemas
       </footer>
     </main>
   </div>
