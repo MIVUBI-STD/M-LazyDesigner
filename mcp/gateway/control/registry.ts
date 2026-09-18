@@ -101,7 +101,7 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
   duplicate_element: {
     source: "mcp/server/tools/element.ts",
     specialist: MODELLING_PATH,
-    test_owner: "mcp/tests/prelocal-generic-semantics.test.ts",
+    test_owner: "mcp/tests/generic-semantics-contract.test.ts",
   },
   reparent_element: {
     source: "mcp/server/tools/element.ts",
