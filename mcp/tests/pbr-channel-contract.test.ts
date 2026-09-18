@@ -124,7 +124,9 @@ describe("PBR channel identity preflight", () => {
 
   test("assign texture channel rejects an exact no-op before Undo", async () => {
     const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
-    const block = source;
+    const assignStart = source.indexOf("createTool(textureMaterialToolDocs[5].name");
+    const assignEnd = source.indexOf("createTool(textureMaterialToolDocs[6].name", assignStart);
+    const block = source.slice(assignStart, assignEnd);
     expect(block).toContain("tex.group === textureGroup.uuid");
     expect(block).toContain("tex.pbr_channel === channel");
     expect(block).toContain("resetTextures.length === 0");
