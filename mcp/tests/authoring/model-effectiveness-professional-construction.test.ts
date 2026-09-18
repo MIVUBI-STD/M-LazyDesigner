@@ -113,9 +113,11 @@ describe("model creation effectiveness — professional construction without pre
       source("../docs/03-authoring/animation/standard.md"),
     ]);
 
+    expect(modelling).toContain("smallest changed");
+    expect(geometry).toContain("smallest changed branch");
+    expect(lower(modelling)).toContain("more clips or controller states");
+    expect(geometry).toContain("Growth in one budget is not sufficient reason");
     for (const text of [modelling, geometry]) {
-      expect(text).toContain("smallest changed");
-      expect(lower(text)).toContain("more clips or controller states");
       expect(lower(text)).toMatch(/locator.*moving attachment|moving attachment.*locator/);
     }
 
