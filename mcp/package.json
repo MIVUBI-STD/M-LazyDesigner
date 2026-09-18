@@ -42,7 +42,6 @@
     "verify:particle-live": "bun run ./scripts/verify-particle-live.ts",
     "verify:persistence-live": "bun run ./scripts/verify-persistence-live.ts",
     "verify:project-affinity-live": "bun run ./scripts/verify-project-affinity-live.ts",
-    "verify:lift-quality-live": "bun run ./scripts/verify-lift-quality-live.ts",
     "deploy:local": "bun run build && bun run ./scripts/deploy-local.ts",
     "deploy:verified": "bun run ./scripts/verified-build-artifact.ts deploy",
     "prompts:build": "bun run ./build/generate-manifest.ts",
