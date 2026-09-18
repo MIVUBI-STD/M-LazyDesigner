@@ -65,7 +65,7 @@ describe("Gateway long-running reliability hardening", () => {
     const source = await Bun.file("gateway/backend.ts").text();
 
     expect(source).toContain('versionNegotiation: { mode: "auto" }');
-    expect(source).toContain("this.connectedProtocolEra = client.getProtocolEra()");
+    expect(source).toContain("this.connectedProtocolEra = client.getProtocolEra() ?? null");
     expect(source).toContain("protocol_era: ready ? this.connectedProtocolEra : null");
     expect(source).toContain("this.connectedProtocolEra = null");
   });
