@@ -1,0 +1,45 @@
+{
+  "schema": "lazydesigner-native-acceptance-v1",
+  "proof_scope": "LIVE_BLOCKBENCH",
+  "state": "UNVERIFIED",
+  "provenance": {
+    "source_sha": null,
+    "runtime_build_identity": null,
+    "gateway_version": null,
+    "blockbench_version": null,
+    "operating_system": null,
+    "recorded_at": null
+  },
+  "checks": {
+    "installed_runtime_freshness": "UNVERIFIED",
+    "gateway_reload_recovery": "UNVERIFIED",
+    "runtime_rebuild_recovery": "UNVERIFIED",
+    "blockbench_close_reopen_recovery": "UNVERIFIED",
+    "authoring_to_animation_handoff": "UNVERIFIED",
+    "animation_to_authoring_handoff": "UNVERIFIED",
+    "shared_authoring_focus_change": "UNVERIFIED",
+    "project_affinity_rebind": "UNVERIFIED",
+    "interrupted_mutation_recovery": "UNVERIFIED",
+    "undo": "UNVERIFIED",
+    "save_reopen_persistence": "UNVERIFIED",
+    "animation_playback": "UNVERIFIED",
+    "export": "UNVERIFIED"
+  },
+  "evidence": {
+    "project_uuid": null,
+    "artifact_path": null,
+    "reference_revision": null,
+    "notes": []
+  },
+  "policy": {
+    "allowed_verdicts": [
+      "PASS",
+      "FAIL",
+      "UNVERIFIED"
+    ],
+    "pass_rule": "A check may be PASS only from matching exact-build native evidence.",
+    "static_ci_rule": "Static or remote CI may validate this manifest shape but must not upgrade any native verdict.",
+    "visual_rule": "Native technical PASS does not imply visual/reference acceptance.",
+    "minecraft_rule": "Minecraft in-game behavior is outside this manifest unless separately recorded."
+  }
+}
