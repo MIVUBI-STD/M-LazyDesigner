@@ -213,7 +213,7 @@ function resolveAssignTextureChannelTexture(reference: string): Texture {
   return resolveCoreTexture(reference, "Use list_textures to confirm the intended UUID or texture ID before assigning the PBR channel.");
 }
 
-function resolveTextureToolMaterial(reference: string): TextureGroup {
+export function resolveTextureToolMaterial(reference: string): TextureGroup {
   const uuidMatch = TextureGroup.all.find(
     (group: TextureGroup) => group.uuid === reference
   );
