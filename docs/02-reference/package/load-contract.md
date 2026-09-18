@@ -114,6 +114,8 @@ A lower authority never silently overrides a higher authority. Block only the de
 
 Do not reload unrelated stage prose.
 
+For model authoring, state/presentation variants and moving attachment relationships stay inside the active stage document plus current authored state. Do not add Control packet fields for them. A moving Locator is resolved as Locator → parent Group/Bone → animation ownership, not as a direct Locator keyframe target.
+
 ## Particle Load Order
 
 For `asset.kind=PARTICLE`, use the specialization in `particle-handoff.md`.
