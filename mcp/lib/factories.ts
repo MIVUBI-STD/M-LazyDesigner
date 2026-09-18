@@ -75,7 +75,7 @@ interface ToolDefinition {
   description: string;
   inputSchema: Record<string, z.ZodType<any, any>>;
   parameterSchema: z.ZodType<any, any>;
-  outputSchema?: Record<string, z.ZodType<any, any>> | z.ZodType<any, any>;
+  outputSchema?: z.ZodType<any, any>;
   execute: (args: any, context?: ToolContext) => Promise<ToolResult>;
   annotations?: ToolAnnotations;
 }
@@ -209,7 +209,10 @@ function getToolInvocation(name: string, toolDef: ToolDefinition) {
     }
 
     if (result && typeof result === "object" && "content" in result) {
-      const normalized = normalizeToolResultForRuntime(name, result);
+      const normalized = normalizeToolResultForRuntime(
+        name,
+        result as Exclude<ToolResult, string>
+      );
       if (toolDef.outputSchema && normalized.structuredContent !== undefined) {
         normalized.structuredContent = await toolDef.outputSchema.parseAsync(
           normalized.structuredContent
