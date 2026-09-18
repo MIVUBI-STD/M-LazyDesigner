@@ -525,7 +525,7 @@ describe("animation mutation contract", () => {
       block.indexOf("Undo.initEdit")
     );
     expect(block).toContain("structuredContent: result");
-    expect(block).not.toContain("inspect_element");
+    expect(block).not.toContain("inspectElement(");
   });
 
   test("bone delete Undo covers descendants and affected animations before recursive removal", async () => {
