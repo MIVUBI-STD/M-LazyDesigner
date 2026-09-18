@@ -208,20 +208,7 @@ function getToolInvocation(name: string, toolDef: ToolDefinition) {
       return compactStringResult(name, result);
     }
 
-    if (result && typeof result === "object" && "content" in result) {
-      const normalized = normalizeToolResultForRuntime(
-        name,
-        result as Exclude<ToolResult, string>
-      );
-      if (toolDef.outputSchema && normalized.structuredContent !== undefined) {
-        normalized.structuredContent = await toolDef.outputSchema.parseAsync(
-          normalized.structuredContent
-        );
-      }
-      return normalized;
-    }
-
-    const normalized = compactUnknownResult(name, result);
+    const normalized = normalizeToolResultForRuntime(name, result);
     if (toolDef.outputSchema && normalized.structuredContent !== undefined) {
       normalized.structuredContent = await toolDef.outputSchema.parseAsync(
         normalized.structuredContent
