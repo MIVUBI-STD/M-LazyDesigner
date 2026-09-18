@@ -72,6 +72,9 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "cube batch",
     "bedrock geometry",
     "geometry batch",
+    "buat kubus",
+    "ubah ukuran kubus",
+    "geser kubus",
   ],
   add_group: [
     "create bone",
@@ -87,6 +90,9 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "group pivot",
     "move group",
     "translate group",
+    "ubah pivot",
+    "geser tulang",
+    "ubah posisi bone",
   ],
   reparent_element: [
     "parent bone",
@@ -100,6 +106,8 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "attachment point",
     "socket",
     "anchor point",
+    "titik attachment",
+    "titik pegangan",
   ],
   bone_rigging: [
     "inverse kinematics",
@@ -118,6 +126,9 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "exact pixel",
     "exact pixels",
     "revision protected paint",
+    "cat pixel tepat",
+    "ubah pixel persis",
+    "edit pixel presisi",
   ],
   manage_render_profile: [
     "alpha cutout translucent",
@@ -129,17 +140,26 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "native animation properties",
     "animation molang",
     "rotation space",
+    "tambah keyframe",
+    "ubah keyframe",
+    "atur timeline animasi",
   ],
   manage_animation_controller: [
     "state machine",
     "nested controller",
     "blend curve",
     "transition curve",
+    "controller animasi",
+    "state animasi",
+    "transisi animasi",
   ],
   manage_animation_effects: [
     "animation sound",
     "animation particle",
     "animation timeline event",
+    "suara animasi",
+    "particle animasi",
+    "efek animasi",
   ],
   inspect_particle: [
     "inspect particle",
@@ -152,6 +172,9 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "bedrock particle",
     "snowstorm",
     "particle molang",
+    "buat particle",
+    "ubah particle",
+    "asap particle",
   ],
 };
 
