@@ -20,7 +20,7 @@ describe("professional animation reasoning contract", () => {
   test("new animation reuses create receipt instead of confirmation inspection", async () => {
     const [skill, animationSource] = await Promise.all([
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
-      source("server/tools/animation.ts"),
+      source("server/tools/animation-create.ts"),
     ]);
 
     expect(skill).toContain(
