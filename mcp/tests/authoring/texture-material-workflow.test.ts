@@ -54,7 +54,7 @@ describe("texture material workflow and diagnostics", () => {
   test("runtime augments existing texture/material tools instead of adding another MCP surface", async () => {
     const [runtime, bootstrap] = await Promise.all([
       source("server/tools/texture-authoring-runtime.ts"),
-      source("server/runtime/bootstrap.ts"),
+      source("server/runtime/extensions.ts"),
     ]);
 
     for (const tool of [
@@ -66,6 +66,6 @@ describe("texture material workflow and diagnostics", () => {
       expect(runtime).toContain(`runtimeDefinition(\"${tool}\")`);
     }
     expect(runtime).not.toContain("createTool(");
-    expect(bootstrap).toContain("wireTextureAuthoringRuntime();");
+    expect(bootstrap).toContain("apply: wireTextureAuthoringRuntime");
   });
 });
