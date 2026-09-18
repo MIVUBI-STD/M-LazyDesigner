@@ -75,9 +75,8 @@ async function initializeBlockItRuntime(
   });
   registerMcpProfile(registrationProfile);
 
-  setMcpProfileSwitchHandler((profile) => {
+  setMcpProfileSwitchHandler(() => {
     if (!isRuntimeGenerationCurrent(generation)) return;
-    runtimeHost.updateProfile(profile);
   });
 
   const rawPort = Number(Settings.get("mcp_port") || 3000);
@@ -113,7 +112,6 @@ async function initializeBlockItRuntime(
     if (!isRuntimeGenerationCurrent(generation)) return;
     const activeProfile = getActiveMcpRegistrationProfile();
     applyMcpToolSurface(activeProfile, targetPhase);
-    runtimeHost.updateSurface(activeProfile, targetPhase);
   });
 
   if (!(await blockbenchIntegration.loadPrompts())) return;
@@ -121,8 +119,6 @@ async function initializeBlockItRuntime(
   runtimeHost.setConfig({
     port: rawPort,
     endpoint: String(Settings.get("mcp_endpoint") || "/bb-mcp"),
-    profile: registrationProfile,
-    phase: authoringPhase,
   });
 
   if (!(await runtimeHost.start(generation))) return;
