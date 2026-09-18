@@ -1,4 +1,5 @@
-import { createServer as createTcpServer, type AddressInfo } from "node:net";
+import { createServer as createHttpServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import {
   applyMcpToolSurface,
   getMcpSurfaceToolNames,
@@ -115,7 +116,7 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
   }
 
   const server = createNetServer(
-    { createServer: (callback) => createTcpServer(callback) },
+    { createServer: (options, callback) => createHttpServer(options, callback) },
     {
       port: 0,
       endpoint: ENDPOINT,
