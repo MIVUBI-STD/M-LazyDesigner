@@ -466,7 +466,7 @@ export function registerToolsOnServer(
       definition: {
         title: string;
         description: string;
-        inputSchema: Record<string, z.ZodType>;
+        inputSchema: z.ZodType;
         annotations?: ToolAnnotations;
       },
       callback: (args: unknown, extra: unknown) => Promise<unknown>
@@ -476,13 +476,12 @@ export function registerToolsOnServer(
   for (const { name, definition: toolDef } of getToolRegistrationEntries(
     allowedToolNames
   )) {
-    /* @mcp-codemod-error Could not verify `inputSchema` is a schema object. Raw shapes are deprecated in v2 — pass a Standard Schema object (e.g. z.object({ … })); no change is needed if it already is one. */
     typedServer.registerTool(
       name,
       {
         title: toolDef.title,
         description: toolDef.description,
-        inputSchema: toolDef.inputSchema,
+        inputSchema: toolDef.parameterSchema,
         annotations: toolDef.annotations,
       },
       getToolInvocation(name, toolDef)
@@ -641,7 +640,7 @@ interface PromptDefinition {
   name: string;
   title: string;
   description: string;
-  argsSchema?: Record<string, z.ZodType>;
+  argsSchema?: z.ZodObject<z.ZodRawShape>;
   generate: (args: Record<string, unknown>) => Promise<GetPromptResult>;
 }
 
@@ -683,7 +682,7 @@ export function createPrompt<T extends z.ZodRawShape = Record<string, never>>(
       name,
       title: prompt.title || prompt.description,
       description: prompt.description,
-      argsSchema: argsShape,
+      argsSchema: prompt.argsSchema,
       generate: async (args: Record<string, unknown>) =>
         prompt.generate!(args as z.infer<z.ZodObject<T>>),
     };
@@ -715,7 +714,7 @@ export function registerPromptsOnServer(server: unknown) {
       definition: {
         title: string;
         description: string;
-        argsSchema?: Record<string, z.ZodType>;
+        argsSchema?: z.ZodType;
       },
       callback: (
         args: Record<string, unknown>,
@@ -729,7 +728,6 @@ export function registerPromptsOnServer(server: unknown) {
   }
 
   for (const [name, promptDef] of promptRegistrationCache) {
-    /* @mcp-codemod-error Could not verify `argsSchema` is a schema object. Raw shapes are deprecated in v2 — pass a Standard Schema object (e.g. z.object({ … })); no change is needed if it already is one. */
     typedServer.registerPrompt(
       name,
       {
