@@ -17,7 +17,7 @@ describe("retired runtime wiring paths", () => {
     const roots = ["server", "build", "tests", "../docs", "../.github"];
     const retired = [
       "server/tools/prelocal-wiring",
-      "server/tools/animation-runtime-wiring",
+      "animation-runtime-wiring",
       "scripts/verify-prelocal-wiring-live",
       "verify:prelocal-wiring-live",
     ];
