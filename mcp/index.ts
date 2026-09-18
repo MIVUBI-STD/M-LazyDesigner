@@ -125,12 +125,12 @@ async function initializeBlockItRuntime(
 BBPlugin.register("blockit_mcp", {
   version: VERSION,
   title: "LazyDesigner",
-  author: "Halo Karya Media",
+  author: "Anonymous",
   description: PRODUCT_ABOUT,
   about: PRODUCT_ABOUT,
   tags: ["MCP", "AI"],
-  repository: "https://github.com/MIVUBI-STD/M-LazyDesigner",
-  bug_tracker: "https://github.com/MIVUBI-STD/M-LazyDesigner/issues",
+  repository: "",
+  bug_tracker: "",
   icon: getIcon(),
   variant: "desktop",
 
