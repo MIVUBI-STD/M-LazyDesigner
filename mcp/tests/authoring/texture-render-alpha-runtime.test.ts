@@ -7,10 +7,10 @@ async function source(path: string): Promise<string> {
 
 describe("texture render-aware alpha runtime", () => {
   test("get_texture keeps render-aware alpha as opt-in evidence on the existing tool", async () => {
-    const [runtime, bootstrap, prelocal] = await Promise.all([
+    const [runtime, extensions, textureContracts] = await Promise.all([
       source("server/tools/texture-alpha-runtime.ts"),
-      source("server/runtime/bootstrap.ts"),
-      source("server/tools/prelocal-wiring.ts"),
+      source("server/runtime/extensions.ts"),
+      source("server/runtime/textureRuntimeContracts.ts"),
     ]);
 
     expect(focusedGetTextureParameters.parse({ render_profile: "translucent" }).render_profile).toBe("translucent");
@@ -19,8 +19,8 @@ describe("texture render-aware alpha runtime", () => {
     expect(runtime).toContain("if (!intent) return result");
     expect(runtime).toContain("region_only: true");
     expect(runtime).not.toContain("createTool(");
-    expect(bootstrap).toContain("wireTextureAlphaRuntime();");
-    expect(prelocal).toContain("focusedGetTextureParameters.shape");
+    expect(extensions).toContain("wireTextureAlphaRuntime");
+    expect(textureContracts).toContain("focusedGetTextureParameters.shape");
   });
 
   test("alpha wrapper rejects ambiguous/custom profile shorthand instead of guessing", async () => {
