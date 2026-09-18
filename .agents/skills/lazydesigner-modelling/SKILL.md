@@ -158,7 +158,7 @@ Keep Geometry/Rig complexity, Clip complexity, and Controller complexity as sepa
 
 For local state/presentation changes, isolate only the smallest changed geometry/owner branch. First-person/third-person, held/worn, coupled/uncoupled, or related contexts should reuse the base semantic hierarchy when its capability remains valid.
 
-Locator intent may be animated when it owns a moving attachment/reference transform. Do not replace visible required geometry with a Locator.
+For a moving attachment/reference point, parent the Locator under the correct animated Group/Bone so it inherits motion; current animation authoring targets Group/Bone owners rather than Locator elements directly. Do not replace visible required geometry with a Locator.
 
 
 ## Production-Scale Entity Construction
