@@ -168,6 +168,15 @@ mcp/server/tools/texture-atlas.ts
 mcp/server/tools/texture-assignment.ts
 mcp/server/tools/texture-materials.ts
 → focused Texture creation/read/atlas/assignment/material owners
+
+mcp/server/tools/paint.ts
+→ Paint facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/paint-primitives.ts
+mcp/server/tools/paint-brush.ts
+mcp/server/tools/paint-state.ts
+mcp/server/tools/paint-shared.ts
+→ focused paint primitive/brush/state/shared owners
 ```
 
 Representative focused owners:
