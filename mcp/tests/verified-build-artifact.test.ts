@@ -25,7 +25,7 @@ describe("verified GitHub build artifact", () => {
 
       const written = await writeVerifiedBuildProvenance({
         artifact_dir: root,
-        repository: "halokaryamedia-source/BuildIT",
+        repository: "MIVUBI-STD/M-LazyDesigner",
         ref: "Local",
         git_sha: gitSha,
         bun_version: "1.3.14",
@@ -33,7 +33,7 @@ describe("verified GitHub build artifact", () => {
       expect(written.path).toBe(join(root, VERIFIED_PROVENANCE_FILENAME));
       expect(written.provenance).toEqual({
         schema_version: 1,
-        repository: "halokaryamedia-source/BuildIT",
+        repository: "MIVUBI-STD/M-LazyDesigner",
         ref: "Local",
         git_sha: gitSha,
         verifier: VERIFIED_COMMAND,
@@ -45,7 +45,7 @@ describe("verified GitHub build artifact", () => {
 
       const verified = await verifyVerifiedBuildArtifact({
         artifact_dir: root,
-        expected_repository: "halokaryamedia-source/BuildIT",
+        expected_repository: "MIVUBI-STD/M-LazyDesigner",
         expected_git_sha: gitSha,
       });
       expect(verified.bundle_path).toBe(bundlePath);
@@ -67,7 +67,7 @@ describe("verified GitHub build artifact", () => {
       );
       await writeVerifiedBuildProvenance({
         artifact_dir: root,
-        repository: "halokaryamedia-source/BuildIT",
+        repository: "MIVUBI-STD/M-LazyDesigner",
         ref: "Local",
         git_sha: gitSha,
         bun_version: "1.3.14",
@@ -76,7 +76,7 @@ describe("verified GitHub build artifact", () => {
       await expect(
         verifyVerifiedBuildArtifact({
           artifact_dir: root,
-          expected_repository: "halokaryamedia-source/BuildIT",
+          expected_repository: "MIVUBI-STD/M-LazyDesigner",
           expected_git_sha: "e".repeat(40),
         })
       ).rejects.toThrow(/SHA mismatch/);
@@ -88,7 +88,7 @@ describe("verified GitHub build artifact", () => {
       await expect(
         verifyVerifiedBuildArtifact({
           artifact_dir: root,
-          expected_repository: "halokaryamedia-source/BuildIT",
+          expected_repository: "MIVUBI-STD/M-LazyDesigner",
           expected_git_sha: gitSha,
         })
       ).rejects.toThrow(/bundle hash mismatch/);
