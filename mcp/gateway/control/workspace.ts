@@ -25,6 +25,7 @@ type CachedWorkspace = {
   projection: ControlWorkspaceProjection;
 };
 
+const MAX_WORKSPACE_README_BYTES = 1024 * 1024;
 const cache = new Map<string, CachedWorkspace>();
 const workspaceHintByProject = new Map<string, string>();
 
@@ -87,6 +88,19 @@ export async function readWorkspaceProjection(
 
   try {
     const info = await stat(readmePath);
+    if (!info.isFile() || info.size > MAX_WORKSPACE_README_BYTES) {
+      return {
+        available: false,
+        source_path: readmePath,
+        fingerprint: null,
+        asset: null,
+        current_stage: null,
+        gates: { geometry: null, uv_layout: null, texturing: null, animation: null },
+        next_step: null,
+        blockers: [],
+        unavailable_reason: "README_UNREADABLE",
+      };
+    }
     const signature = `${info.size}:${info.mtimeMs}`;
     const cached = cache.get(readmePath);
     if (cached?.signature === signature) return cached.projection;
