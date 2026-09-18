@@ -85,6 +85,8 @@ Particle preparation with no file write and no native preview
 Material-instance list/get reads
 Render-profile inspect
 Render-profile compile-only operations with no output write
+Material save persistence without authored material change
+Animation loop requests already equal to current loop mode
 ```
 
 Continue only when a Runtime result exposes trustworthy narrower effects than the current receipt semantics. Enrich the same receipt path; keep conservative fallback for ambiguity.
