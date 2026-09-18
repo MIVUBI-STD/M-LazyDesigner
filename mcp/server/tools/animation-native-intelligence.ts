@@ -2,7 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { optimizedAnimationTimelineParameters } from "./animation-runtime-wiring";
+import { optimizedAnimationTimelineParameters } from "../runtime/animationRuntimeContracts";
 import {
   getAllToolDefinitions,
   invalidateToolRegistrationRuntimeCaches,
