@@ -8,7 +8,7 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 ## Modelling Specialist / Profile Contract
 
-This Skill is the **modelling execution specialist**. Durable Geometry, hierarchy, pivot/rig-readiness, surface, UV Layout, correction, and verification policy is owned by `docs/03-authoring/modelling/standard.md`; this Skill carries the compact operational triggers needed on the hot path. Asset-class knowledge belongs in `docs/03-authoring/modelling/profiles/` and must not be duplicated here.
+This Skill is the **modelling execution specialist**. Durable Geometry, hierarchy, pivot/rig-readiness, surface, UV Layout, correction, and verification policy is owned by `docs/03-authoring/modelling/standard.md`; this Skill carries the compact operational triggers needed on the hot path. Asset-class knowledge belongs in `docs/03-authoring/modelling/profiles/README.md` and the selected profile beneath that directory; it must not be duplicated here.
 
 Canonical profile vocabulary:
 
