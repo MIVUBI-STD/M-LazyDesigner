@@ -55,7 +55,7 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(phaseControl).toContain("reload_required: false");
   });
 
-  test("phase switching follows the current profile and keeps Gateway clients stable", async () => {
+  test("phase switching follows the canonical Runtime profile without shadowing listener config", async () => {
     const [index, runtimeHost] = await Promise.all([
       source("index.ts"),
       source("plugin/runtimeHost.ts"),
@@ -64,10 +64,12 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(index).toContain("const activeProfile = getActiveMcpRegistrationProfile();");
     expect(index).toContain("applyMcpToolSurface(activeProfile, targetPhase);");
     expect(index).not.toContain("applyMcpToolSurface(registrationProfile, targetPhase);");
-    expect(index).toContain("runtimeHost.updateSurface(activeProfile, targetPhase);");
-    expect(runtimeHost).toContain("updateSurface(profile: McpRegistrationProfile, phase: McpAuthoringPhase)");
-    expect(runtimeHost).toContain("this.config.profile = profile;");
-    expect(runtimeHost).toContain("this.config.phase = phase;");
+    expect(index).not.toContain("runtimeHost.updateSurface(");
+    expect(runtimeHost).not.toContain("updateSurface(");
+    expect(runtimeHost).not.toContain("updateProfile(");
+    expect(runtimeHost).not.toContain("updatePhase(");
+    expect(runtimeHost).not.toContain("this.config.profile");
+    expect(runtimeHost).not.toContain("this.config.phase");
   });
 
   test("Blockbench lifecycle callbacks stay synchronous while async teardown is coordinator-owned", async () => {
