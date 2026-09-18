@@ -120,6 +120,55 @@ function percentile(values: number[], fraction: number): number {
   return sorted[index] ?? 0;
 }
 
+type ObjectSchema = {
+  required?: string[];
+  properties?: Record<string, { description?: string }>;
+  anyOf?: ObjectSchema[];
+  oneOf?: ObjectSchema[];
+  allOf?: ObjectSchema[];
+};
+
+function mergeObjectSchemas(left: ObjectSchema, right: ObjectSchema): ObjectSchema {
+  return {
+    properties: {
+      ...(left.properties ?? {}),
+      ...(right.properties ?? {}),
+    },
+    required: [
+      ...new Set([...(left.required ?? []), ...(right.required ?? [])]),
+    ],
+  };
+}
+
+function expandObjectSchemaBranches(schema: ObjectSchema): ObjectSchema[] {
+  const alternatives = schema.anyOf ?? schema.oneOf;
+  if (alternatives?.length) {
+    const inherited: ObjectSchema = {
+      properties: schema.properties,
+      required: schema.required,
+    };
+    return alternatives.flatMap((variant) =>
+      expandObjectSchemaBranches(variant).map((expanded) =>
+        mergeObjectSchemas(inherited, expanded)
+      )
+    );
+  }
+
+  if (schema.allOf?.length) {
+    return schema.allOf.reduce<ObjectSchema[]>(
+      (accumulator, component) => {
+        const expanded = expandObjectSchemaBranches(component);
+        return accumulator.flatMap((base) =>
+          expanded.map((part) => mergeObjectSchemas(base, part))
+        );
+      },
+      [{ properties: schema.properties, required: schema.required }]
+    );
+  }
+
+  return [schema];
+}
+
 function summarizeBranchSchema(
   tools: ListedTool[],
   toolName: string
@@ -129,14 +178,20 @@ function summarizeBranchSchema(
     throw new Error(`Expected ${toolName} on the default MCP surface.`);
   }
 
-  type ObjectSchema = {
-    required?: string[];
-    properties?: Record<string, { description?: string }>;
-    anyOf?: ObjectSchema[];
-  };
   const schema = (tool.inputSchema ?? {}) as ObjectSchema;
-  const branches = schema.anyOf ?? [schema];
-  const properties = Object.assign({}, ...branches.map((branch) => branch.properties ?? {}));
+  const branches = expandObjectSchemaBranches(schema).filter(
+    (branch) => branch.properties && Object.keys(branch.properties).length > 0
+  );
+  if (branches.length === 0) {
+    throw new Error(
+      `${toolName} tools/list schema exposes no measurable object branches.`
+    );
+  }
+
+  const properties = Object.assign(
+    {},
+    ...branches.map((branch) => branch.properties ?? {})
+  );
   const required = (branches[0]?.required ?? []).filter((field) =>
     branches.every((branch) => branch.required?.includes(field))
   );
