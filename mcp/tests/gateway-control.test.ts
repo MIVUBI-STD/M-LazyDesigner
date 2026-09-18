@@ -89,10 +89,21 @@ describe("LazyDesigner Control", () => {
     expect(delta.requires_status_refresh).toBe(false);
     expect(delta.changed).toEqual([]);
     expect(delta.next_intent).toBe("VERIFY_OR_CONTINUE_GEOMETRY");
+    expect(delta.verification_class).toBe("visual");
 
     const handoff = buildControlDelta({ capability: "switch_authoring_phase", phaseBefore: "texturing", phaseAfter: "animation", projectUuid: "project-a", succeeded: true });
     expect(handoff.requires_status_refresh).toBe(true);
     expect(handoff.changed).toContain("authoring_phase");
+    expect(handoff.verification_class).toBe("receipt_only");
+
+    const focused = buildControlDelta({
+      capability: "modify_group",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+    });
+    expect(focused.verification_class).toBe("focused_read");
   });
 
   test("resolved context handles are content-addressed from current canonical files", async () => {
