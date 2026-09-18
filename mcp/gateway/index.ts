@@ -47,9 +47,32 @@ type GatewayToolDefinition = {
   };
 };
 
+type GatewayToolContext = {
+  mcpReq?: {
+    _meta?: Record<string, unknown>;
+  };
+};
+
 type GatewayToolHandler = (
-  args: JsonRecord
+  args: JsonRecord,
+  context?: GatewayToolContext
 ) => Promise<unknown>;
+
+const TRACE_META_KEYS = ["traceparent", "tracestate", "baggage"] as const;
+
+function traceMetaFromContext(context?: GatewayToolContext): JsonRecord | undefined {
+  const source = context?.mcpReq?._meta;
+  if (!source) return undefined;
+
+  const traceMeta: JsonRecord = {};
+  for (const key of TRACE_META_KEYS) {
+    const value = source[key];
+    if (typeof value === "string" && value.length > 0 && value.length <= 8192) {
+      traceMeta[key] = value;
+    }
+  }
+  return Object.keys(traceMeta).length > 0 ? traceMeta : undefined;
+}
 
 function errorRecord(error: unknown): {
   code: string;
@@ -379,15 +402,16 @@ registerGatewayTool(
       "Invokes one exact LazyDesigner capability. Runtime calls use this Gateway's bound Blockbench project and authoring phase; bounded local support providers are read-only and own no authored project state. Runtime calls are serialized and never automatically retried after interruption.",
     inputSchema: invokeInput.shape,
   },
-  async (rawArgs) => {
+  async (rawArgs, context) => {
     try {
       const { capability, arguments: args } = invokeInput.parse(rawArgs);
+      const traceMeta = traceMetaFromContext(context);
       const phaseBefore = capabilityNeedsPhaseSnapshot(capability)
         ? (await backend.getStatus()).affinity.authoring_phase
         : null;
       const localResult = await localCapabilities.invoke(capability, args);
       const result =
-        localResult ?? (await backend.invokeCapability(capability, args));
+        localResult ?? (await backend.invokeCapability(capability, args, traceMeta));
       const succeeded = result.isError !== true;
       const receipt = deriveControlReceipt(
         capability,
