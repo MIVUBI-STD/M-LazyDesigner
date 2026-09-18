@@ -296,53 +296,81 @@ export const textureMaterialToolDocs: ToolSpec[] = [
   {
     name: "create_pbr_material",
     description:
-      "Creates a PBR TextureGroup material from explicit color/normal/MER/height textures.",
-    annotations: { title: "Create PBR Material", destructiveHint: true },
+      "Creates a uniquely named PBR material TextureGroup.",
+    annotations: {
+      title: "Create PBR Material",
+      destructiveHint: true,
+    },
     parameters: createPbrMaterialParameters,
     status: STATUS_EXPERIMENTAL,
   },
   {
     name: "configure_material",
     description:
-      "Configures an existing PBR material group and its channel membership.",
-    annotations: { title: "Configure Material", destructiveHint: true },
+      "Applies authored changes to one PBR material.",
+    annotations: {
+      title: "Configure Material",
+      destructiveHint: true,
+    },
     parameters: configureMaterialParameters,
     status: STATUS_EXPERIMENTAL,
   },
   {
     name: "list_materials",
-    description: "Lists TextureGroup material identity and channel membership.",
-    annotations: { title: "List Materials", readOnlyHint: true },
+    description:
+      "Lists all PBR materials (texture groups with is_material=true) and their assigned textures per channel.",
+    annotations: {
+      title: "List Materials",
+      readOnlyHint: true,
+    },
     parameters: listMaterialsParameters,
     status: STATUS_STABLE,
   },
   {
     name: "get_material_info",
-    description: "Returns one material group's channel/render configuration.",
-    annotations: { title: "Get Material Info", readOnlyHint: true },
+    description:
+      "Returns detailed metadata for one PBR material, including its Bedrock texture-set preview.",
+    annotations: {
+      title: "Get Material Info",
+      readOnlyHint: true,
+    },
     parameters: getMaterialInfoParameters,
     status: STATUS_STABLE,
   },
   {
     name: "import_texture_set",
-    description: "Imports a Minecraft texture_set document into a material group.",
-    annotations: { title: "Import Texture Set", destructiveHint: true },
+    description:
+      "Imports one Bedrock texture_set.json and returns the created material identity.",
+    annotations: {
+      title: "Import Texture Set",
+      destructiveHint: true,
+      openWorldHint: true,
+    },
     parameters: importTextureSetParameters,
     status: STATUS_EXPERIMENTAL,
   },
   {
     name: "assign_texture_channel",
-    description: "Assigns one texture to one PBR material channel.",
-    annotations: { title: "Assign Texture Channel", destructiveHint: true },
+    description:
+      "Assigns one texture to one PBR channel.",
+    annotations: {
+      title: "Assign Texture Channel",
+      destructiveHint: true,
+    },
     parameters: assignTextureChannelParameters,
     status: STATUS_EXPERIMENTAL,
   },
   {
     name: "save_material_config",
-    description: "Writes the current material texture_set configuration beside its color texture.",
-    annotations: { title: "Save Material Config", destructiveHint: true },
+    description:
+      "Saves one material as a Bedrock texture_set.json file.",
+    annotations: {
+      title: "Save Material Config",
+      destructiveHint: true,
+      openWorldHint: true,
+    },
     parameters: saveMaterialConfigParameters,
-    status: STATUS_STABLE,
+    status: STATUS_EXPERIMENTAL,
   },
 ];
 
