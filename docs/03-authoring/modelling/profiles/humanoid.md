@@ -350,6 +350,10 @@ held tool            → ATTACHED_PROP / articulated depending on action
 
 Do not create speculative animation hierarchy where the reference/task does not require it.
 
+Animation-library growth is not evidence for hierarchy growth. Reuse stable semantic anatomy across locomotion, actions, held/worn presentation, and first-/third-person contexts unless a new transform, attachment, or deformation capability is actually missing.
+
+A local visible state such as hand/open-close, mouth/face accessory, clothing configuration, or held-item presentation should isolate the smallest changed branch rather than duplicate unrelated body hierarchy.
+
 ## 14. Reference Priorities
 
 For humanoids, prioritize reference evidence in this order when applicable:
