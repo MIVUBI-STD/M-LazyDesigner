@@ -26,15 +26,19 @@ export {
 } from "./paint-brush";
 
 import {
-  paintStateToolDocs,
+  paintSettingsToolDoc,
   registerPaintSettingsTool,
-  registerPaintStateTools,
-} from "./paint-state";
+} from "./paint-settings";
+export { paintSettingsParameters } from "./paint-settings";
+
+import {
+  paintSelectionLayerToolDocs,
+  registerPaintSelectionLayerTools,
+} from "./paint-selection-layers";
 export {
-  paintSettingsParameters,
   textureLayerManagementParameters,
   textureSelectionParameters,
-} from "./paint-state";
+} from "./paint-selection-layers";
 
 export {
   exactPixelBounds,
@@ -50,9 +54,9 @@ export {
 export const paintToolDocs: ToolSpec[] = [
   ...paintPrimitiveToolDocs,
   paintBrushToolDocs[0],
-  paintStateToolDocs[0],
+  paintSettingsToolDoc,
   ...paintBrushToolDocs.slice(1),
-  ...paintStateToolDocs.slice(1),
+  ...paintSelectionLayerToolDocs,
 ];
 
 export function registerPaintTools(): void {
@@ -60,5 +64,5 @@ export function registerPaintTools(): void {
   registerPaintEraserTool();
   registerPaintSettingsTool();
   registerPaintBrushTools();
-  registerPaintStateTools();
+  registerPaintSelectionLayerTools();
 }
