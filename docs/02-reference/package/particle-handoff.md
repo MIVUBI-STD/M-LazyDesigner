@@ -2,7 +2,7 @@
 
 Updated: 2026-09-11
 
-This document owns the **Particle specialization of the canonical `REFERENCE.json` handoff** between ChatGPT Reference Preparation and Codex / BuildIT MCP.
+This document owns the **Particle specialization of the canonical `REFERENCE.json` handoff** between ChatGPT Reference Preparation and Codex / LazyDesigner MCP.
 
 It does not create a second package format, MCP tool family, or Particle authoring phase.
 
@@ -13,7 +13,7 @@ ChatGPT Particle Reference Authoring
 → prepares Bedrock particle JSON + texture/package + review metadata
 → writes one canonical REFERENCE.json entry point when downstream handoff is requested
 → Codex / Control consumes only the minimum structured metadata needed
-→ BuildIT MCP implements/integrates through existing Particle, Texturing and Animation capabilities
+→ LazyDesigner MCP implements/integrates through existing Particle, Texturing and Animation capabilities
 ```
 
 Standalone user delivery may still be an ordinary Bedrock Resource Pack without MCP involvement. `REFERENCE.json` is required only when the package is intended for LazyDesigner downstream handoff.
@@ -81,7 +81,7 @@ review_state           APPROVED | NEEDS_REVIEW | SOURCE_ONLY
 
 ## Path Contract
 
-Custom particle texture paths follow the same canonical Resource Pack layout used by BuildIT:
+Custom particle texture paths follow the same canonical Resource Pack layout used by LazyDesigner:
 
 ```text
 particles/<name>.particle.json
@@ -130,7 +130,7 @@ texture_state = MISSING
 readiness.texture = BLOCKED or NEEDS_REVIEW as appropriate
 ```
 
-BuildIT then routes the dependency through the existing Texturing pipeline; Particle tooling must not create a second texture-authoring system.
+LazyDesigner then routes the dependency through the existing Texturing pipeline; Particle tooling must not create a second texture-authoring system.
 
 ## Consumption Contract
 

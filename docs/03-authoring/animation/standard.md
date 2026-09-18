@@ -228,7 +228,7 @@ set_state_variable(state, name, input, remap_curve?)
 remove_state_variable(state, name)
 ```
 
-Remap inputs must be finite and unique; BlockIT sorts them deterministically and bounds one authored curve to 2–32 points. This path is intentionally file-backed because the current Blockbench native `AnimationControllerState` model does not preserve `variables/remap_curve` on round-trip. Do not claim native Blockbench state ownership for these fields; the authored JSON resource is the authority until Blockbench exposes a lossless native owner.
+Remap inputs must be finite and unique; LazyDesigner sorts them deterministically and bounds one authored curve to 2–32 points. This path is intentionally file-backed because the current Blockbench native `AnimationControllerState` model does not preserve `variables/remap_curve` on round-trip. Do not claim native Blockbench state ownership for these fields; the authored JSON resource is the authority until Blockbench exposes a lossless native owner.
 
 ## Perspective
 

@@ -9,7 +9,7 @@ Never use the word `material` alone when the intended domain matters.
 ## Canonical namespaces
 
 ```text
-render_profile              = BuildIT semantic intent for Minecraft entity rendering
+render_profile              = LazyDesigner semantic intent for Minecraft entity rendering
 minecraft_material_code     = literal Bedrock material code used by client entity/render controller
 pbr_texture_set             = Blockbench PBR TextureGroup / Bedrock texture_set.json
 geometry_material_instance  = per-face geometry material-instance metadata
@@ -97,7 +97,7 @@ Alpha must never be interpreted from PNG/TGA pixels without a known downstream p
 
 ### Opaque
 
-`entity` and `entity_nocull` do not give alpha a special BuildIT texture-authoring meaning. Non-opaque alpha is therefore a review candidate rather than an assumed transparency feature.
+`entity` and `entity_nocull` do not give alpha a special LazyDesigner texture-authoring meaning. Non-opaque alpha is therefore a review candidate rather than an assumed transparency feature.
 
 ### Cutout
 
@@ -125,7 +125,7 @@ Alpha must never be interpreted from PNG/TGA pixels without a known downstream p
 
 ## Material slots and assignments
 
-Minecraft client entities define material shortnames, while render controllers apply `Material.<slot>` to bone patterns. BuildIT reasons in two layers:
+Minecraft client entities define material shortnames, while render controllers apply `Material.<slot>` to bone patterns. LazyDesigner reasons in two layers:
 
 ```text
 render_material_slots
@@ -143,7 +143,7 @@ Assignments are ordered. Later matching entries may intentionally override earli
 
 ## Custom materials
 
-Unknown/custom material codes are allowed only as explicit authored values. BuildIT must preserve the code and return:
+Unknown/custom material codes are allowed only as explicit authored values. LazyDesigner must preserve the code and return:
 
 ```text
 render_profile = custom

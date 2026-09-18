@@ -14,7 +14,7 @@ A normal Minecraft-style entity can remain on the single production color atlas 
 
 ## Naming boundary
 
-BuildIT uses four separate namespaces:
+LazyDesigner uses four separate namespaces:
 
 ```text
 render_profile             = Minecraft entity render behavior/code
