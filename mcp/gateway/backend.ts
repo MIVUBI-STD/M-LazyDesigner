@@ -498,7 +498,7 @@ export class BlockitRuntimeBackend {
       await client.connect(transport, { timeout: this.connectTimeoutMs });
       const tools = await this.listAllTools(client);
       this.client = client;
-      this.connectedProtocolEra = client.getProtocolEra();
+      this.connectedProtocolEra = client.getProtocolEra() ?? null;
       this.connectedSignature = signature;
       this.catalog = new Map(tools.map((tool) => [tool.name, tool]));
       this.catalogValidatedAt = Date.now();
