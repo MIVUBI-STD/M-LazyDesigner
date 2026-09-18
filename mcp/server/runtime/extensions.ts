@@ -35,12 +35,12 @@ export const RUNTIME_EXTENSION_PIPELINE: readonly RuntimeExtensionStep[] = Objec
   },
   {
     id: "authoring-quality",
-    targets: ["inspect_model_bounds"],
+    targets: ["inspect_model_bounds", "list_textures", "get_texture"],
     apply: wireAuthoringQualityIntelligence,
   },
   {
     id: "authoring-evidence",
-    targets: ["capture_model_views"],
+    targets: ["inspect_model_bounds", "list_textures"],
     apply: wireAuthoringEvidenceRuntime,
   },
   {
