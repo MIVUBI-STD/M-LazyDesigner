@@ -20,6 +20,7 @@ import {
   activateTextureToolDoc,
   addTextureGroupToolDoc,
   applyTextureToolDoc,
+  registerTextureActivationTool,
   registerTextureAssignmentTools,
 } from "./texture-assignment";
 export {
@@ -1212,5 +1213,5 @@ createTool(textureToolDocs[3].name, {
 
   registerTextureMaterialTools();
 
-
+  registerTextureActivationTool();
 }
