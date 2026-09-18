@@ -9,104 +9,60 @@ import { getAllToolDefinitions, tools } from "@/lib/factories";
 /**
  * Extracts metadata from a Zod schema type
  */
-function getZodTypeMeta(zodType: z.ZodType): {
+function getZodTypeMeta(zodType: z.ZodType<any, any>): {
   type: FormElementOptions["type"];
   isOptional: boolean;
   isArray: boolean;
+  isObject: boolean;
   description?: string;
   defaultValue?: unknown;
   enumValues?: string[];
   min?: number;
   max?: number;
-  innerType?: z.ZodType;
 } {
-  const def = zodType._def as Record<string, unknown>;
-  const typeName = def.typeName as string;
-
-  let isOptional = false;
-  let isArray = false;
-  let description = def.description as string | undefined;
-  let defaultValue: unknown = undefined;
-  let enumValues: string[] | undefined;
-  let min: number | undefined;
-  let max: number | undefined;
-  let innerType: z.ZodType | undefined;
-
-  if (typeName === "ZodOptional" || typeName === "ZodNullable") {
-    isOptional = true;
-    const inner = def.innerType as z.ZodType;
-    const innerMeta = getZodTypeMeta(inner);
-    return { ...innerMeta, isOptional: true };
-  }
-
-  if (typeName === "ZodDefault") {
-    defaultValue = (def.defaultValue as () => unknown)?.();
-    const inner = def.innerType as z.ZodType;
-    const innerMeta = getZodTypeMeta(inner);
-    return { ...innerMeta, defaultValue, isOptional: true };
-  }
-
-  if (typeName === "ZodArray") {
-    isArray = true;
-    innerType = def.type as z.ZodType;
-  }
-
-  if (typeName === "ZodEnum") {
-    enumValues = def.values as string[];
-  }
-
-  if (typeName === "ZodNumber") {
-    const checks = def.checks as Array<{ kind: string; value: number }> | undefined;
-    checks?.forEach((check) => {
-      if (check.kind === "min") min = check.value;
-      if (check.kind === "max") max = check.value;
-    });
-  }
+  const schema = z.toJSONSchema(zodType, {
+    io: "input",
+    target: "draft-2020-12",
+    unrepresentable: "any",
+    reused: "inline",
+  }) as Record<string, unknown>;
+  const parsedUndefined = zodType.safeParse(undefined);
+  const enumValues = Array.isArray(schema.enum)
+    ? schema.enum.filter((value): value is string => typeof value === "string")
+    : undefined;
+  const isArray = schema.type === "array";
+  const isObject = schema.type === "object";
 
   let type: FormElementOptions["type"] = "text";
-  switch (typeName) {
-    case "ZodString":
-      type = "text";
-      break;
-    case "ZodNumber":
-      type = "number";
-      break;
-    case "ZodBoolean":
-      type = "checkbox";
-      break;
-    case "ZodEnum":
-      type = "select";
-      break;
-    case "ZodArray":
-    case "ZodObject":
-    case "ZodUnion":
-      type = "textarea";
-      break;
-    default:
-      type = "text";
-  }
+  if (schema.type === "number" || schema.type === "integer") type = "number";
+  else if (schema.type === "boolean") type = "checkbox";
+  else if (enumValues?.length) type = "select";
+  else if (isArray || isObject) type = "textarea";
 
   return {
     type,
-    isOptional,
+    isOptional: parsedUndefined.success,
     isArray,
-    description,
-    defaultValue,
+    isObject,
+    description:
+      typeof schema.description === "string" ? schema.description : undefined,
+    defaultValue:
+      parsedUndefined.success && parsedUndefined.data !== undefined
+        ? parsedUndefined.data
+        : undefined,
     enumValues,
-    min,
-    max,
-    innerType,
+    min: typeof schema.minimum === "number" ? schema.minimum : undefined,
+    max: typeof schema.maximum === "number" ? schema.maximum : undefined,
   };
 }
 
 function zodSchemaToFormConfig(
-  inputSchema: Record<string, z.ZodType>
+  inputSchema: Record<string, z.ZodType<any, any>>
 ): InputFormConfig {
   const formConfig: InputFormConfig = {};
 
   for (const [fieldName, zodType] of Object.entries(inputSchema)) {
     const meta = getZodTypeMeta(zodType);
-    const def = zodType._def as Record<string, unknown>;
 
     const fieldConfig: FormElementOptions = {
       label: `${fieldName}${meta.isOptional ? "" : " *"}`,
@@ -141,7 +97,7 @@ function zodSchemaToFormConfig(
       if (meta.isArray) {
         fieldConfig.placeholder = tl("mcp.dialog.json_array_placeholder");
         fieldConfig.value = fieldConfig.value ?? "[]";
-      } else if ((def.typeName as string) === "ZodObject") {
+      } else if (meta.isObject) {
         fieldConfig.placeholder = tl("mcp.dialog.json_object_placeholder");
         fieldConfig.value = fieldConfig.value ?? "{}";
       }
@@ -155,7 +111,7 @@ function zodSchemaToFormConfig(
 
 function parseFormResult(
   formResult: Record<string, unknown>,
-  inputSchema: Record<string, z.ZodType>
+  inputSchema: Record<string, z.ZodType<any, any>>
 ): Record<string, unknown> {
   const parsed: Record<string, unknown> = {};
 
