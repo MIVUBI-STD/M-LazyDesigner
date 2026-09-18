@@ -64,6 +64,35 @@ describe("P1 Bedrock Entity registration profile", () => {
     expect(registration).not.toContain("registerImportTools,\n  registerUITools");
   });
 
+  test("extended compatibility cannot re-enable individually disabled high-risk tools", () => {
+    const probe = String.raw`
+import assert from "node:assert/strict";
+import { registerMcpProfile, getMcpSurfaceToolNames, isCatalogToolEnabled } from "./server/tools.ts";
+import { tools } from "./lib/factories.ts";
+
+registerMcpProfile("extended");
+assert.ok(tools.from_geo_json, "extended compatibility should retain the legacy definition");
+assert.equal(tools.from_geo_json.enabled, false);
+assert.equal(isCatalogToolEnabled("from_geo_json"), false);
+for (const phase of ["geometry", "texturing", "animation"]) {
+  assert.equal(getMcpSurfaceToolNames("extended", phase).includes("from_geo_json"), false);
+}
+assert.equal(getMcpSurfaceToolNames("extended", "geometry").includes("risky_eval"), false);
+console.log("DISABLED_HIGH_RISK_TOOLS_PASS");
+`;
+
+    const result = Bun.spawnSync({
+      cmd: [process.execPath, "--eval", probe],
+      cwd: new URL("..", import.meta.url).pathname,
+      stdout: "pipe",
+      stderr: "pipe",
+      timeout: 15_000,
+    });
+    const output = result.stdout.toString();
+    expect(result.exitCode, result.stderr.toString() || output).toBe(0);
+    expect(output).toContain("DISABLED_HIGH_RISK_TOOLS_PASS");
+  }, 20_000);
+
   test("runtime prompt registry excludes maintainer-only references", async () => {
     const source = await readFile(
       new URL("../server/prompts.ts", import.meta.url),
