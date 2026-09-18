@@ -158,6 +158,16 @@ mcp/server/tools/animation-timeline.ts
 mcp/server/tools/animation-batch.ts
 mcp/server/tools/animation-shared.ts
 → focused Animation capability/schema/helper owners
+
+mcp/server/tools/texture.ts
+→ Texture facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/texture-create.ts
+mcp/server/tools/texture-read.ts
+mcp/server/tools/texture-atlas.ts
+mcp/server/tools/texture-assignment.ts
+mcp/server/tools/texture-materials.ts
+→ focused Texture creation/read/atlas/assignment/material owners
 ```
 
 Representative focused owners:
