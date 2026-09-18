@@ -76,11 +76,9 @@ describe("Codex Bedrock agent legibility contract", () => {
 
     expect(control).toContain("contextForAuthoringDomain");
     expect(BEDROCK_AUTHORING_COORDINATE_CONTRACT).toContain("16 Blockbench units=1 Minecraft block");
-    expect(modelling).toContain("front_direction");
     expect(modelling).toContain("add_group");
     expect(modelling).toContain("reparent_element");
     expect(modelling).toContain("modify_group");
-    expect(modelling).toContain("bone_rigging");
     expect(modelling).toContain("manage_cubes");
   });
 

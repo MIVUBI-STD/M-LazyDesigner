@@ -7,7 +7,7 @@ import {
 
 export const VERIFIED_BUNDLE_FILENAME = "blockit_mcp.js";
 export const VERIFIED_PROVENANCE_FILENAME = "blockit-build-provenance.json";
-export const VERIFIED_REPOSITORY = "halokaryamedia-source/BuildIT";
+export const VERIFIED_REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
 export const VERIFIED_COMMAND = "bun run verify:mcp";
 
 export type VerifiedBuildProvenance = {

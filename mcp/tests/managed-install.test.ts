@@ -21,7 +21,7 @@ test("installation identity survives native Windows path virtualization", async 
 });
 
 async function fixture(directory: string, digit = "a"): Promise<Manifest> {
-  const paths = ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/foundation/09-finalization-standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)];
+  const paths = ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/03-authoring/finalization/standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)];
   const manifest: Manifest = { schema: 1, repository: REPOSITORY, source_sha: digit.repeat(40), build_identity: "sha256:" + digit.repeat(64), platform: "windows-x64", files: [] };
   for (const path of paths) {
     const bytes = Buffer.from(path === "blockit_mcp.js" ? `globalThis.__BLOCKIT_BUILD_ID__="${manifest.build_identity}";` : `Fixture ${path} ${digit}\n`);
@@ -37,7 +37,7 @@ async function sandbox(work: (directory: string, options: InstallOptions) => Pro
 }
 
 test("package paths and complete required files are fail-closed", async () => sandbox(async d => {
-  const manifest = await fixture(join(d, "pkg")); assert.equal(parseManifest(manifest).files.length, 11);
+  const manifest = await fixture(join(d, "pkg")); assert.equal(parseManifest(manifest).files.length, 7 + SKILLS.length);
   for (const path of ["../config.toml", "C:/evil.exe", ".agents/skills/other/SKILL.md", "workspace/active/model.bbmodel"]) {
     assert.throws(() => parseManifest({ ...manifest, files: [...manifest.files, { path, size: 1, sha256: "a".repeat(64) }] }));
   }

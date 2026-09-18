@@ -1,6 +1,6 @@
-# BlockIT Authoring Workspace
+# LazyDesigner Authoring Workspace
 
-This workspace is for **Minecraft Bedrock Entity asset authoring through BlockIT Gateway**.
+This workspace is for **Minecraft Bedrock Entity asset authoring through LazyDesigner Gateway**.
 
 ## Boot
 
@@ -8,19 +8,19 @@ Before any mutation:
 
 ```text
 current workspace instructions
-→ blockit-bedrock-entity-mcp router
+→ LazyDesigner Control
 → exactly one matching specialist
 ```
 
 Specialists:
 
 ```text
-Geometry / rig / pivots / UV Layout → blockbench-bedrock-modelling
-Texture / Painter / PBR             → blockit-bedrock-texturing
-Animation / motion                  → blockit-bedrock-animation
+Geometry / rig / pivots / UV Layout → lazydesigner-modelling
+Texture / Painter / PBR             → lazydesigner-texturing
+Animation / motion                  → lazydesigner-animation
 ```
 
-No mutation until the router + matching specialist are loaded and prerequisite gates are satisfied.
+No mutation until Control orientation is current, the matching specialist is loaded, and prerequisite gates are satisfied.
 
 ## New Model Intake
 
@@ -33,11 +33,11 @@ Dimensions: width × height × length in Minecraft blocks
 Animation Required: YES | NO
 ```
 
-BlockIT uses one native Geometry authoring path. Do not ask the user to choose a modelling strategy and do not revive retired 3D-assisted/Hunyuan/PrimitiveAnything routes.
+LazyDesigner uses one native Geometry authoring path. Do not ask the user to choose a modelling strategy and do not revive retired 3D-assisted/Hunyuan/PrimitiveAnything routes.
 
 ## Gateway
 
-Use the installed BlockIT Gateway. Normal client surface is exactly:
+Use the installed LazyDesigner Gateway. Normal client surface is exactly:
 
 ```text
 status

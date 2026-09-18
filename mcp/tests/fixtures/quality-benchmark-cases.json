@@ -140,6 +140,77 @@
         "reference_unsupported_invention",
         "silhouette_stair_step_oversegmentation"
       ]
+    },
+    {
+      "id": "mechanical_assembly",
+      "profile": "MECHANICAL",
+      "required_phases": ["GEOMETRY", "TEXTURING", "ANIMATION_IF_REQUIRED"],
+      "geometry_dimensions": [
+        "silhouette",
+        "cross_view_proportion",
+        "required_part_completeness",
+        "attachment_contact",
+        "depth_layering",
+        "negative_space",
+        "motion_ready_structure",
+        "surface_integrity"
+      ],
+      "texture_dimensions": [
+        "palette_material_regions",
+        "identity_markings",
+        "mapped_surface_continuity",
+        "seam_control",
+        "physical_uv_fidelity"
+      ],
+      "animation_dimensions": [
+        "pivot_rig_suitability",
+        "reference_pose_fidelity",
+        "clearance_contact",
+        "timing_motion_readability"
+      ],
+      "critical_failures": [
+        "missing_required_part",
+        "floating_required_part",
+        "wrong_part_count",
+        "broken_attachment",
+        "reference_unsupported_invention",
+        "coplanar_surface_overlap",
+        "invalid_motion_pivot",
+        "interpenetration_at_required_extreme"
+      ]
+    },
+    {
+      "id": "layered_cutout",
+      "profile": "GENERIC",
+      "required_phases": ["GEOMETRY", "TEXTURING"],
+      "geometry_dimensions": [
+        "silhouette",
+        "cross_view_proportion",
+        "required_part_completeness",
+        "attachment_contact",
+        "depth_layering",
+        "negative_space",
+        "surface_integrity"
+      ],
+      "texture_dimensions": [
+        "palette_material_regions",
+        "identity_markings",
+        "mapped_surface_continuity",
+        "seam_control",
+        "physical_uv_fidelity",
+        "alpha_cutout_boundary"
+      ],
+      "animation_dimensions": [],
+      "critical_failures": [
+        "missing_required_part",
+        "floating_required_part",
+        "wrong_part_count",
+        "broken_attachment",
+        "reference_unsupported_invention",
+        "coplanar_surface_overlap",
+        "stretched_uv_mapping",
+        "cutout_boundary_mismatch"
+      ]
     }
   ],
   "efficiency_observations": [

@@ -3,11 +3,11 @@ import { realpathSync } from "node:fs";
 import { lstat, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 
-export const REPOSITORY = "halokaryamedia-source/BuildIT";
+export const REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
 // MSIX can expose one installation through logical and physical Windows paths.
 export const sameInstalledPath = (a: string, b: string): boolean =>
   realpathSync.native(a).toLowerCase() === realpathSync.native(b).toLowerCase();
-export const SKILLS = ["blockit-bedrock-entity-mcp", "blockbench-bedrock-modelling", "blockit-bedrock-texturing", "blockit-bedrock-animation"];
+export const SKILLS = ["lazydesigner-modelling", "lazydesigner-texturing", "lazydesigner-animation"];
 export const sha256 = (bytes: Uint8Array | string): string => createHash("sha256").update(bytes).digest("hex");
 export type Manifest = { schema: 1; repository: string; source_sha: string; build_identity: string; platform: "windows-x64"; files: Array<{ path: string; size: number; sha256: string }> };
 export type InstallOptions = { root: string; workspace: string; plugin: string; config: string };
@@ -21,7 +21,7 @@ const END = "# END BLOCKIT MANAGED";
 export function allowedPackagePath(path: string): boolean {
   return ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt"].includes(path)
     || SKILLS.some((skill) => path === `.agents/skills/${skill}/SKILL.md`)
-    || /^docs\/foundation\/[a-zA-Z0-9_-]+\.md$/.test(path);
+    || path === "docs/03-authoring/finalization/standard.md";
 }
 
 export function parseManifest(value: unknown): Manifest {
@@ -38,7 +38,7 @@ export function parseManifest(value: unknown): Manifest {
     paths.add(f.path.toLowerCase()); total += f.size;
   }
   if (total > 250_000_000) throw new Error("Package exceeds the installation size limit.");
-  for (const required of ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/foundation/09-finalization-standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)]) {
+  for (const required of ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/03-authoring/finalization/standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)]) {
     if (!paths.has(required.toLowerCase())) throw new Error(`Incomplete package: ${required}`);
   }
   return m;
