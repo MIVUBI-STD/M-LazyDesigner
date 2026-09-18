@@ -4,6 +4,7 @@ import {
 } from "./registry";
 import type { ControlAuthoringDomain, ControlDelta } from "./types";
 import type { BlockitAuthoringPhaseAffinity } from "../projectAffinity";
+import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
 
 const STATE_MUTATIONS = new Set([
   "manage_cubes", "add_group", "modify_group", "duplicate_element", "reparent_element", "remove_element",
@@ -145,6 +146,7 @@ export function buildControlDelta(input: {
     changed,
     invalidates,
     next_intent: nextIntent,
+    verification_class: getCapabilityMetadata(input.capability).verificationClass,
     requires_status_refresh: changed.length > 0,
   };
 }
