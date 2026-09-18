@@ -175,7 +175,7 @@ Status: `SCOUTED_FOR_SIMPLE_PROP_DISCIPLINE`. See `prop-furniture-scout.md`.
 
 ## Cross-Domain Responsibility Vocabulary
 
-Status: `CANDIDATE_RULE` synthesized from the current cross-domain studies.
+Status: `STATICALLY_VALIDATED_CANDIDATE` synthesized from the current cross-domain studies.
 
 The previous exclusive role enum has been rejected as too heavy. Current candidate vocabulary is six orthogonal responsibility reasons:
 
@@ -192,7 +192,7 @@ Key rule:
 
 > create another owner only when an existing owner cannot satisfy the required responsibility cleanly.
 
-This vocabulary is a reasoning overlay on existing LazyDesigner Geometry/Hierarchy/Locator concepts, not a new schema or workflow. See `cross-domain-responsibility-vocabulary.md`.
+This vocabulary is a reasoning overlay on existing LazyDesigner Geometry/Hierarchy/Locator concepts, not a new schema or workflow. It passed static scenario/correction stress tests and aligns with all six current LazyDesigner quality benchmark cases. See `cross-domain-responsibility-vocabulary.md`, `responsibility-vocabulary-stress-test.md`, and `quality-benchmark-crosswalk.md`.
 
 ## Current Coverage Matrix
 
@@ -217,11 +217,32 @@ This vocabulary is a reasoning overlay on existing LazyDesigner Geometry/Hierarc
 
 ## Next Research Order
 
-1. Deep-inspect a small licensed prop/furniture family and one compact articulated prop from the Blockbench Workshop scout; compare actual `.bbmodel` organization, texture allocation, and pivot use.
-2. Test the six-responsibility vocabulary against representative task briefs and correction scenarios; reject it if it causes verbose classification or unnecessary hierarchy.
-3. Test Orca-derived compact uncertainty + identity-feature + review-target metadata on LazyDesigner-owned validation assets before any canonical promotion.
+1. Deep-inspect a small licensed prop/furniture family and one compact articulated prop only when raw source becomes remotely retrievable; do not infer hidden `.bbmodel` internals from listing metadata.
+2. Run the six-responsibility vocabulary on a current-quality LazyDesigner-owned native authoring task and measure correction clarity / accepted-result cost.
+3. Run compact uncertainty + identity-feature + review-target metadata on the same native task and compare with the current path.
 4. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
-5. Keep all candidate rules on `Ref` until a current-quality LazyDesigner-owned validation asset exists.
+5. Keep all candidate rules on `Ref` until native proof exists; REMOTE_GITHUB source-contract alignment alone is not promotion evidence.
+
+## REMOTE_GITHUB Validation Status
+
+Completed remotely:
+
+- `Ref` synchronized with current `Local` core while preserving research isolation;
+- responsibility vocabulary static stress test: PASS;
+- compact uncertainty/identity/review metadata static stress test: PASS;
+- crosswalk against all six LazyDesigner-owned quality benchmark cases: `REMOTE_BENCHMARK_ALIGNED`;
+- no second schema, workflow, compiler, score system, or Runtime path introduced;
+- research remains isolated under `Experimental/reference-intelligence/**`.
+
+Not remotely provable:
+
+- live Blockbench visual acceptance;
+- actual correction-round reduction;
+- tool-call savings to accepted result;
+- native pivot/playback/Undo/persistence behavior;
+- current installed Runtime freshness.
+
+CI note: current verification workflows are push-scoped to `Local`; `Ref` research commits therefore do not automatically create workflow runs.
 
 ## Promotion Rule
 
