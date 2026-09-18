@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { particleToolDocs } from "../server/tools/particle";
 import { particleReferenceResourceDocs } from "../server/resources/particle";
-import { paintTextureTransactionToolDocs, wiredCreateTextureParameters } from "../server/runtime/textureRuntimeContracts";
+import { paintTextureTransactionToolDocs } from "../server/tools/paint-texture-transaction";
+import { wiredCreateTextureParameters } from "../server/runtime/textureRuntimeContracts";
 import { focusedGetTextureParameters } from "../lib/textureEvidence";
 import { animationAwareCaptureModelViewsParameters, focusedInspectAnimationParameters } from "../server/tools/animation-runtime-wiring";
 import { completeAnimationTimelineParameters } from "../server/tools/animation-native-intelligence";
