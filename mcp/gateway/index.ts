@@ -210,7 +210,7 @@ const describeInput = z.object({
 
 const invokeInput = z.object({
   capability: z.string().min(1),
-  arguments: z.record(z.unknown()).default({}),
+  arguments: z.record(z.string(), z.unknown()).default({}),
 });
 
 registerGatewayTool(
