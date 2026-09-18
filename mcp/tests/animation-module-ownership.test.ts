@@ -34,4 +34,27 @@ describe("animation module ownership", () => {
     expect(creation).toContain("export function registerCreateAnimationTool");
     expect(creation).toContain("normalizeBedrockAnimationName");
   });
+
+  test("animation facade aggregates focused capability modules only", async () => {
+    const [facade, keyframes, timeline, batch] = await Promise.all([
+      Bun.file("server/tools/animation.ts").text(),
+      Bun.file("server/tools/animation-keyframes.ts").text(),
+      Bun.file("server/tools/animation-timeline.ts").text(),
+      Bun.file("server/tools/animation-batch.ts").text(),
+    ]);
+
+    expect(facade).not.toContain("createTool(");
+    expect(facade).not.toContain("Undo.initEdit");
+    expect(facade).not.toContain("Timeline.");
+    expect(facade).toContain("registerAnimationKeyframeTools();");
+    expect(facade).toContain("registerAnimationTimelineTool();");
+    expect(facade).toContain("registerAnimationBatchTools();");
+
+    expect(keyframes).toContain("export const manageKeyframesParameters");
+    expect(keyframes).toContain("export const animationGraphEditorParameters");
+    expect(timeline).toContain("export const animationTimelineParameters");
+    expect(batch).toContain("export const batchKeyframeOperationsParameters");
+    expect(batch).toContain("export const animationCopyPasteParameters");
+  });
+
 });
