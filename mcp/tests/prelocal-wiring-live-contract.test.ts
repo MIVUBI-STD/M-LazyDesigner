@@ -7,7 +7,7 @@ async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-describe("pre-local live wiring acceptance contract", () => {
+describe("texture runtime live acceptance contract", () => {
   test("runtime surface exposes the transaction, variant, and focused evidence contracts without regressing legacy texture creation", () => {
     const definitions = getAllToolDefinitions();
     const createTexture = definitions.create_texture;
@@ -109,13 +109,13 @@ describe("pre-local live wiring acceptance contract", () => {
   });
 
   test("one disposable live verifier owns the end-to-end Blockbench boundary", async () => {
-    const script = await source("scripts/verify-prelocal-wiring-live.ts");
+    const script = await source("scripts/verify-texture-runtime-live.ts");
     const pkg = JSON.parse(await source("package.json")) as {
       scripts?: Record<string, string>;
     };
 
-    expect(pkg.scripts?.["verify:prelocal-wiring-live"]).toBe(
-      "bun run ./scripts/verify-prelocal-wiring-live.ts"
+    expect(pkg.scripts?.["verify:texture-runtime-live"]).toBe(
+      "bun run ./scripts/verify-texture-runtime-live.ts"
     );
     for (const marker of [
       "model_identifier",
