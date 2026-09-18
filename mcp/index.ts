@@ -7,7 +7,6 @@ import {
   getActiveMcpRegistrationProfile,
   registerMcpProfile,
   setMcpPhaseSwitchHandler,
-  setMcpProfileSwitchHandler,
 } from "@/server/tools";
 import {
   MCP_AUTHORING_PHASE_SETTING_ID,
@@ -56,7 +55,6 @@ function beginBlockItRuntimeTeardown(
   // work and listener shutdown before a new generation binds.
   stopLocalDevAutoReload();
   setMcpPhaseSwitchHandler(() => undefined);
-  setMcpProfileSwitchHandler(() => undefined);
   blockbenchIntegration.teardown();
   runtimeHost.teardown(generation);
 }
@@ -74,10 +72,6 @@ async function initializeBlockItRuntime(
     isGenerationCurrent: isRuntimeGenerationCurrent,
   });
   registerMcpProfile(registrationProfile);
-
-  setMcpProfileSwitchHandler(() => {
-    if (!isRuntimeGenerationCurrent(generation)) return;
-  });
 
   const rawPort = Number(Settings.get("mcp_port") || 3000);
   if (!Number.isInteger(rawPort) || rawPort < 1 || rawPort > 65535) {
