@@ -1,323 +1,361 @@
-# User-Supplied Bedrock Pack Corpus — Cross-System Study
+# User-Supplied Bedrock Pack Corpus — Blockbench Modelling Study
 
 Status: `OBSERVATION` / `PATTERN` extraction on branch `Ref` only. Not production authority.
 
-## Corpus
+## Scope Lock
 
-User-supplied archives inspected:
+This corpus is used **only** to improve LazyDesigner / Blockbench MCP authoring knowledge.
 
-1. Bloom — world template
-2. Minecraft: Friendly Fishing Add-On
-3. Realism Visuals — resource pack
-4. Actions & Stuff 1.4 — resource pack
-5. Advanced Movement Add-on
-6. Advanced Truck Simulator — world template
-7. Better on Bedrock 1.1 — world template
-8. TNT Arena — world template
+In scope:
+
+- geometry construction and decomposition;
+- hierarchy / groups / bones;
+- pivots and transform ownership;
+- locators / attachment positions;
+- UV layout;
+- texture/material treatment where relevant to model authoring;
+- animation clips;
+- animation-controller composition where it affects authored visual assets;
+- attachables / held-worn presentation;
+- render relationships needed to understand asset presentation;
+- visual validation and correction.
+
+Out of scope:
+
+- gameplay architecture;
+- Script API design;
+- mcfunction architecture;
+- scoreboard/tag state machines;
+- missions, menus, UI systems;
+- world generation;
+- recipes, loot, progression;
+- server/game logic;
+- map framework design;
+- behavior-pack implementation except where needed only to understand an authored asset relationship.
+
+If a source contains large non-modelling systems, those portions are ignored.
 
 ## Rights Boundary
 
 Treat every uploaded archive as analysis-only unless redistribution rights are independently verified.
 
-Do not copy third-party models, textures, animations, sounds, scripts, functions, structures, or other payloads into LazyDesigner or another production repository merely because the archive is inspectable.
+Do not copy third-party models, textures, animations, sounds, scripts, functions, or other payloads into LazyDesigner. Prefer derived measurements, independently expressed observations, and generic authoring principles.
 
-Use derived measurements, independently expressed architectural observations, generic authoring patterns, negative patterns, and cross-corpus comparisons.
+## Corpus Triage
 
-## Corpus Inventory
-
-| Source | JSON | PNG | JS | mcfunction | Geometry | Animation clips | Animation controllers | Primary value |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| Bloom | 892 | 499 | 0 | 144 | 250 | 47 | 9 | function-driven world/content architecture |
-| Friendly Fishing | 1527 | 739 | 1 bundled | 0 | 257 | 246 | 7 | large data-driven add-on + asset families |
-| Realism Visuals | 154 | 13 | 0 | 0 | 0 | 33 | 7 | environment/render presentation settings |
-| Actions & Stuff 1.4 | 6853 | 9023 | 0 | 0 | 2349 | 1896 | 468 | large resource-only animation/presentation architecture |
-| Advanced Movement | 44 | 14 | 9 | 0 | 5 | 212 | 2 | Script API orchestration + movement/action animation |
-| Advanced Truck Simulator | 1197 | 402 | 14 | 542 | 548 | 107 | 140 | hybrid scripts + command functions + vehicle/world systems |
-| Better on Bedrock 1.1 | 2618 | 1042 | 101 | 53 | 222 | 258 | 51 | modular Script API gameplay/content framework |
-| TNT Arena | 1217 | 482 | 0 | 857 | 179 | 964 | 201 | large function/state-machine minigame architecture |
-
-Counts are derived from archive inspection and are evidence of scale/organization only, not quality scores.
+| Source | Modelling value for LazyDesigner | Keep / Ignore |
+| --- | --- | --- |
+| Bloom | furniture/environment geometry, plant/prop families, some animation | KEEP modelling slices only |
+| Friendly Fishing | creature families, rods/held objects, attachables, animation families | KEEP |
+| Realism Visuals | little direct Blockbench modelling value | DEFER / mostly ignore |
+| Actions & Stuff 1.4 | geometry, player animation, attachables, animation controllers, render relationships | HIGH PRIORITY |
+| Advanced Movement | animation families and motion/rig relationships | KEEP animation-facing slices |
+| Advanced Truck Simulator | vehicle/trailer geometry, multipart mechanical rigging, animation/controllers | HIGH PRIORITY |
+| Better on Bedrock 1.1 | varied entity/prop geometry and animation examples | KEEP selected assets only |
+| TNT Arena | geometry/animation/controller examples only; gameplay logic ignored | KEEP selected visual assets only |
 
 ## S7 — Bloom
 
-Class: `WORLD_SYSTEM_CORPUS`, primarily function-driven.
+### Relevant modelling evidence
 
-Observed structure:
-- behavior + resource packs embedded in a world template;
-- 144 command functions;
-- 310 behavior block definitions and 70 item definitions;
-- about 250 Bedrock geometry definitions;
-- many plant/furniture/environment models;
-- functions grouped around books/guides, upgrades, ambient effects, disposal, world-state operations, and build/content interactions;
-- command use is dominated by scoreboard, execute, setblock, tag, title, function, fill, give, sound, and particles.
+Observed archive contains a large set of Bedrock geometry definitions, including plant, furniture, environment, and prop-like assets, plus a smaller animation surface.
 
-Generic lessons:
-1. A substantial authored world can operate with zero Script API files when deterministic command/function logic is sufficient.
-2. Scoreboards + tags can act as a lightweight world-state machine.
-3. `setblock` / `fill` / function composition are effective for environment progression and construction-state changes.
-4. Large decorative/content libraries can coexist with relatively small animation surfaces.
-5. World-template logic should not automatically be converted into Script API merely because scripts are available.
+Useful study areas:
 
-Candidate architectural heuristic:
-`deterministic command-sequence/state mutation → functions/scoreboards may be sufficient`
-`complex data structures, reusable computation, event abstraction, UI/application logic → Script API becomes more justified`
+- simple furniture/environment prop decomposition;
+- repeated plant/decorative families;
+- static vs articulated ownership;
+- geometry-vs-texture detail budgeting;
+- consistency across asset families.
+
+### Not used
+
+All function/scoreboard/world-progression logic is outside scope and must not inform LazyDesigner.
 
 ## S8 — Friendly Fishing Add-On
 
-Class: `CONTENT_HEAVY_ADDON_CORPUS`.
+### Relevant modelling evidence
 
-Observed structure:
+Observed archive contains:
+
 - about 257 geometry definitions;
 - 246 animation clips;
-- hundreds of item definitions;
-- large recipe set;
-- structures and world-generation features;
-- fish/animal model families;
-- partner-fish families;
-- rod/attachable presentation;
-- fishermen/NPC-like entities;
-- only one bundled JavaScript artifact despite large content scale.
+- fish/animal families;
+- rods and held-object presentation;
+- fishermen/NPC-like assets;
+- attachable-style presentation relationships.
 
-Generic lessons:
-1. Content scale can be data-heavy rather than code-heavy.
-2. Families of related creatures/items should share conventions and reusable authoring patterns rather than each requiring a novel system.
-3. Content generation, recipes, structures, items, entities, and visual assets can scale independently from orchestration code.
-4. Model/animation intelligence should distinguish asset-family variation from new architecture.
-5. Large catalogues benefit from stable namespaces and repeatable folder/schema organization.
+### Useful modelling lessons
 
-LazyDesigner relevance: strong candidate for future focused study of aquatic creature geometry, repeated fish-family modelling, rod/held-object relationships, attachment/locator usage, small-creature animation families, and family consistency.
+1. Related creature families should preserve shared structural conventions while allowing identity-specific silhouette variation.
+2. Repeated fish variants are useful for studying when geometry can stay structurally similar and identity shifts into proportion/texture/detail.
+3. Rod/held-object assets are useful for attachment/locator and hand-presentation study.
+4. Small-creature animation families can help distinguish reusable rig topology from clip-specific motion.
+
+### Not used
+
+Recipes, worldgen, structures, gameplay/content systems are outside scope.
 
 ## S9 — Realism Visuals
 
-Class: `PRESENTATION_ENVIRONMENT_CORPUS`.
+### Current modelling relevance
 
-Observed structure:
-- 77 client biome definitions;
-- 33 fog settings;
-- 12 atmosphere settings;
-- 9 lighting settings;
-- 6 color-grading settings;
-- water settings;
-- local-lighting settings;
-- shadow settings;
-- 16x / 32x subpack material.
+Low.
 
-Generic lessons:
-1. Visual quality is not owned only by geometry/texture/animation.
-2. Environment presentation has independently authored concerns: atmosphere, fog, lighting, color grading, water, shadows, biome-specific presentation.
-3. Presentation variants can be organized as environment profiles instead of duplicating core asset geometry.
-4. Resolution/subpack variants should not automatically fork unrelated logic.
+The archive is primarily environment/render presentation rather than Blockbench model authoring.
 
-Framework relevance: `asset fidelity + world/environment presentation + camera/composition = perceived final quality`.
+Potentially relevant only if a concrete future modelling question needs:
 
-LazyDesigner itself remains asset-only; this corpus should not expand it into a world-render-settings editor unless product scope explicitly changes.
+- material/render interpretation;
+- visual presentation context that affects how a model is judged.
+
+Status: `DEFERRED_FOR_MODELLING`.
+
+Do not use its biome/fog/lighting/world-render architecture as LazyDesigner knowledge.
 
 ## S10 — Actions & Stuff 1.4
 
-Class: `RESOURCE_PRESENTATION_CORPUS`.
+### Relevant modelling evidence
 
-Observed scale:
-- about 2349 geometry definitions;
+Observed archive scale includes approximately:
+
+- 2349 geometry definitions;
 - 1896 animation clips;
 - 468 animation controllers;
 - 2911 attachable definitions;
 - large render-controller surface;
-- more than 9000 PNG files;
-- no behavior scripts/functions in the supplied resource archive;
-- three large subpack branches.
+- extensive texture variants.
 
-Generic lessons:
-1. A resource-only layer can radically alter presentation while remaining separate from gameplay logic.
-2. Large-scale visual replacement relies on mappings among client entities, attachables, geometry, animation, animation controllers, render controllers, and texture variants.
-3. Animation-controller complexity can become a first-class presentation architecture.
-4. Attachables are a major authored surface, not merely secondary item metadata.
-5. Presentation variants/subpacks can scale independently from gameplay code.
-6. Opaque/hashed distribution names are not good authoring semantics. Do not learn naming style from packaged/obfuscated artifacts.
+### Why this is high-value
 
-LazyDesigner relevance: very strong future study source for player animation, held/worn item presentation, attachable relationships, animation-controller composition, resource-only state-driven presentation, and separation between asset authoring and gameplay implementation.
+This is one of the strongest user-supplied sources for Blockbench-oriented knowledge because it connects:
+
+```text
+geometry
+→ bones / pivots
+→ animation clips
+→ animation controllers
+→ attachables
+→ held / worn presentation
+→ render relationships
+```
+
+### Priority study targets
+
+- player/humanoid rig structure;
+- held and worn item geometry;
+- attachment/locator ownership;
+- animation-controller composition from an artist-facing perspective;
+- state-driven visual variants;
+- geometry/texture separation;
+- semantic consistency across many presentation assets.
+
+### Negative pattern
+
+Packaged/obfuscated/hashed names are distribution artifacts, not naming guidance.
+
+Do not learn source naming style from opaque identifiers.
 
 ## S11 — Advanced Movement Add-on
 
-Class: `SCRIPTED_INTERACTION_CORPUS`.
+### Relevant modelling evidence
 
-Observed structure:
-- five geometry definitions;
-- about 212 animation clips;
-- nine JavaScript modules;
-- script files separated into entry/index, point/util logic, base mob abstraction, cannon, platform, player, rocket, spring;
-- animation families include walk, jumps, double jump, flip, climb, spring, cannon, rocket riding, tutorial states;
-- a large staged `ride_rocket.N` animation family is present.
+Observed archive has only about five geometry definitions but around 212 animation clips.
 
-Generic lessons:
-1. Gameplay complexity does not require geometry complexity.
-2. Script classes can own gameplay behavior while animation assets own presentation.
-3. A small number of entities/props can support a rich interaction system if responsibilities are cleanly separated.
-4. Repeated animation sequences may encode staged choreography/state progression, but clip-count growth must not become a target.
-5. Tutorial presentation can reuse the same asset/action vocabulary rather than requiring a separate gameplay system.
+Useful study areas:
 
-Strong cross-project pattern:
-`Script API → interaction/state/computation`
-`Animation assets → visual motion`
-`Geometry → required form only`
-`Particles/sounds → feedback`
+- movement animation planning;
+- jump / double-jump / flip / climb motion families;
+- long staged motion sequences;
+- how a small rig supports a rich animation set;
+- animation responsibility without unnecessary geometry growth.
+
+### Generic modelling lesson
+
+```text
+rich motion
+!=
+complex geometry
+```
+
+A compact rig can support many actions when hierarchy and pivots are appropriate.
+
+### Not used
+
+Script classes, gameplay state, movement implementation, and interaction logic are outside scope.
 
 ## S12 — Advanced Truck Simulator
 
-Class: `HYBRID_WORLD_SYSTEM_CORPUS`.
+### Relevant modelling evidence
 
-Observed structure:
-- 14 JavaScript modules;
-- 542 command functions;
+Observed archive includes:
+
 - about 548 geometry definitions;
-- about 140 animation controllers;
-- vehicle/trailer geometry families;
-- extensive mission/menu function groups;
-- Script API modules for UI/forms, ambience, calculations/vector utilities, effects, configuration, and scripting abstraction;
-- substantial dynamic-property use;
-- command functions dominated by execute + scoreboard plus title/tag/tp/event/camera/scriptevent.
+- vehicle/trailer families;
+- about 107 animation clips;
+- about 140 animation controllers.
 
-Function grouping includes approximately 399 mission functions and 124 menu functions, with smaller truck and game-system groups.
+### High-value modelling targets
 
-Generic lesson: this is a clear hybrid responsibility split.
+- rigid multipart vehicle decomposition;
+- wheel / door / trailer / coupling transform ownership;
+- mechanical pivots;
+- coupled vs uncoupled presentation;
+- vehicle attachment points;
+- motion-ready hierarchy;
+- mechanical clearance at animation extremes;
+- repeated vehicle-family consistency.
 
-`JavaScript → reusable computation, forms/UI, config, ambience helpers, dynamic state, abstraction`
-`mcfunction → declarative mission/menu sequences, scoreboard transitions, camera/title/event choreography`
+### Candidate modelling principle
 
-Candidate framework principle: do not choose Script API versus mcfunction globally. Choose ownership per responsibility.
+Vehicle complexity should be decomposed by actual mechanical responsibility, not by visual panel count.
 
-Vehicle relevance: future study source for rigid multipart geometry, coupled/uncoupled presentation, trailer attachment, vehicle animation/controller structure, and mechanical clearance.
+### Not used
+
+Mission logic, functions, Script API, UI, dynamic properties, and gameplay systems are outside scope.
 
 ## S13 — Better on Bedrock 1.1
 
-Class: `MODULAR_ADDON_SYSTEM_CORPUS`.
+### Relevant modelling evidence
 
-Observed structure:
-- 101 JavaScript modules;
-- about 11k JavaScript source lines;
-- 53 mcfunctions;
-- hundreds of blocks/items/recipes/loot tables;
-- many structures and world-generation features/rules;
-- creature/entity assets and animation;
-- code organized by functional domains.
+Observed archive contains about:
 
-Observed script areas include custom components, ambience, armor effects, blocks, custom spear, enchantments, entities, goals, items, backpacks, lootbags, configuration, scripting events, and shared utilities/managers.
+- 222 geometry definitions;
+- 258 animation clips;
+- 51 animation controllers;
+- varied entity and prop content.
 
-Generic lessons:
-1. Feature-oriented module boundaries scale better than one monolithic script.
-2. Cross-cutting utilities should remain shared while feature behavior remains locally owned.
-3. Custom components / event routing can provide reusable extension points.
-4. Content-heavy add-ons benefit from separating data definitions, feature logic, reusable managers/utils, and presentation assets.
-5. World generation is a distinct subsystem from runtime entity/item logic.
+### Useful modelling targets
 
-AI production relevance: plan by feature ownership, not by file type alone.
+- selected creature/entity rigs;
+- props;
+- animation-ready hierarchy;
+- repeated asset family organization;
+- visual-state variants where the model itself materially changes.
 
-Bad: `write all scripts → write all JSON → write all assets`.
-Better: `feature → required data → behavior → presentation → persistence/state → validation`.
+### Not used
+
+Script modules, items/recipes, custom components, worldgen, gameplay features, and managers are outside scope.
 
 ## S14 — TNT Arena
 
-Class: `FUNCTION_STATE_MACHINE_CORPUS`.
+### Relevant modelling evidence
 
-Observed structure:
-- 857 mcfunction files;
-- no JavaScript;
-- about 964 animation clips;
-- about 201 animation controllers;
+Observed archive contains approximately:
+
 - 179 geometry definitions;
-- extensive entity, particle, sound, score/tag/event content;
-- command logic dominated by execute, scoreboard, summon, tag, tp, event, function, effects, UI text, sound, fill, and camera shake;
-- many packaged file/identifier names are opaque/obfuscated.
+- 964 animation clips;
+- 201 animation controllers.
 
-Generic lessons:
-1. Large minigame/game-loop systems can be implemented with functions + scoreboard/tag/event state without Script API.
-2. Function architecture can become very large, so packaged/obfuscated names must not be mistaken for human-authoring best practice.
-3. Visual state can be rich even when gameplay state is command-driven.
-4. Entity/event choreography is a powerful abstraction for arena mechanics.
-5. Opaque packaged identifiers are a negative knowledge source for semantic naming.
+Despite its large gameplay implementation, only visual-authoring slices are relevant.
 
-Map-framework relevance: strong source for future audit of round lifecycle, arena state, player assignment, entity/event orchestration, scoreboard state machines, respawn/reset, camera/effect feedback, and function-call topology.
+### Useful modelling targets
 
-## Cross-Corpus Architecture Patterns
+- selected animated props/entities;
+- compact and large animation families;
+- controller-to-clip organization;
+- effect/locator relationships if directly tied to authored model presentation;
+- hierarchy/pivot patterns for animated arena objects.
 
-### P1 — Choose execution surface by responsibility
+### Not used
 
-The corpus demonstrates successful function-driven, script-driven, and hybrid Bedrock systems. No one style is universally superior.
+All arena logic, scoreboard state, functions, round lifecycle, player assignment, reset logic, and command choreography are outside scope.
 
-`simple deterministic command choreography → mcfunction / scoreboard / tags`
-`event-rich reusable computation / UI / structured state → Script API`
-`large product needing both → explicit hybrid ownership`
+## Cross-Corpus Modelling Patterns
 
-Avoid implementing the same state machine independently in both scripts and functions.
+### M1 — Geometry complexity and animation complexity are independent
 
-### P2 — Data scale is not code scale
+Advanced Movement shows very small geometry coverage with a large animation library. Actions & Stuff shows both large geometry and animation surfaces.
 
-Friendly Fishing and Better on Bedrock show that hundreds of content definitions can exist without proportional growth in central orchestration.
+Therefore:
 
-`new content instance != new subsystem`
+```text
+model complexity
+!=
+animation complexity
+```
 
-### P3 — Presentation is independently scalable
+Plan each from its actual requirement.
 
-Realism Visuals and Actions & Stuff demonstrate two separate presentation domains: world/environment presentation and entity/item/animation presentation. Both can become sophisticated without owning gameplay truth.
+### M2 — Asset families should share conventions, not forced identical geometry
 
-### P4 — Animation/controller composition is a major architecture surface
+Friendly Fishing, Bloom, Actions & Stuff, and vehicle families can help identify:
 
-Across Actions & Stuff, Advanced Movement, TNT Arena, Friendly Fishing, and Truck Simulator, animation assets and controllers form substantial systems.
+- shared hierarchy naming;
+- common attachment conventions;
+- repeatable rig topology;
+- shared UV/texture strategy;
+- where silhouette requires a variant.
 
-For LazyDesigner, clip authoring, hierarchy/pivot readiness, controller composition, artist-facing transitions, and effect cues remain important. Gameplay state authority should remain external.
+The goal is consistency without erasing identity.
 
-### P5 — A small geometry surface can support complex behavior
+### M3 — Attachables are first-class modelling evidence
 
-Advanced Movement is the clearest case: `5 geometries + large animation library + modular scripts = rich movement system`.
+Actions & Stuff and Friendly Fishing make held/worn presentation particularly valuable for:
 
-Therefore model complexity is not product complexity.
+- attachment anchors;
+- hand relationship;
+- alternate presentation position;
+- scale/orientation ownership;
+- visual-state composition.
 
-### P6 — A large geometry surface can still be primarily content
+This reinforces `ATTACHMENT` responsibility in the cross-domain vocabulary.
 
-Friendly Fishing and Bloom show many geometry definitions used as families/catalog content. `many models != deep architecture`.
+### M4 — Mechanical hierarchy should follow actual motion
 
-### P7 — Hybrid architecture should have explicit ownership
+Truck assets strengthen the existing rule:
 
-Advanced Truck Simulator supports recording state authority, event authority, presentation owner, persistence owner, command/function owner, and script owner without duplicating state.
+```text
+moving mechanical part
+→ independent ARTICULATION owner
+→ pivot/axis from mechanism
+```
 
-### P8 — Marketplace/distribution obfuscation is not authoring knowledge
+Static visible panels do not automatically deserve separate bones.
 
-Actions & Stuff and TNT Arena contain many opaque packaged names. Never generalize random identifiers, hashed filenames, or obfuscated namespaces into recommended source naming.
+### M5 — Rich animation libraries require semantic clip organization
 
-## Knowledge Impact by Project
+Actions & Stuff, Advanced Movement, Friendly Fishing, TNT Arena, and Truck Simulator can be mined for:
 
-### LazyDesigner / Blockbench MCP
+- persistent poses;
+- transitions;
+- locomotion/action families;
+- repeated variants;
+- long choreography;
+- state-visible presentation.
 
-Highest-value sources:
-1. Actions & Stuff — animation/controller/attachable presentation.
-2. Advanced Movement — motion/system separation.
-3. Friendly Fishing — creature/held-object family consistency.
-4. Truck Simulator — vehicle mechanical assets.
-5. Better on Bedrock — varied entity/prop content.
+Clip count itself is never a quality target.
 
-Future focused studies should remain asset-authoring-specific.
+### M6 — Distribution structure is not authoring structure
 
-### AI-Assisted Minecraft Map Production Framework
+Opaque filenames, packaged identifiers, or obfuscated naming must not influence LazyDesigner semantic naming rules.
 
-Highest-value sources:
-1. Better on Bedrock — modular add-on architecture.
-2. Advanced Truck Simulator — hybrid script/function architecture.
-3. TNT Arena — function/scoreboard arena state machine.
-4. Bloom — function-driven progression/environment systems.
-5. Friendly Fishing — content-heavy addon/worldgen organization.
-6. Realism Visuals — environment/presentation layer.
-7. Actions & Stuff — resource-only visual layer.
-8. Advanced Movement — focused interaction feature architecture.
+Study actual bone/animation relationships, not packaging names.
 
-Together these sources cover world lifecycle, function state machines, Script API modules, hybrid systems, entities/items/blocks, world generation, structures, UI/forms, vehicles, movement mechanics, animation/controllers, attachables, particles/sound, environment rendering, and content-family scaling.
+## Priority Order for Deep Modelling Mining
+
+1. **Actions & Stuff** — player/humanoid rigging, attachables, animation/controller composition.
+2. **Advanced Truck Simulator** — vehicle/mechanical hierarchy, pivots, attachment/coupling.
+3. **Friendly Fishing** — creature-family consistency, rods/held objects, small-creature animation.
+4. **Advanced Movement** — rich animation planning on compact rigs.
+5. **Better on Bedrock** — selected entity/prop examples.
+6. **Bloom** — furniture/environment/static-prop modelling.
+7. **TNT Arena** — selected visual assets only.
+8. **Realism Visuals** — defer unless a direct modelling/render-material question appears.
 
 ## Current Decision
 
-All eight archives are accepted as valuable analysis-only reference corpus.
+All eight archives remain available as source material, but **only their Blockbench/modelling-relevant slices are admitted into LazyDesigner reference intelligence**.
 
-No raw uploaded payload is promoted into the repository.
+The corpus does not expand project scope beyond MCP Blockbench authoring.
 
-The strongest new generic knowledge is architectural:
+No gameplay/map/add-on architecture rule may be promoted from these sources into LazyDesigner.
 
-> Bedrock production quality improves when gameplay state, reusable computation, deterministic command choreography, asset presentation, and environment presentation have explicit owners rather than being collapsed into one implementation surface.
+Next deep audits must answer a modelling question such as:
 
-Next deep audits should be question-driven rather than exhaustive. Retrieve only the corpus slice relevant to the current unresolved production problem.
+- how should this asset decompose into semantic owners?
+- where should pivots/locators sit?
+- which details belong to geometry vs texture?
+- how should a repeated asset family share rig conventions?
+- how should animation clips/controllers be organized for an authored asset?
+- how should attachment/held/worn presentation be structured?
