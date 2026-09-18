@@ -89,31 +89,16 @@ Material save persistence without authored material change
 Animation loop requests already equal to current loop mode
 ```
 
-The current remote receipt-completeness pass now also covers real mutations:
+Real-mutation receipt completion is now source-implemented:
 
 ```text
-manage_animation_effects
-→ exact final affected effect entries / explicit removals
-→ receipt_only when complete
-
-manage_animation_controller
-→ exact final affected state subgraphs
-→ transitions / animation links / sounds / particles included
-→ explicit created/removed identity
-→ receipt_only when complete
-
-manage_material create/configure/assign_channel
-→ compact final material channels + config
-→ receipt_only when complete
-
-manage_material_instances set/bulk_set/clear
-→ exact final changed Cube/face/material assignments
-→ receipt_only when complete
+animation effects      → final affected entries/removals → receipt_only
+animation controller   → final affected state subgraphs → receipt_only
+material create/configure/assign → final channels/config → receipt_only
+material instances set/bulk/clear → exact final face changes → receipt_only
 ```
 
-Untouched controller states are not dumped; the receipt projects only affected final subgraphs. Incomplete/legacy receipt shapes remain conservative and retain canonical focused-read guidance.
-
-Continue only when another Runtime result exposes trustworthy narrower effects or complete final affected state. Enrich the same receipt path; keep conservative fallback for ambiguity.
+Controller receipts include only affected final subgraphs, never untouched-state dumps. Incomplete/legacy shapes remain conservative and keep focused-read guidance. Further refinement must reuse this receipt path and require equally strong final-state evidence.
 
 Do not add new revision databases, dependency graphs, mutation journals, planners, routers, or public Gateway tools.
 
