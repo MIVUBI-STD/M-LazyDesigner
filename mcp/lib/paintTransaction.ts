@@ -107,6 +107,36 @@ export type PaintTransactionOperation = z.infer<
 
 export type PaintTransactionRequest = z.infer<typeof paintTransactionParameters>;
 
+export const paintTransactionReceiptSchema = z.object({
+  execution: z.literal("applied"),
+  texture: z.object({
+    uuid: z.string().min(1),
+    name: z.string().min(1),
+  }).strict(),
+  revision: z.object({
+    before: textureRevisionSchema,
+    after: textureRevisionSchema,
+  }).strict(),
+  operation_count: z.number().int().positive(),
+  pixel_writes: z.number().int().positive(),
+  affected_rect: z.tuple([
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+    z.number().int().positive(),
+    z.number().int().positive(),
+  ]),
+  affected_size: z.tuple([
+    z.number().int().positive(),
+    z.number().int().positive(),
+  ]),
+  output: z.object({
+    path: z.string().min(1),
+    byte_length: z.number().int().positive(),
+    replaced_existing: z.boolean(),
+    verified: z.literal(true),
+  }).strict().nullable(),
+}).strict();
+
 type Rgba = [number, number, number, number];
 type AffectedRect = [number, number, number, number];
 
