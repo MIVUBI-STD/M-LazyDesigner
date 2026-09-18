@@ -149,7 +149,7 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     test_owner: "mcp/tests/bedrock-locator-coverage.test.ts",
   },
   bone_rigging: {
-    source: "mcp/server/tools/animation.ts",
+    source: "mcp/server/tools/animation-rigging.ts",
     specialist: MODELLING_PATH,
     test_owner: "mcp/tests/authoring-phase-surface.test.ts",
   },
@@ -284,7 +284,7 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     test_owner: "mcp/tests/render-profile-binding.test.ts",
   },
   create_animation: {
-    source: "mcp/server/tools/animation.ts",
+    source: "mcp/server/tools/animation-create.ts",
     specialist: ANIMATION_PATH,
     test_owner: "mcp/tests/create-animation-contract.test.ts",
   },
