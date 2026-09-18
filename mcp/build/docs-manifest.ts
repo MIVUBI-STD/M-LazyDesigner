@@ -4,7 +4,7 @@ import { particleReferenceResourceDocs } from "../server/resources/particle";
 import { paintTextureTransactionToolDocs } from "../server/tools/paint-texture-transaction";
 import { wiredCreateTextureParameters } from "../server/runtime/textureRuntimeContracts";
 import { focusedGetTextureParameters } from "../lib/textureEvidence";
-import { animationAwareCaptureModelViewsParameters, focusedInspectAnimationParameters } from "../server/tools/animation-runtime-wiring";
+import { animationAwareCaptureModelViewsParameters, focusedInspectAnimationParameters } from "../server/runtime/animationRuntimeContracts";
 import { completeAnimationTimelineParameters } from "../server/tools/animation-native-intelligence";
 import { completeAnimationControllerParameters } from "../server/tools/animation-runtime-resource-intelligence";
 import type { ToolSpec, PromptSpec, ResourceSpec } from "../lib/factories";
