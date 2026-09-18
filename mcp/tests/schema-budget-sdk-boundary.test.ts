@@ -11,7 +11,6 @@ import { toolManifest } from "./build/docs-manifest.ts";
 import { z } from "zod";
 import { createServer } from "./server/server.ts";
 import {
-  extractShape,
   getAllToolDefinitions,
   invalidateToolRegistrationRuntimeCaches,
   registerToolsOnServer,
@@ -59,7 +58,7 @@ try {
     const spec = toolManifest.flatMap((group) => group.tools).find((tool) => tool.name === name);
     assert.deepEqual(
       schemaFor(name),
-      z.toJSONSchema(z.object(extractShape(spec.parameters)), {
+      z.toJSONSchema(spec.parameters, {
         io: "input",
         target: "draft-2020-12",
         unrepresentable: "any",
