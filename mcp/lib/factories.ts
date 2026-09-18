@@ -209,10 +209,22 @@ function getToolInvocation(name: string, toolDef: ToolDefinition) {
     }
 
     if (result && typeof result === "object" && "content" in result) {
-      return normalizeToolResultForRuntime(name, result);
+      const normalized = normalizeToolResultForRuntime(name, result);
+      if (toolDef.outputSchema && normalized.structuredContent !== undefined) {
+        normalized.structuredContent = await toolDef.outputSchema.parseAsync(
+          normalized.structuredContent
+        );
+      }
+      return normalized;
     }
 
-    return compactUnknownResult(name, result);
+    const normalized = compactUnknownResult(name, result);
+    if (toolDef.outputSchema && normalized.structuredContent !== undefined) {
+      normalized.structuredContent = await toolDef.outputSchema.parseAsync(
+        normalized.structuredContent
+      );
+    }
+    return normalized;
   };
 
   toolInvocationCache.set(cacheKey, callback);
@@ -369,6 +381,7 @@ export function createTool<TOutput>(
     annotations?: ToolAnnotations;
     parameters: z.ZodType<TOutput, any>;
     inputSchema?: Record<string, z.ZodType<any, any>>;
+    outputSchema?: z.ZodType<any, any>;
     execute: (args: TOutput, context?: ToolContext) => Promise<ToolResult>;
   },
   status: IMCPTool["status"] = "stable",
@@ -385,6 +398,7 @@ export function createTool<TOutput>(
     description: tool.description,
     inputSchema,
     parameterSchema: tool.parameters,
+    outputSchema: tool.outputSchema,
     execute: tool.execute,
     annotations: tool.annotations,
   };
@@ -469,6 +483,7 @@ export function registerToolsOnServer(
         title: string;
         description: string;
         inputSchema: z.ZodType;
+        outputSchema?: z.ZodType;
         annotations?: ToolAnnotations;
       },
       callback: (args: unknown, extra: unknown) => Promise<unknown>
@@ -487,6 +502,7 @@ export function registerToolsOnServer(
         // Union/intersection branch semantics and branch-local required fields
         // stay source-owned by parameterSchema.
         inputSchema: toolDef.parameterSchema,
+        outputSchema: toolDef.outputSchema,
         annotations: toolDef.annotations,
       },
       getToolInvocation(name, toolDef)
