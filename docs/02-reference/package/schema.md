@@ -273,6 +273,8 @@ animation_guidance
 
 Use only decision-critical supported facts. Do not include Cube inventories, final pivot coordinates, hidden anatomy guesses, pixel-paint instructions, or frame-by-frame implementation unless explicitly required.
 
+State/presentation variants do **not** require a new top-level schema field. Represent only supported facts through existing `parts`, `articulation`, `constraints`, and the relevant stage document; local variants should identify only the changed semantic branch. Likewise, a moving Locator is represented by its attachment/parent relationship and downstream stage guidance, not by a direct Locator-animation schema.
+
 ### `parts`
 
 Example:
