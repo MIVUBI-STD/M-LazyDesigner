@@ -23,6 +23,35 @@ describe("Control context ownership", () => {
     expect(packet).toContain("invalidated_ids");
   });
 
+  test("Control keeps research-derived modelling intelligence out of stage-context payloads", async () => {
+    const [registry, projection, packet, controlReadme] = await Promise.all([
+      source("gateway/control/registry.ts"),
+      source("gateway/control/contextProjection.ts"),
+      source("gateway/control/packet.ts"),
+      source("gateway/control/README.md"),
+    ]);
+
+    expect(registry).toContain("MODELLING_PATH");
+    expect(registry).toContain("PROFILE_PATHS");
+    expect(registry).toContain("if (domain === \"GEOMETRY\")");
+    expect(registry).toContain("if (selectedProfile) required.push");
+    expect(registry).toContain("else if (domain === \"ANIMATION\")");
+
+    for (const forbidden of [
+      "smallest_changed_branch",
+      "ownership_reuse",
+      "rig_clip_controller_budget",
+      "animated_locator_rule",
+      "family_attachment_contract",
+      "responsibility_vocabulary",
+    ]) {
+      expect(projection).not.toContain(forbidden);
+      expect(packet).not.toContain(forbidden);
+    }
+
+    expect(controlReadme).toContain("Research-derived authoring guidance stays");
+    expect(controlReadme).toContain("Control must not add duplicate stage-context fields");
+  });
   test("fallback source ownership points to the canonical Runtime surface owner", async () => {
     const registry = await source("gateway/control/registry.ts");
 
