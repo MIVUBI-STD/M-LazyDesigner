@@ -181,6 +181,226 @@ Status: `PATTERN`.
 
 First/third-person differences should normally change presentation transforms/animation selection rather than create unrelated asset hierarchies.
 
+## Case-Level Audit — Fish Family Root / Locator Contract
+
+Several representative fish geometries share a stable outer hierarchy:
+
+```text
+root
+└─ root2
+   └─ root3
+      └─ visible body chain
+```
+
+Representative examples:
+
+- Barracuda: 15 bones / 16 cubes / depth 6;
+- Piranha: 10 bones / 12 cubes / depth 5;
+- Whale: 14 bones / 13 cubes / depth 8;
+- Fish template 0: 20 bones / 19 cubes / depth 7;
+- Fish template 1: 16 bones / 24 cubes / depth 6.
+
+The root layer often carries non-visible locators such as:
+
+- `offset.lure`;
+- `offset.caught`;
+- `lead` on head/body owners;
+- whale-specific `blow_hole` and baleen-related locators.
+
+### Strong modelling conclusion
+
+A reusable creature-family contract can preserve a small set of stable **presentation/attachment locators** while allowing internal anatomy to vary by species.
+
+```text
+family-level attachment contract
+→ stable locator semantics
+
+species-specific form
+→ variable geometry / articulation depth
+```
+
+This is useful evidence for family consistency without forcing identical rigs.
+
+## Case-Level Audit — Barracuda Mouth State
+
+Barracuda separates:
+
+```text
+head
+├─ mouth_closed
+└─ mouth_open0
+   └─ mouth_open1
+```
+
+All mouth variants share the same head parent and local pivot region.
+
+This is direct evidence for the `STATE` responsibility:
+
+> materially different visible mouth form may justify local variant owners while preserving the same parent anatomy.
+
+Do not duplicate the full fish rig for a mouth-state change.
+
+## Case-Level Audit — One-Sided Surface Carriers
+
+Fish templates frequently separate a transform owner from a `_one_sided` child containing visible cubes:
+
+Examples:
+
+```text
+tail
+└─ tail_one_sided
+
+leftFin
+└─ leftFin_one_sided
+
+rightFin
+└─ rightFin_one_sided
+```
+
+In Fish 0, several articulation owners contain zero cubes while the visible one-sided surface lives in the child.
+
+Safe modelling conclusion:
+
+> transform ownership and visible surface-carrier ownership may be separated when render/surface requirements justify it.
+
+This should not become a default extra hierarchy layer; use it only when the rendering/geometry representation actually requires separation.
+
+## Case-Level Audit — Whale Long-Body Chain
+
+Whale uses:
+
+```text
+body_pivot
+└─ body_front
+   └─ body_back
+      └─ tail0
+         └─ tail1
+            └─ tailFin
+```
+
+The large body therefore preserves several ordered articulation points rather than using one giant tail rotation.
+
+This reinforces organic chain continuity at a larger scale.
+
+## Case-Level Audit — Super Rod Rig vs Visible Geometry
+
+The supplied super-rod set exposes a particularly useful separation.
+
+### Rig-only geometry
+
+`geometry.super_rod_rig.mnp_ci`:
+
+- 4 bones;
+- 0 cubes;
+- depth 3.
+
+Structure:
+
+```text
+root
+└─ fishing_rod0
+   └─ fishing_rod1
+      └─ rod_line1
+```
+
+This is a pure transform/helper skeleton with no visible geometry.
+
+### Third-person visible geometry
+
+`geometry.tp_super_rod.mnp_ci`:
+
+- 29 bones;
+- 30 cubes;
+- depth 7;
+- rigid rod body;
+- reel parts;
+- rod-line roots;
+- bobber;
+- line helper structures.
+
+### Strong modelling conclusion
+
+```text
+presentation rig
+can exist independently from
+visible geometry payload
+```
+
+This is strong evidence that non-visible owner structure can be reusable across presentation variants.
+
+## Case-Level Audit — Fishing Line Segmentation
+
+The super-rod package contains many line-segment geometry variants for both first-person and third-person presentation.
+
+The full rod animation set separates:
+
+- wield first-person;
+- wield third-person;
+- third-person non-player;
+- first-person fishing line;
+- third-person line root rotation;
+- third-person fishing line;
+- charge;
+- cast;
+- casted;
+- reel add;
+- stuck reel add;
+- sway;
+- flail.
+
+Fishing-line animations address ordered line owners such as:
+
+```text
+line_root0
+line_root1
+line0..line9
+line_bobber0
+line_bobber1
+```
+
+while cast/reel animation addresses rod and bobber owners separately.
+
+### Modelling conclusion
+
+Flexible secondary structures can have their own ordered segmentation and motion responsibility while remaining attached to a rigid primary object.
+
+This is a strong `ATTACHMENT + FOLLOW + ARTICULATION` example.
+
+## Case-Level Audit — Rod Animation Controller
+
+The super-rod animation controller has four semantic states:
+
+```text
+default
+charge
+cast
+casted
+```
+
+Within those states, first-person sway/flail/charge/cast/reel clips are selected conditionally.
+
+Safe authoring conclusion:
+
+> controller state composition should select among already-capable rig owners; it should not drive hierarchy growth by itself.
+
+This independently reinforces the Actions & Stuff controller-vs-rig separation.
+
+## Case-Level Pattern — Family Locators + Variable Anatomy
+
+Status: `PATTERN`.
+
+Across fish examples:
+
+```text
+stable attachment/presentation locator semantics
++
+species-specific anatomy depth and silhouette
+```
+
+can coexist cleanly.
+
+This suggests future LazyDesigner family authoring may reuse locator contracts without imposing one fixed geometry topology.
+
 ## Current Verdict
 
 Friendly Fishing materially strengthens knowledge for:
