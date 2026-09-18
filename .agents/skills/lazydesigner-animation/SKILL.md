@@ -9,6 +9,8 @@ Use at `ACTIVE PHASE: ANIMATION` after Texturing approval + checkpoint + Animati
 
 User-authorized autonomy replaces approval waits with verified checkpoints; never claim user approval.
 
+Durable Animation policy is owned by `docs/03-authoring/animation/standard.md`; this Skill is the compact execution specialist for the active Animation stage and must not become a competing policy owner.
+
 ## Control Context Projection
 
 Normal Animation starts from a **stage-specific projection prepared by LazyDesigner Control**. Do not reload the complete Modelling Profile or full Reference Package by default.
