@@ -1,6 +1,6 @@
-# BlockIT Authoring Workspace
+# LazyDesigner Authoring Workspace
 
-This workspace is for **Minecraft Bedrock Entity asset authoring through BlockIT Gateway**.
+This workspace is for **Minecraft Bedrock Entity asset authoring through LazyDesigner Gateway**.
 
 ## Boot
 
@@ -33,11 +33,11 @@ Dimensions: width × height × length in Minecraft blocks
 Animation Required: YES | NO
 ```
 
-BlockIT uses one native Geometry authoring path. Do not ask the user to choose a modelling strategy and do not revive retired 3D-assisted/Hunyuan/PrimitiveAnything routes.
+LazyDesigner uses one native Geometry authoring path. Do not ask the user to choose a modelling strategy and do not revive retired 3D-assisted/Hunyuan/PrimitiveAnything routes.
 
 ## Gateway
 
-Use the installed BlockIT Gateway. Normal client surface is exactly:
+Use the installed LazyDesigner Gateway. Normal client surface is exactly:
 
 ```text
 status

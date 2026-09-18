@@ -35,7 +35,7 @@ async function main(): Promise<void> {
   await cp(join(repo, "mcp/distribution/authoring-AGENTS.md"), join(packageDir, "AGENTS.md"));
   const bunLicense = await fetch(`https://raw.githubusercontent.com/oven-sh/bun/bun-v${Bun.version}/LICENSE.md`);
   if (!bunLicense.ok) throw new Error("Pinned Bun license notice is unavailable; refusing an incomplete distribution.");
-  const notices: string[] = [`BlockIT source: https://github.com/${REPOSITORY}/tree/${sourceSha}\nGPL-3.0-only; see LICENSE.\nRebuild with pinned Bun and the committed lockfile.\n`, `Bun ${Bun.version}\n${await bunLicense.text()}`];
+  const notices: string[] = [`LazyDesigner source: https://github.com/${REPOSITORY}/tree/${sourceSha}\nGPL-3.0-only; see LICENSE.\nRebuild with pinned Bun and the committed lockfile.\n`, `Bun ${Bun.version}\n${await bunLicense.text()}`];
   async function collectLicenses(directory: string, depth: number): Promise<void> {
     if (depth > 5) return;
     for (const entry of await readdir(directory, { withFileTypes: true })) {

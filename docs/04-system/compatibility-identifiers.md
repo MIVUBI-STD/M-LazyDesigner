@@ -1,6 +1,6 @@
 # LazyDesigner Compatibility Identifier Boundary
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 This file owns the migration boundary for identifiers that still contain `BlockIT` / `blockit` after the product rename.
 
@@ -33,6 +33,8 @@ Primary LazyDesigner Skill paths are **not** compatibility-bound. REFERENCE_PREP
 
 Internal TypeScript symbols, DOM class names, event keys, or client names may still contain `Blockit`/`BLOCKIT` when renaming them provides little current value. Never change a serialized/string compatibility value accidentally during cosmetic cleanup.
 
+The following distribution/release strings are also treated as compatibility-bound until an atomic release migration maps every producer and consumer: `blockit.exe`, `blockit-package.json`, `blockit-windows-x64.zip`, GitHub artifact names beginning with `blockit-`, and the `blockit-v*` release-tag prefix. They are delivery identifiers, not the product name.
+
 ## Presentation Identity
 
 Human-visible product language should use **LazyDesigner** when it does not change a serialized identifier or external contract.
@@ -46,6 +48,8 @@ plugin lifecycle/install/dev-sync messages
 Blockbench panel + status bar
 local install guidance
 mcp/llms.txt
+packaged authoring AGENTS + package source notice
+repository operating-rule headings
 ```
 
 Safe presentation migration includes:

@@ -1,5 +1,5 @@
 # Project: LazyDesigner
-# Repository: https://github.com/halokaryamedia-source/BuildIT
+# Repository: https://github.com/MIVUBI-STD/M-LazyDesigner
 # Author: Halo Karya Media
 # Type: Blockbench Plugin (MCP server)
 # Target: Minecraft Bedrock Entity + Blockbench 5.x

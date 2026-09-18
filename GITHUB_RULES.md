@@ -1,4 +1,4 @@
-# GitHub Rules — BlockIT
+# GitHub Rules — LazyDesigner
 
 Canonical GitHub operating rules for AI/ChatGPT in this repository. Root and nearest `AGENTS.md` files may narrow domain behavior, but they must not weaken safety, integrity, proof, efficiency, history, security, GitHub-first execution, or STOP boundaries.
 
@@ -41,7 +41,7 @@ Classify by actual capability, not UI/product name:
 ```text
 REMOTE_GITHUB   = repository/GitHub + CI evidence; no local worktree/Bun/installed Blockbench
 LOCAL_CODE      = local checkout + Bun/tests/build/generators/filesystem
-LIVE_BLOCKBENCH = LOCAL_CODE + deployed/reloaded BlockIT + reconnected live MCP client
+LIVE_BLOCKBENCH = LOCAL_CODE + deployed/reloaded LazyDesigner + reconnected live MCP client
 ```
 
 - `REMOTE_GITHUB` may implement changes whose requested acceptance is source/static/CI-verifiable.
@@ -347,7 +347,7 @@ adjacent cleanup                    0
 high-impact mutations               0 unless explicitly authorized
 ```
 
-# BlockIT repository boundaries
+# LazyDesigner repository boundaries
 
 ```text
 continuation       → docs/05-operations/next-action.md
