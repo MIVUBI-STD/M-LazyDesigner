@@ -41,7 +41,7 @@ permissions:
 
 jobs:
   # Static repository policy/ownership only; executable MCP and packaged Windows
-  # verification remain owned by their dedicated workflows.
+  # verification remain separate gates and must be interpreted on the same source SHA.
   verify:
     name: Static repository contract
     runs-on: ubuntu-latest
