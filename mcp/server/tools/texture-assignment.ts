@@ -6,7 +6,7 @@ import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreCubeOrGroup, resolveCoreTexture } from "@/lib/coreIdentity";
 import {
   elementIdSchema,
-  textureIdOptionalSchema,
+  textureIdSchema,
 } from "@/lib/zodObjects";
 
 export const applyTextureParameters = z.object({
