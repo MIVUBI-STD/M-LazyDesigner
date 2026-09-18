@@ -158,6 +158,132 @@ Status: `PATTERN`.
 
 Held/worn objects should be reasoned through explicit attachment/presentation relationships, reinforcing the existing `ATTACHMENT` responsibility vocabulary.
 
+## Case-Level Audit — Bow / Crossbow / Trident / Helmet
+
+### Bow
+
+The `minecraft:bow` attachable exposes **30 geometry variants**.
+
+Across those variants:
+
+- the stable common semantic chain is `root → bgzlujc → ghykezk`;
+- most variants contain only **1 visible cube**;
+- variants commonly add only one extra non-visual/helper owner such as `kqxjqkd`, `tzzbrom`, or `kkosjix`;
+- four distinct hierarchy signatures cover all 30 geometry variants.
+
+Observed signature distribution:
+
+```text
+14 variants: root → bgzlujc → ghykezk → kqxjqkd
+ 7 variants: root → bgzlujc → ghykezk
+ 7 variants: extra root/helper + root → bgzlujc → ghykezk
+ 2 variants: root → bgzlujc → ghykezk → tzzbrom
+```
+
+The bow attachable maps six animation/controller entries. Direct animation clips target only the small semantic/helper set: `kqxjqkd`, `bgzlujc`, and `tzzbrom`.
+
+### Crossbow
+
+The `minecraft:crossbow` attachable exposes **19 geometry variants**.
+
+Common variant forms are similarly small:
+
+```text
+7 variants: helper + root + bgzlujc + kqxjqkd
+5 variants: root + bgzlujc
+4 variants: extra helper + root + bgzlujc
+```
+
+Most variants contain only **1 visible cube** while using several non-visible owners for presentation/state relationships.
+
+Crossbow animation mappings separate first-person and non-first-person presentation and reuse the same compact helper set.
+
+### Safe modelling conclusion
+
+These assets strongly demonstrate:
+
+> visual/presentation variant count can be high while the semantic helper skeleton stays small.
+
+Therefore:
+
+```text
+many visual variants
+!=
+many unrelated rigs
+```
+
+and:
+
+```text
+state/presentation change
+→ prefer stable semantic ownership
+→ swap only the smallest geometry/helper branch that materially changes
+```
+
+This is stronger evidence for the existing `STATE` + `ATTACHMENT` reasoning, not a new responsibility category.
+
+### Trident
+
+The `minecraft:trident` attachable exposes four geometry variants.
+
+Representative default geometry:
+
+- 2 bones;
+- 17 cubes;
+- one parent/child chain.
+
+Other presentation variants reduce to four cubes plus a helper/root relationship.
+
+Safe lesson:
+
+> view/presentation variants may simplify visible geometry while preserving the semantic item relationship.
+
+Do not infer exact gameplay-state meaning from opaque variant aliases.
+
+### Sword Presentation
+
+A representative sword attachable demonstrates an even stronger separation between **presentation skeleton** and visible volume:
+
+- several geometry variants contain **zero visible cubes** while retaining 2–4 non-visible bones;
+- another variant adds only one visible cube under the same root/presentation chain.
+
+This is direct evidence that non-visible geometry owners can exist purely to preserve authored transform/presentation relationships.
+
+### Helmet
+
+The `minecraft:turtle_helmet.player` attachable uses:
+
+- 8 bones;
+- 7 cubes;
+- hierarchy depth 2;
+- two non-visible owners;
+- a dedicated `head` root;
+- roughly 20 animation/controller mappings.
+
+Safe lesson:
+
+> worn assets can keep their own compact semantic hierarchy while following the wearer through a stable attachment owner.
+
+This reinforces `ATTACHMENT` without implying that every armor item needs its own complex rig.
+
+## Case-Level Pattern — Variant Skeleton Stability
+
+Status: `PATTERN`.
+
+Across bow/crossbow/trident/sword cases:
+
+```text
+semantic item relationship
+→ stable compact transform/helper skeleton
+
+visual state / presentation variant
+→ minimal geometry/helper substitution
+```
+
+This is a concrete anti-duplication pattern for LazyDesigner.
+
+Do not copy the opaque bone names; the relevant evidence is structural.
+
 ## Current Verdict
 
 Actions & Stuff is accepted as a high-value analysis-only corpus for:
