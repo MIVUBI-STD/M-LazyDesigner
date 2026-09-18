@@ -1,11 +1,44 @@
 import { describe, expect, test } from "bun:test";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
+import { getEnabledToolDefinitions } from "../lib/factories";
+import { searchCapabilityCatalog, type BackendTool } from "../gateway/contract";
 import {
   classifyMcpToolPhase,
   isMcpToolExposedForPhase,
 } from "../lib/authoringPhase";
 
 describe("capability discovery efficiency", () => {
+  test("Gateway discovery handles representative Indonesian authoring language", () => {
+    const tools = Object.values(getEnabledToolDefinitions()).map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      annotations: tool.annotations,
+    })) as BackendTool[];
+
+    const cases = [
+      ["buat kubus baru untuk badan model", "manage_cubes"],
+      ["ubah ukuran kubus yang ini", "manage_cubes"],
+      ["ubah pivot tulang pintu", "modify_group"],
+      ["geser posisi bone ini", "modify_group"],
+      ["buat titik pegangan di tangan", "manage_locator"],
+      ["edit pixel ini secara presisi", "paint_texture_transaction"],
+      ["tambah keyframe rotasi tangan", "manage_animation_timeline"],
+      ["atur timeline animasi jadi loop", "manage_animation_timeline"],
+      ["buat controller animasi dengan beberapa state", "manage_animation_controller"],
+      ["tambahkan particle ke animasi", "manage_animation_effects"],
+      ["buat particle asap", "manage_particle"],
+      ["ubah particle emitter ini", "manage_particle"],
+    ] as const;
+
+    for (const [query, expected] of cases) {
+      const results = searchCapabilityCatalog(tools, query, 3);
+      expect(
+        results.map((result) => result.capability_id),
+        query
+      ).toContain(expected);
+    }
+  });
+
   test("canonical semantic geometry capabilities outrank overlapping rig helper", () => {
     for (const capability of [
       "add_group",
