@@ -58,6 +58,7 @@ Do not merge these classes into one authority hierarchy.
 - `compact-rig-animation-study.md` — rich animation libraries on compact stable rigs.
 - `user-corpus-modelling-synthesis.md` — compact cross-source modelling patterns for future validation.
 - `native-validation-matrix.md` — bounded baseline-vs-candidate native Blockbench validation plan for the compact modelling refinements.
+- `native-validation-execution-packet.md` — execution-ready T1 baseline/candidate procedure and evidence log, with Lift explicitly excluded.
 - `source-map.md` — source roles, coverage, current decisions, and next research order.
 
 ## Cross-Domain Candidate
