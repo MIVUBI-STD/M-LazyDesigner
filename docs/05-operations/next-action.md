@@ -65,19 +65,28 @@ Do not remotely force:
 
 ### LOCAL_CODE — after synchronized REMOTE_GITHUB gate
 
-Before new MCP capability work, perform one bounded protocol-modernization spike against the matching clean `Local` SHA:
+MCP v2 protocol modernization is now source-proven on the same Runtime endpoint:
 
 ```text
-upgrade the MCP TypeScript SDK on a dependency/lockfile-owned local checkout
-→ prove the official v2 HTTP handler can serve MCP 2026-07-28 plus legacy stateless clients
-→ map current Host/Origin/body-limit/affinity/generation invariants onto that boundary
-→ replace custom HTTP parsing only where equivalent behavior is proven
-→ keep one Runtime endpoint and one Gateway; do not add a parallel transport stack
+2026-07-28 modern negotiation/list/call PASS
++
+legacy 2025 initialize/list/call PASS
++
+Runtime/Gateway typecheck + regression/build PASS
 ```
 
-Acceptance for that spike is **deletion/simplification**, not feature count. Do not merge a modern-protocol adapter that leaves the existing raw parser as an equally authoritative permanent path.
+The next transport task is **ownership reduction**, not another protocol feature:
 
-The current source still targets the legacy 2025-era Streamable HTTP behavior through `@modelcontextprotocol/sdk` v1.x. Do not claim MCP 2026-07-28 support until the upgraded SDK path, wire behavior, compatibility tests and lockfile all pass from the same source SHA.
+```text
+audit whether Node/SDK HTTP serving can replace the raw TCP/HTTP parser
+→ preserve loopback Host/Origin/body-limit checks
+→ preserve project/phase affinity and serialized mutation
+→ preserve generation-safe shutdown
+→ preserve modern + legacy compatibility proofs
+→ delete parser code only when equivalent behavior is demonstrated
+```
+
+Do not add a third transport path. The temporary legacy JSON leg exists only because current legacy clients/tests require that exact response shape; remove it once Gateway/client traffic is modernized and no supported consumer depends on the legacy JSON contract.
 
 From the matching clean `Local` SHA:
 
@@ -143,4 +152,4 @@ Measure **Cost to Accepted Result** without lowering accepted quality.
 
 ## Proof Boundary
 
-REMOTE_GITHUB can establish source architecture, generated freshness, typecheck/test/build contracts when exact-head CI executes them. The current source has **not been typechecked/executed locally** or proven live in Blockbench during this phase. Installed-runtime freshness, reload survival, native mutation behavior, visual fidelity, and measured usage savings remain higher-context proof work.
+REMOTE_GITHUB can establish source architecture, generated freshness, typecheck/test/build contracts when exact-head CI executes them. The current source has exact-head REMOTE_GITHUB typecheck/test/build proof but has **not** been proven live in Blockbench during this phase. Installed-runtime freshness, reload survival, native mutation behavior, visual fidelity, and measured usage savings remain higher-context proof work.
