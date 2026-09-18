@@ -4,8 +4,8 @@ async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-describe("live authoring E2E harness", () => {
-  test("shared client owns freshness, stable runtime, safe surface proof, observable cost, and stable fixture identities", async () => {
+describe("live authoring harness static contract", () => {
+  test("shared live verifier source declares freshness, runtime identity, cost metrics, and stable fixture identities", async () => {
     const helper = await source("scripts/live-e2e-common.ts");
     for (const contract of [
       "build_identity",
