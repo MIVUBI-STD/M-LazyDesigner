@@ -66,6 +66,33 @@ async function bodyJson(response: Response): Promise<Record<string, unknown>> {
   return JSON.parse(await response.text()) as Record<string, unknown>;
 }
 
+async function rawHttpRequest(request: string): Promise<string> {
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("Expected active TCP listener.");
+  }
+
+  return await new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const socket = createConnection({ host: HOST, port: address.port });
+    const deadline = setTimeout(() => {
+      socket.destroy();
+      reject(new Error("Raw HTTP request did not complete."));
+    }, 2500);
+
+    const finish = (error?: Error) => {
+      clearTimeout(deadline);
+      if (error) reject(error);
+      else resolve(Buffer.concat(chunks).toString("utf8"));
+    };
+
+    socket.on("data", (chunk: Buffer) => chunks.push(chunk));
+    socket.once("error", finish);
+    socket.once("end", () => finish());
+    socket.once("connect", () => socket.end(request));
+  });
+}
+
 function percentile(values: number[], fraction: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -213,6 +240,32 @@ describe("P1.4 raw-net stateless integration", () => {
     expect(response.status).toBe(403);
     const body = await bodyJson(response);
     expect((body.error as { message?: string }).message).toContain("invalid Origin");
+  });
+
+  test("HTTP/1.1 requests fail closed on missing or duplicate routing headers", async () => {
+    const missingHost = await rawHttpRequest(
+      `GET ${ENDPOINT}/health HTTP/1.1\r\nConnection: close\r\n\r\n`
+    );
+    expect(missingHost.startsWith("HTTP/1.1 400 ")).toBe(true);
+    expect(missingHost).toContain("malformed or ambiguous HTTP headers");
+
+    const duplicateHost = await rawHttpRequest(
+      `GET ${ENDPOINT}/health HTTP/1.1\r\nHost: ${HOST}\r\nHost: localhost\r\nConnection: close\r\n\r\n`
+    );
+    expect(duplicateHost.startsWith("HTTP/1.1 400 ")).toBe(true);
+
+    const duplicateOrigin = await rawHttpRequest(
+      `GET ${ENDPOINT}/health HTTP/1.1\r\nHost: ${HOST}\r\nOrigin: http://localhost\r\nOrigin: http://127.0.0.1\r\nConnection: close\r\n\r\n`
+    );
+    expect(duplicateOrigin.startsWith("HTTP/1.1 400 ")).toBe(true);
+  });
+
+  test("malformed header lines fail before MCP or health dispatch", async () => {
+    const response = await rawHttpRequest(
+      `GET ${ENDPOINT}/health HTTP/1.1\r\nHost: ${HOST}\r\nMalformedHeader\r\nConnection: close\r\n\r\n`
+    );
+    expect(response.startsWith("HTTP/1.1 400 ")).toBe(true);
+    expect(response).toContain("malformed or ambiguous HTTP headers");
   });
 
   test("initialize exposes compact capability-oriented namespace instructions", async () => {
