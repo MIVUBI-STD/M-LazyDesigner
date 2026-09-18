@@ -350,7 +350,7 @@ Hierarchy exists for transform ownership, articulation, attachment, or useful or
 
 ## Functional Anchors / Locators
 
-A required non-visible effect, hold, or attachment point that needs transform identity but no visible volume is **Locator intent**, not a hidden/placeholder Cube. A Locator may participate in animation when it owns a moving attachment/reference transform; non-visible does not mean static.
+A required non-visible effect, hold, or attachment point that needs transform identity but no visible volume is **Locator intent**, not a hidden/placeholder Cube. When that attachment/reference point must move during animation, parent the Locator under the appropriate animated Group/Bone so it inherits that transform. Current animation authoring targets Group/Bone owners, not Locator elements directly.
 
 ## Completion Criteria
 
