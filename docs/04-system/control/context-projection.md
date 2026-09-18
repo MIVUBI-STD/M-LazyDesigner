@@ -160,6 +160,28 @@ Control must not serialize `docs/02-reference/pixel-art/**`, the Pixel Art Skill
 
 If the downstream stage only needs the produced image, pass/reference the image and the smallest semantic constraints that can change implementation.
 
+## Research-derived authoring knowledge boundary
+
+Research-derived modelling intelligence belongs with its durable domain owner and hot-path specialist/profile projection, not inside Control packet fields.
+
+```text
+durable rule
+→ docs/03-authoring/**
+
+hot-path execution trigger
+→ active specialist Skill
+
+asset-class nuance
+→ exactly one selected modelling profile
+
+Control
+→ only selects/transports those owners
+→ does not serialize their prose into stage_context
+```
+
+In particular, ownership-reuse, smallest-changed-branch, animated-Locator, family-attachment, or rig/clip/controller-budget guidance must **not** become new `stage_context` fields, a second reasoning schema, or duplicated packet prose.
+
+Animation receives resolved participating rig/relationship evidence plus the Animation Skill; it does not reload the full selected modelling profile merely because the asset has one.
 ## Geometry Profile Rule
 
 Only Geometry normally loads a full modelling profile:
