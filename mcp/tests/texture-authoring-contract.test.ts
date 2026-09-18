@@ -498,7 +498,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("create_texture sizes its fresh canvas to authored dimensions before filling", async () => {
-    const textureSource = await source("server/tools/texture.ts");
+    const textureSource = await source("server/tools/texture-create.ts");
     const executeStart = textureSource.indexOf("async execute({");
     const executeEnd = textureSource.indexOf("const result = {", executeStart);
     expect(executeStart).toBeGreaterThanOrEqual(0);
