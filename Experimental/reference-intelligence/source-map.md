@@ -173,6 +173,34 @@ Evaluate rights per listing. Prefer explicit CC0/CC BY assets. Derived facts and
 
 Status: `SCOUTED_FOR_SIMPLE_PROP_DISCIPLINE`. See `prop-furniture-scout.md`.
 
+## S7–S14 — User-Supplied Bedrock Pack Corpus
+
+Class: mixed cross-system corpus spanning `WORLD_SYSTEM_CORPUS`, `CONTENT_HEAVY_ADDON_CORPUS`, `PRESENTATION_ENVIRONMENT_CORPUS`, `RESOURCE_PRESENTATION_CORPUS`, `SCRIPTED_INTERACTION_CORPUS`, `HYBRID_WORLD_SYSTEM_CORPUS`, `MODULAR_ADDON_SYSTEM_CORPUS`, and `FUNCTION_STATE_MACHINE_CORPUS`.
+
+Sources:
+- Bloom;
+- Minecraft: Friendly Fishing Add-On;
+- Realism Visuals;
+- Actions & Stuff 1.4;
+- Advanced Movement Add-on;
+- Advanced Truck Simulator;
+- Better on Bedrock 1.1;
+- TNT Arena.
+
+Primary cross-corpus value:
+
+1. proves that Bedrock systems can be function-driven, Script API-driven, or hybrid;
+2. separates gameplay state/computation from entity/item/environment presentation;
+3. demonstrates content-family scaling without equating every content instance with a new subsystem;
+4. exposes large animation/controller/attachable surfaces as first-class presentation architecture;
+5. demonstrates environment rendering as a separate presentation domain;
+6. provides vehicle, movement, arena, worldgen, mission/UI, and function-state-machine examples for future focused audits;
+7. reinforces that packaged obfuscation/hashed naming is not authoring-semantic guidance.
+
+Rights boundary: all eight user-supplied archives are analysis-only unless redistribution rights are independently verified. No raw payload is promoted.
+
+Status: `MINED_FOR_CROSS_SYSTEM_PATTERN`. See `bedrock-pack-corpus-study.md`.
+
 ## Cross-Domain Responsibility Vocabulary
 
 Status: `STATICALLY_VALIDATED_CANDIDATE` synthesized from the current cross-domain studies.
