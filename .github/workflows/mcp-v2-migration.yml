@@ -1,4 +1,4 @@
-name: MCP v2 Migration Baseline
+name: MCP v2 Migration Closure
 
 on:
   push:
@@ -10,9 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  migrate:
+  verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout Local
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -25,26 +25,35 @@ jobs:
         with:
           bun-version-file: .bun-version
 
-      - name: Apply official MCP v1 to v2 codemod
-        working-directory: mcp
-        run: bunx @modelcontextprotocol/codemod@latest v1-to-v2 .
-
-      - name: Require supported Zod 4 authoring schemas
-        working-directory: mcp
-        run: bun add zod@^4.2.0
-
-      - name: Resolve exact dependency graph
+      - name: Refresh exact dependency graph
         working-directory: mcp
         run: bun install
 
-      - name: Commit mechanical migration baseline
+      - name: Regenerate canonical generated artifacts
+        working-directory: mcp
+        run: |
+          bun run docs:build
+          bun run prompts:build
+
+      - name: Commit lockfile and generated artifacts
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet; then
-            echo "Codemod produced no changes."
-            exit 1
+          if ! git diff --quiet -- mcp/bun.lock mcp/docs/api.json mcp/docs/index.html mcp/prompts/manifest.json; then
+            git add mcp/bun.lock mcp/docs/api.json mcp/docs/index.html mcp/prompts/manifest.json
+            git commit -m "chore(mcp): synchronize SDK v2 generated artifacts"
+            git push origin HEAD:Local
           fi
-          git add mcp
-          git commit -m "refactor(mcp): apply official SDK v2 migration baseline"
+
+      - name: Verify full MCP v2 repository
+        working-directory: mcp
+        run: bun run verify:full
+
+      - name: Remove migration workflow after closure
+        run: |
+          rm .github/workflows/mcp-v2-migration.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/mcp-v2-migration.yml
+          git commit -m "ci: remove completed MCP v2 migration workflow"
           git push origin HEAD:Local
