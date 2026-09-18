@@ -191,7 +191,7 @@ describe("model creation effectiveness — professional construction without pre
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
       source("../docs/03-authoring/animation/standard.md"),
-      source("server/tools/animation.ts"),
+      source("server/tools/animation-rigging.ts"),
       source("server/runtime/consolidatedTools.ts"),
     ]);
 
