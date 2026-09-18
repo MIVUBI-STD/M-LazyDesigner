@@ -288,7 +288,7 @@ Only six additive candidates remain:
 
 The six-word responsibility vocabulary remains `REASONING_AID_ONLY`, not a stored schema.
 
-See `compact-modelling-decision-rules.md`.
+See `compact-modelling-decision-rules.md` and `compact-refinements-stress-test.md`. All six refinements are source-contract compatible with the current synthetic benchmark, but remain unproven for native accepted-result improvement.
 
 ## Current Coverage Matrix
 
