@@ -1,6 +1,6 @@
 # LazyDesigner Current Validation
 
-Updated: 2026-09-12
+Updated: 2026-09-18
 
 This file owns **current proof interpretation only**. Product workflow belongs in `docs/01-product/flow.md`; reference preparation in `docs/02-reference/`; source ownership in `docs/04-system/implementation-map.md`; continuation in `docs/05-operations/next-action.md`.
 
@@ -87,6 +87,8 @@ server/runtime/textureRuntimeContracts.ts   Texture contract enrichment
 server/runtime/animationRuntimeContracts.ts Animation contract enrichment
 server/tools/**                       domain Tool implementations
 ```
+
+Tool-family facades (`animation.ts`, `texture.ts`, `paint.ts`, `element.ts`) are compatibility/aggregation owners only; concrete implementation ownership lives in their focused sibling modules documented in `docs/04-system/implementation-map.md`.
 
 `switch_authoring_phase` applies the registered Runtime phase/surface handler before returning its Gateway handoff receipt. Geometry↔Texturing remains one shared AUTHORING surface; Animation remains the only foreign authoring surface.
 
