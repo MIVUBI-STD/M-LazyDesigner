@@ -73,10 +73,10 @@ type ToolResult = string | { content: ToolContentItem[]; structuredContent?: unk
 interface ToolDefinition {
   title: string;
   description: string;
-  inputSchema: Record<string, z.ZodType>;
-  parameterSchema: z.ZodType;
-  outputSchema?: Record<string, z.ZodType> | z.ZodType;
-  execute: (args: Record<string, unknown>, context?: ToolContext) => Promise<ToolResult>;
+  inputSchema: Record<string, z.ZodType<any, any>>;
+  parameterSchema: z.ZodType<any, any>;
+  outputSchema?: Record<string, z.ZodType<any, any>> | z.ZodType<any, any>;
+  execute: (args: any, context?: ToolContext) => Promise<ToolResult>;
   annotations?: ToolAnnotations;
 }
 
@@ -223,43 +223,37 @@ function getToolInvocation(name: string, toolDef: ToolDefinition) {
  * Extracts the SDK-compatible object shape used for MCP registration/listing.
  * The original complete schema is retained separately for runtime validation.
  */
-export function extractShape(schema: z.ZodType): Record<string, z.ZodType> {
-  const def = schema._def as {
-    typeName?: string;
-    schema?: z.ZodType;
-    left?: z.ZodType;
-    right?: z.ZodType;
-    shape?: () => Record<string, z.ZodType>;
-    options?: z.ZodType[];
-  };
-
-  if (def.typeName === "ZodObject") {
-    return def.shape?.() ?? {};
+export function extractShape(
+  schema: z.ZodType<any, any>
+): Record<string, z.ZodType<any, any>> {
+  if (schema instanceof z.ZodObject) {
+    return schema.shape as Record<string, z.ZodType<any, any>>;
   }
 
-  if (def.typeName === "ZodEffects" && def.schema) {
-    return extractShape(def.schema);
+  if (schema instanceof z.ZodPipe) {
+    return extractShape(schema.in);
   }
 
-  if (def.typeName === "ZodIntersection" && def.left && def.right) {
+  if (schema instanceof z.ZodIntersection) {
     return {
-      ...extractShape(def.left),
-      ...extractShape(def.right),
+      ...extractShape(schema._def.left as z.ZodType<any, any>),
+      ...extractShape(schema._def.right as z.ZodType<any, any>),
     };
   }
 
-  if (
-    (def.typeName === "ZodUnion" || def.typeName === "ZodDiscriminatedUnion") &&
-    def.options
-  ) {
-    const optionShapes = def.options.map(extractShape);
+  if (schema instanceof z.ZodUnion) {
+    const optionShapes = schema.options.map((option) =>
+      extractShape(option as z.ZodType<any, any>)
+    );
     const fieldNames = new Set(optionShapes.flatMap((shape) => Object.keys(shape)));
 
     return Object.fromEntries(
       [...fieldNames].map((fieldName) => {
         const variants = optionShapes
           .map((shape) => shape[fieldName])
-          .filter((field): field is z.ZodType => field !== undefined);
+          .filter(
+            (field): field is z.ZodType<any, any> => field !== undefined
+          );
         const [first, second, ...rest] = variants;
         if (!first) {
           throw new Error(`Union field "${fieldName}" has no schema.`);
@@ -267,9 +261,9 @@ export function extractShape(schema: z.ZodType): Record<string, z.ZodType> {
 
         const field = second
           ? z.union([first, second, ...rest] as [
-              z.ZodTypeAny,
-              z.ZodTypeAny,
-              ...z.ZodTypeAny[],
+              z.ZodType<any, any>,
+              z.ZodType<any, any>,
+              ...z.ZodType<any, any>[],
             ])
           : first;
         const requiredInEveryOption =
@@ -359,7 +353,7 @@ function compactMirroredStructuredContent(
  * @returns - The created tool metadata.
  * @throws - If a tool with the same name already exists.
  */
-export function createTool<T extends z.ZodType>(
+export function createTool<T extends z.ZodType<any, any>>(
   name: string,
   tool: {
     description: string;
@@ -656,8 +650,8 @@ function promptArgumentsFromShape(
 
   return Object.entries(shape).map(([name, field]) => ({
     name,
-    description: field.description,
-    required: !field.isOptional(),
+    description: z.globalRegistry.get(field)?.description,
+    required: !field.safeParse(undefined).success,
   }));
 }
 
