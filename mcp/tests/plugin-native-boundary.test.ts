@@ -10,8 +10,8 @@ describe("Plugin native boundary", () => {
     const hostSource = await source("plugin/runtimeHost.ts");
 
     expect(indexSource).toContain("runtimeHost.acquireNativeNetwork(generation)");
-    expect(indexSource).not.toContain("requireNativeModule(\"net\"");
-    expect(hostSource).toContain("requireNativeModule(\"net\"");
+    expect(indexSource).not.toContain("requireNativeModule(\"http\"");
+    expect(hostSource).toContain("requireNativeModule(\"http\"");
   });
 
   test("Blockbench integration owns setup and teardown services", async () => {
