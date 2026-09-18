@@ -42,7 +42,6 @@
     "verify:particle-live": "bun run ./scripts/verify-particle-live.ts",
     "verify:persistence-live": "bun run ./scripts/verify-persistence-live.ts",
     "verify:project-affinity-live": "bun run ./scripts/verify-project-affinity-live.ts",
-    "verify:lift-quality-live": "bun run ./scripts/verify-lift-quality-live.ts",
     "deploy:local": "bun run build && bun run ./scripts/deploy-local.ts",
     "deploy:verified": "bun run ./scripts/verified-build-artifact.ts deploy",
     "prompts:build": "bun run ./build/generate-manifest.ts",
@@ -54,7 +53,12 @@
     "docs:check": "bun run ./build/check-docs-freshness.ts",
     "docs:serve": "bun run docs/index.html",
     "docs": "bun run prompts:build && bun run docs:build && bun run docs:serve",
-    "inspect": "bunx @modelcontextprotocol/inspector"
+    "inspect": "bunx @modelcontextprotocol/inspector",
+    "eval:routed-tool-loading": "bun run ./scripts/evaluate-routed-tool-loading.ts",
+    "verify:template-live": "bun run ./scripts/verify-template-live.ts",
+    "verify:uv-density-live": "bun run ./scripts/verify-uv-density-live.ts",
+    "audit:unused": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "audit:unused:gateway": "tsc -p gateway/tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

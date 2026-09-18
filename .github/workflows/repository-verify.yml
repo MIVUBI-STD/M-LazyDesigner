@@ -28,7 +28,6 @@ on:
       - "mcp/prompts/blockbench_code_eval_safety.md"
       - "mcp/prompts/blockbench_native_apis.md"
       - "Experimental/README.md"
-      - "Experimental/blockbench-web-poc/**"
       - ".github/workflows/**"
   workflow_dispatch:
 

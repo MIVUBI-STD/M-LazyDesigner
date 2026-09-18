@@ -6,7 +6,7 @@ Isolated workspace for bounded research and historical proposals that are **not*
 
 There is no active production authority under `Experimental/`.
 
-- `blockit-navigator/` is retained only as historical design context for the superseded Navigator concept.
+- Historical Navigator design context is retained in Git history only; there is no Navigator working-tree owner.
 - Particle Reference Authoring has been fully promoted out of `Experimental/` and now lives under `docs/02-reference/particle/` with its ChatGPT-side specialist at `.agents/skills/lazydesigner-particle-reference-authoring/`.
 - Historical particle research remains available through Git history rather than a parallel working-tree owner.
 - The former active `mcp/gateway/navigator/` production path has been removed.

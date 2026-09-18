@@ -64,6 +64,8 @@ describe("current representative workspace fixture", () => {
     expect(readme).toContain("Animation: APPROVED");
     expect(readme).toContain("Geometry Strategy: DIRECT");
     expect(readme).toContain("Fixture boundary:");
+    expect(readme).toContain("historical structural/compatibility fixture media only");
+    expect(readme).toContain("not** a craftsmanship, visual-quality, acceptance-quality, or efficiency benchmark");
     expect(readme).not.toContain("Current Stage: DELIVERED");
     expect(readme).not.toContain("## Prior tests / remaining proof");
   });

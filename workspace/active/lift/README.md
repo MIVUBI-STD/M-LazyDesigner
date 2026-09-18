@@ -35,6 +35,6 @@ Animation delivery:
 
 Current next step: None for the requested asset authoring.
 
-Known blocker(s): None for the delivered asset. Native close/reopen persistence and strict reference-equality claims are not established by this README; current system proof belongs in `../../../docs/knowledge/current-validation.md`.
+Known blocker(s): None for the delivered asset. Native close/reopen persistence and strict reference-equality claims are not established by this README; current system proof belongs in `../../../docs/05-operations/current-validation.md`.
 
-Fixture boundary: LIFT may be used only as replaceable representative test media for the generic quality/efficiency methodology. Preserve canonical `lift.bbmodel`; system tests mutate disposable copies only. LIFT-specific behavior must not become MCP Runtime/tool/policy semantics.
+Fixture boundary: LIFT is historical structural/compatibility fixture media only. It is **not** a craftsmanship, visual-quality, acceptance-quality, or efficiency benchmark. Preserve canonical `lift.bbmodel`; any structural compatibility test must use a disposable copy when mutation is required. LIFT-specific behavior must not become MCP Runtime/tool/policy semantics.
