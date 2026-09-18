@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-18T15:52:02.700Z",
+  "generatedAt": "2026-09-18T15:53:59.493Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5674,7 +5674,7 @@
     {
       "name": "paint_texture_transaction",
       "title": "Paint Texture Transaction",
-      "description": "Applies bounded set/fill/erase, mirrored copy_region, or seeded masked noise to a non-layered texture with revision protection and one native Undo. Optional output writes the final bitmap to a verified PNG path in the same transaction, so particle sprites reuse Texturing instead of adding a particle-specific save tool.",
+      "description": "Applies bounded exact-pixel operations or Cube AO to one non-layered texture with revision protection and one Undo. Optional output atomically saves a verified PNG.",
       "status": "stable",
       "category": "Paint Tools",
       "annotations": {
@@ -5906,7 +5906,7 @@
                     "target"
                   ],
                   "additionalProperties": false,
-                  "description": "Copy an explicit same-atlas region, optionally mirrored, with RGBA preserved. Caller owns matching entity UV regions; no player-skin layout is assumed."
+                  "description": "Copy/mirror one explicit same-atlas RGBA region."
                 },
                 {
                   "type": "object",
@@ -5956,7 +5956,7 @@
                       "type": "integer",
                       "minimum": 1,
                       "maximum": 255,
-                      "description": "Maximum signed channel adjustment, not a styling quality setting."
+                      "description": "Maximum signed channel adjustment."
                     },
                     "channels": {
                       "minItems": 1,
@@ -5973,7 +5973,7 @@
                       }
                     },
                     "mask": {
-                      "description": "Optional explicit pixel selection within rect; unselected pixels stay unchanged.",
+                      "description": "Optional explicit pixels within rect.",
                       "minItems": 1,
                       "type": "array",
                       "items": {
@@ -5998,7 +5998,7 @@
                       }
                     },
                     "preserve_transparent": {
-                      "description": "Defaults true: do not color fully transparent atlas pixels. Alpha changes require channel a.",
+                      "description": "Default true; preserves fully transparent pixels.",
                       "type": "boolean"
                     }
                   },
@@ -6015,7 +6015,7 @@
             }
           },
           "ambient_occlusion": {
-            "description": "Bedrock Cube AO at the current preview pose. Explicit targets, visible Cubes as occluders; preserves alpha, rejects conflicting UV. Repeated bakes darken again; use Undo to restore. Exclusive with operations.",
+            "description": "Bedrock Cube AO for explicit targets at the current pose. Preserves alpha; exclusive with operations.",
             "type": "object",
             "properties": {
               "cube_ids": {
@@ -6056,7 +6056,7 @@
             "additionalProperties": false
           },
           "output": {
-            "description": "Optional verified PNG output for the final authored bitmap. Used by particle sprites and other external texture assets without adding a second save tool.",
+            "description": "Optional verified PNG output for the final bitmap.",
             "type": "object",
             "properties": {
               "path": {

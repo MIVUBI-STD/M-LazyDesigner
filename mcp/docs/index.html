@@ -1834,7 +1834,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Paint Texture Transaction</p>
-      <p class="card-desc">Applies bounded set/fill/erase, mirrored copy_region, or seeded masked noise to a non-layered texture with revision protection and one native Undo. Optional output writes the final bitmap to a verified PNG path in the same transaction, so particle sprites reuse Texturing instead of adding a particle-specific save tool.</p>
+      <p class="card-desc">Applies bounded exact-pixel operations or Cube AO to one non-layered texture with revision protection and one Undo. Optional output atomically saves a verified PNG.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -1864,12 +1864,12 @@ bun run docs:check
       <td class="col-name">ambient_occlusion</td>
       <td class="col-type">object</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Bedrock Cube AO at the current preview pose. Explicit targets, visible Cubes as occluders; preserves alpha, rejects conflicting UV. Repeated bakes darken again; use Undo to restore. Exclusive with operations.</td>
+      <td class="col-desc">Bedrock Cube AO for explicit targets at the current pose. Preserves alpha; exclusive with operations.</td>
     </tr><tr>
       <td class="col-name">output</td>
       <td class="col-type">object</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Optional verified PNG output for the final authored bitmap. Used by particle sprites and other external texture assets without adding a second save tool.</td>
+      <td class="col-desc">Optional verified PNG output for the final bitmap.</td>
     </tr></tbody>
     </table>
       </div>
@@ -2530,7 +2530,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-18T15:52:02.700Z from Zod schemas
+        Generated 2026-09-18T15:53:59.493Z from Zod schemas
       </footer>
     </main>
   </div>
