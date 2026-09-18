@@ -217,7 +217,7 @@ describe("texture production alignment wiring", () => {
     const [runtime, server, bootstrap] = await Promise.all([
       Bun.file("server/tools/texture-quality-runtime.ts").text(),
       Bun.file("server/server.ts").text(),
-      Bun.file("server/runtime/bootstrap.ts").text(),
+      Bun.file("server/runtime/extensions.ts").text(),
     ]);
     expect(runtime).toContain('runtimeDefinition("list_textures")');
     expect(runtime).toContain('runtimeDefinition("manage_material")');
@@ -227,6 +227,6 @@ describe("texture production alignment wiring", () => {
     expect(runtime).toContain('color_texture="none"');
     expect(runtime).toContain('mer_texture="none"');
     expect(server).toContain("initializeRuntimeCapabilityWiring();");
-    expect(bootstrap).toContain("wireTextureQualityRuntime();");
+    expect(bootstrap).toContain("apply: wireTextureQualityRuntime");
   });
 });
