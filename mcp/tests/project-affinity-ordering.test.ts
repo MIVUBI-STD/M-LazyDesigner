@@ -17,7 +17,7 @@ describe("Runtime project-affinity dispatch ordering", () => {
       abandonedCatch
     );
     const projectErrorCatch = source.indexOf(
-      "if (error instanceof RuntimeProjectContextError",
+      "error instanceof RuntimeProjectContextError",
       retiredCatch
     );
 
