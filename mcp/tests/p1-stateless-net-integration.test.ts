@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createConnection, createServer as createTcpServer, type AddressInfo, type Socket } from "node:net";
+import { createServer as createHttpServer } from "node:http";
+import { createConnection, type AddressInfo, type Socket } from "node:net";
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
@@ -157,7 +158,7 @@ async function measureRequestSequence(
 beforeAll(async () => {
   server = createNetServer(
     {
-      createServer: (callback) => createTcpServer(callback),
+      createServer: (options, callback) => createHttpServer(options, callback),
     },
     {
       port: 0,
