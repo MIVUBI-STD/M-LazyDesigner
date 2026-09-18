@@ -59,8 +59,8 @@ describe("Runtime extension composition", () => {
   test("runtime contract composition has no retired tool-side wiring owner", async () => {
     expect(await Bun.file("server/runtime/textureRuntimeContracts.ts").exists()).toBe(true);
     expect(await Bun.file("server/runtime/animationRuntimeContracts.ts").exists()).toBe(true);
-    expect(await Bun.file("server/tools/prelocal-wiring.ts").exists()).toBe(false);
-    expect(await Bun.file("server/tools/animation-runtime-wiring.ts").exists()).toBe(false);
+    expect(await Bun.file("server/runtime/extensions.ts").exists()).toBe(true);
+    expect(await Bun.file("server/tools/paint-texture-transaction.ts").exists()).toBe(true);
 
     const registration = await Bun.file("server/runtime/registration.ts").text();
     expect(registration.indexOf("registerConsolidatedTools(updateCatalogTool)")).toBeLessThan(
