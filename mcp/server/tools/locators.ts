@@ -156,7 +156,7 @@ export const locatorToolDocs: ToolSpec[] = [
   {
     name: "manage_locator",
     description:
-      "Creates or updates a Locator. Create requires name+parent; update requires id plus an authored field. Rename/delete use rename_element/remove_element.",
+      "Creates or updates a Locator. Create requires name+parent; update requires id plus an authored field. For a moving attachment/reference point, parent the Locator to the animated Group/Bone; current animation tools keyframe Groups/Bones, not Locator elements directly. Rename/delete use rename_element/remove_element.",
     annotations: {
       title: "Manage Bedrock Locator",
       destructiveHint: true,

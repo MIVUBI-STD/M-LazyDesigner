@@ -125,6 +125,7 @@ Rules:
 - For corrections, inspect once only when current exact authored state is stale/unknown; then mutate the whole diagnosed cohort in one bounded operation where available.
 - Do not use `duplicate_element` repeatedly for a known symmetric/repeated cohort if one derived `manage_cubes` batch can author the final intended transforms directly.
 - Native Outliner/Cube/Group/Undo operations are the intended execution path; Blockbench UI reflecting the result afterward is not UI automation.
+- Normal Group/bone create/pivot/parent/rename/delete work stays on `add_group`, `modify_group`, `reparent_element`, `rename_element`, and `remove_element`. Use `bone_rigging` only when IK or bone mirroring is specifically required; its overlapping legacy actions are compatibility-only, not a second hierarchy workflow.
 
 ## Semantic Form / Construction / Transform Gate
 Before exact coordinates determine:
@@ -158,7 +159,7 @@ Keep Geometry/Rig complexity, Clip complexity, and Controller complexity as sepa
 
 For local state/presentation changes, isolate only the smallest changed geometry/owner branch. First-person/third-person, held/worn, coupled/uncoupled, or related contexts should reuse the base semantic hierarchy when its capability remains valid.
 
-Locator intent may be animated when it owns a moving attachment/reference transform. Do not replace visible required geometry with a Locator.
+For a moving attachment/reference point, parent the Locator under the correct animated Group/Bone so it inherits motion; current animation authoring targets Group/Bone owners rather than Locator elements directly. Do not replace visible required geometry with a Locator.
 
 
 ## Production-Scale Entity Construction

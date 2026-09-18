@@ -50,6 +50,8 @@ Presentation-context growth such as first-person vs third-person or held vs worn
 
 Controller/state complexity must not be solved by increasing rig density unless the hierarchy itself is the proven blocker.
 
+Attachment/reference Locators move through their animated parent Group/Bone. Current animation authoring targets Group/Bone animators, not Locator elements directly; if a Locator must follow motion, fix its parent ownership in Geometry rather than inventing a separate Locator animation path.
+
 ## Motion Design Contract
 
 Before production animation, define only applicable facts:

@@ -33,6 +33,19 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
     expect(manageNullObjectParameters.safeParse({ action: "update", id: "null-uuid", ik_target: "locator-uuid" }).success).toBe(false);
   });
 
+
+  test("Locator motion stays parent-driven rather than a second animation target system", async () => {
+    const [locatorSource, animationSource] = await Promise.all([
+      source("server/tools/locators.ts"),
+      source("server/tools/animation.ts"),
+    ]);
+
+    expect(locatorSource).toContain("parent the Locator to the animated Group/Bone");
+    expect(locatorSource).toContain("not Locator elements directly");
+    expect(animationSource).toContain("Bone keyframes keyed by Group UUID");
+    expect(animationSource).toContain("Group.all.find");
+    expect(animationSource).toContain("createdAnimation.animators[group.uuid]");
+  });
   test("Locator tools stay inside the existing elements family", async () => {
     const registration = await source("server/runtime/registration.ts");
     expect(registration).toContain('import { registerLocatorTools } from "../tools/locators"');

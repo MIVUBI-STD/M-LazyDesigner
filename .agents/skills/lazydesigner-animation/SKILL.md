@@ -134,6 +134,8 @@ Presentation contexts may use different transforms, clips, or local geometry bra
 
 If a requested motion cannot be expressed cleanly with the existing pivot/parent/clearance relationships, hand off to Geometry; do not compensate with denser keys or controller complexity.
 
+Locators are not direct animation targets in the current authoring path. A moving attachment/reference Locator must inherit motion from its parent Group/Bone; wrong parent ownership is a Geometry blocker.
+
 ## Motion Design Contract
 
 Before keys define only applicable facts (no foot-plant/gameplay contract for an unrelated mechanical loop):

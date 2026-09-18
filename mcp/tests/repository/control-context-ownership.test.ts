@@ -41,7 +41,7 @@ describe("Control context ownership", () => {
       "smallest_changed_branch",
       "ownership_reuse",
       "rig_clip_controller_budget",
-      "animated_locator_rule",
+      "locator_parent_motion_rule",
       "family_attachment_contract",
       "responsibility_vocabulary",
     ]) {

@@ -767,7 +767,7 @@ export const animationToolDocs: ToolSpec[] = [
   {
     name: "bone_rigging",
     description:
-      "Creates or edits Bedrock Group hierarchy, pivots, IK, and mirroring. Use for rig structure; use add_group for normal bone creation.",
+      "Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring; legacy overlapping actions remain for compatibility.",
     annotations: {
       title: "Bone Rigging",
       destructiveHint: true,

@@ -118,7 +118,7 @@ describe("model creation effectiveness — professional construction without pre
     expect(lower(modelling)).toContain("more clips or controller states");
     expect(geometry).toContain("Growth in one budget is not sufficient reason");
     for (const text of [modelling, geometry]) {
-      expect(lower(text)).toMatch(/locator.*moving attachment|moving attachment.*locator/);
+      expect(lower(text)).toMatch(/locator.*parent.*group\/bone|group\/bone.*locator/);
     }
 
     for (const text of [animationSkill, animation]) {
@@ -189,6 +189,36 @@ describe("model creation effectiveness — professional construction without pre
     ]) {
       expect(combined).not.toContain(forbidden);
     }
+  });
+
+  test("runtime-facing guidance keeps one normal hierarchy path and parent-driven Locator motion", async () => {
+    const [modelling, animationSkill, animationPolicy, animationSource, consolidated] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      source("../docs/03-authoring/animation/standard.md"),
+      source("server/tools/animation.ts"),
+      source("server/runtime/consolidatedTools.ts"),
+    ]);
+
+    for (const tool of [
+      "add_group",
+      "modify_group",
+      "reparent_element",
+      "rename_element",
+      "remove_element",
+    ]) expect(modelling).toContain(tool);
+
+    expect(modelling).toContain("Use `bone_rigging` only when IK or bone mirroring is specifically required");
+    expect(animationSource).toContain("Advanced/compatibility rig operations");
+    expect(animationSource).toContain("Prefer bone_rigging only for IK or bone mirroring");
+
+    expect(animationSkill).toContain("Locators are not direct animation targets");
+    expect(animationPolicy).toContain("Current animation authoring targets Group/Bone animators");
+    expect(animationPolicy).toContain("animated parent Group/Bone");
+
+    expect(consolidated).toContain("retainExecutorsBehindConsolidatedSurface");
+    expect(consolidated).toContain("if (tools[name]) tools[name].enabled = false");
+    expect(consolidated).toContain('name: "manage_animation_timeline"');
   });
 
   test("professional samples never become callable presets, profiles, or fixture anatomy", async () => {
