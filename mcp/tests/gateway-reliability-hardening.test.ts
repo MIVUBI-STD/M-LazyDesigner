@@ -61,6 +61,15 @@ describe("Gateway long-running reliability hardening", () => {
     expect(status.rejected_busy).toBe(1);
   });
 
+  test("negotiated MCP era is retained for status diagnostics and cleared on disconnect", async () => {
+    const source = await Bun.file("gateway/backend.ts").text();
+
+    expect(source).toContain('versionNegotiation: { mode: "auto" }');
+    expect(source).toContain("this.connectedProtocolEra = client.getProtocolEra()");
+    expect(source).toContain("protocol_era: ready ? this.connectedProtocolEra : null");
+    expect(source).toContain("this.connectedProtocolEra = null");
+  });
+
   test("connect, catalog and capability calls use MCP-native request timeouts", async () => {
     const source = await Bun.file("gateway/backend.ts").text();
 
