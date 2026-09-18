@@ -145,6 +145,10 @@ Segment count follows visible form and motion need, not a fixed template.
 
 A rigid decorative tail may remain one rigid assembly if that best matches the target.
 
+For flexible chains, preserve ordered articulation and allow phase/amplitude differences along the chain when motion requires them; do not add unrelated owners merely to make motion look more complex.
+
+Related creature assets may share semantic attachment/Locator contracts while using different body topology, hierarchy depth, segment counts, or pivots. Reuse family attachment semantics; do not force family anatomy into one fixed rig.
+
 ## 7. Wings / Fins / Membranes
 
 Resolve whether a wing/fin is primarily:
