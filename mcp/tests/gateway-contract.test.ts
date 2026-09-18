@@ -143,6 +143,23 @@ describe("BlockIT Gateway contract", () => {
     });
   });
 
+  test("describe capability exposes lifecycle semantics only on demand", async () => {
+    const source = await Bun.file("gateway/index.ts").text();
+
+    expect(source).toContain("const metadata = getCapabilityMetadata(capability)");
+    expect(source).toContain("lifecycle: metadata.lifecycle");
+    expect(source).toContain("execution_class: metadata.executionClass");
+    expect(source).toContain("verification_class: metadata.verificationClass");
+
+    const searchBlock = source.slice(
+      source.indexOf("GATEWAY_TOOLS.searchCapabilities"),
+      source.indexOf("GATEWAY_TOOLS.describeCapability")
+    );
+    expect(searchBlock).not.toContain("execution_class");
+    expect(searchBlock).not.toContain("verification_class");
+    expect(searchBlock).not.toContain("lifecycle:");
+  });
+
   test("branch projection keeps only continuation-relevant consolidated Animation fields", () => {
     const inputSchema = {
       type: "object",
