@@ -19,15 +19,17 @@ describe("Runtime boundary regressions", () => {
     expect(body).not.toContain("toolInvocationCache.clear()");
   });
 
-  test("Runtime protocol ownership converges on one SDK handler for modern and legacy stateless traffic", async () => {
+  test("Runtime prefers modern SDK handling and keeps only a bounded SDK legacy JSON shim", async () => {
     const source = await repoFile("server/net.ts");
 
     expect(source).toContain("createMcpHandler");
-    expect(source).toContain("legacy: 'stateless'");
+    expect(source).toContain("legacy: 'reject'");
     expect(source).toContain("responseMode: 'json'");
-    expect(source).not.toContain("isLegacyRequest");
-    expect(source).not.toContain("WebStandardStreamableHTTPServerTransport");
-    expect(source).not.toContain("handleLegacyJsonMcpRequest");
+    expect(source).toContain("isLegacyRequest");
+    expect(source).toContain("WebStandardStreamableHTTPServerTransport");
+    expect(source).toContain("enableJsonResponse: true");
+    expect(source).toContain("SDK v2.0.0 currently ignores");
+    expect(source).not.toContain("custom legacy parser");
   });
 
   test("Runtime transport consumes canonical capability effects", async () => {
