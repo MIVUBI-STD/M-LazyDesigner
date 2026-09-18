@@ -1,6 +1,6 @@
 # LazyDesigner Reference Package Schema
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 This document owns the canonical base structure of `REFERENCE.json`, the machine-readable index handed from ChatGPT Reference Preparation to Codex.
 
