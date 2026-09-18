@@ -36,7 +36,7 @@ describe("generic semantics narrowing contract", () => {
     expect(duplicateElementParameters.safeParse({ id: "cube", offset: [0, Infinity, 0] }).success).toBe(false);
     expect(requireFiniteTranslatedElementVector3([1, 2, 3], [4, 5, 6], "test")).toEqual([5, 7, 9]);
     expect(() => requireFiniteTranslatedElementVector3([1e308, 0, 0], [1e308, 0, 0], "test")).toThrow("non-finite authored coordinate");
-    const sourceText = await source("server/tools/element.ts");
+    const sourceText = await source("server/tools/element-mutation.ts");
     expect(sourceText).toContain("preflightDuplicateTranslation(element, offset)");
   });
 
@@ -140,18 +140,18 @@ describe("generic semantics narrowing contract", () => {
   });
 
   test("generic per-face texture apply is disabled for Bedrock single-texture authoring", async () => {
-    const texture = await source("server/tools/texture.ts");
+    const texture = await source("server/tools/texture-assignment.ts");
     const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
-    expect(texture).toContain("textureToolDocs[1].status, false");
+    expect(texture).toContain("applyTextureToolDoc.status, false");
     expect(texture).toContain("Legacy per-face texture wrapper. Disabled on the normal Bedrock Entity surface; use activate_texture.");
     expect(skill).not.toContain("- `apply_texture`");
     expect(skill).toContain("list_textures / activate_texture");
   });
 
   test("raw per-face texture discovery is disabled for Bedrock single-texture authoring", async () => {
-    const elements = await source("server/tools/element.ts");
+    const elements = await source("server/tools/element-discovery.ts");
     const start = elements.indexOf('name: "filter_by_material"');
-    const registration = elements.indexOf("elementToolDocs[7].status, false");
+    const registration = elements.indexOf("elementDiscoveryToolDocs[3].status, false");
     expect(start).toBeGreaterThan(-1);
     expect(registration).toBeGreaterThan(start);
     expect(elements).toContain("Legacy raw face-material lookup. Disabled on the Bedrock Entity surface.");
