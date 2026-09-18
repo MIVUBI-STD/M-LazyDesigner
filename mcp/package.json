@@ -53,7 +53,10 @@
     "docs:check": "bun run ./build/check-docs-freshness.ts",
     "docs:serve": "bun run docs/index.html",
     "docs": "bun run prompts:build && bun run docs:build && bun run docs:serve",
-    "inspect": "bunx @modelcontextprotocol/inspector"
+    "inspect": "bunx @modelcontextprotocol/inspector",
+    "eval:routed-tool-loading": "bun run ./scripts/evaluate-routed-tool-loading.ts",
+    "verify:template-live": "bun run ./scripts/verify-template-live.ts",
+    "verify:uv-density-live": "bun run ./scripts/verify-uv-density-live.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
