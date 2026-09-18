@@ -93,6 +93,32 @@ Do not rotate many child Cubes independently when one shared semantic transform 
 
 A Group/Bone/pivot belongs in the primary blockout when it is required to establish primary form/orientation, attachment/contact, articulation/segment continuity, or shared transform ownership. Neutral organization may wait until after primary PASS.
 
+### Ownership reuse / local variants
+
+Stable semantic ownership should survive growth in animation clips, controller states, and presentation contexts unless a genuinely new transform, attachment, or deformation capability is required.
+
+Treat these as separate complexity budgets:
+
+```text
+Geometry / rig
+→ form + transform capability
+
+Animation clips
+→ authored motion / pose inventory
+
+Animation controllers
+→ temporal / state composition
+```
+
+Growth in one budget is not sufficient reason to grow either of the others.
+
+For first-person/third-person, held/worn, coupled/uncoupled, or comparable presentation contexts, preserve the base semantic hierarchy when its transform capability remains valid. Vary only the transform, clip, Locator, or local geometry branch that materially changes.
+
+For local visual/state variants, isolate the **smallest changed branch**. Do not duplicate unchanged base geometry merely because one mouth, accessory, cargo, panel, attachment, or other local form changes.
+
+A family of related assets may reuse attachment/Locator semantics without sharing identical geometry topology, hierarchy depth, segment count, or pivots.
+
+
 ## Initial Cube Creation
 
 Every new Cube requires explicit finite `from` and `to`. Do not create default placeholder Cubes merely to have geometry and decide later.
@@ -324,7 +350,7 @@ Hierarchy exists for transform ownership, articulation, attachment, or useful or
 
 ## Functional Anchors / Locators
 
-A required non-visible effect, hold, or attachment point that needs transform identity but no visible volume is **Locator intent**, not a hidden/placeholder Cube.
+A required non-visible effect, hold, or attachment point that needs transform identity but no visible volume is **Locator intent**, not a hidden/placeholder Cube. A Locator may participate in animation when it owns a moving attachment/reference transform; non-visible does not mean static.
 
 ## Completion Criteria
 
