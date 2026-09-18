@@ -2,18 +2,18 @@ import { describe, expect, test } from "bun:test";
 import { sourceOwnerForCapability } from "@/gateway/control";
 
 const expectedOwners = {
-  list_textures: "mcp/server/tools/texture.ts",
-  get_texture: "mcp/server/tools/texture.ts",
-  add_texture_group: "mcp/server/tools/texture.ts",
-  import_texture_set: "mcp/server/tools/texture.ts",
-  gradient_tool: "mcp/server/tools/paint.ts",
-  copy_brush_tool: "mcp/server/tools/paint.ts",
-  paint_settings: "mcp/server/tools/paint.ts",
-  texture_selection: "mcp/server/tools/paint.ts",
-  texture_layer_management: "mcp/server/tools/paint.ts",
+  list_textures: "mcp/server/tools/texture-read.ts",
+  get_texture: "mcp/server/tools/texture-read.ts",
+  add_texture_group: "mcp/server/tools/texture-assignment.ts",
+  import_texture_set: "mcp/server/tools/texture-materials.ts",
+  gradient_tool: "mcp/server/tools/paint-primitives.ts",
+  copy_brush_tool: "mcp/server/tools/paint-primitives.ts",
+  paint_settings: "mcp/server/tools/paint-state.ts",
+  texture_selection: "mcp/server/tools/paint-state.ts",
+  texture_layer_management: "mcp/server/tools/paint-state.ts",
   list_locator_elements: "mcp/server/tools/locators.ts",
-  select_all_of_type: "mcp/server/tools/element.ts",
-  get_selection: "mcp/server/tools/element.ts",
+  select_all_of_type: "mcp/server/tools/element-discovery.ts",
+  get_selection: "mcp/server/tools/element-discovery.ts",
 } as const;
 
 describe("Control support capability source ownership", () => {
