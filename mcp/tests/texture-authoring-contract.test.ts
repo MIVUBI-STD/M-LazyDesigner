@@ -44,8 +44,8 @@ function rectanglesOverlap(
 describe("texturing authoring contract", () => {
   test("fill surface omits unsupported synthetic tolerance", async () => {
     expect(Object.keys(paintFillToolParameters.shape)).not.toContain("tolerance");
-    const paint = await source("server/tools/paint.ts");
-    const fill = toolBlock(paint, 0, 1);
+    const paint = await source("server/tools/paint-primitives.ts");
+    const fill = paint;
     expect(fill).not.toContain("tolerance");
     expect(fill).not.toContain("requireNativeFillTolerance");
   });
@@ -62,14 +62,14 @@ describe("texturing authoring contract", () => {
   // Native stroke lifecycle is verified by paint-stroke and paint-tool-selection executors.
 
   test("brush and eraser honor connected versus separated stroke semantics", async () => {
-    const paint = await source("server/tools/paint.ts");
+    const paint = await source("server/tools/paint-brush.ts");
 
-    const eraser = toolBlock(paint, 5, 6);
+    const eraser = paint;
     expect(eraser).toContain('requirePaintCoordinates(coordinates, "eraser_tool")');
     expect(eraser).toContain("movePaintTool");
     expect(eraser).toContain("!connect_strokes");
 
-    const brush = toolBlock(paint, 7, 8);
+    const brush = paint;
     expect(brush).toContain(
       'requirePaintCoordinates(coordinates, "paint_with_brush")'
     );
@@ -288,8 +288,8 @@ describe("texturing authoring contract", () => {
   });
 
   test("T3 bounded shape authoring passes an exact clip through native Painter", async () => {
-    const paint = await source("server/tools/paint.ts");
-    const shape = toolBlock(paint, 1, 2);
+    const paint = await source("server/tools/paint-primitives.ts");
+    const shape = paint;
 
     for (const marker of [
       "bounded region authoring requires mirror painting to be disabled",
@@ -356,8 +356,8 @@ describe("texturing authoring contract", () => {
       )
     ).toThrow("outside texture bounds");
 
-    const paint = await source("server/tools/paint.ts");
-    const brush = toolBlock(paint, 7, 8);
+    const paint = await source("server/tools/paint-brush.ts");
+    const brush = paint;
     for (const marker of [
       "isExactPixelAuthoringRequest(coordinates",
       'brush_settings?.blend_mode ?? "default"',
@@ -516,7 +516,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("flatten_layers preserves base bitmap before compositing layers", async () => {
-    const paint = await source("server/tools/paint.ts");
+    const paint = await source("server/tools/paint-state.ts");
     const start = paint.indexOf('if (action === "flatten_layers")');
     const end = paint.indexOf("if (texture.layers_enabled)", start);
     const block = paint.slice(start, end);
