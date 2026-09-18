@@ -329,7 +329,7 @@ describe("texture atlas integrity", () => {
   test("full-atlas image evidence is explicit in multi-texture state and returns density metadata", async () => {
     const texture = await source("server/tools/texture.ts");
     const start = texture.indexOf("createTool(textureToolDocs[4].name");
-    const end = texture.indexOf("createTool(textureToolDocs[5].name", start);
+    const end = texture.indexOf("registerTextureMaterialTools();", start);
     const block = texture.slice(start, end);
 
     expect(block).toContain("available.length > 1");
