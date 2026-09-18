@@ -119,6 +119,44 @@ function particleHasAuthoredEffect(value: unknown): boolean {
   );
 }
 
+function materialInstancesStateNeutral(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (
+      Array.isArray(candidate.material_instances) &&
+      typeof candidate.total_unique_instances === "number"
+    ) {
+      return true;
+    }
+    return record(candidate.cube) !== null && record(candidate.faces) !== null &&
+      typeof candidate.operation !== "string";
+  });
+}
+
+function renderProfileStateNeutral(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (candidate.execution === "read") return true;
+
+    const transaction = record(candidate.write_transaction);
+    if (
+      candidate.execution === "applied" &&
+      transaction?.state === "compile_only" &&
+      transaction.write_count === 0
+    ) {
+      return true;
+    }
+
+    if (
+      candidate.execution === "applied" &&
+      Object.prototype.hasOwnProperty.call(candidate, "write") &&
+      candidate.write === null
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
 function capabilityMutatesState(
   capability: string,
   succeeded: boolean,
@@ -131,6 +169,12 @@ function capabilityMutatesState(
   }
   if (capability === "manage_animation_timeline") {
     return !animationTimelineStateNeutral(result);
+  }
+  if (capability === "manage_material_instances") {
+    return !materialInstancesStateNeutral(result);
+  }
+  if (capability === "manage_render_profile") {
+    return !renderProfileStateNeutral(result);
   }
   return true;
 }

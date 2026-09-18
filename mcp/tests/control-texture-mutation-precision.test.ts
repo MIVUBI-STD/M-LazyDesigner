@@ -61,6 +61,141 @@ describe("Control Texture mutation precision", () => {
     ]);
   });
 
+  test("material-instance reads preserve authored freshness while writes stay scoped", () => {
+    const list = buildControlDelta({
+      capability: "manage_material_instances",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        total_unique_instances: 2,
+        material_instances: [{ name: "metal" }, { name: "glass" }],
+      },
+    });
+    expect(list.invalidates.authoring_domains).toEqual([]);
+    expect(list.freshness.basis).toBe("NO_CHANGE");
+    expect(list.freshness.fresh).toHaveLength(8);
+
+    const get = buildControlDelta({
+      capability: "manage_material_instances",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        cube: { uuid: "cube-a", name: "body" },
+        faces: { north: { material_name: "metal", texture: null } },
+      },
+    });
+    expect(get.invalidates.authoring_domains).toEqual([]);
+    expect(get.freshness.basis).toBe("NO_CHANGE");
+
+    const write = buildControlDelta({
+      capability: "manage_material_instances",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "set",
+        cube_count: 1,
+        face_count: 1,
+        cubes: [{ uuid: "cube-a", name: "body" }],
+      },
+    });
+    expect(write.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(write.freshness.stale).toEqual(["MATERIAL_RENDER"]);
+  });
+
+  test("render-profile inspect and compile-only results preserve authored freshness", () => {
+    const inspect = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "read",
+        action: "render_profile",
+        summary: { slots: [], assignments: [] },
+      },
+    });
+    expect(inspect.invalidates.authoring_domains).toEqual([]);
+    expect(inspect.freshness.basis).toBe("NO_CHANGE");
+
+    const compileOnly = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        write_transaction: { state: "compile_only", write_count: 0 },
+      },
+    });
+    expect(compileOnly.invalidates.authoring_domains).toEqual([]);
+    expect(compileOnly.freshness.basis).toBe("NO_CHANGE");
+
+    const singleCompileOnly = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        write: null,
+      },
+    });
+    expect(singleCompileOnly.invalidates.authoring_domains).toEqual([]);
+    expect(singleCompileOnly.freshness.basis).toBe("NO_CHANGE");
+  });
+
+  test("render-profile writes invalidate only material/render freshness", () => {
+    const write = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        write: {
+          path: "/rp/render_controllers/example.render_controllers.json",
+          byte_length: 128,
+        },
+      },
+    });
+
+    expect(write.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(write.freshness.stale).toEqual(["MATERIAL_RENDER"]);
+    expect(write.freshness.fresh).toContain("TEXTURE_APPEARANCE");
+  });
+
+  test("incomplete mixed capability receipts remain conservative", () => {
+    for (const capability of [
+      "manage_material_instances",
+      "manage_render_profile",
+    ] as const) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: "texturing",
+        phaseAfter: "texturing",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: { action: "unknown-shape" },
+      });
+
+      expect(delta.invalidates.authoring_domains, capability).toEqual(["TEXTURING"]);
+      expect(delta.freshness.stale, capability).toEqual(["MATERIAL_RENDER"]);
+    }
+  });
+
   test("texture focus changes do not invalidate authored Texture evidence", () => {
     const delta = buildControlDelta({
       capability: "activate_texture",
