@@ -35,9 +35,9 @@ describe("Geometry identity and duplication hardening", () => {
   });
 
   test("duplicate_element delegates property fidelity to native duplication and supports anchors", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
-    const start = source.indexOf("createTool(elementToolDocs[3].name");
-    const end = source.indexOf("createTool(elementToolDocs[4].name", start);
+    const source = await Bun.file("server/tools/element-mutation.ts").text();
+    const start = source.indexOf("createTool(elementMutationToolDocs[1].name");
+    const end = source.indexOf("createTool(elementMutationToolDocs[2].name", start);
     const block = source.slice(start, end);
 
     expect(source).toContain("const duplicated = element.duplicate();");
@@ -61,8 +61,9 @@ describe("Geometry identity and duplication hardening", () => {
       addBlock.indexOf("Undo.initEdit")
     );
 
-    const renameStart = source.indexOf("createTool(elementToolDocs[4].name");
-    const renameEnd = source.indexOf("createTool(elementToolDocs[5].name", renameStart);
+    const source = await Bun.file("server/tools/element-mutation.ts").text();
+    const renameStart = source.indexOf("createTool(elementMutationToolDocs[2].name");
+    const renameEnd = source.length;
     const renameBlock = source.slice(renameStart, renameEnd);
     expect(renameBlock).toContain("assertAnchorRenameAvailable(element, new_name)");
     // Group rename preflight is exercised through the executor in batch-group-rename.test.ts.
