@@ -327,6 +327,7 @@ function mutationResult(
     type: state.type,
     parent: state.parent,
     changed_fields: [...changedFields],
+    state,
   };
   return {
     content: [

@@ -108,6 +108,130 @@ describe("LazyDesigner Control minimum invalidation", () => {
     }
   });
 
+  test("planned or unchanged cube simplify operations preserve state and skip visual verification", () => {
+    for (const execution of ["planned", "unchanged"] as const) {
+      const delta = buildControlDelta({
+        capability: "manage_cubes",
+        phaseBefore: "geometry",
+        phaseAfter: "geometry",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: { execution, updates: [] },
+      });
+      expect(delta.invalidates.authoring_domains).toEqual([]);
+      expect(delta.freshness.basis).toBe("NO_CHANGE");
+      expect(delta.verification_class).toBe("receipt_only");
+    }
+  });
+
+  test("complete locator and hierarchy receipts avoid redundant focused reads", () => {
+    const locator = buildControlDelta({
+      capability: "manage_locator",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "update",
+        id: "locator-a",
+        name: "hand",
+        type: "locator",
+        changed_fields: ["position"],
+        state: {
+          uuid: "locator-a",
+          name: "hand",
+          type: "locator",
+          parent: { uuid: "bone-a", name: "arm" },
+          position: [1,2,3],
+          rotation: [0,0,0],
+          ignore_inherited_scale: false,
+          visibility: true,
+        },
+      },
+    });
+    expect(locator.verification_class).toBe("receipt_only");
+
+    const addGroup = buildControlDelta({
+      capability: "add_group",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        groups: [{
+          uuid: "group-a",
+          name: "arm",
+          origin: [0,0,0],
+          rotation: [0,0,0],
+          visibility: true,
+          parent: "root",
+        }],
+      },
+    });
+    expect(addGroup.verification_class).toBe("receipt_only");
+
+    const modifyGroup = buildControlDelta({
+      capability: "modify_group",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        id: "group-a",
+        changed_fields: ["rotation"],
+        group: {
+          uuid: "group-a",
+          name: "arm",
+          origin: [0,0,0],
+          rotation: [0,10,0],
+          visibility: true,
+          parent: "root",
+        },
+      },
+    });
+    expect(modifyGroup.verification_class).toBe("receipt_only");
+
+    const reparent = buildControlDelta({
+      capability: "reparent_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        id: "group-a",
+        name: "arm",
+        previous_parent: "root",
+        parent: "group-b",
+        transform_policy: "preserve_local",
+      },
+    });
+    expect(reparent.verification_class).toBe("receipt_only");
+  });
+
+  test("subtree translation receipt remains focused-read because descendants are summarized only", () => {
+    const delta = buildControlDelta({
+      capability: "modify_group",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        id: "group-a",
+        offset: [1,0,0],
+        origin: [1,0,0],
+        groups: 3,
+        elements: 8,
+        coordinate_space: "authored_model",
+      },
+    });
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("animation changes invalidate only Animation knowledge", () => {
     const delta = buildControlDelta({
       capability: "manage_animation_timeline",

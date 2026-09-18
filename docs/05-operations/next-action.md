@@ -98,7 +98,7 @@ material create/configure/assign → final channels/config → receipt_only
 material instances set/bulk/clear → exact final face changes → receipt_only
 ```
 
-Controller receipts include only affected final subgraphs, never untouched-state dumps. Incomplete/legacy shapes remain conservative and keep focused-read guidance. Further refinement must reuse this receipt path and require equally strong final-state evidence.
+Controller receipts include only affected final subgraphs, never untouched-state dumps. Geometry continuation is now similarly bounded: Locator/Null Object mutations return final authored state; add/modify Group returns final Group state; reparent returns explicit final parent with preserve-local policy. These complete receipts use `receipt_only`, while subtree translation remains `focused_read` because descendants are summarized rather than enumerated. Cube simplify dry-run/unchanged is `NO_CHANGE → receipt_only`; actual Cube and animation-motion mutations remain `visual` because structural receipts do not prove reference fidelity or motion quality. Incomplete/legacy shapes remain conservative.
 
 Do not add new revision databases, dependency graphs, mutation journals, planners, routers, or public Gateway tools.
 

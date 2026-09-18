@@ -108,6 +108,17 @@ export const reparentElementParameters = z.object({
 });
 
 
+function groupContinuationState(group: Group) {
+  return {
+    uuid: group.uuid,
+    name: group.name,
+    origin: [...group.origin] as [number, number, number],
+    rotation: [...group.rotation] as [number, number, number],
+    visibility: group.visibility !== false,
+    parent: group.parent instanceof Group ? group.parent.uuid : "root",
+  };
+}
+
 export const elementHierarchyToolDocs: ToolSpec[] = [
   {
       name: "add_group",
@@ -197,25 +208,9 @@ export function registerAddGroupTool(): void {
     
           Canvas.updateAll();
           const result = {
-            groups: created.map((group) => ({
-              uuid: group.uuid,
-              name: group.name,
-              parent: group.parent instanceof Group ? group.parent.uuid : "root",
-            })),
-            ...(groups
-              ? {}
-              : {
-                  group: {
-                    uuid: created[0].uuid,
-                    name: created[0].name,
-                    origin: [...created[0].origin],
-                    rotation: [...created[0].rotation],
-                    parent:
-                      created[0].parent instanceof Group
-                        ? created[0].parent.uuid
-                        : "root",
-                  },
-                }),
+            execution: "applied" as const,
+            groups: created.map(groupContinuationState),
+            ...(groups ? {} : { group: groupContinuationState(created[0]) }),
           };
           return {
             content: [
@@ -338,6 +333,7 @@ export function registerElementHierarchyTools(): void {
               id: group.uuid,
               name: group.name,
               changed_fields: changedFields,
+              group: groupContinuationState(group),
             },
           };
         },

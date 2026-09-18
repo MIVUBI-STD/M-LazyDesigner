@@ -69,6 +69,79 @@ function resultCandidates(value: unknown): Record<string, unknown>[] {
   );
 }
 
+function cubeStateNeutral(value: unknown): boolean {
+  return resultCandidates(value).some(
+    (candidate) =>
+      candidate.execution === "planned" ||
+      candidate.execution === "unchanged"
+  );
+}
+
+function locatorReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    const state = record(candidate.state);
+    if (
+      candidate.execution !== "applied" ||
+      !state ||
+      typeof state.uuid !== "string" ||
+      typeof state.name !== "string" ||
+      typeof state.type !== "string" ||
+      !Array.isArray(candidate.changed_fields)
+    ) {
+      return false;
+    }
+    if (!Array.isArray(state.position) || state.position.length !== 3) return false;
+    if (state.type === "locator") {
+      return (
+        Array.isArray(state.rotation) &&
+        state.rotation.length === 3 &&
+        typeof state.ignore_inherited_scale === "boolean"
+      );
+    }
+    return state.type === "null_object";
+  });
+}
+
+function groupReceiptComplete(capability: string, value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (candidate.execution !== "applied") return false;
+    if (capability === "add_group") {
+      return Array.isArray(candidate.groups) && candidate.groups.length > 0 &&
+        candidate.groups.every((entry) => {
+          const group = record(entry);
+          return Boolean(
+            group &&
+            typeof group.uuid === "string" &&
+            typeof group.name === "string" &&
+            Array.isArray(group.origin) &&
+            Array.isArray(group.rotation) &&
+            typeof group.visibility === "boolean" &&
+            typeof group.parent === "string"
+          );
+        });
+    }
+    if (capability === "modify_group") {
+      const group = record(candidate.group);
+      return Boolean(
+        group &&
+        typeof group.uuid === "string" &&
+        Array.isArray(group.origin) &&
+        Array.isArray(group.rotation) &&
+        typeof group.visibility === "boolean" &&
+        typeof group.parent === "string"
+      );
+    }
+    if (capability === "reparent_element") {
+      return (
+        typeof candidate.id === "string" &&
+        typeof candidate.parent === "string" &&
+        candidate.transform_policy === "preserve_local"
+      );
+    }
+    return false;
+  });
+}
+
 function particleTextureHandoffRequired(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     const dependency = record(candidate.texture_dependency);
@@ -263,6 +336,20 @@ function verificationClassForResult(
     return "receipt_only";
   }
 
+  if (
+    (capability === "manage_locator" || capability === "manage_null_object") &&
+    locatorReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    ["add_group", "modify_group", "reparent_element"].includes(capability) &&
+    groupReceiptComplete(capability, result)
+  ) {
+    return "receipt_only";
+  }
+
   return fallback;
 }
 
@@ -329,6 +416,7 @@ function capabilityMutatesState(
   result: unknown
 ): boolean {
   if (!succeeded || !STATE_MUTATIONS.has(capability)) return false;
+  if (capability === "manage_cubes" && cubeStateNeutral(result)) return false;
   if (capability === "manage_particle") {
     if (particleTextureHandoffRequired(result)) return false;
     return particleHasAuthoredEffect(result);

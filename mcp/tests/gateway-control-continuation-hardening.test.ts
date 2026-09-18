@@ -30,6 +30,25 @@ describe("LazyDesigner Control continuation hardening", () => {
     expect(delta.next_intent).toBe("RECOVER_CURRENT_OPERATION");
   });
 
+  test("actual visual mutations keep visual verification even with complete structural receipts", () => {
+    const delta = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        visual_verdict: "not_evaluated",
+        modified: 1,
+        before: { uuid: "cube-a" },
+        after: { uuid: "cube-a" },
+        geometry_effect: { changed_fields: ["rotation"] },
+      },
+    });
+    expect(delta.verification_class).toBe("visual");
+  });
+
   test("ordinary successful mutation continues without status reread", () => {
     const delta = buildControlDelta({
       capability: "manage_cubes",
