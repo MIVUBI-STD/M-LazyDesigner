@@ -129,7 +129,16 @@ describe("repository GitHub discipline", () => {
 
     expect(repository).toContain("bun run verify:repository");
     expect(authoring).toContain("bun run verify:authoring");
-    expect(mcp).toContain("bun run verify:mcp");
+    for (const gate of [
+      "bun run docs:check",
+      "bun run typecheck",
+      "bun run typecheck:gateway",
+      "bun run test:runtime",
+      "bun run verify:authoring",
+      "bun run measure:surface",
+      "bun run measure:phases",
+      "bun run build",
+    ]) expect(mcp).toContain(gate);
     expect(release).toContain("bun run verify:release");
     expect(authoring).toContain('"workspace/active/**"');
     expect(mcp).toContain('"!mcp/tests/repository/**"');
