@@ -25,7 +25,7 @@ describe("texture visual convergence contract", () => {
     expect(workflow.toLowerCase()).toContain("stale");
 
     const getTextureStart = texture.indexOf("createTool(textureToolDocs[4].name");
-    const getTextureEnd = texture.indexOf("createTool(textureToolDocs[5].name", getTextureStart);
+    const getTextureEnd = texture.indexOf("registerTextureMaterialTools();", getTextureStart);
     const getTexture = texture.slice(getTextureStart, getTextureEnd);
     expect(getTexture).toContain("imageContent");
     expect(getTexture).toContain("getDataURL()");
