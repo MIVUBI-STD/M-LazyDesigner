@@ -35,16 +35,19 @@ describe("Geometry identity and duplication hardening", () => {
   });
 
   test("duplicate_element delegates property fidelity to native duplication and supports anchors", async () => {
-    const source = await Bun.file("server/tools/element-mutation.ts").text();
+    const [source, shared] = await Promise.all([
+      Bun.file("server/tools/element-mutation.ts").text(),
+      Bun.file("server/tools/element-shared.ts").text(),
+    ]);
     const start = source.indexOf("createTool(elementMutationToolDocs[1].name");
     const end = source.indexOf("createTool(elementMutationToolDocs[2].name", start);
     const block = source.slice(start, end);
 
-    expect(source).toContain("const duplicated = element.duplicate();");
-    expect(source).toContain("child instanceof Locator");
-    expect(source).toContain("child instanceof NullObject");
-    expect(source).toContain("translateDuplicatedSubtree");
-    expect(source).toContain("applyDuplicateNames");
+    expect(shared).toContain("const duplicated = element.duplicate();");
+    expect(shared).toContain("child instanceof Locator");
+    expect(shared).toContain("child instanceof NullObject");
+    expect(shared).toContain("translateDuplicatedSubtree");
+    expect(shared).toContain("applyDuplicateNames");
     expect(block).toContain("duplicateFaithfully(element, offset, newName)");
     expect(block).not.toContain("function cloneCube");
     expect(block).not.toContain("function cloneGroup");
