@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { getCapabilityMetadata } from "../lib/capabilityMetadata";
+import {
+  CAPABILITY_LIFECYCLE_SEARCH_PENALTY,
+  getCapabilityMetadata,
+} from "../lib/capabilityMetadata";
 import { getEnabledToolDefinitions } from "../lib/factories";
 import { searchCapabilityCatalog, type BackendTool } from "../gateway/contract";
 import {
@@ -8,6 +11,29 @@ import {
 } from "../lib/authoringPhase";
 
 describe("capability discovery efficiency", () => {
+  test("capability metadata separates lifecycle, execution cost, and verification semantics", () => {
+    expect(getCapabilityMetadata("create_project")).toMatchObject({
+      lifecycle: { stage: "active", replacement: null },
+      executionClass: "normal",
+      verificationClass: "receipt_only",
+    });
+    expect(getCapabilityMetadata("get_project_info")).toMatchObject({
+      lifecycle: { stage: "active", replacement: null },
+      executionClass: "fast",
+      verificationClass: "not_applicable",
+    });
+    expect(getCapabilityMetadata("capture_model_views")).toMatchObject({
+      executionClass: "heavy",
+      verificationClass: "visual",
+    });
+    expect(getCapabilityMetadata("modify_group").verificationClass).toBe(
+      "focused_read"
+    );
+    expect(CAPABILITY_LIFECYCLE_SEARCH_PENALTY.deprecated).toBeLessThan(
+      CAPABILITY_LIFECYCLE_SEARCH_PENALTY.active
+    );
+  });
+
   test("Gateway discovery handles representative Indonesian authoring language", () => {
     const tools = Object.entries(getEnabledToolDefinitions()).map(
       ([name, tool]) => ({
