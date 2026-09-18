@@ -5,6 +5,22 @@ Scope: `LOCAL_CODE` + `LIVE_BLOCKBENCH` proof contract only.
 
 This is **not** a second production workflow. It is a bounded acceptance contract used after a fresh installation or a material Gateway/Runtime/plugin/authoring-intelligence change.
 
+## Evidence Record
+
+Use `mcp/tests/fixtures/native-acceptance-manifest.json` as the canonical result shape for one exact-build native acceptance run.
+
+The checked-in file is a template and must remain `UNVERIFIED`. A real run should copy that shape into a run artifact/result and populate exact source/build/environment provenance plus only the checks that were actually exercised.
+
+Allowed verdicts are:
+
+```text
+PASS
+FAIL
+UNVERIFIED
+```
+
+Static CI may validate the manifest schema but must never upgrade a native verdict. Native technical PASS also does not imply visual/reference acceptance.
+
 ## Goal
 
 Prove that the exact checked-out `Local` source works through the real execution chain:
