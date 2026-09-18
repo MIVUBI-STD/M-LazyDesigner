@@ -112,7 +112,7 @@ describe("native Bedrock controller composition", () => {
     const [source, server, bootstrap] = await Promise.all([
       Bun.file("server/tools/animation-controller-native-intelligence.ts").text(),
       Bun.file("server/server.ts").text(),
-      Bun.file("server/runtime/bootstrap.ts").text(),
+      Bun.file("server/runtime/extensions.ts").text(),
     ]);
     expect(source).toContain('getAllToolDefinitions()["manage_animation_controller"]');
     expect(source).toContain("native_operations");
@@ -121,6 +121,6 @@ describe("native Bedrock controller composition", () => {
     expect(source).toContain("wouldCreateControllerCompositionCycle");
     expect(source).not.toContain("createTool(");
     expect(server).toContain("initializeRuntimeCapabilityWiring();");
-    expect(bootstrap).toContain("wireAnimationControllerNativeIntelligence();");
+    expect(bootstrap).toContain("apply: wireAnimationControllerNativeIntelligence");
   });
 });
