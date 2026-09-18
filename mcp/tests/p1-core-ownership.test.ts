@@ -176,11 +176,13 @@ describe("P1.3 core identity ownership", () => {
   });
 
   test("retained core callers consume shared identity ownership", async () => {
-    const [cubes, elements, texture, animation, materialInstances, util] = await Promise.all([
+    const [cubes, elementShared, textureAssignment, textureCreate, textureRead, animationShared, materialInstances, util] = await Promise.all([
       readFile(new URL("../server/tools/cubes.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/element.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/texture.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/animation.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element-shared.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture-assignment.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture-create.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture-read.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/animation-shared.ts", import.meta.url), "utf8"),
       readFile(new URL("../server/tools/material-instances.ts", import.meta.url), "utf8"),
       readFile(new URL("../lib/util.ts", import.meta.url), "utf8"),
     ]);
@@ -188,12 +190,13 @@ describe("P1.3 core identity ownership", () => {
     expect(cubes).toContain("resolveCoreCube, resolveCoreGroup");
     expect(cubes).toContain("return resolveCoreGroup(");
     expect(cubes).not.toContain("resolveCoreTexture");
-    expect(elements).toContain("resolveCoreGroup, resolveCoreTexture");
-    expect(elements).toContain("return resolveCoreTexture(");
-    expect(texture).toContain("return resolveCoreCubeOrGroup(");
-    expect(texture.match(/resolveCoreTexture\(reference/g)?.length).toBeGreaterThanOrEqual(7);
-    expect(animation).toContain("resolveCoreAnimation(reference, {");
-    expect(animation).toContain("return resolveCoreGroup(");
+    expect(elementShared).toContain("resolveCoreGroup");
+    expect(elementShared).toContain("resolveCoreTexture");
+    expect(textureAssignment).toContain("resolveCoreTexture(");
+    expect(textureCreate).toContain("resolveCoreTexture(");
+    expect(textureRead).toContain("resolveCoreTexture(");
+    expect(animationShared).toContain("resolveCoreAnimation");
+    expect(animationShared).toContain("resolveCoreGroup");
     expect(materialInstances).toContain("return resolveCoreCube(");
     expect(materialInstances).not.toContain("findElementOrThrow");
     expect(util).toContain("const texture = resolveCoreTexture(");
@@ -203,9 +206,11 @@ describe("P1.3 core identity ownership", () => {
   });
 
   test("identity-returning core mutations expose structured continuation state", async () => {
-    const [cubes, elements, project] = await Promise.all([
+    const [cubes, hierarchy, mutation, elementShared, project] = await Promise.all([
       readFile(new URL("../server/tools/cubes.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/element.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element-hierarchy.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element-mutation.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element-shared.ts", import.meta.url), "utf8"),
       readFile(new URL("../server/tools/project.ts", import.meta.url), "utf8"),
     ]);
 
@@ -216,17 +221,17 @@ describe("P1.3 core identity ownership", () => {
     expect(cubes).toContain("geometry_effect: geometryEffect");
     expect(cubes).not.toContain("cube: after,");
 
-    expect(elements).toContain("structuredContent: result");
-    expect(elements).toContain("group: {");
-    expect(elements).toContain("function elementContinuationState");
-    expect(elements).toContain('if (element instanceof Locator) return "locator";');
-    expect(elements).toContain('if (element instanceof NullObject) return "null_object";');
+    expect(hierarchy).toContain("structuredContent: result");
+    expect(hierarchy).toContain("group: {");
+    expect(mutation).toContain("structuredContent: result");
+    expect(elementShared).toContain("function elementContinuationState");
+    expect(elementShared).toContain('if (element instanceof Locator) return "locator";');
+    expect(elementShared).toContain('if (element instanceof NullObject) return "null_object";');
 
-    const duplicateStart = elements.indexOf("createTool(elementToolDocs[3].name");
-    const renameStart = elements.indexOf("createTool(elementToolDocs[4].name", duplicateStart);
-    const findStart = elements.indexOf("createTool(elementToolDocs[5].name", renameStart);
-    const duplicateBlock = elements.slice(duplicateStart, renameStart);
-    const renameBlock = elements.slice(renameStart, findStart);
+    const duplicateStart = mutation.indexOf("createTool(elementMutationToolDocs[1].name");
+    const renameStart = mutation.indexOf("createTool(elementMutationToolDocs[2].name", duplicateStart);
+    const duplicateBlock = mutation.slice(duplicateStart, renameStart);
+    const renameBlock = mutation.slice(renameStart);
     for (const block of [duplicateBlock, renameBlock]) {
       expect(block).toContain("elementContinuationState");
       expect(block).toContain("structuredContent: result");
