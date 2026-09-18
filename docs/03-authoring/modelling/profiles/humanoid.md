@@ -1,6 +1,6 @@
 # LazyDesigner Modelling Profile — HUMANOID
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 This profile is a **decision-support layer** for humanoid Minecraft Bedrock modelling. It complements `lazydesigner-modelling`; it does not replace the approved reference, dictate fixed anatomy, or prescribe Cube counts/coordinates.
 
