@@ -37,7 +37,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   test("Locator motion stays parent-driven rather than a second animation target system", async () => {
     const [locatorSource, animationSource] = await Promise.all([
       source("server/tools/locators.ts"),
-      source("server/tools/animation.ts"),
+      source("server/tools/animation-keyframes.ts"),
     ]);
 
     expect(locatorSource).toContain("parent the Locator to the animated Group/Bone");
@@ -64,9 +64,9 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
 
   test("generic remove_element snapshots recursive deletion state and returns a compact receipt", async () => {
-    const elementSource = await source("server/tools/element.ts");
-    const start = elementSource.indexOf("createTool(elementToolDocs[0].name");
-    const end = elementSource.indexOf("createTool(elementToolDocs[1].name", start);
+    const elementSource = await source("server/tools/element-mutation.ts");
+    const start = elementSource.indexOf("createTool(elementMutationToolDocs[0].name");
+    const end = elementSource.indexOf("createTool(elementMutationToolDocs[1].name", start);
     const block = elementSource.slice(start, end);
     for (const marker of [
       "const removedRoot = elementContinuationState(element);",
