@@ -36,8 +36,12 @@ describe("generic semantics narrowing contract", () => {
     expect(duplicateElementParameters.safeParse({ id: "cube", offset: [0, Infinity, 0] }).success).toBe(false);
     expect(requireFiniteTranslatedElementVector3([1, 2, 3], [4, 5, 6], "test")).toEqual([5, 7, 9]);
     expect(() => requireFiniteTranslatedElementVector3([1e308, 0, 0], [1e308, 0, 0], "test")).toThrow("non-finite authored coordinate");
-    const sourceText = await source("server/tools/element-mutation.ts");
-    expect(sourceText).toContain("preflightDuplicateTranslation(element, offset)");
+    const [mutation, shared] = await Promise.all([
+      source("server/tools/element-mutation.ts"),
+      source("server/tools/element-shared.ts"),
+    ]);
+    expect(mutation).toContain("preflightFaithfulDuplicate(element, offset, newName)");
+    expect(shared).toContain("preflightDuplicateTranslation(element, offset)");
   });
 
   test("model export exposes only Bedrock geometry and editable Blockbench project codecs", () => {
