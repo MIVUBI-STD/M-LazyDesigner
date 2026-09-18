@@ -45,7 +45,7 @@ describe("model creation effectiveness — tool routing", () => {
   test("convenience tools retain branch-only roles and are not promoted by Control", async () => {
     const [camera, elements, history, contract] = await Promise.all([
       source("server/tools/camera.ts"),
-      source("server/tools/element.ts"),
+      source("server/tools/element-mutation.ts"),
       source("server/tools/history.ts"),
       source("gateway/contract.ts"),
     ]);
