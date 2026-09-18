@@ -1,4 +1,5 @@
 import type { CapabilitySummary, JsonRecord } from "../contract";
+import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
 import type { BlockitAuthoringPhaseAffinity } from "../projectAffinity";
 
 export type ControlAuthoringDomain = "GEOMETRY" | "TEXTURING" | "ANIMATION" | "CORE";
@@ -80,6 +81,7 @@ export type ControlDelta = {
     acceptance_gates: boolean;
   };
   next_intent: string;
+  verification_class: CapabilityVerificationClass;
   requires_status_refresh: boolean;
 };
 
