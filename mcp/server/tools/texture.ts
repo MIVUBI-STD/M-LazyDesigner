@@ -7,12 +7,10 @@ import {
   isAbsoluteFilesystemPath,
 } from "@/lib/util";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
-import { resolveCoreCubeOrGroup, resolveCoreTexture } from "@/lib/coreIdentity";
+import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { DEFAULT_BEDROCK_UV_RESOLUTION } from "./project";
 import {
   colorSchema,
-  elementIdSchema,
-  textureIdSchema,
   textureIdOptionalSchema,
   pbrChannelEnum,
   renderModeEnum,
@@ -30,7 +28,6 @@ export {
   applyTextureParameters,
 } from "./texture-assignment";
 import {
-  hasExactTextureGroupNameCollision,
   registerTextureMaterialTools,
   resolveTextureToolMaterial,
   textureMaterialToolDocs,
