@@ -231,7 +231,7 @@ export function extractShape(
   }
 
   if (schema instanceof z.ZodPipe) {
-    return extractShape(schema.in);
+    return extractShape(schema.in as unknown as z.ZodType<any, any>);
   }
 
   if (schema instanceof z.ZodIntersection) {
@@ -283,20 +283,29 @@ export function extractShape(
  * The branch envelope rejects fields outside the advertised shape, then the
  * retained executor schema remains authoritative for refinements and semantics.
  */
-export function withToolBranch<T extends z.ZodType, K extends string, V extends string>(
-  schema: T, field: K, value: V
+export function withToolBranch<
+  TOutput,
+  K extends string,
+  V extends string
+>(
+  schema: z.ZodType<TOutput, any>,
+  field: K,
+  value: V
 ) {
   return z
     .object({ ...extractShape(schema), [field]: z.literal(value) })
     .strict()
-    .transform((input, ctx): z.infer<T> & Record<K, V> => {
+    .transform((input, ctx): TOutput & Record<K, V> => {
       const { [field]: _branch, ...payload } = input;
       const parsed = schema.safeParse(payload);
       if (!parsed.success) {
-        for (const issue of parsed.error.issues) ctx.addIssue(issue);
+        for (const issue of parsed.error.issues) ctx.addIssue(issue as any);
         return z.NEVER;
       }
-      return { ...parsed.data, [field]: value };
+      return {
+        ...(parsed.data as Record<string, unknown>),
+        [field]: value,
+      } as TOutput & Record<K, V>;
     });
 }
 
@@ -353,14 +362,14 @@ function compactMirroredStructuredContent(
  * @returns - The created tool metadata.
  * @throws - If a tool with the same name already exists.
  */
-export function createTool<T extends z.ZodType<any, any>>(
+export function createTool<TOutput>(
   name: string,
   tool: {
     description: string;
     annotations?: ToolAnnotations;
-    parameters: T;
-    inputSchema?: Record<string, z.ZodType>;
-    execute: (args: z.infer<T>, context?: ToolContext) => Promise<ToolResult>;
+    parameters: z.ZodType<TOutput, any>;
+    inputSchema?: Record<string, z.ZodType<any, any>>;
+    execute: (args: TOutput, context?: ToolContext) => Promise<ToolResult>;
   },
   status: IMCPTool["status"] = "stable",
   enabled: boolean = true
@@ -480,25 +489,6 @@ export function registerToolsOnServer(
       getToolInvocation(name, toolDef)
     );
   }
-  // The SDK's object-shape listing loses union-level required fields. Publish
-  // the canonical validation schema through the public protocol handler.
-  typedServer.server?.setRequestHandler('tools/list', () => ({
-    tools: getToolRegistrationEntries(allowedToolNames).map(({ name, definition }) => ({
-      name,
-      title: definition.title,
-      description: definition.description,
-      annotations: definition.annotations,
-      inputSchema: {
-        ...z.toJSONSchema(definition.parameterSchema, {
-          io: "input",
-          target: "draft-2020-12",
-          unrepresentable: "any",
-          reused: "inline",
-        }),
-        type: "object" as const,
-      },
-    })),
-  }));
 }
 
 interface ResourceDefinition {
@@ -644,15 +634,18 @@ interface PromptDefinition {
 const promptDefinitions: Record<string, PromptDefinition> = {};
 
 function promptArgumentsFromShape(
-  shape: z.ZodRawShape | undefined
+  shape: Readonly<Record<string, unknown>> | undefined
 ): PromptArgument[] {
   if (!shape) return [];
 
-  return Object.entries(shape).map(([name, field]) => ({
-    name,
-    description: z.globalRegistry.get(field)?.description,
-    required: !field.safeParse(undefined).success,
-  }));
+  return Object.entries(shape).map(([name, rawField]) => {
+    const field = rawField as z.ZodType<any, any>;
+    return {
+      name,
+      description: z.globalRegistry.get(field)?.description,
+      required: !field.safeParse(undefined).success,
+    };
+  });
 }
 
 export function createPrompt<T extends z.ZodRawShape = Record<string, never>>(
