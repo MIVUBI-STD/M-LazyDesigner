@@ -1,6 +1,6 @@
 # LazyDesigner Implementation Map
 
-Updated: 2026-09-12
+Updated: 2026-09-18
 
 This file maps **current source ownership only**. Product workflow belongs in `docs/01-product/flow.md`; AI context loading in `docs/04-system/ai-context-loading.md`; continuation/proof in `docs/05-operations/`.
 
