@@ -37,7 +37,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   test("Locator motion stays parent-driven rather than a second animation target system", async () => {
     const [locatorSource, animationSource] = await Promise.all([
       source("server/tools/locators.ts"),
-      source("server/tools/animation-keyframes.ts"),
+      source("server/tools/animation-create.ts"),
     ]);
 
     expect(locatorSource).toContain("parent the Locator to the animated Group/Bone");
