@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { resolveCoreGroup } from "@/lib/coreIdentity";
+import { resolveCoreAnimation, resolveCoreGroup } from "@/lib/coreIdentity";
 
 export const finiteAnimationVector3Schema = z.array(z.number().finite()).length(3);
 
@@ -17,4 +17,11 @@ export function resolveAnimationRigGroup(reference: string): Group {
     reference,
     "Use inspect_elements(mode=outline) to confirm the intended Group UUID."
   );
+}
+
+export function resolveAnimationClip(reference?: string) {
+  return resolveCoreAnimation(reference, {
+    allowSelected: true,
+    notFoundHint: "Pass an exact Animation UUID or exact unique Animation name.",
+  });
 }
