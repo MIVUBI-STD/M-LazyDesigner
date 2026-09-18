@@ -12,7 +12,11 @@ export type CapabilityEffects = {
 
 export type CapabilityLifecycleStage = "active" | "deprecated";
 export type CapabilityExecutionClass = "fast" | "normal" | "heavy";
-export type CapabilityVerificationClass = "none" | "focused_read" | "visual";
+export type CapabilityVerificationClass =
+  | "not_applicable"
+  | "receipt_only"
+  | "focused_read"
+  | "visual";
 
 export type CapabilityLifecycle = {
   stage: CapabilityLifecycleStage;
@@ -29,7 +33,6 @@ export type CapabilityMetadata = {
 };
 
 const PRIMARY_CAPABILITIES = new Set([
-  "create_project",
   "get_project_info",
   "inspect_elements",
   "capture_model_views",
@@ -222,10 +225,10 @@ const HEAVY_CAPABILITIES = new Set([
   "export_model",
 ]);
 
-const NO_VERIFICATION_CAPABILITIES = new Set([
+const RECEIPT_ONLY_CAPABILITIES = new Set([
+  "create_project",
+  "rename_element",
   "switch_authoring_phase",
-  "undo",
-  "redo",
 ]);
 
 const FOCUSED_READ_VERIFICATION_CAPABILITIES = new Set([
@@ -251,10 +254,26 @@ function executionClassFor(name: string): CapabilityExecutionClass {
   return "normal";
 }
 
+const VISUAL_VERIFICATION_CAPABILITIES = new Set([
+  "manage_cubes",
+  "capture_model_views",
+  "create_texture",
+  "paint_fill_tool",
+  "draw_shape_tool",
+  "paint_with_brush",
+  "eraser_tool",
+  "paint_texture_transaction",
+  "create_animation",
+  "manage_animation_timeline",
+  "undo",
+  "redo",
+]);
+
 function verificationClassFor(name: string): CapabilityVerificationClass {
-  if (NO_VERIFICATION_CAPABILITIES.has(name)) return "none";
+  if (RECEIPT_ONLY_CAPABILITIES.has(name)) return "receipt_only";
   if (FOCUSED_READ_VERIFICATION_CAPABILITIES.has(name)) return "focused_read";
-  return "visual";
+  if (VISUAL_VERIFICATION_CAPABILITIES.has(name)) return "visual";
+  return "not_applicable";
 }
 
 const CAPABILITY_EFFECTS: Readonly<Record<string, CapabilityEffects>> = {
