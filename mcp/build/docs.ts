@@ -1,4 +1,3 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
 import { toolManifest, promptDocs, resourceDocs } from "./docs-manifest";
 import type { ToolSpec, PromptSpec, ResourceSpec } from "../lib/factories";
@@ -52,12 +51,11 @@ interface DocOutput {
 
 function convertSchema(name: string, schema: z.ZodType): object {
   try {
-    // @ts-ignore Deep type instantiation
-    return zodToJsonSchema(schema, {
-      name,
-      $refStrategy: "none",
-      errorMessages: true,
-      markdownDescription: true,
+    return z.toJSONSchema(schema, {
+      io: "input",
+      target: "draft-2020-12",
+      unrepresentable: "any",
+      reused: "inline",
     });
   } catch (err) {
     console.warn(`Warning: Failed to convert schema for "${name}":`, err);
