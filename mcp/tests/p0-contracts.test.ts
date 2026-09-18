@@ -211,9 +211,13 @@ describe("P0 MCP contract regressions", () => {
     expect(registration).toBeDefined();
     if (!registration) throw new Error("Discriminated union fixture was not registered.");
 
-    expect(
-      Object.keys(registration.definition.inputSchema as Record<string, unknown>).sort()
-    ).toEqual(["action", "id", "name", "value"]);
+    const advertised = registration.definition.inputSchema as z.ZodObject<any>;
+    expect(Object.keys(advertised.shape).sort()).toEqual([
+      "action",
+      "id",
+      "name",
+      "value",
+    ]);
 
     await expectRejectedBeforeExecution(
       registration.callback,
@@ -252,7 +256,8 @@ describe("P0 MCP contract regressions", () => {
     expect(registration).toBeDefined();
     if (!registration) throw new Error("Union/intersection fixture was not registered.");
 
-    expect(Object.keys(registration.definition.inputSchema as Record<string, unknown>).sort())
+    const advertised = registration.definition.inputSchema as z.ZodObject<any>;
+    expect(Object.keys(advertised.shape).sort())
       .toEqual(["elements", "id", "name", "operation"].sort());
   });
 
