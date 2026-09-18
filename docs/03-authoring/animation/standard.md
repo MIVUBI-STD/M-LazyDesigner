@@ -29,6 +29,27 @@ AnimationController
 
 Hybrid authoring is expected when responsibilities genuinely differ. Professional samples are learning evidence only; archetypes are categories, not presets. Do not impose one global FPS, duration, amplitude, phase, keyframe count, interpolation, or controller topology.
 
+## Rig / Clip / Controller Budget
+
+Treat rig capability, clip inventory, and controller composition as separate authoring budgets.
+
+```text
+RIG
+→ form + transform / attachment / deformation capability
+
+CLIP
+→ authored motion / pose inventory
+
+CONTROLLER
+→ state, transition, blend, and composition
+```
+
+A new clip or controller state should reuse existing semantic owners first. Add or change hierarchy only when the requested motion exposes a genuine missing pivot, articulation, attachment, clearance, or deformation capability.
+
+Presentation-context growth such as first-person vs third-person or held vs worn may change transforms, clip selection, or a local geometry branch without requiring an unrelated base rig.
+
+Controller/state complexity must not be solved by increasing rig density unless the hierarchy itself is the proven blocker.
+
 ## Motion Design Contract
 
 Before production animation, define only applicable facts:

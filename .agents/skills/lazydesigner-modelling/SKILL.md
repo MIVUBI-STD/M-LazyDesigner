@@ -143,6 +143,24 @@ A semantic label never authorizes coordinates. **No orphan/filler Cube**; `PROVI
 Shared orientation/attachment/articulation → **Group/Bone-owned**; local rigid orientation may be Cube-owned. Primary mass: `AXIS_ALIGNED | ROTATED | UNRESOLVED`. Visible slope → pivot role `MASS_CENTER | ATTACHMENT | JOINT | PARENT_TRANSFORM`; attachment/joint pivot owns shared transform. Material `UNRESOLVED` → `BLOCKED`. AABB overlap, hierarchy, or numeric touching is not contact proof.
 When `Animation Required = YES`, leave **motion-ready structure**: cohorts, pivots, clearance, contact invariants. A known rig/contact defect does not wait for Animation.
 
+### Ownership reuse / variant guard
+
+Before adding a Group/Bone/Locator for a new clip, controller state, view context, or visual variant:
+
+```text
+existing semantic owner sufficient?
+→ yes: reuse it
+→ no: identify exact missing transform / attachment / deformation capability
+→ add only that owner
+```
+
+Keep Geometry/Rig complexity, Clip complexity, and Controller complexity as separate budgets. More clips or controller states are not evidence for more hierarchy.
+
+For local state/presentation changes, isolate only the smallest changed geometry/owner branch. First-person/third-person, held/worn, coupled/uncoupled, or related contexts should reuse the base semantic hierarchy when its capability remains valid.
+
+Locator intent may be animated when it owns a moving attachment/reference transform. Do not replace visible required geometry with a Locator.
+
+
 ## Production-Scale Entity Construction
 Large counts, rotated Cubes, per-face UV and Locators can be valid. Locator = lightweight attachment/effect anchor. Visible Bounds = native culling/export metadata; check animation extremes.
 

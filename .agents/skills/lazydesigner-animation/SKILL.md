@@ -116,6 +116,22 @@ Rules:
 - Timeline selection/view expansion is editor state, not authored motion. Change it only when it materially supports evidence or a native operation that depends on selection.
 - Native Timeline/Animator API calls are the intended execution path; the fact that Blockbench UI updates afterward does not make them UI automation.
 
+## Rig / Clip / Controller Budget
+
+Keep three budgets distinct:
+
+```text
+rig → transform / attachment / deformation capability
+clip → authored motion / pose inventory
+controller → state / transition / blend composition
+```
+
+New clips and controller states reuse existing semantic owners unless playback/reference evidence exposes a missing structural capability. Do not request hierarchy growth merely because animation or controller count grows.
+
+Presentation contexts may use different transforms, clips, or local geometry branches while preserving the same base rig when that rig remains semantically sufficient.
+
+If a requested motion cannot be expressed cleanly with the existing pivot/parent/clearance relationships, hand off to Geometry; do not compensate with denser keys or controller complexity.
+
 ## Motion Design Contract
 
 Before keys define only applicable facts (no foot-plant/gameplay contract for an unrelated mechanical loop):
