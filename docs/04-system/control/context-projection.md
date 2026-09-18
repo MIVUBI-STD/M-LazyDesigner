@@ -1,6 +1,6 @@
 # LazyDesigner Control Context Projection
 
-Updated: 2026-09-12
+Updated: 2026-09-18
 
 This document defines the canonical stage-specific context contract projected by LazyDesigner Control to Codex for asset authoring.
 
@@ -183,6 +183,8 @@ In particular, ownership-reuse, smallest-changed-branch, Locator-parent-motion, 
 
 Animation receives resolved participating rig/relationship evidence plus the Animation Skill; it does not reload the full selected modelling profile merely because the asset has one.
 ## Geometry Profile Rule
+
+The selected MODEL profile originates from the current Reference Package (`REFERENCE.json.asset.profile`). Control does not independently classify the asset; it validates/transports the label and loads the matching profile for Geometry.
 
 Only Geometry normally loads a full modelling profile:
 
