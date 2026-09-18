@@ -103,14 +103,20 @@ function animationTimelineStateNeutral(value: unknown): boolean {
 function particleHasAuthoredEffect(value: unknown): boolean {
   const candidates = resultCandidates(value);
   if (candidates.length === 0) return true;
-  return candidates.some((candidate) => {
-    const wroteToPath = candidate.wrote_to_path;
-    const previewPath = candidate.preview_path;
-    return (
-      (typeof wroteToPath === "string" && wroteToPath.length > 0) ||
-      (typeof previewPath === "string" && previewPath.length > 0)
-    );
-  });
+
+  const explicitEffectReceipt = candidates.find(
+    (candidate) =>
+      Object.prototype.hasOwnProperty.call(candidate, "wrote_to_path") &&
+      Object.prototype.hasOwnProperty.call(candidate, "preview_path")
+  );
+  if (!explicitEffectReceipt) return true;
+
+  const wroteToPath = explicitEffectReceipt.wrote_to_path;
+  const previewPath = explicitEffectReceipt.preview_path;
+  return (
+    (typeof wroteToPath === "string" && wroteToPath.length > 0) ||
+    (typeof previewPath === "string" && previewPath.length > 0)
+  );
 }
 
 function capabilityMutatesState(
