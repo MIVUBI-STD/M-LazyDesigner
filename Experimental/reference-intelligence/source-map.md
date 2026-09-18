@@ -349,6 +349,8 @@ Repository inspection confirms there is currently **no valid current-quality Laz
 
 Therefore native execution is blocked on authoring a fresh T1 asset through the normal LazyDesigner workflow. No external corpus model may substitute for this requirement.
 
+This blocker was re-verified against Local SHA `c85cff4881468e1677943dc869327aa95b096eb5`; the workspace state is unchanged.
+
 An execution-ready baseline-vs-candidate packet is recorded in `native-validation-execution-packet.md`.
 
 ## REMOTE_GITHUB Validation Status
