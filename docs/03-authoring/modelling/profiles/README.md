@@ -106,7 +106,7 @@ motion ownership follows actual requirement/evidence
 stable semantic ownership should survive clip/controller/presentation growth unless capability is missing
 rig, clip, and controller complexity are separate budgets
 local state/presentation variants isolate the smallest changed branch
-Locator semantics may be animated when they own a moving attachment/reference transform
+moving Locator semantics should inherit animation from the correct parent Group/Bone; direct Locator keyframing is not assumed
 family-level attachment semantics may stay stable without forcing identical topology
 largest structural difference first
 blocking vs non-blocking unknowns remain explicit
