@@ -104,6 +104,33 @@ describe("model creation effectiveness — professional construction without pre
     expect(geometry).toContain("Do not create hierarchy solely to increase depth or node count");
   });
 
+
+  test("research-backed ownership reuse stays compact and avoids action-driven rig growth", async () => {
+    const [modelling, animationSkill, geometry, animation] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      source("../docs/03-authoring/modelling/standard.md"),
+      source("../docs/03-authoring/animation/standard.md"),
+    ]);
+
+    for (const text of [modelling, geometry]) {
+      expect(text).toContain("smallest changed");
+      expect(lower(text)).toContain("more clips or controller states");
+      expect(lower(text)).toMatch(/locator.*moving attachment|moving attachment.*locator/);
+    }
+
+    for (const text of [animationSkill, animation]) {
+      expect(text).toContain("Rig / Clip / Controller Budget");
+      expect(lower(text)).toContain("reuse existing semantic owners");
+      expect(lower(text)).toMatch(/controller.*hierarchy|hierarchy.*controller/);
+    }
+
+    const combined = lower(`${modelling}\n${animationSkill}\n${geometry}\n${animation}`);
+    expect(combined).toContain("separate budgets");
+    expect(combined).not.toContain("new hierarchy for every animation");
+    expect(combined).not.toContain("one owner per visible part");
+  });
+
   test("professional samples never become callable presets, profiles, or fixture anatomy", async () => {
     const [profile, cubes, element, modelling, workflow] = await Promise.all([
       source("lib/registrationProfile.ts"),
