@@ -20,28 +20,28 @@ export type RuntimeHostConfig = {
 
 export class RuntimeHost {
   private httpServer: NetServer | null = null;
-  private nativeNet: Parameters<typeof createNetServer>[0] | null = null;
+  private nativeHttp: Parameters<typeof createNetServer>[0] | null = null;
   private config: RuntimeHostConfig | null = null;
 
   acquireNativeNetwork(generation: number): boolean {
     if (!isRuntimeGenerationCurrent(generation)) return false;
 
     // @ts-ignore - requireNativeModule is a Blockbench desktop global.
-    const net = requireNativeModule("net", {
+    const http = requireNativeModule("http", {
       message: "Network access is required for the MCP server to accept connections.",
       detail:
         "The MCP plugin needs to create a local server that AI assistants can connect to.",
       optional: false,
     }) as Parameters<typeof createNetServer>[0] | null;
 
-    if (!net) {
+    if (!http) {
       markRuntimeGenerationState(generation, "failed");
       console.error("[MCP] Failed to get net module - server will not start");
       Blockbench.showQuickMessage("MCP Server requires network permission", 3000);
       return false;
     }
 
-    this.nativeNet = net;
+    this.nativeHttp = http;
     return true;
   }
 
@@ -105,7 +105,7 @@ export class RuntimeHost {
   async start(generation: number): Promise<boolean> {
     if (
       !isRuntimeGenerationCurrent(generation) ||
-      !this.nativeNet ||
+      !this.nativeHttp ||
       !this.config ||
       this.httpServer
     ) {
@@ -114,7 +114,7 @@ export class RuntimeHost {
 
     const config = { ...this.config };
     setStatusBarState("starting", `binding ${config.port}`);
-    const candidate = createNetServer(this.nativeNet, { ...config, generation });
+    const candidate = createNetServer(this.nativeHttp, { ...config, generation });
     this.httpServer = candidate;
 
     try {
@@ -151,7 +151,7 @@ export class RuntimeHost {
     this.httpServer = null;
     const closePromise = current?.closeAndWait() ?? Promise.resolve();
 
-    this.nativeNet = null;
+    this.nativeHttp = null;
     this.config = null;
 
     if (generation === null) {
