@@ -3,7 +3,8 @@ import {
   isLegacyRequest,
   WebStandardStreamableHTTPServerTransport
 } from "@modelcontextprotocol/server";
-import type { Server as NodeNetServer, Socket } from 'node:net'
+import type { IncomingMessage, Server as NodeHttpServer, ServerResponse } from 'node:http'
+import type { Socket } from 'node:net'
 import {
   registerToolsOnServer,
   registerResourcesOnServer,
@@ -52,7 +53,7 @@ const BUILD_IDENTITY = normalizeBuildIdentity(
   (globalThis as { __BLOCKIT_BUILD_ID__?: unknown }).__BLOCKIT_BUILD_ID__
 )
 
-export interface NetServer extends NodeNetServer {
+export interface NetServer extends NodeHttpServer {
   closeActiveSockets(): void
   closeAndWait(): Promise<void>
 }
@@ -74,28 +75,9 @@ class RuntimeRequestAbandonedError extends Error {
   }
 }
 
-function getStatusText (status: number): string {
-  const texts: Record<number, string> = {
-    200: 'OK',
-    201: 'Created',
-    202: 'Accepted',
-    204: 'No Content',
-    400: 'Bad Request',
-    403: 'Forbidden',
-    404: 'Not Found',
-    405: 'Method Not Allowed',
-    406: 'Not Acceptable',
-    409: 'Conflict',
-    413: 'Payload Too Large',
-    415: 'Unsupported Media Type',
-    431: 'Request Header Fields Too Large',
-    500: 'Internal Server Error'
-  }
-  return texts[status] || 'Unknown'
-}
-
-// Loopback MCP requests are small JSON documents. These caps exist so a hostile
-// local client cannot grow the parser buffer without bound.
+// Loopback MCP requests are small JSON documents. Node owns HTTP framing; these
+// caps remain LazyDesigner policy so a hostile local client cannot grow request
+// state without bound.
 const MAX_REQUEST_HEADER_BYTES = 32 * 1024
 const MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024
 const SOCKET_IDLE_TIMEOUT_MS = 30_000
@@ -423,10 +405,78 @@ async function handleStatelessMcpRequest (
   }
 }
 
+class RuntimePayloadTooLargeError extends Error {
+  constructor () {
+    super('Runtime request body exceeds the configured limit.')
+    this.name = 'RuntimePayloadTooLargeError'
+  }
+}
+
+function rawHeaderCount (request: IncomingMessage, name: string): number {
+  const target = name.toLowerCase()
+  let count = 0
+  for (let index = 0; index < request.rawHeaders.length; index += 2) {
+    if (request.rawHeaders[index]?.toLowerCase() === target) count += 1
+  }
+  return count
+}
+
+async function readNodeRequestBody (request: IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = []
+  let total = 0
+
+  for await (const chunk of request) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    total += bytes.byteLength
+    if (total > MAX_REQUEST_BODY_BYTES) {
+      throw new RuntimePayloadTooLargeError()
+    }
+    chunks.push(bytes)
+  }
+
+  return Buffer.concat(chunks, total).toString('utf8')
+}
+
+function sendNodeResponse (
+  response: ServerResponse,
+  status: number,
+  headers: Record<string, string>,
+  body: string,
+  closeConnection: boolean = false
+): void {
+  if (response.headersSent || response.writableEnded) return
+  response.statusCode = status
+  for (const [key, value] of Object.entries(headers)) {
+    response.setHeader(key, value)
+  }
+  if (closeConnection) response.setHeader('connection', 'close')
+  if (!response.hasHeader('content-length')) {
+    response.setHeader('content-length', Buffer.byteLength(body))
+  }
+  response.end(body)
+}
+
+function jsonErrorBody (
+  message: string,
+  id: string | number | null = null,
+  code: number = -32000
+): string {
+  return JSON.stringify({
+    jsonrpc: '2.0',
+    error: { code, message },
+    id
+  })
+}
+
 export default function createNetServer (
   {
     createServer
-  }: { createServer: (callback: (socket: Socket) => void) => NodeNetServer },
+  }: {
+    createServer: (
+      options: { maxHeaderSize: number },
+      callback: (request: IncomingMessage, response: ServerResponse) => void
+    ) => NodeHttpServer
+  },
   {
     port,
     endpoint,
@@ -447,583 +497,379 @@ export default function createNetServer (
   let shuttingDown = false
   let closePromise: Promise<void> | null = null
 
-  const httpServer = createServer((socket: Socket) => {
+  const httpServer = createServer(
+    { maxHeaderSize: MAX_REQUEST_HEADER_BYTES },
+    (request: IncomingMessage, response: ServerResponse) => {
+      void (async () => {
+        if (shuttingDown) {
+          response.setHeader('connection', 'close')
+          response.destroy()
+          return
+        }
+
+        const method = request.method ?? ''
+        const rawPath = request.url ?? endpoint
+        const pathWithoutQuery = rawPath.split('?')[0]
+        const hostHeader = request.headers.host
+        const originHeader = request.headers.origin
+        const connectionClose =
+          request.headers.connection?.toLowerCase() === 'close'
+
+        if (
+          rawHeaderCount(request, 'host') > 1 ||
+          rawHeaderCount(request, 'origin') > 1 ||
+          (request.httpVersion === '1.1' && hostHeader === undefined)
+        ) {
+          sendNodeResponse(
+            response,
+            400,
+            { 'content-type': 'application/json' },
+            jsonErrorBody('Bad Request: malformed or ambiguous HTTP headers'),
+            true
+          )
+          return
+        }
+
+        if (request.headers['transfer-encoding'] !== undefined) {
+          sendNodeResponse(
+            response,
+            400,
+            { 'content-type': 'application/json' },
+            jsonErrorBody(
+              'Bad Request: Transfer-Encoding is not supported; send Content-Length.'
+            ),
+            true
+          )
+          return
+        }
+
+        const rawContentLength = request.headers['content-length']
+        if (
+          rawContentLength !== undefined &&
+          (!/^\d+$/.test(rawContentLength) ||
+            Number(rawContentLength) > MAX_REQUEST_BODY_BYTES)
+        ) {
+          const tooLarge =
+            /^\d+$/.test(rawContentLength) &&
+            Number(rawContentLength) > MAX_REQUEST_BODY_BYTES
+          sendNodeResponse(
+            response,
+            tooLarge ? 413 : 400,
+            { 'content-type': 'application/json' },
+            tooLarge
+              ? jsonErrorBody('Payload Too Large: request body exceeds limit')
+              : jsonErrorBody('Bad Request: invalid Content-Length'),
+            true
+          )
+          return
+        }
+
+        if (originHeader !== undefined && !isAllowedLocalOrigin(originHeader)) {
+          sendNodeResponse(
+            response,
+            403,
+            { 'content-type': 'application/json' },
+            jsonErrorBody('Forbidden: invalid Origin header'),
+            connectionClose
+          )
+          return
+        }
+
+        if (hostHeader !== undefined && !isAllowedLocalHost(hostHeader)) {
+          sendNodeResponse(
+            response,
+            403,
+            { 'content-type': 'application/json' },
+            jsonErrorBody('Forbidden: invalid Host header'),
+            connectionClose
+          )
+          return
+        }
+
+        let requestedProjectUuid: string | null
+        try {
+          requestedProjectUuid = normalizeProjectAffinityUuid(
+            request.headers[BLOCKIT_PROJECT_AFFINITY_HEADER] as
+              | string
+              | undefined
+          )
+        } catch (error) {
+          sendNodeResponse(
+            response,
+            400,
+            { 'content-type': 'application/json' },
+            projectContextErrorBody(
+              null,
+              error instanceof Error ? error.message : String(error)
+            ),
+            true
+          )
+          return
+        }
+
+        let requestedAuthoringPhase: McpAuthoringPhase | null
+        try {
+          requestedAuthoringPhase = normalizeAuthoringPhaseAffinity(
+            request.headers[BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER] as
+              | string
+              | undefined
+          )
+        } catch (error) {
+          sendNodeResponse(
+            response,
+            400,
+            { 'content-type': 'application/json' },
+            jsonErrorBody(
+              error instanceof Error ? error.message : String(error)
+            ),
+            true
+          )
+          return
+        }
+
+        const effectiveAuthoringPhase =
+          requestedAuthoringPhase ?? getActiveMcpAuthoringPhase()
+        const activeProfile = getActiveMcpRegistrationProfile()
+
+        if (
+          pathWithoutQuery === '/health' ||
+          pathWithoutQuery === endpoint + '/health'
+        ) {
+          sendNodeResponse(
+            response,
+            200,
+            { 'content-type': 'application/json' },
+            JSON.stringify({
+              status: 'ok',
+              timestamp: new Date().toISOString(),
+              product: createProductIdentity(
+                activeProfile,
+                effectiveAuthoringPhase
+              ),
+              build_identity: BUILD_IDENTITY,
+              instance_id: INSTANCE_ID,
+              startup_time: STARTUP_TIME,
+              exposed_tool_count: getMcpSurfaceToolNames(
+                activeProfile,
+                effectiveAuthoringPhase
+              ).length,
+              project_context: getRuntimeProjectHealth(requestedProjectUuid),
+              transport: {
+                mode: 'stateless',
+                response_mode: 'json'
+              }
+            }),
+            connectionClose
+          )
+          return
+        }
+
+        if (
+          pathWithoutQuery === '/ready' ||
+          pathWithoutQuery === endpoint + '/ready'
+        ) {
+          sendNodeResponse(
+            response,
+            200,
+            { 'content-type': 'application/json' },
+            JSON.stringify({ ready: true }),
+            connectionClose
+          )
+          return
+        }
+
+        if (
+          pathWithoutQuery !== endpoint &&
+          !rawPath.startsWith(endpoint + '/') &&
+          !rawPath.startsWith(endpoint + '?')
+        ) {
+          sendNodeResponse(
+            response,
+            404,
+            { 'content-type': 'text/plain' },
+            'Not Found',
+            connectionClose
+          )
+          return
+        }
+
+        if (method !== 'POST') {
+          sendNodeResponse(
+            response,
+            405,
+            {
+              'content-type': 'application/json',
+              allow: 'POST'
+            },
+            jsonErrorBody('Method not allowed in stateless MCP mode.'),
+            connectionClose
+          )
+          return
+        }
+
+        let body: string
+        try {
+          body = await readNodeRequestBody(request)
+        } catch (error) {
+          if (error instanceof RuntimePayloadTooLargeError) {
+            sendNodeResponse(
+              response,
+              413,
+              { 'content-type': 'application/json' },
+              jsonErrorBody('Payload Too Large: request body exceeds limit'),
+              true
+            )
+            return
+          }
+          throw error
+        }
+
+        const requestUrl = new URL(
+          rawPath,
+          `http://${hostHeader ?? `${host}:${port}`}`
+        )
+        const webHeaders = new Headers()
+        for (const [key, value] of Object.entries(request.headers)) {
+          if (Array.isArray(value)) {
+            for (const item of value) webHeaders.append(key, item)
+          } else if (value !== undefined) {
+            webHeaders.set(key, value)
+          }
+        }
+        const webRequest = new Request(requestUrl, {
+          method,
+          headers: webHeaders,
+          body: body || undefined
+        })
+        const envelope = readRequestEnvelope(body)
+        const capabilityEffects = envelope.capability
+          ? getCapabilityMetadata(envelope.capability).effects
+          : null
+        const needsProjectContext =
+          envelope.method === 'tools/call' && requestedProjectUuid !== null
+        const allowProjectTransition =
+          capabilityEffects?.projectAffinity === 'adopt_created_project'
+
+        try {
+          const execute = async () => await handleStatelessMcpRequest(
+            webRequest,
+            effectiveAuthoringPhase,
+            activeProfile,
+            requestedAuthoringPhase !== null
+          )
+          const dispatch = async () => needsProjectContext
+            ? await runWithRuntimeProjectAffinity(
+                requestedProjectUuid,
+                allowProjectTransition,
+                execute
+              )
+            : await execute()
+          const result = envelope.method === 'tools/call'
+            ? await runRuntimeOperationExclusive(generation, async () => {
+                if (
+                  request.destroyed ||
+                  response.destroyed ||
+                  shuttingDown
+                ) {
+                  throw new RuntimeRequestAbandonedError()
+                }
+                return await dispatch()
+              })
+            : await dispatch()
+
+          if (
+            requestedAuthoringPhase === null &&
+            capabilityEffects?.phaseAffinity === 'update_from_result' &&
+            envelope.targetAuthoringPhase !== null &&
+            isSuccessfulToolCallResponse(result)
+          ) {
+            requestMcpPhaseSwitch(envelope.targetAuthoringPhase)
+          }
+
+          sendNodeResponse(
+            response,
+            result.status,
+            result.headers,
+            result.body,
+            true
+          )
+        } catch (error) {
+          if (
+            error instanceof RuntimeRequestAbandonedError ||
+            error instanceof RuntimeGenerationRetiredError
+          ) return
+          if (
+            error instanceof RuntimeProjectContextError &&
+            !error.outcomeUnknown
+          ) {
+            sendNodeResponse(
+              response,
+              409,
+              { 'content-type': 'application/json' },
+              projectContextErrorBody(envelope.id, error.message),
+              true
+            )
+            return
+          }
+
+          console.error('[MCP] Request handler error:', error)
+          sendNodeResponse(
+            response,
+            500,
+            { 'content-type': 'application/json' },
+            jsonErrorBody('Internal server error', null, -32603),
+            true
+          )
+        }
+      })().catch((error) => {
+        console.error('[MCP] Unhandled HTTP request error:', error)
+        sendNodeResponse(
+          response,
+          500,
+          { 'content-type': 'application/json' },
+          jsonErrorBody('Internal server error', null, -32603),
+          true
+        )
+      })
+    }
+  ) as NetServer
+
+  httpServer.on('connection', (socket: Socket) => {
     if (shuttingDown) {
       socket.destroy()
       return
     }
-
     activeSockets.add(socket)
-    let buffer = Buffer.alloc(0)
-    let socketEnded = false
-    let processing = false
-    let awaitingDrain = false
-
     socket.setTimeout(SOCKET_IDLE_TIMEOUT_MS, () => {
-      if (!socketEnded) socket.destroy()
-    })
-
-    socket.on('data', (chunk: Buffer) => {
-      if (socketEnded || shuttingDown) return
-      buffer = Buffer.concat([buffer, chunk])
-      void processBufferedRequests()
-    })
-
-    socket.on('drain', () => {
-      awaitingDrain = false
-      void processBufferedRequests()
-    })
-
-    socket.on('error', (err: Error) => {
-      if (err.message !== 'read ECONNRESET') {
-        console.error('[MCP] Socket error:', err.message)
-      }
       socket.destroy()
     })
+    socket.once('close', () => activeSockets.delete(socket))
+  })
 
-    socket.on('close', () => {
-      buffer = Buffer.alloc(0)
-      activeSockets.delete(socket)
-    })
-
-    async function processBufferedRequests (): Promise<void> {
-      if (processing || awaitingDrain || shuttingDown) return
-      processing = true
-
-      try {
-        while (true) {
-          if (shuttingDown || socketEnded || socket.destroyed || !socket.writable) return
-
-          const headerEnd = buffer.indexOf('\r\n\r\n')
-          if (headerEnd === -1) {
-            if (buffer.length > MAX_REQUEST_HEADER_BYTES) {
-              sendResponse(
-                socket,
-                431,
-                { 'content-type': 'application/json' },
-                JSON.stringify({
-                  jsonrpc: '2.0',
-                  error: { code: -32000, message: 'Bad Request: header section too large' },
-                  id: null
-                }),
-                'close'
-              )
-              buffer = Buffer.alloc(0)
-            }
-            return
-          }
-          if (headerEnd > MAX_REQUEST_HEADER_BYTES) {
-            sendResponse(
-              socket,
-              431,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: { code: -32000, message: 'Bad Request: header section too large' },
-                id: null
-              }),
-              'close'
-            )
-            buffer = Buffer.alloc(0)
-            return
-          }
-
-          const headerSection = buffer.subarray(0, headerEnd).toString()
-          const lines = headerSection.split('\r\n')
-          const requestLineParts = lines[0].split(' ')
-          const [method, path, version] = requestLineParts
-
-          if (
-            requestLineParts.length !== 3 ||
-            !method ||
-            !path ||
-            !version ||
-            !/^HTTP\/1\.[01]$/.test(version)
-          ) {
-            sendResponse(
-              socket,
-              400,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: { code: -32000, message: 'Bad Request: malformed request line' },
-                id: null
-              }),
-              undefined
-            )
-            buffer = Buffer.alloc(0)
-            return
-          }
-
-          const headers: Record<string, string> = {}
-          const contentLengthValues: string[] = []
-          const singletonHeaderCounts = new Map<string, number>()
-          let malformedHeader = false
-          for (let i = 1; i < lines.length; i++) {
-            const colonIdx = lines[i].indexOf(':')
-            if (colonIdx <= 0) {
-              malformedHeader = true
-              break
-            }
-
-            const rawKey = lines[i].substring(0, colonIdx).trim()
-            // RFC 9110 field names are tokens. Reject malformed names instead of
-            // silently ignoring them and letting different parsers disagree.
-            if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(rawKey)) {
-              malformedHeader = true
-              break
-            }
-
-            const key = rawKey.toLowerCase()
-            const value = lines[i].substring(colonIdx + 1).trim()
-            if (key === 'content-length') {
-              contentLengthValues.push(value)
-            }
-            if (key === 'host' || key === 'origin') {
-              singletonHeaderCounts.set(key, (singletonHeaderCounts.get(key) ?? 0) + 1)
-            }
-            headers[key] = value
-          }
-
-          if (
-            malformedHeader ||
-            singletonHeaderCounts.get('host')! > 1 ||
-            singletonHeaderCounts.get('origin')! > 1 ||
-            (version === 'HTTP/1.1' && headers['host'] === undefined)
-          ) {
-            sendResponse(
-              socket,
-              400,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                  code: -32000,
-                  message: 'Bad Request: malformed or ambiguous HTTP headers'
-                },
-                id: null
-              }),
-              'close'
-            )
-            buffer = Buffer.alloc(0)
-            return
-          }
-
-          // Chunked framing is not implemented; accepting it would leave the
-          // chunked bytes in the buffer and desync every later request.
-          if (headers['transfer-encoding'] !== undefined) {
-            sendResponse(
-              socket,
-              400,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                  code: -32000,
-                  message: 'Bad Request: Transfer-Encoding is not supported; send Content-Length.'
-                },
-                id: null
-              }),
-              'close'
-            )
-            buffer = Buffer.alloc(0)
-            return
-          }
-
-          const rawContentLength = headers['content-length'] || '0'
-          const distinctContentLengths = new Set(contentLengthValues)
-          const contentLength = Number.parseInt(rawContentLength, 10)
-          if (
-            distinctContentLengths.size > 1 ||
-            !/^\d+$/.test(rawContentLength) ||
-            !Number.isFinite(contentLength) ||
-            contentLength < 0
-          ) {
-            sendResponse(
-              socket,
-              400,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: { code: -32000, message: 'Bad Request: invalid Content-Length' },
-                id: null
-              }),
-              headers['connection']
-            )
-            buffer = Buffer.alloc(0)
-            return
-          }
-
-          if (contentLength > MAX_REQUEST_BODY_BYTES) {
-            sendResponse(
-              socket,
-              413,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: { code: -32000, message: 'Payload Too Large: request body exceeds limit' },
-                id: null
-              }),
-              'close'
-            )
-            buffer = Buffer.alloc(0)
-            return
-          }
-
-          const bodyStart = headerEnd + 4
-          const requestEnd = bodyStart + contentLength
-          if (buffer.length < requestEnd) return
-
-          const body = buffer.subarray(bodyStart, requestEnd).toString()
-          buffer = buffer.subarray(requestEnd)
-
-          const origin = headers['origin']
-          if (origin !== undefined && !isAllowedLocalOrigin(origin)) {
-            sendResponse(
-              socket,
-              403,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                  code: -32000,
-                  message: 'Forbidden: invalid Origin header'
-                },
-                id: null
-              }),
-              headers['connection']
-            )
-            continue
-          }
-
-          const hostHeader = headers['host']
-          if (hostHeader !== undefined && !isAllowedLocalHost(hostHeader)) {
-            sendResponse(
-              socket,
-              403,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                  code: -32000,
-                  message: 'Forbidden: invalid Host header'
-                },
-                id: null
-              }),
-              headers['connection']
-            )
-            continue
-          }
-
-          let requestedProjectUuid: string | null
-          try {
-            requestedProjectUuid = normalizeProjectAffinityUuid(
-              headers[BLOCKIT_PROJECT_AFFINITY_HEADER]
-            )
-          } catch (error) {
-            sendResponse(
-              socket,
-              400,
-              { 'content-type': 'application/json' },
-              projectContextErrorBody(
-                readRequestEnvelope(body).id,
-                error instanceof Error ? error.message : String(error)
-              ),
-              'close'
-            )
-            continue
-          }
-
-          let requestedAuthoringPhase: McpAuthoringPhase | null
-          try {
-            requestedAuthoringPhase = normalizeAuthoringPhaseAffinity(
-              headers[BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER]
-            )
-          } catch (error) {
-            sendResponse(
-              socket,
-              400,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                  code: -32000,
-                  message: error instanceof Error ? error.message : String(error)
-                },
-                id: readRequestEnvelope(body).id
-              }),
-              'close'
-            )
-            continue
-          }
-
-          const effectiveAuthoringPhase =
-            requestedAuthoringPhase ?? getActiveMcpAuthoringPhase()
-          const activeProfile = getActiveMcpRegistrationProfile()
-          const pathWithoutQuery = path.split('?')[0]
-
-          if (
-            pathWithoutQuery === '/health' ||
-            pathWithoutQuery === endpoint + '/health'
-          ) {
-            sendResponse(
-              socket,
-              200,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                status: 'ok',
-                timestamp: new Date().toISOString(),
-                product: createProductIdentity(
-                  activeProfile,
-                  effectiveAuthoringPhase
-                ),
-                build_identity: BUILD_IDENTITY,
-                instance_id: INSTANCE_ID,
-                startup_time: STARTUP_TIME,
-                exposed_tool_count: getMcpSurfaceToolNames(
-                  activeProfile,
-                  effectiveAuthoringPhase
-                ).length,
-                project_context: getRuntimeProjectHealth(requestedProjectUuid),
-                transport: {
-                  mode: 'stateless',
-                  response_mode: 'json'
-                }
-              }),
-              headers['connection']
-            )
-            continue
-          }
-
-          if (
-            pathWithoutQuery === '/ready' ||
-            pathWithoutQuery === endpoint + '/ready'
-          ) {
-            sendResponse(
-              socket,
-              200,
-              { 'content-type': 'application/json' },
-              JSON.stringify({ ready: true }),
-              headers['connection']
-            )
-            continue
-          }
-
-          if (
-            pathWithoutQuery !== endpoint &&
-            !path.startsWith(endpoint + '/') &&
-            !path.startsWith(endpoint + '?')
-          ) {
-            sendResponse(
-              socket,
-              404,
-              { 'content-type': 'text/plain' },
-              'Not Found',
-              headers['connection']
-            )
-            continue
-          }
-
-          // BlockIT does not offer a standalone server-to-client SSE stream in
-          // the default stateless path. MCP 2025-11-25 explicitly permits 405
-          // for GET when that stream is not offered. DELETE is also session-only
-          // and therefore not meaningful when the server does not issue sessions.
-          if (method !== 'POST') {
-            sendResponse(
-              socket,
-              405,
-              {
-                'content-type': 'application/json',
-                allow: 'POST'
-              },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                  code: -32000,
-                  message: 'Method not allowed in stateless MCP mode.'
-                },
-                id: null
-              }),
-              headers['connection']
-            )
-            continue
-          }
-
-          const url = `http://${host}:${port}${path}`
-          const webHeaders = new Headers()
-          for (const [key, value] of Object.entries(headers)) {
-            webHeaders.set(key, value)
-          }
-
-          const requestInit: RequestInit = {
-            method,
-            headers: webHeaders
-          }
-          if (body) {
-            requestInit.body = body
-          }
-          const webRequest = new Request(url, requestInit)
-          const envelope = readRequestEnvelope(body)
-          const capabilityEffects = envelope.capability
-            ? getCapabilityMetadata(envelope.capability).effects
-            : null
-          const needsProjectContext =
-            envelope.method === 'tools/call' && requestedProjectUuid !== null
-          const allowProjectTransition =
-            capabilityEffects?.projectAffinity === 'adopt_created_project'
-
-          try {
-            // The input idle timeout protects incomplete local HTTP requests only.
-            // Once a complete MCP request is parsed, the SDK/Gateway call deadline
-            // owns execution time so legitimate long authoring calls are not cut off.
-            socket.setTimeout(0)
-            const execute = async () => await handleStatelessMcpRequest(
-              webRequest,
-              effectiveAuthoringPhase,
-              activeProfile,
-              requestedAuthoringPhase !== null
-            )
-            const dispatch = async () => needsProjectContext
-              ? await runWithRuntimeProjectAffinity(
-                  requestedProjectUuid,
-                  allowProjectTransition,
-                  execute
-                )
-              : await execute()
-            const response = envelope.method === 'tools/call'
-              ? await runRuntimeOperationExclusive(generation, async () => {
-                  if (socket.destroyed || !socket.writable || shuttingDown) {
-                    throw new RuntimeRequestAbandonedError()
-                  }
-                  return await dispatch()
-                })
-              : await dispatch()
-
-            // Direct Runtime/Inspector clients keep the existing global phase
-            // behavior. Gateway requests carry a phase affinity header, so their
-            // handoff changes only that Gateway and cannot disturb another chat.
-            if (
-              requestedAuthoringPhase === null &&
-              capabilityEffects?.phaseAffinity === 'update_from_result' &&
-              envelope.targetAuthoringPhase !== null &&
-              isSuccessfulToolCallResponse(response)
-            ) {
-              requestMcpPhaseSwitch(envelope.targetAuthoringPhase)
-            }
-
-            // Stateless MCP has no session state to preserve across requests.
-            // Close each MCP response so a client-side keep-alive socket cannot
-            // remain poisoned when a previous Blockbench operation stalls.
-            const sent = sendResponse(
-              socket,
-              response.status,
-              response.headers,
-              response.body,
-              'close'
-            )
-            if (!sent) {
-              awaitingDrain = true
-              return
-            }
-          } catch (error) {
-            if (
-              error instanceof RuntimeRequestAbandonedError ||
-              error instanceof RuntimeGenerationRetiredError
-            ) return
-            if (error instanceof RuntimeProjectContextError && !error.outcomeUnknown) {
-              sendResponse(
-                socket,
-                409,
-                { 'content-type': 'application/json' },
-                projectContextErrorBody(envelope.id, error.message),
-                'close'
-              )
-              continue
-            }
-            console.error('[MCP] Request handler error:', error)
-            sendResponse(
-              socket,
-              500,
-              { 'content-type': 'application/json' },
-              JSON.stringify({
-                jsonrpc: '2.0',
-                error: { code: -32603, message: 'Internal server error' },
-                id: null
-              }),
-              'close'
-            )
-          }
-        }
-      } catch (error) {
-        console.error('[MCP] Unhandled error in processBufferedRequests:', error)
-        if (!socket.destroyed && socket.writable) {
-          sendResponse(
-            socket,
-            500,
-            { 'content-type': 'application/json' },
-            JSON.stringify({
-              jsonrpc: '2.0',
-              error: { code: -32603, message: 'Internal server error' },
-              id: null
-            }),
-            'close'
-          )
-        }
-      } finally {
-        processing = false
-        // An incomplete header/body must wait for the next data event.
-        // Complete buffered requests are drained by the loop above; backpressure
-        // resumes through drain. Re-entering here spins on unchanged bytes.
-      }
-    }
-
-    function sendResponse (
-      sock: Socket,
-      status: number,
-      headers: Record<string, string>,
-      body: string,
-      connection?: string
-    ): boolean {
-      if (socketEnded || sock.destroyed || !sock.writable) {
-        return false
-      }
-
-      let response = `HTTP/1.1 ${status} ${getStatusText(status)}\r\n`
-      headers['content-length'] = Buffer.byteLength(body).toString()
-
-      // HTTP/1.1 connection reuse is independent from MCP protocol sessions.
-      // Keep the socket reusable unless the client explicitly requests close.
-      const keepAlive = connection?.toLowerCase() !== 'close'
-      headers['connection'] = keepAlive ? 'keep-alive' : 'close'
-
-      if (!headers['date']) {
-        headers['date'] = new Date().toUTCString()
-      }
-
-      for (const [key, value] of Object.entries(headers)) {
-        response += `${key}: ${value}\r\n`
-      }
-      response += '\r\n'
-      response += body
-
-      if (!keepAlive) {
-        socketEnded = true
-        sock.write(response, () => {
-          sock.end()
-        })
-        return true
-      }
-
-      // Backpressure: false means the kernel buffer is full. The caller pauses
-      // pipelined dispatch and resumes on the socket drain event.
-      return sock.write(response)
-    }
-  }) as NetServer
+  httpServer.on('clientError', (error: Error & { code?: string }, socket: Socket) => {
+    if (!socket.writable) return
+    const status =
+      error.code === 'HPE_HEADER_OVERFLOW' ? 431 : 400
+    const reason =
+      status === 431
+        ? 'Request Header Fields Too Large'
+        : 'Bad Request'
+    const body = jsonErrorBody(
+      status === 431
+        ? 'Bad Request: header section too large'
+        : 'Bad Request: malformed HTTP request'
+    )
+    socket.end(
+      `HTTP/1.1 ${status} ${reason}\r\n` +
+        'Content-Type: application/json\r\n' +
+        `Content-Length: ${Buffer.byteLength(body)}\r\n` +
+        'Connection: close\r\n\r\n' +
+        body
+    )
+  })
 
   httpServer.closeActiveSockets = () => {
-    for (const socket of activeSockets) {
-      socket.destroy()
-    }
+    for (const socket of activeSockets) socket.destroy()
     activeSockets.clear()
   }
 
@@ -1031,10 +877,6 @@ export default function createNetServer (
     if (closePromise) return closePromise
     shuttingDown = true
 
-    // `listen()` is asynchronous. Calling close immediately after listen can
-    // report ERR_SERVER_NOT_RUNNING while still cancelling the pending bind.
-    // Treat that specific callback result as successful shutdown so plugin
-    // reload cannot leave a ghost listener between generations.
     closePromise = new Promise<void>((resolve, reject) => {
       httpServer.close((error?: Error) => {
         const code = (error as (Error & { code?: string }) | undefined)?.code
@@ -1043,9 +885,6 @@ export default function createNetServer (
       })
     })
 
-    // Stop accepting immediately, but let the one already-running native tool
-    // finish before destroying its socket. This keeps reload/restart deterministic
-    // without letting stale keep-alive connections delay listener replacement.
     void waitForRuntimeOperationDrain().finally(() => {
       httpServer.closeActiveSockets()
     })
@@ -1057,9 +896,9 @@ export default function createNetServer (
     console.log(`[MCP] Server listening on http://${host}:${port}${endpoint}`)
   })
 
-  httpServer.on('error', (err: Error) => {
-    console.error('[MCP] Server error:', err)
-    Blockbench.showQuickMessage(`MCP Server error: ${err.message}`, 3000)
+  httpServer.on('error', (error: Error) => {
+    console.error('[MCP] Server error:', error)
+    Blockbench.showQuickMessage(`MCP Server error: ${error.message}`, 3000)
   })
 
   return httpServer
