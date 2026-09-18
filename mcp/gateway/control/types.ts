@@ -4,6 +4,16 @@ import type { BlockitAuthoringPhaseAffinity } from "../projectAffinity";
 
 export type ControlAuthoringDomain = "GEOMETRY" | "TEXTURING" | "ANIMATION" | "CORE";
 
+export type ControlFreshnessScope =
+  | "GEOMETRY_STRUCTURE"
+  | "UV_MAPPING"
+  | "TEXTURE_APPEARANCE"
+  | "MATERIAL_RENDER"
+  | "ANIMATION_MOTION"
+  | "ANIMATION_CONTROLLER"
+  | "ANIMATION_EFFECTS"
+  | "PARTICLE_SYSTEM";
+
 export type ControlContextHandle = {
   id: string;
   path: string;
@@ -79,6 +89,12 @@ export type ControlDelta = {
     authoring_domains: ControlAuthoringDomain[];
     workspace_projection: boolean;
     acceptance_gates: boolean;
+  };
+  freshness: {
+    basis: "NO_CHANGE" | "PRECISE_EFFECT" | "CONSERVATIVE_EFFECT" | "UNKNOWN_OUTCOME";
+    stale: ControlFreshnessScope[];
+    fresh: ControlFreshnessScope[];
+    unknown: ControlFreshnessScope[];
   };
   next_intent: string;
   verification_class: CapabilityVerificationClass;

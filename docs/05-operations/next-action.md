@@ -1,6 +1,6 @@
 # LazyDesigner Next Action
 
-Updated: 2026-09-18  
+Updated: 2026-09-19  
 Branch: `Local` only.
 
 This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/flow.md`; source/context ownership in `docs/04-system/`; proof interpretation in `docs/05-operations/current-validation.md`.
@@ -36,6 +36,7 @@ Current invariants:
 - `switch_authoring_phase` applies the registered Runtime phase/surface handler before returning its Gateway receipt.
 - Normal authoring loads one active specialist; the shared stage contract is conditional policy context rather than a second routine payload.
 - Control projects one compact active-stage envelope and references stage evidence instead of duplicating full semantic documents.
+- Post-operation Control receipts distinguish stale, fresh, and unknown semantic scopes so unrelated state can be reused without blanket rereads; authoring-domain invalidation remains a compatibility summary.
 - Public consolidated capability development routes to the actual Runtime public owner, not the compatibility `server/tools.ts` facade.
 - No second router, capability registry, persistent state database, authoring workflow engine, or alternate tool implementation path is allowed without a proved requirement.
 
@@ -66,6 +67,22 @@ Do not remotely force:
 - capability removal for context savings;
 - compatibility identifier migration.
 
+### REMOTE_GITHUB — current high-end continuation
+
+The next source optimization is now bounded to **freshness precision**, not another routing/state framework:
+
+```text
+universal semantic freshness receipt → IMPLEMENTED IN SOURCE
+Texture / Material invalidation split  → IMPLEMENTED IN SOURCE
+Animation motion/controller/effects   → IMPLEMENTED IN SOURCE
+Particle freshness isolation          → IMPLEMENTED IN SOURCE
+failed mutation freshness             → FAIL-CLOSED AS UNKNOWN
+```
+
+Keep the existing four-tool Gateway unchanged. Do not introduce direct hot-path tools or a hybrid surface until Golden Tasks provide matching live Cost-to-Accepted-Result evidence.
+
+Remaining source-side refinement is evidence-driven only: if individual Runtime receipts expose narrower changed fields than the current capability-level semantics, enrich the existing effect receipt rather than creating a dependency graph/state engine.
+
 ### LOCAL_CODE — after synchronized REMOTE_GITHUB gate
 
 MCP v2 protocol modernization is now source-proven on the same Runtime endpoint:
@@ -78,7 +95,7 @@ legacy 2025 initialize/list/call PASS
 Runtime/Gateway typecheck + regression/build PASS
 ```
 
-The next transport task is **ownership reduction**, not another protocol feature:
+Transport ownership reduction remains a separate lower-priority local task, not the current high-end authoring optimization:
 
 ```text
 audit whether Node/SDK HTTP serving can replace the raw TCP/HTTP parser

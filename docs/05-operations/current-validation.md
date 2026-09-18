@@ -1,6 +1,6 @@
 # LazyDesigner Current Validation
 
-Updated: 2026-09-18
+Updated: 2026-09-19
 
 This file owns **current proof interpretation only**. Product workflow belongs in `docs/01-product/flow.md`; reference preparation in `docs/02-reference/`; source ownership in `docs/04-system/implementation-map.md`; continuation in `docs/05-operations/next-action.md`.
 
@@ -32,10 +32,13 @@ GEOMETRY_CONTEXT / TEXTURE_CONTEXT / ANIMATION_CONTEXT
 exactly-one-profile Geometry loading
 content-addressed context handles
 stage-scoped readiness and bounded invalidation
+semantic freshness receipt with stale/fresh/unknown scopes
 control_delta continuation
 ```
 
 Control selects context and lifecycle state; it is not a second Runtime, recovery engine, semantic database, or persistent authored-state database.
+
+Post-operation Control deltas now retain the compatibility-level authoring-domain invalidation summary while also projecting semantic freshness scopes for Geometry structure, UV mapping, Texture appearance, material/render state, Animation motion/controller/effects, and Particle state. Successful bounded effects can therefore preserve unrelated scopes without a reassurance reread; failed/uncertain mutations report freshness as unknown instead of pretending unchanged state.
 
 The normal authoring packet is intentionally compact. It carries decision/readiness/reference/workspace identities and does not duplicate complete Geometry/Texture/Animation semantic documents inside `stage_context`.
 

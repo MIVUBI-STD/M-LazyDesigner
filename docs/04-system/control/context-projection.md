@@ -1,6 +1,6 @@
 # LazyDesigner Control Context Projection
 
-Updated: 2026-09-18
+Updated: 2026-09-19
 
 This document defines the canonical stage-specific context contract projected by LazyDesigner Control to Codex for asset authoring.
 
@@ -258,21 +258,60 @@ Control may normalize names and select subsets, but must not invent missing fact
 
 ## Freshness
 
-Mutations stale only affected evidence.
+Mutations stale only affected evidence. Post-operation `control_delta.freshness` is the compact source-owned freshness receipt for continuation without reassurance rereads.
+
+The receipt uses bounded semantic scopes rather than a second persistent state database:
+
+```text
+GEOMETRY_STRUCTURE
+UV_MAPPING
+TEXTURE_APPEARANCE
+MATERIAL_RENDER
+ANIMATION_MOTION
+ANIMATION_CONTROLLER
+ANIMATION_EFFECTS
+PARTICLE_SYSTEM
+```
+
+Each receipt reports:
+
+```text
+basis   → NO_CHANGE | PRECISE_EFFECT | CONSERVATIVE_EFFECT | UNKNOWN_OUTCOME
+stale   → scopes whose prior evidence cannot be reused
+fresh   → scopes explicitly preserved by the observed successful effect
+unknown → scopes for which the failed/uncertain outcome cannot safely claim freshness
+```
+
+Examples:
 
 ```text
 Geometry resize affecting mapped surfaces
-→ affected UV / Texture evidence stale
+→ Geometry structure + UV mapping + mapped Texture appearance + Animation motion stale
+→ material/render, controllers, effects, and Particle state stay fresh
 
-Texture mutation
-→ Geometry evidence remains fresh
+Texture paint mutation
+→ Texture appearance stale
+→ material/render and Geometry remain fresh
+
+Material/render mutation
+→ material/render stale
+→ Texture appearance remains fresh unless the operation also changes Texture content
 
 participating pivot/hierarchy mutation
-→ affected Animation evidence stale
+→ Geometry structure + affected Animation motion stale
 
 Animation key mutation
-→ Geometry/UV remain fresh unless a structural blocker is discovered
+→ Animation motion stale
+→ controller/effect/Particle state remains fresh
+
+Animation controller mutation
+→ controller scope stale; motion/effects/Particle remain fresh
+
+Particle mutation
+→ Particle scope stale; unrelated Animation motion/controller/effect evidence remains fresh
 ```
+
+A failed or uncertain mutation does not claim unrelated state as fresh; those scopes are reported as `unknown` until the outcome is resolved. Domain-level `invalidates.authoring_domains` remains as the compatibility summary, while semantic freshness scopes own fine-grained reuse decisions.
 
 A revised upstream Pixel Art artifact stales only downstream evidence that actually depends on the changed visual/material facts. It does not globally invalidate Geometry or unrelated authoring state.
 

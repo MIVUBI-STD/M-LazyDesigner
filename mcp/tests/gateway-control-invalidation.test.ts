@@ -17,6 +17,10 @@ describe("LazyDesigner Control minimum invalidation", () => {
     });
 
     expect(delta.invalidates.authoring_domains).toEqual(["GEOMETRY"]);
+    expect(delta.freshness.basis).toBe("PRECISE_EFFECT");
+    expect(delta.freshness.stale).toEqual(["GEOMETRY_STRUCTURE"]);
+    expect(delta.freshness.fresh).toContain("TEXTURE_APPEARANCE");
+    expect(delta.freshness.fresh).toContain("ANIMATION_MOTION");
   });
 
   test("shape or UV-sensitive cube changes invalidate dependent Texture and Animation knowledge", () => {
@@ -42,6 +46,14 @@ describe("LazyDesigner Control minimum invalidation", () => {
       "TEXTURING",
       "ANIMATION",
     ]);
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ]);
+    expect(delta.freshness.fresh).toContain("MATERIAL_RENDER");
+    expect(delta.freshness.fresh).toContain("ANIMATION_CONTROLLER");
   });
 
   test("hierarchy changes invalidate Geometry and Animation but preserve Texture by default", () => {
@@ -57,6 +69,12 @@ describe("LazyDesigner Control minimum invalidation", () => {
       "GEOMETRY",
       "ANIMATION",
     ]);
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "ANIMATION_MOTION",
+    ]);
+    expect(delta.freshness.fresh).toContain("UV_MAPPING");
+    expect(delta.freshness.fresh).toContain("TEXTURE_APPEARANCE");
   });
 
   test("duplicated geometry invalidates Geometry plus dependent Texture and Animation evidence", () => {
@@ -99,6 +117,47 @@ describe("LazyDesigner Control minimum invalidation", () => {
       succeeded: true,
     });
     expect(delta.invalidates.authoring_domains).toEqual(["ANIMATION"]);
+    expect(delta.freshness.stale).toEqual(["ANIMATION_MOTION"]);
+    expect(delta.freshness.fresh).toContain("ANIMATION_CONTROLLER");
+    expect(delta.freshness.fresh).toContain("ANIMATION_EFFECTS");
+    expect(delta.freshness.fresh).toContain("PARTICLE_SYSTEM");
+  });
+
+  test("animation controller, effects, and particle mutations stay change-scoped", () => {
+    const cases = [
+      ["manage_animation_controller", "ANIMATION_CONTROLLER"],
+      ["manage_animation_effects", "ANIMATION_EFFECTS"],
+      ["manage_particle", "PARTICLE_SYSTEM"],
+    ] as const;
+
+    for (const [capability, staleScope] of cases) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: "animation",
+        phaseAfter: "animation",
+        projectUuid: "project-a",
+        succeeded: true,
+      });
+      expect(delta.invalidates.authoring_domains, capability).toEqual(["ANIMATION"]);
+      expect(delta.freshness.basis, capability).toBe("PRECISE_EFFECT");
+      expect(delta.freshness.stale, capability).toEqual([staleScope]);
+      expect(delta.freshness.fresh, capability).not.toContain(staleScope);
+    }
+  });
+
+  test("failed mutation does not make freshness claims", () => {
+    const delta = buildControlDelta({
+      capability: "manage_animation_timeline",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: false,
+    });
+
+    expect(delta.freshness.basis).toBe("UNKNOWN_OUTCOME");
+    expect(delta.freshness.stale).toEqual([]);
+    expect(delta.freshness.fresh).toEqual([]);
+    expect(delta.freshness.unknown).toHaveLength(8);
   });
 
   test("unknown Geometry mutation receipt fails safe instead of pretending precision", () => {
@@ -113,6 +172,13 @@ describe("LazyDesigner Control minimum invalidation", () => {
       "GEOMETRY",
       "TEXTURING",
       "ANIMATION",
+    ]);
+    expect(delta.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
     ]);
   });
 });
