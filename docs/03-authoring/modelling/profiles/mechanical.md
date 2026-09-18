@@ -126,6 +126,12 @@ sliding component
 
 Do not create extra pivots simply because an element could theoretically move.
 
+Use a shared assembly parent when several repeated components share placement but require their own local articulation. A non-visible parent is valid when it owns only transform organization.
+
+The same visible mechanical owner may participate in multiple motion channels when the pivot/parent relationship is still correct; do not duplicate geometry merely to separate clip responsibilities.
+
+Local mechanism states or upgrade assemblies should isolate only the smallest changed branch when the surrounding base mechanism remains unchanged.
+
 ## 4. Motion Vocabulary
 
 Use the smallest motion model supported by the reference/requirement:

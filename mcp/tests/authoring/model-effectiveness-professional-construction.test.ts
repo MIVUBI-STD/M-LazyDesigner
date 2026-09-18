@@ -154,6 +154,43 @@ describe("model creation effectiveness — professional construction without pre
     expect(animationSkill).toContain("must not become a competing policy owner");
   });
 
+
+  test("modelling profiles inherit compact ownership reuse without forcing fixed rigs", async () => {
+    const [profiles, vehicle, humanoid, creature, mechanical] = await Promise.all([
+      source("../docs/03-authoring/modelling/profiles/README.md"),
+      source("../docs/03-authoring/modelling/profiles/vehicle.md"),
+      source("../docs/03-authoring/modelling/profiles/humanoid.md"),
+      source("../docs/03-authoring/modelling/profiles/creature.md"),
+      source("../docs/03-authoring/modelling/profiles/mechanical.md"),
+    ]);
+
+    expect(profiles).toContain("rig, clip, and controller complexity are separate budgets");
+    expect(profiles).toContain("smallest changed branch");
+    expect(profiles).toContain("family-level attachment semantics");
+
+    expect(vehicle).toContain("shared assembly parent");
+    expect(vehicle).toContain("smallest changed branch");
+
+    expect(humanoid).toContain("Animation-library growth is not evidence for hierarchy growth");
+    expect(humanoid).toContain("first-/third-person contexts");
+
+    expect(creature).toContain("Reuse family attachment semantics");
+    expect(creature).toContain("phase/amplitude differences");
+
+    expect(mechanical).toContain("same visible mechanical owner");
+    expect(mechanical).toContain("shared assembly parent");
+
+    const combined = lower(`${profiles}\n${vehicle}\n${humanoid}\n${creature}\n${mechanical}`);
+    for (const forbidden of [
+      "one owner per visible part",
+      "new hierarchy for every animation",
+      "fixed rig topology",
+      "duplicate full model for every state",
+    ]) {
+      expect(combined).not.toContain(forbidden);
+    }
+  });
+
   test("professional samples never become callable presets, profiles, or fixture anatomy", async () => {
     const [profile, cubes, element, modelling, workflow] = await Promise.all([
       source("lib/registrationProfile.ts"),
