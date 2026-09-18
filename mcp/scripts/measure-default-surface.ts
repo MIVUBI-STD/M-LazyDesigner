@@ -5,7 +5,8 @@ import {
   type McpAuthoringPhase,
 } from "@/lib/authoringPhase";
 import { selectMcpPhaseWorkflowBody } from "@/server/prompts";
-import { createServer as createTcpServer, type AddressInfo } from "node:net";
+import { createServer as createHttpServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import createNetServer from "@/server/net";
 
 const HOST = "127.0.0.1";
@@ -361,7 +362,7 @@ async function postMcp(
 async function main(): Promise<void> {
   const server = createNetServer(
     {
-      createServer: (callback) => createTcpServer(callback),
+      createServer: (options, callback) => createHttpServer(options, callback),
     },
     {
       port: 0,
