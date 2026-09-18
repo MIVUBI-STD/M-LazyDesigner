@@ -1,4 +1,8 @@
-import { createMcpHandler } from "@modelcontextprotocol/server";
+import {
+  createMcpHandler,
+  isLegacyRequest,
+  WebStandardStreamableHTTPServerTransport
+} from "@modelcontextprotocol/server";
 import type { Server as NodeNetServer, Socket } from 'node:net'
 import {
   registerToolsOnServer,
@@ -335,28 +339,67 @@ function isSuccessfulToolCallResponse (response: SerializedWebResponse): boolean
  * path request/response-only; standalone GET/SSE is rejected by the outer HTTP
  * route before this helper is called.
  */
+function createRequestServer (
+  phase: McpAuthoringPhase,
+  profile: McpRegistrationProfile,
+  phaseScoped: boolean
+) {
+  const requestServer = createMcpServer(phase, profile)
+  const scopedToolNames = phaseScoped
+    ? getMcpSurfaceToolNames(profile, phase)
+    : undefined
+  registerToolsOnServer(requestServer, scopedToolNames)
+  registerResourcesOnServer(requestServer)
+  registerPromptsOnServer(requestServer)
+  return requestServer
+}
+
+async function handleLegacyJsonMcpRequest (
+  webRequest: Request,
+  phase: McpAuthoringPhase,
+  profile: McpRegistrationProfile,
+  phaseScoped: boolean
+): Promise<Response> {
+  const requestServer = createRequestServer(phase, profile, phaseScoped)
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true
+  })
+  await requestServer.connect(transport)
+  try {
+    return await transport.handleRequest(webRequest)
+  } finally {
+    await requestServer.close()
+  }
+}
+
 async function handleStatelessMcpRequest (
   webRequest: Request,
   phase: McpAuthoringPhase = getActiveMcpAuthoringPhase(),
   profile: McpRegistrationProfile = DEFAULT_MCP_REGISTRATION_PROFILE,
   phaseScoped: boolean = false
 ): Promise<SerializedWebResponse> {
-  // One official SDK handler owns both MCP eras. The default legacy='stateless'
-  // path preserves 2025 request compatibility while 2026-07-28 requests use
-  // the modern stateless protocol without a parallel Runtime transport stack.
-  const handler = createMcpHandler(() => {
-    const requestServer = createMcpServer(phase, profile)
-    const scopedToolNames = phaseScoped
-      ? getMcpSurfaceToolNames(profile, phase)
-      : undefined
-    registerToolsOnServer(requestServer, scopedToolNames)
-    registerResourcesOnServer(requestServer)
-    registerPromptsOnServer(requestServer)
-    return requestServer
-  })
+  // Modern 2026-07-28 traffic uses the official v2 handler. Legacy 2025
+  // traffic temporarily retains LazyDesigner's established stateless JSON
+  // response shape until Gateway/client migration is complete. Both legs build
+  // the same request-owned server surface; there is no second capability model.
+  const modernHandler = createMcpHandler(
+    () => createRequestServer(phase, profile, phaseScoped),
+    {
+      legacy: 'reject',
+      responseMode: 'json',
+      maxRequestBodySize: MAX_REQUEST_BODY_BYTES
+    }
+  )
 
   try {
-    const webResponse = await handler.fetch(webRequest)
+    const legacy = await isLegacyRequest(webRequest, undefined, {
+      maxRequestBodySize: MAX_REQUEST_BODY_BYTES
+    })
+    const webResponse = legacy
+      ? await handleLegacyJsonMcpRequest(webRequest, phase, profile, phaseScoped)
+      : await modernHandler.fetch(webRequest)
+
     const responseHeaders: Record<string, string> = {}
     webResponse.headers.forEach((value: string, key: string) => {
       responseHeaders[key] = value
@@ -365,7 +408,7 @@ async function handleStatelessMcpRequest (
     const contentType = webResponse.headers.get('content-type') || ''
     if (contentType.includes('text/event-stream')) {
       throw new Error(
-        'Unexpected SSE response in the default stateless JSON transport path.'
+        'Unexpected SSE response in the request/response Runtime path.'
       )
     }
 
@@ -379,7 +422,7 @@ async function handleStatelessMcpRequest (
       body: await webResponse.text()
     }
   } finally {
-    await handler.close()
+    await modernHandler.close()
   }
 }
 
