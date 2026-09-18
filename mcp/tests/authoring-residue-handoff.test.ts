@@ -74,8 +74,9 @@ describe("REMOTE_GITHUB authoring handoff contracts", () => {
     expect(continuation.length).toBeLessThan(8_000);
     for (const marker of [
       "REMOTE_GITHUB",
-      "verify:full",
-      "exact-head PASS",
+      "generated freshness PASS",
+      "modern MCP 2026 negotiation/list/call PASS",
+      "legacy 2025 JSON initialize/list/call PASS",
       "LOCAL_CODE",
       "LIVE_BLOCKBENCH",
       "no second Control/router/profile/state system",
