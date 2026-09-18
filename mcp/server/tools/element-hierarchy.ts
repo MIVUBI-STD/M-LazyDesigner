@@ -8,7 +8,6 @@ import { elementIdSchema } from "@/lib/zodObjects";
 import { requireOpenProject } from "@/lib/util";
 import {
   assertBatchGroupNamesAvailable,
-  assertGroupNameAvailable,
   finiteElementVector3Schema,
   isDescendantOf,
   planGroupBatchParents,
