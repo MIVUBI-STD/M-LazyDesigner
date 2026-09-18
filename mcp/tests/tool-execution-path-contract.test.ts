@@ -71,11 +71,13 @@ describe("tool execution path contract", () => {
   });
 
   test("native Painter and Timeline use subsystem APIs rather than mouse emulation", async () => {
-    const [paint, animation, paintStroke] = await Promise.all([
-      text("server/tools/paint.ts"),
-      text("server/tools/animation.ts"),
+    const [paintBrush, paintPrimitives, animation, paintStroke] = await Promise.all([
+      text("server/tools/paint-brush.ts"),
+      text("server/tools/paint-primitives.ts"),
+      text("server/tools/animation-timeline.ts"),
       text("lib/paintStroke.ts"),
     ]);
+    const paint = `${paintBrush}\n${paintPrimitives}`;
 
     expect(paint).toContain("BarItems.brush_tool.select()");
     expect(paint).toContain("ColorPanel.set(");
