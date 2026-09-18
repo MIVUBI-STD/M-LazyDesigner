@@ -173,6 +173,27 @@ Evaluate rights per listing. Prefer explicit CC0/CC BY assets. Derived facts and
 
 Status: `SCOUTED_FOR_SIMPLE_PROP_DISCIPLINE`. See `prop-furniture-scout.md`.
 
+## Cross-Domain Responsibility Vocabulary
+
+Status: `CANDIDATE_RULE` synthesized from the current cross-domain studies.
+
+The previous exclusive role enum has been rejected as too heavy. Current candidate vocabulary is six orthogonal responsibility reasons:
+
+```text
+FORM
+ARTICULATION
+ATTACHMENT
+STATE
+FOLLOW
+CONTROL
+```
+
+Key rule:
+
+> create another owner only when an existing owner cannot satisfy the required responsibility cleanly.
+
+This vocabulary is a reasoning overlay on existing LazyDesigner Geometry/Hierarchy/Locator concepts, not a new schema or workflow. See `cross-domain-responsibility-vocabulary.md`.
+
 ## Current Coverage Matrix
 
 | Intelligence area | Daffa | Mowzie | GeckoLib docs | Orca | Current coverage |
@@ -197,7 +218,7 @@ Status: `SCOUTED_FOR_SIMPLE_PROP_DISCIPLINE`. See `prop-furniture-scout.md`.
 ## Next Research Order
 
 1. Deep-inspect a small licensed prop/furniture family and one compact articulated prop from the Blockbench Workshop scout; compare actual `.bbmodel` organization, texture allocation, and pivot use.
-2. Convert mechanical + organic + simple-prop findings into a compact cross-domain candidate role vocabulary, then test whether the vocabulary reduces correction ambiguity without increasing routine context.
+2. Test the six-responsibility vocabulary against representative task briefs and correction scenarios; reject it if it causes verbose classification or unnecessary hierarchy.
 3. Test Orca-derived compact uncertainty + identity-feature + review-target metadata on LazyDesigner-owned validation assets before any canonical promotion.
 4. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
 5. Keep all candidate rules on `Ref` until a current-quality LazyDesigner-owned validation asset exists.
