@@ -51,6 +51,7 @@ Do not merge these classes into one authority hierarchy.
 - `responsibility-vocabulary-stress-test.md` — static cross-domain stress test.
 - `reasoning-metadata-stress-test.md` — static test for compact uncertainty/identity/review metadata.
 - `quality-benchmark-crosswalk.md` — alignment against LazyDesigner's six current quality benchmark cases.
+- `bedrock-pack-corpus-study.md` — user-supplied Bedrock world/add-on/resource corpus covering function-driven, Script API, hybrid, presentation, worldgen, vehicle, arena, and content-family architectures.
 - `source-map.md` — source roles, coverage, current decisions, and next research order.
 
 ## Cross-Domain Candidate
