@@ -37,6 +37,9 @@ describe("pre-local plugin runtime cleanup", () => {
     const readyUi = index.indexOf("blockbenchIntegration.setupUi(");
 
     expect(index).toContain('BBPlugin.register("blockit_mcp"');
+    expect(index).toContain('author: "Halo Karya Media"');
+    expect(index).toContain('repository: "https://github.com/MIVUBI-STD/M-LazyDesigner"');
+    expect(index).toContain('bug_tracker: "https://github.com/MIVUBI-STD/M-LazyDesigner/issues"');
     expect(candidateCreated).toBeGreaterThan(-1);
     expect(candidateOwned).toBeGreaterThan(candidateCreated);
     expect(listeningHook).toBeGreaterThan(-1);
