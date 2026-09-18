@@ -7,6 +7,7 @@ import {
   applyPaintTransactionRgba,
   buildPaintTransactionReceipt,
   paintTransactionParameters,
+  paintTransactionReceiptSchema,
 } from "@/lib/paintTransaction";
 import {
   PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
@@ -162,6 +163,7 @@ export function registerPaintTextureTransactionTool(): void {
     {
       ...paintTextureTransactionToolDocs,
       parameters: paintTransactionParameters,
+      outputSchema: paintTransactionReceiptSchema,
       async execute({ texture_id, expected_revision, operations, ambient_occlusion, output }) {
         const texture = getAndActivateTexture(texture_id);
         requirePaintTransactionV1Target({
