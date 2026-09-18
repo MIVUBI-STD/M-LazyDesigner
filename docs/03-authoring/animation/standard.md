@@ -1,8 +1,8 @@
 # LazyDesigner — Animation Standard
 
 **Status:** Active Policy  
-**Version:** 1.3  
-**Updated:** 2026-09-09
+**Version:** 1.4  
+**Updated:** 2026-09-18
 
 ## Purpose
 
