@@ -37,7 +37,7 @@ describe("LazyDesigner plugin surface hardening", () => {
 
   test("plugin identity is LazyDesigner-owned while compatibility identifiers stay internal", async () => {
     expect(PRODUCT_NAME).toContain("LazyDesigner");
-    expect(PRODUCT_REPOSITORY).toBe("https://github.com/halokaryamedia-source/BuildIT");
+    expect(PRODUCT_REPOSITORY).toBe("https://github.com/MIVUBI-STD/M-LazyDesigner");
     const [indexSource, readme] = await Promise.all([source("index.ts"), source("README.md")]);
     expect(indexSource).toContain('title: "LazyDesigner"');
     expect(indexSource).not.toContain("repository: PRODUCT_REPOSITORY");
