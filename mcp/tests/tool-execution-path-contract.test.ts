@@ -56,8 +56,8 @@ describe("tool execution path contract", () => {
     const [ui, cubes, paint, animation, particle] = await Promise.all([
       text("server/tools/ui.ts"),
       text("server/tools/cubes.ts"),
-      text("server/tools/paint.ts"),
-      text("server/tools/animation.ts"),
+      Promise.all([text("server/tools/paint-brush.ts"), text("server/tools/paint-primitives.ts")]).then((parts) => parts.join("\n")),
+      text("server/tools/animation-timeline.ts"),
       text("server/tools/particle.ts"),
     ]);
 
