@@ -70,9 +70,9 @@ describe("Geometry mutation preflight ordering", () => {
   });
 
   test("add_group resolves all names and parent targets before opening Undo", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
-    const start = source.indexOf("createTool(elementToolDocs[1].name");
-    const end = source.indexOf("createTool(elementToolDocs[2].name", start);
+    const source = await Bun.file("server/tools/element-hierarchy.ts").text();
+    const start = source.indexOf("createTool(elementHierarchyToolDocs[0].name");
+    const end = source.indexOf("createTool(elementHierarchyToolDocs[1].name", start);
     const block = source.slice(start, end);
 
     const names = block.indexOf("assertBatchGroupNamesAvailable(batch)");
@@ -85,9 +85,9 @@ describe("Geometry mutation preflight ordering", () => {
   });
 
   test("duplicate_element completes deterministic preflight before Undo", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
-    const start = source.indexOf("createTool(elementToolDocs[3].name");
-    const end = source.indexOf("createTool(elementToolDocs[4].name", start);
+    const source = await Bun.file("server/tools/element-mutation.ts").text();
+    const start = source.indexOf("createTool(elementMutationToolDocs[1].name");
+    const end = source.indexOf("createTool(elementMutationToolDocs[2].name", start);
     const block = source.slice(start, end);
 
     const preflight = block.indexOf(
@@ -101,9 +101,9 @@ describe("Geometry mutation preflight ordering", () => {
   });
 
   test("Group pivot transfer fails closed before Undo when mesh is unavailable", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
-    const start = source.indexOf('createTool("modify_group"');
-    const end = source.indexOf('createTool("reparent_element"', start);
+    const source = await Bun.file("server/tools/element-hierarchy.ts").text();
+    const start = source.indexOf("createTool(elementHierarchyToolDocs[1].name");
+    const end = source.indexOf("createTool(elementHierarchyToolDocs[2].name", start);
     const block = source.slice(start, end);
 
     const meshGuard = block.indexOf("!group.mesh");
@@ -114,7 +114,7 @@ describe("Geometry mutation preflight ordering", () => {
   });
 
   test("duplicate runtime helper no longer hides preflight after Undo", async () => {
-    const source = await Bun.file("server/tools/element.ts").text();
+    const source = await Bun.file("server/tools/element-mutation.ts").text();
     const helperStart = source.indexOf("function duplicateFaithfully(");
     const helperEnd = source.indexOf("function vector3Equals", helperStart);
     const helper = source.slice(helperStart, helperEnd);
