@@ -5,155 +5,154 @@ Branch: `Local` only.
 
 This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/flow.md`; source/context ownership in `docs/04-system/`; proof interpretation in `docs/05-operations/current-validation.md`.
 
-Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/navigator/` source is removed with no alias; `Experimental/blockit-navigator/` is historical documentation only.
+Canonical Control source: `mcp/gateway/control/`. The former Navigator source is retired.
 
 ## Current State
 
-The current REMOTE_GITHUB architecture-hardening and MCP protocol-modernization scope has exact-head verification.
+Current REMOTE_GITHUB architecture is source-hardened across Control, Gateway, Runtime, Plugin, retained Tool capability, validation, context loading, and repository contracts.
 
-```text
-Control                 SOURCE-HARDENED
-Gateway                 SOURCE-HARDENED
-Runtime                 SOURCE-HARDENED
-Plugin                  SOURCE-HARDENED
-Tools                   ZERO-LOSS GUARDED
-Validation / QA / Gates SOURCE-HARDENED
-Skills / Knowledge      CONTEXT-HARDENED
-Reference flow          AUDITED
-Repository contracts    SOURCE-HARDENED
-```
-
-Current invariants:
+Core invariants:
 
 - Gateway exposes only `status`, `search_capabilities`, `describe_capability`, and `invoke_capability`.
-- Gateway is the persistent AI-client boundary. Runtime/plugin/Blockbench recovery happens beneath it; a new client connection is required only when the Gateway process itself is replaced.
-- Runtime owns capability registration, authoring surface resolution, execution serialization, project/phase affinity enforcement, and Runtime result contracts.
-- Plugin owns Blockbench host integration: native network/listener lifecycle, UI/settings/resources, and development reload behavior.
-- Tool consolidation is routing-only. Original executors, schemas, validation, native behavior, and domain intelligence remain retained.
-- Internal diagnostics and Blockbench Validator state are evidence only; they never create visual PASS or user approval.
-- AUTHORING↔Animation handoff requires canonical readiness plus a saved checkpoint. Control lifecycle `READY` is not handoff authorization.
-- Geometry↔Texturing remain one shared AUTHORING surface; semantic focus may change without creating a second tool family or workflow engine.
-- `switch_authoring_phase` applies the registered Runtime phase/surface handler before returning its Gateway receipt.
-- Normal authoring loads one active specialist; the shared stage contract is conditional policy context rather than a second routine payload.
-- Control projects one compact active-stage envelope and references stage evidence instead of duplicating full semantic documents.
-- Post-operation Control receipts distinguish stale, fresh, and unknown semantic scopes so unrelated state can be reused without blanket rereads; authoring-domain invalidation remains a compatibility summary.
-- Public consolidated capability development routes to the actual Runtime public owner, not the compatibility `server/tools.ts` facade.
-- No second router, capability registry, persistent state database, authoring workflow engine, or alternate tool implementation path is allowed without a proved requirement.
+- Gateway is the persistent AI-client boundary; Runtime/plugin recovery happens beneath it.
+- Runtime owns capability registration, authoring surfaces, execution serialization, project/phase affinity, and Runtime result contracts.
+- Tool consolidation is routing-only; original executors, validation, native behavior, and domain intelligence remain retained.
+- Geometry↔Texturing share AUTHORING; Animation is the separate authoring Runtime surface.
+- Control is a thin routing/context layer, not a second Runtime, state database, dependency graph, or workflow engine.
+- Normal authoring loads one active specialist and reuses unchanged content-addressed context.
+- Technical validation never creates visual PASS or user approval.
+- No capability/intelligence reduction is allowed merely for tool-count or context savings.
 
-## Next Meaningful Context
+## Current High-End Continuation
 
-### REMOTE_GITHUB — current closed source gate
-
-Exact-head source verification is now the baseline, not pending work:
+The freshness/invalidation pass is now implemented in source:
 
 ```text
-generated freshness PASS
-Runtime/Gateway typecheck PASS
-Runtime regression PASS
-authoring contracts PASS
-surface/phase measurement PASS
-compatibility build + exact-SHA artifact PASS
-modern MCP 2026 negotiation/list/call PASS
-legacy 2025 JSON initialize/list/call PASS
+semantic freshness receipt            → implemented
+Texture vs Material invalidation split → implemented
+Animation motion/controller/effects    → implemented
+Particle freshness isolation           → implemented
+failed mutation freshness              → fail-closed as UNKNOWN
 ```
 
-No hand-editing generated docs/output. Generated prompt/API artifacts remain generator-owned.
-
-Do not remotely force:
-
-- Tool algorithm simplification;
-- public Gateway status contract changes based only on static size;
-- a third Runtime transport path;
-- capability removal for context savings;
-- compatibility identifier migration.
-
-### REMOTE_GITHUB — current high-end continuation
-
-The next source optimization is now bounded to **freshness precision**, not another routing/state framework:
+`control_delta` now keeps compatibility-level `invalidates.authoring_domains` while also reporting semantic freshness scopes:
 
 ```text
-universal semantic freshness receipt → IMPLEMENTED IN SOURCE
-Texture / Material invalidation split  → IMPLEMENTED IN SOURCE
-Animation motion/controller/effects   → IMPLEMENTED IN SOURCE
-Particle freshness isolation          → IMPLEMENTED IN SOURCE
-failed mutation freshness             → FAIL-CLOSED AS UNKNOWN
+GEOMETRY_STRUCTURE
+UV_MAPPING
+TEXTURE_APPEARANCE
+MATERIAL_RENDER
+ANIMATION_MOTION
+ANIMATION_CONTROLLER
+ANIMATION_EFFECTS
+PARTICLE_SYSTEM
 ```
 
-Keep the existing four-tool Gateway unchanged. Do not introduce direct hot-path tools or a hybrid surface until Golden Tasks provide matching live Cost-to-Accepted-Result evidence.
-
-Remaining source-side refinement is evidence-driven only: if individual Runtime receipts expose narrower changed fields than the current capability-level semantics, enrich the existing effect receipt rather than creating a dependency graph/state engine.
-
-### LOCAL_CODE — after synchronized REMOTE_GITHUB gate
-
-MCP v2 protocol modernization is now source-proven on the same Runtime endpoint:
+Each receipt classifies scope state as `stale`, `fresh`, or `unknown` with one basis:
 
 ```text
-2026-07-28 modern negotiation/list/call PASS
-+
-legacy 2025 initialize/list/call PASS
-+
-Runtime/Gateway typecheck + regression/build PASS
+NO_CHANGE
+PRECISE_EFFECT
+CONSERVATIVE_EFFECT
+UNKNOWN_OUTCOME
 ```
 
-Transport ownership reduction remains a separate lower-priority local task, not the current high-end authoring optimization:
+This allows unrelated state to remain reusable without blanket rereads while preserving fail-closed behavior after uncertain mutation outcomes.
+
+### Remaining REMOTE_GITHUB refinement
+
+Do not create another state system. Only refine the existing effect receipt when current Runtime results contain narrower evidence than capability-level semantics.
+
+Priority:
 
 ```text
-audit whether Node/SDK HTTP serving can replace the raw TCP/HTTP parser
-→ preserve loopback Host/Origin/body-limit checks
-→ preserve project/phase affinity and serialized mutation
-→ preserve generation-safe shutdown
-→ preserve modern + legacy compatibility proofs
-→ delete parser code only when equivalent behavior is demonstrated
+inspect existing Texture / Animation / Particle result shapes
+→ reuse existing changed/effect fields where trustworthy
+→ narrow stale scopes only when source evidence supports it
+→ keep conservative fallback for ambiguous receipts
+→ add regression coverage only for materially distinct failure modes
 ```
 
-Do not add a third transport path. Gateway traffic now prefers MCP 2026 through `versionNegotiation.mode="auto"`. The temporary legacy JSON leg remains only for supported 2025-era compatibility because server v2.0.0 currently emits SSE from its built-in legacy stateless fallback even when the modern handler is configured with `responseMode="json"`. Remove this shim only after the SDK closes that behavior gap or the legacy JSON contract is deliberately retired.
+Do not add new revision databases, dependency graphs, mutation journals, planners, routers, or public Gateway tools.
 
-From the matching clean `Local` SHA:
+## Deferred A/B Decision
+
+Keep the current four-tool Gateway unchanged.
+
+The alternative:
 
 ```text
-install pinned dependencies
-→ run targeted authoring-flow / phase-control / Gateway tests only if additional local-only evidence is needed
-→ typecheck/build confirmation when not already covered by exact-head CI evidence
-→ measure Control/context and authoring-surface costs
-→ fix only failures tied to current source
+4 meta-tools
+vs
+hybrid direct hot-path + long-tail catalog
 ```
 
-Specific phase-transport proof:
+must be decided by the existing Golden Tasks, not architectural preference.
+
+Golden Tasks remain `UNMEASURED` until matching live runs capture accepted quality plus:
 
 ```text
-Geometry → Texturing focus
-→ Runtime handler applies target focus
+status/search/describe calls
+identity inspections
+visual capture batches
+mutation calls
+correction rounds
+redundant readbacks
+runtime/tool errors
+total calls to accepted result
+human acceptance
+```
+
+Do not introduce a hybrid surface before equivalent Golden Task measurements exist.
+
+## LOCAL_CODE Residue
+
+Local proof should use a clean checkout matching the current `Local` SHA.
+
+Relevant checks:
+
+```text
+targeted Control/Gateway tests
+Runtime + Gateway typecheck
+authoring contract suite when affected
+surface/phase measurement when affected
+```
+
+Phase transport proof still worth measuring later:
+
+```text
+Geometry → Texturing
+→ Runtime focus changes
 → AUTHORING tool set remains identical
-→ verify whether Gateway connection/catalog can safely remain warm
+→ determine whether Gateway catalog can remain warm
 
 AUTHORING → Animation
-→ Runtime handler applies Animation surface
-→ Gateway refreshes to Animation catalog
+→ Runtime applies Animation surface
+→ Gateway refreshes catalog
 
 Animation → AUTHORING
-→ Runtime handler restores shared AUTHORING surface
-→ Gateway refreshes to AUTHORING catalog
+→ Runtime restores AUTHORING surface
+→ Gateway refreshes catalog
 ```
 
-Only after these tests should Gateway catalog invalidation be relaxed for Geometry↔Texturing. Do not optimize this by assumption.
+Only relax Geometry↔Texturing catalog invalidation after this proof. Do not optimize it by assumption.
 
-Do not rerun broad verification between every edit.
+Transport ownership reduction is lower priority. Do not add a third transport path or expand the temporary legacy compatibility path.
 
-### LIVE_BLOCKBENCH — after matching source/build proof
+## LIVE_BLOCKBENCH Residue
 
-Prove the native boundaries that source/static work cannot establish:
+Current source/static proof cannot establish:
 
 ```text
-persistent Gateway survives Runtime/plugin reload
-Runtime rebuild recovery
-Blockbench close → open recovery
-AUTHORING ↔ Animation catalog handoff
-Geometry ↔ Texturing focus change preserves the shared surface
-project affinity / rebind behavior
-interrupted mutation → inspect-before-retry recovery
-Geometry / Texturing / Animation / Particle execution
-Undo / playback / persistence / export behavior
-representative accepted-result quality + efficiency
+installed Runtime freshness
+persistent Gateway survival across reload/rebuild/close-open
+native phase-switch behavior
+project affinity/rebind behavior
+interrupted mutation recovery
+Geometry / Texturing / Animation / Particle native execution
+Undo / playback / persistence / export
+visual/reference acceptance
+measured Cost to Accepted Result
 ```
 
 Measure **Cost to Accepted Result** without lowering accepted quality.
@@ -161,15 +160,15 @@ Measure **Cost to Accepted Result** without lowering accepted quality.
 ## Stop Rules
 
 - no second Control/router/profile/state system;
-- no parallel permanent legacy/modern HTTP implementation; protocol modernization must converge on one transport owner;
-- no new custom HTTP parser features when the supported MCP SDK can own the same protocol behavior;
-- no capability/intelligence reduction for tool-count or context savings;
-- no mutation auto-retry after an unknown outcome;
+- no dependency graph or persistent revision database without demonstrated need;
+- no direct/hybrid Gateway surface before Golden Task evidence;
+- no capability/intelligence reduction for context savings;
+- no mutation auto-retry after unknown outcome;
 - no hand-edited generated API/prompt output;
-- no all-profile/all-stage context loading as reassurance;
-- no bulk rename of compatibility-bound BlockIT identifiers;
-- no claim of Bun/typecheck/CI/local/live PASS until that proof actually ran.
+- no all-profile/all-stage loading as reassurance;
+- no bulk compatibility-identifier migration;
+- no local/live PASS claims without matching proof.
 
 ## Proof Boundary
 
-REMOTE_GITHUB can establish source architecture, generated freshness, typecheck/test/build contracts when exact-head CI executes them. The current source has exact-head REMOTE_GITHUB typecheck/test/build proof but has **not** been proven live in Blockbench during this phase. Installed-runtime freshness, reload survival, native mutation behavior, visual fidelity, and measured usage savings remain higher-context proof work.
+REMOTE_GITHUB proves only source/static/CI-verifiable contracts on the exact SHA. Installed Runtime behavior, native Blockbench behavior, visual quality, and measured end-to-end usage remain higher-context proof.
