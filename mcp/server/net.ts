@@ -1,8 +1,4 @@
-import {
-  createMcpHandler,
-  isLegacyRequest,
-  WebStandardStreamableHTTPServerTransport
-} from "@modelcontextprotocol/server";
+import { createMcpHandler } from "@modelcontextprotocol/server";
 import type { IncomingMessage, Server as NodeHttpServer, ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
 import {
@@ -336,48 +332,25 @@ function createRequestServer (
   return requestServer
 }
 
-async function handleLegacyJsonMcpRequest (
-  webRequest: Request,
-  phase: McpAuthoringPhase,
-  profile: McpRegistrationProfile,
-  phaseScoped: boolean
-): Promise<Response> {
-  const requestServer = createRequestServer(phase, profile, phaseScoped)
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true
-  })
-  await requestServer.connect(transport)
-  try {
-    return await transport.handleRequest(webRequest)
-  } finally {
-    await requestServer.close()
-  }
-}
-
 async function handleStatelessMcpRequest (
   webRequest: Request,
   phase: McpAuthoringPhase = getActiveMcpAuthoringPhase(),
   profile: McpRegistrationProfile = DEFAULT_MCP_REGISTRATION_PROFILE,
   phaseScoped: boolean = false
 ): Promise<SerializedWebResponse> {
-  // Modern 2026-07-28 traffic uses the official v2 handler. Legacy 2025
-  // traffic temporarily retains LazyDesigner's established stateless JSON
-  // response shape until Gateway/client migration is complete. Both legs build
-  // the same request-owned server surface; there is no second capability model.
-  const modernHandler = createMcpHandler(
+  // One SDK-owned request handler serves modern 2026-07-28 traffic and the
+  // required stateless 2025 compatibility path. LazyDesigner keeps domain
+  // policy around that boundary rather than owning a second legacy transport.
+  const handler = createMcpHandler(
     () => createRequestServer(phase, profile, phaseScoped),
     {
-      legacy: 'reject',
+      legacy: 'stateless',
       responseMode: 'json'
     }
   )
 
   try {
-    const legacy = await isLegacyRequest(webRequest)
-    const webResponse = legacy
-      ? await handleLegacyJsonMcpRequest(webRequest, phase, profile, phaseScoped)
-      : await modernHandler.fetch(webRequest)
+    const webResponse = await handler.fetch(webRequest)
 
     const responseHeaders: Record<string, string> = {}
     webResponse.headers.forEach((value: string, key: string) => {
@@ -401,7 +374,7 @@ async function handleStatelessMcpRequest (
       body: await webResponse.text()
     }
   } finally {
-    await modernHandler.close()
+    await handler.close()
   }
 }
 
