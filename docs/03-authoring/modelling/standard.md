@@ -1,8 +1,8 @@
 # LazyDesigner — Geometry Standard
 
 **Status:** Active Policy  
-**Version:** 2.1  
-**Updated:** 2026-09-12
+**Version:** 2.2  
+**Updated:** 2026-09-18
 
 ## Purpose
 
