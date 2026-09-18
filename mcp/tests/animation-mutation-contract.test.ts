@@ -160,7 +160,7 @@ describe("animation mutation contract", () => {
       }).success
     ).toBe(true);
 
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-rigging.ts").text();
     expect(source).toContain("if (bone_data.ik_enabled !== undefined)");
     expect(source).not.toContain("bone_data.ik_enabled ?? false");
   });
@@ -200,7 +200,7 @@ describe("animation mutation contract", () => {
     ).toBe(false);
     expect(hasCaseInsensitiveRigNameCollision(groups, "hand")).toBe(false);
 
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-rigging.ts").text();
     expect(source).toContain("hasCaseInsensitiveRigNameCollision(Group.all, bone_data.name)");
     expect(source).toContain("bone_data.new_name === targetBone.name");
     expect(source).not.toContain("group.name === bone_data.new_name");
@@ -211,7 +211,7 @@ describe("animation mutation contract", () => {
     expect(deriveMirroredRigName("right_leg")).toBe("left_leg");
     expect(deriveMirroredRigName("head")).toBe("head_mirrored");
 
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-rigging.ts").text();
     expect(source).toContain("mirroredBoneName = deriveMirroredRigName(targetBone.name)");
     expect(source).toContain("mirroredBone.name = mirroredBoneName!");
     expect(source).not.toContain("mirroredBone.name = targetBone!.name.includes");
@@ -512,7 +512,7 @@ describe("animation mutation contract", () => {
       wouldCreateRigHierarchyCycle("leaf-bone", "root-bone", hierarchy)
     ).toBe(false);
 
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-rigging.ts").text();
     expect(source).toContain("const createParentByUuid = new Map<string, string | null>");
     expect(source).toContain("child instanceof Group &&");
     expect(source).toContain("child.uuid,");
@@ -520,10 +520,7 @@ describe("animation mutation contract", () => {
   });
 
   test("bone_rigging returns bounded continuation state and deletion receipt", async () => {
-    const source = await Bun.file("server/tools/animation.ts").text();
-    const start = source.indexOf("createTool(\n  animationToolDocs[3].name");
-    const end = source.indexOf("createTool(\n  animationToolDocs[4].name", start);
-    const block = source.slice(start, end);
+    const block = await Bun.file("server/tools/animation-rigging.ts").text();
 
     expect(block).toContain("const boneIdentity = (group: Group) =>");
     expect(block).toContain("const boneState = (group: Group) =>");
@@ -546,7 +543,7 @@ describe("animation mutation contract", () => {
   });
 
   test("bone delete Undo covers descendants and affected animations before recursive removal", async () => {
-    const source = await Bun.file("server/tools/animation.ts").text();
+    const source = await Bun.file("server/tools/animation-rigging.ts").text();
     expect(source).toContain("deleteGroups = [targetBone]");
     expect(source).toContain("targetBone.forEachChild((element: any) =>");
     expect(source).toContain("const deleteGroupUuids = new Set(");
