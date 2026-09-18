@@ -147,6 +147,17 @@ mcp/server/runtime/animationRuntimeContracts.ts
 
 mcp/server/tools/**
 → authored Geometry / Texture / Animation / Particle / inspection / export implementations
+
+mcp/server/tools/animation.ts
+→ Animation facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+
+mcp/server/tools/animation-create.ts
+mcp/server/tools/animation-keyframes.ts
+mcp/server/tools/animation-rigging.ts
+mcp/server/tools/animation-timeline.ts
+mcp/server/tools/animation-batch.ts
+mcp/server/tools/animation-shared.ts
+→ focused Animation capability/schema/helper owners
 ```
 
 Representative focused owners:
