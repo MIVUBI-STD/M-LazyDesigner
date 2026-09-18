@@ -2,7 +2,7 @@
 
 Deliver a normal Minecraft Bedrock Resource Pack folder or ZIP unless the user explicitly requests another form.
 
-This file owns **user-facing Particle delivery**. When the same authored particle is intentionally handed to Codex / BuildIT MCP, add the canonical LazyDesigner `REFERENCE.json` described by `../package/particle-handoff.md`; do not invent a separate Particle handoff manifest.
+This file owns **user-facing Particle delivery**. When the same authored particle is intentionally handed to Codex / LazyDesigner MCP, add the canonical LazyDesigner `REFERENCE.json` described by `../package/particle-handoff.md`; do not invent a separate Particle handoff manifest.
 
 ## 1. Output identity
 
@@ -251,7 +251,7 @@ Snowstorm-specific notes belong in README only when relevant. Do not make Snowst
 ChatGPT Particle Reference Authoring
 → creates/reviews reference resource package
 
-Codex / BuildIT MCP
+Codex / LazyDesigner MCP
 → consumes package when requested
 → inspects current runtime state
 → copies/patches/previews/binds through existing MCP capabilities

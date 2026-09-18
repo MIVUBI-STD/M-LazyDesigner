@@ -332,22 +332,22 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
 
 const DEFAULT_SOURCE_BY_DOMAIN: Record<ControlAuthoringDomain, ControlSourceOwner> = {
   GEOMETRY: {
-    source: "mcp/server/tools.ts",
+    source: "mcp/server/runtime/registration.ts",
     specialist: MODELLING_PATH,
     test_owner: "mcp/tests/authoring-phase-surface.test.ts",
   },
   TEXTURING: {
-    source: "mcp/server/tools.ts",
+    source: "mcp/server/runtime/registration.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/authoring-phase-surface.test.ts",
   },
   ANIMATION: {
-    source: "mcp/server/tools/animation.ts",
+    source: "mcp/server/runtime/registration.ts",
     specialist: ANIMATION_PATH,
     test_owner: "mcp/tests/authoring-phase-surface.test.ts",
   },
   CORE: {
-    source: "mcp/server/tools.ts",
+    source: "mcp/server/runtime/registration.ts",
     specialist: null,
     test_owner: "mcp/tests/gateway-contract.test.ts",
   },

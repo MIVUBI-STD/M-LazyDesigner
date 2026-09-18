@@ -23,6 +23,13 @@ describe("Control context ownership", () => {
     expect(packet).toContain("invalidated_ids");
   });
 
+  test("fallback source ownership points to the canonical Runtime surface owner", async () => {
+    const registry = await source("gateway/control/registry.ts");
+
+    expect(registry).toContain('source: "mcp/server/runtime/registration.ts"');
+    expect(registry).not.toContain('source: "mcp/server/tools.ts"');
+  });
+
   test("Control does not add a second persistent context state store", async () => {
     const packet = await source("gateway/control/packet.ts");
     const registry = await source("gateway/control/registry.ts");

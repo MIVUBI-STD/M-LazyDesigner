@@ -50,6 +50,7 @@ local install guidance
 mcp/llms.txt
 packaged authoring AGENTS + package source notice
 repository operating-rule headings
+active product/reference/authoring policy documents
 ```
 
 Safe presentation migration includes:

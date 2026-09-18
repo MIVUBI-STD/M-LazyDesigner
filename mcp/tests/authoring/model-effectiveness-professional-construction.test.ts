@@ -48,6 +48,30 @@ describe("model creation effectiveness — professional construction without pre
     expect(geometry).not.toContain("PrimitiveAnything");
   });
 
+  test("representation eligibility keeps the complete canonical ladder and bounded escalation", async () => {
+    const [modelling, geometry] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../docs/03-authoring/modelling/standard.md"),
+    ]);
+
+    for (const representation of [
+      "SOLID_CUBOID",
+      "PLANE_LIKE",
+      "PLANAR_CUTOUT_CARRIER",
+      "LAYERED_SURFACE",
+      "SEGMENTED_FORM",
+      "TEXTURE",
+      "OMIT",
+    ]) {
+      expect(modelling).toContain(representation);
+      expect(geometry).toContain(representation);
+    }
+
+    expect(geometry).toContain("Escalate **one level at a time**");
+    expect(geometry).toContain("REDUNDANT_GEOMETRY");
+    expect(geometry).toContain("minimum sufficient geometry");
+  });
+
   test("surface integrity distinguishes required closure from intentional openings and intersections", async () => {
     const [modelling, geometry] = await Promise.all([
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),

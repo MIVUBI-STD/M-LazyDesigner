@@ -1,12 +1,12 @@
-# BlockIT — Visual Validation
+# LazyDesigner — Visual Validation
 
 **Status:** Active Policy  
 **Version:** 1.6  
-**Updated:** 2026-08-14
+**Updated:** 2026-09-18
 
 ## Purpose
 
-Define the minimum evidence required before BlockIT claims that a Blockbench
+Define the minimum evidence required before LazyDesigner claims that a Blockbench
 model visually matches the requested scope.
 
 Reference preparation belongs to [04-reference-guide.md](04-reference-guide.md).

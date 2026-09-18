@@ -1,11 +1,11 @@
-# BlockIT — Product Overview
+# LazyDesigner — Product Overview
 
 **Status:** Active Policy  
-**Updated:** 2026-08-13
+**Updated:** 2026-09-18
 
 ## Purpose
 
-BlockIT helps an AI modeller create or revise clean, editable Minecraft Bedrock Entity models in Blockbench through MCP from an approved visual reference.
+LazyDesigner helps an AI modeller create or revise clean, editable Minecraft Bedrock Entity models in Blockbench through MCP from an approved visual reference.
 
 Primary output:
 
@@ -55,7 +55,7 @@ MCP does not automatically infer anatomy, reconstruct an image into Cuboids, or 
 
 ## Success Criteria
 
-BlockIT succeeds when approved evidence drives visible form honestly; primary form is recognizable before detail expands; transforms and pivots are intentional; structural and visual evidence stay separate; downstream texture/animation are purposeful; runtime claims match proof; and the final project stays editable.
+LazyDesigner succeeds when approved evidence drives visible form honestly; primary form is recognizable before detail expands; transforms and pivots are intentional; structural and visual evidence stay separate; downstream texture/animation are purposeful; runtime claims match proof; and the final project stays editable.
 
 ## Product Constraints
 

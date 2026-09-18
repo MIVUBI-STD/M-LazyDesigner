@@ -1,13 +1,20 @@
 {
   "version": 1,
-  "verdicts": ["PASS", "FAIL", "UNVERIFIED"],
+  "verdicts": [
+    "PASS",
+    "FAIL",
+    "UNVERIFIED"
+  ],
   "aggregate_score": false,
   "quality_precedes_efficiency": true,
   "cases": [
     {
       "id": "prop_furniture",
       "profile": "PROP_FURNITURE",
-      "required_phases": ["GEOMETRY", "TEXTURING"],
+      "required_phases": [
+        "GEOMETRY",
+        "TEXTURING"
+      ],
       "geometry_dimensions": [
         "silhouette",
         "cross_view_proportion",
@@ -34,7 +41,11 @@
     {
       "id": "vehicle",
       "profile": "VEHICLE",
-      "required_phases": ["GEOMETRY", "TEXTURING", "ANIMATION_IF_REQUIRED"],
+      "required_phases": [
+        "GEOMETRY",
+        "TEXTURING",
+        "ANIMATION_IF_REQUIRED"
+      ],
       "geometry_dimensions": [
         "silhouette",
         "cross_view_proportion",
@@ -70,7 +81,11 @@
     {
       "id": "character_mob",
       "profile": "CHARACTER_MOB",
-      "required_phases": ["GEOMETRY", "TEXTURING", "ANIMATION"],
+      "required_phases": [
+        "GEOMETRY",
+        "TEXTURING",
+        "ANIMATION"
+      ],
       "geometry_dimensions": [
         "silhouette",
         "cross_view_proportion",
@@ -110,7 +125,11 @@
     {
       "id": "organic_curved",
       "profile": "ORGANIC_CURVED",
-      "required_phases": ["GEOMETRY", "TEXTURING", "ANIMATION_IF_REQUIRED"],
+      "required_phases": [
+        "GEOMETRY",
+        "TEXTURING",
+        "ANIMATION_IF_REQUIRED"
+      ],
       "geometry_dimensions": [
         "silhouette",
         "cross_view_proportion",
@@ -144,7 +163,11 @@
     {
       "id": "mechanical_assembly",
       "profile": "MECHANICAL",
-      "required_phases": ["GEOMETRY", "TEXTURING", "ANIMATION_IF_REQUIRED"],
+      "required_phases": [
+        "GEOMETRY",
+        "TEXTURING",
+        "ANIMATION_IF_REQUIRED"
+      ],
       "geometry_dimensions": [
         "silhouette",
         "cross_view_proportion",
@@ -182,7 +205,10 @@
     {
       "id": "layered_cutout",
       "profile": "GENERIC",
-      "required_phases": ["GEOMETRY", "TEXTURING"],
+      "required_phases": [
+        "GEOMETRY",
+        "TEXTURING"
+      ],
       "geometry_dimensions": [
         "silhouette",
         "cross_view_proportion",
@@ -222,5 +248,7 @@
     "correction_rounds",
     "repeated_same_cause_failures",
     "tool_calls_to_accepted_result"
-  ]
+  ],
+  "evidence_class": "synthetic_contract_fixture",
+  "measured_baseline": false
 }

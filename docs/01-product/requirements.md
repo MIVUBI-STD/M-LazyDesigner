@@ -1,15 +1,15 @@
-# BlockIT — Product Requirements
+# LazyDesigner — Product Requirements
 
 **Status:** Active Policy  
 **Version:** 2.2  
-**Updated:** 2026-09-10  
+**Updated:** 2026-09-18  
 **Primary Output:** editable Minecraft Bedrock Entity `.bbmodel`
 
 ## 1. Product Objective
 
-A user can hand an original source image directly to Codex, or create an approved Minecraft/Blockbench reference board in ChatGPT for stronger coverage, then have BlockIT create or revise a clean Bedrock model through explicit stage approval without requiring the user to specify MCP/tool details.
+A user can hand an original source image directly to Codex, or create an approved Minecraft/Blockbench reference board in ChatGPT for stronger coverage, then have LazyDesigner create or revise a clean Bedrock model through explicit stage approval without requiring the user to specify MCP/tool details.
 
-The system must prefer evidence-backed modelling decisions over assumptions and must not force unnecessary reference conversion. BlockIT uses one native Geometry authoring path.
+The system must prefer evidence-backed modelling decisions over assumptions and must not force unnecessary reference conversion. LazyDesigner uses one native Geometry authoring path.
 
 ## 2. New-Model Required Input
 
@@ -56,7 +56,7 @@ Requirement Gate
 ↓
 create Blockbench project
 ↓
-native BlockIT Geometry
+native LazyDesigner Geometry
 ↓
 Codex internal verify
 ↓
@@ -85,7 +85,7 @@ A completed asset remains active until the user explicitly archives it.
 
 ## 5. Geometry Authoring
 
-Normal reference-guided semantic Geometry uses native Blockbench Groups/Cubes through BlockIT. The Approved Reference may be an original source image or canonical board; only material evidence gaps justify requesting more reference coverage.
+Normal reference-guided semantic Geometry uses native Blockbench Groups/Cubes through LazyDesigner. The Approved Reference may be an original source image or canonical board; only material evidence gaps justify requesting more reference coverage.
 
 There is one modelling path. External shape reconstruction, Hunyuan, PrimitiveAnything, GLB scaffolding, or provider selection are not current product routes.
 

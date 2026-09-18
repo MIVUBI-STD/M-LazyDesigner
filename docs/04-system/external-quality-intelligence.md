@@ -197,3 +197,30 @@ Do not add:
 - auto-mutation from external examples.
 
 External quality intelligence is successful only when it improves a concrete decision while preserving the existing Control → Gateway → Runtime → Plugin ownership chain.
+
+
+## Current External / Fork Closure
+
+Current remote comparison against the experimental `Ref` research branch and `A-MIVUBI-Blockbench/chatgpt-dev` uses this decision boundary:
+
+| External idea | LazyDesigner decision | Reason |
+| --- | --- | --- |
+| second Director / route system / model-spec compiler | REJECTED | duplicates Control → Gateway → Runtime and increases correction/state cost |
+| quality decision router / separate approval engine | REJECTED | existing evidence + readiness owners already separate diagnostics from approval |
+| persistent approved-asset / quality-profile registry | REJECTED | would create a second durable authority; approved reference/current workspace already own task truth |
+| always-loaded normalized knowledge corpus / `bb_knowledge` equivalent | REJECTED | bounded external retrieval is preferred; no hot-path corpus/database |
+| cross-view reference comparator | IMPLEMENTED | `mcp/lib/referenceCrossViewEvidence.ts` |
+| Minecraft-native representation/style evidence | IMPLEMENTED | `mcp/lib/minecraftStyleEvidence.ts` |
+| animation/contact geometric evidence | IMPLEMENTED | `mcp/lib/animationContactEvidence.ts` plus native playback boundary |
+| surface / physical UV / motion-craft diagnostics | IMPLEMENTED | existing Runtime evidence augmentation; no new public tools |
+| synthetic benchmark ≠ measured baseline | IMPLEMENTED | existing six-case benchmark explicitly remains synthetic and categorical |
+| fixed cuboid/bone/keyframe targets or aggregate quality score | REJECTED | complexity must be causal; quality remains vector/categorical |
+| risk-derived minimum review views | ALREADY COVERED | Difference-First / Minimum Necessary Evidence rules already select evidence by diagnosed risk |
+| geometry boundary caused by form/articulation/attachment/state rather than color alone | ALREADY COVERED | current representation and Minecraft-style evidence already enforce geometry-vs-texture ownership |
+| uncertainty / identity-critical task metadata | DEFERRED | static research is promising but native accepted-result benefit is not yet proven |
+| responsibility vocabulary `FORM | ARTICULATION | ATTACHMENT | STATE | FOLLOW | CONTROL` | DEFERRED | statically validated on `Ref`; do not promote to schema/workflow without native cost-to-accepted-result proof |
+| automated upstream capability/source snapshot ingestion | DEFERRED | useful only when a concrete version-sensitive regression justifies maintenance cost |
+| offline Bedrock conformance certification pipeline | DEFERRED | current export-integrity/native-acceptance owners cover authoring safety; release certification needs separate concrete product requirement |
+| graphics/display/runtime fixture matrix | DEFERRED | use only for a named runtime-sensitive feature under LOCAL_CODE/LIVE_BLOCKBENCH, never as default authoring burden |
+
+Closure rule: a deferred item is not a TODO by default. It becomes active only when a concrete LazyDesigner task exposes the missing evidence or when native testing demonstrates lower Cost to Accepted Result without adding duplicate ownership.
