@@ -52,6 +52,11 @@ Do not merge these classes into one authority hierarchy.
 - `reasoning-metadata-stress-test.md` — static test for compact uncertainty/identity/review metadata.
 - `quality-benchmark-crosswalk.md` — alignment against LazyDesigner's six current quality benchmark cases.
 - `bedrock-pack-corpus-study.md` — user-supplied Bedrock corpus filtered strictly for Blockbench modelling: geometry, hierarchy, pivots, locators/attachments, UV/texture, animation/controllers, attachables, render relationships, and visual validation.
+- `actions-stuff-modelling-study.md` — humanoid/player rig reuse, attachables, held/worn presentation, view-context variants.
+- `vehicle-modelling-study.md` — vehicle/mechanical hierarchy, wheels/doors/steering, locators, modular visual upgrades.
+- `friendly-fishing-modelling-study.md` — aquatic creature chains, distributed swim motion, held-object/rod secondary structures.
+- `compact-rig-animation-study.md` — rich animation libraries on compact stable rigs.
+- `user-corpus-modelling-synthesis.md` — compact cross-source modelling patterns for future validation.
 - `source-map.md` — source roles, coverage, current decisions, and next research order.
 
 ## Cross-Domain Candidate
