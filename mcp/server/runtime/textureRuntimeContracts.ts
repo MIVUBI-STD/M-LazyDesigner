@@ -32,7 +32,6 @@ import {
 } from "@/lib/textureVariantPlan";
 import { textureIdSchema } from "@/lib/zodObjects";
 import { createTextureParameters } from "../tools/texture";
-import { registerRenderProfileTools } from "../tools/render-profile";
 
 export const wiredCreateTextureParameters = z.union([
   createTextureParameters,
@@ -549,8 +548,6 @@ export function registerPaintTextureTransactionTool(): void {
 
 export function wireTextureRuntimeContracts(): void {
   if (textureRuntimeContractsWired) return;
-
-  registerRenderProfileTools();
 
   const createDefinition = requireRuntimeToolDefinition("create_texture");
   const originalCreate = createDefinition.execute.bind(createDefinition);
