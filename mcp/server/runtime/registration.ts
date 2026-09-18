@@ -28,7 +28,7 @@ import { registerPaintTools } from "../tools/paint";
 import { registerProjectTools } from "../tools/project";
 import { registerTextureTools } from "../tools/texture";
 import { registerRenderProfileTools } from "../tools/render-profile";
-import { registerPaintTextureTransactionTool } from "./textureRuntimeContracts";
+import { registerPaintTextureTransactionTool } from "../tools/paint-texture-transaction";
 import { applyRuntimeExtensionPipeline } from "./extensions";
 import { registerUITools } from "../tools/ui";
 import { registerMaterialInstanceTools } from "../tools/material-instances";
