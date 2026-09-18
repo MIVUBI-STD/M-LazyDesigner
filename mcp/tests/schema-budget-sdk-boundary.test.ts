@@ -62,9 +62,8 @@ try {
       unrepresentable: "any",
       reused: "inline",
     });
-    delete expected["~standard"];
-    expected.type = "object";
-    assert.deepEqual(schemaFor(name), expected);
+    const { ["~standard"]: _standard, ...expectedWire } = expected;
+    assert.deepEqual(schemaFor(name), { ...expectedWire, type: "object" });
   }
   const keyframes = Array.from({ length: 33 }, (_, i) => ({ time: i / 20, values: [i, 0, 0] }));
   const request = {
