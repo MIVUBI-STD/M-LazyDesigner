@@ -32,11 +32,11 @@ describe("LazyDesigner Control routing", () => {
     });
     expect(sourceOwnerForCapability("manage_locator").source).toBe("mcp/server/tools/locators.ts");
     expect(sourceOwnerForCapability("manage_null_object").source).toBe("mcp/server/tools/locators.ts");
-    expect(sourceOwnerForCapability("activate_texture").source).toBe("mcp/server/tools/texture.ts");
-    expect(sourceOwnerForCapability("paint_fill_tool").source).toBe("mcp/server/tools/paint.ts");
-    expect(sourceOwnerForCapability("draw_shape_tool").source).toBe("mcp/server/tools/paint.ts");
-    expect(sourceOwnerForCapability("paint_with_brush").source).toBe("mcp/server/tools/paint.ts");
-    expect(sourceOwnerForCapability("eraser_tool").source).toBe("mcp/server/tools/paint.ts");
+    expect(sourceOwnerForCapability("activate_texture").source).toBe("mcp/server/tools/texture-assignment.ts");
+    expect(sourceOwnerForCapability("paint_fill_tool").source).toBe("mcp/server/tools/paint-primitives.ts");
+    expect(sourceOwnerForCapability("draw_shape_tool").source).toBe("mcp/server/tools/paint-primitives.ts");
+    expect(sourceOwnerForCapability("paint_with_brush").source).toBe("mcp/server/tools/paint-brush.ts");
+    expect(sourceOwnerForCapability("eraser_tool").source).toBe("mcp/server/tools/paint-brush.ts");
     expect(sourceOwnerForCapability("manage_render_profile")).toEqual({
       source: "mcp/server/tools/render-profile.ts",
       specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
