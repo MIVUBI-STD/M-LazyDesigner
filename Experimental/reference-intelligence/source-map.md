@@ -319,6 +319,26 @@ See `compact-modelling-decision-rules.md` and `compact-refinements-stress-test.m
 4. Continue Biloko only if it adds a genuinely different organic-rig pattern beyond Umvuthi/Sculptor.
 5. Keep all candidate rules on `Ref` until native proof exists; REMOTE_GITHUB source-contract alignment alone is not promotion evidence.
 
+## Native Validation Matrix
+
+A bounded native validation design now exists for the six compact modelling refinements.
+
+The matrix:
+- reuses the existing Geometry Standard, Visual Validation policy, and six synthetic quality benchmark cases;
+- compares baseline current LazyDesigner guidance vs candidate refinement on the same approved reference/scope;
+- measures accepted quality first, then unnecessary ownership growth, correction clarity, and Cost to Accepted Result;
+- defines explicit stop/reject conditions for each refinement;
+- introduces no new score, benchmark framework, Runtime capability, or workflow engine.
+
+Planned native task order:
+
+1. static/articulated prop;
+2. mechanical/vehicle-style asset;
+3. character/humanoid;
+4. related organic/creature family pair.
+
+See `native-validation-matrix.md`.
+
 ## REMOTE_GITHUB Validation Status
 
 Completed remotely:
