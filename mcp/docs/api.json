@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-18T15:35:27.277Z",
+  "generatedAt": "2026-09-18T15:39:19.683Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -827,8 +827,725 @@
         "destructiveHint": true
       },
       "parameters": {
-        "type": "object",
-        "description": "Schema conversion failed"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "animation_id": {
+                    "description": "Animation UUID/name; omit for current animation when supported.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "create",
+                      "delete",
+                      "edit",
+                      "select"
+                    ],
+                    "description": "Action to perform on keyframes."
+                  },
+                  "bone_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Group UUID or unique Group name."
+                  },
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "rotation",
+                      "position",
+                      "scale"
+                    ],
+                    "description": "Animation channel to modify."
+                  },
+                  "keyframes": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "time": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Finite non-negative keyframe time in seconds."
+                        },
+                        "values": {
+                          "description": "Authored [x,y,z] or uniform transform value. Each axis may be a finite number or explicit non-empty Molang string; strings are preserved, never evaluated by BlockIT.",
+                          "anyOf": [
+                            {
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "type": "array",
+                              "items": {
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "description": "Authored non-empty Molang transform text."
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string",
+                                  "description": "Authored non-empty Molang transform text."
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        "interpolation": {
+                          "description": "Optional interpolation change. Omit on edit to preserve the existing interpolation.",
+                          "type": "string",
+                          "enum": [
+                            "linear",
+                            "catmullrom",
+                            "bezier",
+                            "step"
+                          ]
+                        },
+                        "bezier_handles": {
+                          "description": "Finite per-axis Bezier handle offsets [x,y,z]; set interpolation=bezier when authoring handles.",
+                          "type": "object",
+                          "properties": {
+                            "left_time": {
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              }
+                            },
+                            "left_value": {
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              }
+                            },
+                            "right_time": {
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              }
+                            },
+                            "right_value": {
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "time"
+                      ]
+                    },
+                    "description": "One or more keyframes."
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "keyframes"
+                  }
+                },
+                "required": [
+                  "action",
+                  "bone_name",
+                  "channel",
+                  "keyframes",
+                  "operation"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "animation_id": {
+                    "description": "Animation UUID/name; omit for current animation when supported.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "bone_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Group UUID or unique Group name."
+                  },
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "rotation",
+                      "position",
+                      "scale"
+                    ],
+                    "description": "Animation channel to modify."
+                  },
+                  "axis": {
+                    "default": "all",
+                    "description": "Bezier-handle axis; 'all' applies the same change to x/y/z. Interpolation stays keyframe-level.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "x",
+                          "y",
+                          "z"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "const": "all"
+                      }
+                    ]
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "smooth",
+                      "linear",
+                      "ease_in",
+                      "ease_out",
+                      "ease_in_out",
+                      "stepped",
+                      "custom"
+                    ],
+                    "description": "Type of curve modification to apply."
+                  },
+                  "keyframe_range": {
+                    "description": "Time range to apply the curve modification. If not provided, applies to all keyframes.",
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "number",
+                        "description": "Start time in seconds."
+                      },
+                      "end": {
+                        "type": "number",
+                        "description": "End time in seconds."
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ]
+                  },
+                  "custom_curve": {
+                    "description": "Bezier left/right handle offsets for the axis or all axes ('custom' action only).",
+                    "type": "object",
+                    "properties": {
+                      "control_point_1": {
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "description": "Left Bezier handle offset [time, value]; time must be <= 0."
+                      },
+                      "control_point_2": {
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "description": "Right Bezier handle offset [time, value]; time must be >= 0."
+                      }
+                    },
+                    "required": [
+                      "control_point_1",
+                      "control_point_2"
+                    ]
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "graph"
+                  }
+                },
+                "required": [
+                  "bone_name",
+                  "channel",
+                  "action",
+                  "operation"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "animation_id": {
+                    "description": "Animation UUID/name; omit for current animation when supported.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "select",
+                      "play",
+                      "pause",
+                      "stop",
+                      "set_time",
+                      "set_length",
+                      "set_fps",
+                      "loop",
+                      "select_range",
+                      "set_anim_time_update",
+                      "set_blend_weight",
+                      "expand_bones",
+                      "collapse_bones",
+                      "set_easing"
+                    ],
+                    "description": "Timeline or persistent authored-Animation property action."
+                  },
+                  "time": {
+                    "description": "Time in seconds for set_time; finite, within Timeline.setTime() range 0..1000, not clamped to animation.length.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "length": {
+                    "description": "set_length length in seconds; finite, 0..10000. Native setLength() may extend to the keyframe floor.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "fps": {
+                    "description": "Animation snapping rate in frames per second for set_fps; Blockbench supports 10 to 500.",
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 500
+                  },
+                  "loop_mode": {
+                    "description": "Loop mode for the animation.",
+                    "type": "string",
+                    "enum": [
+                      "once",
+                      "loop",
+                      "hold"
+                    ]
+                  },
+                  "easing": {
+                    "type": "object",
+                    "properties": {
+                      "curve": {
+                        "type": "string",
+                        "enum": [
+                          "sine",
+                          "quad",
+                          "cubic"
+                        ]
+                      },
+                      "direction": {
+                        "type": "string",
+                        "enum": [
+                          "in",
+                          "out",
+                          "in_out"
+                        ]
+                      },
+                      "replace_existing": {
+                        "default": false,
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "curve",
+                      "direction"
+                    ],
+                    "additionalProperties": false,
+                    "description": "Minecraft Bedrock Entity (bedrock) only. Whole-clip Molang time remapping. Reapply after changing clip length or loop mode. Existing Molang requires replace_existing=true."
+                  },
+                  "bone_ids": {
+                    "description": "Explicit bone UUIDs or unique names for expand_bones/collapse_bones, including descendants. View only; expansion shows existing keyed animators.",
+                    "minItems": 1,
+                    "maxItems": 128,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "range": {
+                    "description": "Inclusive time range for select_range.",
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Finite non-negative start time in seconds."
+                      },
+                      "end": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Finite non-negative end time in seconds."
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ]
+                  },
+                  "molang": {
+                    "description": "Authored Molang for set_anim_time_update/set_blend_weight; null clears to native default. Text normalizes to one line, never evaluated.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "timeline"
+                  }
+                },
+                "required": [
+                  "action",
+                  "operation"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "selection": {
+                    "default": "selected",
+                    "description": "Which keyframes to operate on.",
+                    "type": "string",
+                    "enum": [
+                      "all",
+                      "selected",
+                      "range",
+                      "pattern"
+                    ]
+                  },
+                  "range": {
+                    "description": "Time range for keyframe selection.",
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "number",
+                        "description": "Start time in seconds."
+                      },
+                      "end": {
+                        "type": "number",
+                        "description": "End time in seconds."
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ]
+                  },
+                  "pattern": {
+                    "description": "Pattern-based selection.",
+                    "type": "object",
+                    "properties": {
+                      "interval": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "description": "Finite positive time interval between keyframes."
+                      },
+                      "offset": {
+                        "default": 0,
+                        "description": "Finite time offset for the pattern.",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "interval"
+                    ]
+                  },
+                  "parameters": {
+                    "description": "Operation-specific parameters.",
+                    "type": "object",
+                    "properties": {
+                      "offset_time": {
+                        "description": "Finite time offset to apply.",
+                        "type": "number"
+                      },
+                      "offset_values": {
+                        "description": "Finite value offset [x,y,z] to apply.",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "scale_factor": {
+                        "description": "Finite scale factor for keyframe time.",
+                        "type": "number"
+                      },
+                      "scale_pivot": {
+                        "description": "Finite pivot point for scaling.",
+                        "type": "number"
+                      },
+                      "mirror_axis": {
+                        "description": "Axis to mirror values across.",
+                        "type": "string",
+                        "enum": [
+                          "x",
+                          "y",
+                          "z"
+                        ]
+                      },
+                      "bake_interval": {
+                        "description": "Strictly positive finite interval in seconds for baking keyframes.",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    }
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "batch"
+                  },
+                  "batch_operation": {
+                    "type": "string",
+                    "enum": [
+                      "offset",
+                      "scale",
+                      "reverse",
+                      "mirror",
+                      "smooth",
+                      "bake"
+                    ],
+                    "description": "Operation to perform on keyframes. Bake samples each selected animator's full channel range, even with selection=range/pattern subsets."
+                  },
+                  "animation_id": {
+                    "description": "Animation UUID/name; omit for current animation when supported.",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "operation",
+                  "batch_operation"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "copy",
+                      "paste",
+                      "mirror_paste"
+                    ],
+                    "description": "Copy or paste action."
+                  },
+                  "source": {
+                    "description": "Source data for copy operation.",
+                    "type": "object",
+                    "properties": {
+                      "animation": {
+                        "description": "Source animation name or UUID.",
+                        "type": "string"
+                      },
+                      "bone": {
+                        "type": "string",
+                        "description": "Exact source Group UUID or exact unique Group name."
+                      },
+                      "channels": {
+                        "default": [
+                          "rotation",
+                          "position",
+                          "scale"
+                        ],
+                        "description": "One or more animation channels to copy.",
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "rotation",
+                            "position",
+                            "scale"
+                          ]
+                        }
+                      },
+                      "time_range": {
+                        "description": "Time range to copy. If not provided, copies all keyframes.",
+                        "type": "object",
+                        "properties": {
+                          "start": {
+                            "type": "number",
+                            "description": "Start time in seconds."
+                          },
+                          "end": {
+                            "type": "number",
+                            "description": "End time in seconds."
+                          }
+                        },
+                        "required": [
+                          "start",
+                          "end"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "bone"
+                    ]
+                  },
+                  "target": {
+                    "description": "Target data for paste operation.",
+                    "type": "object",
+                    "properties": {
+                      "animation": {
+                        "description": "Target animation name or UUID.",
+                        "type": "string"
+                      },
+                      "bone": {
+                        "type": "string",
+                        "description": "Exact target Group UUID or exact unique Group name."
+                      },
+                      "time_offset": {
+                        "default": 0,
+                        "description": "Finite time offset for pasted keyframes.",
+                        "type": "number"
+                      },
+                      "mirror_axis": {
+                        "description": "Axis to mirror across for mirror_paste.",
+                        "type": "string",
+                        "enum": [
+                          "x",
+                          "y",
+                          "z"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "bone"
+                    ]
+                  },
+                  "operation": {
+                    "type": "string",
+                    "const": "copy_paste"
+                  }
+                },
+                "required": [
+                  "action",
+                  "operation"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "const": "properties"
+              },
+              "animation_id": {
+                "description": "Animation UUID/name; omit for current animation when supported.",
+                "type": "string",
+                "minLength": 1
+              },
+              "length": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "fps": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 500
+              },
+              "loop_mode": {
+                "type": "string",
+                "enum": [
+                  "once",
+                  "loop",
+                  "hold"
+                ]
+              },
+              "anim_time_update": {
+                "type": [
+                  "number",
+                  "string",
+                  "null"
+                ]
+              },
+              "blend_weight": {
+                "type": [
+                  "number",
+                  "string",
+                  "null"
+                ]
+              },
+              "start_delay": {
+                "type": [
+                  "number",
+                  "string",
+                  "null"
+                ]
+              },
+              "loop_delay": {
+                "type": [
+                  "number",
+                  "string",
+                  "null"
+                ]
+              },
+              "override_previous_animation": {
+                "type": "boolean"
+              },
+              "rotation_spaces": {
+                "description": "Bounded per-bone Bedrock rotation-space updates.",
+                "minItems": 1,
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "bone_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Group UUID or unique Group name."
+                    },
+                    "relative_to": {
+                      "type": "string",
+                      "enum": [
+                        "parent",
+                        "entity"
+                      ],
+                      "description": "Bedrock rotation space. entity exports relative_to.rotation=entity."
+                    }
+                  },
+                  "required": [
+                    "bone_name",
+                    "relative_to"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "operation"
+            ],
+            "additionalProperties": false
+          }
+        ]
       }
     },
     {
@@ -2604,6 +3321,25 @@
           {
             "type": "object",
             "properties": {
+              "include_cubes": {
+                "default": true,
+                "description": "If true, include cubes as leaves. If false, return groups only.",
+                "type": "boolean"
+              },
+              "max_depth": {
+                "default": 8,
+                "description": "Maximum tree depth. Default 8; increase only for deeper structure.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "max_nodes": {
+                "default": 120,
+                "description": "Maximum Cube/Group nodes returned. Default 120; raise explicitly when truncation matters.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5000
+              },
               "mode": {
                 "type": "string",
                 "const": "outline"
@@ -2617,6 +3353,79 @@
           {
             "type": "object",
             "properties": {
+              "name_pattern": {
+                "description": "Optional non-empty case-sensitive name regex; invalid/oversized/unsafe patterns are rejected.",
+                "type": "string",
+                "minLength": 1
+              },
+              "name_contains": {
+                "description": "Optional non-empty substring to match element names. Case-insensitive.",
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "default": "any",
+                "description": "Restrict to Cube or Group results.",
+                "type": "string",
+                "enum": [
+                  "cube",
+                  "group",
+                  "any"
+                ]
+              },
+              "parent_group": {
+                "description": "Optional Group UUID or unique exact name whose descendant subtree scopes results.",
+                "type": "string",
+                "minLength": 1
+              },
+              "min_size": {
+                "description": "Optional finite minimum Cube size [x,y,z].",
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "max_size": {
+                "description": "Optional finite maximum Cube size [x,y,z].",
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "selected_only": {
+                "default": false,
+                "description": "Only consider currently selected Cubes/Groups.",
+                "type": "boolean"
+              },
+              "limit": {
+                "default": 50,
+                "description": "Maximum results. Default 50; increase only when the search genuinely needs more.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
               "mode": {
                 "type": "string",
                 "const": "search"
@@ -2630,12 +3439,27 @@
           {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Exact Cube, Group, Locator, or Null Object UUID, or exact unique name; prefer UUID after discovery."
+              },
+              "detail": {
+                "default": "geometry",
+                "description": "Geometry transform by default; request `uv` only when UV mapping needs inspection.",
+                "type": "string",
+                "enum": [
+                  "geometry",
+                  "uv"
+                ]
+              },
               "mode": {
                 "type": "string",
                 "const": "detail"
               }
             },
             "required": [
+              "id",
               "mode"
             ],
             "additionalProperties": false
@@ -3597,6 +4421,18 @@
           {
             "type": "object",
             "properties": {
+              "include_usages": {
+                "default": false,
+                "description": "Include Cube/face usage locations. Keep false for summary-only discovery.",
+                "type": "boolean"
+              },
+              "usage_limit_per_instance": {
+                "default": 100,
+                "description": "Maximum usage locations returned per material instance when include_usages=true.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
               "operation": {
                 "type": "string",
                 "const": "list"
@@ -3610,6 +4446,27 @@
           {
             "type": "object",
             "properties": {
+              "cube_id": {
+                "description": "Exact Cube UUID or exact unique Cube name. If omitted, uses the first selected Cube.",
+                "type": "string",
+                "minLength": 1
+              },
+              "faces": {
+                "description": "Specific non-empty face set to get/clear. If omitted, uses all faces.",
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "north",
+                    "south",
+                    "east",
+                    "west",
+                    "up",
+                    "down"
+                  ]
+                }
+              },
               "operation": {
                 "type": "string",
                 "const": "get"
@@ -3623,12 +4480,46 @@
           {
             "type": "object",
             "properties": {
+              "cube_id": {
+                "description": "Exact Cube UUID or exact unique Cube name. If omitted, applies to all selected Cubes.",
+                "type": "string",
+                "minLength": 1
+              },
+              "material_name": {
+                "type": "string",
+                "description": "The material instance name to assign. Use empty string to clear the material instance."
+              },
+              "faces": {
+                "default": [
+                  "north",
+                  "south",
+                  "east",
+                  "west",
+                  "up",
+                  "down"
+                ],
+                "description": "Faces to set the material instance on. Defaults to all faces.",
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "north",
+                    "south",
+                    "east",
+                    "west",
+                    "up",
+                    "down"
+                  ]
+                }
+              },
               "operation": {
                 "type": "string",
                 "const": "set"
               }
             },
             "required": [
+              "material_name",
               "operation"
             ],
             "additionalProperties": false
@@ -3636,12 +4527,53 @@
           {
             "type": "object",
             "properties": {
+              "assignments": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "cube_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Cube UUID or name."
+                    },
+                    "faces": {
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "north",
+                          "south",
+                          "east",
+                          "west",
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "description": "Non-empty faces to set the material instance on."
+                    },
+                    "material_name": {
+                      "type": "string",
+                      "description": "Material instance name to assign."
+                    }
+                  },
+                  "required": [
+                    "cube_id",
+                    "faces",
+                    "material_name"
+                  ]
+                },
+                "description": "Array of material instance assignments."
+              },
               "operation": {
                 "type": "string",
                 "const": "bulk_set"
               }
             },
             "required": [
+              "assignments",
               "operation"
             ],
             "additionalProperties": false
@@ -3649,6 +4581,32 @@
           {
             "type": "object",
             "properties": {
+              "cube_id": {
+                "description": "Exact Cube UUID or exact unique Cube name. If omitted, clears from all selected Cubes.",
+                "type": "string",
+                "minLength": 1
+              },
+              "faces": {
+                "description": "Specific faces to clear. If not provided, clears all faces.",
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "north",
+                    "south",
+                    "east",
+                    "west",
+                    "up",
+                    "down"
+                  ]
+                }
+              },
+              "all_cubes": {
+                "default": false,
+                "description": "If true, clears material instances from all cubes in the project.",
+                "type": "boolean"
+              },
               "operation": {
                 "type": "string",
                 "const": "clear"
@@ -5706,12 +6664,66 @@
           {
             "type": "object",
             "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Non-empty material name."
+              },
+              "color_texture": {
+                "description": "Optional color Texture UUID, exact ID, or unique exact name.",
+                "type": "string",
+                "minLength": 1
+              },
+              "normal_texture": {
+                "description": "Optional normal Texture UUID, exact ID, or unique exact name.",
+                "type": "string",
+                "minLength": 1
+              },
+              "height_texture": {
+                "description": "Optional height Texture UUID, exact ID, or unique exact name.",
+                "type": "string",
+                "minLength": 1
+              },
+              "mer_texture": {
+                "description": "Optional MER Texture UUID, exact ID, or unique exact name.",
+                "type": "string",
+                "minLength": 1
+              },
+              "color_value": {
+                "description": "Uniform RGBA color [R,G,B,A] when no color texture is provided.",
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 255
+                }
+              },
+              "mer_value": {
+                "description": "Uniform MER values [Metalness, Emissive, Roughness] (0-255) when no MER texture is provided.",
+                "minItems": 3,
+                "maxItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 255
+                }
+              },
+              "subsurface_value": {
+                "description": "Subsurface scattering value (0-255) for Bedrock 1.21.30+ materials.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 255
+              },
               "operation": {
                 "type": "string",
                 "const": "create"
               }
             },
             "required": [
+              "name",
               "operation"
             ],
             "additionalProperties": false
@@ -5719,12 +6731,66 @@
           {
             "type": "object",
             "properties": {
+              "material": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Required material/TextureGroup UUID or unique exact name."
+              },
+              "color_texture": {
+                "description": "Color Texture UUID/ID/unique name, or `none` for uniform color.",
+                "type": "string",
+                "minLength": 1
+              },
+              "normal_texture": {
+                "description": "Normal Texture UUID/ID/unique name, or `none` to remove.",
+                "type": "string",
+                "minLength": 1
+              },
+              "height_texture": {
+                "description": "Height Texture UUID/ID/unique name, or `none` to remove.",
+                "type": "string",
+                "minLength": 1
+              },
+              "mer_texture": {
+                "description": "MER Texture UUID/ID/unique name, or `none` for uniform values.",
+                "type": "string",
+                "minLength": 1
+              },
+              "color_value": {
+                "description": "Uniform RGBA color [R,G,B,A] when no color texture.",
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 255
+                }
+              },
+              "mer_value": {
+                "description": "Uniform MER values [Metalness, Emissive, Roughness] (0-255).",
+                "minItems": 3,
+                "maxItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 255
+                }
+              },
+              "subsurface_value": {
+                "description": "Subsurface scattering value (0-255).",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 255
+              },
               "operation": {
                 "type": "string",
                 "const": "configure"
               }
             },
             "required": [
+              "material",
               "operation"
             ],
             "additionalProperties": false
@@ -5732,12 +6798,35 @@
           {
             "type": "object",
             "properties": {
+              "material": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Material/texture group target for channel assignment; UUID preferred, exact name only when unique."
+              },
+              "texture": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Explicit texture target; UUID preferred, then texture ID, then unique name."
+              },
+              "channel": {
+                "type": "string",
+                "enum": [
+                  "color",
+                  "normal",
+                  "height",
+                  "mer"
+                ],
+                "description": "PBR channel to assign the texture to."
+              },
               "operation": {
                 "type": "string",
                 "const": "assign_channel"
               }
             },
             "required": [
+              "material",
+              "texture",
+              "channel",
               "operation"
             ],
             "additionalProperties": false
@@ -5745,12 +6834,18 @@
           {
             "type": "object",
             "properties": {
+              "material": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Material/texture group target to save; UUID preferred, exact name only when unique."
+              },
               "operation": {
                 "type": "string",
                 "const": "save"
               }
             },
             "required": [
+              "material",
               "operation"
             ],
             "additionalProperties": false
