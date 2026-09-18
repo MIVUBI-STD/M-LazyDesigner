@@ -135,7 +135,15 @@ mcp/server/runtime/phaseControl.ts
 → semantic focus change + AUTHORING↔Animation Runtime handoff receipt
 
 mcp/server/runtime/bootstrap.ts
-→ exactly-once Runtime intelligence wiring
+→ exactly-once Runtime initialization only
+
+mcp/server/runtime/extensions.ts
+→ canonical Runtime extension composition order
+→ explicit per-extension target manifest
+
+mcp/server/runtime/textureRuntimeContracts.ts
+mcp/server/runtime/animationRuntimeContracts.ts
+→ domain-specific Runtime contract enrichment
 
 mcp/server/tools/**
 → authored Geometry / Texture / Animation / Particle / inspection / export implementations
@@ -214,7 +222,7 @@ quality intelligence
 → bounded diagnostic evidence only
 → `server/tools/quality-intelligence.ts`: hygiene / rig graph / color / optimization / root-motion / animation-quality diagnostics
 → `server/tools/quality-evidence-runtime.ts`: deterministic surface-integrity / physical-UV / motion-craft evidence
-→ both augment existing canonical read tools through `server/runtime/bootstrap.ts`
+→ both augment existing canonical read tools through the ordered `server/runtime/extensions.ts` pipeline
 → neither creates a second public capability catalog, approval system, or quality score
 
 Blockbench Validator
@@ -285,7 +293,7 @@ manage_animation_controller
 
 animation-controller-native-intelligence.ts
 animation-runtime-resource-intelligence.ts
-→ bounded intelligence extensions wired by server/runtime/bootstrap.ts
+→ bounded intelligence extensions composed by `server/runtime/extensions.ts`
 ```
 
 These extensions do not create additional controller tools/profiles.
