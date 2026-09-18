@@ -134,6 +134,11 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(indexSource).toContain("const runtimeHost = new RuntimeHost()");
     expect(indexSource).toContain("await runtimeHost.start(generation)");
     expect(runtimeHostSource).toContain("const candidate = createNetServer(this.nativeHttp, { ...config, generation })");
+    expect(runtimeHostSource).not.toContain("profile:");
+    expect(runtimeHostSource).not.toContain("phase:");
+    expect(runtimeHostSource).not.toContain("updateProfile(");
+    expect(runtimeHostSource).not.toContain("updatePhase(");
+    expect(runtimeHostSource).not.toContain("updateSurface(");
     expect(runtimeHostSource).toContain("await this.waitForListening(candidate)");
     expect(runtimeHostSource).toContain("current?.closeAndWait()");
 
