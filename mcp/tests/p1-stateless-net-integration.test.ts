@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { createConnection, createServer as createTcpServer, type AddressInfo, type Socket } from "node:net";
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
+import { Client } from "@modelcontextprotocol/client";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/client/streamableHttp";
 import { createTool } from "@/lib/factories";
 import createNetServer, { type NetServer } from "@/server/net";
 import { MCP_SERVER_INSTRUCTIONS } from "@/server/server";
@@ -266,6 +268,34 @@ describe("P1.4 raw-net stateless integration", () => {
     );
     expect(response.startsWith("HTTP/1.1 400 ")).toBe(true);
     expect(response).toContain("malformed or ambiguous HTTP headers");
+  });
+
+  test("modern 2026 client negotiates and calls tools on the same Runtime endpoint", async () => {
+    const client = new Client(
+      { name: "p1-modern-net-fixture", version: "1.0.0" },
+      { versionNegotiation: { mode: { pin: "2026-07-28" } } }
+    );
+    const transport = new StreamableHTTPClientTransport(
+      new URL(`${baseUrl}${ENDPOINT}`)
+    );
+
+    try {
+      await client.connect(transport);
+      expect(client.getProtocolEra()).toBe("modern");
+
+      const tools = await client.listTools();
+      expect(tools.tools.map((tool) => tool.name)).toContain(FIXTURE_TOOL);
+
+      const result = await client.callTool({
+        name: FIXTURE_TOOL,
+        arguments: { value: "modern-2026-ok" },
+      });
+      expect(result.content).toEqual([
+        { type: "text", text: "modern-2026-ok" },
+      ]);
+    } finally {
+      await client.close();
+    }
   });
 
   test("initialize exposes compact capability-oriented namespace instructions", async () => {
