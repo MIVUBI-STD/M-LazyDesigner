@@ -71,6 +71,27 @@ Plugin reload, Runtime rebuild, authoring phase change, or temporary Runtime los
 
 Catalog invalidation after phase changes remains intentionally conservative until same-AUTHORING-surface transport reuse is covered by local Gateway/Runtime tests. The Runtime receipt already distinguishes `surface_changed=false` for Geometry↔Texturing from true AUTHORING↔Animation handoff.
 
+### Protocol / Transport
+
+Current source still serves the legacy 2025-era Streamable HTTP contract through the v1 MCP TypeScript SDK. The transport is stateless/request-owned by design, but that does **not** make it MCP `2026-07-28` protocol support.
+
+Current source-proven transport properties include:
+
+```text
+loopback-only listener
+stateless request-owned MCP server instances
+Host/Origin validation
+header/body size limits
+ambiguous/malformed HTTP header rejection
+serialized native tool mutation
+project/phase affinity enforcement
+generation-safe teardown
+```
+
+The latest MCP `2026-07-28` revision uses the modern stateless protocol era and header-based routing. Migration is intentionally deferred to `LOCAL_CODE` because it requires an MCP SDK dependency/lockfile change and same-SHA compatibility verification. The migration target is one official SDK-owned HTTP boundary serving modern traffic plus required legacy compatibility—not a second permanent transport stack.
+
+The current custom raw HTTP parser remains technical debt. New unrelated HTTP features should not be added to it; hardening/regression fixes are allowed while the replacement boundary is being proven.
+
 ### Runtime
 
 Current ownership is split explicitly:
@@ -229,6 +250,7 @@ Still requiring terminal/current-head or higher-context proof:
 
 ```text
 terminal verify:full on synchronized exact head
+MCP 2026-07-28 SDK migration + legacy compatibility proof
 installed LazyDesigner Runtime freshness
 live Gateway survival across reload/rebuild/close-open
 native phase-switch transport behavior on the current build
