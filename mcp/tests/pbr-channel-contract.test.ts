@@ -59,7 +59,7 @@ describe("PBR channel identity preflight", () => {
     ]);
 
     const textureStart = source.indexOf("createTool(textureToolDocs[0].name");
-    const textureEnd = source.indexOf("createTool(textureToolDocs[1].name", textureStart);
+    const textureEnd = source.indexOf("registerTextureAssignmentTools();", textureStart);
     const textureBlock = source.slice(textureStart, textureEnd);
     expect(textureBlock).toContain("textures: [texture]");
 
@@ -80,14 +80,14 @@ describe("PBR channel identity preflight", () => {
     expect(block).toContain("textureGroup.remove()");
     expect(block).toContain("texture_groups: [textureGroup]");
 
-    const configureStart = source.indexOf("createTool(textureToolDocs[6].name");
-    const configureEnd = source.indexOf("createTool(textureToolDocs[7].name", configureStart);
+    const configureStart = source.indexOf("createTool(textureMaterialToolDocs[1].name");
+    const configureEnd = source.indexOf("createTool(textureMaterialToolDocs[2].name", configureStart);
     const configureBlock = source.slice(configureStart, configureEnd);
     expect(configureBlock).toContain('normalTexture.group = textureGroup.uuid');
     expect(configureBlock).not.toContain("normalTexture.extend(");
 
-    const assignStart = source.indexOf("createTool(textureToolDocs[10].name");
-    const assignEnd = source.indexOf("createTool(textureToolDocs[11].name", assignStart);
+    const assignStart = source.indexOf("createTool(textureMaterialToolDocs[5].name");
+    const assignEnd = source.indexOf("createTool(textureMaterialToolDocs[6].name", assignStart);
     const assignBlock = source.slice(assignStart, assignEnd);
     expect(assignBlock).toContain("tex.group = textureGroup.uuid");
     expect(assignBlock).toContain("tex.pbr_channel = channel");
