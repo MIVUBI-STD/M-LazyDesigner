@@ -1,0 +1,76 @@
+{
+  "schema": "lazydesigner-regression-corpus-v1",
+  "policy": {
+    "purpose": "Record real defects or architecture failures that must not recur.",
+    "statuses": [
+      "REGRESSION_GUARDED"
+    ],
+    "rule": "Every entry names the canonical regression proof. This corpus is not a bug tracker or quality score."
+  },
+  "cases": [
+    {
+      "id": "runtime-retired-animation-wiring-import",
+      "surface": "runtime-ownership",
+      "failure": "animation-native-intelligence imported retired ./animation-runtime-wiring and broke source closure/docs generation.",
+      "invariant": "Retired wiring modules are absent and canonical runtime contract owners are present.",
+      "regression_test": "tests/repository/runtime-wiring-retirement.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "runtime-ambiguous-http-headers",
+      "surface": "runtime-transport-security",
+      "failure": "Ambiguous/malformed Host or Origin framing could reach application handling inconsistently.",
+      "invariant": "Malformed or ambiguous HTTP framing fails closed before MCP dispatch.",
+      "regression_test": "tests/p1-stateless-net-integration.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "export-symlink-or-racy-create",
+      "surface": "filesystem-export",
+      "failure": "Export replacement could follow a symbolic-link destination and create-new used a check-then-write race.",
+      "invariant": "Exports reject symbolic-link/non-file destinations and new files use exclusive create semantics.",
+      "regression_test": "tests/surface-integrity-guard.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "protocol-modern-legacy-response-drift",
+      "surface": "mcp-protocol",
+      "failure": "A single SDK v2 handler emitted SSE for legacy 2025 traffic despite the required JSON compatibility contract.",
+      "invariant": "Modern 2026 traffic uses createMcpHandler while legacy 2025 compatibility remains request-owned JSON through the bounded SDK shim.",
+      "regression_test": "tests/runtime-boundary-regression.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "gateway-protocol-era-opacity",
+      "surface": "gateway-diagnostics",
+      "failure": "Gateway auto negotiation could fall back without exposing which MCP protocol era was actually connected.",
+      "invariant": "Connected protocol era is retained for status diagnostics and cleared on disconnect.",
+      "regression_test": "tests/gateway-reliability-hardening.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "runtimehost-shadow-surface-state",
+      "surface": "plugin-runtime-ownership",
+      "failure": "RuntimeHost stored profile/phase shadow state even though request handling used the canonical Runtime registry.",
+      "invariant": "RuntimeHost owns listener lifecycle only; profile/phase ownership remains in the Runtime registry.",
+      "regression_test": "tests/plugin-runtime-cleanup.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "control-oversized-context-read",
+      "surface": "control-filesystem",
+      "failure": "REFERENCE.json and workspace README.md could be read without a size bound.",
+      "invariant": "Control context documents are bounded before full reads and oversized files fail closed.",
+      "regression_test": "tests/gateway-control.test.ts",
+      "status": "REGRESSION_GUARDED"
+    },
+    {
+      "id": "product-repository-stale-after-rename",
+      "surface": "product-identity",
+      "failure": "LazyDesigner technical product identity still pointed to the prior BuildIT repository after the product rename.",
+      "invariant": "Technical repository identity points to the LazyDesigner source authority while human-facing plugin metadata remains anonymous.",
+      "regression_test": "tests/plugin-surface-hardening.test.ts",
+      "status": "REGRESSION_GUARDED"
+    }
+  ]
+}
