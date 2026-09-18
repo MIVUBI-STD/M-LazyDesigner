@@ -51,7 +51,7 @@ Do not merge these classes into one authority hierarchy.
 - `responsibility-vocabulary-stress-test.md` — static cross-domain stress test.
 - `reasoning-metadata-stress-test.md` — static test for compact uncertainty/identity/review metadata.
 - `quality-benchmark-crosswalk.md` — alignment against LazyDesigner's six current quality benchmark cases.
-- `bedrock-pack-corpus-study.md` — user-supplied Bedrock world/add-on/resource corpus covering function-driven, Script API, hybrid, presentation, worldgen, vehicle, arena, and content-family architectures.
+- `bedrock-pack-corpus-study.md` — user-supplied Bedrock corpus filtered strictly for Blockbench modelling: geometry, hierarchy, pivots, locators/attachments, UV/texture, animation/controllers, attachables, render relationships, and visual validation.
 - `source-map.md` — source roles, coverage, current decisions, and next research order.
 
 ## Cross-Domain Candidate
@@ -89,7 +89,7 @@ Do not commit external model, texture, animation, sound, script, or other copyri
 
 Prefer derived facts, measurements, independently expressed diagrams, and generic principles.
 
-External Java/Forge/TACZ/GeckoLib runtime implementations are not LazyDesigner Bedrock runtime rules. Extract only abstract authoring lessons where applicable.
+External runtime/gameplay implementations are not LazyDesigner knowledge unless they directly clarify a Blockbench-authored asset relationship. Ignore gameplay architecture, Script API systems, mcfunctions, scoreboards, worldgen, mission/UI logic, and map-framework concerns.
 
 ## Context Rule
 
