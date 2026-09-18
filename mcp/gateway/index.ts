@@ -1,4 +1,4 @@
-import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
+import { serveStdio, type StdioServerHandle } from "@modelcontextprotocol/server/stdio";
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import {
@@ -32,16 +32,8 @@ const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
 
 // Runtime resources and prompts are not proxied; the Gateway intentionally exposes only its four stable tools.
-const server = new McpServer(
-  {
-    name: GATEWAY_NAME,
-    version: GATEWAY_VERSION,
-  },
-  {
-    instructions:
-      "Stable LazyDesigner Gateway boundary with LazyDesigner Control. Start/resume with status only when orientation is unknown or materially stale; reuse the compact Control packet and content-addressed context handles. For asset work, pass reference_package_path when a LazyDesigner Reference Package exists; Control projects only the active authoring stage plus exactly one selected modelling profile for Geometry. For product/source work, use task_mode=SYSTEM_DEVELOPMENT with concrete task_intent so Control returns bounded source/specialist/test ownership instead of broad repository scans. Known Runtime capability → invoke directly; search only when unknown/stale and describe only for real schema uncertainty. Geometry/Texturing share AUTHORING; Animation is the only Runtime phase handoff. invoke_capability never auto-retries an interrupted mutation.",
-  }
-);
+const GATEWAY_INSTRUCTIONS =
+  "Stable LazyDesigner Gateway boundary with LazyDesigner Control. Start/resume with status only when orientation is unknown or materially stale; reuse the compact Control packet and content-addressed context handles. For asset work, pass reference_package_path when a LazyDesigner Reference Package exists; Control projects only the active authoring stage plus exactly one selected modelling profile for Geometry. For product/source work, use task_mode=SYSTEM_DEVELOPMENT with concrete task_intent so Control returns bounded source/specialist/test ownership instead of broad repository scans. Known Runtime capability → invoke directly; search only when unknown/stale and describe only for real schema uncertainty. Geometry/Texturing share AUTHORING; Animation is the only Runtime phase handoff. invoke_capability never auto-retries an interrupted mutation.";
 
 type GatewayToolDefinition = {
   title: string;
@@ -58,12 +50,6 @@ type GatewayToolDefinition = {
 type GatewayToolHandler = (
   args: JsonRecord
 ) => Promise<unknown>;
-
-const registerGatewayTool = server.registerTool.bind(server) as unknown as (
-  name: string,
-  definition: GatewayToolDefinition,
-  handler: GatewayToolHandler
-) => void;
 
 function errorRecord(error: unknown): {
   code: string;
@@ -213,7 +199,23 @@ const invokeInput = z.object({
   arguments: z.record(z.string(), z.unknown()).default({}),
 });
 
-registerGatewayTool(
+function buildGatewayServer(): McpServer {
+  const server = new McpServer(
+    {
+      name: GATEWAY_NAME,
+      version: GATEWAY_VERSION,
+    },
+    {
+      instructions: GATEWAY_INSTRUCTIONS,
+    }
+  );
+  const registerGatewayTool = server.registerTool.bind(server) as unknown as (
+    name: string,
+    definition: GatewayToolDefinition,
+    handler: GatewayToolHandler
+  ) => void;
+
+  registerGatewayTool(
   GATEWAY_TOOLS.status,
   {
     title: "LazyDesigner Status",
@@ -424,6 +426,10 @@ registerGatewayTool(
   }
 );
 
+  return server;
+}
+
+let stdioHandle: StdioServerHandle | null = null;
 let shuttingDown = false;
 
 async function shutdown(exitCode: number): Promise<void> {
@@ -431,19 +437,22 @@ async function shutdown(exitCode: number): Promise<void> {
   shuttingDown = true;
   try {
     await backend.close();
-    await server.close();
+    await stdioHandle?.close();
   } finally {
     process.exit(exitCode);
   }
 }
 
 async function main(): Promise<void> {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-
   process.on("SIGINT", () => void shutdown(0));
   process.on("SIGTERM", () => void shutdown(0));
   process.stdin.on("close", () => void shutdown(0));
+
+  stdioHandle = serveStdio(() => buildGatewayServer(), {
+    onerror: (error) => {
+      console.error("[LazyDesigner Gateway] stdio:", error);
+    },
+  });
 }
 
 main().catch((error) => {
