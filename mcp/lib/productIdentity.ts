@@ -12,7 +12,7 @@ export const PRODUCT_DESCRIPTION =
 export const PRODUCT_ABOUT =
   "Create Minecraft Bedrock models, textures, and animations with AI in Blockbench.";
 export const PRODUCT_REPOSITORY =
-  "https://github.com/halokaryamedia-source/BuildIT";
+  "https://github.com/MIVUBI-STD/M-LazyDesigner";
 export const PRODUCT_BUG_TRACKER = `${PRODUCT_REPOSITORY}/issues`;
 export const PRODUCT_VERSION = VERSION;
 
