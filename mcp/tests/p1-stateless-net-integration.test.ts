@@ -284,6 +284,28 @@ describe("P1.4 raw-net stateless integration", () => {
     expectRawHttpFailClosed(response);
   });
 
+  test("modern MCP routing headers fail closed when they disagree with the body", async () => {
+    const body = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 88,
+      method: "tools/list",
+      params: {},
+    });
+    const response = await rawHttpRequest(
+      `POST ${ENDPOINT} HTTP/1.1\r\nHost: ${HOST}\r\n` +
+      "Content-Type: application/json\r\n" +
+      "Accept: application/json, text/event-stream\r\n" +
+      "MCP-Protocol-Version: 2026-07-28\r\n" +
+      "Mcp-Method: tools/call\r\n" +
+      "Mcp-Name: p1_raw_net_echo_fixture\r\n" +
+      `Content-Length: ${Buffer.byteLength(body)}\r\nConnection: close\r\n\r\n` +
+      body
+    );
+
+    expect(rawHttpStatus(response)).toBe(400);
+    expect(response).toContain("routing headers disagree");
+  });
+
   test("modern 2026 client negotiates and calls tools on the same Runtime endpoint", async () => {
     const client = new Client(
       { name: "p1-modern-net-fixture", version: "1.0.0" },
