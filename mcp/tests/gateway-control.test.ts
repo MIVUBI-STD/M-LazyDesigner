@@ -9,6 +9,8 @@ import {
   decorateCapabilities,
 } from "@/gateway/control";
 import type { GatewayRuntimeStatus } from "@/gateway/backend";
+import { readReferencePackageProjection } from "@/gateway/control/referencePackage";
+import { readWorkspaceProjection } from "@/gateway/control/workspace";
 
 const onlineStatus: GatewayRuntimeStatus = {
   gateway: "ready",
@@ -143,6 +145,24 @@ describe("LazyDesigner Control", () => {
       ".agents/skills/lazydesigner-modelling/SKILL.md",
       "docs/03-authoring/modelling/profiles/humanoid.md",
     ]);
+  });
+
+  test("Control file projections fail closed before reading oversized context files", async () => {
+    const { mkdtemp, writeFile } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const directory = await mkdtemp(join(tmpdir(), "lazydesigner-control-bounds-"));
+    const oversized = "x".repeat(1024 * 1024 + 1);
+
+    await writeFile(join(directory, "REFERENCE.json"), oversized);
+    const reference = await readReferencePackageProjection(directory);
+    expect(reference.available).toBe(false);
+    expect(reference.unavailable_reason).toBe("REFERENCE_INVALID");
+
+    await writeFile(join(directory, "README.md"), oversized);
+    const workspace = await readWorkspaceProjection(onlineStatus, directory);
+    expect(workspace.available).toBe(false);
+    expect(workspace.unavailable_reason).toBe("README_UNREADABLE");
   });
 
   test("workspace projection keeps top-level summary while stage context owns active detail", async () => {
