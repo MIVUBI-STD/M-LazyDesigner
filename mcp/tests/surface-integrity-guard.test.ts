@@ -137,7 +137,7 @@ describe("advertised surface and fail-closed integrity guards", () => {
     expect(historySource).toContain("Cannot undo");
     expect(historySource).toContain("Cannot redo");
 
-    const elementSource = await source("server/tools/element-mutation.ts");
+    const elementSource = await source("server/tools/element-shared.ts");
     expect(elementSource).toContain("isRoot && newName");
 
     const projectSource = await source("server/tools/project.ts");
