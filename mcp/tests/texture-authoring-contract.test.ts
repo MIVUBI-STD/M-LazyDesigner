@@ -516,7 +516,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("flatten_layers preserves base bitmap before compositing layers", async () => {
-    const paint = await source("server/tools/paint-state.ts");
+    const paint = await source("server/tools/paint-selection-layers.ts");
     const start = paint.indexOf('if (action === "flatten_layers")');
     const end = paint.indexOf("if (texture.layers_enabled)", start);
     const block = paint.slice(start, end);
