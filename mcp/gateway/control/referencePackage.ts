@@ -72,6 +72,7 @@ type CachedReference = {
   projection: ControlReferenceProjection;
 };
 
+const MAX_REFERENCE_PACKAGE_BYTES = 1024 * 1024;
 const cache = new Map<string, CachedReference>();
 
 function record(value: unknown): JsonRecord | null {
@@ -143,6 +144,13 @@ export async function readReferencePackageProjection(
 
   try {
     const info = await stat(sourcePath);
+    if (!info.isFile() || info.size > MAX_REFERENCE_PACKAGE_BYTES) {
+      return {
+        ...emptyReference("REFERENCE_INVALID"),
+        source_path: sourcePath,
+        package_root: dirname(sourcePath),
+      };
+    }
     const signature = `${info.size}:${info.mtimeMs}`;
     const cached = cache.get(sourcePath);
     if (cached?.signature === signature) return cached.projection;
