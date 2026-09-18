@@ -483,7 +483,10 @@ export function registerToolsOnServer(
       {
         title: toolDef.title,
         description: toolDef.description,
-        inputSchema: toolDef.parameterSchema,
+        // SDK v2 requires a Standard Schema object. The derived flat object
+        // preserves discoverable branch fields, while parameterSchema remains
+        // the authoritative runtime validator inside getToolInvocation().
+        inputSchema: z.object(toolDef.inputSchema),
         annotations: toolDef.annotations,
       },
       getToolInvocation(name, toolDef)
