@@ -171,6 +171,227 @@ Status: `PATTERN`.
 
 Use a shared semantic parent for repeated components that share assembly placement, while preserving child owners only where each component requires local articulation.
 
+## Case-Level Audit — Truck 1
+
+Representative `geometry.truck1`:
+
+- 34 bones;
+- 149 cubes;
+- maximum hierarchy depth 3;
+- 5 non-visual owners;
+- one semantic root: `Truck`.
+
+Important ownership examples:
+
+```text
+Truck
+├─ steering
+├─ Doors
+│  ├─ Door
+│  └─ Door2
+├─ Front_wheels
+│  ├─ Front_wheel_1
+│  └─ Front_wheel_2
+├─ Rear
+│  └─ Rear_wheels
+│     ├─ Rear_wheel_1
+│     ├─ Rear_wheel_2
+│     ├─ Rear_wheel_3
+│     └─ Rear_wheel_4
+└─ other rigid visual assemblies
+```
+
+The wheel groups contain **zero visible cubes**; the individual wheel owners contain the wheel geometry.
+
+### Strong modelling conclusion
+
+This is a clean example of two distinct responsibilities:
+
+```text
+shared assembly placement
+→ non-visual parent owner
+
+local repeated articulation
+→ visible child owners
+```
+
+The parent is justified by transform organization, not visible volume.
+
+## Case-Level Audit — Wheel / Steering Animation
+
+Observed truck wheel animation targets only the individual wheel owners:
+
+```text
+Front_wheel_1
+Front_wheel_2
+Rear_wheel_1..4
+```
+
+Each spins around its local X rotation.
+
+Steering animation targets:
+
+```text
+Front_wheel_1
+Front_wheel_2
+steering
+```
+
+The two front wheel owners receive steering yaw, while the steering-wheel owner receives its own rotation.
+
+### Modelling implication
+
+Do not merge:
+
+```text
+wheel spin
+steering angle
+steering-wheel motion
+```
+
+into one arbitrary owner when the mechanism contains separate transform responsibilities.
+
+The same visible wheel may participate in more than one animation channel without needing another geometry duplicate.
+
+## Case-Level Audit — Trailer 1
+
+Representative `geometry.trailer1`:
+
+- 6 bones;
+- 50 cubes;
+- hierarchy depth 2;
+- only one non-visible grouping owner.
+
+Structure:
+
+```text
+Trailer
+└─ Trailer_wheels
+   ├─ Trailer_wheel_1
+   ├─ Trailer_wheel_2
+   ├─ Trailer_wheel_3
+   └─ Trailer_wheel_4
+```
+
+This is strong Minimum Sufficient Structure evidence:
+
+> a multi-part mechanical object can remain extremely shallow when only the wheels need independent articulation.
+
+## Case-Level Audit — Trailer 2 / Grain Chain
+
+Representative grain trailer:
+
+- 24 bones;
+- 65 cubes;
+- hierarchy depth 14;
+- 4 non-visible owners.
+
+Key structure:
+
+```text
+Trailer
+├─ Trailer_Bak
+│  ├─ Trailer_Klep
+│  ├─ Grain_Plane
+│  └─ Grain
+│     └─ Grain1
+│        └─ Grain2
+│           ...
+│              └─ Grain12
+├─ Trailer_wheels
+│  └─ four wheel owners
+└─ GrainOffloadLocator
+```
+
+The depth-14 grain hierarchy is not generic vehicle structure; it is specific to staged content deformation/presentation during loading/offloading.
+
+### Animation evidence
+
+`animation.grain.offload`:
+
+- rotates the trailer gate toward roughly 90 degrees;
+- rotates the trailer bed;
+- changes the grain plane;
+- progressively scales `Grain12 ... Grain1` segments down over time;
+- animates `GrainOffloadLocator`;
+- hides unrelated hook/grabber/pipe presentation owners when necessary.
+
+### Strong modelling conclusion
+
+Deep hierarchy is justified here by a **specific ordered visual choreography**.
+
+Therefore:
+
+```text
+deep hierarchy
+is justified by
+ordered transform/state dependency
+not by
+asset complexity or professionalism
+```
+
+This is a useful positive counterpart to the anti-overrigging rule.
+
+## Case-Level Audit — Locator
+
+`GrainOffloadLocator`:
+
+- contains no visible cubes;
+- owns a named locator `unload`;
+- participates directly in the offload animation.
+
+This is especially strong evidence for:
+
+```text
+ATTACHMENT / reference transform
+can itself be animated
+without visible geometry
+```
+
+The LazyDesigner Locator concept should therefore not be treated as static-only.
+
+## Case-Level Audit — Modular Visual Upgrades
+
+Representative bumper upgrade:
+
+```text
+Truck
+└─ Upgrade_1
+   └─ Bumper_Upgrade_1
+```
+
+- 3 bones;
+- 2 visible cubes;
+- base `Truck` owner remains empty in the upgrade geometry branch.
+
+Representative livery:
+
+```text
+Truck
+└─ Livery_1
+```
+
+- 2 bones;
+- 4 cubes.
+
+### Strong modelling conclusion
+
+Visual variants can preserve the same base semantic root while contributing only the changed branch.
+
+This directly reinforces:
+
+> isolate the smallest changed branch; do not duplicate unchanged base geometry.
+
+## Coupled / Uncoupled Geometry
+
+The coupled grain-trailer geometry preserves the same semantic bone topology as the uncoupled trailer while changing world-relative pivot positions.
+
+Safe conclusion:
+
+> coupling/presentation context can preserve rig topology while changing placement/frame-of-reference.
+
+This parallels first-/third-person presentation findings from Actions & Stuff and Friendly Fishing: **context change does not automatically imply new semantic hierarchy**.
+
 ## Current Verdict
 
 Advanced Truck Simulator materially strengthens LazyDesigner knowledge for:
