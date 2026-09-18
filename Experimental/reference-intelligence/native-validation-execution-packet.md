@@ -14,6 +14,33 @@ Therefore the native experiment is currently blocked by the absence of a current
 
 Do **not** use Lift to satisfy this requirement.
 
+## Verified Native Readiness Snapshot
+
+Verified against canonical core:
+
+```text
+Local SHA: c85cff4881468e1677943dc869327aa95b096eb5
+workspace/active/: README.md + lift/
+workspace/saved/: README.md only
+```
+
+Interpretation:
+
+- no current-quality LazyDesigner-owned validation asset exists in repository-backed workspace;
+- Lift remains legacy evidence only and is prohibited as craftsmanship/quality benchmark;
+- the synthetic benchmark fixture is contract coverage only and cannot substitute for a native authored asset;
+- native T1 cannot truthfully begin until a fresh approved-reference asset is authored in Blockbench.
+
+Readiness state:
+
+```text
+NATIVE_T1_ASSET = MISSING
+NATIVE_EXECUTION = BLOCKED
+REMOTE_PREPARATION = COMPLETE
+```
+
+Do not weaken this blocker by selecting an external corpus model, Lift, or a synthetic fixture.
+
 ## First Native Action
 
 Create a fresh current-quality T1 validation asset using the normal LazyDesigner workflow:
