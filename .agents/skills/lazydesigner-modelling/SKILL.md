@@ -1,12 +1,12 @@
 ---
 name: lazydesigner-modelling
-description: Mandatory LazyDesigner Bedrock Geometry and UV Layout specialist. Use with exactly one Control-selected modelling profile when profile guidance materially improves the task.
+description: Mandatory LazyDesigner Bedrock Geometry and UV Layout specialist. Use with exactly one Control-delivered modelling profile from the current Reference Package when profile guidance materially improves the task.
 ---
 # LazyDesigner Bedrock Modelling
 
 User-authorized autonomy replaces approval waits with verified checkpoints; never claim user approval.
 
-## Modelling Core / Profile Contract
+## Modelling Specialist / Profile Contract
 
 This Skill is the **modelling execution specialist**. Durable Geometry, hierarchy, pivot/rig-readiness, surface, UV Layout, correction, and verification policy is owned by `docs/03-authoring/modelling/standard.md`; this Skill carries the compact operational triggers needed on the hot path. Asset-class knowledge belongs in `docs/03-authoring/modelling/profiles/` and must not be duplicated here.
 
@@ -22,7 +22,7 @@ PLANT_FOLIAGE
 GENERIC
 ```
 
-Profile selection is owned by LazyDesigner Control using the resolver in `docs/03-authoring/modelling/profiles/README.md`.
+Initial profile classification is owned by Reference Preparation / `REFERENCE.json`. LazyDesigner Control transports and loads that `selected_profile`; this Skill may request `PROFILE_RECLASSIFICATION_REQUIRED` when fresh Geometry evidence proves the supplied profile materially wrong.
 
 Normal modelling context is:
 

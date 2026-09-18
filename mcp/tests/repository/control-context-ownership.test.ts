@@ -54,6 +54,22 @@ describe("Control context ownership", () => {
     expect(controlReadme).toContain("Research-derived authoring guidance stays");
     expect(controlReadme).toContain("Control must not add duplicate stage-context fields");
   });
+
+  test("selected modelling profile originates in REFERENCE.json and Control only transports it", async () => {
+    const [referenceSource, registry, modelling, projectionDoc] = await Promise.all([
+      source("gateway/control/referencePackage.ts"),
+      source("gateway/control/registry.ts"),
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../docs/04-system/control/context-projection.md"),
+    ]);
+
+    expect(referenceSource).toContain("profileValue(asset?.profile)");
+    expect(referenceSource).toContain("selected_profile: selectedProfile");
+    expect(registry).toContain("contextForAuthoringDomain(");
+    expect(registry).toContain("PROFILE_PATHS[selectedProfile]");
+    expect(modelling).toContain("Reference Preparation / `REFERENCE.json`");
+    expect(projectionDoc).toContain("Control does not independently classify the asset");
+  });
   test("fallback source ownership points to the canonical Runtime surface owner", async () => {
     const registry = await source("gateway/control/registry.ts");
 

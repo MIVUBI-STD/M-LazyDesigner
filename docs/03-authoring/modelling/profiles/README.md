@@ -1,8 +1,8 @@
 # LazyDesigner Modelling Profiles
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
-This directory contains lightweight asset-class reasoning profiles used with `lazydesigner-modelling`. Profiles do not replace the approved reference, Reference Package, modelling core, or Runtime ToolSpecs.
+This directory contains lightweight asset-class reasoning profiles used with `lazydesigner-modelling`. Profiles do not replace the approved reference, Reference Package, canonical Geometry standard, modelling execution specialist, or Runtime ToolSpecs.
 
 ## Canonical Profiles
 
@@ -114,14 +114,14 @@ blocking vs non-blocking unknowns remain explicit
 
 ## Control / Codex Contract
 
-LazyDesigner Control should resolve the primary profile before delivering modelling context to Codex. Codex receives the modelling core plus only the selected profile and any narrowly justified secondary guidance.
+Reference Preparation / `REFERENCE.json` owns the initial primary-profile classification. LazyDesigner Control validates/transports that `selected_profile` and loads only its matching profile for Geometry. Codex receives the modelling execution specialist plus only that selected profile and any narrowly justified secondary guidance.
 
 ```text
-Control
-→ task + reference readiness
+Reference Preparation / REFERENCE.json
 → primary profile
+→ Control transports selected_profile
 → lazydesigner-modelling
-→ selected profile
+→ exactly one selected profile
 → Codex
 ```
 

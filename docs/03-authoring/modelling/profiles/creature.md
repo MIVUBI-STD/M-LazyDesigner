@@ -1,10 +1,10 @@
 # LazyDesigner Modelling Profile — CREATURE
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 Use this profile for non-humanoid animals, monsters, fantasy creatures, quadrupeds, multi-limbed creatures, winged creatures, serpentine forms, and other articulated biological subjects whose topology differs materially from a humanoid.
 
-This profile supplements `lazydesigner-modelling`; it does not replace approved reference evidence, the modelling core, or animation-specific Skills. It provides decision vocabulary only. Never treat it as a preset anatomy or fixed rig.
+This profile supplements `lazydesigner-modelling`; it does not replace approved reference evidence, the canonical Geometry standard, or animation-specific Skills. It provides decision vocabulary only. Never treat it as a preset anatomy or fixed rig.
 
 ## Primary Objective
 

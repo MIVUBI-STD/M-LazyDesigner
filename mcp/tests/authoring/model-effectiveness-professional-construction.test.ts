@@ -129,8 +129,8 @@ describe("model creation effectiveness — professional construction without pre
 
     const combined = lower(`${modelling}\n${animationSkill}\n${geometry}\n${animation}`);
     expect(combined).toContain("separate budgets");
-    expect(combined).not.toContain("new hierarchy for every animation");
-    expect(combined).not.toContain("one owner per visible part");
+    expect(combined).toContain("existing semantic owner");
+    expect(combined).toContain("smallest changed branch");
   });
 
 
@@ -181,14 +181,9 @@ describe("model creation effectiveness — professional construction without pre
     expect(mechanical).toContain("shared assembly parent");
 
     const combined = lower(`${profiles}\n${vehicle}\n${humanoid}\n${creature}\n${mechanical}`);
-    for (const forbidden of [
-      "one owner per visible part",
-      "new hierarchy for every animation",
-      "fixed rig topology",
-      "duplicate full model for every state",
-    ]) {
-      expect(combined).not.toContain(forbidden);
-    }
+    expect(combined).toContain("stable semantic ownership");
+    expect(combined).toContain("smallest changed branch");
+    expect(combined).toContain("without forcing identical topology");
   });
 
   test("runtime-facing guidance keeps one normal hierarchy path and parent-driven Locator motion", async () => {

@@ -1,10 +1,10 @@
 # LazyDesigner Modelling Profile — MECHANICAL
 
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 This profile is a **lightweight modelling knowledge layer** for machinery and mechanical assemblies where kinematics, rigid-part relationships, linkages, clearances, and transform ownership materially affect construction.
 
-It supplements `lazydesigner-modelling`; it does not replace the approved reference, core Geometry rules, Runtime ToolSpecs, or animation specialist.
+It supplements `lazydesigner-modelling`; it does not replace the approved reference, canonical Geometry rules, Runtime ToolSpecs, or animation specialist.
 
 ## Scope
 
