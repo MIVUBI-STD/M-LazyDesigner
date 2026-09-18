@@ -109,6 +109,86 @@ function materialPersistenceOnly(value: unknown): boolean {
   );
 }
 
+function animationControllerReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    const controller = record(candidate.controller);
+    const created = record(candidate.created);
+    const removed = record(candidate.removed);
+    if (
+      candidate.execution !== "applied" ||
+      !controller ||
+      typeof controller.uuid !== "string" ||
+      typeof controller.name !== "string" ||
+      typeof controller.state_count !== "number" ||
+      !Array.isArray(candidate.affected_states) ||
+      !created ||
+      !removed
+    ) {
+      return false;
+    }
+
+    return candidate.affected_states.every((entry) => {
+      const state = record(entry);
+      return Boolean(
+        state &&
+        typeof state.uuid === "string" &&
+        typeof state.name === "string" &&
+        Array.isArray(state.animations) &&
+        Array.isArray(state.transitions) &&
+        Array.isArray(state.sounds) &&
+        Array.isArray(state.particles)
+      );
+    });
+  });
+}
+
+function materialMutationReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (!["create", "configure", "assign_channel"].includes(String(candidate.operation))) {
+      return false;
+    }
+    const material = record(candidate.material);
+    const channels = record(material?.channels);
+    const config = record(material?.config);
+    return Boolean(
+      material &&
+      typeof material.uuid === "string" &&
+      typeof material.name === "string" &&
+      channels &&
+      ["color", "normal", "height", "mer"].every((key) =>
+        Object.prototype.hasOwnProperty.call(channels, key)
+      ) &&
+      config &&
+      Object.prototype.hasOwnProperty.call(config, "saved")
+    );
+  });
+}
+
+function materialInstanceMutationReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (!["set", "bulk_set", "clear"].includes(String(candidate.operation))) {
+      return false;
+    }
+    if (
+      typeof candidate.face_count !== "number" ||
+      !Array.isArray(candidate.changes) ||
+      candidate.changes.length !== candidate.face_count
+    ) {
+      return false;
+    }
+    return candidate.changes.every((entry) => {
+      const change = record(entry);
+      return Boolean(
+        change &&
+        typeof change.cube_uuid === "string" &&
+        typeof change.cube_name === "string" &&
+        typeof change.face === "string" &&
+        typeof change.material_name === "string"
+      );
+    });
+  });
+}
+
 function animationEffectsReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (
@@ -158,6 +238,27 @@ function verificationClassForResult(
   if (
     capability === "manage_animation_effects" &&
     animationEffectsReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "manage_animation_controller" &&
+    animationControllerReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "manage_material" &&
+    materialMutationReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "manage_material_instances" &&
+    materialInstanceMutationReceiptComplete(result)
   ) {
     return "receipt_only";
   }

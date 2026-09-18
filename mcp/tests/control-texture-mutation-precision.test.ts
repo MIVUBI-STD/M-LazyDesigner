@@ -61,6 +61,41 @@ describe("Control Texture mutation precision", () => {
     ]);
   });
 
+  test("complete material mutation receipts replace focused rereads", () => {
+    for (const operation of ["create", "configure", "assign_channel"] as const) {
+      const delta = buildControlDelta({
+        capability: "manage_material",
+        phaseBefore: "texturing",
+        phaseAfter: "texturing",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          operation,
+          material: {
+            uuid: "material-a",
+            name: "metal",
+            is_material: true,
+            channels: {
+              color: null,
+              normal: null,
+              height: null,
+              mer: null,
+            },
+            config: {
+              color_value: [255, 255, 255, 255],
+              mer_value: [0, 0, 255],
+              subsurface_value: 0,
+              saved: false,
+            },
+          },
+        },
+      });
+
+      expect(delta.freshness.stale, operation).toEqual(["MATERIAL_RENDER"]);
+      expect(delta.verification_class, operation).toBe("receipt_only");
+    }
+  });
+
   test("material save preserves semantic freshness while marking persistence state changed", () => {
     const delta = buildControlDelta({
       capability: "manage_material",
@@ -130,6 +165,30 @@ describe("Control Texture mutation precision", () => {
     });
     expect(write.invalidates.authoring_domains).toEqual(["TEXTURING"]);
     expect(write.freshness.stale).toEqual(["MATERIAL_RENDER"]);
+    expect(write.verification_class).toBe("focused_read");
+
+    const completeWrite = buildControlDelta({
+      capability: "manage_material_instances",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "set",
+        cube_count: 1,
+        face_count: 1,
+        cubes: [{ uuid: "cube-a", name: "body" }],
+        changes: [
+          {
+            cube_uuid: "cube-a",
+            cube_name: "body",
+            face: "north",
+            material_name: "metal",
+          },
+        ],
+      },
+    });
+    expect(completeWrite.verification_class).toBe("receipt_only");
   });
 
   test("render-profile inspect and compile-only results preserve authored freshness", () => {

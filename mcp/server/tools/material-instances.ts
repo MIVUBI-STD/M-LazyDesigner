@@ -162,6 +162,17 @@ function finalizeMaterialInstanceFaceChanges(
   });
 }
 
+export function materialInstanceContinuationChanges(
+  changes: readonly MaterialInstanceFaceChange[]
+) {
+  return changes.map((change) => ({
+    cube_uuid: change.cube.uuid,
+    cube_name: change.cube.name,
+    face: change.face,
+    material_name: change.material_name,
+  }));
+}
+
 function cubesFromMaterialInstanceChanges(
   changes: readonly MaterialInstanceFaceChange[]
 ): Cube[] {
@@ -357,7 +368,11 @@ export function registerMaterialInstanceTools() {
           "set",
           cubesToEdit,
           modifiedCount,
-          { material_name, faces: [...faces] }
+          {
+            material_name,
+            faces: [...faces],
+            changes: materialInstanceContinuationChanges(plannedChanges),
+          }
         );
         return materialInstanceMutationResult(
           result,
@@ -524,7 +539,11 @@ export function registerMaterialInstanceTools() {
           "clear",
           cubesToEdit,
           clearedCount,
-          { faces: [...facesToClear], all_cubes }
+          {
+            faces: [...facesToClear],
+            all_cubes,
+            changes: materialInstanceContinuationChanges(plannedChanges),
+          }
         );
         return materialInstanceMutationResult(
           result,

@@ -270,6 +270,27 @@ export function requireMaterialConfigSavePostcondition(
   );
 }
 
+function materialContinuationState(group: TextureGroup) {
+  const textures = group.getTextures();
+  return {
+    name: group.name,
+    uuid: group.uuid,
+    is_material: group.is_material,
+    channels: {
+      color: getChannelTextureInfo(textures, "color"),
+      normal: getChannelTextureInfo(textures, "normal"),
+      height: getChannelTextureInfo(textures, "height"),
+      mer: getChannelTextureInfo(textures, "mer"),
+    },
+    config: {
+      color_value: group.material_config.color_value,
+      mer_value: group.material_config.mer_value,
+      subsurface_value: group.material_config.subsurface_value,
+      saved: group.material_config.saved,
+    },
+  };
+}
+
 export function requireDistinctPbrChannelAssignments(
   assignments: readonly PbrChannelAssignment[]
 ): void {
@@ -493,20 +514,19 @@ export function registerTextureMaterialTools(): void {
   
         Canvas.updateAll();
   
-        return JSON.stringify({
-          success: true,
-          material: {
-            name: textureGroup.name,
-            uuid: textureGroup.uuid,
-            is_material: true,
-            channels: {
-              color: color_texture ? true : !!color_value,
-              normal: !!normal_texture,
-              height: !!height_texture,
-              mer: mer_texture ? true : !!mer_value,
+        const materialState = materialContinuationState(textureGroup);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Created PBR material "${textureGroup.name}" (${textureGroup.uuid}).`,
             },
+          ],
+          structuredContent: {
+            operation: "create",
+            material: materialState,
           },
-        });
+        };
       },
     }, textureMaterialToolDocs[0].status);
   
@@ -639,7 +659,18 @@ export function registerTextureMaterialTools(): void {
   
         Canvas.updateAll();
   
-        return `Configured material "${textureGroup.name}"`;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Configured material "${textureGroup.name}".`,
+            },
+          ],
+          structuredContent: {
+            operation: "configure",
+            material: materialContinuationState(textureGroup),
+          },
+        };
       },
     }, textureMaterialToolDocs[1].status);
   
@@ -652,25 +683,9 @@ export function registerTextureMaterialTools(): void {
           (g: TextureGroup) => g.is_material
         );
   
-        const result = materials.map((group: TextureGroup) => {
-          const textures = group.getTextures();
-          return {
-            name: group.name,
-            uuid: group.uuid,
-            channels: {
-              color: getChannelTextureInfo(textures, "color"),
-              normal: getChannelTextureInfo(textures, "normal"),
-              height: getChannelTextureInfo(textures, "height"),
-              mer: getChannelTextureInfo(textures, "mer"),
-            },
-            config: {
-              color_value: group.material_config.color_value,
-              mer_value: group.material_config.mer_value,
-              subsurface_value: group.material_config.subsurface_value,
-              saved: group.material_config.saved,
-            },
-          };
-        });
+        const result = materials.map((group: TextureGroup) =>
+          materialContinuationState(group)
+        );
   
         return {
           content: [
@@ -849,7 +864,18 @@ export function registerTextureMaterialTools(): void {
   
         Canvas.updateAll();
   
-        return `Assigned texture "${tex.name}" to ${channel} channel of material "${textureGroup.name}"`;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Assigned texture "${tex.name}" to ${channel} channel of material "${textureGroup.name}".`,
+            },
+          ],
+          structuredContent: {
+            operation: "assign_channel",
+            material: materialContinuationState(textureGroup),
+          },
+        };
       },
     }, textureMaterialToolDocs[5].status);
   

@@ -248,9 +248,63 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
-  test("animation controller, effects, and particle mutations stay change-scoped", () => {
+  test("complete animation-controller receipt replaces focused reread", () => {
+    const delta = buildControlDelta({
+      capability: "manage_animation_controller",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "updated",
+        operation_count: 2,
+        controller: {
+          uuid: "controller-a",
+          name: "controller.animation.mob",
+          initial_state: { uuid: "state-a", name: "default" },
+          state_count: 2,
+        },
+        affected_states: [
+          {
+            uuid: "state-a",
+            name: "default",
+            on_entry: null,
+            on_exit: null,
+            blend_transition: 0,
+            blend_transition_curve: null,
+            blend_via_shortest_path: false,
+            animations: [],
+            transitions: [
+              { uuid: "transition-a", target_uuid: "state-b", condition: "query.is_moving" },
+            ],
+            sounds: [],
+            particles: [],
+          },
+        ],
+        created: {
+          states: [],
+          transitions: [],
+          animation_links: [],
+          sounds: [],
+          particles: [],
+        },
+        removed: {
+          states: [],
+          transitions: [],
+          animation_links: [],
+          sounds: [],
+          particles: [],
+        },
+      },
+    });
+
+    expect(delta.freshness.stale).toEqual(["ANIMATION_CONTROLLER"]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("animation controller and particle mutations remain change-scoped", () => {
     const cases = [
-      ["manage_animation_controller", "ANIMATION_CONTROLLER"],
       ["manage_particle", "PARTICLE_SYSTEM"],
     ] as const;
 

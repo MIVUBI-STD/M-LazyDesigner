@@ -584,18 +584,41 @@ function normalizeBlendValue(value: string | number | undefined): string {
   return typeof value === "number" ? String(value) : value;
 }
 
-function summarizeState(state: ControllerStatePlan) {
+function controllerStateContinuation(state: ControllerStatePlan) {
   return {
     uuid: state.uuid,
     name: state.name,
-    animation_count: state.animations.length,
-    transition_count: state.transitions.length,
-    sound_count: state.sounds.length,
-    particle_count: state.particles.length,
     on_entry: state.on_entry || null,
     on_exit: state.on_exit || null,
     blend_transition: state.blend_transition || 0,
+    blend_transition_curve: state.blend_transition_curve
+      ? { ...state.blend_transition_curve }
+      : null,
     blend_via_shortest_path: state.blend_via_shortest_path,
+    animations: state.animations.map((link) => ({
+      uuid: link.uuid,
+      key: link.key,
+      animation_uuid: link.animation || null,
+      blend_value: link.blend_value,
+    })),
+    transitions: state.transitions.map((transition) => ({
+      uuid: transition.uuid,
+      target_uuid: transition.target,
+      condition: transition.condition,
+    })),
+    sounds: state.sounds.map((sound) => ({
+      uuid: sound.uuid,
+      effect: sound.effect,
+      ...(sound.file ? { file: sound.file } : {}),
+    })),
+    particles: state.particles.map((particle) => ({
+      uuid: particle.uuid,
+      effect: particle.effect,
+      locator: particle.locator || null,
+      bind_to_actor: particle.bind_to_actor,
+      pre_effect_script: particle.pre_effect_script || null,
+      ...(particle.file ? { file: particle.file } : {}),
+    })),
   };
 }
 
@@ -1079,7 +1102,7 @@ export function registerAnimationControllerTools(): void {
           },
           affected_states: finalPlan.states
             .filter((state) => affectedStateUuids.has(state.uuid))
-            .map(summarizeState),
+            .map(controllerStateContinuation),
           created,
           removed,
         };

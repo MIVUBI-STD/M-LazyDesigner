@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildMaterialInstanceMutationSummary,
   isMaterialInstanceNameChange,
+  materialInstanceContinuationChanges,
 } from "@/server/tools/material-instances";
 
 async function source(path: string): Promise<string> {
@@ -36,6 +37,28 @@ describe("material-instance mutation result contract", () => {
     });
   });
 
+  test("continuation changes preserve exact final face assignment identity", () => {
+    const changes = materialInstanceContinuationChanges([
+      {
+        cube: {
+          uuid: "cube-a",
+          name: "body",
+        } as Cube,
+        face: "north",
+        material_name: "metal",
+      },
+    ]);
+
+    expect(changes).toEqual([
+      {
+        cube_uuid: "cube-a",
+        cube_name: "body",
+        face: "north",
+        material_name: "metal",
+      },
+    ]);
+  });
+
   test("material-instance name comparison rejects effective face no-ops", () => {
     expect(isMaterialInstanceNameChange("metal", "metal")).toBe(false);
     expect(isMaterialInstanceNameChange(undefined, "")).toBe(false);
@@ -57,6 +80,7 @@ describe("material-instance mutation result contract", () => {
     expect(implementation).toContain('"set",\n          cubesToEdit,');
     expect(implementation).toContain('"bulk_set",\n          cubesToEdit,');
     expect(implementation).toContain('"clear",\n          cubesToEdit,');
+    expect(implementation).toContain("materialInstanceContinuationChanges(plannedChanges)");
     expect(implementation).not.toContain(
       'return `Set material instance "${material_name}"'
     );
