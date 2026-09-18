@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createServer as createTcpServer, type AddressInfo } from "node:net";
+import { createServer as createHttpServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import createNetServer, {
   normalizeBuildIdentity,
   type NetServer,
@@ -13,7 +14,7 @@ let healthUrl = "";
 
 beforeAll(async () => {
   server = createNetServer(
-    { createServer: (callback) => createTcpServer(callback) },
+    { createServer: (options, callback) => createHttpServer(options, callback) },
     { port: 0, endpoint: ENDPOINT, host: HOST }
   );
 
