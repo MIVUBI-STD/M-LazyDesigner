@@ -1,5 +1,6 @@
 import { version } from "../package.json";
 import {
+  CAPABILITY_LIFECYCLE_SEARCH_PENALTY,
   CAPABILITY_TIER_BOOST,
   getCapabilityMetadata,
   type CapabilityTier,
@@ -258,13 +259,17 @@ export function searchCapabilityCatalog(
 
   return tools
     .map((tool) => {
-      const tier = classifyCapabilityTier(tool);
+      const metadata = getCapabilityMetadata(tool.name);
+      const tier = metadata.tier;
       const lexicalScore = lexicalCapabilityScore(tool, tokens);
       return {
         tool,
         tier,
         lexicalScore,
-        score: lexicalScore + CAPABILITY_TIER_BOOST[tier],
+        score:
+          lexicalScore +
+          CAPABILITY_TIER_BOOST[tier] +
+          CAPABILITY_LIFECYCLE_SEARCH_PENALTY[metadata.lifecycle.stage],
       };
     })
     .filter(({ tier, lexicalScore }) =>
