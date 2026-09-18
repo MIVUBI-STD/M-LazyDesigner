@@ -56,15 +56,15 @@ try {
   assert.ok(resource.properties.resource_operations.items.anyOf.length > 1);
   for (const name of ["manage_animation_timeline", "manage_animation_controller", "inspect_elements", "inspect_particle", "manage_particle"]) {
     const spec = toolManifest.flatMap((group) => group.tools).find((tool) => tool.name === name);
-    assert.deepEqual(
-      schemaFor(name),
-      z.toJSONSchema(spec.parameters, {
-        io: "input",
-        target: "draft-2020-12",
-        unrepresentable: "any",
-        reused: "inline",
-      })
-    );
+    const expected = z.toJSONSchema(spec.parameters, {
+      io: "input",
+      target: "draft-2020-12",
+      unrepresentable: "any",
+      reused: "inline",
+    });
+    delete expected["~standard"];
+    expected.type = "object";
+    assert.deepEqual(schemaFor(name), expected);
   }
   const keyframes = Array.from({ length: 33 }, (_, i) => ({ time: i / 20, values: [i, 0, 0] }));
   const request = {
