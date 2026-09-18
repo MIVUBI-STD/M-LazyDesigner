@@ -15,6 +15,7 @@ import {
   registerBoneRiggingTool,
 } from "./animation-rigging";
 export {
+  boneRiggingParameters,
   deriveMirroredRigName,
   hasCaseInsensitiveRigNameCollision,
   wouldCreateRigHierarchyCycle,
