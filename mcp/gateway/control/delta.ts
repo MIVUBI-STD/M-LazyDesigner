@@ -420,6 +420,14 @@ export function buildControlDelta(input: {
     input.succeeded,
     input.result
   );
+  const defaultVerificationClass =
+    getCapabilityMetadata(input.capability).verificationClass;
+  const verificationClass =
+    input.succeeded &&
+    STATE_MUTATIONS.has(input.capability) &&
+    freshness.basis === "NO_CHANGE"
+      ? "receipt_only"
+      : defaultVerificationClass;
   const particleTextureHandoff =
     input.succeeded &&
     input.capability === "manage_particle" &&
@@ -450,7 +458,7 @@ export function buildControlDelta(input: {
     invalidates,
     freshness,
     next_intent: nextIntent,
-    verification_class: getCapabilityMetadata(input.capability).verificationClass,
+    verification_class: verificationClass,
     requires_status_refresh: changed.length > 0,
   };
 }

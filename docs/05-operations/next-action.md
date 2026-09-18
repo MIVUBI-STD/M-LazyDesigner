@@ -72,7 +72,7 @@ CONSERVATIVE_EFFECT
 UNKNOWN_OUTCOME
 ```
 
-This allows unrelated state to remain reusable without blanket rereads while preserving fail-closed behavior after uncertain mutation outcomes.
+This allows unrelated state to remain reusable without blanket rereads while preserving fail-closed behavior after uncertain mutation outcomes. When a normally-mutating capability returns a source-proven `NO_CHANGE` receipt, the post-operation Control delta now overrides verification guidance to `receipt_only`; discovery metadata remains unchanged because branch/result semantics are not known before invocation.
 
 ### Remaining REMOTE_GITHUB refinement
 

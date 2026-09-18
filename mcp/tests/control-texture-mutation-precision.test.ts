@@ -80,6 +80,7 @@ describe("Control Texture mutation precision", () => {
     expect(delta.freshness.basis).toBe("NO_CHANGE");
     expect(delta.freshness.stale).toEqual([]);
     expect(delta.freshness.fresh).toHaveLength(8);
+    expect(delta.verification_class).toBe("receipt_only");
   });
 
   test("material-instance reads preserve authored freshness while writes stay scoped", () => {
@@ -97,6 +98,7 @@ describe("Control Texture mutation precision", () => {
     expect(list.invalidates.authoring_domains).toEqual([]);
     expect(list.freshness.basis).toBe("NO_CHANGE");
     expect(list.freshness.fresh).toHaveLength(8);
+    expect(list.verification_class).toBe("receipt_only");
 
     const get = buildControlDelta({
       capability: "manage_material_instances",
@@ -111,6 +113,7 @@ describe("Control Texture mutation precision", () => {
     });
     expect(get.invalidates.authoring_domains).toEqual([]);
     expect(get.freshness.basis).toBe("NO_CHANGE");
+    expect(get.verification_class).toBe("receipt_only");
 
     const write = buildControlDelta({
       capability: "manage_material_instances",
@@ -144,6 +147,7 @@ describe("Control Texture mutation precision", () => {
     });
     expect(inspect.invalidates.authoring_domains).toEqual([]);
     expect(inspect.freshness.basis).toBe("NO_CHANGE");
+    expect(inspect.verification_class).toBe("receipt_only");
 
     const compileOnly = buildControlDelta({
       capability: "manage_render_profile",
@@ -159,6 +163,7 @@ describe("Control Texture mutation precision", () => {
     });
     expect(compileOnly.invalidates.authoring_domains).toEqual([]);
     expect(compileOnly.freshness.basis).toBe("NO_CHANGE");
+    expect(compileOnly.verification_class).toBe("receipt_only");
 
     const singleCompileOnly = buildControlDelta({
       capability: "manage_render_profile",
@@ -174,6 +179,7 @@ describe("Control Texture mutation precision", () => {
     });
     expect(singleCompileOnly.invalidates.authoring_domains).toEqual([]);
     expect(singleCompileOnly.freshness.basis).toBe("NO_CHANGE");
+    expect(singleCompileOnly.verification_class).toBe("receipt_only");
   });
 
   test("render-profile writes invalidate only material/render freshness", () => {

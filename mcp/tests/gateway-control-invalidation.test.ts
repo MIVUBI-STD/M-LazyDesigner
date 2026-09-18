@@ -146,6 +146,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
       expect(delta.freshness.basis).toBe("NO_CHANGE");
       expect(delta.freshness.stale).toEqual([]);
       expect(delta.freshness.fresh).toHaveLength(8);
+      expect(delta.verification_class).toBe("receipt_only");
     }
   });
 
@@ -169,6 +170,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.invalidates.workspace_projection).toBe(false);
     expect(delta.freshness.basis).toBe("NO_CHANGE");
     expect(delta.freshness.fresh).toHaveLength(8);
+    expect(delta.verification_class).toBe("receipt_only");
   });
 
   test("particle write remains a Particle-scoped authored mutation", () => {
@@ -189,6 +191,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
 
     expect(delta.invalidates.authoring_domains).toEqual(["ANIMATION"]);
     expect(delta.freshness.stale).toEqual(["PARTICLE_SYSTEM"]);
+    expect(delta.verification_class).toBe("focused_read");
   });
 
   test("animation controller, effects, and particle mutations stay change-scoped", () => {
