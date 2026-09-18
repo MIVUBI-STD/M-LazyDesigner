@@ -32,129 +32,6 @@ const textureLayerBlendModeEnum = z.enum([
  * Pixel operations reject out-of-bounds coordinates instead of letting the
  * native painter silently clip/wrap/ignore them while still reporting success.
  */
-function requirePixelsWithinTexture(
-  texture: Texture,
-  points: Array<{ x: number; y: number }>
-): void {
-  for (const point of points) {
-    if (
-      !Number.isFinite(point.x) ||
-      !Number.isFinite(point.y) ||
-      point.x < 0 ||
-      point.y < 0 ||
-      point.x >= texture.width ||
-      point.y >= texture.height
-    ) {
-      throw new Error(
-        `Coordinate (${point.x}, ${point.y}) is outside texture "${texture.name}" (${texture.width}x${texture.height}). Use in-bounds pixel coordinates.`
-      );
-    }
-  }
-}
-
-export const paintFillToolParameters = z.object({
-  texture_id: textureIdOptionalSchema,
-  x: z.number().describe("X coordinate to start fill."),
-  y: z.number().describe("Y coordinate to start fill."),
-  color: hexColorSchema.describe("Fill color as hex string."),
-  opacity: opacitySchema.describe("Fill opacity (0-255)."),
-  fill_mode: fillModeEnum
-    .optional()
-    .default("color_connected")
-    .describe("Fill mode."),
-  blend_mode: blendModeEnum.optional().describe("Fill blend mode."),
-});
-
-export const drawShapeToolParameters = z.object({
-  texture_id: textureIdOptionalSchema,
-  shape: drawShapeEnum.describe("Shape to draw. '_h' suffix means hollow."),
-  start: coordinateSchema.extend({
-    x: z.number().describe("Start X coordinate."),
-    y: z.number().describe("Start Y coordinate."),
-  }),
-  end: coordinateSchema.extend({
-    x: z.number().describe("End X coordinate."),
-    y: z.number().describe("End Y coordinate."),
-  }),
-  color: hexColorSchema.describe("Shape color as hex string."),
-  line_width: z
-    .number()
-    .min(1)
-    .max(50)
-    .optional()
-    .describe("Line width for hollow shapes."),
-  opacity: opacitySchema.describe("Shape opacity (0-255)."),
-  blend_mode: blendModeEnum.optional().describe("Shape blend mode."),
-});
-
-export const gradientToolParameters = z.object({
-  texture_id: textureIdOptionalSchema,
-  start: coordinateSchema.extend({
-    x: z.number().describe("Gradient start X coordinate."),
-    y: z.number().describe("Gradient start Y coordinate."),
-  }),
-  end: coordinateSchema.extend({
-    x: z.number().describe("Gradient end X coordinate."),
-    y: z.number().describe("Gradient end Y coordinate."),
-  }),
-  start_color: requiredHexColorSchema.describe("Start color as hex string."),
-  end_color: requiredHexColorSchema.describe("End color as hex string."),
-  opacity: opacitySchema.describe("Gradient opacity (0-255)."),
-  blend_mode: blendModeEnum.optional().describe("Gradient blend mode."),
-});
-
-export const colorPickerToolParameters = z.object({
-  texture_id: textureIdOptionalSchema,
-  x: z.number().describe("X coordinate to pick color from."),
-  y: z.number().describe("Y coordinate to pick color from."),
-  set_as_secondary: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe("Set as secondary color instead of primary."),
-  pick_opacity: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe("Also pick and apply the pixel's opacity."),
-});
-
-export const copyBrushToolParameters = z.object({
-  texture_id: textureIdOptionalSchema,
-  source: coordinateSchema.extend({
-    x: z.number().describe("Source X coordinate to copy from."),
-    y: z.number().describe("Source Y coordinate to copy from."),
-  }),
-  target: coordinateSchema.extend({
-    x: z.number().describe("Target X coordinate to paste to."),
-    y: z.number().describe("Target Y coordinate to paste to."),
-  }),
-  brush_size: brushSizeSchema.describe("Copy brush size."),
-  opacity: opacitySchema.describe("Copy opacity (0-255)."),
-  mode: copyBrushModeEnum.optional().default("copy").describe("Copy brush mode."),
-});
-
-export const eraserToolParameters = z.object({
-  texture_id: textureIdOptionalSchema,
-  coordinates: z
-    .array(
-      coordinateSchema.extend({
-        x: z.number().describe("X coordinate to erase at."),
-        y: z.number().describe("Y coordinate to erase at."),
-      })
-    )
-    .describe("Array of coordinates to erase at."),
-  brush_size: brushSizeSchema.describe("Eraser brush size."),
-  opacity: opacitySchema.describe("Eraser opacity (0-255)."),
-  softness: brushSoftnessSchema.describe("Eraser softness percentage."),
-  shape: brushShapeEnum.optional().describe("Eraser shape."),
-  connect_strokes: z
-    .boolean()
-    .optional()
-    .default(true)
-    .describe("Whether to connect erase strokes with lines."),
-});
-
 export const paintSettingsParameters = z.object({
   texture_preview: z.object({
     texture_id: z.string().min(1),
@@ -212,7 +89,6 @@ export const paintSettingsParameters = z.object({
     .optional()
     .describe("Pick combined layer colors."),
 });
-
 
 export const textureSelectionParameters = z.object({
   action: z
@@ -277,7 +153,6 @@ export const textureLayerManagementParameters = z.object({
     .optional()
     .describe("0-based final layer index."),
 });
-
 
 export const paintStateToolDocs: ToolSpec[] = [
   {
