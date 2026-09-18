@@ -179,7 +179,7 @@ Control
 → does not serialize their prose into stage_context
 ```
 
-In particular, ownership-reuse, smallest-changed-branch, animated-Locator, family-attachment, or rig/clip/controller-budget guidance must **not** become new `stage_context` fields, a second reasoning schema, or duplicated packet prose.
+In particular, ownership-reuse, smallest-changed-branch, Locator-parent-motion, family-attachment, or rig/clip/controller-budget guidance must **not** become new `stage_context` fields, a second reasoning schema, or duplicated packet prose.
 
 Animation receives resolved participating rig/relationship evidence plus the Animation Skill; it does not reload the full selected modelling profile merely because the asset has one.
 ## Geometry Profile Rule
