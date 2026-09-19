@@ -152,6 +152,10 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("Recent Projects");
     expect(app).toContain("See details");
     expect(app).toContain("status.project_navigation");
+    expect(app).toContain("recentProjects(status).length > 5");
+    expect(app).toContain("model_count > 8");
+    expect(app).toContain("Search projects");
+    expect(app).toContain("Search models");
     expect(app).not.toContain("project.root_path");
     expect(readme).toContain("Paths stay hidden in the normal UI");
   });

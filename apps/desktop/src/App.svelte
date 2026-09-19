@@ -164,6 +164,8 @@
   let page: Page = 'Overview';
   let expandedProjectId: string | null = null;
   let showAllProjects = false;
+  let projectSearch = '';
+  let modelSearch = '';
 
   type ManagedProgress = { schema: number; kind: 'progress'; action: string; stage: string };
   const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -240,13 +242,29 @@
     }
   }
 
+  const recentProjects = (value: SystemStatus) =>
+    value.project_navigation.projects.filter(project => !project.active);
+
   const visibleRecentProjects = (value: SystemStatus) => {
-    const projects = value.project_navigation.projects.filter(project => !project.active);
-    return showAllProjects ? projects : projects.slice(0, 5);
+    const query = projectSearch.trim().toLowerCase();
+    const projects = recentProjects(value).filter(project =>
+      !query
+      || project.name.toLowerCase().includes(query)
+      || project.models.some(model => model.name.toLowerCase().includes(query))
+    );
+    return query || showAllProjects ? projects : projects.slice(0, 5);
+  };
+
+  const visibleProjectModels = (project: ProjectNavigationProject) => {
+    const query = modelSearch.trim().toLowerCase();
+    return query
+      ? project.models.filter(model => model.name.toLowerCase().includes(query))
+      : project.models;
   };
 
   function toggleProjectDetails(id: string) {
     expandedProjectId = expandedProjectId === id ? null : id;
+    modelSearch = '';
   }
 
   async function runProjectAction(action: 'open-project-folder' | 'reveal-model', id: string) {
@@ -837,8 +855,13 @@
                     {@const activeProject = status.project_navigation.projects.find(project => project.id === activeNavigation.project_id)}
                     {#if activeProject}
                       <div class="project-details">
-                        <div class="project-details-heading">Models</div>
-                        {#each activeProject.models as model}
+                        <div class="project-details-heading">
+                          <span>Models</span>
+                          {#if activeProject.model_count > 8}
+                            <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
+                          {/if}
+                        </div>
+                        {#each visibleProjectModels(activeProject) as model}
                           <div class="model-row">
                             <div class="model-main">
                               <strong>{model.name}</strong>
@@ -858,6 +881,9 @@
                             </div>
                           </div>
                         {/each}
+                        {#if visibleProjectModels(activeProject).length === 0}
+                          <div class="project-empty">No models found.</div>
+                        {/if}
                       </div>
                     {/if}
                   {/if}
@@ -865,10 +891,13 @@
               </section>
             {/if}
 
-            {#if status.project_navigation.projects.filter(project => !project.active).length > 0}
+            {#if recentProjects(status).length > 0}
               <section class="content-section">
                 <div class="section-heading">
                   <div><h2>Recent Projects</h2></div>
+                  {#if recentProjects(status).length > 5}
+                    <input class="compact-search project-search" type="search" placeholder="Search projects" aria-label="Search projects" bind:value={projectSearch} />
+                  {/if}
                 </div>
                 <div class="project-list">
                   {#each visibleRecentProjects(status) as project}
@@ -884,8 +913,13 @@
                     </div>
                     {#if expandedProjectId === project.id}
                       <div class="project-details">
-                        <div class="project-details-heading">Models</div>
-                        {#each project.models as model}
+                        <div class="project-details-heading">
+                          <span>Models</span>
+                          {#if project.model_count > 8}
+                            <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
+                          {/if}
+                        </div>
+                        {#each visibleProjectModels(project) as model}
                           <div class="model-row">
                             <div class="model-main">
                               <strong>{model.name}</strong>
@@ -903,11 +937,17 @@
                             </div>
                           </div>
                         {/each}
+                        {#if visibleProjectModels(project).length === 0}
+                          <div class="project-empty">No models found.</div>
+                        {/if}
                       </div>
                     {/if}
                   {/each}
+                  {#if visibleRecentProjects(status).length === 0}
+                    <div class="project-empty project-empty-list">No projects found.</div>
+                  {/if}
                 </div>
-                {#if status.project_navigation.projects.filter(project => !project.active).length > 5}
+                {#if recentProjects(status).length > 5 && !projectSearch.trim()}
                   <button class="show-more-button" onclick={() => { showAllProjects = !showAllProjects; if (!showAllProjects) expandedProjectId = null; }}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
                 {/if}
               </section>
@@ -1031,7 +1071,7 @@
   .more-menu{position:relative}.more-menu summary{width:30px;height:30px;display:grid;place-items:center;list-style:none;border-radius:6px;color:var(--muted);cursor:pointer}.more-menu summary:hover,.more-menu[open] summary{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:34px;width:168px;display:grid;padding:5px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
   .primary-button,.secondary-button,.icon-button{min-height:32px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}.primary-button,.secondary-button{padding:6px 11px}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text-soft)}.secondary-button:hover:not(:disabled){background:var(--surface-3);color:var(--text)}.icon-button{width:32px;border:1px solid transparent;background:transparent;color:var(--muted)}.icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}.small-button{min-height:28px;padding:4px 9px;font-size:9px}
   .content-section{margin-bottom:34px}.section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}.section-heading h2{margin:0;font-size:12px;font-weight:700}.section-heading p{margin:2px 0 0;color:var(--muted-2);font-size:9px}.resource-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.resource-row{min-height:74px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 12px 12px 14px}.app-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text-soft)}.app-icon :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.resource-main{min-width:0}.resource-title{font-size:11px;font-weight:700}.resource-meta{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--muted);font-size:9px}.meta-separator{color:var(--muted-2)}.status-good{color:#9ee8b9!important}.status-warning{color:#f6d97c!important}.resource-actions{display:flex;align-items:center;gap:5px}
-  .project-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.project-row{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}.project-row:last-child{border-bottom:0}.project-main{min-width:0;display:grid;gap:3px}.project-title{font-size:11px;font-weight:700}.project-meta{color:var(--muted);font-size:9px}.project-actions,.model-actions{display:flex;align-items:center;gap:6px}.quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:650;cursor:pointer}.quiet-button:hover,.show-more-button:hover{color:var(--text)}.project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface-1)}.project-details-heading{padding:8px 0 5px;color:var(--muted-2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.model-row{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}.model-main{min-width:0;display:flex;align-items:center;gap:7px}.model-main strong{font-size:9px;font-weight:650}.model-main span{color:var(--muted-2);font-size:8px}.show-more-button{margin-top:8px;padding:4px 0}
+  .project-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.project-row{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}.project-row:last-child{border-bottom:0}.project-main{min-width:0;display:grid;gap:3px}.project-title{font-size:11px;font-weight:700}.project-meta{color:var(--muted);font-size:9px}.project-actions,.model-actions{display:flex;align-items:center;gap:6px}.quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:650;cursor:pointer}.quiet-button:hover,.show-more-button:hover{color:var(--text)}.project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface-1)}.project-details-heading{padding:8px 0 5px;color:var(--muted-2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.model-row{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}.model-main{min-width:0;display:flex;align-items:center;gap:7px}.model-main strong{font-size:9px;font-weight:650}.model-main span{color:var(--muted-2);font-size:8px}.show-more-button{margin-top:8px;padding:4px 0}.compact-search{width:150px;height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font:inherit;font-size:9px;outline:none}.compact-search:focus{border-color:var(--info)}.compact-search::placeholder{color:var(--muted-2)}.project-search{width:180px}.project-details-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.project-empty{padding:10px 0;color:var(--muted-2);font-size:9px}.project-empty-list{padding:13px 12px}
   .definition-rows{border-top:1px solid var(--border-soft)}.definition-row{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border-soft)}.definition-row>span{color:var(--muted);font-size:10px}.definition-row>strong,.definition-row code{font-size:10px;font-weight:650;color:var(--text-soft)}.definition-row code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.inline-action{display:flex;align-items:center;gap:10px}
   .inline-guidance{margin-top:10px;padding:14px 14px 13px;border:1px solid #5b4a22;border-radius:8px;background:var(--warning-bg)}.inline-guidance>div{display:grid;gap:2px}.inline-guidance strong{font-size:10px}.inline-guidance span{color:var(--muted);font-size:9px}.inline-guidance ol{margin:11px 0 12px;padding-left:18px;color:var(--text-soft);font-size:9px;line-height:1.75}.inline-note{display:flex;gap:8px;margin-top:10px;padding:9px 0;color:var(--muted);font-size:9px}.inline-note strong{color:var(--text-soft);font-size:9px}.inline-alert{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;padding:10px 12px;border:1px solid #5b4a22;border-radius:7px;background:var(--warning-bg)}.inline-alert>div{display:grid;gap:2px}.inline-alert strong{font-size:9px}.inline-alert span{color:var(--muted);font-size:9px}.danger-alert{display:grid;gap:2px;border-color:#693437;background:var(--danger-bg)}
   .setup-panel{max-width:760px;padding-top:10px}.setup-copy h2{margin:0;font-size:20px;letter-spacing:-.02em}.setup-copy p{margin:6px 0 0;color:var(--muted);font-size:10px}.setup-steps{margin-top:24px;border-top:1px solid var(--border-soft)}.setup-step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;padding:14px 0;border-bottom:1px solid var(--border-soft)}.step-number{width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:9px;font-weight:700}.setup-step.active .step-number{background:rgba(99,168,255,.12);color:var(--info)}.setup-step>div{display:grid;gap:2px}.setup-step strong{font-size:10px}.setup-step span{color:var(--muted);font-size:9px}.setup-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px}.setup-warning{max-width:520px;color:var(--warning);font-size:9px}
