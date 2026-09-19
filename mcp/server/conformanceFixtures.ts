@@ -1,4 +1,11 @@
-import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
+import {
+  acceptedContent,
+  createRequestStateCodec,
+  inputRequired,
+  inputResponse,
+  McpServer,
+  ResourceTemplate,
+} from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 const TEST_IMAGE_BASE64 =
@@ -6,10 +13,43 @@ const TEST_IMAGE_BASE64 =
 const TEST_AUDIO_BASE64 =
   "UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAA=";
 
+type ConformanceState =
+  | { flow: "request-state" }
+  | { flow: "multiple-inputs" }
+  | { flow: "multi-round"; step: 1 | 2; name?: string }
+  | { flow: "tampered-state" };
+
+let requestStateCodec: ReturnType<typeof createRequestStateCodec<ConformanceState>> | null = null;
+
 export function conformanceFixturesEnabled(): boolean {
   return (globalThis as { __LAZYDESIGNER_CONFORMANCE__?: unknown })
     .__LAZYDESIGNER_CONFORMANCE__ === true;
 }
+
+export function getConformanceRequestStateCodec() {
+  if (!requestStateCodec) {
+    requestStateCodec = createRequestStateCodec<ConformanceState>({
+      key: "lazydesigner-conformance-state-key-2026",
+      ttlSeconds: 600,
+    });
+  }
+  return requestStateCodec;
+}
+
+function textResult(text: string) {
+  return { content: [{ type: "text" as const, text }] };
+}
+
+const NAME_SCHEMA = {
+  type: "object" as const,
+  properties: { name: { type: "string" as const } },
+  required: ["name"],
+};
+const CONFIRM_SCHEMA = {
+  type: "object" as const,
+  properties: { ok: { type: "boolean" as const } },
+  required: ["ok"],
+};
 
 export function wireConformanceFixtures(server: McpServer): void {
   server.server.registerCapabilities({
@@ -91,18 +131,262 @@ export function wireConformanceFixtures(server: McpServer): void {
       description: "Tests progress notifications",
       inputSchema: {},
     },
-    async (_args, extra: any) => {
-      const progressToken = extra?._meta?.progressToken ?? 0;
+    async (_args, ctx: any) => {
+      const progressToken = ctx.mcpReq?._meta?.progressToken ?? 0;
       for (const progress of [0, 50, 100]) {
-        await extra.sendNotification({
+        await ctx.mcpReq.notify({
           method: "notifications/progress",
           params: { progressToken, progress, total: 100 },
         });
       }
-      return {
-        content: [{ type: "text" as const, text: String(progressToken) }],
-      };
+      return textResult(String(progressToken));
     }
+  );
+
+  server.registerTool(
+    "test_missing_capability",
+    { description: "Requires sampling so missing capability is rejected by the SDK seam" },
+    async () =>
+      inputRequired({
+        inputRequests: {
+          sample: inputRequired.createMessage({
+            messages: [{
+              role: "user",
+              content: { type: "text", text: "Capability probe" },
+            }],
+            maxTokens: 8,
+          }),
+        },
+      })
+  );
+
+  server.registerTool(
+    "test_streaming_elicitation",
+    { description: "Diagnostic MRTR stream fixture" },
+    async () =>
+      inputRequired({
+        inputRequests: {
+          confirm: inputRequired.elicit({
+            message: "Confirm stream test",
+            requestedSchema: CONFIRM_SCHEMA,
+          }),
+        },
+      })
+  );
+
+  server.registerTool(
+    "test_logging_tool",
+    { description: "Returns normally and emits no log unless explicitly implemented" },
+    async () => textResult("logging fixture complete")
+  );
+
+  server.registerTool(
+    "test_input_required_result_elicitation",
+    { description: "MRTR elicitation fixture" },
+    async (_args, ctx: any) => {
+      const accepted = acceptedContent<{ name: string }>(
+        ctx.mcpReq.inputResponses,
+        "user_name"
+      );
+      if (accepted?.name) return textResult(`Hello, ${accepted.name}!`);
+      return inputRequired({
+        inputRequests: {
+          user_name: inputRequired.elicit({
+            message: "What is your name?",
+            requestedSchema: NAME_SCHEMA,
+          }),
+        },
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_sampling",
+    { description: "MRTR sampling fixture" },
+    async (_args, ctx: any) => {
+      const answer = inputResponse(ctx.mcpReq.inputResponses, "capital_question");
+      if (answer.kind === "sampling") return textResult("sampling response accepted");
+      return inputRequired({
+        inputRequests: {
+          capital_question: inputRequired.createMessage({
+            messages: [{
+              role: "user",
+              content: { type: "text", text: "What is the capital of France?" },
+            }],
+            maxTokens: 100,
+          }),
+        },
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_list_roots",
+    { description: "MRTR roots fixture" },
+    async (_args, ctx: any) => {
+      const roots = inputResponse(ctx.mcpReq.inputResponses, "client_roots");
+      if (roots.kind === "roots") return textResult(`received ${roots.roots.length} root(s)`);
+      return inputRequired({
+        inputRequests: { client_roots: inputRequired.listRoots() },
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_request_state",
+    { description: "MRTR requestState round-trip fixture" },
+    async (_args, ctx: any) => {
+      const codec = getConformanceRequestStateCodec();
+      const state = ctx.mcpReq.requestState<ConformanceState>();
+      const response = acceptedContent<{ ok: boolean }>(
+        ctx.mcpReq.inputResponses,
+        "confirm"
+      );
+      if (state?.flow === "request-state" && response?.ok === true) {
+        return textResult("state-ok");
+      }
+      return inputRequired({
+        inputRequests: {
+          confirm: inputRequired.elicit({
+            message: "Please confirm",
+            requestedSchema: CONFIRM_SCHEMA,
+          }),
+        },
+        requestState: await codec.mint({ flow: "request-state" }),
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_multiple_inputs",
+    { description: "MRTR multiple-input fixture" },
+    async (_args, ctx: any) => {
+      const codec = getConformanceRequestStateCodec();
+      const user = inputResponse(ctx.mcpReq.inputResponses, "user_name");
+      const greeting = inputResponse(ctx.mcpReq.inputResponses, "greeting");
+      const roots = inputResponse(ctx.mcpReq.inputResponses, "client_roots");
+      if (
+        user.kind === "elicit" &&
+        greeting.kind === "sampling" &&
+        roots.kind === "roots"
+      ) {
+        return textResult("all inputs received");
+      }
+      return inputRequired({
+        inputRequests: {
+          user_name: inputRequired.elicit({
+            message: "What is your name?",
+            requestedSchema: NAME_SCHEMA,
+          }),
+          greeting: inputRequired.createMessage({
+            messages: [{
+              role: "user",
+              content: { type: "text", text: "Generate a greeting" },
+            }],
+            maxTokens: 50,
+          }),
+          client_roots: inputRequired.listRoots(),
+        },
+        requestState: await codec.mint({ flow: "multiple-inputs" }),
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_multi_round",
+    { description: "MRTR multi-round fixture" },
+    async (_args, ctx: any) => {
+      const codec = getConformanceRequestStateCodec();
+      const state = ctx.mcpReq.requestState<ConformanceState>();
+
+      if (state?.flow === "multi-round" && state.step === 2) {
+        const color = acceptedContent<{ color: string }>(
+          ctx.mcpReq.inputResponses,
+          "step2"
+        );
+        if (color?.color) {
+          return textResult(`Hello ${state.name ?? "user"}; color=${color.color}`);
+        }
+      }
+
+      if (state?.flow === "multi-round" && state.step === 1) {
+        const name = acceptedContent<{ name: string }>(
+          ctx.mcpReq.inputResponses,
+          "step1"
+        );
+        if (name?.name) {
+          return inputRequired({
+            inputRequests: {
+              step2: inputRequired.elicit({
+                message: "Step 2: What is your favorite color?",
+                requestedSchema: {
+                  type: "object",
+                  properties: { color: { type: "string" } },
+                  required: ["color"],
+                },
+              }),
+            },
+            requestState: await codec.mint({
+              flow: "multi-round",
+              step: 2,
+              name: name.name,
+            }),
+          });
+        }
+      }
+
+      return inputRequired({
+        inputRequests: {
+          step1: inputRequired.elicit({
+            message: "Step 1: What is your name?",
+            requestedSchema: NAME_SCHEMA,
+          }),
+        },
+        requestState: await codec.mint({ flow: "multi-round", step: 1 }),
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_tampered_state",
+    { description: "MRTR tamper-detection fixture" },
+    async (_args, ctx: any) => {
+      const codec = getConformanceRequestStateCodec();
+      const state = ctx.mcpReq.requestState<ConformanceState>();
+      const response = acceptedContent<{ ok: boolean }>(
+        ctx.mcpReq.inputResponses,
+        "confirm"
+      );
+      if (state?.flow === "tampered-state" && response?.ok === true) {
+        return textResult("state-ok");
+      }
+      return inputRequired({
+        inputRequests: {
+          confirm: inputRequired.elicit({
+            message: "Please confirm",
+            requestedSchema: CONFIRM_SCHEMA,
+          }),
+        },
+        requestState: await codec.mint({ flow: "tampered-state" }),
+      });
+    }
+  );
+
+  server.registerTool(
+    "test_input_required_result_capabilities",
+    { description: "MRTR client-capability filtering fixture" },
+    async () =>
+      inputRequired({
+        inputRequests: {
+          sampling_only: inputRequired.createMessage({
+            messages: [{
+              role: "user",
+              content: { type: "text", text: "Capability-safe request" },
+            }],
+            maxTokens: 8,
+          }),
+        },
+      })
   );
 
   server.registerResource(
@@ -223,6 +507,43 @@ export function wireConformanceFixtures(server: McpServer): void {
         },
       ],
     }) as any
+  );
+
+  server.registerPrompt(
+    "test_input_required_result_prompt",
+    {
+      title: "Input Required Prompt",
+      description: "MRTR prompt that requires elicitation input",
+    },
+    async (_args, ctx: any) => {
+      const accepted = acceptedContent<{ context: string }>(
+        ctx.mcpReq.inputResponses,
+        "user_context"
+      );
+      if (accepted?.context) {
+        return {
+          messages: [{
+            role: "user" as const,
+            content: {
+              type: "text" as const,
+              text: `Prompt with context: ${accepted.context}`,
+            },
+          }],
+        };
+      }
+      return inputRequired({
+        inputRequests: {
+          user_context: inputRequired.elicit({
+            message: "What context should the prompt use?",
+            requestedSchema: {
+              type: "object",
+              properties: { context: { type: "string" } },
+              required: ["context"],
+            },
+          }),
+        },
+      });
+    }
   );
 
   server.registerPrompt(

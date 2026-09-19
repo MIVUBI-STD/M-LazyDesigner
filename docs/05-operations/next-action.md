@@ -124,7 +124,7 @@ Animation → AUTHORING
 
 Only relax Geometry↔Texturing catalog invalidation after this proof. Do not optimize it by assumption.
 
-Modern Streamable HTTP forwards SDK-owned JSON or SSE POST responses; legacy 2025 remains the bounded JSON-only compatibility shim. Official conformance now runs the same LazyDesigner net/SDK transport against an isolated conformance fixture surface, so missing test_* tools/resources/prompts no longer contaminate transport scoring. Production Runtime catalog remains unchanged.
+Modern Streamable HTTP forwards SDK-owned JSON or SSE POST responses; legacy 2025 remains the bounded JSON-only compatibility shim. Official conformance runs the same LazyDesigner net/SDK transport against an isolated fixture surface. Core content/resource/prompt/completion fixtures plus scored progress and SEP-2322 input-required/requestState flows are owned only by that harness; production registration remains unchanged. Production Runtime catalog remains unchanged.
 
 ## LIVE_BLOCKBENCH Residue
 

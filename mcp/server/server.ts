@@ -16,6 +16,7 @@ import {
 import { initializeRuntimeCapabilityWiring } from "./runtime/bootstrap";
 import {
   conformanceFixturesEnabled,
+  getConformanceRequestStateCodec,
   wireConformanceFixtures,
 } from "./conformanceFixtures";
 
@@ -60,6 +61,13 @@ export function createServer(
     },
     {
       instructions: buildMcpServerInstructions(phase, profile),
+      ...(conformanceFixturesEnabled()
+        ? {
+            requestState: {
+              verify: getConformanceRequestStateCodec().verify,
+            },
+          }
+        : {}),
     }
   );
   if (conformanceFixturesEnabled()) wireConformanceFixtures(server);

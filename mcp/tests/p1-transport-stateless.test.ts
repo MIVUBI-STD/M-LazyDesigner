@@ -19,6 +19,10 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(fixtureSource).toContain('"test://static-text"');
     expect(fixtureSource).toContain('"test_simple_prompt"');
     expect(fixtureSource).toContain('"completion/complete"');
+    expect(fixtureSource).toContain('"test_input_required_result_elicitation"');
+    expect(fixtureSource).toContain("createRequestStateCodec");
+    expect(fixtureSource).toContain("ctx.mcpReq.notify");
+    expect(serverSource).toContain("getConformanceRequestStateCodec().verify");
   });
 
   test("default MCP request path is stateless JSON on the existing SDK line", async () => {

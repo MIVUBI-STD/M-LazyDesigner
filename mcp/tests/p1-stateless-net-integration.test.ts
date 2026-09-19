@@ -319,7 +319,12 @@ describe("P1.4 raw-net stateless integration", () => {
         jsonrpc: "2.0",
         id: 601,
         method: "tools/list",
-        params: {},
+        params: {
+          _meta: {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientCapabilities": {},
+          },
+        },
       }),
     });
 
