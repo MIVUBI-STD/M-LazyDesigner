@@ -22,3 +22,19 @@ Desktop does **not** own:
 Those remain owned by the existing Runtime/Gateway/Managed Distribution layers.
 
 The first source surface is intentionally read-only. It does not poll releases in the background and does not kill Blockbench/Gateway processes.
+
+
+## Explicit maintenance actions
+
+Desktop may invoke only bounded, named commands from the existing manager. The first mutating surface is:
+
+```text
+update
+recover
+```
+
+`Update` is an explicit user action and retains Managed Distribution staging, active-Gateway/Runtime guards, release verification and pending activation semantics.
+
+`Recover` only invokes the existing interrupted-install recovery path. It is not presented as a generic repair operation.
+
+A separate `Repair` action must not be added until the managed distribution has a distinct repair semantic; repair must never be an alias for upgrade.

@@ -24,3 +24,11 @@ article small { color: #747e86; line-height: 1.4; }
 .notice { margin-top: 22px; padding: 13px 15px; border: 1px solid #333a3f; border-radius: 10px; background: #13171a; color: #afb6bc; }
 .notice.danger { border-color: #603238; color: #e2a0a8; }
 footer { margin-top: 12px; padding-top: 20px; border-top: 1px solid #252a2e; color: #747e86; font-size: 11px; line-height: 1.5; }
+
+.actions { display:flex; justify-content:space-between; gap:20px; align-items:center; margin:0 0 22px; padding:18px; border:1px solid #252a2e; border-radius:12px; background:#111416; }
+.actions h2 { margin:0 0 5px; font-size:16px; }
+.actions p { font-size:11px; }
+.action-buttons { display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
+.action-buttons .secondary { background:transparent; }
+.ok-notice { border-color:#315544; color:#9ed7b7; }
+@media (max-width:720px) { .actions { align-items:stretch; flex-direction:column; } .action-buttons { justify-content:flex-start; } }

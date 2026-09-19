@@ -9,6 +9,12 @@ use std::{
 use sysinfo::System;
 
 #[derive(Debug, Serialize)]
+pub struct ManagedActionResult {
+    pub action: String,
+    pub receipt: Value,
+}
+
+#[derive(Debug, Serialize)]
 pub struct SystemStatus {
     pub schema: u8,
     pub blockbench_running: bool,
@@ -144,4 +150,39 @@ mod tests {
         let result = manager_executable(Path::new("Z:/definitely-missing-lazydesigner-root"));
         assert!(result.is_err());
     }
+}
+
+
+pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
+    if !matches!(action, "update" | "recover") {
+        return Err("Unsupported LazyDesigner desktop action.".to_string());
+    }
+
+    let root = managed_root()
+        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+    let executable = manager_executable(&root)?;
+
+    let output = Command::new(&executable)
+        .arg(action)
+        .arg("--root")
+        .arg(&root)
+        .output()
+        .map_err(|error| format!("Unable to run managed {action}: {error}"))?;
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if error.is_empty() {
+            format!("Managed {action} failed.")
+        } else {
+            error
+        });
+    }
+
+    let receipt = serde_json::from_slice::<Value>(&output.stdout)
+        .map_err(|_| format!("Managed {action} returned invalid JSON."))?;
+
+    Ok(ManagedActionResult {
+        action: action.to_string(),
+        receipt,
+    })
 }

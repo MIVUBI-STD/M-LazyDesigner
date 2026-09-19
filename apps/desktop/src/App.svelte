@@ -18,9 +18,16 @@
     diagnostic: string | null;
   };
 
+  type ManagedActionResult = {
+    action: 'update' | 'recover';
+    receipt: Record<string, unknown>;
+  };
+
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
+  let busyAction: 'update' | 'recover' | null = null;
+  let actionMessage = '';
 
   async function refresh() {
     loading = true;
@@ -31,6 +38,23 @@
       error = cause instanceof Error ? cause.message : String(cause);
     } finally {
       loading = false;
+    }
+  }
+
+  async function runManagedAction(action: 'update' | 'recover') {
+    if (!status?.manager_available || busyAction) return;
+    busyAction = action;
+    error = '';
+    actionMessage = '';
+    try {
+      const result = await invoke<ManagedActionResult>('managed_action', { action });
+      const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
+      actionMessage = `${action === 'update' ? 'Update' : 'Recovery'}: ${receiptStatus}`;
+      await refresh();
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : String(cause);
+    } finally {
+      busyAction = null;
     }
   }
 
@@ -48,7 +72,7 @@
       <h1>LazyDesigner</h1>
       <p>Installation, compatibility, runtime supervision, and diagnostics.</p>
     </div>
-    <button onclick={refresh} disabled={loading}>{loading ? 'Checking…' : 'Refresh'}</button>
+    <button onclick={refresh} disabled={loading || busyAction !== null}>{loading ? 'Checking…' : 'Refresh'}</button>
   </header>
 
   {#if error}
@@ -87,6 +111,32 @@
         <small>No background release polling.</small>
       </article>
     </section>
+
+    <section class="actions" aria-label="LazyDesigner maintenance actions">
+      <div>
+        <h2>Maintenance</h2>
+        <p>Actions are explicit and delegated to the existing managed distribution.</p>
+      </div>
+      <div class="action-buttons">
+        <button
+          onclick={() => runManagedAction('update')}
+          disabled={!status.manager_available || busyAction !== null}
+        >
+          {busyAction === 'update' ? 'Updating…' : 'Update LazyDesigner'}
+        </button>
+        <button
+          class="secondary"
+          onclick={() => runManagedAction('recover')}
+          disabled={!status.manager_available || busyAction !== null}
+        >
+          {busyAction === 'recover' ? 'Recovering…' : 'Recover interrupted install'}
+        </button>
+      </div>
+    </section>
+
+    {#if actionMessage}
+      <section class="notice ok-notice">{actionMessage}</section>
+    {/if}
 
     {#if status.diagnostic}
       <section class="notice">{status.diagnostic}</section>
