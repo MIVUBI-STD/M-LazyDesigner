@@ -191,3 +191,22 @@ tls_error
 and exposes **Setup Runtime Security** only when the manager reports that TLS is not ready and Gateway/Runtime are idle. The action delegates to `blockit.exe setup-tls`.
 
 Update and package repair do not rotate or overwrite the TLS identity.
+
+
+## Unknown-state policy
+
+Desktop does not translate unavailable managed status into fabricated offline/stable state. If the manager exists but `blockit.exe status` fails, returns invalid JSON, or returns an unsupported schema:
+
+```text
+Gateway          → unknown
+Runtime          → Unknown
+Update state     → Unknown
+Runtime Security → Unknown
+maintenance      → disabled
+```
+
+The last known dashboard remains visible alongside the error so recovery context is not lost. The manager remains the final safety authority.
+
+## Update naming
+
+`blockit.exe update` updates managed Gateway/Runtime-plugin/Skills/distribution components. It does **not** replace the LazyDesigner Desktop executable. The Desktop UI therefore calls this **Update managed components**. Desktop self-update remains a separate release/signing concern and must not be implied by this action.

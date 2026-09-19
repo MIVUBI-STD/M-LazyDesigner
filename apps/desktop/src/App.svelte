@@ -37,7 +37,7 @@
 
   type GatewaySupervision = {
     ownership: 'client-owned';
-    state: 'healthy' | 'waiting-runtime' | 'client-disconnected' | 'runtime-offline' | 'idle';
+    state: 'healthy' | 'waiting-runtime' | 'client-disconnected' | 'runtime-offline' | 'idle' | 'unknown';
     action: string | null;
   };
 
@@ -143,7 +143,7 @@
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      actionMessage = `${action === 'update' ? 'Update' : action === 'repair' ? 'Repair' : action === 'setup-tls' ? 'Runtime security' : 'Recovery'}: ${receiptStatus}`;
+      actionMessage = `${action === 'update' ? 'Managed components' : action === 'repair' ? 'Repair' : action === 'setup-tls' ? 'Runtime security' : 'Recovery'}: ${receiptStatus}`;
       await refresh();
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause);
@@ -156,7 +156,13 @@
     void refresh();
   });
 
-  const yesNo = (value: boolean | undefined) => value ? 'Online' : 'Offline';
+  const onlineLabel = (value: boolean | undefined) => value === undefined ? 'Unknown' : value ? 'Online' : 'Offline';
+  const updateStateLabel = (managed: ManagedStatus | null) => managed === null ? 'Unknown' : managed.pending ? 'Pending activation' : 'Stable';
+  const tlsLabel = (managerAvailable: boolean, managed: ManagedStatus | null) => {
+    if (!managerAvailable) return 'Unavailable';
+    if (!managed) return 'Unknown';
+    return managed.tls_ready ? 'Ready' : 'Needs setup';
+  };
   const compatibilityLabel = (value: Compatibility['status'] | undefined) => {
     if (value === 'validated') return 'Validated';
     if (value === 'compatible-unverified') return 'Compatible · unverified';
@@ -179,7 +185,9 @@
 
   {#if error}
     <section class="notice danger">{error}</section>
-  {:else if loading && !status}
+  {/if}
+
+  {#if loading && !status}
     <section class="notice">Reading local LazyDesigner state…</section>
   {:else if status}
     <section class="grid" aria-live="polite">
@@ -217,20 +225,24 @@
         <span>Gateway</span>
         <strong
           class:ok={status.gateway.state === 'healthy'}
-          class:warn={status.gateway.state === 'waiting-runtime' || status.gateway.state === 'client-disconnected'}
+          class:warn={status.gateway.state === 'waiting-runtime' || status.gateway.state === 'client-disconnected' || status.gateway.state === 'unknown'}
           class:bad={status.gateway.state === 'runtime-offline'}
         >
           {status.gateway.state === 'healthy' ? 'Healthy' :
            status.gateway.state === 'waiting-runtime' ? 'Waiting for Runtime' :
            status.gateway.state === 'client-disconnected' ? 'Client disconnected' :
-           status.gateway.state === 'runtime-offline' ? 'Runtime offline' : 'Idle'}
+           status.gateway.state === 'runtime-offline' ? 'Runtime offline' :
+           status.gateway.state === 'unknown' ? 'Unknown' : 'Idle'}
         </strong>
         <small>Ownership: {status.gateway.ownership}. The MCP client owns Gateway startup.</small>
       </article>
 
       <article>
         <span>Runtime</span>
-        <strong class:ok={status.managed?.runtime_online}>{yesNo(status.managed?.runtime_online)}</strong>
+        <strong
+          class:ok={status.managed?.runtime_online === true}
+          class:bad={status.managed?.runtime_online === false}
+        >{onlineLabel(status.managed?.runtime_online)}</strong>
         <small>Blockbench Runtime reachability.</small>
       </article>
 
@@ -240,15 +252,18 @@
           class:ok={status.managed?.tls_ready === true}
           class:bad={status.manager_available && status.managed?.tls_ready === false}
         >
-          {status.managed?.tls_ready ? 'Ready' : status.manager_available ? 'Needs setup' : 'Unavailable'}
+          {tlsLabel(status.manager_available, status.managed)}
         </strong>
-        <small>{status.managed?.tls_error ?? 'Machine-local HTTPS identity is ready.'}</small>
+        <small>{status.managed?.tls_error ?? (status.managed ? 'Machine-local HTTPS identity is ready.' : 'Managed status is unavailable.')}</small>
       </article>
 
       <article>
         <span>Update State</span>
-        <strong class:warn={status.managed?.pending}>{status.managed?.pending ? 'Pending activation' : 'Stable'}</strong>
-        <small>No background release polling.</small>
+        <strong
+          class:warn={status.managed?.pending === true}
+          class:bad={status.manager_available && status.managed === null}
+        >{updateStateLabel(status.managed)}</strong>
+        <small>Managed-component state; Desktop app releases remain separate.</small>
       </article>
     </section>
 
@@ -287,7 +302,7 @@
           onclick={() => runManagedAction('update')}
           disabled={!status.maintenance.update || busyAction !== null}
         >
-          {busyAction === 'update' ? 'Updating…' : 'Update LazyDesigner'}
+          {busyAction === 'update' ? 'Updating…' : 'Update managed components'}
         </button>
         {#if status.manager_available && status.managed?.tls_ready === false}
           <button

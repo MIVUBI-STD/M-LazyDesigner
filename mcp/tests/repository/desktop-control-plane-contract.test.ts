@@ -21,6 +21,7 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('join("plugins").join("blockit_mcp.js")');
     expect(app).toContain("Show plugin file");
     expect(app).toContain("Setup Runtime Security");
+    expect(app).toContain("Update managed components");
     expect(app).toContain("tls_ready");
     expect(app).toContain("'update' | 'recover' | 'repair'");
     for (const command of ["update", "recover", "repair", "status", "mcp"]) {
@@ -98,6 +99,8 @@ describe("Desktop control-plane ownership", () => {
     ]);
 
     expect(rust).toContain('ownership: "client-owned"');
+    expect(rust).toContain('state: "unknown"');
+    expect(rust).toContain("Managed status is unavailable; refresh before maintenance.");
     expect(readme).toContain("Desktop therefore does not launch, restart, terminate, or watchdog Gateway processes.");
     expect(readme).not.toContain("Start Gateway command");
   });

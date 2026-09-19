@@ -444,6 +444,14 @@ pub fn open_blockbench() -> Result<BlockbenchActionResult, String> {
     Ok(BlockbenchActionResult { status: "STARTED" })
 }
 
+fn unknown_gateway() -> GatewaySupervision {
+    GatewaySupervision {
+        ownership: "client-owned",
+        state: "unknown",
+        action: Some("Managed status is unavailable; refresh or diagnose the managed installation before lifecycle decisions."),
+    }
+}
+
 fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool) -> GatewaySupervision {
     let active = managed.map(|value| value.gateway_active).unwrap_or(false);
     let runtime_online = managed.map(|value| value.runtime_online).unwrap_or(false);
@@ -489,18 +497,25 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
         };
     }
 
-    let busy = managed
-        .map(|value| value.gateway_active || value.runtime_online)
-        .unwrap_or(false);
+    let Some(managed) = managed else {
+        return MaintenanceAvailability {
+            update: false,
+            repair: false,
+            recover: false,
+            setup_tls: false,
+            blocked_reason: Some("Managed status is unavailable; refresh before maintenance."),
+        };
+    };
 
-    let tls_ready = managed.map(|value| value.tls_ready).unwrap_or(false);
+    let busy = managed.gateway_active || managed.runtime_online;
+    let tls_ready = managed.tls_ready;
     MaintenanceAvailability {
         update: true,
         repair: !busy,
         recover: !busy,
         setup_tls: !busy && !tls_ready,
         blocked_reason: if busy {
-            Some("Close active Codex MCP sessions and Blockbench Runtime before repair or recovery.")
+            Some("Close active Codex MCP sessions and Blockbench Runtime before repair, recovery, or Runtime security setup.")
         } else {
             None
         },
@@ -548,7 +563,7 @@ pub fn collect() -> SystemStatus {
         Err(error) => {
             return SystemStatus {
                 schema: 1,
-                gateway: project_gateway(None, blockbench.running),
+                gateway: unknown_gateway(),
                 maintenance: project_maintenance(true, None),
                 blockbench,
                 manager_available: true,
@@ -563,7 +578,7 @@ pub fn collect() -> SystemStatus {
         let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
         return SystemStatus {
             schema: 1,
-            gateway: project_gateway(None, blockbench.running),
+            gateway: unknown_gateway(),
             maintenance: project_maintenance(true, None),
             blockbench,
             manager_available: true,
@@ -594,7 +609,7 @@ pub fn collect() -> SystemStatus {
         },
         Ok(_) | Err(_) => SystemStatus {
             schema: 1,
-            gateway: project_gateway(None, blockbench.running),
+            gateway: unknown_gateway(),
             maintenance: project_maintenance(true, None),
             blockbench,
             manager_available: true,
