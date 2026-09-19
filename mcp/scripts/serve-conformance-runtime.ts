@@ -2,6 +2,9 @@ import { createServer as createHttpServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import createNetServer from "@/server/net";
 
+(globalThis as { __LAZYDESIGNER_CONFORMANCE__?: boolean })
+  .__LAZYDESIGNER_CONFORMANCE__ = true;
+
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.LAZYDESIGNER_CONFORMANCE_PORT ?? 3333);
 const ENDPOINT = "/bb-mcp";

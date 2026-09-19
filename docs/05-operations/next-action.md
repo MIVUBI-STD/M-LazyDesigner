@@ -124,7 +124,7 @@ Animation → AUTHORING
 
 Only relax Geometry↔Texturing catalog invalidation after this proof. Do not optimize it by assumption.
 
-Modern Streamable HTTP transport is now allowed to forward SDK-owned JSON or SSE POST responses; legacy 2025 remains the bounded JSON-only compatibility shim. Continue conformance work from exact scored failures after this transport correction; do not add a third transport path.
+Modern Streamable HTTP forwards SDK-owned JSON or SSE POST responses; legacy 2025 remains the bounded JSON-only compatibility shim. Official conformance now runs the same LazyDesigner net/SDK transport against an isolated conformance fixture surface, so missing test_* tools/resources/prompts no longer contaminate transport scoring. Production Runtime catalog remains unchanged.
 
 ## LIVE_BLOCKBENCH Residue
 

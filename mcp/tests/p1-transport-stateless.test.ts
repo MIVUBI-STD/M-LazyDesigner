@@ -5,6 +5,22 @@ import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
 import { getMcpSurfaceToolNames } from "@/server/tools";
 
 describe("P1.4 stateless Streamable HTTP ownership", () => {
+  test("conformance fixture mode is process-local and bypasses the production catalog only in the harness", async () => {
+    const [netSource, serverSource, scriptSource, fixtureSource] = await Promise.all([
+      readFile(new URL("../server/net.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/server.ts", import.meta.url), "utf8"),
+      readFile(new URL("../scripts/serve-conformance-runtime.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/conformanceFixtures.ts", import.meta.url), "utf8"),
+    ]);
+    expect(scriptSource).toContain("__LAZYDESIGNER_CONFORMANCE__ = true");
+    expect(netSource).toContain("if (conformanceFixturesEnabled()) return requestServer");
+    expect(serverSource).toContain("wireConformanceFixtures(server)");
+    expect(fixtureSource).toContain('"test_simple_text"');
+    expect(fixtureSource).toContain('"test://static-text"');
+    expect(fixtureSource).toContain('"test_simple_prompt"');
+    expect(fixtureSource).toContain('"completion/complete"');
+  });
+
   test("default MCP request path is stateless JSON on the existing SDK line", async () => {
     const source = await readFile(
       new URL("../server/net.ts", import.meta.url),

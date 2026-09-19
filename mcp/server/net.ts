@@ -11,6 +11,7 @@ import {
   registerPromptsOnServer
 } from '@/lib/factories'
 import { createServer as createMcpServer } from '@/server/server'
+import { conformanceFixturesEnabled } from '@/server/conformanceFixtures'
 import {
   DEFAULT_MCP_REGISTRATION_PROFILE,
   type McpRegistrationProfile
@@ -327,6 +328,8 @@ function createRequestServer (
   phaseScoped: boolean
 ) {
   const requestServer = createMcpServer(phase, profile)
+  if (conformanceFixturesEnabled()) return requestServer
+
   const scopedToolNames = phaseScoped
     ? getMcpSurfaceToolNames(profile, phase)
     : undefined

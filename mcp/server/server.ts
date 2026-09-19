@@ -14,6 +14,10 @@ import {
   type McpRegistrationProfile,
 } from "@/lib/registrationProfile";
 import { initializeRuntimeCapabilityWiring } from "./runtime/bootstrap";
+import {
+  conformanceFixturesEnabled,
+  wireConformanceFixtures,
+} from "./conformanceFixtures";
 
 // Existing canonical tools gain bounded runtime intelligence once per module
 // load. The bootstrap mutates definitions only; it does not own a second catalog.
@@ -49,7 +53,7 @@ export function createServer(
   phase: McpAuthoringPhase = getActiveMcpAuthoringPhase(),
   profile: McpRegistrationProfile = DEFAULT_MCP_REGISTRATION_PROFILE
 ): McpServer {
-  return new McpServer(
+  const server = new McpServer(
     {
       name: PRODUCT_NAME,
       version: PRODUCT_VERSION,
@@ -58,4 +62,6 @@ export function createServer(
       instructions: buildMcpServerInstructions(phase, profile),
     }
   );
+  if (conformanceFixturesEnabled()) wireConformanceFixtures(server);
+  return server;
 }

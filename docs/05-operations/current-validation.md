@@ -90,7 +90,7 @@ legacy 2025-era client
 → tools/call
 ```
 
-The modern path is owned by `createMcpHandler(..., { legacy: "reject", responseMode: "json" })`. Modern MCP 2026 POST responses are forwarded in the SDK-selected representation (JSON or `text/event-stream`) instead of being rejected by LazyDesigner. The temporary legacy compatibility leg keeps LazyDesigner's established request-owned JSON behavior with `WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })`; both legs construct the same canonical Runtime server/tool/resource/prompt surface.
+The modern path is owned by `createMcpHandler(..., { legacy: "reject", responseMode: "json" })`. Modern MCP 2026 POST responses are forwarded in the SDK-selected representation (JSON or `text/event-stream`) instead of being rejected by LazyDesigner. The official conformance workflow uses the same `server/net.ts` transport but activates a process-local fixture surface containing only the protocol test tools/resources/prompts/completion handlers expected by the pinned suite; production registration is bypassed only in that harness. The temporary legacy compatibility leg keeps LazyDesigner's established request-owned JSON behavior with `WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })`; both legs construct the same canonical Runtime server/tool/resource/prompt surface.
 
 Current source-proven transport properties include:
 
