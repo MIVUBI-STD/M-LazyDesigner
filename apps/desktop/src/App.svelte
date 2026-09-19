@@ -250,7 +250,6 @@
 
   onDestroy(() => { stopProgressListener?.(); });
 
-  const onlineLabel = (value: boolean | undefined) => value === undefined ? 'Unknown' : value ? 'Online' : 'Offline';
   const tlsLabel = (managerAvailable: boolean, managed: ManagedStatus | null) => {
     if (!managerAvailable) return 'Unavailable';
     if (!managed) return 'Unknown';
@@ -265,31 +264,12 @@
     return 'Unavailable';
   };
 
-  const readinessLabel = (state: ReadinessProjection['state']) => {
-    if (state === 'ready') return 'Ready to work';
-    if (state === 'ready-to-start') return 'Ready to start';
-    if (state === 'needs-connection') return 'Needs connection';
-    if (state === 'setup-required') return 'Setup required';
-    return 'Needs attention';
-  };
-
-  const gatewayLabel = (state: GatewaySupervision['state']) => {
-    if (state === 'healthy') return 'Healthy';
-    if (state === 'waiting-runtime') return 'Waiting for Runtime';
-    if (state === 'client-disconnected') return 'Client disconnected';
-    if (state === 'runtime-offline') return 'Runtime offline';
-    if (state === 'unknown') return 'Unknown';
-    return 'Idle';
-  };
-
-
-
   function productHeadline(value: SystemStatus) {
     if (!value.manager_available) return 'Set up LazyDesigner';
     if (value.managed?.tls_ready === false) return 'Finish setup';
-    if (value.readiness.state === 'ready') return 'Ready';
+    if (value.readiness.state === 'ready') return 'Ready to use';
     if (value.readiness.state === 'ready-to-start') return 'Ready to start';
-    if (value.readiness.state === 'needs-connection') return 'Reconnect LazyDesigner';
+    if (value.readiness.state === 'needs-connection') return 'Reconnect to Blockbench';
     if (value.readiness.state === 'setup-required') return 'Finish setup';
     return 'Action required';
   }
@@ -297,9 +277,9 @@
   function productMessage(value: SystemStatus) {
     if (!value.manager_available) return 'Install the components LazyDesigner needs to work with Blockbench.';
     if (value.managed?.tls_ready === false) return 'LazyDesigner needs to finish its secure local setup before it can be used.';
-    if (value.readiness.state === 'ready') return 'LazyDesigner is connected to Blockbench and ready to use.';
-    if (value.readiness.state === 'ready-to-start') return 'LazyDesigner is installed and ready. Open Blockbench to begin.';
-    if (value.readiness.state === 'needs-connection') return 'LazyDesigner can’t reach Blockbench. Open Blockbench and reload the LazyDesigner plugin.';
+    if (value.readiness.state === 'ready') return 'Everything is working. You can continue in Blockbench.';
+    if (value.readiness.state === 'ready-to-start') return 'LazyDesigner is ready. Open Blockbench to begin.';
+    if (value.readiness.state === 'needs-connection') return 'LazyDesigner can’t reach Blockbench. Open Blockbench, then reload the LazyDesigner plugin.';
     if (value.readiness.state === 'setup-required') return 'Complete the remaining setup step before using LazyDesigner.';
     return value.readiness.summary;
   }
@@ -360,7 +340,7 @@
         </main>
       {:else if page === 'Overview'}
         <header class="page-toolbar">
-          <div><h1>LazyDesigner</h1></div>
+          <div><h1>Overview</h1><p>Current status and next action.</p></div>
           <details class="more-menu">
             <summary aria-label="More actions">•••</summary>
             <div class="menu-popover">
@@ -390,11 +370,11 @@
 
           {#if userState(status) === 'ready'}
             <section class="quiet-summary">
-              <div><span class="quiet-label">Blockbench</span><strong>{status.blockbench.version ? 'Version ' + status.blockbench.version : 'Running'}</strong></div>
+              <div><span class="quiet-label">Blockbench</span><strong>{status.blockbench.version ? 'v' + status.blockbench.version : 'Running'}</strong></div>
               <span class="quiet-divider"></span>
-              <div><span class="quiet-label">LazyDesigner</span><strong>Connected</strong></div>
+              <div><span class="quiet-label">Connection</span><strong>Ready</strong></div>
             </section>
-            <button class="text-action" onclick={() => (page = 'Support')}>View system details</button>
+            <button class="text-action" onclick={() => (page = 'Support')}>System details</button>
           {:else if status.gateway.action || status.blockbench.diagnostic || status.diagnostic}
             <section class="guidance-card"><strong>What to do</strong><p>{status.gateway.action ?? status.blockbench.diagnostic ?? status.diagnostic}</p></section>
           {/if}
@@ -408,7 +388,7 @@
         </main>
 
       {:else if page === 'Activity'}
-        <header class="page-toolbar"><div><h1>Activity</h1><p>Actions from this Desktop session.</p></div></header>
+        <header class="page-toolbar"><div><h1>Activity</h1><p>Recent actions from this session.</p></div></header>
         <main class="content">
           <section class="activity-page">
             {#if busyAction}
@@ -429,22 +409,22 @@
                 {/each}
               </div>
             {:else if !busyAction}
-              <div class="empty-state"><div class="empty-icon">{@render navIcon('Activity')}</div><h2>No recent activity</h2><p>LazyDesigner actions from this session will appear here.</p></div>
+              <div class="empty-state"><div class="empty-icon">{@render navIcon('Activity')}</div><h2>No recent activity</h2><p>Updates, repairs, and other actions will appear here.</p></div>
             {/if}
           </section>
         </main>
 
       {:else}
-        <header class="page-toolbar"><div><h1>Support</h1><p>Troubleshooting and technical information.</p></div></header>
+        <header class="page-toolbar"><div><h1>Support</h1><p>Help, recovery, and product information.</p></div></header>
         <main class="content">
           <section class="support-page">
             <section class="support-group">
-              <div class="group-copy"><h3>System</h3><p>Useful product information for troubleshooting.</p></div>
+              <div class="group-copy"><h3>System</h3><p>Key status information for LazyDesigner and Blockbench.</p></div>
               <div class="support-overview">
                 <div><span>Blockbench</span><strong>{status.blockbench.version ?? (status.blockbench.running ? 'Running' : 'Closed')}</strong></div>
-                <div><span>Connection</span><strong>{status.readiness.ready ? 'Connected' : 'Needs attention'}</strong></div>
-                <div><span>Compatibility</span><strong>{compatibilityLabel(status.blockbench.compatibility?.status)}</strong></div>
-                <div><span>Security</span><strong>{tlsLabel(status.manager_available, status.managed)}</strong></div>
+                <div><span>LazyDesigner</span><strong>{status.readiness.ready ? 'Ready' : 'Needs attention'}</strong></div>
+                <div><span>Blockbench support</span><strong>{compatibilityLabel(status.blockbench.compatibility?.status)}</strong></div>
+                <div><span>Local security</span><strong>{tlsLabel(status.manager_available, status.managed)}</strong></div>
               </div>
             </section>
 
@@ -501,8 +481,8 @@
   .main-view{min-width:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}.page-toolbar{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 30px;border-bottom:1px solid var(--border-soft);background:var(--bg)}.page-toolbar h1{margin:0;font-size:21px}.page-toolbar p{margin:3px 0 0;color:var(--muted);font-size:11px}.content{width:min(960px,calc(100% - 56px));margin:0 auto;padding:34px 0 48px;overflow:auto;min-height:0;flex:1}.centered-content{display:flex;flex-direction:column}.activity-page,.support-page{width:min(860px,100%)}
   .primary-button,.secondary-button{min-height:36px;border-radius:8px;padding:8px 13px;font-weight:650;cursor:pointer}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text)}.secondary-button:hover:not(:disabled){background:var(--surface-3)}
   .more-menu{position:relative}.more-menu summary{width:38px;height:38px;display:grid;place-items:center;list-style:none;border-radius:8px;color:var(--muted);cursor:pointer}.more-menu summary:hover{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:42px;width:180px;display:grid;padding:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:8px 9px;border-radius:7px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
-  .product-state{min-height:220px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:26px;border-bottom:1px solid var(--border-soft)}.state-symbol{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:18px;font-weight:800}.ready-state .state-symbol{background:var(--accent-soft);color:var(--accent)}.attention-state .state-symbol{background:var(--warning-bg);color:var(--warning)}.state-copy h1,.state-copy h2{margin:0;font-size:21px;letter-spacing:-.018em}.state-copy p{max-width:560px;margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.state-actions{display:flex;align-items:center;gap:8px}
-  .quiet-summary{display:flex;align-items:center;gap:18px;padding:18px 26px}.quiet-summary>div{display:grid;gap:2px}.quiet-label{color:var(--muted-2);font-size:8px;text-transform:uppercase;letter-spacing:.04em}.quiet-summary strong{font-size:11px}.quiet-divider{width:1px;height:26px;background:var(--border-soft)}.text-action{width:max-content;margin:0 26px;padding:4px 0;background:transparent;color:var(--muted);font-size:10px;cursor:pointer}.text-action:hover{color:var(--text-soft)}.guidance-card{margin:16px 26px 0;padding:13px 14px;border:1px solid #5f5125;border-radius:9px;background:var(--warning-bg)}.guidance-card strong{font-size:10px}.guidance-card p{margin:4px 0 0;color:var(--text-soft);font-size:10px;line-height:1.5}.update-callout{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:24px 26px 0;padding:14px;border:1px solid var(--accent-border);border-radius:10px;background:var(--accent-soft)}.update-callout>div{display:grid;gap:3px}.update-callout strong{font-size:11px}.update-callout span{color:var(--muted);font-size:10px}
+  .product-state{min-height:178px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:26px;border-bottom:1px solid var(--border-soft)}.state-symbol{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:18px;font-weight:800}.ready-state{border-bottom-color:color-mix(in srgb,var(--accent) 24%,var(--border-soft))}.ready-state .state-symbol{background:var(--accent-soft);color:var(--accent)}.attention-state,.setup-state{border-bottom-color:#4b421f}.attention-state .state-symbol,.setup-state .state-symbol{background:var(--warning-bg);color:var(--warning)}.state-copy h1,.state-copy h2{margin:0;font-size:20px;letter-spacing:-.018em}.state-copy p{max-width:560px;margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.state-actions{display:flex;align-items:center;gap:8px}
+  .quiet-summary{display:flex;align-items:center;gap:18px;padding:16px 26px}.quiet-summary>div{display:grid;gap:2px}.quiet-label{color:var(--muted-2);font-size:8px;text-transform:uppercase;letter-spacing:.04em}.quiet-summary strong{font-size:11px}.quiet-divider{width:1px;height:26px;background:var(--border-soft)}.text-action{width:max-content;margin:2px 26px 0;padding:4px 0;background:transparent;color:var(--muted);font-size:10px;cursor:pointer}.text-action:hover{color:var(--text-soft)}.guidance-card{margin:16px 26px 0;padding:13px 14px;border:1px solid #5f5125;border-radius:9px;background:var(--warning-bg)}.guidance-card strong{font-size:10px}.guidance-card p{margin:4px 0 0;color:var(--text-soft);font-size:10px;line-height:1.5}.update-callout{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:24px 26px 0;padding:14px;border:1px solid var(--accent-border);border-radius:10px;background:var(--accent-soft)}.update-callout>div{display:grid;gap:3px}.update-callout strong{font-size:11px}.update-callout span{color:var(--muted);font-size:10px}
   .operation-list{display:grid;gap:8px}.operation-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;min-height:58px;padding:11px 13px;border:1px solid var(--border-soft);border-radius:9px;background:var(--surface)}.status-dot{width:8px;height:8px;border-radius:50%;background:#697078}.status-dot.running{background:var(--accent)}.status-dot.transition{background:var(--info)}.status-dot.danger{background:var(--danger)}.operation-card>div{display:grid;gap:2px}.operation-card strong{font-size:10px}.operation-card span{color:var(--muted);font-size:9px}.operation-card code{color:#9ee8b9;font:9px ui-monospace,SFMono-Regular,Consolas,monospace}.operation-card code.danger-text{color:#ff9aa2}.operation-state{color:var(--info)!important;font-weight:700}.active-operation{margin-bottom:10px;border-color:#36587d}.empty-state{min-height:280px;display:grid;place-content:center;justify-items:center;text-align:center}.empty-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:12px;background:var(--surface-2);margin-bottom:12px}.empty-icon :global(svg){width:21px;height:21px;fill:none;stroke:var(--muted);stroke-width:1.8}.empty-state h2{margin:0;font-size:15px}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:10px}
   .support-group{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:22px 0;border-top:1px solid var(--border-soft)}.support-group:first-child{border-top:0;padding-top:0}.group-copy h3{margin:0;font-size:12px}.group-copy p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.support-stack{display:grid;gap:9px}.support-card{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.support-card>div{display:grid;gap:3px}.support-card strong{font-size:11px}.support-card span{color:var(--muted);font-size:10px;line-height:1.45}.support-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:hidden;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.support-overview>div{display:grid;gap:3px;padding:11px 12px;border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft)}.support-overview>div:nth-child(2n){border-right:0}.support-overview>div:nth-last-child(-n+2){border-bottom:0}.support-overview span{color:var(--muted-2);font-size:8px;text-transform:uppercase}.support-overview strong{font-size:10px}.troubleshooting-details,.technical-details{border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.troubleshooting-details summary,.technical-details summary{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;list-style:none;cursor:pointer}.troubleshooting-details summary::-webkit-details-marker,.technical-details summary::-webkit-details-marker{display:none}.troubleshooting-details summary>span:first-child,.technical-details summary>span:first-child{display:grid;gap:2px}.troubleshooting-details small,.technical-details small{color:var(--muted);font-size:9px}.recovery-list,.technical-list{display:grid;border-top:1px solid var(--border-soft)}.recovery-list>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:11px 12px;border-bottom:1px solid var(--border-soft)}.recovery-list>div:last-child{border-bottom:0}.recovery-list>div>span{display:grid;gap:2px}.recovery-list strong{font-size:10px}.recovery-list small{color:var(--muted);font-size:9px}.technical-list>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:9px 12px;border-bottom:1px solid var(--border-soft)}.technical-list>div:last-child{border-bottom:0}.technical-list span{color:var(--muted);font-size:9px}.technical-list code{font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text-soft)}
   .operation-attention{position:fixed;z-index:220;right:20px;bottom:20px;width:min(410px,calc(100vw - 40px));display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:start;padding:13px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.operation-attention.success{border-color:var(--accent-border)}.operation-attention.error{border-color:#705c26}.attention-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--surface-3);font-weight:800}.success .attention-icon{background:var(--accent-soft);color:#9ee8b9}.error .attention-icon{background:var(--warning-bg);color:#fde68a}.attention-copy{display:grid;gap:3px}.attention-copy strong{font-size:11px}.attention-copy span{color:var(--muted);font-size:10px;line-height:1.45}.attention-actions{display:flex;gap:5px}.attention-actions button{min-height:30px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface-3);font-size:9px;font-weight:700;cursor:pointer}.attention-actions .dismiss{width:30px;padding:0;border:0;background:transparent;color:var(--muted);font-size:18px}
