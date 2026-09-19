@@ -319,9 +319,9 @@ function isSuccessfulToolCallResponse (response: SerializedWebResponse): boolean
  * Handle one MCP HTTP request with request-owned server/transport state.
  *
  * The transport deliberately omits a session ID generator, so the SDK does not
- * create or require Mcp-Session-Id. JSON response mode keeps the normal BlockIT
- * path request/response-only; standalone GET/SSE is rejected by the outer HTTP
- * route before this helper is called.
+ * create or require Mcp-Session-Id. Modern POST responses use SDK auto
+ * representation (JSON or request-related SSE); standalone GET/session SSE is
+ * still rejected by the outer HTTP route before this helper is called.
  */
 function createRequestServer (
   phase: McpAuthoringPhase,
