@@ -297,29 +297,28 @@ function animationEffectsReceiptComplete(value: unknown): boolean {
 }
 
 function cubeVerificationScope(value: unknown): ControlVerificationScope | null {
-  const ids = new Set<string>();
   for (const candidate of resultCandidates(value)) {
-    const after = record(candidate.after);
-    if (typeof after?.uuid === "string") ids.add(after.uuid);
-
-    if (Array.isArray(candidate.cubes)) {
-      for (const entry of candidate.cubes) {
-        const cube = record(entry);
-        if (typeof cube?.uuid === "string") ids.add(cube.uuid);
-      }
-    }
-
-    if (Array.isArray(candidate.effects)) {
-      for (const entry of candidate.effects) {
-        const effect = record(entry);
-        const effectAfter = record(effect?.after);
-        if (typeof effectAfter?.uuid === "string") ids.add(effectAfter.uuid);
-      }
-    }
+    const scope = record(candidate.visual_scope);
+    const framing = record(scope?.framing);
+    const ids = scope?.cube_uuids;
+    const min = framing?.min;
+    const max = framing?.max;
+    if (
+      !Array.isArray(ids) || ids.length === 0 || ids.length > 32 ||
+      !ids.every((entry) => typeof entry === "string") ||
+      !Array.isArray(min) || !Array.isArray(max) || min.length !== 3 || max.length !== 3 ||
+      ![...min, ...max].every((entry) => typeof entry === "number" && Number.isFinite(entry))
+    ) continue;
+    return {
+      kind: "CUBE_TARGETS",
+      cube_uuids: [...ids],
+      framing: {
+        min: [...min] as [number, number, number],
+        max: [...max] as [number, number, number],
+      },
+    };
   }
-  return ids.size > 0
-    ? { kind: "CUBE_TARGETS", cube_uuids: [...ids].slice(0, 32) }
-    : null;
+  return null;
 }
 
 function animationVerificationScope(value: unknown): ControlVerificationScope | null {

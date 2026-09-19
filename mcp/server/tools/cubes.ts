@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { autoUvEnum, cubeSchema, faceEnum } from "@/lib/zodObjects";
+import { readRenderedCubeBounds } from "@/lib/renderedModelBounds";
 import { STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreCube, resolveCoreGroup } from "@/lib/coreIdentity";
 import { requireOpenProject } from "@/lib/util";
@@ -593,6 +594,23 @@ function finalCubeState(cube: Cube) {
 
 type CubeAuthoredState = ReturnType<typeof finalCubeState>;
 
+function cubeVisualScope(cubes: readonly Cube[]) {
+  try {
+    const observed = readRenderedCubeBounds(cubes.map((cube) => cube.uuid));
+    if (!observed.bounds) return null;
+    return {
+      cube_uuids: cubes.map((cube) => cube.uuid),
+      framing: {
+        min: observed.bounds.min,
+        max: observed.bounds.max,
+      },
+    };
+  } catch {
+    // Visual scoping is optional evidence optimization; authoring success remains authoritative.
+    return null;
+  }
+}
+
 function vec3Delta(
   after: readonly number[],
   before: readonly number[]
@@ -813,6 +831,7 @@ export function registerCubesTools() {
           const { face_uvs: _faceUvs, ...state } = finalCubeState(cube);
           return state;
         }),
+        visual_scope: cubeVisualScope(cubes),
       };
       const uvNote = plannedBoxUvOffsets
         ? " Box-UV offsets are provisional, not UV Layout PASS. After user Geometry approval, generate and verify the native production UV template before painting."
@@ -930,6 +949,7 @@ export function registerCubesTools() {
         id: cubes[0].uuid,
         name: cubes[0].name,
         changed_fields: geometryEffect.changed_fields,
+        visual_scope: cubeVisualScope(cubes),
       };
       return {
         content: [
@@ -1068,6 +1088,7 @@ export function registerCubesTools() {
         effective_geometry_targets: effectiveGeometryTargets,
         changed_field_counts: changedFieldCounts,
         effects,
+        visual_scope: cubeVisualScope(targets.map(({ cube }) => cube)),
       };
 
       return {

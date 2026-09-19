@@ -44,12 +44,17 @@ describe("LazyDesigner Control continuation hardening", () => {
         before: { uuid: "cube-a" },
         after: { uuid: "cube-a" },
         geometry_effect: { changed_fields: ["rotation"] },
+        visual_scope: {
+          cube_uuids: ["cube-a"],
+          framing: { min: [-1, 0, -1], max: [1, 2, 1] },
+        },
       },
     });
     expect(delta.verification_class).toBe("visual");
     expect(delta.verification_scope).toEqual({
       kind: "CUBE_TARGETS",
       cube_uuids: ["cube-a"],
+      framing: { min: [-1, 0, -1], max: [1, 2, 1] },
     });
   });
 

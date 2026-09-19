@@ -18,6 +18,10 @@ export type ControlVerificationScope =
   | {
       kind: "CUBE_TARGETS";
       cube_uuids: string[];
+      framing: {
+        min: [number, number, number];
+        max: [number, number, number];
+      };
     }
   | {
       kind: "ANIMATION_RANGE";

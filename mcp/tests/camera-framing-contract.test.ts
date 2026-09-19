@@ -44,29 +44,6 @@ describe("capture_model_views explicit framing contract", () => {
     expect(cameraSource).toContain("Explicit framing requires visible Cube geometry to capture.");
   });
 
-  test("accepts bounded Cube UUID framing for local correction review", async () => {
-    const parsed = captureModelViewsParameters.parse({
-      ...baseInput,
-      framing: { mode: "cubes", cube_ids: ["cube-a", "cube-b"] },
-    });
-    expect(parsed.framing).toEqual({
-      mode: "cubes",
-      cube_ids: ["cube-a", "cube-b"],
-    });
-    expect(
-      captureModelViewsParameters.safeParse({
-        ...baseInput,
-        framing: { mode: "cubes", cube_ids: ["cube-a", "cube-a"] },
-      }).success
-    ).toBe(false);
-
-    const cameraSource = await Bun.file(
-      new URL("../server/tools/camera.ts", import.meta.url)
-    ).text();
-    expect(cameraSource).toContain("readRenderedCubeBounds");
-    expect(cameraSource).toContain("framing_cube_ids");
-  });
-
   test("accepts a finite positive target envelope", () => {
     const result = captureModelViewsParameters.safeParse({
       ...baseInput,
