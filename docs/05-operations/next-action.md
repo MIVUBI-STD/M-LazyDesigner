@@ -58,7 +58,7 @@ Cube / animation-motion mutation
 → visual remains required
 ```
 
-Complete mutation receipts now cover Animation Effects, affected Animation Controller state subgraphs, PBR Material create/configure/assign, Material Instance face changes, Locator/Null Object state, bounded Group add/modify, and reparent final parent. Subtree translation remains focused-read because descendant final state is summarized only. Cube simplify dry-run/unchanged is state-neutral.
+Complete mutation receipts now cover Animation Effects, affected Animation Controller state subgraphs, PBR Material create/configure/assign, Material Instance face changes, Locator/Null Object state, bounded Group add/modify, reparent final parent, and TextureGroup creation with final texture assignments. Subtree translation remains focused-read because descendant final state is summarized only. Cube simplify dry-run/unchanged is state-neutral.
 
 Incomplete/legacy shapes stay conservative. Visual verification is now change-scoped where receipts prove targets: Cube mutations emit exact Cube UUIDs plus rendered target bounds consumable by existing `capture_model_views(framing=explicit)`; keyframe mutations emit animation/bone/time range plus bounded review sampling; paint transactions emit texture/rect/revision and attach the exact post-mutation affected-region PNG, avoiding a full-atlas reread for local corrections. Visual class is unchanged; only evidence scope is narrowed. Do not add dependency databases, planners, extra routers, or public Gateway tools.
 
