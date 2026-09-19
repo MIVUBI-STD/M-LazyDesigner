@@ -57,9 +57,9 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(source).toContain("RuntimeRequestAbandonedError");
     expect(source).toContain("request.aborted ||");
     expect(source).toContain("response.destroyed ||");
-    expect(source).toContain("sendNodeResponse(");
-    expect(source).toContain("result.body,");
-    expect(source).toContain("true");
+    expect(source).toContain("sendSerializedWebResponse(");
+    expect(source).toContain("closeMcpConnection");
+    expect(source).toContain("serialized.body.getReader()");
   });
 
   test("request-owned reconstruction reuses registration caches until a surface mutation", async () => {
