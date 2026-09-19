@@ -23,6 +23,16 @@ export const createProjectParameters = z
   })
   .strict();
 
+export const createProjectOutputSchema = z
+  .object({
+    project: z
+      .object({
+        uuid: z.string().min(1),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
 export const getProjectInfoParameters = z.object({});
 export const inspectModelBoundsParameters = z.object({});
 
@@ -37,6 +47,7 @@ export const projectToolDocs: ToolSpec[] = [
       openWorldHint: true,
     },
     parameters: createProjectParameters,
+    outputSchema: createProjectOutputSchema,
     status: STATUS_STABLE,
   },
   {

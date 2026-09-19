@@ -69,6 +69,7 @@ structured recovery semantics
 OUTCOME_UNKNOWN with no mutation replay
 normalized public status
 canonical declarative capability effects
+producer-side affinity receipt schemas for project creation and phase handoff
 ```
 
 Plugin reload, Runtime rebuild, authoring phase change, or temporary Runtime loss are designed to recover below the persistent Gateway. Only replacing the Gateway process itself requires client reconnection. This behavior is **source-designed but not live-proven in the current phase**.
