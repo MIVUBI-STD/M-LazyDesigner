@@ -101,6 +101,7 @@ pub struct ManagedActionResult {
 #[derive(Debug, Serialize)]
 pub struct EnsureReadyResult {
     pub status: &'static str,
+    pub reason: &'static str,
     pub runtime_online: bool,
     pub gateway_active: bool,
     pub blockbench_running: bool,
@@ -528,11 +529,56 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
 
     let mut current = collect_connection_status();
 
-    if current.plugin_integrity != "ready" && !current.blockbench_running {
+    if current.plugin_integrity == "modified" || current.plugin_integrity == "invalid" {
+        return Ok(EnsureReadyResult {
+            status: "NEEDS_ATTENTION",
+            reason: "PLUGIN_INTEGRITY",
+            runtime_online: current.runtime_online,
+            gateway_active: current.gateway_active,
+            blockbench_running: current.blockbench_running,
+            plugin_integrity: current.plugin_integrity,
+            manual_plugin_approval_recommended: false,
+        });
+    }
+
+    if current.plugin_integrity == "missing" {
+        if current.blockbench_running {
+            return Ok(EnsureReadyResult {
+                status: "NEEDS_ATTENTION",
+                reason: "PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING",
+                runtime_online: current.runtime_online,
+                gateway_active: current.gateway_active,
+                blockbench_running: current.blockbench_running,
+                plugin_integrity: current.plugin_integrity,
+                manual_plugin_approval_recommended: false,
+            });
+        }
+
         let maintenance = project_maintenance(true, initial.managed.as_ref());
-        if maintenance.repair {
-            let _ = run_managed_action(app, "repair")?;
-            current = collect_connection_status();
+        if !maintenance.repair {
+            return Ok(EnsureReadyResult {
+                status: "NEEDS_ATTENTION",
+                reason: "REPAIR_BLOCKED",
+                runtime_online: current.runtime_online,
+                gateway_active: current.gateway_active,
+                blockbench_running: current.blockbench_running,
+                plugin_integrity: current.plugin_integrity,
+                manual_plugin_approval_recommended: false,
+            });
+        }
+
+        run_managed_action(app, "repair")?;
+        current = collect_connection_status();
+        if current.plugin_integrity != "ready" {
+            return Ok(EnsureReadyResult {
+                status: "NEEDS_ATTENTION",
+                reason: "REPAIR_DID_NOT_RESTORE_PLUGIN",
+                runtime_online: current.runtime_online,
+                gateway_active: current.gateway_active,
+                blockbench_running: current.blockbench_running,
+                plugin_integrity: current.plugin_integrity,
+                manual_plugin_approval_recommended: false,
+            });
         }
     }
 
@@ -543,27 +589,47 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
     let started = std::time::Instant::now();
     while started.elapsed() < Duration::from_secs(15) {
         current = collect_connection_status();
+
         if current.runtime_online {
             return Ok(EnsureReadyResult {
                 status: if current.gateway_active { "READY" } else { "RUNTIME_READY" },
-                runtime_online: current.runtime_online,
+                reason: if current.gateway_active { "CONNECTED" } else { "WAITING_FOR_MCP_CLIENT" },
+                runtime_online: true,
                 gateway_active: current.gateway_active,
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
                 manual_plugin_approval_recommended: false,
             });
         }
+
+        if !current.blockbench_running && started.elapsed() > Duration::from_secs(3) {
+            return Ok(EnsureReadyResult {
+                status: "NEEDS_ATTENTION",
+                reason: "BLOCKBENCH_EXITED",
+                runtime_online: false,
+                gateway_active: current.gateway_active,
+                blockbench_running: false,
+                plugin_integrity: current.plugin_integrity,
+                manual_plugin_approval_recommended: false,
+            });
+        }
+
         std::thread::sleep(Duration::from_millis(750));
     }
 
     current = collect_connection_status();
+    let likely_first_approval = current.blockbench_running
+        && current.plugin_integrity == "ready"
+        && !current.runtime_online;
+
     Ok(EnsureReadyResult {
-        status: "RUNTIME_UNAVAILABLE",
+        status: if likely_first_approval { "APPROVAL_REQUIRED" } else { "NEEDS_ATTENTION" },
+        reason: if likely_first_approval { "RUNTIME_TIMEOUT_WITH_HEALTHY_PLUGIN" } else { "RUNTIME_TIMEOUT" },
         runtime_online: current.runtime_online,
         gateway_active: current.gateway_active,
         blockbench_running: current.blockbench_running,
         plugin_integrity: current.plugin_integrity,
-        manual_plugin_approval_recommended: current.blockbench_running && current.plugin_integrity == "ready",
+        manual_plugin_approval_recommended: likely_first_approval,
     })
 }
 

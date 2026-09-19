@@ -92,7 +92,8 @@
   };
 
   type EnsureReadyResult = {
-    status: 'READY' | 'RUNTIME_READY' | 'RUNTIME_UNAVAILABLE';
+    status: 'READY' | 'RUNTIME_READY' | 'APPROVAL_REQUIRED' | 'NEEDS_ATTENTION';
+    reason: string;
     runtime_online: boolean;
     gateway_active: boolean;
     blockbench_running: boolean;
@@ -116,6 +117,7 @@
   let error = '';
   let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
   let pluginApprovalNeeded = false;
+  let readinessReason = '';
   let actionMessage = '';
   let progressStage = '';
   let stopProgressListener: (() => void) | null = null;
@@ -210,11 +212,18 @@
     try {
       const result = await invoke<EnsureReadyResult>('ensure_ready');
       pluginApprovalNeeded = result.manual_plugin_approval_recommended;
+      readinessReason = result.reason;
       await refresh();
       if (result.status === 'READY') {
         showSuccessToast('LazyDesigner is ready.');
       } else if (result.status === 'RUNTIME_READY') {
         showSuccessToast('Blockbench is ready. The MCP client can connect when needed.');
+      } else if (result.status === 'NEEDS_ATTENTION' && result.reason !== 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING') {
+        error = result.reason === 'PLUGIN_INTEGRITY'
+          ? 'The managed Blockbench plugin was modified and needs review.'
+          : result.reason === 'BLOCKBENCH_EXITED'
+            ? 'Blockbench closed before LazyDesigner could become ready.'
+            : 'LazyDesigner could not prepare Blockbench automatically.';
       }
     } catch (cause) {
       error = errorMessage(cause);
@@ -235,9 +244,15 @@
       await refresh();
       const ready = await invoke<EnsureReadyResult>('ensure_ready');
       pluginApprovalNeeded = ready.manual_plugin_approval_recommended;
+      readinessReason = ready.reason;
       await refresh();
       if (ready.status === 'READY') showSuccessToast('Setup complete. LazyDesigner is ready.');
       else if (ready.status === 'RUNTIME_READY') showSuccessToast('Setup complete. Blockbench is ready.');
+      else if (ready.status === 'NEEDS_ATTENTION') {
+        error = ready.reason === 'PLUGIN_INTEGRITY'
+          ? 'Setup completed, but the managed Blockbench plugin needs review.'
+          : 'Setup completed, but Blockbench could not become ready automatically.';
+      }
     } catch (cause) {
       recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
       error = errorMessage(cause);
@@ -571,17 +586,24 @@
                       <span>Desktop can open Blockbench and verify the Runtime automatically.</span>
                     </div>
                     <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Prepare Blockbench'}</button>
+                  {:else if readinessReason === 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING'}
+                    <div>
+                      <strong>Restart Blockbench to repair LazyDesigner</strong>
+                      <span>Close Blockbench normally so LazyDesigner can restore the missing plugin safely. Your unsaved work is never closed automatically.</span>
+                    </div>
                   {:else}
                     <div>
                       <strong>One-time approval required</strong>
                       <span>Blockbench requires your approval before a local plugin can run. This is only needed once.</span>
                     </div>
-                    <ol>
-                      <li>Choose Plugins → Load Plugin from File in Blockbench.</li>
-                      <li>Select the highlighted LazyDesigner plugin.</li>
-                      <li>Approve the Blockbench trust prompt.</li>
-                    </ol>
-                    <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>{busyAction === 'show-plugin' ? 'Opening…' : 'Show approval file'}</button>
+                    {#if readinessReason !== 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING'}
+                      <ol>
+                        <li>Choose Plugins → Load Plugin from File in Blockbench.</li>
+                        <li>Select the highlighted LazyDesigner plugin.</li>
+                        <li>Approve the Blockbench trust prompt.</li>
+                      </ol>
+                      <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>{busyAction === 'show-plugin' ? 'Opening…' : 'Show approval file'}</button>
+                    {/if}
                   {/if}
                 </div>
               {:else if productMode(status) === 'unsupported'}
