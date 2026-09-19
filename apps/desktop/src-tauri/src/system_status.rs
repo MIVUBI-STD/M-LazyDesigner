@@ -54,7 +54,7 @@ fn blockbench_running() -> bool {
     let mut system = System::new_all();
     system.refresh_processes();
     system.processes().values().any(|process| {
-        let name = process.name().to_string_lossy().to_ascii_lowercase();
+        let name = process.name().to_ascii_lowercase();
         name == "blockbench.exe" || name == "blockbench"
     })
 }
