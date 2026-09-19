@@ -19,6 +19,10 @@ import {
   markRuntimeGenerationState,
   type RuntimeGenerationClaim,
 } from "@/lib/runtimeLifecycle";
+import {
+  BLOCKBENCH_MIN_VERSION,
+  evaluateBlockbenchCompatibility,
+} from "@/lib/blockbenchCompatibility";
 import { getIcon } from "@/macros/getIcon" with { type: "macro" };
 import {
   setupLocalDevAutoReload,
@@ -133,6 +137,7 @@ BBPlugin.register("blockit_mcp", {
   bug_tracker: "",
   icon: getIcon(),
   variant: "desktop",
+  min_version: BLOCKBENCH_MIN_VERSION,
 
   onload() {
     if (
@@ -144,6 +149,29 @@ BBPlugin.register("blockit_mcp", {
         "[MCP] Plugin onload called while this generation is already active."
       );
       return;
+    }
+
+    const compatibility = evaluateBlockbenchCompatibility(Blockbench.version);
+    if (
+      compatibility.status === "unsupported" ||
+      compatibility.status === "invalid"
+    ) {
+      console.error("[MCP] Blockbench compatibility gate blocked startup", compatibility);
+      Blockbench.showQuickMessage(
+        `LazyDesigner requires Blockbench ${compatibility.minimumVersion} or newer.`,
+        6000
+      );
+      return;
+    }
+
+    if (compatibility.status === "review-required") {
+      console.warn("[MCP] Blockbench version requires compatibility review", compatibility);
+      Blockbench.showQuickMessage(
+        `Blockbench ${compatibility.version} has not been compatibility-validated for LazyDesigner yet.`,
+        6000
+      );
+    } else if (compatibility.status === "compatible-unverified") {
+      console.info("[MCP] Blockbench version is allowed but not exact-live-validated", compatibility);
     }
 
     const claim = claimRuntimeGeneration(currentBuildIdentity());

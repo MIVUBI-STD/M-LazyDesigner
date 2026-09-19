@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "minimumVersion": "5.1.0",
+  "reviewBoundaryVersion": "5.3.0",
+  "sourceTypeBaseline": "5.1.0",
+  "liveValidatedVersions": [
+    "5.2.0"
+  ],
+  "policy": {
+    "belowMinimum": "block",
+    "validated": "allow",
+    "compatibleUnverified": "allow-with-diagnostic",
+    "atOrAboveReviewBoundary": "allow-with-warning"
+  }
+}
