@@ -744,7 +744,7 @@ export default function createNetServer (
               project_context: getRuntimeProjectHealth(requestedProjectUuid),
               transport: {
                 mode: 'stateless',
-                response_mode: 'json'
+                response_mode: 'auto'
               }
             }),
             connectionClose
