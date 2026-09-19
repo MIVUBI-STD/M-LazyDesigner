@@ -511,6 +511,13 @@ function renderProfileStateNeutral(value: unknown): boolean {
   });
 }
 
+function renameElementStateNeutral(value: unknown): boolean {
+  return resultCandidates(value).some(
+    (candidate) =>
+      candidate.execution === "planned" || candidate.execution === "unchanged"
+  );
+}
+
 function capabilityMutatesState(
   capability: string,
   succeeded: boolean,
@@ -518,6 +525,7 @@ function capabilityMutatesState(
 ): boolean {
   if (!succeeded || !STATE_MUTATIONS.has(capability)) return false;
   if (capability === "manage_cubes" && cubeStateNeutral(result)) return false;
+  if (capability === "rename_element" && renameElementStateNeutral(result)) return false;
   if (capability === "manage_particle") {
     if (particleTextureHandoffRequired(result)) return false;
     return particleHasAuthoredEffect(result);
