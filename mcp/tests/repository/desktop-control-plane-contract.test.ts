@@ -113,6 +113,22 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("PLUGIN_INTEGRITY");
     expect(readme).not.toContain("Start Gateway command");
   });
+  test("Desktop observability keeps bounded readiness outcomes", async () => {
+    const [main, log, runbook] = await Promise.all([
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src-tauri/src/operation_log.rs"),
+      source("../docs/05-operations/local-acceptance-runbook.md"),
+    ]);
+
+    expect(main).toContain('operation_log::record("ensure_ready", value.status)');
+    expect(main).toContain('operation_log::record("ensure_ready", value.reason)');
+    expect(main).toContain('.get("status")');
+    expect(log).toContain("MAX_LOG_BYTES");
+    expect(runbook).toContain("Desktop Control Plane Acceptance");
+    expect(runbook).toContain("managed plugin modified");
+    expect(runbook).toContain("transient fast-probe failure");
+  });
+
   test("Desktop UI uses one canonical workstation readiness path", async () => {
     const [app, main, rust] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),

@@ -105,7 +105,7 @@ running Blockbench process executable
 → validated existing Blockbench.exe path
 ```
 
-The `Open Blockbench` action is explicit. If Blockbench is already running it returns `ALREADY_RUNNING`; otherwise it launches the discovered executable and does not create a restart/watchdog policy.
+The visible `Open` action is explicit user intent, but it enters the canonical `ensure_ready` orchestration rather than invoking a second direct-launch path. Rust verifies managed/plugin readiness, launches Blockbench only when needed, waits for Runtime, and returns a bounded readiness outcome. The lower-level launcher remains an internal primitive only.
 
 Version and compatibility projection now also work when Blockbench is installed but closed, provided Windows exposes a valid uninstall entry.
 
@@ -374,10 +374,10 @@ Desktop writes a minimal best-effort machine log under its LocalAppData director
 ```text
 timestamp
 bounded action token
-ok | error
+bounded outcome token
 ```
 
-The active file is capped at 512 KiB and rotates to one previous file. It does not record project content, file paths, environment values, command output, TLS material, Codex configuration, or arbitrary error prose. Diagnostic export does not automatically attach this log.
+The active file is capped at 512 KiB and rotates to one previous file. Readiness outcomes use bounded tokens such as `READY`, `RUNTIME_READY`, `APPROVAL_REQUIRED`, or a bounded reason token for `NEEDS_ATTENTION`; managed actions prefer the canonical receipt status. It does not record project content, file paths, environment values, command output, TLS material, Codex configuration, or arbitrary error prose. Diagnostic export does not automatically attach this log.
 
 This log is operational evidence only. Managed Distribution receipts remain authoritative for install/update/repair transitions.
 

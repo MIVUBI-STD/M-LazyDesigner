@@ -117,6 +117,107 @@ Geometry/Texturing/Animation/Persistence/quality-fixture live verifiers share on
 
 `verify:stateless-local` is diagnostic only when that shared preflight fails or exact full-surface diagnosis is explicitly required. Do not run it automatically before every live verifier.
 
+## 6A. Desktop Control Plane Acceptance
+
+Before the authoring sequence, validate the Desktop controller itself from a clean checkout at the exact current `Local` SHA. This is separate from authoring-quality proof.
+
+Use a disposable workstation/profile only for destructive fault injection. Do not modify production Blockbench plugins or active project assets.
+
+### First-run lifecycle
+
+```text
+install Desktop
+→ launch LazyDesigner
+→ Set up
+→ bundled managed install completes
+→ Blockbench opens through ensure_ready
+→ perform native Blockbench local-plugin approval if requested
+→ Desktop reaches RUNTIME_READY or READY
+```
+
+Record whether approval was required. Approval may occur once; bypassing Blockbench trust is not acceptance.
+
+### Repeat-launch lifecycle
+
+```text
+close Desktop normally
+→ reopen Desktop
+→ no repeated plugin approval
+
+close Blockbench normally
+→ choose Open in LazyDesigner
+→ ensure_ready launches Blockbench
+→ Runtime returns without manual Refresh
+
+restart Desktop while Blockbench/Runtime are already healthy
+→ state reconstructs correctly
+```
+
+### Recovery matrix
+
+Prove each applicable state independently:
+
+```text
+managed plugin missing + Blockbench closed
+→ safe repair
+→ Open/Prepare reaches Runtime
+
+managed plugin modified
+→ fail closed
+→ no silent overwrite
+
+managed plugin missing + Blockbench running
+→ no forced repair
+→ no forced Blockbench close
+
+Runtime online + Gateway absent
+→ client-wait / RUNTIME_READY
+→ not an error
+
+Gateway attaches
+→ READY
+
+custom absolute Blockbench --userData
+→ plugin destination remains that profile
+
+two simultaneous Blockbench processes with different userData profiles
+→ setup refuses safely
+```
+
+For the two fault-injection cases involving plugin deletion/modification, use a disposable managed installation and restore it afterward through the canonical manager.
+
+### Watcher / latency behavior
+
+Keep LazyDesigner open and verify:
+
+```text
+Blockbench close/open
+Runtime offline/online
+Gateway attach/detach
+```
+
+The UI should update without manual Refresh. A transient fast-probe failure must preserve the last known full projection rather than falsely showing offline. The heartbeat must not spawn `blockit.exe status` continuously; full status refresh is expected only when a known fast-probe value changes or an explicit action requests it.
+
+### Desktop evidence
+
+Retain:
+
+```text
+exact git SHA
+Desktop version
+Blockbench version
+managed source SHA
+first-run approval required: yes/no
+ensure_ready final outcome
+plugin integrity state
+Runtime state
+Gateway state
+custom userData case if tested
+PASS / FAIL + first failing assertion
+```
+
+Desktop acceptance does not prove Geometry/Texturing/Animation quality. Continue with the native authoring sequence only after controller behavior is stable.
+
 ## 7. Prepared Native Sequence
 
 Use the repository-owned disposable harness; do not redesign tests in Blockbench.

@@ -25,7 +25,17 @@ fn connection_status() -> ConnectionStatus {
 #[tauri::command]
 fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError> {
     let result = system_status::ensure_ready(&app);
-    operation_log::record("ensure_ready", if result.is_ok() { "ok" } else { "error" });
+    match &result {
+        Ok(value) if value.status == "NEEDS_ATTENTION" => {
+            operation_log::record("ensure_ready", value.reason);
+        }
+        Ok(value) => {
+            operation_log::record("ensure_ready", value.status);
+        }
+        Err(_) => {
+            operation_log::record("ensure_ready", "ERROR");
+        }
+    }
     result.map_err(|message| DesktopError::recoverable("ENSURE_READY_FAILED", message))
 }
 
@@ -33,7 +43,16 @@ fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError
 fn managed_action(app: tauri::AppHandle, action: String) -> Result<ManagedActionResult, DesktopError> {
     let event = format!("managed:{}", action);
     let result = system_status::run_managed_action(&app, &action);
-    operation_log::record(&event, if result.is_ok() { "ok" } else { "error" });
+    match &result {
+        Ok(value) => {
+            let outcome = value.receipt
+                .get("status")
+                .and_then(|status| status.as_str())
+                .unwrap_or("COMPLETE");
+            operation_log::record(&event, outcome);
+        }
+        Err(_) => operation_log::record(&event, "ERROR"),
+    }
     result.map_err(|message| DesktopError::recoverable("MANAGED_ACTION_FAILED", message))
 }
 
