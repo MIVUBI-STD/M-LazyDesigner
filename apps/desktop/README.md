@@ -367,6 +367,54 @@ These probes use process/filesystem/socket inspection directly in Rust. They do 
 
 When a known fast-probe value actually changes, Desktop performs one full `system_status` refresh so compatibility, maintenance availability, Gateway supervision, readiness, and `product_state` are re-projected by the Rust owner.
 
+## Projects & Models navigation
+
+Desktop provides a compact filesystem-navigation layer without becoming a second project database or file manager.
+
+Blockbench remains the authority for the active model and recent saved models. The Runtime writes a bounded local projection to:
+
+```text
+%LOCALAPPDATA%\LazyDesigner\project-navigation.json
+```
+
+The projection contains only the active Blockbench project identity plus recent `.bbmodel` names/paths needed for local navigation. It is a cache/projection, not authored project state. Desktop does not edit Blockbench local storage to obtain recents.
+
+Desktop converts the raw model paths into a path-free UI projection:
+
+```text
+Active Project
+→ active model
+
+Recent Projects
+→ grouped saved .bbmodel files
+
+See details
+→ models inside the selected project
+```
+
+Project grouping is deterministic and intentionally shallow:
+
+```text
+nearest .lazydesigner-project.json marker within the bounded parent search
+→ otherwise parent of Models/Model
+→ otherwise direct parent folder
+```
+
+This supports one project such as `Furniture` containing multiple `.bbmodel` files without requiring a global project database. Paths stay hidden in the normal UI. Backend actions resolve opaque project/model IDs back through the current local projection before opening Explorer or Blockbench.
+
+Normal UI actions are bounded to:
+
+```text
+Open Folder
+Open model in Blockbench
+Reveal model file
+Copy path
+```
+
+Opening a model from Desktop first passes through the canonical `ensure_ready` flow; project navigation does not create a second Blockbench lifecycle path. Missing files remain visible as unavailable rather than triggering a drive scan or guessed relocation.
+
+The active-window heartbeat watches only the navigation snapshot revision. When it changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
+
 ## Bounded local operation log
 
 Desktop writes a minimal best-effort machine log under its LocalAppData directory. Entries contain only:

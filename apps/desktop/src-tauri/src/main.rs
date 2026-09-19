@@ -8,7 +8,7 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
-use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, SystemStatus};
+use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, ProjectNavigationActionResult, ProjectPathResult, SystemStatus};
 
 #[tauri::command]
 fn system_status(app: tauri::AppHandle) -> SystemStatus {
@@ -64,6 +64,22 @@ fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, Des
 }
 
 #[tauri::command]
+fn project_navigation_action(action: String, id: String) -> Result<ProjectNavigationActionResult, DesktopError> {
+    let result = system_status::project_navigation_action(&action, &id);
+    operation_log::record(
+        &format!("project:{}", action),
+        if result.is_ok() { "OK" } else { "ERROR" },
+    );
+    result.map_err(|message| DesktopError::recoverable("PROJECT_NAVIGATION_FAILED", message))
+}
+
+#[tauri::command]
+fn project_navigation_path(id: String) -> Result<ProjectPathResult, DesktopError> {
+    system_status::project_navigation_path(&id)
+        .map_err(|message| DesktopError::recoverable("PROJECT_PATH_FAILED", message))
+}
+
+#[tauri::command]
 fn show_plugin_file() -> Result<PluginFileActionResult, DesktopError> {
     system_status::show_plugin_file()
         .map_err(|message| DesktopError::recoverable("PLUGIN_FILE_FAILED", message))
@@ -82,6 +98,8 @@ fn main() {
             ensure_ready,
             managed_action,
             bootstrap_install,
+            project_navigation_action,
+            project_navigation_path,
             show_plugin_file,
             export_diagnostics
         ])

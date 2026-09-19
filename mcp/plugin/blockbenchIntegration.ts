@@ -8,6 +8,10 @@ import type { McpAuthoringPhase } from "@/lib/authoringPhase";
 import { resources } from "@/server";
 import { registerReferenceModelsResource } from "@/server/resources";
 import { applyMcpRegistrationProfile } from "@/server/tools";
+import {
+  setupProjectNavigationSnapshot,
+  teardownProjectNavigationSnapshot,
+} from "@/plugin/projectNavigationSnapshot";
 import { uiSetup, uiTeardown } from "@/ui";
 import { setupI18n } from "@/ui/i18n";
 import {
@@ -32,6 +36,7 @@ export class BlockbenchIntegration {
 
     setupI18n();
     settingsSetup();
+    setupProjectNavigationSnapshot();
 
     const profile = resolveMcpRegistrationProfile(
       isExtendedMcpFamiliesEnabled()
@@ -74,6 +79,7 @@ export class BlockbenchIntegration {
 
   teardown(): void {
     uiTeardown();
+    teardownProjectNavigationSnapshot();
     // settingsTeardown owns both Setting instances and its profile callback.
     settingsTeardown();
     this.generation = null;

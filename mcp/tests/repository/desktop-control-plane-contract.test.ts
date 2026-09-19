@@ -129,6 +129,33 @@ describe("Desktop control-plane ownership", () => {
     expect(runbook).toContain("transient fast-probe failure");
   });
 
+  test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
+    const [app, rust, integration, snapshot, readme] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("plugin/blockbenchIntegration.ts"),
+      source("plugin/projectNavigationSnapshot.ts"),
+      source("../apps/desktop/README.md"),
+    ]);
+
+    expect(integration).toContain("setupProjectNavigationSnapshot");
+    expect(integration).toContain("teardownProjectNavigationSnapshot");
+    expect(snapshot).toContain("recent_projects");
+    expect(snapshot).toContain(".bbmodel");
+    expect(snapshot).toContain("project-navigation.json");
+    expect(rust).toContain("project_navigation_projection");
+    expect(rust).toContain('"open-project-folder"');
+    expect(rust).toContain('"open-model"');
+    expect(rust).toContain('"reveal-model"');
+    expect(rust).toContain(".lazydesigner-project.json");
+    expect(app).toContain("Active Project");
+    expect(app).toContain("Recent Projects");
+    expect(app).toContain("See details");
+    expect(app).toContain("status.project_navigation");
+    expect(app).not.toContain("project.root_path");
+    expect(readme).toContain("Paths stay hidden in the normal UI");
+  });
+
   test("Desktop UI uses one canonical workstation readiness path", async () => {
     const [app, main, rust] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),

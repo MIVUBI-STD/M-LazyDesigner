@@ -127,6 +127,50 @@ pub struct ConnectionStatus {
     pub runtime_online: Option<bool>,
     pub gateway_active: Option<bool>,
     pub plugin_integrity: &'static str,
+    pub project_revision: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectNavigationModel {
+    pub id: String,
+    pub name: String,
+    pub active: bool,
+    pub exists: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectNavigationProject {
+    pub id: String,
+    pub name: String,
+    pub active: bool,
+    pub model_count: usize,
+    pub models: Vec<ProjectNavigationModel>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ActiveProjectNavigation {
+    pub project_id: Option<String>,
+    pub project_name: Option<String>,
+    pub model_id: Option<String>,
+    pub model_name: String,
+    pub saved: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectNavigation {
+    pub revision: Option<String>,
+    pub active: Option<ActiveProjectNavigation>,
+    pub projects: Vec<ProjectNavigationProject>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectNavigationActionResult {
+    pub status: &'static str,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProjectPathResult {
+    pub path: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -142,6 +186,7 @@ pub struct SystemStatus {
     pub manager_available: bool,
     pub bootstrap_available: bool,
     pub managed: Option<ManagedStatus>,
+    pub project_navigation: ProjectNavigation,
     pub diagnostic: Option<String>,
 }
 
@@ -157,10 +202,295 @@ struct InstalledState {
     owned: HashMap<String, String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct NavigationSnapshotActive {
+    uuid: String,
+    name: String,
+    model_path: Option<String>,
+    saved: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct NavigationSnapshotRecent {
+    name: String,
+    path: String,
+    #[allow(dead_code)]
+    day: Option<f64>,
+    #[allow(dead_code)]
+    favorite: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct NavigationSnapshot {
+    schema: u8,
+    #[allow(dead_code)]
+    observed_at_unix_ms: u64,
+    #[allow(dead_code)]
+    revision: u64,
+    active: Option<NavigationSnapshotActive>,
+    recent_models: Vec<NavigationSnapshotRecent>,
+}
+
 fn managed_root() -> Option<PathBuf> {
     env::var_os("BLOCKIT_HOME")
         .map(PathBuf::from)
         .or_else(|| env::var_os("LOCALAPPDATA").map(|base| PathBuf::from(base).join("BlockIT")))
+}
+
+
+fn project_navigation_snapshot_path() -> Option<PathBuf> {
+    env::var_os("LOCALAPPDATA")
+        .map(PathBuf::from)
+        .map(|base| base.join("LazyDesigner").join("project-navigation.json"))
+}
+
+fn project_navigation_revision() -> Option<String> {
+    let path = project_navigation_snapshot_path()?;
+    let metadata = fs::metadata(path).ok()?;
+    if metadata.len() > 512 * 1024 {
+        return None;
+    }
+    let modified = metadata
+        .modified()
+        .ok()?
+        .duration_since(UNIX_EPOCH)
+        .ok()?
+        .as_millis();
+    Some(format!("{modified}:{}", metadata.len()))
+}
+
+fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
+    let path = project_navigation_snapshot_path()?;
+    let metadata = fs::metadata(&path).ok()?;
+    if metadata.len() == 0 || metadata.len() > 512 * 1024 {
+        return None;
+    }
+    let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
+    if snapshot.schema != 1 || snapshot.recent_models.len() > 128 {
+        return None;
+    }
+    Some(snapshot)
+}
+
+fn is_bbmodel_path(path: &Path) -> bool {
+    path.is_absolute()
+        && path.extension()
+            .and_then(|value| value.to_str())
+            .map(|value| value.eq_ignore_ascii_case("bbmodel"))
+            .unwrap_or(false)
+}
+
+fn navigation_id(prefix: &str, path: &Path) -> String {
+    use sha2::{Digest, Sha256};
+    let normalized = path.to_string_lossy().replace('/', "\\").to_lowercase();
+    let digest = format!("{:x}", Sha256::digest(normalized.as_bytes()));
+    format!("{prefix}-{}", &digest[..20])
+}
+
+fn project_root_for_model(path: &Path) -> Option<PathBuf> {
+    if !is_bbmodel_path(path) {
+        return None;
+    }
+    let parent = path.parent()?.to_path_buf();
+
+    for candidate in parent.ancestors().take(4) {
+        if candidate.join(".lazydesigner-project.json").is_file() {
+            return Some(candidate.to_path_buf());
+        }
+    }
+
+    let conventional = parent
+        .file_name()
+        .and_then(|value| value.to_str())
+        .map(|value| value.eq_ignore_ascii_case("models") || value.eq_ignore_ascii_case("model"))
+        .unwrap_or(false);
+    if conventional {
+        parent.parent().map(Path::to_path_buf).or(Some(parent))
+    } else {
+        Some(parent)
+    }
+}
+
+fn project_name(root: &Path) -> String {
+    root.file_name()
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or("Project")
+        .to_string()
+}
+
+fn model_name(path: &Path, preferred: &str) -> String {
+    if !preferred.trim().is_empty() {
+        return preferred.trim().to_string();
+    }
+    path.file_stem()
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or("Model")
+        .to_string()
+}
+
+fn navigation_paths() -> (HashMap<String, PathBuf>, HashMap<String, PathBuf>) {
+    let Some(snapshot) = read_navigation_snapshot() else {
+        return (HashMap::new(), HashMap::new());
+    };
+    let mut projects = HashMap::new();
+    let mut models = HashMap::new();
+
+    let mut add = |raw: &str| {
+        let path = PathBuf::from(raw);
+        let Some(root) = project_root_for_model(&path) else { return; };
+        projects.entry(navigation_id("project", &root)).or_insert(root);
+        models.entry(navigation_id("model", &path)).or_insert(path);
+    };
+
+    if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) {
+        add(active);
+    }
+    for recent in &snapshot.recent_models {
+        add(&recent.path);
+    }
+    (projects, models)
+}
+
+fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
+    let revision = project_navigation_revision();
+    let Some(snapshot) = read_navigation_snapshot() else {
+        return ProjectNavigation { revision, active: None, projects: Vec::new() };
+    };
+
+    let active_path = if runtime_active {
+        snapshot.active.as_ref()
+            .and_then(|value| value.model_path.as_ref())
+            .map(PathBuf::from)
+            .filter(|path| is_bbmodel_path(path))
+    } else {
+        None
+    };
+    let active_model_id = active_path.as_ref().map(|path| navigation_id("model", path));
+    let active_project_root = active_path.as_ref().and_then(|path| project_root_for_model(path));
+    let active_project_id = active_project_root.as_ref().map(|root| navigation_id("project", root));
+
+    let active = if runtime_active {
+        snapshot.active.as_ref().map(|value| ActiveProjectNavigation {
+            project_id: active_project_id.clone(),
+            project_name: active_project_root.as_ref().map(|root| project_name(root)),
+            model_id: active_model_id.clone(),
+            model_name: if let Some(path) = active_path.as_ref() {
+                model_name(path, &value.name)
+            } else if value.name.trim().is_empty() {
+                "Untitled Project".to_string()
+            } else {
+                value.name.trim().to_string()
+            },
+            saved: value.saved && active_path.is_some(),
+        })
+    } else {
+        None
+    };
+
+    let mut projects: Vec<ProjectNavigationProject> = Vec::new();
+    let mut add_model = |path: PathBuf, preferred: &str, active_model: bool| {
+        let Some(root) = project_root_for_model(&path) else { return; };
+        let project_id = navigation_id("project", &root);
+        let model_id = navigation_id("model", &path);
+        let project_active = active_project_id.as_deref() == Some(project_id.as_str());
+
+        let index = projects.iter().position(|project| project.id == project_id)
+            .unwrap_or_else(|| {
+                projects.push(ProjectNavigationProject {
+                    id: project_id.clone(),
+                    name: project_name(&root),
+                    active: project_active,
+                    model_count: 0,
+                    models: Vec::new(),
+                });
+                projects.len() - 1
+            });
+        let project = &mut projects[index];
+        project.active |= project_active;
+        if project.models.iter().any(|model| model.id == model_id) {
+            if active_model {
+                if let Some(model) = project.models.iter_mut().find(|model| model.id == model_id) {
+                    model.active = true;
+                }
+            }
+            return;
+        }
+        project.models.push(ProjectNavigationModel {
+            id: model_id,
+            name: model_name(&path, preferred),
+            active: active_model,
+            exists: path.is_file(),
+        });
+        project.model_count = project.models.len();
+    };
+
+    if let (Some(path), Some(active_snapshot)) = (active_path.clone(), snapshot.active.as_ref()) {
+        add_model(path, &active_snapshot.name, true);
+    }
+    for recent in snapshot.recent_models {
+        let path = PathBuf::from(&recent.path);
+        let model_id = navigation_id("model", &path);
+        let is_active = active_model_id.as_deref() == Some(model_id.as_str());
+        add_model(path, &recent.name, is_active);
+    }
+
+    projects.sort_by_key(|project| if project.active { 0 } else { 1 });
+    ProjectNavigation { revision, active, projects }
+}
+
+pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNavigationActionResult, String> {
+    let (projects, models) = navigation_paths();
+    match action {
+        "open-project-folder" => {
+            let path = projects.get(id).ok_or_else(|| "Project is no longer available.".to_string())?;
+            if !path.is_dir() {
+                return Err("Project folder is unavailable.".to_string());
+            }
+            Command::new("explorer.exe")
+                .arg(path)
+                .spawn()
+                .map_err(|error| format!("Unable to open the project folder: {error}"))?;
+            Ok(ProjectNavigationActionResult { status: "OPENED" })
+        }
+        "reveal-model" => {
+            let path = models.get(id).ok_or_else(|| "Model is no longer available.".to_string())?;
+            if !path.is_file() {
+                return Err("Model file is unavailable.".to_string());
+            }
+            Command::new("explorer.exe")
+                .arg("/select,")
+                .arg(path)
+                .spawn()
+                .map_err(|error| format!("Unable to reveal the model file: {error}"))?;
+            Ok(ProjectNavigationActionResult { status: "REVEALED" })
+        }
+        "open-model" => {
+            let path = models.get(id).ok_or_else(|| "Model is no longer available.".to_string())?;
+            if !path.is_file() {
+                return Err("Model file is unavailable.".to_string());
+            }
+            let mut system = System::new_all();
+            system.refresh_processes();
+            let executable = discover_blockbench_executable(&system)?
+                .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
+            blockbench_version(&executable)?;
+            Command::new(executable)
+                .arg(path)
+                .spawn()
+                .map_err(|error| format!("Unable to open the model in Blockbench: {error}"))?;
+            Ok(ProjectNavigationActionResult { status: "OPENED" })
+        }
+        _ => Err("Unsupported project navigation action.".to_string()),
+    }
+}
+
+pub fn project_navigation_path(id: &str) -> Result<ProjectPathResult, String> {
+    let (projects, models) = navigation_paths();
+    let path = models.get(id).or_else(|| projects.get(id))
+        .ok_or_else(|| "Project or model is no longer available.".to_string())?;
+    Ok(ProjectPathResult { path: path.display().to_string() })
 }
 
 
@@ -820,6 +1150,8 @@ fn compose_status(
         plugin_integrity,
     );
     let maintenance = project_maintenance(manager_available, managed.as_ref());
+    let runtime_active = blockbench.running && managed.as_ref().map(|value| value.runtime_online).unwrap_or(false);
+    let project_navigation = project_navigation_projection(runtime_active);
     let product_state = project_product_state(
         manager_available,
         managed.as_ref(),
@@ -840,6 +1172,7 @@ fn compose_status(
         manager_available,
         bootstrap_available: false,
         managed,
+        project_navigation,
         diagnostic,
     }
 }
@@ -934,6 +1267,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
             runtime_online: None,
             gateway_active: None,
             plugin_integrity: "unknown",
+            project_revision: project_navigation_revision(),
         };
     };
 
@@ -946,6 +1280,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
             runtime_online: None,
             gateway_active: None,
             plugin_integrity,
+            project_revision: project_navigation_revision(),
         };
     }
 
@@ -956,6 +1291,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
         runtime_online: runtime_online_fast(),
         gateway_active: gateway_active_fast(&root, &system),
         plugin_integrity,
+        project_revision: project_navigation_revision(),
     }
 }
 

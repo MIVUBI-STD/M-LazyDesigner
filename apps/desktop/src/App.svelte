@@ -57,6 +57,36 @@
     runtime_online: boolean | null;
     gateway_active: boolean | null;
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
+    project_revision: string | null;
+  };
+
+  type ProjectNavigationModel = {
+    id: string;
+    name: string;
+    active: boolean;
+    exists: boolean;
+  };
+
+  type ProjectNavigationProject = {
+    id: string;
+    name: string;
+    active: boolean;
+    model_count: number;
+    models: ProjectNavigationModel[];
+  };
+
+  type ActiveProjectNavigation = {
+    project_id: string | null;
+    project_name: string | null;
+    model_id: string | null;
+    model_name: string;
+    saved: boolean;
+  };
+
+  type ProjectNavigation = {
+    revision: string | null;
+    active: ActiveProjectNavigation | null;
+    projects: ProjectNavigationProject[];
   };
 
   type SystemStatus = {
@@ -71,6 +101,7 @@
     manager_available: boolean;
     bootstrap_available: boolean;
     managed: ManagedStatus | null;
+    project_navigation: ProjectNavigation;
     diagnostic: string | null;
   };
 
@@ -109,10 +140,18 @@
     path: string | null;
   };
 
+  type ProjectNavigationActionResult = {
+    status: 'OPENED' | 'REVEALED';
+  };
+
+  type ProjectPathResult = {
+    path: string;
+  };
+
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | null = null;
+  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | null = null;
   let pluginApprovalNeeded = false;
   let readinessReason = '';
   let actionMessage = '';
@@ -123,6 +162,8 @@
   let statusWatcherTimer: number | null = null;
   type Page = 'Overview' | 'Support';
   let page: Page = 'Overview';
+  let expandedProjectId: string | null = null;
+  let showAllProjects = false;
 
   type ManagedProgress = { schema: number; kind: 'progress'; action: string; stage: string };
   const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -199,6 +240,65 @@
     }
   }
 
+  const visibleRecentProjects = (value: SystemStatus) => {
+    const projects = value.project_navigation.projects.filter(project => !project.active);
+    return showAllProjects ? projects : projects.slice(0, 5);
+  };
+
+  function toggleProjectDetails(id: string) {
+    expandedProjectId = expandedProjectId === id ? null : id;
+  }
+
+  async function runProjectAction(action: 'open-project-folder' | 'reveal-model', id: string) {
+    if (devFixture || busyAction) return;
+    busyAction = 'project-action';
+    error = '';
+    clearSuccessToast();
+    try {
+      await invoke<ProjectNavigationActionResult>('project_navigation_action', { action, id });
+    } catch (cause) {
+      error = errorMessage(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function openProjectModel(id: string) {
+    if (devFixture || busyAction || !status?.manager_available) return;
+    busyAction = 'project-action';
+    error = '';
+    clearSuccessToast();
+    try {
+      const ready = await invoke<EnsureReadyResult>('ensure_ready');
+      pluginApprovalNeeded = ready.manual_plugin_approval_recommended;
+      readinessReason = ready.reason;
+      if (ready.status === 'NEEDS_ATTENTION' || ready.status === 'APPROVAL_REQUIRED') {
+        await refresh();
+        error = ready.status === 'APPROVAL_REQUIRED'
+          ? 'Approve LazyDesigner in Blockbench once, then open the model again.'
+          : 'LazyDesigner needs attention before this model can be opened.';
+        return;
+      }
+      await invoke<ProjectNavigationActionResult>('project_navigation_action', { action: 'open-model', id });
+      await refresh();
+    } catch (cause) {
+      error = errorMessage(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function copyNavigationPath(id: string) {
+    if (devFixture || busyAction) return;
+    try {
+      const result = await invoke<ProjectPathResult>('project_navigation_path', { id });
+      await navigator.clipboard.writeText(result.path);
+      showSuccessToast('Path copied.');
+    } catch (cause) {
+      error = errorMessage(cause);
+    }
+  }
+
   async function watchSystemStatus() {
     if (devFixture || busyAction || document.hidden || !status) return;
     try {
@@ -209,7 +309,8 @@
         candidate.blockbench_running !== status.blockbench.running
         || candidate.plugin_integrity !== status.plugin_integrity
         || candidate.runtime_online !== status.managed?.runtime_online
-        || candidate.gateway_active !== status.managed?.gateway_active;
+        || candidate.gateway_active !== status.managed?.gateway_active
+        || candidate.project_revision !== status.project_navigation.revision;
 
       if (changed) await refresh();
     } catch {
@@ -451,6 +552,27 @@
       : fixture === 'runtime-offline' || fixture === 'approval-required' || fixture === 'plugin-missing' ? 'plugin-setup'
       : 'attention';
 
+    next.project_navigation = {
+      revision: 'fixture',
+      active: fixture === 'fresh-install' ? null : {
+        project_id: 'project-fixture',
+        project_name: 'Furniture',
+        model_id: 'model-fixture',
+        model_name: 'Modern Chair',
+        saved: true,
+      },
+      projects: fixture === 'fresh-install' ? [] : [{
+        id: 'project-fixture',
+        name: 'Furniture',
+        active: true,
+        model_count: 2,
+        models: [
+          { id: 'model-fixture', name: 'Modern Chair', active: true, exists: true },
+          { id: 'model-fixture-2', name: 'Sofa', active: false, exists: true },
+        ],
+      }],
+    };
+
     next.maintenance = {
       ...next.maintenance,
       update: fixture !== 'fresh-install',
@@ -687,6 +809,104 @@
               {/if}
             </section>
 
+            {#if status.project_navigation.active}
+              {@const activeNavigation = status.project_navigation.active}
+              <section class="content-section">
+                <div class="section-heading">
+                  <div><h2>Active Project</h2></div>
+                </div>
+                <div class="project-list">
+                  <div class="project-row active-project-row">
+                    <div class="project-main">
+                      <div class="project-title">{activeNavigation.project_name ?? activeNavigation.model_name}</div>
+                      <div class="project-meta">{activeNavigation.saved ? activeNavigation.model_name : 'Not saved yet'}</div>
+                    </div>
+                    <div class="project-actions">
+                      {#if activeNavigation.project_id}
+                        <button class="secondary-button small-button" onclick={() => runProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busyAction !== null}>Open Folder</button>
+                        <button class="quiet-button" onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>See details</button>
+                      {/if}
+                    </div>
+                  </div>
+
+                  {#if activeNavigation.project_id && expandedProjectId === activeNavigation.project_id}
+                    {@const activeProject = status.project_navigation.projects.find(project => project.id === activeNavigation.project_id)}
+                    {#if activeProject}
+                      <div class="project-details">
+                        <div class="project-details-heading">Models</div>
+                        {#each activeProject.models as model}
+                          <div class="model-row">
+                            <div class="model-main">
+                              <strong>{model.name}</strong>
+                              {#if model.active}<span>Active</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
+                            </div>
+                            <div class="model-actions">
+                              <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>Open</button>
+                              <details class="more-menu">
+                                <summary aria-label="Model actions">•••</summary>
+                                <div class="menu-popover" role="menu">
+                                  <button role="menuitem" onclick={() => runProjectAction('reveal-model', model.id)} disabled={!model.exists || busyAction !== null}>Reveal model file</button>
+                                  <button role="menuitem" onclick={() => copyNavigationPath(model.id)} disabled={busyAction !== null}>Copy path</button>
+                                </div>
+                              </details>
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  {/if}
+                </div>
+              </section>
+            {/if}
+
+            {#if status.project_navigation.projects.filter(project => !project.active).length > 0}
+              <section class="content-section">
+                <div class="section-heading">
+                  <div><h2>Recent Projects</h2></div>
+                </div>
+                <div class="project-list">
+                  {#each visibleRecentProjects(status) as project}
+                    <div class="project-row">
+                      <div class="project-main">
+                        <div class="project-title">{project.name}</div>
+                        <div class="project-meta">{project.model_count} {project.model_count === 1 ? 'model' : 'models'}</div>
+                      </div>
+                      <div class="project-actions">
+                        <button class="secondary-button small-button" onclick={() => runProjectAction('open-project-folder', project.id)} disabled={busyAction !== null}>Open Folder</button>
+                        <button class="quiet-button" onclick={() => toggleProjectDetails(project.id)}>See details</button>
+                      </div>
+                    </div>
+                    {#if expandedProjectId === project.id}
+                      <div class="project-details">
+                        <div class="project-details-heading">Models</div>
+                        {#each project.models as model}
+                          <div class="model-row">
+                            <div class="model-main">
+                              <strong>{model.name}</strong>
+                              {#if !model.exists}<span>Location unavailable</span>{/if}
+                            </div>
+                            <div class="model-actions">
+                              <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>Open</button>
+                              <details class="more-menu">
+                                <summary aria-label="Model actions">•••</summary>
+                                <div class="menu-popover" role="menu">
+                                  <button role="menuitem" onclick={() => runProjectAction('reveal-model', model.id)} disabled={!model.exists || busyAction !== null}>Reveal model file</button>
+                                  <button role="menuitem" onclick={() => copyNavigationPath(model.id)} disabled={busyAction !== null}>Copy path</button>
+                                </div>
+                              </details>
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  {/each}
+                </div>
+                {#if status.project_navigation.projects.filter(project => !project.active).length > 5}
+                  <button class="show-more-button" onclick={() => showAllProjects = !showAllProjects}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
+                {/if}
+              </section>
+            {/if}
+
             <section class="content-section">
               <div class="section-heading">
                 <div><h2>LazyDesigner</h2><p>Local service status</p></div>
@@ -805,6 +1025,7 @@
   .more-menu{position:relative}.more-menu summary{width:30px;height:30px;display:grid;place-items:center;list-style:none;border-radius:6px;color:var(--muted);cursor:pointer}.more-menu summary:hover,.more-menu[open] summary{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:34px;width:168px;display:grid;padding:5px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
   .primary-button,.secondary-button,.icon-button{min-height:32px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}.primary-button,.secondary-button{padding:6px 11px}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text-soft)}.secondary-button:hover:not(:disabled){background:var(--surface-3);color:var(--text)}.icon-button{width:32px;border:1px solid transparent;background:transparent;color:var(--muted)}.icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}.small-button{min-height:28px;padding:4px 9px;font-size:9px}
   .content-section{margin-bottom:34px}.section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}.section-heading h2{margin:0;font-size:12px;font-weight:700}.section-heading p{margin:2px 0 0;color:var(--muted-2);font-size:9px}.resource-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.resource-row{min-height:74px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 12px 12px 14px}.app-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text-soft)}.app-icon :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.resource-main{min-width:0}.resource-title{font-size:11px;font-weight:700}.resource-meta{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--muted);font-size:9px}.meta-separator{color:var(--muted-2)}.status-good{color:#9ee8b9!important}.status-warning{color:#f6d97c!important}.resource-actions{display:flex;align-items:center;gap:5px}
+  .project-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.project-row{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}.project-row:last-child{border-bottom:0}.project-main{min-width:0;display:grid;gap:3px}.project-title{font-size:11px;font-weight:700}.project-meta{color:var(--muted);font-size:9px}.project-actions,.model-actions{display:flex;align-items:center;gap:6px}.quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:650;cursor:pointer}.quiet-button:hover,.show-more-button:hover{color:var(--text)}.project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface-1)}.project-details-heading{padding:8px 0 5px;color:var(--muted-2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.model-row{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}.model-main{min-width:0;display:flex;align-items:center;gap:7px}.model-main strong{font-size:9px;font-weight:650}.model-main span{color:var(--muted-2);font-size:8px}.show-more-button{margin-top:8px;padding:4px 0}
   .definition-rows{border-top:1px solid var(--border-soft)}.definition-row{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border-soft)}.definition-row>span{color:var(--muted);font-size:10px}.definition-row>strong,.definition-row code{font-size:10px;font-weight:650;color:var(--text-soft)}.definition-row code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.inline-action{display:flex;align-items:center;gap:10px}
   .inline-guidance{margin-top:10px;padding:14px 14px 13px;border:1px solid #5b4a22;border-radius:8px;background:var(--warning-bg)}.inline-guidance>div{display:grid;gap:2px}.inline-guidance strong{font-size:10px}.inline-guidance span{color:var(--muted);font-size:9px}.inline-guidance ol{margin:11px 0 12px;padding-left:18px;color:var(--text-soft);font-size:9px;line-height:1.75}.inline-note{display:flex;gap:8px;margin-top:10px;padding:9px 0;color:var(--muted);font-size:9px}.inline-note strong{color:var(--text-soft);font-size:9px}.inline-alert{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;padding:10px 12px;border:1px solid #5b4a22;border-radius:7px;background:var(--warning-bg)}.inline-alert>div{display:grid;gap:2px}.inline-alert strong{font-size:9px}.inline-alert span{color:var(--muted);font-size:9px}.danger-alert{display:grid;gap:2px;border-color:#693437;background:var(--danger-bg)}
   .setup-panel{max-width:760px;padding-top:10px}.setup-copy h2{margin:0;font-size:20px;letter-spacing:-.02em}.setup-copy p{margin:6px 0 0;color:var(--muted);font-size:10px}.setup-steps{margin-top:24px;border-top:1px solid var(--border-soft)}.setup-step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;padding:14px 0;border-bottom:1px solid var(--border-soft)}.step-number{width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:9px;font-weight:700}.setup-step.active .step-number{background:rgba(99,168,255,.12);color:var(--info)}.setup-step>div{display:grid;gap:2px}.setup-step strong{font-size:10px}.setup-step span{color:var(--muted);font-size:9px}.setup-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px}.setup-warning{max-width:520px;color:var(--warning);font-size:9px}
