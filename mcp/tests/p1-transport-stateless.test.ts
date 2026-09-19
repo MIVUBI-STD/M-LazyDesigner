@@ -25,7 +25,7 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(serverSource).toContain("getConformanceRequestStateCodec().verify");
   });
 
-  test("default MCP request path is stateless JSON on the existing SDK line", async () => {
+  test("default MCP request path is stateless with auto modern response representation", async () => {
     const source = await readFile(
       new URL("../server/net.ts", import.meta.url),
       "utf8"

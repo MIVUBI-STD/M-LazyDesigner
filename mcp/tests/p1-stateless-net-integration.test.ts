@@ -570,7 +570,7 @@ describe("P1.4 raw-net stateless integration", () => {
     expect(socket.destroyed).toBe(true);
   });
 
-  test("MCP responses close the client socket so a stuck request cannot poison reuse", async () => {
+  test("finite MCP responses close the client socket while subscription streams remain long-lived", async () => {
     const response = await fetch(`${baseUrl}${ENDPOINT}`, {
       method: "POST",
       headers: {

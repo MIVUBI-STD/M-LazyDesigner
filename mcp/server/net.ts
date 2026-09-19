@@ -899,10 +899,14 @@ export default function createNetServer (
             requestMcpPhaseSwitch(envelope.targetAuthoringPhase)
           }
 
+          const closeMcpConnection =
+            routedMethod === 'subscriptions/listen'
+              ? connectionClose
+              : true
           await sendSerializedWebResponse(
             response,
             result,
-            connectionClose
+            closeMcpConnection
           )
         } catch (error) {
           if (

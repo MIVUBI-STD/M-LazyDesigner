@@ -24,7 +24,7 @@ describe("Runtime boundary regressions", () => {
 
     expect(source).toContain("createMcpHandler");
     expect(source).toContain("legacy: 'reject'");
-    expect(source).toContain("responseMode: 'json'");
+    expect(source).toContain("responseMode: 'auto'");
     expect(source).toContain("isLegacyRequest");
     expect(source).toContain("WebStandardStreamableHTTPServerTransport");
     expect(source).toContain("enableJsonResponse: true");
