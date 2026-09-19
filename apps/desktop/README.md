@@ -285,3 +285,16 @@ Trusted builds use `src-tauri/tauri.release.conf.json`. Tauri delegates Windows 
 The Windows PFX bytes/password and Tauri updater private key/password are release secrets and never repository files. The imported Windows certificate is removed from the runner store during workflow cleanup.
 
 Generating signed updater artifacts does **not** enable Desktop self-update. Runtime updater support remains disabled until an intentional change commits the trusted public updater key, HTTPS endpoint/channel policy, updater plugin dependency/lockfiles, and explicit user-facing update behavior.
+
+
+## Static trusted update manifest
+
+Trusted draft releases also produce `latest.json` using the canonical non-secret policy in `release-channel.json`. The manifest contains the exact Desktop SemVer plus the Windows x86_64 release asset URL and the contents of the Tauri `.sig` sidecar.
+
+The stable manifest endpoint is reserved as:
+
+```text
+https://github.com/MIVUBI-STD/M-LazyDesigner/releases/latest/download/latest.json
+```
+
+This is release infrastructure only. `release-channel.json` keeps `selfUpdateRuntimeEnabled` false, and the Desktop contains no updater plugin or embedded updater public key yet. Enabling runtime update checks remains a separate change with its own lockfile/config/security review.

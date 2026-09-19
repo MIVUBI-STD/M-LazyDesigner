@@ -114,11 +114,13 @@ describe("Desktop control-plane ownership", () => {
 
 describe("Desktop release/version contract", () => {
   test("draft release stays explicit, exact-versioned, and separate from managed-component updates", async () => {
-    const [workflow, releaseConfig, signScript, importScript] = await Promise.all([
+    const [workflow, releaseConfig, signScript, importScript, manifestScript, releaseChannel] = await Promise.all([
       source("../.github/workflows/desktop-draft-release.yml"),
       source("../apps/desktop/src-tauri/tauri.release.conf.json"),
       source("../apps/desktop/scripts/sign-windows.ps1"),
       source("../apps/desktop/scripts/import-windows-signing-certificate.ps1"),
+      source("../apps/desktop/scripts/write-update-manifest.ps1"),
+      source("../apps/desktop/release-channel.json"),
     ]);
 
     expect(workflow).toContain("workflow_dispatch:");
@@ -138,6 +140,12 @@ describe("Desktop release/version contract", () => {
     expect(signScript).toContain("LAZYDESIGNER_WINDOWS_CERT_THUMBPRINT");
     expect(signScript).toContain("signtool.exe");
     expect(importScript).toContain("Import-PfxCertificate");
+    expect(manifestScript).toContain("windows-x86_64");
+    expect(manifestScript).toContain("signature = $signature");
+    expect(releaseChannel).toContain('"manifestAsset": "latest.json"');
+    expect(releaseChannel).toContain('"selfUpdateRuntimeEnabled": false');
+    expect(workflow).toContain("write-update-manifest.ps1");
+    expect(workflow).toContain("latest.json");
     expect(workflow).toContain("Bundled managed source SHA");
     expect(workflow).toContain("desktop-build-provenance.json");
     expect(workflow).toContain("SHA256SUMS.txt");
