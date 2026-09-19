@@ -1,0 +1,175 @@
+name: Desktop Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Desktop version from source (MAJOR.MINOR.PATCH)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-draft-release
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: apps/desktop
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Validate requested Desktop version
+        shell: pwsh
+        run: |
+          $version = '${{ inputs.version }}'
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw 'Desktop release version must be MAJOR.MINOR.PATCH.'
+          }
+
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $tauri = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $cargo = Get-Content src-tauri/Cargo.toml -Raw
+          $cargoMatch = [regex]::Match($cargo, '(?m)^version\s*=\s*"([^"]+)"\s*$')
+          if (!$cargoMatch.Success) { throw 'Cargo package version is missing.' }
+
+          $versions = @(
+            [string]$package.version,
+            [string]$tauri.version,
+            [string]$cargoMatch.Groups[1].Value
+          )
+          foreach ($sourceVersion in $versions) {
+            if ($sourceVersion -ne $version) {
+              throw "Requested Desktop version $version does not match source version $sourceVersion."
+            }
+          }
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Select pinned Rust toolchain
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.98.1 --profile minimal
+          rustup default 1.98.1
+          rustc --version
+
+      - name: Resolve pinned baseline Bun
+        id: bun-pin
+        shell: pwsh
+        run: |
+          $version = (Get-Content ../../.bun-version -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected an exact pinned Bun version.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup baseline Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v${{ steps.bun-pin.outputs.version }}/bun-windows-x64-baseline.zip
+
+      - name: Parse Desktop PowerShell scripts
+        shell: pwsh
+        run: |
+          $scripts = Get-ChildItem -LiteralPath ./scripts -Filter '*.ps1' -File
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $messages = ($errors | ForEach-Object { $_.Message }) -join '; '
+              throw "PowerShell syntax error in $($script.Name): $messages"
+            }
+          }
+
+      - name: Install Desktop dependencies
+        run: npm ci
+
+      - name: Verify Desktop source
+        run: npm run verify:source
+
+      - name: Reject duplicate Desktop release
+        shell: pwsh
+        run: |
+          gh release view "desktop-v${{ inputs.version }}" --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'A Desktop release for this version already exists.' }
+          $global:LASTEXITCODE = 0
+
+      - name: Build exact-SHA integrated Desktop installer
+        run: npm run build:app
+
+      - name: Resolve release artifact and provenance
+        id: release
+        shell: pwsh
+        run: |
+          $bundle = Join-Path $PWD 'src-tauri\target\release\bundle\nsis'
+          $installers = @(Get-ChildItem $bundle -Filter '*.exe' -File)
+          if ($installers.Count -ne 1) {
+            throw "Expected exactly one NSIS installer, found $($installers.Count)."
+          }
+          $installer = $installers[0]
+          $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+          "$hash  $($installer.Name)" | Set-Content -Encoding ascii (Join-Path $bundle 'SHA256SUMS.txt')
+
+          $managedManifest = Join-Path $PWD 'src-tauri\resources\managed\blockit-package.json'
+          $managed = Get-Content -LiteralPath $managedManifest -Raw | ConvertFrom-Json
+          if ($managed.source_sha -ne $env:GITHUB_SHA) {
+            throw "Bundled managed source SHA $($managed.source_sha) does not match release source SHA $env:GITHUB_SHA."
+          }
+
+          $provenance = [ordered]@{
+            schema = 1
+            release_tag = "desktop-v${{ inputs.version }}"
+            source_sha = $env:GITHUB_SHA
+            desktop_version = '${{ inputs.version }}'
+            installer = $installer.Name
+            installer_sha256 = $hash
+            managed_source_sha = $managed.source_sha
+            managed_build_identity = $managed.build_identity
+          }
+          $provenance | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $bundle 'desktop-build-provenance.json')
+
+          "installer_path=$($installer.FullName)" >> $env:GITHUB_OUTPUT
+          "installer_name=$($installer.Name)" >> $env:GITHUB_OUTPUT
+          "bundle=$bundle" >> $env:GITHUB_OUTPUT
+          "sha256=$hash" >> $env:GITHUB_OUTPUT
+
+      - name: Create draft Desktop release
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          gh release create "desktop-v${{ inputs.version }}" `
+            "${{ steps.release.outputs.installer_path }}" `
+            "${{ steps.release.outputs.bundle }}\SHA256SUMS.txt#SHA256SUMS.txt" `
+            "${{ steps.release.outputs.bundle }}\desktop-build-provenance.json#desktop-build-provenance.json" `
+            --repo $env:GITHUB_REPOSITORY `
+            --target $env:GITHUB_SHA `
+            --draft `
+            --title "LazyDesigner Desktop v${{ inputs.version }}" `
+            --notes "Draft-only Desktop release. Exact source SHA: $env:GITHUB_SHA. Installer SHA-256: ${{ steps.release.outputs.sha256 }}. Managed components are bundled from the same source SHA. Publication remains a separate explicit action."
+
+      - name: Release summary
+        shell: pwsh
+        run: |
+          "### LazyDesigner Desktop v${{ inputs.version }}" >> $env:GITHUB_STEP_SUMMARY
+          "Draft release created; nothing was auto-published." >> $env:GITHUB_STEP_SUMMARY
+          "Source SHA: ``$env:GITHUB_SHA``" >> $env:GITHUB_STEP_SUMMARY
+          "Installer SHA-256: ``${{ steps.release.outputs.sha256 }}``" >> $env:GITHUB_STEP_SUMMARY

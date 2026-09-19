@@ -210,3 +210,26 @@ The last known dashboard remains visible alongside the error so recovery context
 ## Update naming
 
 `blockit.exe update` updates managed Gateway/Runtime-plugin/Skills/distribution components. It does **not** replace the LazyDesigner Desktop executable. The Desktop UI therefore calls this **Update managed components**. Desktop self-update remains a separate release/signing concern and must not be implied by this action.
+
+
+## Desktop release/version contract
+
+Desktop application versioning is independent from managed-component update state.
+
+Canonical version sources must stay equal:
+
+```text
+apps/desktop/package.json
+apps/desktop/src-tauri/Cargo.toml
+apps/desktop/src-tauri/tauri.conf.json
+```
+
+Release naming:
+
+```text
+desktop-vMAJOR.MINOR.PATCH
+```
+
+The repository provides a manual **Desktop Draft Release** workflow. It runs only from `main`, requires an explicit version that exactly matches all three source version owners, builds the exact-SHA integrated installer, verifies that the bundled managed package uses the same source SHA, writes SHA-256/provenance files, rejects duplicate release versions, and creates a **draft** GitHub Release only.
+
+The workflow does not publish automatically and does not implement Desktop self-update. `Update managed components` remains a separate Managed Distribution action. Any future Desktop self-update requires its own signed update-channel design and must not be inferred from the draft-release workflow.

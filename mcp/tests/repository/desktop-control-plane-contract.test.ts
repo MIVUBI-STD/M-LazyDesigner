@@ -110,3 +110,25 @@ describe("Desktop control-plane ownership", () => {
     expect(readme).not.toContain("Start Gateway command");
   });
 });
+
+
+describe("Desktop release/version contract", () => {
+  test("draft release stays explicit, exact-versioned, and separate from managed-component updates", async () => {
+    const workflow = await source("../.github/workflows/desktop-draft-release.yml");
+
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).toContain("if: github.ref == 'refs/heads/main'");
+    expect(workflow).toContain("desktop-v${{ inputs.version }}");
+    expect(workflow).toContain("Requested Desktop version");
+    expect(workflow).toContain("does not match source version");
+    expect(workflow).toContain("npm run verify:source");
+    expect(workflow).toContain("npm run build:app");
+    expect(workflow).toContain("Bundled managed source SHA");
+    expect(workflow).toContain("desktop-build-provenance.json");
+    expect(workflow).toContain("SHA256SUMS.txt");
+    expect(workflow).toContain("--draft");
+    expect(workflow).toContain("nothing was auto-published");
+    expect(workflow).not.toContain("createUpdaterArtifacts");
+    expect(workflow).not.toContain("tauri-plugin-updater");
+  });
+});
