@@ -18,7 +18,10 @@ import {
   type JsonRecord,
 } from "./contract";
 import { GatewayConnectionManager } from "./connectionManager";
-import { resolveGatewayCapabilityEffects } from "./capabilityEffects";
+import {
+  resolveGatewayCapabilityEffects,
+  validateGatewayCapabilityEffectReceipt,
+} from "./capabilityEffects";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 
 export type GatewayBackendErrorCode =
@@ -755,6 +758,24 @@ export class BlockitRuntimeBackend {
           normalized.structuredContent,
           this.authoringPhase
         );
+        const receiptIssue = validateGatewayCapabilityEffectReceipt(
+          application,
+          normalized.isError !== true
+        );
+        if (receiptIssue) {
+          await this.closeConnectionUnsafe();
+          this.connection.markDegraded();
+          throw new GatewayBackendError(
+            "BACKEND_UNAVAILABLE",
+            receiptIssue.message,
+            false,
+            {
+              capability,
+              receipt_issue: receiptIssue.code,
+            }
+          );
+        }
+
         let affinityChanged = false;
 
         if (normalized.isError !== true) {

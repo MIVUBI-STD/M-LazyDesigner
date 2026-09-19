@@ -244,7 +244,9 @@ Historical BlockIT native/runtime proof predates the current LazyDesigner harden
 
 ## Current Proof Ceiling
 
-REMOTE_GITHUB verification has been exercised during the current synchronization pass and has already exposed stale contracts that are being corrected. Exact-head REMOTE_GITHUB verification has completed successfully through generated freshness, Runtime/Gateway typecheck, Runtime regression, authoring contracts, surface/phase measurement, build, provenance, and artifact upload.
+REMOTE_GITHUB verification has been exercised during the current synchronization pass and has already exposed stale contracts that were corrected. Source-changing verification heads are proven by the matching GitHub workflows through generated freshness, Runtime/Gateway typecheck, Runtime regression, authoring contracts, surface/phase measurement, build, provenance, and artifact upload.
+
+A docs-only head must not be described as newly "exact-head verified" when no matching full workflow ran. The lightweight `Head Proof` workflow classifies each `Local` push as documentation-only or source-impacting. Documentation-only heads establish only that executable source did not change in that commit; they inherit no stronger runtime/local/live claim from wording alone. Source-impacting heads continue to require their normal verification workflows.
 
 The current head has **not been typechecked/executed locally** or proven live in Blockbench.
 

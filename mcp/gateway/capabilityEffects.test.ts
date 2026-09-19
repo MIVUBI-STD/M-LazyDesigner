@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { resolveGatewayCapabilityEffects } from "./capabilityEffects";
+import {
+  resolveGatewayCapabilityEffects,
+  validateGatewayCapabilityEffectReceipt,
+} from "./capabilityEffects";
 
 describe("resolveGatewayCapabilityEffects", () => {
   test("adopts created project through metadata", () => {
@@ -52,5 +55,47 @@ describe("resolveGatewayCapabilityEffects", () => {
     expect(resolved.effects.invalidateCatalog).toBe(false);
     expect(resolved.projectUuid).toBeNull();
     expect(resolved.authoringPhase).toBeNull();
+  });
+  test("fails closed when project-affinity metadata requires a missing UUID", () => {
+    const resolved = resolveGatewayCapabilityEffects(
+      "create_project",
+      { project: {} },
+      null
+    );
+
+    expect(validateGatewayCapabilityEffectReceipt(resolved, true)).toEqual({
+      code: "MISSING_PROJECT_UUID",
+      message: expect.stringContaining("project UUID"),
+    });
+    expect(validateGatewayCapabilityEffectReceipt(resolved, false)).toBeNull();
+  });
+
+  test("fails closed when phase-affinity metadata requires a missing phase", () => {
+    const resolved = resolveGatewayCapabilityEffects(
+      "switch_authoring_phase",
+      { surface_changed: true },
+      "geometry"
+    );
+
+    expect(validateGatewayCapabilityEffectReceipt(resolved, true)).toEqual({
+      code: "MISSING_AUTHORING_PHASE",
+      message: expect.stringContaining("authoring-phase"),
+    });
+  });
+
+  test("accepts complete affinity receipts", () => {
+    const created = resolveGatewayCapabilityEffects(
+      "create_project",
+      { project: { uuid: "project-123" } },
+      null
+    );
+    const switched = resolveGatewayCapabilityEffects(
+      "switch_authoring_phase",
+      { phase: "animation", surface_changed: true },
+      "geometry"
+    );
+
+    expect(validateGatewayCapabilityEffectReceipt(created, true)).toBeNull();
+    expect(validateGatewayCapabilityEffectReceipt(switched, true)).toBeNull();
   });
 });

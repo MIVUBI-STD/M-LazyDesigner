@@ -1,0 +1,79 @@
+name: Head Proof
+
+on:
+  push:
+    branches:
+      - Local
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    name: Classify exact head
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout exact head and parent
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Classify head proof scope
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          head_sha="$GITHUB_SHA"
+          parent_sha="$(git rev-parse "${head_sha}^" 2>/dev/null || true)"
+
+          if [[ -z "$parent_sha" ]]; then
+            {
+              echo "## LazyDesigner Head Proof"
+              echo
+              echo "- head: \`$head_sha\`"
+              echo "- classification: initial/standalone"
+              echo "- claim: no parent source-equivalence claim available"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          mapfile -t changed < <(git diff --name-only "$parent_sha" "$head_sha")
+          source_impact=0
+
+          for path in "${changed[@]}"; do
+            case "$path" in
+              docs/*|README.md|CONTEXT.md|CONTRIBUTING.md|SECURITY.md|GITHUB_RULES.md|mcp/README.md|mcp/gateway/README.md|mcp/ARCHITECTURE.md|mcp/gateway/ARCHITECTURE.md|mcp/docs/*)
+                ;;
+              *)
+                source_impact=1
+                ;;
+            esac
+          done
+
+          if [[ "$source_impact" -eq 0 ]]; then
+            classification="documentation-only"
+            claim="no executable/source-impacting path changed in this commit; this is source-equivalence evidence only, not a new full verification run"
+          else
+            classification="source-impacting"
+            claim="normal source verification workflows remain authoritative; Head Proof does not substitute for them"
+          fi
+
+          {
+            echo "## LazyDesigner Head Proof"
+            echo
+            echo "- head: \`$head_sha\`"
+            echo "- parent: \`$parent_sha\`"
+            echo "- classification: **$classification**"
+            echo "- claim: $claim"
+            echo
+            echo "Changed paths:"
+            printf -- "- \`%s\`\n" "${changed[@]}"
+          } >> "$GITHUB_STEP_SUMMARY"

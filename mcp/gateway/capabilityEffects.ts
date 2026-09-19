@@ -15,6 +15,11 @@ export type GatewayEffectApplication = {
   surfaceChanged: boolean | null;
 };
 
+export type GatewayEffectReceiptIssue = {
+  code: "MISSING_PROJECT_UUID" | "MISSING_AUTHORING_PHASE";
+  message: string;
+};
+
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -58,4 +63,36 @@ export function resolveGatewayCapabilityEffects(
     authoringPhase,
     surfaceChanged,
   };
+}
+
+
+export function validateGatewayCapabilityEffectReceipt(
+  application: GatewayEffectApplication,
+  succeeded: boolean
+): GatewayEffectReceiptIssue | null {
+  if (!succeeded) return null;
+
+  if (
+    application.effects.projectAffinity === "adopt_created_project" &&
+    !application.projectUuid
+  ) {
+    return {
+      code: "MISSING_PROJECT_UUID",
+      message:
+        "LazyDesigner Runtime returned a successful project-creation result without the project UUID required by Gateway affinity metadata.",
+    };
+  }
+
+  if (
+    application.effects.phaseAffinity === "update_from_result" &&
+    !application.authoringPhase
+  ) {
+    return {
+      code: "MISSING_AUTHORING_PHASE",
+      message:
+        "LazyDesigner Runtime returned a successful authoring-phase transition without the phase required by Gateway affinity metadata.",
+    };
+  }
+
+  return null;
 }
