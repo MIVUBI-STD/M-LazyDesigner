@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { normalizeRuntimeUrl } from "../gateway/contract";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
-import { ensureRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
+import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
 import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
@@ -135,7 +135,19 @@ async function main(): Promise<void> {
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
   if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline, runtimeTlsStatus)); return; }
-  if (command === "setup-tls") { receipt({ status: "TLS_READY", ...ensureRuntimeTlsIdentity() }); return; }
+  if (command === "setup-tls") {
+    const installed = await installedState(root);
+    if (!installed) throw new Error("LazyDesigner is not installed; Runtime TLS setup requires an installed managed state.");
+    await withInstallLock(root, async () => {
+      const current = await installedState(root);
+      if (!current) throw new Error("LazyDesigner installation changed before Runtime TLS setup.");
+      if (await activeGateways(root) || await runtimeOnline(current.options.config)) {
+        throw new Error("Close Blockbench and active Codex MCP sessions before Runtime TLS setup.");
+      }
+      receipt({ status: "TLS_READY", ...renewRuntimeTlsIdentity() });
+    });
+    return;
+  }
   if (command === "mcp") {
     let executable = process.execPath;
     await withInstallLock(root, async () => {

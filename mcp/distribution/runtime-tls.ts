@@ -1,5 +1,5 @@
 import { createPrivateKey, X509Certificate } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { runtimeTlsPaths } from "../lib/runtimeConnection";
 
@@ -156,4 +156,57 @@ export function ensureRuntimeTlsIdentity(
   const status = validateRuntimeTlsIdentity(env, platform);
   if (!status.ready) throw new Error(status.error ?? "Runtime TLS identity is not ready.");
   return status;
+}
+
+
+/**
+ * Explicit maintenance path for an installed machine identity.
+ *
+ * Default provisioning remains no-overwrite. This function may replace only a
+ * complete pair that already exists but fails validation (including expiry).
+ * If replacement provisioning fails, the previous bytes are restored.
+ */
+export function renewRuntimeTlsIdentity(
+  env: Record<string, string | undefined> = process.env,
+  platform: string = process.platform
+): RuntimeTlsStatus {
+  const paths = runtimeTlsPaths(env, platform);
+  const certExists = existsSync(paths.cert);
+  const keyExists = existsSync(paths.key);
+
+  if (certExists !== keyExists) {
+    throw new Error(
+      "Incomplete Runtime TLS identity. Restore or explicitly remove the mismatched pair before renewal."
+    );
+  }
+
+  if (!certExists && !keyExists) {
+    return ensureRuntimeTlsIdentity(env, platform);
+  }
+
+  const current = validateRuntimeTlsIdentity(env, platform);
+  if (current.ready) return current;
+
+  const previousCert = readFileSync(paths.cert);
+  const previousKey = readFileSync(paths.key);
+  rmSync(paths.cert, { force: true });
+  rmSync(paths.key, { force: true });
+
+  try {
+    return ensureRuntimeTlsIdentity(env, platform);
+  } catch (error) {
+    rmSync(paths.cert, { force: true });
+    rmSync(paths.key, { force: true });
+    mkdirSync(paths.directory, { recursive: true, mode: 0o700 });
+    writeFileSync(paths.cert, previousCert);
+    writeFileSync(paths.key, previousKey);
+    if (platform !== "win32") {
+      chmodSync(paths.directory, 0o700);
+      chmodSync(paths.key, 0o600);
+    }
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `TLS renewal failed; the previous invalid identity was restored. ${reason}`
+    );
+  }
 }

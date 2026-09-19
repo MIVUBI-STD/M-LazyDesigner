@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:https";
@@ -7,6 +7,11 @@ import type { AddressInfo } from "node:net";
 import { runtimeTlsPaths, DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
 import { runtimeFetch } from "../lib/runtimeFetch";
 import { setupRuntimeTls } from "../scripts/setup-runtime-tls";
+import {
+  ensureRuntimeTlsIdentity,
+  renewRuntimeTlsIdentity,
+  runtimeTlsStatus,
+} from "../distribution/runtime-tls";
 import createNetServer from "../server/net";
 import { BlockitRuntimeBackend } from "../gateway/backend";
 
@@ -61,3 +66,38 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
     rmSync(directory, { recursive: true, force: true });
   }
 }, 20_000);
+
+
+test("explicit TLS renewal replaces a complete invalid identity without weakening default no-overwrite", () => {
+  const directory = mkdtempSync(join(tmpdir(), "lazydesigner-tls-renew-"));
+  const env = { ...process.env, BLOCKIT_TLS_DIR: directory };
+  try {
+    const initial = ensureRuntimeTlsIdentity(env, process.platform);
+    expect(initial.ready).toBe(true);
+
+    const paths = runtimeTlsPaths(env, process.platform);
+    writeFileSync(paths.cert, "invalid certificate");
+    writeFileSync(paths.key, "invalid private key");
+    expect(runtimeTlsStatus(env, process.platform).ready).toBe(false);
+    expect(() => ensureRuntimeTlsIdentity(env, process.platform)).toThrow();
+
+    const renewed = renewRuntimeTlsIdentity(env, process.platform);
+    expect(renewed.ready).toBe(true);
+    expect(runtimeTlsStatus(env, process.platform).ready).toBe(true);
+    expect(readFileSync(paths.cert, "utf8")).not.toBe("invalid certificate");
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}, 20_000);
+
+test("explicit TLS renewal still refuses an incomplete pair", () => {
+  const directory = mkdtempSync(join(tmpdir(), "lazydesigner-tls-incomplete-"));
+  const env = { ...process.env, BLOCKIT_TLS_DIR: directory };
+  try {
+    const paths = runtimeTlsPaths(env, process.platform);
+    writeFileSync(paths.cert, "orphan certificate");
+    expect(() => renewRuntimeTlsIdentity(env, process.platform)).toThrow("Incomplete Runtime TLS identity");
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

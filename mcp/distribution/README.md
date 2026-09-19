@@ -112,3 +112,12 @@ status
 ```
 
 The certificate remains outside package transactions at the canonical machine path from `runtimeTlsPaths()`. Update and package repair never rotate the identity.
+
+
+## Runtime TLS renewal
+
+Fresh install continues to use no-overwrite TLS provisioning. Existing valid machine identities are retained.
+
+The explicit `setup-tls` maintenance command is the only path allowed to renew a complete but invalid/expired pair. It requires an installed managed state and is refused while a Gateway session or Runtime is active. Renewal keeps the previous pair in memory during replacement and restores its bytes if new provisioning fails.
+
+An incomplete one-file identity remains fail-closed and is never guessed or silently replaced.
