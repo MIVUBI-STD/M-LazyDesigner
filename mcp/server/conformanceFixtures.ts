@@ -131,7 +131,7 @@ export function wireConformanceFixtures(server: McpServer): void {
       description: "Tests progress notifications",
       inputSchema: {},
     },
-    async (_args, ctx: any) => {
+    async (_args: Record<string, never>, ctx: any) => {
       const progressToken = ctx.mcpReq?._meta?.progressToken ?? 0;
       for (const progress of [0, 50, 100]) {
         await ctx.mcpReq.notify({
@@ -182,8 +182,8 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_elicitation",
-    { description: "MRTR elicitation fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR elicitation fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const accepted = acceptedContent<{ name: string }>(
         ctx.mcpReq.inputResponses,
         "user_name"
@@ -202,8 +202,8 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_sampling",
-    { description: "MRTR sampling fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR sampling fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const answer = inputResponse(ctx.mcpReq.inputResponses, "capital_question");
       if (answer.kind === "sampling") return textResult("sampling response accepted");
       return inputRequired({
@@ -222,8 +222,8 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_list_roots",
-    { description: "MRTR roots fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR roots fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const roots = inputResponse(ctx.mcpReq.inputResponses, "client_roots");
       if (roots.kind === "roots") return textResult(`received ${roots.roots.length} root(s)`);
       return inputRequired({
@@ -234,10 +234,10 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_request_state",
-    { description: "MRTR requestState round-trip fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR requestState round-trip fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const codec = getConformanceRequestStateCodec();
-      const state = ctx.mcpReq.requestState<ConformanceState>();
+      const state = (ctx.mcpReq.requestState() as ConformanceState | undefined);
       const response = acceptedContent<{ ok: boolean }>(
         ctx.mcpReq.inputResponses,
         "confirm"
@@ -259,8 +259,8 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_multiple_inputs",
-    { description: "MRTR multiple-input fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR multiple-input fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const codec = getConformanceRequestStateCodec();
       const user = inputResponse(ctx.mcpReq.inputResponses, "user_name");
       const greeting = inputResponse(ctx.mcpReq.inputResponses, "greeting");
@@ -294,10 +294,10 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_multi_round",
-    { description: "MRTR multi-round fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR multi-round fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const codec = getConformanceRequestStateCodec();
-      const state = ctx.mcpReq.requestState<ConformanceState>();
+      const state = (ctx.mcpReq.requestState() as ConformanceState | undefined);
 
       if (state?.flow === "multi-round" && state.step === 2) {
         const color = acceptedContent<{ color: string }>(
@@ -349,10 +349,10 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_tampered_state",
-    { description: "MRTR tamper-detection fixture" },
-    async (_args, ctx: any) => {
+    { description: "MRTR tamper-detection fixture", inputSchema: {} },
+    async (_args: Record<string, never>, ctx: any) => {
       const codec = getConformanceRequestStateCodec();
-      const state = ctx.mcpReq.requestState<ConformanceState>();
+      const state = (ctx.mcpReq.requestState() as ConformanceState | undefined);
       const response = acceptedContent<{ ok: boolean }>(
         ctx.mcpReq.inputResponses,
         "confirm"
@@ -374,7 +374,7 @@ export function wireConformanceFixtures(server: McpServer): void {
 
   server.registerTool(
     "test_input_required_result_capabilities",
-    { description: "MRTR client-capability filtering fixture" },
+    { description: "MRTR client-capability filtering fixture", inputSchema: {} },
     async () =>
       inputRequired({
         inputRequests: {
@@ -515,7 +515,7 @@ export function wireConformanceFixtures(server: McpServer): void {
       title: "Input Required Prompt",
       description: "MRTR prompt that requires elicitation input",
     },
-    async (_args, ctx: any) => {
+    async (_args: Record<string, never>, ctx: any) => {
       const accepted = acceptedContent<{ context: string }>(
         ctx.mcpReq.inputResponses,
         "user_context"
