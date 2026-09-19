@@ -345,7 +345,9 @@ async function handleLegacyJsonMcpRequest (
   profile: McpRegistrationProfile,
   phaseScoped: boolean
 ): Promise<Response> {
-  // SDK v2.0.0 currently ignores createMcpHandler(responseMode='json') for
+  // The modern handler uses responseMode='auto' so ordinary calls stay JSON
+  // while related progress/log messages can upgrade the request to SSE. The
+  // legacy compatibility leg remains explicitly JSON below; SDK v2.0.0 does
   // legacy 2025 stateless traffic and emits SSE instead. Keep this bounded
   // official-SDK compatibility shim until that upstream behavior changes.
   const requestServer = createRequestServer(phase, profile, phaseScoped)
@@ -374,7 +376,7 @@ async function handleStatelessMcpRequest (
     () => createRequestServer(phase, profile, phaseScoped),
     {
       legacy: 'reject',
-      responseMode: 'json'
+      responseMode: 'auto'
     }
   )
 
@@ -391,7 +393,7 @@ async function handleStatelessMcpRequest (
     const contentType = webResponse.headers.get('content-type') || ''
 
     // MCP 2026 Streamable HTTP may represent a POST response as either JSON or
-    // text/event-stream according to the client's Accept header. The official
+    // text/event-stream when related messages require streaming. The official
     // modern SDK owns that choice. LazyDesigner buffers the finite response and
     // forwards its exact content type; only the legacy compatibility leg is
     // forced to JSON by handleLegacyJsonMcpRequest().

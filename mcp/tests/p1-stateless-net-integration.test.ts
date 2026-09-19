@@ -306,13 +306,14 @@ describe("P1.4 raw-net stateless integration", () => {
     expect(response).toContain("routing headers disagree");
   });
 
-  test("modern 2026 POST may return SSE when the client requests event-stream", async () => {
+  test("modern 2026 POST accepts JSON or SSE representation without outer rejection", async () => {
     const response = await fetch(`${baseUrl}${ENDPOINT}`, {
       method: "POST",
       headers: {
         accept: "text/event-stream",
         "content-type": "application/json",
         "mcp-protocol-version": "2026-07-28",
+        "mcp-method": "tools/list",
         connection: "close",
       },
       body: JSON.stringify({
@@ -329,7 +330,11 @@ describe("P1.4 raw-net stateless integration", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toContain("text/event-stream");
+    const contentType = response.headers.get("content-type") ?? "";
+    expect(
+      contentType.includes("application/json") ||
+        contentType.includes("text/event-stream")
+    ).toBe(true);
     const body = await response.text();
     expect(body).toContain('"jsonrpc":"2.0"');
     expect(body).toContain('"id":601');

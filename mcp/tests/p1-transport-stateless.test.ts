@@ -139,6 +139,7 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
 
     expect(source).toContain("mode: 'stateless'");
     expect(source).toContain("response_mode: 'json'");
+    expect(source).toContain("responseMode: 'auto'");
     expect(source).not.toContain("sessions:");
   });
 

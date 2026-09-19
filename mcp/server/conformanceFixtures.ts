@@ -53,9 +53,9 @@ const CONFIRM_SCHEMA = {
 
 export function wireConformanceFixtures(server: McpServer): void {
   server.server.registerCapabilities({
-    tools: { listChanged: true },
-    resources: { listChanged: true },
-    prompts: { listChanged: true },
+    tools: { listChanged: false },
+    resources: { listChanged: false, subscribe: false },
+    prompts: { listChanged: false },
     completions: {},
   });
 
