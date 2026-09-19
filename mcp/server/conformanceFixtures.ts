@@ -22,8 +22,11 @@ type ConformanceState =
 let requestStateCodec: ReturnType<typeof createRequestStateCodec<ConformanceState>> | null = null;
 
 export function conformanceFixturesEnabled(): boolean {
-  return (globalThis as { __LAZYDESIGNER_CONFORMANCE__?: unknown })
-    .__LAZYDESIGNER_CONFORMANCE__ === true;
+  return (
+    process.env.LAZYDESIGNER_CONFORMANCE_HARNESS === "1" &&
+    (globalThis as { __LAZYDESIGNER_CONFORMANCE__?: unknown })
+      .__LAZYDESIGNER_CONFORMANCE__ === true
+  );
 }
 
 export function getConformanceRequestStateCodec() {
