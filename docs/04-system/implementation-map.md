@@ -378,3 +378,28 @@ Do not interpret these as a second product architecture and do not bulk-rename t
 ## Proof Boundary
 
 Source ownership and contracts can be established remotely. Installed Runtime freshness, persistent-Gateway recovery, native Blockbench mutation behavior, playback/persistence, visual fidelity and measured whole-task efficiency require matching local/live evidence.
+
+
+## Desktop Control Plane
+
+Canonical source:
+
+```text
+apps/desktop/
+```
+
+Ownership:
+
+```text
+Svelte frontend
+→ status/diagnostic presentation only
+
+Rust system_status
+→ Blockbench desktop process detection
+→ discovery of the existing managed installation
+→ invocation of canonical blockit.exe status
+```
+
+Desktop is a machine/lifecycle supervisor. It does not own authoring state, MCP capability routing, Control context, package integrity, update staging, rollback, or Codex configuration mutation.
+
+Managed installation/update/recovery ownership remains under `mcp/distribution/`; Runtime authoring remains under `mcp/server/` + `mcp/plugin/`.

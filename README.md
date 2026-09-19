@@ -104,6 +104,7 @@ Static source/CI proof can establish routing, contracts, schemas, deterministic 
 ```text
 .agents/skills/    task/domain specialists loaded only when relevant
 docs/              hierarchical canonical documentation; start at docs/README.md
+apps/desktop/      Tauri/Svelte/Rust desktop machine control plane
 mcp/               Blockbench MCP plugin/runtime/Gateway/Control/build/tests/generated API docs
 workspace/         persistent active/saved asset packages
 Experimental/      bounded research only
