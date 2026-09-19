@@ -158,7 +158,7 @@
     try {
       const result = await invoke<BootstrapActionResult>('bootstrap_install');
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
-      actionMessage = `Install: ${receiptStatus}. In Blockbench, use Plugins → Load Plugin from File once and select the managed plugin highlighted by Desktop.`;
+      actionMessage = `Setup complete: ${receiptStatus}. Open Blockbench and load the LazyDesigner plugin to finish connecting.`;
       recordOperation('Install LazyDesigner', 'success', receiptStatus);
       await refresh();
     } catch (cause) {
@@ -227,12 +227,12 @@
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Rollback managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
+      const actionLabel = action === 'update' ? 'Update LazyDesigner' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       actionMessage = `${actionLabel}: ${receiptStatus}`;
       recordOperation(actionLabel, 'success', receiptStatus);
       await refresh();
     } catch (cause) {
-      const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Rollback managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
+      const actionLabel = action === 'update' ? 'Update LazyDesigner' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       recordOperation(actionLabel, 'failed', errorCode(cause));
       error = errorMessage(cause);
     } finally {
@@ -264,31 +264,51 @@
     return 'Unavailable';
   };
 
+  type ProductMode = 'welcome' | 'security-setup' | 'unsupported' | 'ready-start' | 'plugin-setup' | 'ready' | 'attention';
+
+  function productMode(value: SystemStatus): ProductMode {
+    if (!value.manager_available) return 'welcome';
+    if (value.managed?.tls_ready === false) return 'security-setup';
+    if (value.blockbench.compatibility?.status === 'unsupported' || value.blockbench.compatibility?.status === 'invalid') return 'unsupported';
+    if (!value.blockbench.running) return 'ready-start';
+    if (
+      value.readiness.state === 'needs-connection'
+      || value.gateway.state === 'waiting-runtime'
+      || value.gateway.state === 'runtime-offline'
+      || value.gateway.state === 'client-disconnected'
+    ) return 'plugin-setup';
+    if (value.readiness.ready) return 'ready';
+    return 'attention';
+  }
+
   function productHeadline(value: SystemStatus) {
-    if (!value.manager_available) return 'Set up LazyDesigner';
-    if (value.managed?.tls_ready === false) return 'Finish setup';
-    if (value.readiness.state === 'ready') return 'Ready to use';
-    if (value.readiness.state === 'ready-to-start') return 'Ready to start';
-    if (value.readiness.state === 'needs-connection') return 'Reconnect to Blockbench';
-    if (value.readiness.state === 'setup-required') return 'Finish setup';
+    const mode = productMode(value);
+    if (mode === 'welcome') return 'Welcome to LazyDesigner';
+    if (mode === 'security-setup') return 'Finish setup';
+    if (mode === 'unsupported') return 'Blockbench version not supported';
+    if (mode === 'ready-start') return 'Ready to start';
+    if (mode === 'plugin-setup') return 'Connect LazyDesigner to Blockbench';
+    if (mode === 'ready') return 'Ready to use';
     return 'Action required';
   }
 
   function productMessage(value: SystemStatus) {
-    if (!value.manager_available) return 'Install the components LazyDesigner needs to work with Blockbench.';
-    if (value.managed?.tls_ready === false) return 'LazyDesigner needs to finish its secure local setup before it can be used.';
-    if (value.readiness.state === 'ready') return 'Everything is working. You can continue in Blockbench.';
-    if (value.readiness.state === 'ready-to-start') return 'LazyDesigner is ready. Open Blockbench to begin.';
-    if (value.readiness.state === 'needs-connection') return 'LazyDesigner can’t reach Blockbench. Open Blockbench, then reload the LazyDesigner plugin.';
-    if (value.readiness.state === 'setup-required') return 'Complete the remaining setup step before using LazyDesigner.';
+    const mode = productMode(value);
+    if (mode === 'welcome') return 'Set up LazyDesigner once, then continue your work in Blockbench.';
+    if (mode === 'security-setup') return 'Complete the secure local setup required for LazyDesigner to connect safely.';
+    if (mode === 'unsupported') return 'This Blockbench version cannot be used safely with the current LazyDesigner build.';
+    if (mode === 'ready-start') return 'Everything is installed. Open Blockbench when you are ready to work.';
+    if (mode === 'plugin-setup') return 'Open Blockbench and load or reload the LazyDesigner plugin to finish the connection.';
+    if (mode === 'ready') return 'Everything is working. Continue in Blockbench.';
     return value.readiness.summary;
   }
 
-  function userState(value: SystemStatus) {
-    if (!value.manager_available || value.managed?.tls_ready === false || value.readiness.state === 'setup-required') return 'setup';
-    if (value.readiness.ready) return 'ready';
-    if (value.readiness.state === 'ready-to-start') return 'start';
-    return 'attention';
+  function productGuidance(value: SystemStatus) {
+    const mode = productMode(value);
+    if (mode === 'unsupported') return 'Update Blockbench to a supported version, then refresh this page.';
+    if (mode === 'plugin-setup') return 'Use Plugins → Load Plugin from File in Blockbench, then select the LazyDesigner plugin.';
+    if (mode === 'attention') return value.gateway.action ?? value.blockbench.diagnostic ?? value.diagnostic ?? 'Open Support for troubleshooting tools.';
+    return null;
   }
 
 </script>
@@ -352,36 +372,55 @@
         </header>
 
         <main class="content centered-content">
-          <section class:ready-state={userState(status) === 'ready'} class:attention-state={userState(status) === 'attention'} class:setup-state={userState(status) === 'setup'} class="product-state" aria-live="polite">
-            <span class="state-symbol">{userState(status) === 'ready' ? '✓' : userState(status) === 'attention' ? '!' : '•'}</span>
+          <section
+            class:ready-state={productMode(status) === 'ready'}
+            class:attention-state={productMode(status) === 'attention' || productMode(status) === 'unsupported' || productMode(status) === 'plugin-setup'}
+            class:setup-state={productMode(status) === 'welcome' || productMode(status) === 'security-setup'}
+            class="product-state"
+            aria-live="polite"
+          >
+            <span class="state-symbol">{productMode(status) === 'ready' ? '✓' : productMode(status) === 'unsupported' || productMode(status) === 'attention' ? '!' : '•'}</span>
             <div class="state-copy"><h2>{productHeadline(status)}</h2><p>{productMessage(status)}</p></div>
             <div class="state-actions">
-              {#if !status.manager_available}
-                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null}>{busyAction === 'install' ? 'Setting up…' : 'Set up LazyDesigner'}</button>
-              {:else if status.managed?.tls_ready === false}
-                <button class="primary-button" onclick={() => runManagedAction('setup-tls')} disabled={!status.maintenance.setup_tls || busyAction !== null}>{busyAction === 'setup-tls' ? 'Finishing setup…' : 'Finish setup'}</button>
-              {:else if !status.blockbench.running}
-                <button class="primary-button" onclick={openBlockbench} disabled={busyAction !== null}>{busyAction === 'open-blockbench' ? 'Opening…' : 'Open Blockbench'}</button>
-              {:else if status.readiness.state === 'needs-connection'}
-                <button class="secondary-button" onclick={showPluginFile} disabled={busyAction !== null}>Show plugin file</button>
+              {#if productMode(status) === 'welcome'}
+                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null}>
+                  {busyAction === 'install' ? 'Setting up…' : 'Set up LazyDesigner'}
+                </button>
+              {:else if productMode(status) === 'security-setup'}
+                <button class="primary-button" onclick={() => runManagedAction('setup-tls')} disabled={!status.maintenance.setup_tls || busyAction !== null}>
+                  {busyAction === 'setup-tls' ? 'Finishing setup…' : 'Finish setup'}
+                </button>
+              {:else if productMode(status) === 'ready-start'}
+                <button class="primary-button" onclick={openBlockbench} disabled={busyAction !== null}>
+                  {busyAction === 'open-blockbench' ? 'Opening…' : 'Open Blockbench'}
+                </button>
+              {:else if productMode(status) === 'plugin-setup'}
+                <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>
+                  {busyAction === 'show-plugin' ? 'Opening…' : 'Show plugin file'}
+                </button>
+                <button class="secondary-button" onclick={openBlockbench} disabled={busyAction !== null}>Open Blockbench</button>
+              {:else if productMode(status) === 'unsupported'}
+                <button class="secondary-button" onclick={refresh} disabled={loading || busyAction !== null}>Check again</button>
+              {:else if productMode(status) === 'attention'}
+                <button class="secondary-button" onclick={() => (page = 'Support')}>Open Support</button>
               {/if}
             </div>
           </section>
 
-          {#if userState(status) === 'ready'}
+          {#if productMode(status) === 'ready'}
             <section class="quiet-summary">
               <div><span class="quiet-label">Blockbench</span><strong>{status.blockbench.version ? 'v' + status.blockbench.version : 'Running'}</strong></div>
               <span class="quiet-divider"></span>
               <div><span class="quiet-label">Connection</span><strong>Ready</strong></div>
             </section>
             <button class="text-action" onclick={() => (page = 'Support')}>System details</button>
-          {:else if status.gateway.action || status.blockbench.diagnostic || status.diagnostic}
-            <section class="guidance-card"><strong>What to do</strong><p>{status.gateway.action ?? status.blockbench.diagnostic ?? status.diagnostic}</p></section>
+          {:else if productGuidance(status)}
+            <section class="guidance-card"><strong>Next step</strong><p>{productGuidance(status)}</p></section>
           {/if}
 
           {#if status.managed?.pending}
             <section class="update-callout">
-              <div><strong>LazyDesigner update ready</strong><span>Finish the component update when you are ready.</span></div>
+              <div><strong>Update available</strong><span>A newer LazyDesigner component set is ready to install.</span></div>
               <button class="primary-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null}>{busyAction === 'update' ? 'Updating…' : 'Update'}</button>
             </section>
           {/if}
@@ -422,7 +461,7 @@
               <div class="group-copy"><h3>System</h3><p>Key status information for LazyDesigner and Blockbench.</p></div>
               <div class="support-overview">
                 <div><span>Blockbench</span><strong>{status.blockbench.version ?? (status.blockbench.running ? 'Running' : 'Closed')}</strong></div>
-                <div><span>LazyDesigner</span><strong>{status.readiness.ready ? 'Ready' : 'Needs attention'}</strong></div>
+                <div><span>LazyDesigner</span><strong>{productMode(status) === 'ready' ? 'Ready' : productHeadline(status)}</strong></div>
                 <div><span>Blockbench support</span><strong>{compatibilityLabel(status.blockbench.compatibility?.status)}</strong></div>
                 <div><span>Local security</span><strong>{tlsLabel(status.manager_available, status.managed)}</strong></div>
               </div>
@@ -481,7 +520,7 @@
   .main-view{min-width:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}.page-toolbar{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 30px;border-bottom:1px solid var(--border-soft);background:var(--bg)}.page-toolbar h1{margin:0;font-size:21px}.page-toolbar p{margin:3px 0 0;color:var(--muted);font-size:11px}.content{width:min(960px,calc(100% - 56px));margin:0 auto;padding:34px 0 48px;overflow:auto;min-height:0;flex:1}.centered-content{display:flex;flex-direction:column}.activity-page,.support-page{width:min(860px,100%)}
   .primary-button,.secondary-button{min-height:36px;border-radius:8px;padding:8px 13px;font-weight:650;cursor:pointer}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text)}.secondary-button:hover:not(:disabled){background:var(--surface-3)}
   .more-menu{position:relative}.more-menu summary{width:38px;height:38px;display:grid;place-items:center;list-style:none;border-radius:8px;color:var(--muted);cursor:pointer}.more-menu summary:hover{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:42px;width:180px;display:grid;padding:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:8px 9px;border-radius:7px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
-  .product-state{min-height:178px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:26px;border-bottom:1px solid var(--border-soft)}.state-symbol{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:18px;font-weight:800}.ready-state{border-bottom-color:color-mix(in srgb,var(--accent) 24%,var(--border-soft))}.ready-state .state-symbol{background:var(--accent-soft);color:var(--accent)}.attention-state,.setup-state{border-bottom-color:#4b421f}.attention-state .state-symbol,.setup-state .state-symbol{background:var(--warning-bg);color:var(--warning)}.state-copy h1,.state-copy h2{margin:0;font-size:20px;letter-spacing:-.018em}.state-copy p{max-width:560px;margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.state-actions{display:flex;align-items:center;gap:8px}
+  .product-state{min-height:178px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:26px;border-bottom:1px solid var(--border-soft)}.state-symbol{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:18px;font-weight:800}.ready-state{border-bottom-color:color-mix(in srgb,var(--accent) 24%,var(--border-soft))}.ready-state .state-symbol{background:var(--accent-soft);color:var(--accent)}.attention-state{border-bottom-color:#4b421f}.attention-state .state-symbol{background:var(--warning-bg);color:var(--warning)}.setup-state{border-bottom-color:#36587d}.setup-state .state-symbol{background:rgba(99,168,255,.12);color:var(--info)}.state-copy h1,.state-copy h2{margin:0;font-size:20px;letter-spacing:-.018em}.state-copy p{max-width:560px;margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.state-actions{display:flex;align-items:center;gap:8px}
   .quiet-summary{display:flex;align-items:center;gap:18px;padding:16px 26px}.quiet-summary>div{display:grid;gap:2px}.quiet-label{color:var(--muted-2);font-size:8px;text-transform:uppercase;letter-spacing:.04em}.quiet-summary strong{font-size:11px}.quiet-divider{width:1px;height:26px;background:var(--border-soft)}.text-action{width:max-content;margin:2px 26px 0;padding:4px 0;background:transparent;color:var(--muted);font-size:10px;cursor:pointer}.text-action:hover{color:var(--text-soft)}.guidance-card{margin:16px 26px 0;padding:13px 14px;border:1px solid #5f5125;border-radius:9px;background:var(--warning-bg)}.guidance-card strong{font-size:10px}.guidance-card p{margin:4px 0 0;color:var(--text-soft);font-size:10px;line-height:1.5}.update-callout{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:24px 26px 0;padding:14px;border:1px solid var(--accent-border);border-radius:10px;background:var(--accent-soft)}.update-callout>div{display:grid;gap:3px}.update-callout strong{font-size:11px}.update-callout span{color:var(--muted);font-size:10px}
   .operation-list{display:grid;gap:8px}.operation-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;min-height:58px;padding:11px 13px;border:1px solid var(--border-soft);border-radius:9px;background:var(--surface)}.status-dot{width:8px;height:8px;border-radius:50%;background:#697078}.status-dot.running{background:var(--accent)}.status-dot.transition{background:var(--info)}.status-dot.danger{background:var(--danger)}.operation-card>div{display:grid;gap:2px}.operation-card strong{font-size:10px}.operation-card span{color:var(--muted);font-size:9px}.operation-card code{color:#9ee8b9;font:9px ui-monospace,SFMono-Regular,Consolas,monospace}.operation-card code.danger-text{color:#ff9aa2}.operation-state{color:var(--info)!important;font-weight:700}.active-operation{margin-bottom:10px;border-color:#36587d}.empty-state{min-height:280px;display:grid;place-content:center;justify-items:center;text-align:center}.empty-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:12px;background:var(--surface-2);margin-bottom:12px}.empty-icon :global(svg){width:21px;height:21px;fill:none;stroke:var(--muted);stroke-width:1.8}.empty-state h2{margin:0;font-size:15px}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:10px}
   .support-group{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:22px 0;border-top:1px solid var(--border-soft)}.support-group:first-child{border-top:0;padding-top:0}.group-copy h3{margin:0;font-size:12px}.group-copy p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.support-stack{display:grid;gap:9px}.support-card{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.support-card>div{display:grid;gap:3px}.support-card strong{font-size:11px}.support-card span{color:var(--muted);font-size:10px;line-height:1.45}.support-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:hidden;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.support-overview>div{display:grid;gap:3px;padding:11px 12px;border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft)}.support-overview>div:nth-child(2n){border-right:0}.support-overview>div:nth-last-child(-n+2){border-bottom:0}.support-overview span{color:var(--muted-2);font-size:8px;text-transform:uppercase}.support-overview strong{font-size:10px}.troubleshooting-details,.technical-details{border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.troubleshooting-details summary,.technical-details summary{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;list-style:none;cursor:pointer}.troubleshooting-details summary::-webkit-details-marker,.technical-details summary::-webkit-details-marker{display:none}.troubleshooting-details summary>span:first-child,.technical-details summary>span:first-child{display:grid;gap:2px}.troubleshooting-details small,.technical-details small{color:var(--muted);font-size:9px}.recovery-list,.technical-list{display:grid;border-top:1px solid var(--border-soft)}.recovery-list>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:11px 12px;border-bottom:1px solid var(--border-soft)}.recovery-list>div:last-child{border-bottom:0}.recovery-list>div>span{display:grid;gap:2px}.recovery-list strong{font-size:10px}.recovery-list small{color:var(--muted);font-size:9px}.technical-list>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:9px 12px;border-bottom:1px solid var(--border-soft)}.technical-list>div:last-child{border-bottom:0}.technical-list span{color:var(--muted);font-size:9px}.technical-list code{font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text-soft)}
