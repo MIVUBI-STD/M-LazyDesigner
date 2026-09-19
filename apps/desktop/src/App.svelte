@@ -262,6 +262,15 @@
       : project.models;
   };
 
+  const continueTarget = (value: SystemStatus) => {
+    if (value.project_navigation.active) return null;
+    for (const project of value.project_navigation.projects) {
+      const model = project.models.find(candidate => candidate.exists);
+      if (model) return { project, model };
+    }
+    return null;
+  };
+
   function toggleProjectDetails(id: string) {
     expandedProjectId = expandedProjectId === id ? null : id;
     modelSearch = '';
@@ -826,6 +835,30 @@
                 <div class="inline-alert danger-alert"><strong>Unsupported Blockbench version</strong><span>Update Blockbench to a supported version before continuing.</span></div>
               {/if}
             </section>
+
+            {#if !status.project_navigation.active && continueTarget(status)}
+              {@const target = continueTarget(status)}
+              {#if target}
+                <section class="content-section">
+                  <div class="section-heading">
+                    <div><h2>Continue</h2></div>
+                  </div>
+                  <div class="project-list">
+                    <div class="project-row">
+                      <div class="project-main">
+                        <div class="project-title">{target.project.name}</div>
+                        {#if target.project.name !== target.model.name}
+                          <div class="project-meta">{target.model.name}</div>
+                        {/if}
+                      </div>
+                      <div class="project-actions">
+                        <button class="primary-button small-button" onclick={() => openProjectModel(target.model.id)} disabled={busyAction !== null}>Continue</button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              {/if}
+            {/if}
 
             {#if status.project_navigation.active}
               {@const activeNavigation = status.project_navigation.active}
