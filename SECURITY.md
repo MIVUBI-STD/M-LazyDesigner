@@ -95,3 +95,17 @@ Those require matching local/live security verification.
 Security-relevant areas include the local MCP transport, Gateway/Runtime trust boundary, network permission and loopback exposure, filesystem import/export behavior, plugin settings, tool/resource/prompt exposure, project affinity, recovery after interrupted mutations, and handling of untrusted input.
 
 Ordinary functional bugs, visual-quality issues, and feature requests should use the normal issue workflow instead.
+
+
+## Desktop release keys and signing
+
+Desktop distribution has two separate signing boundaries and they must not share keys:
+
+- **Windows Authenticode certificate/private key** identifies the Windows publisher of the executable/installer.
+- **Tauri updater private key** signs update artifacts that a future installed Desktop may verify with its embedded public key.
+
+Private signing material must exist only in an approved release secret store or signing service. It must never be committed, written into build provenance, echoed to logs, included in artifacts, or copied into the managed BlockIT package.
+
+A trusted Desktop release must fail closed when either required signature cannot be produced or verified. The release workflow verifies Authenticode after bundling; Tauri produces updater signatures only when its private updater key is supplied through the release environment. Development drafts without these trust proofs must be labeled non-publishable.
+
+Self-update remains disabled until the repository intentionally pins the corresponding Tauri public key and HTTPS update-channel policy. Public-key rotation is a compatibility/security migration: an already-installed application cannot safely accept a replacement key merely because a new release supplies one.

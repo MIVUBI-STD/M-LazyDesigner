@@ -114,7 +114,12 @@ describe("Desktop control-plane ownership", () => {
 
 describe("Desktop release/version contract", () => {
   test("draft release stays explicit, exact-versioned, and separate from managed-component updates", async () => {
-    const workflow = await source("../.github/workflows/desktop-draft-release.yml");
+    const [workflow, releaseConfig, signScript, importScript] = await Promise.all([
+      source("../.github/workflows/desktop-draft-release.yml"),
+      source("../apps/desktop/src-tauri/tauri.release.conf.json"),
+      source("../apps/desktop/scripts/sign-windows.ps1"),
+      source("../apps/desktop/scripts/import-windows-signing-certificate.ps1"),
+    ]);
 
     expect(workflow).toContain("workflow_dispatch:");
     expect(workflow).toContain("if: github.ref == 'refs/heads/main'");
@@ -123,12 +128,22 @@ describe("Desktop release/version contract", () => {
     expect(workflow).toContain("does not match source version");
     expect(workflow).toContain("npm run verify:source");
     expect(workflow).toContain("npm run build:app");
+    expect(workflow).toContain("npm run build:app:trusted");
+    expect(workflow).toContain("Get-AuthenticodeSignature");
+    expect(workflow).toContain("TAURI_SIGNING_PRIVATE_KEY");
+    expect(workflow).toContain("DEVELOPMENT DRAFT");
+    expect(workflow).toContain("TRUSTED DRAFT");
+    expect(releaseConfig).toContain('"createUpdaterArtifacts": true');
+    expect(releaseConfig).toContain("sign-windows.ps1");
+    expect(signScript).toContain("LAZYDESIGNER_WINDOWS_CERT_THUMBPRINT");
+    expect(signScript).toContain("signtool.exe");
+    expect(importScript).toContain("Import-PfxCertificate");
     expect(workflow).toContain("Bundled managed source SHA");
     expect(workflow).toContain("desktop-build-provenance.json");
     expect(workflow).toContain("SHA256SUMS.txt");
     expect(workflow).toContain("--draft");
     expect(workflow).toContain("nothing was auto-published");
-    expect(workflow).not.toContain("createUpdaterArtifacts");
     expect(workflow).not.toContain("tauri-plugin-updater");
+    expect(releaseConfig).not.toContain('"plugins"');
   });
 });
