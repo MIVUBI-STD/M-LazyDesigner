@@ -91,6 +91,9 @@ describe("Desktop control-plane ownership", () => {
     expect(workflow).toContain("SHA256SUMS.txt");
     expect(workflow).toContain("Silent-install Desktop and smoke bundled bootstrap");
     expect(workflow).toContain("Runtime TLS");
+    expect(workflow).toContain("setup-tls --root");
+    expect(workflow).toContain("Runtime TLS setup ignored an active Gateway lease");
+    expect(workflow).toContain("Explicit Runtime TLS renewal did not return TLS_READY");
     expect(workflow).toContain("desktop-build-provenance.json");
   });
 

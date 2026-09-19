@@ -137,6 +137,31 @@ jobs:
             throw 'Managed status did not report ready Runtime TLS after first install.'
           }
 
+          # Runtime TLS maintenance is explicit and must refuse an active Gateway lease.
+          $leases = Join-Path $managedRoot 'leases'
+          New-Item -ItemType Directory -Path $leases -Force | Out-Null
+          $lease = Join-Path $leases "$PID.json"
+          '{"source_sha":"smoke"}' | Set-Content -Encoding ascii $lease
+          $busyOutput = (& $manager setup-tls --root $managedRoot 2>&1 | Out-String)
+          $busyExit = $LASTEXITCODE
+          Remove-Item -LiteralPath $lease -Force
+          if ($busyExit -eq 0) { throw 'Runtime TLS setup ignored an active Gateway lease.' }
+          if ($busyOutput -notmatch 'Close Blockbench and active Codex MCP sessions before Runtime TLS setup') {
+            throw "Runtime TLS busy refusal was not explicit: $busyOutput"
+          }
+
+          # A complete but invalid pair must be recoverable through the explicit idle renewal path.
+          'invalid certificate' | Set-Content -Encoding ascii (Join-Path $tls 'cert.pem')
+          'invalid private key' | Set-Content -Encoding ascii (Join-Path $tls 'key.pem')
+          $renewed = (& $manager setup-tls --root $managedRoot | Out-String | ConvertFrom-Json)
+          if ($renewed.status -ne 'TLS_READY' -or $renewed.ready -ne $true) {
+            throw 'Explicit Runtime TLS renewal did not return TLS_READY.'
+          }
+          $renewedState = (& $manager status --root $managedRoot | Out-String | ConvertFrom-Json)
+          if ($renewedState.tls_ready -ne $true -or $renewedState.tls_error) {
+            throw 'Managed status did not recover after explicit Runtime TLS renewal.'
+          }
+
       - name: Write Desktop installer checksum
         shell: pwsh
         run: |
