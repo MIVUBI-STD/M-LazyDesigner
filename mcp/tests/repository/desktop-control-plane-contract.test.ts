@@ -17,6 +17,9 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('"update" | "recover" | "repair"');
     expect(rust).toContain('.arg("install")');
     expect(rust).toContain('"resources/managed/blockit.exe"');
+    expect(rust).toContain('"--plugin-path"');
+    expect(rust).toContain('join("plugins").join("blockit_mcp.js")');
+    expect(app).toContain("Show plugin file");
     expect(app).toContain("'update' | 'recover' | 'repair'");
     for (const command of ["update", "recover", "repair", "status", "mcp"]) {
       expect(cli).toContain(command);

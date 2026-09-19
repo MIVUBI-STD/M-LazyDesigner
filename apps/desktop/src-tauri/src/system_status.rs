@@ -69,6 +69,11 @@ pub struct BlockbenchActionResult {
 }
 
 #[derive(Debug, Serialize)]
+pub struct PluginFileActionResult {
+    pub status: &'static str,
+}
+
+#[derive(Debug, Serialize)]
 pub struct BootstrapActionResult {
     pub action: &'static str,
     pub receipt: Value,
@@ -93,14 +98,99 @@ pub struct SystemStatus {
 }
 
 #[derive(Debug, Deserialize)]
+struct InstalledOptions {
+    plugin: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
 struct InstalledState {
     source_sha: String,
+    options: InstalledOptions,
 }
 
 fn managed_root() -> Option<PathBuf> {
     env::var_os("BLOCKIT_HOME")
         .map(PathBuf::from)
         .or_else(|| env::var_os("LOCALAPPDATA").map(|base| PathBuf::from(base).join("BlockIT")))
+}
+
+
+fn blockbench_user_data_dir() -> Result<PathBuf, String> {
+    let script = r#"
+$process = Get-CimInstance Win32_Process -Filter "Name='Blockbench.exe'" -ErrorAction SilentlyContinue |
+  Where-Object {
+    $_.ExecutablePath -and
+    (Test-Path -LiteralPath $_.ExecutablePath -PathType Leaf) -and
+    ((Get-Item -LiteralPath $_.ExecutablePath).VersionInfo.ProductName -eq 'Blockbench')
+  } |
+  Select-Object -First 1
+if ($process) {
+  if (!$process.CommandLine) { exit 3 }
+  $match = [regex]::Match([string]$process.CommandLine, '(?i)(?:^|\s)--userData\s+(?:"([^"]+)"|(\S+))')
+  if ($match.Success) {
+    $value = if ($match.Groups[1].Success) { $match.Groups[1].Value } else { $match.Groups[2].Value }
+    if (![IO.Path]::IsPathRooted($value)) { exit 4 }
+    [Console]::Out.WriteLine([IO.Path]::GetFullPath($value))
+    exit 0
+  }
+}
+if (!$env:APPDATA) { exit 2 }
+[Console]::Out.WriteLine((Join-Path $env:APPDATA 'Blockbench'))
+"#;
+
+    let output = Command::new("powershell.exe")
+        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
+        .output()
+        .map_err(|error| format!("Unable to resolve Blockbench userData: {error}"))?;
+
+    if !output.status.success() {
+        return Err(match output.status.code() {
+            Some(3) => "Blockbench is running but its command line is unavailable; close Blockbench or run Desktop with sufficient access before first installation.".to_string(),
+            Some(4) => "Blockbench --userData must be an absolute path for managed plugin installation.".to_string(),
+            _ => "Blockbench userData could not be resolved.".to_string(),
+        });
+    }
+
+    let raw = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if raw.is_empty() {
+        return Err("Blockbench userData path is empty.".to_string());
+    }
+    let path = PathBuf::from(raw);
+    if !path.is_absolute() {
+        return Err("Blockbench userData path is not absolute.".to_string());
+    }
+    Ok(path)
+}
+
+fn blockbench_managed_plugin_path() -> Result<PathBuf, String> {
+    Ok(blockbench_user_data_dir()?.join("plugins").join("blockit_mcp.js"))
+}
+
+fn installed_plugin_path(root: &Path) -> Result<PathBuf, String> {
+    let bytes = fs::read(root.join("installed.json"))
+        .map_err(|_| "LazyDesigner managed installation state is unavailable.".to_string())?;
+    let installed: InstalledState = serde_json::from_slice(&bytes)
+        .map_err(|_| "LazyDesigner installed.json is invalid.".to_string())?;
+    let plugin = installed.options.plugin;
+    if plugin.file_name().and_then(|name| name.to_str()) != Some("blockit_mcp.js") {
+        return Err("Managed plugin path has an unexpected filename.".to_string());
+    }
+    if !plugin.is_file() {
+        return Err("Managed Blockbench plugin file is missing; use Repair installation.".to_string());
+    }
+    Ok(plugin)
+}
+
+pub fn show_plugin_file() -> Result<PluginFileActionResult, String> {
+    let root = managed_root()
+        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+    let plugin = installed_plugin_path(&root)?;
+    Command::new("explorer.exe")
+        .arg("/select,")
+        .arg(&plugin)
+        .spawn()
+        .map_err(|error| format!("Unable to show the managed Blockbench plugin file: {error}"))?;
+    Ok(PluginFileActionResult { status: "SHOWN" })
 }
 
 fn manager_executable(root: &Path) -> Result<PathBuf, String> {
@@ -544,6 +634,7 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
         .ok_or_else(|| "LazyDesigner bootstrap package path is invalid.".to_string())?;
     let root = managed_root()
         .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+    let plugin = blockbench_managed_plugin_path()?;
 
     let output = Command::new(&manager)
         .arg("install")
@@ -551,6 +642,8 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
         .arg(&root)
         .arg("--package")
         .arg(package)
+        .arg("--plugin-path")
+        .arg(&plugin)
         .output()
         .map_err(|error| format!("Unable to install LazyDesigner: {error}"))?;
 
@@ -626,6 +719,12 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn managed_plugin_filename_is_stable() {
+        let path = Path::new("C:/Users/test/AppData/Roaming/Blockbench/plugins/blockit_mcp.js");
+        assert_eq!(path.file_name().and_then(|name| name.to_str()), Some("blockit_mcp.js"));
     }
 
     #[test]

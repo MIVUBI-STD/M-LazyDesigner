@@ -49,6 +49,10 @@
     diagnostic: string | null;
   };
 
+  type PluginFileActionResult = {
+    status: 'SHOWN';
+  };
+
   type BootstrapActionResult = {
     action: 'install';
     receipt: Record<string, unknown>;
@@ -66,7 +70,7 @@
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'open-blockbench' | null = null;
+  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'open-blockbench' | 'show-plugin' | null = null;
   let actionMessage = '';
 
   async function refresh() {
@@ -89,8 +93,22 @@
     try {
       const result = await invoke<BootstrapActionResult>('bootstrap_install');
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
-      actionMessage = `Install: ${receiptStatus}. Open Blockbench and complete the first plugin trust/load step if requested.`;
+      actionMessage = `Install: ${receiptStatus}. In Blockbench, use Plugins → Load Plugin from File once and select the managed plugin highlighted by Desktop.`;
       await refresh();
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : String(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function showPluginFile() {
+    if (!status?.manager_available || busyAction) return;
+    busyAction = 'show-plugin';
+    error = '';
+    try {
+      await invoke<PluginFileActionResult>('show_plugin_file');
+      actionMessage = 'Managed plugin file highlighted. In Blockbench choose Plugins → Load Plugin from File and select it once.';
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause);
     } finally {
@@ -233,6 +251,15 @@
             title={status.bootstrap_available ? undefined : 'This Desktop build does not contain a managed bootstrap package.'}
           >
             {busyAction === 'install' ? 'Installing…' : 'Install LazyDesigner'}
+          </button>
+        {/if}
+        {#if status.manager_available}
+          <button
+            class="secondary"
+            onclick={showPluginFile}
+            disabled={busyAction !== null}
+          >
+            {busyAction === 'show-plugin' ? 'Opening folder…' : 'Show plugin file'}
           </button>
         {/if}
         <button

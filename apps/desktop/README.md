@@ -153,3 +153,25 @@ bundled blockit.exe install
 Desktop does not parse, reproduce, or weaken package verification/install/config semantics. The manager remains the only install engine.
 
 The first native Blockbench plugin trust/load interaction remains a higher-context/native step when Blockbench requests it.
+
+
+## Native Blockbench plugin handoff
+
+Blockbench desktop stores plugin files under:
+
+```text
+app.getPath('userData')/plugins
+```
+
+and supports an advanced `--userData <path>` override. During first install Desktop resolves the active override when a running Blockbench command line exposes it; otherwise it uses the normal Windows Blockbench userData root.
+
+Bootstrap therefore passes an explicit stable destination to the canonical manager:
+
+```text
+blockit.exe install
+→ --plugin-path <Blockbench userData>/plugins/blockit_mcp.js
+```
+
+This does **not** edit Blockbench's `installed_plugins` state. Blockbench loads local-file plugins only after its native install/trust flow records them. Desktop exposes `Show plugin file` so the user can perform **Plugins → Load Plugin from File** once. After that, managed update/repair writes to the same remembered path.
+
+Desktop must not edit Electron Local Storage/LevelDB to bypass Blockbench's native trust decision.
