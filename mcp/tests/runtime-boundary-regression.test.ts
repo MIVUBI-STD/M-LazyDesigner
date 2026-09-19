@@ -32,6 +32,23 @@ describe("Runtime boundary regressions", () => {
     expect(source).not.toContain("custom legacy parser");
   });
 
+  test("retired Runtime generations cannot publish late operation results", async () => {
+    const source = await repoFile("lib/runtimeLifecycle.ts");
+    const operationIndex = source.indexOf("const result = await operation();");
+    const postCheckIndex = source.indexOf(
+      "coordinator.ownerGeneration !== generation",
+      operationIndex
+    );
+    const returnIndex = source.indexOf("return result;", operationIndex);
+
+    expect(operationIndex).toBeGreaterThan(-1);
+    expect(postCheckIndex).toBeGreaterThan(operationIndex);
+    expect(returnIndex).toBeGreaterThan(postCheckIndex);
+    expect(source.slice(postCheckIndex, returnIndex)).toContain(
+      "throw new RuntimeGenerationRetiredError(generation)"
+    );
+  });
+
   test("Runtime transport consumes canonical capability effects", async () => {
     const source = await repoFile("server/net.ts");
 
