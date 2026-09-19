@@ -2,6 +2,7 @@ import { createServer as createHttpServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import createNetServer from "@/server/net";
 
+process.env.LAZYDESIGNER_CONFORMANCE_HARNESS = "1";
 (globalThis as { __LAZYDESIGNER_CONFORMANCE__?: boolean })
   .__LAZYDESIGNER_CONFORMANCE__ = true;
 
