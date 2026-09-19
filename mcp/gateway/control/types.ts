@@ -14,6 +14,25 @@ export type ControlFreshnessScope =
   | "ANIMATION_EFFECTS"
   | "PARTICLE_SYSTEM";
 
+export type ControlVerificationScope =
+  | {
+      kind: "CUBE_TARGETS";
+      cube_uuids: string[];
+    }
+  | {
+      kind: "ANIMATION_RANGE";
+      animation_uuid: string;
+      bone_uuid: string;
+      channel: string | null;
+      time_range: [number, number];
+    }
+  | {
+      kind: "TEXTURE_REGION";
+      texture_uuid: string;
+      affected_rect: [number, number, number, number];
+      revision: string;
+    };
+
 export type ControlContextHandle = {
   id: string;
   path: string;
@@ -98,6 +117,7 @@ export type ControlDelta = {
   };
   next_intent: string;
   verification_class: CapabilityVerificationClass;
+  verification_scope: ControlVerificationScope | null;
   requires_status_refresh: boolean;
 };
 

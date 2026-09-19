@@ -6,6 +6,7 @@ import type {
   ControlAuthoringDomain,
   ControlDelta,
   ControlFreshnessScope,
+  ControlVerificationScope,
 } from "./types";
 import type { BlockitAuthoringPhaseAffinity } from "../projectAffinity";
 import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
@@ -293,6 +294,94 @@ function animationEffectsReceiptComplete(value: unknown): boolean {
       );
     });
   });
+}
+
+function cubeVerificationScope(value: unknown): ControlVerificationScope | null {
+  const ids = new Set<string>();
+  for (const candidate of resultCandidates(value)) {
+    const after = record(candidate.after);
+    if (typeof after?.uuid === "string") ids.add(after.uuid);
+
+    if (Array.isArray(candidate.cubes)) {
+      for (const entry of candidate.cubes) {
+        const cube = record(entry);
+        if (typeof cube?.uuid === "string") ids.add(cube.uuid);
+      }
+    }
+
+    if (Array.isArray(candidate.effects)) {
+      for (const entry of candidate.effects) {
+        const effect = record(entry);
+        const effectAfter = record(effect?.after);
+        if (typeof effectAfter?.uuid === "string") ids.add(effectAfter.uuid);
+      }
+    }
+  }
+  return ids.size > 0
+    ? { kind: "CUBE_TARGETS", cube_uuids: [...ids].slice(0, 32) }
+    : null;
+}
+
+function animationVerificationScope(value: unknown): ControlVerificationScope | null {
+  for (const candidate of resultCandidates(value)) {
+    const animation = record(candidate.animation);
+    const bone = record(candidate.bone);
+    if (
+      typeof animation?.uuid !== "string" ||
+      typeof bone?.uuid !== "string" ||
+      !Array.isArray(candidate.affected_keyframes)
+    ) {
+      continue;
+    }
+    const times = candidate.affected_keyframes
+      .map((entry) => record(entry)?.time)
+      .filter((time): time is number => typeof time === "number" && Number.isFinite(time));
+    if (times.length === 0) continue;
+    return {
+      kind: "ANIMATION_RANGE",
+      animation_uuid: animation.uuid,
+      bone_uuid: bone.uuid,
+      channel: typeof candidate.channel === "string" ? candidate.channel : null,
+      time_range: [Math.min(...times), Math.max(...times)],
+    };
+  }
+  return null;
+}
+
+function textureVerificationScope(value: unknown): ControlVerificationScope | null {
+  for (const candidate of resultCandidates(value)) {
+    const texture = record(candidate.texture);
+    const revision = record(candidate.revision);
+    const rect = candidate.affected_rect;
+    if (
+      typeof texture?.uuid !== "string" ||
+      typeof revision?.after !== "string" ||
+      !Array.isArray(rect) ||
+      rect.length !== 4 ||
+      !rect.every((entry) => typeof entry === "number" && Number.isSafeInteger(entry))
+    ) {
+      continue;
+    }
+    return {
+      kind: "TEXTURE_REGION",
+      texture_uuid: texture.uuid,
+      affected_rect: rect as [number, number, number, number],
+      revision: revision.after,
+    };
+  }
+  return null;
+}
+
+function verificationScopeForResult(
+  capability: string,
+  verificationClass: ControlDelta["verification_class"],
+  result: unknown
+): ControlVerificationScope | null {
+  if (verificationClass !== "visual") return null;
+  if (capability === "manage_cubes") return cubeVerificationScope(result);
+  if (capability === "manage_animation_timeline") return animationVerificationScope(result);
+  if (capability === "paint_texture_transaction") return textureVerificationScope(result);
+  return null;
 }
 
 function verificationClassForResult(
@@ -671,6 +760,11 @@ export function buildControlDelta(input: {
     freshness,
     input.result
   );
+  const verificationScope = verificationScopeForResult(
+    input.capability,
+    verificationClass,
+    input.result
+  );
   const particleTextureHandoff =
     input.succeeded &&
     input.capability === "manage_particle" &&
@@ -702,6 +796,7 @@ export function buildControlDelta(input: {
     freshness,
     next_intent: nextIntent,
     verification_class: verificationClass,
+    verification_scope: verificationScope,
     requires_status_refresh: changed.length > 0,
   };
 }

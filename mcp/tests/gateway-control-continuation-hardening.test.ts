@@ -47,6 +47,39 @@ describe("LazyDesigner Control continuation hardening", () => {
       },
     });
     expect(delta.verification_class).toBe("visual");
+    expect(delta.verification_scope).toEqual({
+      kind: "CUBE_TARGETS",
+      cube_uuids: ["cube-a"],
+    });
+  });
+
+  test("visual animation verification scopes to affected bone and keyframe range", () => {
+    const delta = buildControlDelta({
+      capability: "manage_animation_timeline",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "edit",
+        animation: { uuid: "anim-a", name: "walk" },
+        bone: { uuid: "bone-a", name: "arm" },
+        channel: "rotation",
+        affected_count: 2,
+        affected_keyframes: [
+          { uuid: "kf-a", time: 0.25, interpolation: "linear" },
+          { uuid: "kf-b", time: 0.75, interpolation: "linear" },
+        ],
+      },
+    });
+    expect(delta.verification_class).toBe("visual");
+    expect(delta.verification_scope).toEqual({
+      kind: "ANIMATION_RANGE",
+      animation_uuid: "anim-a",
+      bone_uuid: "bone-a",
+      channel: "rotation",
+      time_range: [0.25, 0.75],
+    });
   });
 
   test("ordinary successful mutation continues without status reread", () => {

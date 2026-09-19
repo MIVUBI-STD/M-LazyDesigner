@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { captureScreenshot, captureAppScreenshot, imageContent } from "@/lib/util";
-import { readRenderedModelBounds, type RenderedModelBounds, type Vec3 } from "@/lib/renderedModelBounds";
+import { readRenderedCubeBounds, readRenderedModelBounds, type RenderedModelBounds, type Vec3 } from "@/lib/renderedModelBounds";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { vector3Schema, projectionEnum } from "@/lib/zodObjects";
 
@@ -26,6 +26,7 @@ export type ModelView = z.infer<typeof modelViewEnum>;
 type FrontDirection = "+z" | "-z";
 type FramingInput =
   | { mode: "model" }
+  | { mode: "cubes"; cube_ids: string[] }
   | { mode: "explicit"; min: Vec3; max: Vec3 };
 
 interface CameraSpec {
@@ -158,6 +159,16 @@ const explicitFramingSchema = z
     }
   );
 
+const targetedCubeFramingSchema = z
+  .object({
+    mode: z.literal("cubes"),
+    cube_ids: z.array(z.string().min(1)).min(1).max(32)
+      .refine((ids) => new Set(ids).size === ids.length, {
+        message: "cube_ids must contain unique Cube UUIDs.",
+      }),
+  })
+  .strict();
+
 const uniqueModelViewsSchema = z
   .array(modelViewEnum)
   .min(1)
@@ -180,6 +191,7 @@ export const captureModelViewsParameters = z.object({
   framing: z
     .union([
       z.object({ mode: z.literal("model") }),
+      targetedCubeFramingSchema,
       explicitFramingSchema,
     ])
     .optional()
@@ -223,7 +235,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_model_views",
     description:
-      "Captures 1-5 deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Model and explicit framing require visible Cube geometry in the current Blockbench project. Returns observation only; no score/PASS/FAIL.",
+      "Captures 1-5 deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Framing may use the whole model, explicit bounds, or 1-32 exact Cube UUIDs for bounded correction review. Returns observation only; no score/PASS/FAIL.",
     annotations: {
       title: "Capture Model Views",
       readOnlyHint: true,
@@ -531,13 +543,16 @@ export function registerCameraTools() {
         throw new Error("No active Blockbench preview is available.");
       }
 
-      const observed = readRenderedModelBounds();
       const framingInput = framing as FramingInput;
+      const observed =
+        framingInput.mode === "cubes"
+          ? readRenderedCubeBounds(framingInput.cube_ids)
+          : readRenderedModelBounds();
       if (framingInput.mode === "model") {
         if (!observed.bounds || observed.rendered_cube_count === 0) {
           throw new Error("Model framing requires visible Cube geometry to capture.");
         }
-      } else if (observed.rendered_cube_count === 0) {
+      } else if (framingInput.mode === "explicit" && observed.rendered_cube_count === 0) {
         throw new Error("Explicit framing requires visible Cube geometry to capture.");
       }
 
@@ -599,6 +614,9 @@ export function registerCameraTools() {
         total_png_bytes: captures.reduce((sum, capture) => sum + capture.png_bytes, 0),
         front_direction,
         framing_mode: framingInput.mode,
+        ...(framingInput.mode === "cubes"
+          ? { framing_cube_ids: [...framingInput.cube_ids] }
+          : {}),
         captures,
         reference_comparison: buildModelViewReferenceComparison(
           captures.map((capture) => capture.view)

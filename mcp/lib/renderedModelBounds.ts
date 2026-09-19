@@ -604,32 +604,12 @@ function ensureCurrentWorldMatrix(cube: Cube): void {
  * whether the model is correct. It returns observation facts only. Surface-risk
  * warnings are bounded review hints, never visual PASS/FAIL.
  */
-export function readRenderedModelBounds(): RenderedModelBoundsObservation {
-  if (!Project) {
-    throw new Error(
-      "No project is open. Open or create the intended Bedrock project before inspecting model bounds."
-    );
-  }
-
-  if (Mesh.all.length > 0) {
-    throw new Error(
-      `inspect_model_bounds v1 supports Cube-based Bedrock geometry only. Found ${Mesh.all.length} Mesh element(s); refusing to report incomplete whole-model bounds.`
-    );
-  }
-
-  const totalCubeCount = Cube.all.length;
-  const renderedCubes = Cube.all.filter(
-    (cube) => cube.visibility !== false && isEffectivelyVisible(cube.mesh)
-  );
-  const hiddenCubeCount = totalCubeCount - renderedCubes.length;
-  const warnings: string[] = [];
-
-  if (hiddenCubeCount > 0) {
-    warnings.push(
-      `${hiddenCubeCount} hidden/non-rendered Cube(s) were excluded from rendered bounds.`
-    );
-  }
-
+function readRenderedBoundsFromCubes(
+  renderedCubes: readonly Cube[],
+  totalCubeCount: number,
+  hiddenCubeCount: number,
+  warnings: string[]
+): RenderedModelBoundsObservation {
   if (renderedCubes.length === 0) {
     return {
       total_cube_count: totalCubeCount,
@@ -697,4 +677,63 @@ export function readRenderedModelBounds(): RenderedModelBoundsObservation {
     },
     warnings,
   };
+}
+
+function requireCubeBoundsProject(): void {
+  if (!Project) {
+    throw new Error(
+      "No project is open. Open or create the intended Bedrock project before inspecting model bounds."
+    );
+  }
+  if (Mesh.all.length > 0) {
+    throw new Error(
+      `inspect_model_bounds v1 supports Cube-based Bedrock geometry only. Found ${Mesh.all.length} Mesh element(s); refusing to report incomplete whole-model bounds.`
+    );
+  }
+}
+
+export function readRenderedCubeBounds(
+  cubeIds: readonly string[]
+): RenderedModelBoundsObservation {
+  requireCubeBoundsProject();
+  if (cubeIds.length === 0 || cubeIds.length > 32 || new Set(cubeIds).size !== cubeIds.length) {
+    throw new Error("Targeted rendered bounds require 1-32 unique Cube UUIDs.");
+  }
+
+  const cubes = cubeIds.map((uuid) => {
+    const cube = Cube.all.find((candidate) => candidate.uuid === uuid);
+    if (!cube) throw new Error(`Target Cube UUID "${uuid}" was not found.`);
+    if (cube.visibility === false || !isEffectivelyVisible(cube.mesh)) {
+      throw new Error(
+        `Target Cube "${cube.name}" (${cube.uuid}) is not currently rendered; targeted capture refuses partial evidence.`
+      );
+    }
+    return cube;
+  });
+
+  return readRenderedBoundsFromCubes(cubes, cubes.length, 0, []);
+}
+
+export function readRenderedModelBounds(): RenderedModelBoundsObservation {
+  requireCubeBoundsProject();
+
+  const totalCubeCount = Cube.all.length;
+  const renderedCubes = Cube.all.filter(
+    (cube) => cube.visibility !== false && isEffectivelyVisible(cube.mesh)
+  );
+  const hiddenCubeCount = totalCubeCount - renderedCubes.length;
+  const warnings: string[] = [];
+
+  if (hiddenCubeCount > 0) {
+    warnings.push(
+      `${hiddenCubeCount} hidden/non-rendered Cube(s) were excluded from rendered bounds.`
+    );
+  }
+
+  return readRenderedBoundsFromCubes(
+    renderedCubes,
+    totalCubeCount,
+    hiddenCubeCount,
+    warnings
+  );
 }

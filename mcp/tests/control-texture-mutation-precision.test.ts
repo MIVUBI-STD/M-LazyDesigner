@@ -282,6 +282,33 @@ describe("Control Texture mutation precision", () => {
     }
   });
 
+  test("paint transaction visual verification scopes to the changed atlas region", () => {
+    const delta = buildControlDelta({
+      capability: "paint_texture_transaction",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        texture: { uuid: "texture-a", name: "atlas" },
+        revision: { before: "a".repeat(64), after: "b".repeat(64) },
+        operation_count: 1,
+        pixel_writes: 16,
+        affected_rect: [4, 8, 8, 12],
+        affected_size: [4, 4],
+      },
+    });
+
+    expect(delta.verification_class).toBe("visual");
+    expect(delta.verification_scope).toEqual({
+      kind: "TEXTURE_REGION",
+      texture_uuid: "texture-a",
+      affected_rect: [4, 8, 8, 12],
+      revision: "b".repeat(64),
+    });
+  });
+
   test("texture focus changes do not invalidate authored Texture evidence", () => {
     const delta = buildControlDelta({
       capability: "activate_texture",
