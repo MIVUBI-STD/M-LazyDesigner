@@ -245,14 +245,11 @@ export function wireConformanceFixtures(server: McpServer): void {
     }) as any
   );
 
-  server.server.setRequestHandler(
-    z.object({ method: z.literal("completion/complete") }).passthrough(),
-    async () => ({
-      completion: {
-        values: [],
-        total: 0,
-        hasMore: false,
-      },
-    })
-  );
+  server.server.setRequestHandler("completion/complete", async () => ({
+    completion: {
+      values: [],
+      total: 0,
+      hasMore: false,
+    },
+  }));
 }
