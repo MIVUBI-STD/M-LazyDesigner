@@ -27,12 +27,38 @@ describe("Desktop control-plane ownership", () => {
     ]) expect(workflow).toContain(dependency);
   });
 
+  test("Desktop versions and Rust toolchain stay synchronized", async () => {
+    const [pkgText, cargoText, tauriText, toolchain] = await Promise.all([
+      source("../apps/desktop/package.json"),
+      source("../apps/desktop/src-tauri/Cargo.toml"),
+      source("../apps/desktop/src-tauri/tauri.conf.json"),
+      source("../apps/desktop/rust-toolchain.toml"),
+    ]);
+    const pkg = JSON.parse(pkgText) as { version: string };
+    const cargo = Bun.TOML.parse(cargoText) as { package: { version: string } };
+    const tauri = JSON.parse(tauriText) as { version: string };
+
+    expect(cargo.package.version).toBe(pkg.version);
+    expect(tauri.version).toBe(pkg.version);
+    expect(pkgText).toContain('"license": "GPL-3.0-only"');
+    expect(cargoText).toContain('license = "GPL-3.0-only"');
+    expect(tauriText).toContain('"licenseFile": "../../../LICENSE"');
+    expect(toolchain).toContain('channel = "1.98.1"');
+  });
+
+  test("Desktop generated Rust and icon outputs stay untracked", async () => {
+    const ignore = await source("../.gitignore");
+    expect(ignore).toContain("apps/desktop/src-tauri/target/");
+    expect(ignore).toContain("apps/desktop/src-tauri/icons/");
+  });
+
   test("Desktop verification includes source proof and a Windows installer smoke build", async () => {
     const workflow = await source("../.github/workflows/desktop-verify.yml");
     expect(workflow).toContain("npm run verify:source");
     expect(workflow).toContain("npm run build:app");
     expect(workflow).toContain("lazydesigner-desktop-windows-x64");
     expect(workflow).toContain("bundle/nsis/*.exe");
+    expect(workflow).toContain("SHA256SUMS.txt");
   });
 
   test("Desktop preserves client-owned Gateway semantics", async () => {

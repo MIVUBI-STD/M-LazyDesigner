@@ -218,14 +218,29 @@ exit 0
     }
 
     let executable = PathBuf::from(path);
-    if !executable.is_file() {
+    if !executable.is_file() || !is_blockbench_executable_name(&executable) {
         return Err("Blockbench registry entry does not point to an executable file.".to_string());
     }
     Ok(Some(executable))
 }
 
+fn is_blockbench_executable_name(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.eq_ignore_ascii_case("Blockbench.exe"))
+        .unwrap_or(false)
+}
+
 fn blockbench_version(executable: &Path) -> Result<String, String> {
-    let script = "(Get-Item -LiteralPath $env:LAZYDESIGNER_BLOCKBENCH_EXE).VersionInfo.ProductVersion";
+    if !is_blockbench_executable_name(executable) {
+        return Err("Discovered Blockbench path does not end in Blockbench.exe.".to_string());
+    }
+
+    let script = r#"
+$info = (Get-Item -LiteralPath $env:LAZYDESIGNER_BLOCKBENCH_EXE).VersionInfo
+if ($info.ProductName -ne 'Blockbench') { exit 2 }
+[Console]::Out.WriteLine($info.ProductVersion)
+"#;
     let output = Command::new("powershell.exe")
         .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
         .env("LAZYDESIGNER_BLOCKBENCH_EXE", executable)
@@ -317,6 +332,8 @@ pub fn open_blockbench() -> Result<BlockbenchActionResult, String> {
 
     let executable = discover_blockbench_executable(&system)?
         .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
+
+    blockbench_version(&executable)?;
 
     Command::new(&executable)
         .spawn()
@@ -532,6 +549,12 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn executable_identity_requires_blockbench_filename() {
+        assert!(is_blockbench_executable_name(Path::new("C:/Apps/Blockbench.exe")));
+        assert!(!is_blockbench_executable_name(Path::new("C:/Apps/not-blockbench.exe")));
     }
 
     #[test]

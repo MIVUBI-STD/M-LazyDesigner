@@ -1,6 +1,6 @@
 # LazyDesigner Workspace Context
 
-Last verified stable facts: 2026-09-12  
+Last verified stable facts: 2026-09-19  
 Stability: stable design contract; implementation/proof tracked separately
 
 This file owns **stable project facts only**.
@@ -17,6 +17,8 @@ Routing             → AGENTS.md
 ## Product
 
 LazyDesigner is a local MCP workflow for AI-assisted **Minecraft Bedrock Entity** authoring in desktop Blockbench. Normal AI-client boundary is the stable Gateway; the Blockbench plugin is the execution Runtime behind it.
+
+LazyDesigner also has a separate optional **Desktop machine control plane** under `apps/desktop/`. Desktop owns installation/runtime health presentation, Blockbench discovery/launch, compatibility projection, and explicit managed maintenance actions. It is not part of the authoring execution chain and does not own Control context, Gateway protocol behavior, Blockbench authored state, update/package semantics, or Runtime tools.
 
 Primary editable output is `.bbmodel`. Tool/file/coordinate success is not proof of visual resemblance.
 
@@ -90,6 +92,8 @@ Normal authoring has no Standard/Extended choice. Runtime internal `bedrock_enti
 
 ## MCP Architecture
 
+Authoring path:
+
 ```text
 AI client
   ↓ stdio
@@ -99,6 +103,22 @@ LazyDesigner Runtime inside Blockbench
   ↓
 Blockbench
 ```
+
+Machine-management sidecar:
+
+```text
+LazyDesigner Desktop
+  ↓
+managed blockit.exe status / update / repair / recover
+  ↓
+Managed Distribution
+
+LazyDesigner Desktop
+  ↓
+Blockbench process/install discovery + explicit launch
+```
+
+Desktop observes Gateway/Runtime health but does not insert itself between AI client, Gateway, Runtime, and Blockbench.
 
 Gateway exposes exactly:
 

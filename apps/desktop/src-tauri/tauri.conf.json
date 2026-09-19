@@ -27,6 +27,8 @@
   "bundle": {
     "active": true,
     "category": "Utility",
+    "license": "GPL-3.0-only",
+    "licenseFile": "../../../LICENSE",
     "publisher": "Halo Karya Media",
     "shortDescription": "LazyDesigner desktop control plane for Blockbench integration and runtime supervision.",
     "targets": ["nsis"],

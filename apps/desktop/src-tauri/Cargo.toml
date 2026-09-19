@@ -3,6 +3,8 @@ name = "lazydesigner"
 version = "0.1.0"
 description = "LazyDesigner desktop control plane"
 authors = ["Halo Karya Media"]
+license = "GPL-3.0-only"
+repository = "https://github.com/MIVUBI-STD/M-LazyDesigner"
 edition = "2021"
 rust-version = "1.77"
 

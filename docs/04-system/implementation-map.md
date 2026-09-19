@@ -391,15 +391,44 @@ apps/desktop/
 Ownership:
 
 ```text
-Svelte frontend
-→ status/diagnostic presentation only
+apps/desktop/src/App.svelte
+→ status / compatibility / maintenance presentation
+→ explicit user actions only
 
-Rust system_status
-→ Blockbench desktop process detection
-→ discovery of the existing managed installation
-→ invocation of canonical blockit.exe status
+apps/desktop/src-tauri/src/system_status.rs
+→ Blockbench process/install discovery
+→ Blockbench executable identity + version projection
+→ canonical compatibility-manifest projection
+→ typed managed-status projection
+→ maintenance availability
+→ client-owned Gateway supervision guidance
+→ explicit Open Blockbench bridge
+→ bounded update / repair / recover delegation
+
+mcp/compatibility/blockbench.json
+→ single Blockbench compatibility-policy owner
+
+mcp/distribution/
+→ status / install / update / repair / recover / rollback implementation
+→ package integrity / staging / transaction / immutable-version ownership
 ```
 
-Desktop is a machine/lifecycle supervisor. It does not own authoring state, MCP capability routing, Control context, package integrity, update staging, rollback, or Codex configuration mutation.
+Desktop is a machine/lifecycle sidecar, not part of the authoring hot path:
 
-Managed installation/update/recovery ownership remains under `mcp/distribution/`; Runtime authoring remains under `mcp/server/` + `mcp/plugin/`.
+```text
+AI client → Gateway → Runtime → Blockbench
+```
+
+Desktop must not become a second Control, Gateway, Runtime, updater, compatibility table, authored-state database, or background watchdog.
+
+Gateway process lifecycle remains MCP-client-owned. Desktop may project `healthy | waiting-runtime | client-disconnected | runtime-offline | idle` and recovery guidance, but it does not start/kill/restart a Gateway stdio process.
+
+Desktop maintenance actions are deliberately distinct:
+
+```text
+update  → release lookup/stage/activate through Managed Distribution
+repair  → same active immutable source SHA; no upgrade
+recover → interrupted transaction recovery
+```
+
+Desktop verification is owned by `.github/workflows/desktop-verify.yml`; cross-owner repository invariants are guarded by `mcp/tests/repository/desktop-control-plane-contract.test.ts`.
