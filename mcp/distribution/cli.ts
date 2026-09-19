@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { normalizeRuntimeUrl } from "../gateway/contract";
 import { probeLoopbackPort } from "./runtime-probe";
+import { buildManagedStatus } from "./status";
 import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
@@ -132,7 +133,7 @@ async function main(): Promise<void> {
   if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | status | mcp. No app, user build, or manual file replacement."); return; }
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
-  if (command === "status") { receipt({ installed: await installedState(root), pending: Boolean(await readOptional(pendingPath)) }); return; }
+  if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline)); return; }
   if (command === "mcp") {
     let executable = process.execPath;
     await withInstallLock(root, async () => {

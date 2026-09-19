@@ -46,3 +46,23 @@ Normal MCP launch uses the installed versioned Gateway executable directly. The 
 A valid package must match repository identity, source SHA, build identity, platform, required file inventory, byte sizes and SHA-256 hashes. Path traversal, linked destination components, incomplete payloads, duplicate entries and stale concurrent writes fail closed.
 
 Generated/runtime/static verification does not establish live Blockbench visual or native authoring acceptance.
+
+
+## Desktop control-plane contract
+
+The planned LazyDesigner Desktop application must reuse this managed distribution rather than implement a second updater, rollback engine, release downloader, Codex configuration writer, or Gateway package manager.
+
+Its machine-facing read contract is:
+
+```text
+blockit.exe status
+→ schema
+→ installed
+→ pending
+→ gateway_active
+→ runtime_online
+```
+
+The Desktop Rust layer may supervise processes, invoke explicit maintenance commands, detect Blockbench, present diagnostics, and coordinate user-facing lifecycle actions. Update/install/recover/rollback semantics remain owned here.
+
+The Desktop application must not poll release endpoints during authoring. Existing explicit update semantics, active Gateway leases, Runtime reachability checks, staging, transaction journals, integrity verification, and rollback stay authoritative.

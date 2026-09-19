@@ -164,3 +164,21 @@ test("availability probe rejects non-local targets and invalid deadlines", async
   await assert.rejects(probeLoopbackPort("127.0.0.1", 0));
   await assert.rejects(probeLoopbackPort("127.0.0.1", 3000, 0));
 });
+
+
+test("managed status exposes one desktop-ready machine health contract", async () => sandbox(async (d, o) => {
+  const { buildManagedStatus } = await import("../distribution/status");
+  let observedConfig: string | undefined;
+  const status = await buildManagedStatus(o.root, join(o.root, "pending.json"), async config => {
+    observedConfig = config;
+    return false;
+  });
+  assert.deepEqual(status, {
+    schema: 1,
+    installed: null,
+    pending: false,
+    gateway_active: false,
+    runtime_online: false,
+  });
+  assert.equal(observedConfig, undefined);
+}));
