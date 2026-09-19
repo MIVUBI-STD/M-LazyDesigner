@@ -139,12 +139,20 @@ pub struct ProjectNavigationModel {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ProjectNavigationFolder {
+    pub id: String,
+    pub label: &'static str,
+    pub kind: &'static str,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ProjectNavigationProject {
     pub id: String,
     pub name: String,
     pub active: bool,
     pub model_count: usize,
     pub models: Vec<ProjectNavigationModel>,
+    pub folders: Vec<ProjectNavigationFolder>,
 }
 
 #[derive(Debug, Serialize)]
@@ -319,6 +327,37 @@ fn project_name(root: &Path) -> String {
         .to_string()
 }
 
+
+fn working_folders(root: &Path) -> Vec<(PathBuf, &'static str, &'static str)> {
+    let groups: [(&str, &str, &[&str]); 4] = [
+        ("models", "Models", &["Models", "Model"]),
+        ("references", "References", &["References", "Reference"]),
+        ("textures", "Textures", &["Textures", "Texture"]),
+        ("exports", "Exports", &["Exports", "Export"]),
+    ];
+    let mut result = Vec::new();
+    for (kind, label, candidates) in groups {
+        if let Some(path) = candidates.iter()
+            .map(|name| root.join(name))
+            .find(|path| path.is_dir())
+        {
+            result.push((path, label, kind));
+        }
+    }
+    result
+}
+
+fn folder_projection(root: &Path) -> Vec<ProjectNavigationFolder> {
+    working_folders(root)
+        .into_iter()
+        .map(|(path, label, kind)| ProjectNavigationFolder {
+            id: navigation_id("folder", &path),
+            label,
+            kind,
+        })
+        .collect()
+}
+
 fn model_name(path: &Path, preferred: &str) -> String {
     if !preferred.trim().is_empty() {
         return preferred.trim().to_string();
@@ -330,18 +369,26 @@ fn model_name(path: &Path, preferred: &str) -> String {
         .to_string()
 }
 
-fn navigation_paths() -> (HashMap<String, PathBuf>, HashMap<String, PathBuf>) {
+fn navigation_paths() -> (
+    HashMap<String, PathBuf>,
+    HashMap<String, PathBuf>,
+    HashMap<String, PathBuf>,
+) {
     let Some(snapshot) = read_navigation_snapshot() else {
-        return (HashMap::new(), HashMap::new());
+        return (HashMap::new(), HashMap::new(), HashMap::new());
     };
     let mut projects = HashMap::new();
     let mut models = HashMap::new();
+    let mut folders = HashMap::new();
 
     let mut add = |raw: &str| {
         let path = PathBuf::from(raw);
         let Some(root) = project_root_for_model(&path) else { return; };
-        projects.entry(navigation_id("project", &root)).or_insert(root);
+        projects.entry(navigation_id("project", &root)).or_insert(root.clone());
         models.entry(navigation_id("model", &path)).or_insert(path);
+        for (folder, _, _) in working_folders(&root) {
+            folders.entry(navigation_id("folder", &folder)).or_insert(folder);
+        }
     };
 
     if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) {
@@ -350,7 +397,7 @@ fn navigation_paths() -> (HashMap<String, PathBuf>, HashMap<String, PathBuf>) {
     for recent in &snapshot.recent_models {
         add(&recent.path);
     }
-    (projects, models)
+    (projects, models, folders)
 }
 
 fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
@@ -404,6 +451,7 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
                     active: project_active,
                     model_count: 0,
                     models: Vec::new(),
+                    folders: folder_projection(&root),
                 });
                 projects.len() - 1
             });
@@ -441,12 +489,23 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
 }
 
 pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNavigationActionResult, String> {
-    let (projects, models) = navigation_paths();
+    let (projects, models, folders) = navigation_paths();
     match action {
         "open-project-folder" => {
             let path = projects.get(id).ok_or_else(|| "Project is no longer available.".to_string())?;
             if !path.is_dir() {
                 return Err("Project folder is unavailable.".to_string());
+            }
+            Command::new("explorer.exe")
+                .arg(path)
+                .spawn()
+                .map_err(|error| format!("Unable to open the project folder: {error}"))?;
+            Ok(ProjectNavigationActionResult { status: "OPENED" })
+        }
+        "open-folder" => {
+            let path = folders.get(id).ok_or_else(|| "Folder is no longer available.".to_string())?;
+            if !path.is_dir() {
+                return Err("Folder is unavailable.".to_string());
             }
             Command::new("explorer.exe")
                 .arg(path)
@@ -487,8 +546,8 @@ pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNaviga
 }
 
 pub fn project_navigation_path(id: &str) -> Result<ProjectPathResult, String> {
-    let (projects, models) = navigation_paths();
-    let path = models.get(id).or_else(|| projects.get(id))
+    let (projects, models, folders) = navigation_paths();
+    let path = models.get(id).or_else(|| projects.get(id)).or_else(|| folders.get(id))
         .ok_or_else(|| "Project or model is no longer available.".to_string())?;
     Ok(ProjectPathResult { path: path.display().to_string() })
 }

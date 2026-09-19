@@ -147,6 +147,11 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('"open-project-folder"');
     expect(rust).toContain('"open-model"');
     expect(rust).toContain('"reveal-model"');
+    expect(rust).toContain('"open-folder"');
+    expect(rust).toContain('("models", "Models"');
+    expect(rust).toContain('("references", "References"');
+    expect(rust).toContain('("textures", "Textures"');
+    expect(rust).toContain('("exports", "Exports"');
     expect(rust).toContain(".lazydesigner-project.json");
     expect(app).toContain("Active Project");
     expect(app).toContain("Recent Projects");
@@ -156,6 +161,9 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("model_count > 8");
     expect(app).toContain("Search projects");
     expect(app).toContain("Search models");
+    expect(app).toContain("folder-shortcuts");
+    expect(app).toContain("activeProject.folders.length > 0");
+    expect(app).toContain("project.folders.length > 0");
     expect(app).toContain("continueTarget");
     expect(app).toContain("!status.project_navigation.active && continueTarget(status)");
     expect(app).toContain("candidate.exists");

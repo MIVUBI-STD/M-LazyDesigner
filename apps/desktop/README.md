@@ -411,6 +411,17 @@ Reveal model file
 Copy path
 ```
 
+`See details` may additionally expose existing working folders from a small allowlist only:
+
+```text
+Models
+References
+Textures
+Exports
+```
+
+These shortcuts appear only when the corresponding directory actually exists under the resolved Project root. Desktop does not recursively scan for similarly named folders and does not surface these shortcuts in the normal Overview row.
+
 Opening a model from Desktop first passes through the canonical `ensure_ready` flow; project navigation does not create a second Blockbench lifecycle path. Missing files remain visible as unavailable rather than triggering a drive scan or guessed relocation.
 
 The active-window heartbeat watches only the navigation snapshot revision. When it changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.

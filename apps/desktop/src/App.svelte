@@ -67,12 +67,19 @@
     exists: boolean;
   };
 
+  type ProjectNavigationFolder = {
+    id: string;
+    label: string;
+    kind: 'models' | 'references' | 'textures' | 'exports';
+  };
+
   type ProjectNavigationProject = {
     id: string;
     name: string;
     active: boolean;
     model_count: number;
     models: ProjectNavigationModel[];
+    folders: ProjectNavigationFolder[];
   };
 
   type ActiveProjectNavigation = {
@@ -276,7 +283,7 @@
     modelSearch = '';
   }
 
-  async function runProjectAction(action: 'open-project-folder' | 'reveal-model', id: string) {
+  async function runProjectAction(action: 'open-project-folder' | 'open-folder' | 'reveal-model', id: string) {
     if (devFixture || busyAction) return;
     busyAction = 'project-action';
     error = '';
@@ -596,6 +603,10 @@
         models: [
           { id: 'model-fixture', name: 'Modern Chair', active: true, exists: true },
           { id: 'model-fixture-2', name: 'Sofa', active: false, exists: true },
+        ],
+        folders: [
+          { id: 'folder-fixture-models', label: 'Models', kind: 'models' },
+          { id: 'folder-fixture-references', label: 'References', kind: 'references' },
         ],
       }],
     };
@@ -917,6 +928,14 @@
                         {#if visibleProjectModels(activeProject).length === 0}
                           <div class="project-empty">No models found.</div>
                         {/if}
+                        {#if activeProject.folders.length > 0}
+                          <div class="project-details-heading folder-heading"><span>Folders</span></div>
+                          <div class="folder-shortcuts">
+                            {#each activeProject.folders as folder}
+                              <button class="folder-shortcut" onclick={() => runProjectAction('open-folder', folder.id)} disabled={busyAction !== null}>{folder.label}</button>
+                            {/each}
+                          </div>
+                        {/if}
                       </div>
                     {/if}
                   {/if}
@@ -972,6 +991,14 @@
                         {/each}
                         {#if visibleProjectModels(project).length === 0}
                           <div class="project-empty">No models found.</div>
+                        {/if}
+                        {#if project.folders.length > 0}
+                          <div class="project-details-heading folder-heading"><span>Folders</span></div>
+                          <div class="folder-shortcuts">
+                            {#each project.folders as folder}
+                              <button class="folder-shortcut" onclick={() => runProjectAction('open-folder', folder.id)} disabled={busyAction !== null}>{folder.label}</button>
+                            {/each}
+                          </div>
                         {/if}
                       </div>
                     {/if}
@@ -1104,7 +1131,7 @@
   .more-menu{position:relative}.more-menu summary{width:30px;height:30px;display:grid;place-items:center;list-style:none;border-radius:6px;color:var(--muted);cursor:pointer}.more-menu summary:hover,.more-menu[open] summary{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:34px;width:168px;display:grid;padding:5px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
   .primary-button,.secondary-button,.icon-button{min-height:32px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}.primary-button,.secondary-button{padding:6px 11px}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text-soft)}.secondary-button:hover:not(:disabled){background:var(--surface-3);color:var(--text)}.icon-button{width:32px;border:1px solid transparent;background:transparent;color:var(--muted)}.icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}.small-button{min-height:28px;padding:4px 9px;font-size:9px}
   .content-section{margin-bottom:34px}.section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}.section-heading h2{margin:0;font-size:12px;font-weight:700}.section-heading p{margin:2px 0 0;color:var(--muted-2);font-size:9px}.resource-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.resource-row{min-height:74px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 12px 12px 14px}.app-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text-soft)}.app-icon :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.resource-main{min-width:0}.resource-title{font-size:11px;font-weight:700}.resource-meta{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--muted);font-size:9px}.meta-separator{color:var(--muted-2)}.status-good{color:#9ee8b9!important}.status-warning{color:#f6d97c!important}.resource-actions{display:flex;align-items:center;gap:5px}
-  .project-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.project-row{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}.project-row:last-child{border-bottom:0}.project-main{min-width:0;display:grid;gap:3px}.project-title{font-size:11px;font-weight:700}.project-meta{color:var(--muted);font-size:9px}.project-actions,.model-actions{display:flex;align-items:center;gap:6px}.quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:650;cursor:pointer}.quiet-button:hover,.show-more-button:hover{color:var(--text)}.project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface-1)}.project-details-heading{padding:8px 0 5px;color:var(--muted-2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.model-row{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}.model-main{min-width:0;display:flex;align-items:center;gap:7px}.model-main strong{font-size:9px;font-weight:650}.model-main span{color:var(--muted-2);font-size:8px}.show-more-button{margin-top:8px;padding:4px 0}.compact-search{width:150px;height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font:inherit;font-size:9px;outline:none}.compact-search:focus{border-color:var(--info)}.compact-search::placeholder{color:var(--muted-2)}.project-search{width:180px}.project-details-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.project-empty{padding:10px 0;color:var(--muted-2);font-size:9px}.project-empty-list{padding:13px 12px}
+  .project-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.project-row{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}.project-row:last-child{border-bottom:0}.project-main{min-width:0;display:grid;gap:3px}.project-title{font-size:11px;font-weight:700}.project-meta{color:var(--muted);font-size:9px}.project-actions,.model-actions{display:flex;align-items:center;gap:6px}.quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:650;cursor:pointer}.quiet-button:hover,.show-more-button:hover{color:var(--text)}.project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface-1)}.project-details-heading{padding:8px 0 5px;color:var(--muted-2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.model-row{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}.model-main{min-width:0;display:flex;align-items:center;gap:7px}.model-main strong{font-size:9px;font-weight:650}.model-main span{color:var(--muted-2);font-size:8px}.show-more-button{margin-top:8px;padding:4px 0}.compact-search{width:150px;height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font:inherit;font-size:9px;outline:none}.compact-search:focus{border-color:var(--info)}.compact-search::placeholder{color:var(--muted-2)}.project-search{width:180px}.project-details-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.project-empty{padding:10px 0;color:var(--muted-2);font-size:9px}.project-empty-list{padding:13px 12px}.folder-heading{margin-top:6px;padding-top:9px;border-top:1px solid var(--border-soft)}.folder-shortcuts{display:flex;flex-wrap:wrap;gap:6px;padding:3px 0 6px}.folder-shortcut{min-height:28px;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font-size:9px;font-weight:650}.folder-shortcut:hover:not(:disabled){background:var(--surface-3);color:var(--text)}
   .definition-rows{border-top:1px solid var(--border-soft)}.definition-row{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border-soft)}.definition-row>span{color:var(--muted);font-size:10px}.definition-row>strong,.definition-row code{font-size:10px;font-weight:650;color:var(--text-soft)}.definition-row code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.inline-action{display:flex;align-items:center;gap:10px}
   .inline-guidance{margin-top:10px;padding:14px 14px 13px;border:1px solid #5b4a22;border-radius:8px;background:var(--warning-bg)}.inline-guidance>div{display:grid;gap:2px}.inline-guidance strong{font-size:10px}.inline-guidance span{color:var(--muted);font-size:9px}.inline-guidance ol{margin:11px 0 12px;padding-left:18px;color:var(--text-soft);font-size:9px;line-height:1.75}.inline-note{display:flex;gap:8px;margin-top:10px;padding:9px 0;color:var(--muted);font-size:9px}.inline-note strong{color:var(--text-soft);font-size:9px}.inline-alert{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;padding:10px 12px;border:1px solid #5b4a22;border-radius:7px;background:var(--warning-bg)}.inline-alert>div{display:grid;gap:2px}.inline-alert strong{font-size:9px}.inline-alert span{color:var(--muted);font-size:9px}.danger-alert{display:grid;gap:2px;border-color:#693437;background:var(--danger-bg)}
   .setup-panel{max-width:760px;padding-top:10px}.setup-copy h2{margin:0;font-size:20px;letter-spacing:-.02em}.setup-copy p{margin:6px 0 0;color:var(--muted);font-size:10px}.setup-steps{margin-top:24px;border-top:1px solid var(--border-soft)}.setup-step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;padding:14px 0;border-bottom:1px solid var(--border-soft)}.step-number{width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:9px;font-weight:700}.setup-step.active .step-number{background:rgba(99,168,255,.12);color:var(--info)}.setup-step>div{display:grid;gap:2px}.setup-step strong{font-size:10px}.setup-step span{color:var(--muted);font-size:9px}.setup-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px}.setup-warning{max-width:520px;color:var(--warning);font-size:9px}
