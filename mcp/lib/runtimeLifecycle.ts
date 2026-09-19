@@ -131,7 +131,14 @@ export function runRuntimeOperationExclusive<T>(
     ) {
       throw new RuntimeGenerationRetiredError(generation);
     }
-    return await operation();
+    const result = await operation();
+    if (
+      generation !== null &&
+      coordinator.ownerGeneration !== generation
+    ) {
+      throw new RuntimeGenerationRetiredError(generation);
+    }
+    return result;
   };
 
   const run = coordinator.operationTail.then(execute, execute);
