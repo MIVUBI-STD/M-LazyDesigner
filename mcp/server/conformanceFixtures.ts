@@ -517,9 +517,9 @@ export function wireConformanceFixtures(server: McpServer): void {
     {
       title: "Input Required Prompt",
       description: "MRTR prompt that requires elicitation input",
-      argsSchema: z.object({}),
     },
-    async (_args: Record<string, never>, ctx: any) => {
+    async (...callbackArgs: any[]) => {
+      const ctx = callbackArgs[callbackArgs.length - 1];
       const accepted = acceptedContent<{ context: string }>(
         ctx.mcpReq.inputResponses,
         "user_context"
