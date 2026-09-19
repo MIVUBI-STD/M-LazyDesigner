@@ -30,6 +30,7 @@ Desktop may invoke only bounded, named commands from the existing manager. The f
 
 ```text
 update
+repair
 recover
 ```
 
@@ -37,7 +38,7 @@ recover
 
 `Recover` only invokes the existing interrupted-install recovery path. It is not presented as a generic repair operation.
 
-A separate `Repair` action must not be added until the managed distribution has a distinct repair semantic; repair must never be an alias for upgrade.
+`Repair` restores missing managed files from the currently active immutable package. It performs no release lookup and no version upgrade. Existing user-modified managed files remain fail-closed and are never silently overwritten.
 
 
 ## Blockbench compatibility projection

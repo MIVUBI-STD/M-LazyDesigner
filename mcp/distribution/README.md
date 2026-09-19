@@ -66,3 +66,21 @@ blockit.exe status
 The Desktop Rust layer may supervise processes, invoke explicit maintenance commands, detect Blockbench, present diagnostics, and coordinate user-facing lifecycle actions. Update/install/recover/rollback semantics remain owned here.
 
 The Desktop application must not poll release endpoints during authoring. Existing explicit update semantics, active Gateway leases, Runtime reachability checks, staging, transaction journals, integrity verification, and rollback stay authoritative.
+
+
+## Repair semantics
+
+`repair` is distinct from update and recovery:
+
+```text
+active installed source SHA
+→ verify the immutable package for that same SHA
+→ restore missing managed targets only as needed
+→ preserve the active source SHA
+→ no release lookup
+→ no upgrade
+```
+
+A non-missing managed file whose bytes no longer match the previously owned hash remains a local modification and blocks repair. Repair does not use `--adopt` and does not silently overwrite user edits.
+
+Repair is refused while a Gateway session or Runtime is active, matching the existing mutation-safety boundary.

@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { normalizeRuntimeUrl } from "../gateway/contract";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
-import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
+import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
 const raw = process.argv.slice(2).filter(a => a !== "--");
@@ -130,7 +130,7 @@ async function fetchRelease(): Promise<string> {
 }
 
 async function main(): Promise<void> {
-  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | status | mcp. No app, user build, or manual file replacement."); return; }
+  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | status | mcp. No app, user build, or manual file replacement."); return; }
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
   if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline)); return; }
@@ -152,7 +152,7 @@ async function main(): Promise<void> {
     await import("../gateway/index"); // The existing four-tool Gateway, not a second server.
     return;
   }
-  if (!["install", "update", "rollback", "recover"].includes(command)) throw new Error(`Unknown command: ${command}`);
+  if (!["install", "update", "rollback", "recover", "repair"].includes(command)) throw new Error(`Unknown command: ${command}`);
   await withInstallLock(root, async () => {
     const previous = await installedState(root);
     if (command === "recover" || command === "rollback") {
@@ -160,6 +160,13 @@ async function main(): Promise<void> {
       await recoverInstallation(root, command === "rollback");
       if (command === "rollback") await rm(pendingPath, { force: true });
       receipt({ status: command.toUpperCase() + "_COMPLETE" }); return;
+    }
+    if (command === "repair") {
+      if (!previous) throw new Error("LazyDesigner is not installed; repair cannot select an active version.");
+      if (await activeGateways(root) || await runtimeOnline(previous.options.config)) throw new Error("Close Blockbench and active Codex MCP sessions before repair.");
+      const result = await repairInstallation(root, parseToml);
+      receipt({ status: "REPAIRED", ...result });
+      return;
     }
     await recoverInstallation(root);
     // Retrying a staged update uses its already-verified local package: no repeated download.

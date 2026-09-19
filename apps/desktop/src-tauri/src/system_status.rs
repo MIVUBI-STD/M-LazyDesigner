@@ -427,7 +427,7 @@ pub fn collect() -> SystemStatus {
 }
 
 pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
-    if !matches!(action, "update" | "recover") {
+    if !matches!(action, "update" | "recover" | "repair") {
         return Err("Unsupported LazyDesigner desktop action.".to_string());
     }
 

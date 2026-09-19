@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
 test("installation identity survives native Windows path virtualization", async () => {
@@ -181,4 +181,29 @@ test("managed status exposes one desktop-ready machine health contract", async (
     runtime_online: false,
   });
   assert.equal(observedConfig, undefined);
+}));
+
+
+test("repair restores missing managed files from the active immutable version without upgrading", async () => sandbox(async (d, o) => {
+  const pkg = join(d, "pkg");
+  await fixture(pkg);
+  await installPackage(pkg, o, parse);
+  const before = await installedState(o.root);
+  await rm(o.plugin);
+  assert.equal(await readOptional(o.plugin), null);
+
+  const repaired = await repairInstallation(o.root, parse);
+  assert.equal(repaired.source_sha, before?.source_sha);
+  assert.ok(repaired.changed_files >= 1);
+  assert.ok(await readOptional(o.plugin));
+  assert.equal((await installedState(o.root))?.source_sha, before?.source_sha);
+}));
+
+test("repair refuses to overwrite a user-modified managed file", async () => sandbox(async (d, o) => {
+  const pkg = join(d, "pkg");
+  await fixture(pkg);
+  await installPackage(pkg, o, parse);
+  await writeFile(o.plugin, "USER MODIFIED PLUGIN");
+  await assert.rejects(repairInstallation(o.root, parse), /Local file/);
+  assert.equal((await readFile(o.plugin)).toString(), "USER MODIFIED PLUGIN");
 }));

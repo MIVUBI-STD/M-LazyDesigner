@@ -315,3 +315,16 @@ export async function activeGateways(root: string): Promise<boolean> {
   }
   return false;
 }
+
+
+export async function repairInstallation(
+  root: string,
+  parseToml: (text: string) => any
+): Promise<{ source_sha: string; changed_files: number; transaction: string | null }> {
+  const previous = await installedState(root);
+  if (!previous) throw new Error("LazyDesigner is not installed; repair cannot select an active version.");
+  const version = join(root, "versions", previous.source_sha);
+  const manifest = await verifyPackage(version);
+  if (manifest.source_sha !== previous.source_sha) throw new Error("Active immutable package identity mismatch.");
+  return installPackage(version, previous.options, parseToml);
+}

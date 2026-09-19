@@ -45,14 +45,14 @@
   };
 
   type ManagedActionResult = {
-    action: 'update' | 'recover';
+    action: 'update' | 'recover' | 'repair';
     receipt: Record<string, unknown>;
   };
 
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'update' | 'recover' | 'open-blockbench' | null = null;
+  let busyAction: 'update' | 'recover' | 'repair' | 'open-blockbench' | null = null;
   let actionMessage = '';
 
   async function refresh() {
@@ -83,7 +83,7 @@
     }
   }
 
-  async function runManagedAction(action: 'update' | 'recover') {
+  async function runManagedAction(action: 'update' | 'recover' | 'repair') {
     if (!status?.manager_available || busyAction) return;
     busyAction = action;
     error = '';
@@ -91,7 +91,7 @@
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      actionMessage = `${action === 'update' ? 'Update' : 'Recovery'}: ${receiptStatus}`;
+      actionMessage = `${action === 'update' ? 'Update' : action === 'repair' ? 'Repair' : 'Recovery'}: ${receiptStatus}`;
       await refresh();
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause);
@@ -207,6 +207,13 @@
           disabled={!status.manager_available || busyAction !== null}
         >
           {busyAction === 'update' ? 'Updating…' : 'Update LazyDesigner'}
+        </button>
+        <button
+          class="secondary"
+          onclick={() => runManagedAction('repair')}
+          disabled={!status.manager_available || busyAction !== null}
+        >
+          {busyAction === 'repair' ? 'Repairing…' : 'Repair installation'}
         </button>
         <button
           class="secondary"
