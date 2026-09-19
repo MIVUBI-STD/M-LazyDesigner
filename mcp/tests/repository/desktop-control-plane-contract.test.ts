@@ -126,6 +126,10 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("open_blockbench()?");
     expect(app).toContain("value.plugin_integrity === 'modified'");
     expect(app).toContain("next.managed = fixture === 'fresh-install' ? null :");
+    expect(app).toContain("async function connectBlockbench() {\n    if (devFixture) return;");
+    expect(app).toContain("async function installLazyDesigner() {\n    if (devFixture) return;");
+    expect(app).toContain("async function runManagedAction(action:");
+
   });
 });
 

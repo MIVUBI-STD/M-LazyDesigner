@@ -120,7 +120,6 @@
   let successToastTimer: number | null = null;
   let utilityMenuOpen = false;
   let statusWatcherTimer: number | null = null;
-  let autoRepairAttempted = false;
   type Page = 'Overview' | 'Support';
   let page: Page = 'Overview';
 
@@ -200,6 +199,7 @@
   }
 
   async function connectBlockbench() {
+    if (devFixture) return;
     if (!status?.manager_available || busyAction) return;
     closeUtilityMenu();
     busyAction = 'connect-blockbench';
@@ -229,6 +229,7 @@
   }
 
   async function installLazyDesigner() {
+    if (devFixture) return;
     if (!status?.bootstrap_available || status.manager_available || busyAction) return;
     busyAction = 'install';
     error = '';
@@ -258,6 +259,7 @@
   }
 
   async function showPluginFile() {
+    if (devFixture) return;
     if (!status?.manager_available || busyAction) return;
     closeUtilityMenu();
     busyAction = 'show-plugin';
@@ -290,6 +292,7 @@
   }
 
   async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
+    if (devFixture) return;
     if (!status?.manager_available || busyAction) return;
     closeUtilityMenu();
     busyAction = action;
