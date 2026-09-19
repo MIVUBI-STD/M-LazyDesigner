@@ -269,8 +269,29 @@ export function registerTextureAssignmentTools(): void {
         }
   
         Canvas.updateAll();
-  
-        return `Added texture group ${textureGroup.name} with ID ${textureGroup.uuid}`;
+
+        const result = {
+          operation: "create_group" as const,
+          texture_group: {
+            uuid: textureGroup.uuid,
+            name: textureGroup.name,
+            is_material: textureGroup.is_material === true,
+          },
+          textures: textureList.map((texture) => ({
+            uuid: texture.uuid,
+            id: texture.id,
+            name: texture.name,
+            group: texture.group,
+            pbr_channel: texture.pbr_channel ?? null,
+          })),
+        };
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Added texture group ${textureGroup.name} with ID ${textureGroup.uuid}.`,
+          }],
+          structuredContent: result,
+        };
       },
     }, addTextureGroupToolDoc.status);
   
