@@ -34,6 +34,20 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Parse Desktop PowerShell scripts
+        shell: pwsh
+        run: |
+          $scripts = Get-ChildItem -LiteralPath ./scripts -Filter '*.ps1' -File
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $messages = ($errors | ForEach-Object { $_.Message }) -join '; '
+              throw "PowerShell syntax error in $($script.Name): $messages"
+            }
+          }
+
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:

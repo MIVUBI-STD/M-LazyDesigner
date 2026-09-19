@@ -80,6 +80,8 @@ describe("Desktop control-plane ownership", () => {
 
   test("Desktop verification includes source proof and a Windows installer smoke build", async () => {
     const workflow = await source("../.github/workflows/desktop-verify.yml");
+    expect(workflow).toContain("Parse Desktop PowerShell scripts");
+    expect(workflow).toContain("System.Management.Automation.Language.Parser");
     expect(workflow).toContain("npm run verify:source");
     expect(workflow).toContain("npm run build:app");
     expect(workflow).toContain("Setup baseline Bun");
