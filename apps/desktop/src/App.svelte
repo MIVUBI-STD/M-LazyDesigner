@@ -52,6 +52,7 @@
 
   type SystemStatus = {
     schema: number;
+    plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
     observed_at_unix_ms: number;
     readiness: ReadinessProjection;
     blockbench: BlockbenchState;
@@ -102,6 +103,8 @@
   let stopProgressListener: (() => void) | null = null;
   let successToastTimer: number | null = null;
   let utilityMenuOpen = false;
+  let statusWatcherTimer: number | null = null;
+  let autoRepairAttempted = false;
   type Page = 'Overview' | 'Support';
   let page: Page = 'Overview';
 
@@ -134,6 +137,7 @@
 
   function clearSuccessToast() {
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
+    if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
     successToastTimer = null;
     actionMessage = '';
   }
@@ -181,10 +185,47 @@
 
   const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
 
+
+  async function repairManagedPluginIfSafe(candidate: SystemStatus): Promise<SystemStatus> {
+    if (
+      candidate.manager_available
+      && candidate.plugin_integrity !== 'ready'
+      && candidate.maintenance.repair
+      && !candidate.blockbench.running
+      && !autoRepairAttempted
+    ) {
+      autoRepairAttempted = true;
+      try {
+        await invoke<ManagedActionResult>('managed_action', { action: 'repair' });
+        recordOperation('Repair LazyDesigner', 'success', 'AUTO_REPAIR');
+        const repaired = await invoke<SystemStatus>('system_status');
+        status = repaired;
+        return repaired;
+      } catch (cause) {
+        recordOperation('Repair LazyDesigner', 'failed', errorCode(cause));
+      }
+    }
+    return candidate;
+  }
+
+  async function watchSystemStatus() {
+    if (busyAction || document.hidden) return;
+    try {
+      let candidate = await invoke<SystemStatus>('system_status');
+      candidate = await repairManagedPluginIfSafe(candidate);
+      status = candidate;
+      if (candidate.plugin_integrity === 'ready') autoRepairAttempted = false;
+      if (candidate.managed?.runtime_online) pluginApprovalNeeded = false;
+    } catch {
+      // Keep the last known state. Explicit actions surface actionable errors.
+    }
+  }
+
   async function waitForRuntime(timeoutMs = 15000): Promise<SystemStatus | null> {
     const started = Date.now();
     while (Date.now() - started < timeoutMs) {
-      const candidate = await invoke<SystemStatus>('system_status');
+      let candidate = await invoke<SystemStatus>('system_status');
+      candidate = await repairManagedPluginIfSafe(candidate);
       status = candidate;
       if (candidate.managed?.runtime_online) {
         pluginApprovalNeeded = false;
@@ -326,13 +367,15 @@
     };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('pointerdown', onPointerDown);
-    void refresh();
+    void refresh().then(() => watchSystemStatus());
+    statusWatcherTimer = window.setInterval(() => { void watchSystemStatus(); }, 4000);
     void listen<ManagedProgress>('managed-progress', event => {
       if (busyAction && event.payload.action === busyAction) progressStage = event.payload.stage;
     }).then(unlisten => { stopProgressListener = unlisten; });
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('pointerdown', onPointerDown);
+      if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
     };
   });
 
@@ -624,6 +667,7 @@
               <div class="definition-row"><span>LazyDesigner version</span><strong>0.1.0</strong></div>
               <div class="definition-row"><span>Blockbench version</span><strong>{status.blockbench.version ?? 'Unavailable'}</strong></div>
               {#if status.managed?.installed?.source_sha}<div class="definition-row"><span>Managed build</span><code>{status.managed.installed.source_sha.slice(0,12)}</code></div>{/if}
+              {#if status.plugin_integrity !== 'ready'}<div class="definition-row"><span>Blockbench plugin</span><strong class="status-warning">{status.plugin_integrity === 'missing' ? 'Repairing / missing' : status.plugin_integrity === 'modified' ? 'Modified' : 'Needs attention'}</strong></div>{/if}
             </div>
           </section>
 

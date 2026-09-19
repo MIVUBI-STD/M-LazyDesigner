@@ -4,6 +4,7 @@ use std::{
     env,
     fs,
     path::{Path, PathBuf},
+    collections::HashMap,
     process::Command,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
@@ -109,6 +110,7 @@ pub struct ReadinessProjection {
 #[derive(Debug, Serialize)]
 pub struct SystemStatus {
     pub schema: u8,
+    pub plugin_integrity: &'static str,
     pub observed_at_unix_ms: u64,
     pub readiness: ReadinessProjection,
     pub blockbench: BlockbenchState,
@@ -129,6 +131,7 @@ struct InstalledOptions {
 struct InstalledState {
     source_sha: String,
     options: InstalledOptions,
+    owned: HashMap<String, String>,
 }
 
 fn managed_root() -> Option<PathBuf> {
@@ -204,6 +207,33 @@ fn installed_plugin_path(root: &Path) -> Result<PathBuf, String> {
         return Err("Managed Blockbench plugin file is missing; use Repair installation.".to_string());
     }
     Ok(plugin)
+}
+
+fn managed_plugin_integrity(root: &Path) -> &'static str {
+    let bytes = match fs::read(root.join("installed.json")) {
+        Ok(bytes) => bytes,
+        Err(_) => return "unknown",
+    };
+    let installed: InstalledState = match serde_json::from_slice(&bytes) {
+        Ok(value) => value,
+        Err(_) => return "unknown",
+    };
+    let plugin = installed.options.plugin;
+    if plugin.file_name().and_then(|name| name.to_str()) != Some("blockit_mcp.js") {
+        return "invalid";
+    }
+    if !plugin.is_file() {
+        return "missing";
+    }
+    let expected = installed.owned.get(&plugin.to_string_lossy().to_string());
+    let Some(expected) = expected else { return "unknown"; };
+    let bytes = match fs::read(&plugin) {
+        Ok(bytes) => bytes,
+        Err(_) => return "unknown",
+    };
+    use sha2::{Digest, Sha256};
+    let actual = format!("{:x}", Sha256::digest(bytes));
+    if &actual == expected { "ready" } else { "modified" }
 }
 
 pub fn show_plugin_file() -> Result<PluginFileActionResult, String> {
@@ -586,8 +616,14 @@ fn compose_status(
     );
     let maintenance = project_maintenance(manager_available, managed.as_ref());
 
+    let plugin_integrity = managed_root()
+        .as_deref()
+        .map(managed_plugin_integrity)
+        .unwrap_or("unknown");
+
     SystemStatus {
         schema: 1,
+        plugin_integrity,
         observed_at_unix_ms: observed_at_unix_ms(),
         readiness,
         blockbench,
