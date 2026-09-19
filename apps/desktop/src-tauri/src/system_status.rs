@@ -307,11 +307,8 @@ fn write_project_navigation_preferences(value: &ProjectNavigationPreferences) ->
     if bytes.len() > 64 * 1024 {
         return Err("Project preferences exceed the bounded size.".to_string());
     }
-    let temp = path.with_extension("json.tmp");
-    fs::write(&temp, bytes)
+    fs::write(&path, bytes)
         .map_err(|error| format!("Unable to write project preferences: {error}"))?;
-    fs::rename(&temp, &path)
-        .map_err(|error| format!("Unable to commit project preferences: {error}"))?;
     Ok(())
 }
 
