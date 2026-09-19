@@ -14,12 +14,14 @@ describe("Desktop control-plane ownership", () => {
     ]);
 
     expect(rust).toContain('../../../../mcp/compatibility/blockbench.json');
-    expect(rust).toContain('"update" | "recover" | "repair"');
+    expect(rust).toContain('"update" | "recover" | "repair" | "setup-tls"');
     expect(rust).toContain('.arg("install")');
     expect(rust).toContain('"resources/managed/blockit.exe"');
     expect(rust).toContain('"--plugin-path"');
     expect(rust).toContain('join("plugins").join("blockit_mcp.js")');
     expect(app).toContain("Show plugin file");
+    expect(app).toContain("Setup Runtime Security");
+    expect(app).toContain("tls_ready");
     expect(app).toContain("'update' | 'recover' | 'repair'");
     for (const command of ["update", "recover", "repair", "status", "mcp"]) {
       expect(cli).toContain(command);
@@ -70,6 +72,8 @@ describe("Desktop control-plane ownership", () => {
     expect(bundleConfig).toContain('"resources/managed/"');
     expect(prep).toContain("bun run ./distribution/package.ts");
     expect(prep).toContain("dist\\managed\\package");
+    expect(prep).toContain("Managed bootstrap source SHA");
+    expect(prep).toContain("Desktop source SHA");
     expect(ignore).toContain("apps/desktop/src-tauri/resources/managed/");
   });
 
@@ -77,10 +81,14 @@ describe("Desktop control-plane ownership", () => {
     const workflow = await source("../.github/workflows/desktop-verify.yml");
     expect(workflow).toContain("npm run verify:source");
     expect(workflow).toContain("npm run build:app");
-    expect(workflow).toContain("Setup Bun");
+    expect(workflow).toContain("Setup baseline Bun");
+    expect(workflow).toContain("bun-windows-x64-baseline.zip");
     expect(workflow).toContain("lazydesigner-desktop-windows-x64");
     expect(workflow).toContain("bundle/nsis/*.exe");
     expect(workflow).toContain("SHA256SUMS.txt");
+    expect(workflow).toContain("Silent-install Desktop and smoke bundled bootstrap");
+    expect(workflow).toContain("Runtime TLS");
+    expect(workflow).toContain("desktop-build-provenance.json");
   });
 
   test("Desktop preserves client-owned Gateway semantics", async () => {

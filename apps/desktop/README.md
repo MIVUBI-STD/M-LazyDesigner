@@ -175,3 +175,19 @@ blockit.exe install
 This does **not** edit Blockbench's `installed_plugins` state. Blockbench loads local-file plugins only after its native install/trust flow records them. Desktop exposes `Show plugin file` so the user can perform **Plugins → Load Plugin from File** once. After that, managed update/repair writes to the same remembered path.
 
 Desktop must not edit Electron Local Storage/LevelDB to bypass Blockbench's native trust decision.
+
+
+## Runtime security
+
+Fresh managed installation provisions the machine-local HTTPS identity through the same compiled manager before activation. Desktop does not generate certificates itself.
+
+Desktop projects:
+
+```text
+tls_ready
+tls_error
+```
+
+and exposes **Setup Runtime Security** only when the manager reports that TLS is not ready and Gateway/Runtime are idle. The action delegates to `blockit.exe setup-tls`.
+
+Update and package repair do not rotate or overwrite the TLS identity.

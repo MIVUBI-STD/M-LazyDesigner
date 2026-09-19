@@ -6,8 +6,12 @@ import { REPOSITORY, SKILLS, sha256, verifyPackage, type Manifest } from "./mana
 const repo = resolve(import.meta.dir, "../..");
 const output = resolve(import.meta.dir, "../dist/managed");
 const packageDir = join(output, "package");
-async function run(args: string[], cwd = join(repo, "mcp")): Promise<string> {
-  const p = Bun.spawn(args, { cwd, stdout: "pipe", stderr: "inherit" });
+async function run(
+  args: string[],
+  cwd = join(repo, "mcp"),
+  env: Record<string, string | undefined> = process.env
+): Promise<string> {
+  const p = Bun.spawn(args, { cwd, env, stdout: "pipe", stderr: "inherit" });
   const [text, code] = await Promise.all([new Response(p.stdout).text(), p.exited]);
   if (code !== 0) throw new Error(`Package command failed (${code}): ${args[0]}`);
   return text.trim();
@@ -62,14 +66,20 @@ async function main(): Promise<void> {
   const smokeRoot = join(output, "smoke");
   const smokeArgs = ["install", "--root", join(smokeRoot, "installed"), "--workspace", join(smokeRoot, "workspace"), "--plugin-path", join(smokeRoot, "plugins/blockit_mcp.js"), "--config", join(smokeRoot, "codex/config.toml"), "--package", packageDir];
   const executable = join(packageDir, "blockit.exe");
-  const installed = JSON.parse(await run([executable, ...smokeArgs]));
+  const smokeEnv = { ...process.env, BLOCKIT_TLS_DIR: join(smokeRoot, "tls") };
+  const installed = JSON.parse(await run([executable, ...smokeArgs], join(repo, "mcp"), smokeEnv));
   if (installed.status !== "INSTALLED" || installed.source_sha !== sourceSha) throw new Error("Compiled installation smoke failed.");
-  const repeated = JSON.parse(await run([executable, ...smokeArgs]));
+  for (const name of ["cert.pem", "key.pem"]) {
+    if (!(await readFile(join(smokeRoot, "tls", name)).catch(() => null))) throw new Error(`Fresh install did not provision Runtime TLS ${name}.`);
+  }
+  const status = JSON.parse(await run([executable, "status", "--root", join(smokeRoot, "installed")], join(repo, "mcp"), smokeEnv));
+  if (status.tls_ready !== true || status.tls_error !== null) throw new Error("Managed status did not report ready Runtime TLS after fresh install.");
+  const repeated = JSON.parse(await run([executable, ...smokeArgs], join(repo, "mcp"), smokeEnv));
   if (repeated.status !== "INSTALLED" || repeated.changed_files !== 0) throw new Error("Compiled install is not idempotent.");
   // No Blockbench is running here: this proves only the compiled stdio boundary.
   // Start the installed executable exactly as Codex does, not a forwarding parent.
   const gatewayExecutable = join(smokeRoot, "installed", "versions", sourceSha, "blockit.exe");
-  const gateway = Bun.spawn([gatewayExecutable, "mcp", "--root", join(smokeRoot, "installed")], { stdin: "pipe", stdout: "pipe", stderr: "inherit" });
+  const gateway = Bun.spawn([gatewayExecutable, "mcp", "--root", join(smokeRoot, "installed")], { env: smokeEnv, stdin: "pipe", stdout: "pipe", stderr: "inherit" });
   gateway.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "managed-package-smoke", version: "1" } } }) + "\n");
   const reader = gateway.stdout.getReader(); let buffer = ""; let timer: ReturnType<typeof setTimeout> | undefined;
   try {

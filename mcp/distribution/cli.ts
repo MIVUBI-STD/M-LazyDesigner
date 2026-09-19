@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import { normalizeRuntimeUrl } from "../gateway/contract";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
+import { ensureRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
 import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
@@ -130,10 +131,11 @@ async function fetchRelease(): Promise<string> {
 }
 
 async function main(): Promise<void> {
-  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | status | mcp. No app, user build, or manual file replacement."); return; }
+  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | setup-tls | status | mcp. No app, user build, or manual file replacement."); return; }
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
-  if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline)); return; }
+  if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline, runtimeTlsStatus)); return; }
+  if (command === "setup-tls") { receipt({ status: "TLS_READY", ...ensureRuntimeTlsIdentity() }); return; }
   if (command === "mcp") {
     let executable = process.execPath;
     await withInstallLock(root, async () => {
@@ -186,6 +188,7 @@ async function main(): Promise<void> {
       await writeFile(join(staging, f), await readFile(join(source, f)), { flag: "wx" });
     }
     await verifyPackage(staging);
+    if (command === "install" && !previous) ensureRuntimeTlsIdentity();
     await atomicWrite(pendingPath, Buffer.from(JSON.stringify({ directory: staging, options, adopt: flags.has("--adopt") })));
     receipt(await activatePending());
   }, command === "recover");

@@ -169,16 +169,23 @@ test("availability probe rejects non-local targets and invalid deadlines", async
 test("managed status exposes one desktop-ready machine health contract", async () => sandbox(async (d, o) => {
   const { buildManagedStatus } = await import("../distribution/status");
   let observedConfig: string | undefined;
-  const status = await buildManagedStatus(o.root, join(o.root, "pending.json"), async config => {
-    observedConfig = config;
-    return false;
-  });
+  const status = await buildManagedStatus(
+    o.root,
+    join(o.root, "pending.json"),
+    async config => {
+      observedConfig = config;
+      return false;
+    },
+    () => ({ ready: false, error: "missing test identity" })
+  );
   assert.deepEqual(status, {
     schema: 1,
     installed: null,
     pending: false,
     gateway_active: false,
     runtime_online: false,
+    tls_ready: false,
+    tls_error: "missing test identity",
   });
   assert.equal(observedConfig, undefined);
 }));
@@ -206,4 +213,16 @@ test("repair refuses to overwrite a user-modified managed file", async () => san
   await writeFile(o.plugin, "USER MODIFIED PLUGIN");
   await assert.rejects(repairInstallation(o.root, parse), /Local file/);
   assert.equal((await readFile(o.plugin)).toString(), "USER MODIFIED PLUGIN");
+}));
+
+
+test("Runtime TLS status is fail-closed for an absent disposable identity", async () => sandbox(async d => {
+  const { runtimeTlsStatus } = await import("../distribution/runtime-tls");
+  const directory = join(d, "tls");
+  const status = runtimeTlsStatus(
+    { ...process.env, BLOCKIT_TLS_DIR: directory },
+    process.platform
+  );
+  assert.equal(status.ready, false);
+  assert.match(status.error ?? "", /missing|incomplete/i);
 }));

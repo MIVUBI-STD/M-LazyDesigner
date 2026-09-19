@@ -84,3 +84,31 @@ active installed source SHA
 A non-missing managed file whose bytes no longer match the previously owned hash remains a local modification and blocks repair. Repair does not use `--adopt` and does not silently overwrite user edits.
 
 Repair is refused while a Gateway session or Runtime is active, matching the existing mutation-safety boundary.
+
+
+## Runtime TLS machine identity
+
+Managed Distribution owns the machine-local HTTPS identity required by both the Blockbench Runtime and Gateway client.
+
+```text
+distribution/runtime-tls.ts
+→ inspect / provision / validate one machine identity
+
+scripts/setup-runtime-tls.ts
+→ compatibility wrapper only
+
+first install
+→ verifies the managed package
+→ provisions TLS once when no installation exists
+→ never overwrites an existing cert/key pair
+
+setup-tls
+→ explicit recovery/setup action
+→ refuses incomplete or invalid existing pairs instead of silently replacing them
+
+status
+→ tls_ready
+→ tls_error
+```
+
+The certificate remains outside package transactions at the canonical machine path from `runtimeTlsPaths()`. Update and package repair never rotate the identity.

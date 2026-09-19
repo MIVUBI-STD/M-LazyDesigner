@@ -10,11 +10,12 @@ use sysinfo::System;
 use tauri::{path::BaseDirectory, Manager};
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct BlockbenchCompatibilityManifest {
-    minimumVersion: String,
-    reviewBoundaryVersion: String,
-    sourceTypeBaseline: String,
-    liveValidatedVersions: Vec<String>,
+    minimum_version: String,
+    review_boundary_version: String,
+    source_type_baseline: String,
+    live_validated_versions: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -46,6 +47,8 @@ pub struct ManagedStatus {
     pub pending: bool,
     pub gateway_active: bool,
     pub runtime_online: bool,
+    pub tls_ready: bool,
+    pub tls_error: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -53,6 +56,7 @@ pub struct MaintenanceAvailability {
     pub update: bool,
     pub repair: bool,
     pub recover: bool,
+    pub setup_tls: bool,
     pub blocked_reason: Option<&'static str>,
 }
 
@@ -235,11 +239,11 @@ fn parse_version(value: &str) -> Option<(u64, u64, u64)> {
 fn evaluate_blockbench_compatibility(version: &str) -> Result<BlockbenchCompatibility, String> {
     let manifest = compatibility_manifest()?;
     let parsed = parse_version(version);
-    let minimum = parse_version(&manifest.minimumVersion)
+    let minimum = parse_version(&manifest.minimum_version)
         .ok_or_else(|| "Invalid minimum Blockbench compatibility version.".to_string())?;
-    let review = parse_version(&manifest.reviewBoundaryVersion)
+    let review = parse_version(&manifest.review_boundary_version)
         .ok_or_else(|| "Invalid Blockbench review boundary version.".to_string())?;
-    let live_validated = manifest.liveValidatedVersions.iter().any(|candidate| candidate == version);
+    let live_validated = manifest.live_validated_versions.iter().any(|candidate| candidate == version);
 
     let status = match parsed {
         None => "invalid",
@@ -251,9 +255,9 @@ fn evaluate_blockbench_compatibility(version: &str) -> Result<BlockbenchCompatib
 
     Ok(BlockbenchCompatibility {
         status: status.to_string(),
-        minimum_version: manifest.minimumVersion,
-        review_boundary_version: manifest.reviewBoundaryVersion,
-        source_type_baseline: manifest.sourceTypeBaseline,
+        minimum_version: manifest.minimum_version,
+        review_boundary_version: manifest.review_boundary_version,
+        source_type_baseline: manifest.source_type_baseline,
         live_validated,
     })
 }
@@ -480,6 +484,7 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
             update: false,
             repair: false,
             recover: false,
+            setup_tls: false,
             blocked_reason: Some("Managed LazyDesigner installation is unavailable."),
         };
     }
@@ -488,10 +493,12 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
         .map(|value| value.gateway_active || value.runtime_online)
         .unwrap_or(false);
 
+    let tls_ready = managed.map(|value| value.tls_ready).unwrap_or(false);
     MaintenanceAvailability {
         update: true,
         repair: !busy,
         recover: !busy,
+        setup_tls: !busy && !tls_ready,
         blocked_reason: if busy {
             Some("Close active Codex MCP sessions and Blockbench Runtime before repair or recovery.")
         } else {
@@ -665,7 +672,7 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
 }
 
 pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
-    if !matches!(action, "update" | "recover" | "repair") {
+    if !matches!(action, "update" | "recover" | "repair" | "setup-tls") {
         return Err("Unsupported LazyDesigner desktop action.".to_string());
     }
 
@@ -747,6 +754,8 @@ mod tests {
             pending: false,
             gateway_active: false,
             runtime_online: true,
+            tls_ready: true,
+            tls_error: None,
         };
         let result = project_gateway(Some(&managed), true);
         assert_eq!(result.ownership, "client-owned");
@@ -762,9 +771,12 @@ mod tests {
             pending: false,
             gateway_active: false,
             runtime_online: false,
+            tls_ready: true,
+            tls_error: None,
         };
         let ready = project_maintenance(true, Some(&idle));
         assert!(ready.update && ready.repair && ready.recover);
+        assert!(!ready.setup_tls);
 
         let busy = ManagedStatus {
             schema: 1,
@@ -772,10 +784,33 @@ mod tests {
             pending: false,
             gateway_active: true,
             runtime_online: false,
+            tls_ready: false,
+            tls_error: Some("missing identity".to_string()),
         };
         let blocked = project_maintenance(true, Some(&busy));
         assert!(blocked.update);
-        assert!(!blocked.repair && !blocked.recover);
+        assert!(!blocked.repair && !blocked.recover && !blocked.setup_tls);
         assert!(blocked.blocked_reason.is_some());
+    }
+}
+
+
+#[cfg(test)]
+mod tls_projection_tests {
+    use super::*;
+
+    #[test]
+    fn maintenance_offers_tls_setup_only_when_idle_and_not_ready() {
+        let missing = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: false,
+            runtime_online: false,
+            tls_ready: false,
+            tls_error: Some("missing".to_string()),
+        };
+        let availability = project_maintenance(true, Some(&missing));
+        assert!(availability.setup_tls);
     }
 }

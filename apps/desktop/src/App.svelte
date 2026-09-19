@@ -23,12 +23,15 @@
     pending: boolean;
     gateway_active: boolean;
     runtime_online: boolean;
+    tls_ready: boolean;
+    tls_error: string | null;
   };
 
   type MaintenanceAvailability = {
     update: boolean;
     repair: boolean;
     recover: boolean;
+    setup_tls: boolean;
     blocked_reason: string | null;
   };
 
@@ -63,14 +66,14 @@
   };
 
   type ManagedActionResult = {
-    action: 'update' | 'recover' | 'repair';
+    action: 'update' | 'recover' | 'repair' | 'setup-tls';
     receipt: Record<string, unknown>;
   };
 
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'open-blockbench' | 'show-plugin' | null = null;
+  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | null = null;
   let actionMessage = '';
 
   async function refresh() {
@@ -132,7 +135,7 @@
     }
   }
 
-  async function runManagedAction(action: 'update' | 'recover' | 'repair') {
+  async function runManagedAction(action: 'update' | 'recover' | 'repair' | 'setup-tls') {
     if (!status?.manager_available || busyAction) return;
     busyAction = action;
     error = '';
@@ -140,7 +143,7 @@
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      actionMessage = `${action === 'update' ? 'Update' : action === 'repair' ? 'Repair' : 'Recovery'}: ${receiptStatus}`;
+      actionMessage = `${action === 'update' ? 'Update' : action === 'repair' ? 'Repair' : action === 'setup-tls' ? 'Runtime security' : 'Recovery'}: ${receiptStatus}`;
       await refresh();
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause);
@@ -232,6 +235,17 @@
       </article>
 
       <article>
+        <span>Runtime Security</span>
+        <strong
+          class:ok={status.managed?.tls_ready === true}
+          class:bad={status.manager_available && status.managed?.tls_ready === false}
+        >
+          {status.managed?.tls_ready ? 'Ready' : status.manager_available ? 'Needs setup' : 'Unavailable'}
+        </strong>
+        <small>{status.managed?.tls_error ?? 'Machine-local HTTPS identity is ready.'}</small>
+      </article>
+
+      <article>
         <span>Update State</span>
         <strong class:warn={status.managed?.pending}>{status.managed?.pending ? 'Pending activation' : 'Stable'}</strong>
         <small>No background release polling.</small>
@@ -275,6 +289,16 @@
         >
           {busyAction === 'update' ? 'Updating…' : 'Update LazyDesigner'}
         </button>
+        {#if status.manager_available && status.managed?.tls_ready === false}
+          <button
+            class="secondary"
+            onclick={() => runManagedAction('setup-tls')}
+            disabled={!status.maintenance.setup_tls || busyAction !== null}
+            title={status.maintenance.setup_tls ? undefined : status.maintenance.blocked_reason ?? undefined}
+          >
+            {busyAction === 'setup-tls' ? 'Securing…' : 'Setup Runtime Security'}
+          </button>
+        {/if}
         <button
           class="secondary"
           onclick={() => runManagedAction('repair')}
