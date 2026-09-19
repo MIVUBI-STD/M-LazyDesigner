@@ -243,7 +243,7 @@ function textureGroupReceiptComplete(value: unknown): boolean {
 
 function materialMutationReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
-    if (!["create", "configure", "assign_channel"].includes(String(candidate.operation))) {
+    if (!["create", "configure", "assign_channel", "import_texture_set"].includes(String(candidate.operation))) {
       return false;
     }
     const material = record(candidate.material);
@@ -456,7 +456,7 @@ function verificationClassForResult(
   }
 
   if (
-    capability === "manage_material" &&
+    (capability === "manage_material" || capability === "import_texture_set") &&
     materialMutationReceiptComplete(result)
   ) {
     return "receipt_only";
