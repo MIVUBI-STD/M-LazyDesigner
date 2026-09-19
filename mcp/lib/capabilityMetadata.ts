@@ -52,6 +52,9 @@ const PRIMARY_CAPABILITIES = new Set([
   "get_texture",
   "paint_fill_tool",
   "draw_shape_tool",
+  "gradient_tool",
+  "copy_brush_tool",
+  "texture_layer_management",
   "paint_with_brush",
   "eraser_tool",
   "paint_texture_transaction",
@@ -240,6 +243,9 @@ const FOCUSED_READ_VERIFICATION_CAPABILITIES = new Set([
   "rename_element",
   "manage_locator",
   "manage_null_object",
+  "bone_rigging",
+  "add_texture_group",
+  "import_texture_set",
   "manage_material",
   "manage_material_instances",
   "manage_render_profile",
@@ -256,6 +262,7 @@ function executionClassFor(name: string): CapabilityExecutionClass {
 
 const VISUAL_VERIFICATION_CAPABILITIES = new Set([
   "manage_cubes",
+  "duplicate_element",
   "capture_model_views",
   "create_texture",
   "paint_fill_tool",
