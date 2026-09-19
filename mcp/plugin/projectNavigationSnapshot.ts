@@ -151,15 +151,13 @@ export function setupProjectNavigationSnapshot(): void {
 
   outputPath = localAppData.replace(/[\\/]$/, "") + "\\LazyDesigner\\project-navigation.json";
 
-  for (const event of [
-    "select_project",
-    "close_project",
-    "load_project",
-    "save_project",
-    "update_recent_project_data",
-  ]) {
-    listeners.push(Blockbench.on(event, scheduleSnapshot));
-  }
+  listeners.push(
+    Blockbench.on("select_project", scheduleSnapshot),
+    Blockbench.on("close_project", scheduleSnapshot),
+    Blockbench.on("load_project", scheduleSnapshot),
+    Blockbench.on("save_project", scheduleSnapshot),
+    Blockbench.on("update_recent_project_data", scheduleSnapshot),
+  );
   writeSnapshot();
 }
 
