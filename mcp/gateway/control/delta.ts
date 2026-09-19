@@ -216,6 +216,31 @@ function animationControllerReceiptComplete(value: unknown): boolean {
   });
 }
 
+function textureGroupReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    const group = record(candidate.texture_group);
+    if (
+      candidate.operation !== "create_group" ||
+      !group ||
+      typeof group.uuid !== "string" ||
+      typeof group.name !== "string" ||
+      typeof group.is_material !== "boolean" ||
+      !Array.isArray(candidate.textures)
+    ) {
+      return false;
+    }
+    return candidate.textures.every((entry) => {
+      const texture = record(entry);
+      return Boolean(
+        texture &&
+        typeof texture.uuid === "string" &&
+        typeof texture.name === "string" &&
+        texture.group === group.uuid
+      );
+    });
+  });
+}
+
 function materialMutationReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (!["create", "configure", "assign_channel"].includes(String(candidate.operation))) {
@@ -419,6 +444,13 @@ function verificationClassForResult(
   if (
     capability === "manage_animation_controller" &&
     animationControllerReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "add_texture_group" &&
+    textureGroupReceiptComplete(result)
   ) {
     return "receipt_only";
   }
