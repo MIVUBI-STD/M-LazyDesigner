@@ -306,6 +306,7 @@ describe("Control Texture mutation precision", () => {
       texture_uuid: "texture-a",
       affected_rect: [4, 8, 8, 12],
       revision: "b".repeat(64),
+      evidence_source: "follow_up_read",
     });
   });
 
