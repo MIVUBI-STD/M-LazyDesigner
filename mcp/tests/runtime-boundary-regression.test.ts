@@ -28,7 +28,7 @@ describe("Runtime boundary regressions", () => {
     expect(source).toContain("isLegacyRequest");
     expect(source).toContain("WebStandardStreamableHTTPServerTransport");
     expect(source).toContain("enableJsonResponse: true");
-    expect(source).toContain("SDK v2.0.0 currently ignores");
+    expect(source).toContain("server v2.0.0 does not yet");
     expect(source).not.toContain("custom legacy parser");
   });
 
