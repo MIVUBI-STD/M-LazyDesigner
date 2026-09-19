@@ -355,3 +355,129 @@ OMIT
 The representation ladder is regression-locked to bounded one-level-at-a-time escalation, with `REDUNDANT_GEOMETRY` and minimum-sufficient-geometry rules preserved. The existing six synthetic benchmark cases cover rigid prop/furniture, vehicle, articulated character/mob, organic/curved form, mechanical assembly, and layered/cutout behavior. No seventh case is added because no uncovered material construction class was found in the current remote audit.
 
 This closes remote/source coverage only. Measured visual quality, native playback/contact, save/reopen, and installed Blockbench behavior remain `LOCAL_CODE` / `LIVE_BLOCKBENCH` proof.
+
+
+## Desktop Control Plane / Managed Distribution — REMOTE_GITHUB closure
+
+Updated: 2026-09-19.
+
+The Desktop machine-control-plane work has a separate proof chain from the earlier native authoring acceptance. Static/package proof must not be upgraded into live Blockbench acceptance.
+
+### Distribution source baseline
+
+SHA:
+
+```text
+5cdf7342f29d3a76281a4d2fc10e74b018371807
+```
+
+Matching GitHub proof:
+
+```text
+MCP Verify          PASS
+Managed Distribution PASS
+Repository Verify   PASS
+Head Proof          PASS
+```
+
+This baseline contains the canonical managed install/update/repair/recover/TLS implementation used by Desktop. Runtime TLS explicit renewal is guarded by later source/tests without changing the one-owner rule: Desktop delegates; Managed Distribution executes.
+
+### Desktop executable/package baseline
+
+SHA:
+
+```text
+be02af2d2f2316a12f3954c5568c41d0defe222e
+```
+
+Matching GitHub proof:
+
+```text
+Desktop Verify      PASS
+Repository Verify   PASS
+Head Proof          PASS
+```
+
+The Desktop verifier proves the Windows source/build/package surface on that exact head, including:
+
+```text
+PowerShell syntax preflight
+Svelte typecheck/frontend build
+Rust cargo check + tests
+NSIS installer build
+silent Desktop installation
+bundled exact-SHA managed-package presence
+bundled manager self-test
+first managed installation smoke
+explicit Blockbench plugin destination
+Runtime TLS first-install provisioning
+managed status source-SHA equality
+TLS readiness
+TLS renewal safety regression
+installer SHA-256/provenance artifact
+```
+
+Safe remote claims from this proof:
+
+```text
+Desktop shell/package is buildable on Windows CI
+managed bootstrap payload is exact-source and packaged with Desktop
+fresh managed install path is source/package-smoke proven
+managed plugin target and TLS lifecycle are source/CI guarded
+Gateway lifecycle remains MCP-client-owned
+unknown managed status fails closed in Desktop UX
+managed Update / Repair / Recover are distinct operations
+```
+
+This does **not** prove the actual user's Windows installation, native Blockbench trust dialog, installed app close/open behavior, or visual authoring quality.
+
+### Desktop release/version contract
+
+SHA:
+
+```text
+42328480b2c52e5c2e94cf0b65cf015192d27db2
+```
+
+Matching proof already completed for the release-contract change:
+
+```text
+Repository Verify   PASS
+Head Proof          PASS
+```
+
+The release contract is manual and draft-only:
+
+```text
+desktop-vMAJOR.MINOR.PATCH
+source package/Cargo/Tauri versions must match requested version
+exact-SHA integrated installer
+same-SHA managed payload
+SHA256SUMS + desktop-build-provenance
+duplicate-version rejection
+GitHub Release created as draft only when manually dispatched from main
+```
+
+No Desktop release/tag was created by this development pass. No self-updater or update channel was added. Desktop application release/versioning remains separate from `blockit.exe update`, which updates managed components only.
+
+### Remaining higher-context proof
+
+The meaningful residue is now LOCAL_CODE / LIVE_BLOCKBENCH, not additional remote feature work:
+
+```text
+fresh-machine NSIS installation on the target Windows environment
+Desktop → Install LazyDesigner
+native Blockbench Plugins → Load Plugin from File trust/load once
+Runtime online through machine-local HTTPS
+real Codex/MCP reconnection
+Desktop close/open lifecycle
+Blockbench close/open lifecycle
+plugin reload and Runtime rebuild recovery
+repair/recover against intentionally damaged/interrupted local state
+actual-machine TLS renewal
+interrupted mutation inspect-before-retry
+representative visual/reference acceptance
+Golden Task cost-to-accepted-result measurement
+```
+
+Do not add a second updater, Gateway daemon/watchdog, compatibility table, authoring engine, asset database, workflow engine, or Desktop AI chat to compensate for missing live proof.

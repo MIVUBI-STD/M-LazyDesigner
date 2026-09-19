@@ -92,11 +92,63 @@ human acceptance
 
 Do not introduce a hybrid surface before equivalent Golden Task measurements exist.
 
+## Current Desktop / Distribution Remote Baseline
+
+Current REMOTE_GITHUB Desktop Control Plane work is source-complete for the agreed scope.
+
+Proof chain:
+
+```text
+Distribution source baseline
+5cdf7342f29d3a76281a4d2fc10e74b018371807
+→ MCP Verify PASS
+→ Managed Distribution PASS
+→ Repository Verify PASS
+→ Head Proof PASS
+
+Desktop executable/package baseline
+be02af2d2f2316a12f3954c5568c41d0defe222e
+→ Desktop Verify PASS
+→ Repository Verify PASS
+→ Head Proof PASS
+
+Desktop release/version contract
+42328480b2c52e5c2e94cf0b65cf015192d27db2
+→ Repository Verify PASS
+→ Head Proof PASS
+→ manual draft-only release workflow added
+→ no tag/release published
+→ no Desktop self-updater added
+```
+
+Remote-complete Desktop capabilities:
+
+```text
+Tauri/Svelte/Rust Desktop shell
+exact-SHA managed bootstrap bundle
+silent NSIS install/bootstrap smoke
+Blockbench discovery/version/compatibility projection
+explicit Open Blockbench
+native Blockbench plugin-file handoff
+Gateway supervision without Gateway ownership theft
+Runtime/managed health
+typed unknown-state fail-closed projection
+managed update / repair / recover
+Runtime TLS provision + explicit renewal
+PowerShell syntax fail-fast
+installer checksum + build provenance
+draft Desktop release/version contract
+```
+
+The Desktop version remains `0.1.0` across package/Cargo/Tauri until an intentional release bump. `Update managed components` is not Desktop self-update. A future self-update mechanism requires a separate signed update-channel decision and is not current residue.
+
+No further Desktop feature expansion is recommended before local/native acceptance exposes a concrete gap.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 
 Local acceptance is now activated. Use `docs/05-operations/local-acceptance-runbook.md` as the single execution runbook.
 
-Prepared remote baseline:
+Earlier authoring/local-acceptance baseline:
 
 ```text
 SHA 7d3abf40238373461085fac179fcbbc07a7da300
@@ -105,6 +157,8 @@ MCP Verify PASS
 MCP Conformance PASS
 Managed Distribution PASS
 ```
+
+This older baseline is retained only for the existing native authoring evidence below. The current Desktop/Distribution remote baseline is recorded above.
 
 Version 2.1 (`v2.1`, Local source release) uses authorized HTTPS loopback; `verify:full` passes 1,201 tests. Both blockers fixed: native Dirent-based export retains symlink/consent guards; texture harness uses current UUID/name identity. Build `c73fc8…` passes existing-file save/reopen and texture-runtime tests; earlier native/affinity/reload tests passed on `f5c65c…`. Codex config now selects the updated Gateway; a fresh stdio client using that config passes online/catalog/identity checks. Next: reconnect the existing Codex MCP process once. App-restart/interrupted-mutation recovery and visual quality remain unverified. See `current-validation.md`; disposable tabs remain, production assets untouched.
 
