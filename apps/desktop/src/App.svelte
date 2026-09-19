@@ -18,11 +18,18 @@
   };
 
   type ManagedStatus = {
-    schema?: number;
-    installed?: { source_sha?: string } | null;
-    pending?: boolean;
-    gateway_active?: boolean;
-    runtime_online?: boolean;
+    schema: number;
+    installed: { source_sha: string } | null;
+    pending: boolean;
+    gateway_active: boolean;
+    runtime_online: boolean;
+  };
+
+  type MaintenanceAvailability = {
+    update: boolean;
+    repair: boolean;
+    recover: boolean;
+    blocked_reason: string | null;
   };
 
   type GatewaySupervision = {
@@ -35,6 +42,7 @@
     schema: number;
     blockbench: BlockbenchState;
     gateway: GatewaySupervision;
+    maintenance: MaintenanceAvailability;
     manager_available: boolean;
     managed: ManagedStatus | null;
     diagnostic: string | null;
@@ -204,26 +212,35 @@
         </button>
         <button
           onclick={() => runManagedAction('update')}
-          disabled={!status.manager_available || busyAction !== null}
+          disabled={!status.maintenance.update || busyAction !== null}
         >
           {busyAction === 'update' ? 'Updating…' : 'Update LazyDesigner'}
         </button>
         <button
           class="secondary"
           onclick={() => runManagedAction('repair')}
-          disabled={!status.manager_available || busyAction !== null}
+          disabled={!status.maintenance.repair || busyAction !== null}
+          title={status.maintenance.repair ? undefined : status.maintenance.blocked_reason ?? undefined}
         >
           {busyAction === 'repair' ? 'Repairing…' : 'Repair installation'}
         </button>
         <button
           class="secondary"
           onclick={() => runManagedAction('recover')}
-          disabled={!status.manager_available || busyAction !== null}
+          disabled={!status.maintenance.recover || busyAction !== null}
+          title={status.maintenance.recover ? undefined : status.maintenance.blocked_reason ?? undefined}
         >
           {busyAction === 'recover' ? 'Recovering…' : 'Recover interrupted install'}
         </button>
       </div>
     </section>
+
+    {#if status.maintenance.blocked_reason && status.manager_available}
+      <section class="notice">
+        <strong>Maintenance safety</strong>
+        <span>{status.maintenance.blocked_reason}</span>
+      </section>
+    {/if}
 
     {#if status.gateway.action}
       <section class="notice gateway-guidance">

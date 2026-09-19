@@ -107,3 +107,22 @@ running Blockbench process executable
 The `Open Blockbench` action is explicit. If Blockbench is already running it returns `ALREADY_RUNNING`; otherwise it launches the discovered executable and does not create a restart/watchdog policy.
 
 Version and compatibility projection now also work when Blockbench is installed but closed, provided Windows exposes a valid uninstall entry.
+
+
+## Typed managed status and action availability
+
+Desktop does not consume arbitrary manager JSON. The Rust boundary deserializes the canonical `blockit.exe status` schema into a typed projection and rejects unsupported schema values.
+
+Maintenance availability is derived from that typed state:
+
+```text
+update
+→ available whenever the managed installation is available
+→ may stage while Gateway/Runtime is active
+
+repair / recover
+→ available only when Gateway and Runtime are inactive
+→ UI disables the actions before invocation and shows the canonical safety reason
+```
+
+The manager remains the final authority and repeats its own safety checks; Desktop preflight is UX guidance, not a replacement security gate.

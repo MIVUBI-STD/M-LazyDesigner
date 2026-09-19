@@ -33,6 +33,28 @@ pub struct BlockbenchState {
     pub diagnostic: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ManagedInstalled {
+    pub source_sha: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ManagedStatus {
+    pub schema: u8,
+    pub installed: Option<ManagedInstalled>,
+    pub pending: bool,
+    pub gateway_active: bool,
+    pub runtime_online: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MaintenanceAvailability {
+    pub update: bool,
+    pub repair: bool,
+    pub recover: bool,
+    pub blocked_reason: Option<&'static str>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct GatewaySupervision {
     pub ownership: &'static str,
@@ -56,8 +78,9 @@ pub struct SystemStatus {
     pub schema: u8,
     pub blockbench: BlockbenchState,
     pub gateway: GatewaySupervision,
+    pub maintenance: MaintenanceAvailability,
     pub manager_available: bool,
-    pub managed: Option<Value>,
+    pub managed: Option<ManagedStatus>,
     pub diagnostic: Option<String>,
 }
 
@@ -302,15 +325,9 @@ pub fn open_blockbench() -> Result<BlockbenchActionResult, String> {
     Ok(BlockbenchActionResult { status: "STARTED" })
 }
 
-fn project_gateway(managed: Option<&Value>, blockbench_running: bool) -> GatewaySupervision {
-    let active = managed
-        .and_then(|value| value.get("gateway_active"))
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
-    let runtime_online = managed
-        .and_then(|value| value.get("runtime_online"))
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
+fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool) -> GatewaySupervision {
+    let active = managed.map(|value| value.gateway_active).unwrap_or(false);
+    let runtime_online = managed.map(|value| value.runtime_online).unwrap_or(false);
 
     match (active, runtime_online, blockbench_running) {
         (true, true, _) => GatewaySupervision {
@@ -341,12 +358,40 @@ fn project_gateway(managed: Option<&Value>, blockbench_running: bool) -> Gateway
     }
 }
 
+
+fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>) -> MaintenanceAvailability {
+    if !manager_available {
+        return MaintenanceAvailability {
+            update: false,
+            repair: false,
+            recover: false,
+            blocked_reason: Some("Managed LazyDesigner installation is unavailable."),
+        };
+    }
+
+    let busy = managed
+        .map(|value| value.gateway_active || value.runtime_online)
+        .unwrap_or(false);
+
+    MaintenanceAvailability {
+        update: true,
+        repair: !busy,
+        recover: !busy,
+        blocked_reason: if busy {
+            Some("Close active Codex MCP sessions and Blockbench Runtime before repair or recovery.")
+        } else {
+            None
+        },
+    }
+}
+
 pub fn collect() -> SystemStatus {
     let blockbench = detect_blockbench();
     let Some(root) = managed_root() else {
         return SystemStatus {
             schema: 1,
             gateway: project_gateway(None, blockbench.running),
+            maintenance: project_maintenance(false, None),
             blockbench,
             manager_available: false,
             managed: None,
@@ -360,6 +405,7 @@ pub fn collect() -> SystemStatus {
             return SystemStatus {
                 schema: 1,
                 gateway: project_gateway(None, blockbench.running),
+                maintenance: project_maintenance(false, None),
                 blockbench,
                 manager_available: false,
                 managed: None,
@@ -379,6 +425,7 @@ pub fn collect() -> SystemStatus {
             return SystemStatus {
                 schema: 1,
                 gateway: project_gateway(None, blockbench.running),
+                maintenance: project_maintenance(true, None),
                 blockbench,
                 manager_available: true,
                 managed: None,
@@ -392,6 +439,7 @@ pub fn collect() -> SystemStatus {
         return SystemStatus {
             schema: 1,
             gateway: project_gateway(None, blockbench.running),
+            maintenance: project_maintenance(true, None),
             blockbench,
             manager_available: true,
             managed: None,
@@ -403,21 +451,24 @@ pub fn collect() -> SystemStatus {
         };
     }
 
-    match serde_json::from_slice::<Value>(&output.stdout) {
-        Ok(managed) => {
+    match serde_json::from_slice::<ManagedStatus>(&output.stdout) {
+        Ok(managed) if managed.schema == 1 => {
             let gateway = project_gateway(Some(&managed), blockbench.running);
+            let maintenance = project_maintenance(true, Some(&managed));
             SystemStatus {
                 schema: 1,
                 gateway,
+                maintenance,
                 blockbench,
                 manager_available: true,
                 managed: Some(managed),
                 diagnostic: None,
             }
         },
-        Err(_) => SystemStatus {
+        Ok(_) | Err(_) => SystemStatus {
             schema: 1,
             gateway: project_gateway(None, blockbench.running),
+            maintenance: project_maintenance(true, None),
             blockbench,
             manager_available: true,
             managed: None,
@@ -491,13 +542,41 @@ mod tests {
 
     #[test]
     fn gateway_supervision_preserves_client_ownership() {
-        let managed = serde_json::json!({
-            "gateway_active": false,
-            "runtime_online": true
-        });
+        let managed = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: false,
+            runtime_online: true,
+        };
         let result = project_gateway(Some(&managed), true);
         assert_eq!(result.ownership, "client-owned");
         assert_eq!(result.state, "client-disconnected");
         assert!(result.action.unwrap().contains("Reconnect LazyDesigner MCP"));
+    }
+
+    #[test]
+    fn maintenance_projection_matches_managed_runtime_safety_gate() {
+        let idle = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: false,
+            runtime_online: false,
+        };
+        let ready = project_maintenance(true, Some(&idle));
+        assert!(ready.update && ready.repair && ready.recover);
+
+        let busy = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: true,
+            runtime_online: false,
+        };
+        let blocked = project_maintenance(true, Some(&busy));
+        assert!(blocked.update);
+        assert!(!blocked.repair && !blocked.recover);
+        assert!(blocked.blocked_reason.is_some());
     }
 }
