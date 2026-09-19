@@ -148,6 +148,10 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('"open-model"');
     expect(rust).toContain('"reveal-model"');
     expect(rust).toContain('"open-folder"');
+    expect(rust).toContain('"pin-project" | "unpin-project"');
+    expect(rust).toContain("project-preferences.json");
+    expect(rust).toContain("pinned_project_ids");
+    expect(rust).toContain('navigation_id("project"');
     expect(rust).toContain('("models", "Models"');
     expect(rust).toContain('("references", "References"');
     expect(rust).toContain('("textures", "Textures"');
@@ -162,6 +166,9 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("Search projects");
     expect(app).toContain("Search models");
     expect(app).toContain("folder-shortcuts");
+    expect(app).toContain("Pin project");
+    expect(app).toContain("Unpin project");
+    expect(app).toContain("project.pinned");
     expect(app).toContain("activeProject.folders.length > 0");
     expect(app).toContain("project.folders.length > 0");
     expect(app).toContain("continueTarget");

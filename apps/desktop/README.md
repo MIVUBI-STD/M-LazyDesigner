@@ -426,6 +426,8 @@ Opening a model from Desktop first passes through the canonical `ensure_ready` f
 
 The active-window heartbeat watches only the navigation snapshot revision. When it changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
 
+Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Pinning changes Recent Projects ordering only.
+
 ## Bounded local operation log
 
 Desktop writes a minimal best-effort machine log under its LocalAppData directory. Entries contain only:

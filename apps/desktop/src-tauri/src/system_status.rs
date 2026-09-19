@@ -4,7 +4,7 @@ use std::{
     env,
     fs,
     path::{Path, PathBuf},
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     process::Command,
     net::{SocketAddr, TcpStream},
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -150,6 +150,7 @@ pub struct ProjectNavigationProject {
     pub id: String,
     pub name: String,
     pub active: bool,
+    pub pinned: bool,
     pub model_count: usize,
     pub models: Vec<ProjectNavigationModel>,
     pub folders: Vec<ProjectNavigationFolder>,
@@ -239,6 +240,12 @@ struct NavigationSnapshot {
     recent_models: Vec<NavigationSnapshotRecent>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct ProjectNavigationPreferences {
+    schema: u8,
+    pinned_project_ids: Vec<String>,
+}
+
 fn managed_root() -> Option<PathBuf> {
     env::var_os("BLOCKIT_HOME")
         .map(PathBuf::from)
@@ -250,6 +257,62 @@ fn project_navigation_snapshot_path() -> Option<PathBuf> {
     env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .map(|base| base.join("LazyDesigner").join("project-navigation.json"))
+}
+
+
+fn project_navigation_preferences_path() -> Option<PathBuf> {
+    env::var_os("LOCALAPPDATA")
+        .map(PathBuf::from)
+        .map(|base| base.join("LazyDesigner").join("project-preferences.json"))
+}
+
+fn read_project_navigation_preferences() -> ProjectNavigationPreferences {
+    let Some(path) = project_navigation_preferences_path() else {
+        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    };
+    let Ok(metadata) = fs::metadata(&path) else {
+        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    };
+    if metadata.len() == 0 || metadata.len() > 64 * 1024 {
+        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    }
+    let Ok(bytes) = fs::read(path) else {
+        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    };
+    let Ok(mut value) = serde_json::from_slice::<ProjectNavigationPreferences>(&bytes) else {
+        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    };
+    if value.schema != 1 {
+        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    }
+    value.pinned_project_ids.retain(|id| {
+        id.strip_prefix("project-")
+            .map(|suffix| suffix.len() == 20 && suffix.chars().all(|ch| ch.is_ascii_hexdigit()))
+            .unwrap_or(false)
+    });
+    value.pinned_project_ids.sort();
+    value.pinned_project_ids.dedup();
+    value
+}
+
+fn write_project_navigation_preferences(value: &ProjectNavigationPreferences) -> Result<(), String> {
+    let path = project_navigation_preferences_path()
+        .ok_or_else(|| "LOCALAPPDATA is unavailable.".to_string())?;
+    let parent = path.parent()
+        .ok_or_else(|| "Project preference directory is invalid.".to_string())?;
+    fs::create_dir_all(parent)
+        .map_err(|error| format!("Unable to prepare project preferences: {error}"))?;
+    let bytes = serde_json::to_vec(value)
+        .map_err(|error| format!("Unable to encode project preferences: {error}"))?;
+    if bytes.len() > 64 * 1024 {
+        return Err("Project preferences exceed the bounded size.".to_string());
+    }
+    let temp = path.with_extension("json.tmp");
+    fs::write(&temp, bytes)
+        .map_err(|error| format!("Unable to write project preferences: {error}"))?;
+    fs::rename(&temp, &path)
+        .map_err(|error| format!("Unable to commit project preferences: {error}"))?;
+    Ok(())
 }
 
 fn project_navigation_revision() -> Option<String> {
@@ -402,6 +465,10 @@ fn navigation_paths() -> (
 
 fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
     let revision = project_navigation_revision();
+    let pinned: HashSet<String> = read_project_navigation_preferences()
+        .pinned_project_ids
+        .into_iter()
+        .collect();
     let Some(snapshot) = read_navigation_snapshot() else {
         return ProjectNavigation { revision, active: None, projects: Vec::new() };
     };
@@ -449,6 +516,7 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
                     id: project_id.clone(),
                     name: project_name(&root),
                     active: project_active,
+                    pinned: pinned.contains(&project_id),
                     model_count: 0,
                     models: Vec::new(),
                     folders: folder_projection(&root),
@@ -484,7 +552,9 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
         add_model(path, &recent.name, is_active);
     }
 
-    projects.sort_by_key(|project| if project.active { 0 } else { 1 });
+    projects.sort_by_key(|project| {
+        if project.active { 0 } else if project.pinned { 1 } else { 2 }
+    });
     ProjectNavigation { revision, active, projects }
 }
 
@@ -501,6 +571,24 @@ pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNaviga
                 .spawn()
                 .map_err(|error| format!("Unable to open the project folder: {error}"))?;
             Ok(ProjectNavigationActionResult { status: "OPENED" })
+        }
+        "pin-project" | "unpin-project" => {
+            if !projects.contains_key(id) {
+                return Err("Project is no longer available.".to_string());
+            }
+            let mut preferences = read_project_navigation_preferences();
+            preferences.schema = 1;
+            preferences.pinned_project_ids.retain(|candidate| candidate != id);
+            let pin = action == "pin-project";
+            if pin {
+                preferences.pinned_project_ids.push(id.to_string());
+            }
+            preferences.pinned_project_ids.sort();
+            preferences.pinned_project_ids.dedup();
+            write_project_navigation_preferences(&preferences)?;
+            Ok(ProjectNavigationActionResult {
+                status: if pin { "PINNED" } else { "UNPINNED" },
+            })
         }
         "open-folder" => {
             let path = folders.get(id).ok_or_else(|| "Folder is no longer available.".to_string())?;
