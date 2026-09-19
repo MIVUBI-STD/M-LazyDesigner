@@ -12,7 +12,9 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
       readFile(new URL("../scripts/serve-conformance-runtime.ts", import.meta.url), "utf8"),
       readFile(new URL("../server/conformanceFixtures.ts", import.meta.url), "utf8"),
     ]);
+    expect(scriptSource).toContain('LAZYDESIGNER_CONFORMANCE_HARNESS = "1"');
     expect(scriptSource).toContain("__LAZYDESIGNER_CONFORMANCE__ = true");
+    expect(fixtureSource).toContain('process.env.LAZYDESIGNER_CONFORMANCE_HARNESS === "1"');
     expect(netSource).toContain("if (conformanceFixturesEnabled()) return requestServer");
     expect(serverSource).toContain("wireConformanceFixtures(server)");
     expect(fixtureSource).toContain('"test_simple_text"');
@@ -138,7 +140,7 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     );
 
     expect(source).toContain("mode: 'stateless'");
-    expect(source).toContain("response_mode: 'json'");
+    expect(source).toContain("response_mode: 'auto'");
     expect(source).toContain("responseMode: 'auto'");
     expect(source).toContain("sendSerializedWebResponse");
     expect(source).toContain("contentType.includes('text/event-stream')");
