@@ -126,6 +126,13 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("open_blockbench()?");
     expect(app).toContain("value.plugin_integrity === 'modified'");
     expect(app).toContain("next.managed = fixture === 'fresh-install' ? null :");
+    expect(app).toContain("invoke<ConnectionStatus>('connection_status')");
+    expect(app).toContain("value.product_state");
+    expect(rust).toContain("fn project_product_state(");
+    expect(rust).toContain("TcpStream::connect_timeout");
+    expect(rust).toContain("gateway_active_fast");
+    expect(rust).not.toContain('"Managed connection status"');
+
     expect(app).toContain("async function connectBlockbench() {\n    if (devFixture) return;");
     expect(app).toContain("async function installLazyDesigner() {\n    if (devFixture) return;");
     expect(app).toContain("async function runManagedAction(action:");

@@ -6,10 +6,11 @@ use std::{
     path::{Path, PathBuf},
     collections::HashMap,
     process::Command,
+    net::{SocketAddr, TcpStream},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use crate::process::{run_output, run_output_with_stderr_lines};
-use sysinfo::System;
+use sysinfo::{Pid, System};
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
 #[derive(Debug, Deserialize)]
@@ -123,14 +124,15 @@ pub struct ConnectionStatus {
     pub schema: u8,
     pub observed_at_unix_ms: u64,
     pub blockbench_running: bool,
-    pub runtime_online: bool,
-    pub gateway_active: bool,
+    pub runtime_online: Option<bool>,
+    pub gateway_active: Option<bool>,
     pub plugin_integrity: &'static str,
 }
 
 #[derive(Debug, Serialize)]
 pub struct SystemStatus {
     pub schema: u8,
+    pub product_state: &'static str,
     pub plugin_integrity: &'static str,
     pub observed_at_unix_ms: u64,
     pub readiness: ReadinessProjection,
@@ -544,8 +546,8 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
         return Ok(EnsureReadyResult {
             status: "NEEDS_ATTENTION",
             reason: "PLUGIN_INTEGRITY",
-            runtime_online: current.runtime_online,
-            gateway_active: current.gateway_active,
+            runtime_online: current.runtime_online.unwrap_or(false),
+            gateway_active: current.gateway_active.unwrap_or(false),
             blockbench_running: current.blockbench_running,
             plugin_integrity: current.plugin_integrity,
             manual_plugin_approval_recommended: false,
@@ -557,8 +559,8 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
                 reason: "PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING",
-                runtime_online: current.runtime_online,
-                gateway_active: current.gateway_active,
+                runtime_online: current.runtime_online.unwrap_or(false),
+                gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
                 manual_plugin_approval_recommended: false,
@@ -570,8 +572,8 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
                 reason: "REPAIR_BLOCKED",
-                runtime_online: current.runtime_online,
-                gateway_active: current.gateway_active,
+                runtime_online: current.runtime_online.unwrap_or(false),
+                gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
                 manual_plugin_approval_recommended: false,
@@ -584,8 +586,8 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
                 reason: "REPAIR_DID_NOT_RESTORE_PLUGIN",
-                runtime_online: current.runtime_online,
-                gateway_active: current.gateway_active,
+                runtime_online: current.runtime_online.unwrap_or(false),
+                gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
                 manual_plugin_approval_recommended: false,
@@ -601,12 +603,12 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
     while started.elapsed() < Duration::from_secs(15) {
         current = collect_connection_status();
 
-        if current.runtime_online {
+        if current.runtime_online == Some(true) {
             return Ok(EnsureReadyResult {
-                status: if current.gateway_active { "READY" } else { "RUNTIME_READY" },
-                reason: if current.gateway_active { "CONNECTED" } else { "WAITING_FOR_MCP_CLIENT" },
+                status: if current.gateway_active == Some(true) { "READY" } else { "RUNTIME_READY" },
+                reason: if current.gateway_active == Some(true) { "CONNECTED" } else { "WAITING_FOR_MCP_CLIENT" },
                 runtime_online: true,
-                gateway_active: current.gateway_active,
+                gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
                 manual_plugin_approval_recommended: false,
@@ -618,7 +620,7 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
                 status: "NEEDS_ATTENTION",
                 reason: "BLOCKBENCH_EXITED",
                 runtime_online: false,
-                gateway_active: current.gateway_active,
+                gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: false,
                 plugin_integrity: current.plugin_integrity,
                 manual_plugin_approval_recommended: false,
@@ -629,15 +631,17 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
     }
 
     current = collect_connection_status();
-    let likely_first_approval = current.blockbench_running
+    let probe_known = current.runtime_online.is_some() && current.gateway_active.is_some();
+    let likely_first_approval = probe_known
+        && current.blockbench_running
         && current.plugin_integrity == "ready"
-        && !current.runtime_online;
+        && current.runtime_online == Some(false);
 
     Ok(EnsureReadyResult {
         status: if likely_first_approval { "APPROVAL_REQUIRED" } else { "NEEDS_ATTENTION" },
-        reason: if likely_first_approval { "RUNTIME_TIMEOUT_WITH_HEALTHY_PLUGIN" } else { "RUNTIME_TIMEOUT" },
-        runtime_online: current.runtime_online,
-        gateway_active: current.gateway_active,
+        reason: if !probe_known { "CONNECTION_PROBE_UNKNOWN" } else if likely_first_approval { "RUNTIME_TIMEOUT_WITH_HEALTHY_PLUGIN" } else { "RUNTIME_TIMEOUT" },
+        runtime_online: current.runtime_online.unwrap_or(false),
+        gateway_active: current.gateway_active.unwrap_or(false),
         blockbench_running: current.blockbench_running,
         plugin_integrity: current.plugin_integrity,
         manual_plugin_approval_recommended: likely_first_approval,
@@ -686,11 +690,55 @@ fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool) ->
 }
 
 
+fn project_product_state(
+    manager_available: bool,
+    managed: Option<&ManagedStatus>,
+    blockbench: &BlockbenchState,
+    gateway: &GatewaySupervision,
+    plugin_integrity: &str,
+) -> &'static str {
+    if !manager_available {
+        return "welcome";
+    }
+    let Some(managed) = managed else {
+        return "attention";
+    };
+    if !managed.tls_ready {
+        return "security-setup";
+    }
+    if matches!(
+        blockbench.compatibility.as_ref().map(|value| value.status.as_str()),
+        Some("unsupported" | "invalid")
+    ) {
+        return "unsupported";
+    }
+    if matches!(plugin_integrity, "modified" | "invalid") {
+        return "attention";
+    }
+    if plugin_integrity == "missing" && blockbench.running {
+        return "plugin-setup";
+    }
+    if !blockbench.running {
+        return "ready-start";
+    }
+    if !managed.runtime_online {
+        return "plugin-setup";
+    }
+    if gateway.state == "healthy" {
+        return "ready";
+    }
+    if gateway.state == "client-disconnected" {
+        return "client-wait";
+    }
+    "attention"
+}
+
 fn project_readiness(
     manager_available: bool,
     managed: Option<&ManagedStatus>,
     blockbench_running: bool,
     gateway: &GatewaySupervision,
+    plugin_integrity: &str,
 ) -> ReadinessProjection {
     if !manager_available {
         return ReadinessProjection {
@@ -710,6 +758,13 @@ fn project_readiness(
         return ReadinessProjection {
             state: "needs-attention",
             summary: "Runtime security setup is incomplete.",
+            ready: false,
+        };
+    }
+    if matches!(plugin_integrity, "modified" | "invalid") {
+        return ReadinessProjection {
+            state: "needs-attention",
+            summary: "Managed Blockbench plugin integrity requires attention.",
             ready: false,
         };
     }
@@ -748,6 +803,10 @@ fn compose_status(
     managed: Option<ManagedStatus>,
     diagnostic: Option<String>,
 ) -> SystemStatus {
+    let plugin_integrity = managed_root()
+        .as_deref()
+        .map(managed_plugin_integrity)
+        .unwrap_or("unknown");
     let gateway = if manager_available && managed.is_none() {
         unknown_gateway()
     } else {
@@ -758,16 +817,20 @@ fn compose_status(
         managed.as_ref(),
         blockbench.running,
         &gateway,
+        plugin_integrity,
     );
     let maintenance = project_maintenance(manager_available, managed.as_ref());
-
-    let plugin_integrity = managed_root()
-        .as_deref()
-        .map(managed_plugin_integrity)
-        .unwrap_or("unknown");
+    let product_state = project_product_state(
+        manager_available,
+        managed.as_ref(),
+        &blockbench,
+        &gateway,
+        plugin_integrity,
+    );
 
     SystemStatus {
         schema: 1,
+        product_state,
         plugin_integrity,
         observed_at_unix_ms: observed_at_unix_ms(),
         readiness,
@@ -820,6 +883,41 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
     }
 }
 
+fn gateway_active_fast(root: &Path, system: &System) -> Option<bool> {
+    let leases = root.join("leases");
+    let entries = match fs::read_dir(&leases) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Some(false),
+        Err(_) => return None,
+    };
+
+    for entry in entries {
+        let entry = entry.ok()?;
+        if !entry.file_type().ok()?.is_file() {
+            return None;
+        }
+        let name = entry.file_name();
+        let name = name.to_str()?;
+        let pid = name.strip_suffix(".json")?.parse::<u32>().ok()?;
+        if system.process(Pid::from_u32(pid)).is_some() {
+            return Some(true);
+        }
+    }
+    Some(false)
+}
+
+fn runtime_online_fast() -> Option<bool> {
+    let endpoint = SocketAddr::from(([127, 0, 0, 1], 3000));
+    match TcpStream::connect_timeout(&endpoint, Duration::from_millis(250)) {
+        Ok(stream) => {
+            drop(stream);
+            Some(true)
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::ConnectionRefused => Some(false),
+        Err(_) => None,
+    }
+}
+
 pub fn collect_connection_status() -> ConnectionStatus {
     let mut system = System::new_all();
     system.refresh_processes();
@@ -833,49 +931,30 @@ pub fn collect_connection_status() -> ConnectionStatus {
             schema: 1,
             observed_at_unix_ms: observed_at_unix_ms(),
             blockbench_running,
-            runtime_online: false,
-            gateway_active: false,
+            runtime_online: None,
+            gateway_active: None,
             plugin_integrity: "unknown",
         };
     };
 
     let plugin_integrity = managed_plugin_integrity(&root);
-    let Ok(executable) = manager_executable(&root) else {
+    if manager_executable(&root).is_err() {
         return ConnectionStatus {
             schema: 1,
             observed_at_unix_ms: observed_at_unix_ms(),
             blockbench_running,
-            runtime_online: false,
-            gateway_active: false,
+            runtime_online: None,
+            gateway_active: None,
             plugin_integrity,
         };
-    };
-
-    let output = run_output(
-        Command::new(&executable)
-            .arg("status")
-            .arg("--root")
-            .arg(&root),
-        Duration::from_secs(3),
-        "Managed connection status",
-    );
-
-    let (runtime_online, gateway_active) = match output {
-        Ok(output) if output.status.success() => {
-            match serde_json::from_slice::<ManagedStatus>(&output.stdout) {
-                Ok(managed) if managed.schema == 1 => (managed.runtime_online, managed.gateway_active),
-                _ => (false, false),
-            }
-        }
-        _ => (false, false),
-    };
+    }
 
     ConnectionStatus {
         schema: 1,
         observed_at_unix_ms: observed_at_unix_ms(),
         blockbench_running,
-        runtime_online,
-        gateway_active,
+        runtime_online: runtime_online_fast(),
+        gateway_active: gateway_active_fast(&root, &system),
         plugin_integrity,
     }
 }
@@ -1098,6 +1177,28 @@ mod tests {
     }
 
     #[test]
+    fn product_state_rejects_modified_plugin_before_launch() {
+        let managed = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: false,
+            runtime_online: false,
+            tls_ready: true,
+            tls_error: None,
+            rollback: None,
+        };
+        let blockbench = BlockbenchState {
+            running: false,
+            version: Some("5.2.0".to_string()),
+            compatibility: Some(evaluate_blockbench_compatibility("5.2.0").unwrap()),
+            diagnostic: None,
+        };
+        let gateway = project_gateway(Some(&managed), false);
+        assert_eq!(project_product_state(true, Some(&managed), &blockbench, &gateway, "modified"), "attention");
+    }
+
+    #[test]
     fn gateway_supervision_preserves_client_ownership() {
         let managed = ManagedStatus {
             schema: 1,
@@ -1128,12 +1229,12 @@ mod tests {
             rollback: None,
         };
         let gateway = project_gateway(Some(&healthy), true);
-        let ready = project_readiness(true, Some(&healthy), true, &gateway);
+        let ready = project_readiness(true, Some(&healthy), true, &gateway, "ready");
         assert_eq!(ready.state, "ready");
         assert!(ready.ready);
 
         let closed_gateway = project_gateway(Some(&healthy), false);
-        let start = project_readiness(true, Some(&healthy), false, &closed_gateway);
+        let start = project_readiness(true, Some(&healthy), false, &closed_gateway, "ready");
         assert_eq!(start.state, "ready-to-start");
         assert!(!start.ready);
 
@@ -1148,13 +1249,13 @@ mod tests {
             rollback: None,
         };
         let disconnected_gateway = project_gateway(Some(&disconnected), true);
-        let connection = project_readiness(true, Some(&disconnected), true, &disconnected_gateway);
+        let connection = project_readiness(true, Some(&disconnected), true, &disconnected_gateway, "ready");
         assert_eq!(connection.state, "needs-connection");
 
-        let setup = project_readiness(false, None, false, &unknown_gateway());
+        let setup = project_readiness(false, None, false, &unknown_gateway(), "unknown");
         assert_eq!(setup.state, "setup-required");
 
-        let attention = project_readiness(true, None, false, &unknown_gateway());
+        let attention = project_readiness(true, None, false, &unknown_gateway(), "unknown");
         assert_eq!(attention.state, "needs-attention");
     }
 

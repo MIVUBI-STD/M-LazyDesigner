@@ -54,13 +54,14 @@
     schema: number;
     observed_at_unix_ms: number;
     blockbench_running: boolean;
-    runtime_online: boolean;
-    gateway_active: boolean;
+    runtime_online: boolean | null;
+    gateway_active: boolean | null;
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
   };
 
   type SystemStatus = {
     schema: number;
+    product_state: ProductMode;
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
     observed_at_unix_ms: number;
     readiness: ReadinessProjection;
@@ -198,6 +199,24 @@
     }
   }
 
+  async function watchSystemStatus() {
+    if (devFixture || busyAction || document.hidden || !status) return;
+    try {
+      const candidate = await invoke<ConnectionStatus>('connection_status');
+      if (candidate.runtime_online === null || candidate.gateway_active === null) return;
+
+      const changed =
+        candidate.blockbench_running !== status.blockbench.running
+        || candidate.plugin_integrity !== status.plugin_integrity
+        || candidate.runtime_online !== status.managed?.runtime_online
+        || candidate.gateway_active !== status.managed?.gateway_active;
+
+      if (changed) await refresh();
+    } catch {
+      // Preserve the last known full Rust projection on transient probe failure.
+    }
+  }
+
   async function connectBlockbench() {
     if (devFixture) return;
     if (!status?.manager_available || busyAction) return;
@@ -219,7 +238,9 @@
           ? 'The managed Blockbench plugin was modified and needs review.'
           : result.reason === 'BLOCKBENCH_EXITED'
             ? 'Blockbench closed before LazyDesigner could become ready.'
-            : 'LazyDesigner could not prepare Blockbench automatically.';
+            : result.reason === 'CONNECTION_PROBE_UNKNOWN'
+              ? 'LazyDesigner could not verify the local Runtime connection. Try again or open Support.'
+              : 'LazyDesigner could not prepare Blockbench automatically.';
       }
     } catch (cause) {
       error = errorMessage(cause);
@@ -421,6 +442,15 @@
       summary: fixture === 'ready' ? 'LazyDesigner is ready.' : 'Fixture state.',
     };
 
+    next.product_state = fixture === 'ready' ? 'ready'
+      : fixture === 'fresh-install' ? 'welcome'
+      : fixture === 'unsupported' ? 'unsupported'
+      : fixture === 'plugin-modified' ? 'attention'
+      : fixture === 'client-wait' ? 'client-wait'
+      : fixture === 'repair-blocked' ? 'attention'
+      : fixture === 'runtime-offline' || fixture === 'approval-required' || fixture === 'plugin-missing' ? 'plugin-setup'
+      : 'attention';
+
     next.maintenance = {
       ...next.maintenance,
       update: fixture !== 'fresh-install',
@@ -439,18 +469,7 @@
     return allowed.includes(value as DevFixture) ? value as DevFixture : null;
   }
 
-  function productMode(value: SystemStatus): ProductMode {
-    if (!value.manager_available) return 'welcome';
-    if (value.managed?.tls_ready === false) return 'security-setup';
-    if (value.blockbench.compatibility?.status === 'unsupported' || value.blockbench.compatibility?.status === 'invalid') return 'unsupported';
-    if (value.plugin_integrity === 'modified' || value.plugin_integrity === 'invalid') return 'attention';
-    if (value.plugin_integrity === 'missing' && value.blockbench.running) return 'plugin-setup';
-    if (!value.blockbench.running) return 'ready-start';
-    if (!value.managed?.runtime_online) return 'plugin-setup';
-    if (value.gateway.state === 'healthy') return 'ready';
-    if (value.gateway.state === 'client-disconnected') return 'client-wait';
-    return 'attention';
-  }
+  const productMode = (value: SystemStatus): ProductMode => value.product_state;
 
   function productHeadline(value: SystemStatus) {
     const mode = productMode(value);

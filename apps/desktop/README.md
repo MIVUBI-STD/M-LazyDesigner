@@ -9,7 +9,7 @@ This directory owns the desktop **machine control plane** only.
 - invoke the canonical managed `blockit.exe status` contract;
 - present Gateway/Runtime/update health;
 - supervise bounded user-requested lifecycle actions and safe self-healing;
-- keep lightweight Runtime/Blockbench connection readiness current while Desktop is active.
+- keep lightweight Runtime/Blockbench connection readiness current while Desktop is active without spawning the managed CLI on every heartbeat.
 
 ## Explicit non-ownership
 
@@ -255,7 +255,7 @@ Desktop may export an explicit local diagnostic snapshot. The snapshot contains 
 
 ## Canonical readiness and session operations
 
-Readiness is projected in Rust and shipped as part of `SystemStatus`; Svelte renders that projection instead of reconstructing machine-state policy independently. Each status snapshot carries an observation timestamp so exported diagnostics and UI state can be distinguished from stale screenshots.
+Readiness and the canonical Desktop `product_state` are projected in Rust and shipped as part of `SystemStatus`; Svelte maps that state to presentation instead of reconstructing machine-state policy independently. Each status snapshot carries an observation timestamp so exported diagnostics and UI state can be distinguished from stale screenshots.
 
 Desktop keeps only a bounded in-memory list of recent explicit actions for the current UI session. It records action name, success/failure, canonical receipt/error code, and display time. This is intentionally not a persistent operation database and it does not replace Managed Distribution receipts or Git history.
 
@@ -351,6 +351,21 @@ Fixtures are a development-only presentation overlay. They do not alter machine 
 A running Blockbench process without `--userData` resolves to the normal Windows Blockbench userData directory. A running process with an absolute `--userData` resolves to that profile.
 
 When multiple Blockbench processes are running, Desktop accepts setup only when all observed processes resolve to the same userData directory. Different simultaneous profiles are fail-closed because there is no safe single plugin destination. Desktop asks the user to close the extra Blockbench profile instead of guessing.
+
+## Lightweight connection watcher
+
+The active-window heartbeat is deliberately cheaper than full `system_status`. It observes only rapidly changing local state:
+
+```text
+Blockbench process
+managed plugin integrity
+Runtime loopback listener
+active Gateway lease
+```
+
+These probes use process/filesystem/socket inspection directly in Rust. They do not spawn `blockit.exe status` every few seconds. A probe that cannot determine Runtime or Gateway state returns unknown; the frontend preserves the last known full Rust projection rather than translating uncertainty into offline.
+
+When a known fast-probe value actually changes, Desktop performs one full `system_status` refresh so compatibility, maintenance availability, Gateway supervision, readiness, and `product_state` are re-projected by the Rust owner.
 
 ## Bounded local operation log
 
