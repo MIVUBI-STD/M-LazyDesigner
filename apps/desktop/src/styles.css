@@ -32,3 +32,5 @@ footer { margin-top: 12px; padding-top: 20px; border-top: 1px solid #252a2e; col
 .action-buttons .secondary { background:transparent; }
 .ok-notice { border-color:#315544; color:#9ed7b7; }
 @media (max-width:720px) { .actions { align-items:stretch; flex-direction:column; } .action-buttons { justify-content:flex-start; } }
+
+article strong.bad { color:#e49aa4; }

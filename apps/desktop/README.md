@@ -38,3 +38,24 @@ recover
 `Recover` only invokes the existing interrupted-install recovery path. It is not presented as a generic repair operation.
 
 A separate `Repair` action must not be added until the managed distribution has a distinct repair semantic; repair must never be an alias for upgrade.
+
+
+## Blockbench compatibility projection
+
+Desktop reads the canonical repository manifest at build time:
+
+```text
+mcp/compatibility/blockbench.json
+```
+
+It does not maintain a second version table. Runtime process detection and Windows executable metadata provide the installed Blockbench version; the Desktop projection then reports the same policy states used by the plugin compatibility boundary:
+
+```text
+validated
+compatible-unverified
+review-required
+unsupported
+invalid
+```
+
+A future Desktop change must update the canonical manifest rather than hard-code new Blockbench version ranges inside Rust or Svelte.

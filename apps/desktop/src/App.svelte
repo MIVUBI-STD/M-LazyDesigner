@@ -2,6 +2,21 @@
   import { invoke } from '@tauri-apps/api/core';
   import { onMount } from 'svelte';
 
+  type Compatibility = {
+    status: 'validated' | 'compatible-unverified' | 'review-required' | 'unsupported' | 'invalid';
+    minimum_version: string;
+    review_boundary_version: string;
+    source_type_baseline: string;
+    live_validated: boolean;
+  };
+
+  type BlockbenchState = {
+    running: boolean;
+    version: string | null;
+    compatibility: Compatibility | null;
+    diagnostic: string | null;
+  };
+
   type ManagedStatus = {
     schema?: number;
     installed?: { source_sha?: string } | null;
@@ -12,7 +27,7 @@
 
   type SystemStatus = {
     schema: number;
-    blockbench_running: boolean;
+    blockbench: BlockbenchState;
     manager_available: boolean;
     managed: ManagedStatus | null;
     diagnostic: string | null;
@@ -63,6 +78,14 @@
   });
 
   const yesNo = (value: boolean | undefined) => value ? 'Online' : 'Offline';
+  const compatibilityLabel = (value: Compatibility['status'] | undefined) => {
+    if (value === 'validated') return 'Validated';
+    if (value === 'compatible-unverified') return 'Compatible · unverified';
+    if (value === 'review-required') return 'Review required';
+    if (value === 'unsupported') return 'Unsupported';
+    if (value === 'invalid') return 'Unknown version';
+    return 'Unavailable';
+  };
 </script>
 
 <main class="shell">
@@ -83,8 +106,26 @@
     <section class="grid" aria-live="polite">
       <article>
         <span>Blockbench</span>
-        <strong class:ok={status.blockbench_running}>{status.blockbench_running ? 'Running' : 'Closed'}</strong>
-        <small>Desktop process detection only.</small>
+        <strong class:ok={status.blockbench.running}>{status.blockbench.running ? 'Running' : 'Closed'}</strong>
+        <small>{status.blockbench.version ? `Version ${status.blockbench.version}` : 'Desktop process detection only.'}</small>
+      </article>
+
+      <article>
+        <span>Compatibility</span>
+        <strong
+          class:ok={status.blockbench.compatibility?.status === 'validated'}
+          class:warn={status.blockbench.compatibility?.status === 'compatible-unverified' || status.blockbench.compatibility?.status === 'review-required'}
+          class:bad={status.blockbench.compatibility?.status === 'unsupported' || status.blockbench.compatibility?.status === 'invalid'}
+        >
+          {compatibilityLabel(status.blockbench.compatibility?.status)}
+        </strong>
+        <small>
+          {#if status.blockbench.compatibility}
+            Minimum {status.blockbench.compatibility.minimum_version} · review boundary {status.blockbench.compatibility.review_boundary_version}
+          {:else}
+            Start Blockbench to inspect compatibility.
+          {/if}
+        </small>
       </article>
 
       <article>
@@ -136,6 +177,10 @@
 
     {#if actionMessage}
       <section class="notice ok-notice">{actionMessage}</section>
+    {/if}
+
+    {#if status.blockbench.diagnostic}
+      <section class="notice">{status.blockbench.diagnostic}</section>
     {/if}
 
     {#if status.diagnostic}

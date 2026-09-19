@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
     env,
@@ -7,6 +7,31 @@ use std::{
     process::Command,
 };
 use sysinfo::System;
+
+#[derive(Debug, Deserialize)]
+struct BlockbenchCompatibilityManifest {
+    minimumVersion: String,
+    reviewBoundaryVersion: String,
+    sourceTypeBaseline: String,
+    liveValidatedVersions: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BlockbenchCompatibility {
+    pub status: String,
+    pub minimum_version: String,
+    pub review_boundary_version: String,
+    pub source_type_baseline: String,
+    pub live_validated: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BlockbenchState {
+    pub running: bool,
+    pub version: Option<String>,
+    pub compatibility: Option<BlockbenchCompatibility>,
+    pub diagnostic: Option<String>,
+}
 
 #[derive(Debug, Serialize)]
 pub struct ManagedActionResult {
@@ -17,13 +42,13 @@ pub struct ManagedActionResult {
 #[derive(Debug, Serialize)]
 pub struct SystemStatus {
     pub schema: u8,
-    pub blockbench_running: bool,
+    pub blockbench: BlockbenchState,
     pub manager_available: bool,
     pub managed: Option<Value>,
     pub diagnostic: Option<String>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 struct InstalledState {
     source_sha: String,
 }
@@ -56,21 +81,135 @@ fn manager_executable(root: &Path) -> Result<PathBuf, String> {
     Ok(executable)
 }
 
-fn blockbench_running() -> bool {
-    let mut system = System::new_all();
-    system.refresh_processes();
-    system.processes().values().any(|process| {
-        let name = process.name().to_ascii_lowercase();
-        name == "blockbench.exe" || name == "blockbench"
+fn compatibility_manifest() -> Result<BlockbenchCompatibilityManifest, String> {
+    serde_json::from_str(include_str!("../../../../mcp/compatibility/blockbench.json"))
+        .map_err(|_| "LazyDesigner Blockbench compatibility manifest is invalid.".to_string())
+}
+
+fn parse_version(value: &str) -> Option<(u64, u64, u64)> {
+    let core = value.trim().trim_start_matches('v').split(['-', '+']).next()?;
+    let mut parts = core.split('.');
+    let major = parts.next()?.parse().ok()?;
+    let minor = parts.next()?.parse().ok()?;
+    let patch = parts.next()?.parse().ok()?;
+    if parts.next().is_some() {
+        return None;
+    }
+    Some((major, minor, patch))
+}
+
+fn evaluate_blockbench_compatibility(version: &str) -> Result<BlockbenchCompatibility, String> {
+    let manifest = compatibility_manifest()?;
+    let parsed = parse_version(version);
+    let minimum = parse_version(&manifest.minimumVersion)
+        .ok_or_else(|| "Invalid minimum Blockbench compatibility version.".to_string())?;
+    let review = parse_version(&manifest.reviewBoundaryVersion)
+        .ok_or_else(|| "Invalid Blockbench review boundary version.".to_string())?;
+    let live_validated = manifest.liveValidatedVersions.iter().any(|candidate| candidate == version);
+
+    let status = match parsed {
+        None => "invalid",
+        Some(current) if current < minimum => "unsupported",
+        Some(_) if live_validated => "validated",
+        Some(current) if current >= review => "review-required",
+        Some(_) => "compatible-unverified",
+    };
+
+    Ok(BlockbenchCompatibility {
+        status: status.to_string(),
+        minimum_version: manifest.minimumVersion,
+        review_boundary_version: manifest.reviewBoundaryVersion,
+        source_type_baseline: manifest.sourceTypeBaseline,
+        live_validated,
     })
 }
 
+fn detect_blockbench() -> BlockbenchState {
+    let mut system = System::new_all();
+    system.refresh_processes();
+
+    let process = system.processes().values().find(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    });
+
+    let Some(process) = process else {
+        return BlockbenchState {
+            running: false,
+            version: None,
+            compatibility: None,
+            diagnostic: None,
+        };
+    };
+
+    let Some(executable) = process.exe() else {
+        return BlockbenchState {
+            running: true,
+            version: None,
+            compatibility: None,
+            diagnostic: Some("Blockbench is running, but its executable path is unavailable.".to_string()),
+        };
+    };
+
+    let script = "(Get-Item -LiteralPath $env:LAZYDESIGNER_BLOCKBENCH_EXE).VersionInfo.ProductVersion";
+    let output = match Command::new("powershell.exe")
+        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
+        .env("LAZYDESIGNER_BLOCKBENCH_EXE", executable)
+        .output()
+    {
+        Ok(output) => output,
+        Err(error) => {
+            return BlockbenchState {
+                running: true,
+                version: None,
+                compatibility: None,
+                diagnostic: Some(format!("Unable to inspect Blockbench version: {error}")),
+            }
+        }
+    };
+
+    if !output.status.success() {
+        return BlockbenchState {
+            running: true,
+            version: None,
+            compatibility: None,
+            diagnostic: Some("Blockbench version inspection failed.".to_string()),
+        };
+    }
+
+    let raw = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let version = raw.split_whitespace().next().unwrap_or("").to_string();
+    if version.is_empty() {
+        return BlockbenchState {
+            running: true,
+            version: None,
+            compatibility: None,
+            diagnostic: Some("Blockbench version information is empty.".to_string()),
+        };
+    }
+
+    match evaluate_blockbench_compatibility(&version) {
+        Ok(compatibility) => BlockbenchState {
+            running: true,
+            version: Some(version),
+            compatibility: Some(compatibility),
+            diagnostic: None,
+        },
+        Err(message) => BlockbenchState {
+            running: true,
+            version: Some(version),
+            compatibility: None,
+            diagnostic: Some(message),
+        },
+    }
+}
+
 pub fn collect() -> SystemStatus {
-    let running = blockbench_running();
+    let blockbench = detect_blockbench();
     let Some(root) = managed_root() else {
         return SystemStatus {
             schema: 1,
-            blockbench_running: running,
+            blockbench,
             manager_available: false,
             managed: None,
             diagnostic: Some("LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string()),
@@ -82,7 +221,7 @@ pub fn collect() -> SystemStatus {
         Err(message) => {
             return SystemStatus {
                 schema: 1,
-                blockbench_running: running,
+                blockbench,
                 manager_available: false,
                 managed: None,
                 diagnostic: Some(message),
@@ -100,7 +239,7 @@ pub fn collect() -> SystemStatus {
         Err(error) => {
             return SystemStatus {
                 schema: 1,
-                blockbench_running: running,
+                blockbench,
                 manager_available: true,
                 managed: None,
                 diagnostic: Some(format!("Unable to read managed status: {error}")),
@@ -112,7 +251,7 @@ pub fn collect() -> SystemStatus {
         let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
         return SystemStatus {
             schema: 1,
-            blockbench_running: running,
+            blockbench,
             manager_available: true,
             managed: None,
             diagnostic: Some(if error.is_empty() {
@@ -126,32 +265,20 @@ pub fn collect() -> SystemStatus {
     match serde_json::from_slice::<Value>(&output.stdout) {
         Ok(managed) => SystemStatus {
             schema: 1,
-            blockbench_running: running,
+            blockbench,
             manager_available: true,
             managed: Some(managed),
             diagnostic: None,
         },
         Err(_) => SystemStatus {
             schema: 1,
-            blockbench_running: running,
+            blockbench,
             manager_available: true,
             managed: None,
             diagnostic: Some("Managed status returned invalid JSON.".to_string()),
         },
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn missing_installation_is_diagnostic_not_panic() {
-        let result = manager_executable(Path::new("Z:/definitely-missing-lazydesigner-root"));
-        assert!(result.is_err());
-    }
-}
-
 
 pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
     if !matches!(action, "update" | "recover") {
@@ -185,4 +312,28 @@ pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
         action: action.to_string(),
         receipt,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_installation_is_diagnostic_not_panic() {
+        let result = manager_executable(Path::new("Z:/definitely-missing-lazydesigner-root"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn canonical_manifest_marks_recorded_live_version_validated() {
+        let result = evaluate_blockbench_compatibility("5.2.0").unwrap();
+        assert_eq!(result.status, "validated");
+        assert!(result.live_validated);
+    }
+
+    #[test]
+    fn canonical_manifest_requires_review_at_next_family_boundary() {
+        let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
+        assert_eq!(result.status, "review-required");
+    }
 }
