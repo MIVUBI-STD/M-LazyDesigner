@@ -50,6 +50,15 @@
     ready: boolean;
   };
 
+  type ConnectionStatus = {
+    schema: number;
+    observed_at_unix_ms: number;
+    blockbench_running: boolean;
+    runtime_online: boolean;
+    gateway_active: boolean;
+    plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
+  };
+
   type SystemStatus = {
     schema: number;
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
@@ -209,27 +218,69 @@
   }
 
   async function watchSystemStatus() {
-    if (busyAction || document.hidden) return;
+    if (busyAction || document.hidden || !status) return;
     try {
-      let candidate = await invoke<SystemStatus>('system_status');
-      candidate = await repairManagedPluginIfSafe(candidate);
-      status = candidate;
+      const candidate = await invoke<ConnectionStatus>('connection_status');
+      mergeConnectionStatus(candidate);
       if (candidate.plugin_integrity === 'ready') autoRepairAttempted = false;
-      if (candidate.managed?.runtime_online) pluginApprovalNeeded = false;
+      if (candidate.runtime_online) pluginApprovalNeeded = false;
+
+      if (
+        candidate.plugin_integrity !== 'ready'
+        && !candidate.blockbench_running
+        && status.maintenance.repair
+        && !autoRepairAttempted
+      ) {
+        const repaired = await repairManagedPluginIfSafe(status);
+        status = repaired;
+      }
     } catch {
       // Keep the last known state. Explicit actions surface actionable errors.
     }
   }
 
+  function mergeConnectionStatus(candidate: ConnectionStatus) {
+    if (!status) return;
+    status = {
+      ...status,
+      observed_at_unix_ms: candidate.observed_at_unix_ms,
+      plugin_integrity: candidate.plugin_integrity,
+      blockbench: { ...status.blockbench, running: candidate.blockbench_running },
+      managed: status.managed ? {
+        ...status.managed,
+        runtime_online: candidate.runtime_online,
+        gateway_active: candidate.gateway_active,
+      } : status.managed,
+      gateway: {
+        ...status.gateway,
+        state: candidate.gateway_active && candidate.runtime_online
+          ? 'healthy'
+          : candidate.runtime_online
+            ? 'client-disconnected'
+            : candidate.blockbench_running
+              ? 'runtime-offline'
+              : 'idle',
+      },
+      readiness: {
+        ...status.readiness,
+        ready: candidate.gateway_active && candidate.runtime_online,
+        state: candidate.gateway_active && candidate.runtime_online
+          ? 'ready'
+          : !candidate.blockbench_running
+            ? 'ready-to-start'
+            : 'needs-connection',
+      },
+    };
+  }
+
   async function waitForRuntime(timeoutMs = 15000): Promise<SystemStatus | null> {
     const started = Date.now();
     while (Date.now() - started < timeoutMs) {
-      let candidate = await invoke<SystemStatus>('system_status');
-      candidate = await repairManagedPluginIfSafe(candidate);
-      status = candidate;
-      if (candidate.managed?.runtime_online) {
+      const candidate = await invoke<ConnectionStatus>('connection_status');
+      mergeConnectionStatus(candidate);
+      if (candidate.runtime_online) {
         pluginApprovalNeeded = false;
-        return candidate;
+        return status;
       }
       await wait(750);
     }
@@ -365,16 +416,24 @@
       const target = event.target;
       if (utilityMenuOpen && target instanceof Element && !target.closest('.more-menu')) utilityMenuOpen = false;
     };
+    const onVisibilityChange = () => {
+      if (!document.hidden) void watchSystemStatus();
+    };
+    const onFocus = () => { void watchSystemStatus(); };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
     void refresh().then(() => watchSystemStatus());
-    statusWatcherTimer = window.setInterval(() => { void watchSystemStatus(); }, 4000);
+    statusWatcherTimer = window.setInterval(() => { void watchSystemStatus(); }, 3000);
     void listen<ManagedProgress>('managed-progress', event => {
       if (busyAction && event.payload.action === busyAction) progressStage = event.payload.stage;
     }).then(unlisten => { stopProgressListener = unlisten; });
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
     };
   });

@@ -7,13 +7,18 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
-use system_status::{BlockbenchActionResult, BootstrapActionResult, ManagedActionResult, PluginFileActionResult, SystemStatus};
+use system_status::{BlockbenchActionResult, BootstrapActionResult, ConnectionStatus, ManagedActionResult, PluginFileActionResult, SystemStatus};
 
 #[tauri::command]
 fn system_status(app: tauri::AppHandle) -> SystemStatus {
     let mut status = system_status::collect();
     status.bootstrap_available = system_status::bootstrap_available(&app);
     status
+}
+
+#[tauri::command]
+fn connection_status() -> ConnectionStatus {
+    system_status::collect_connection_status()
 }
 
 #[tauri::command]
@@ -49,6 +54,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             system_status,
+            connection_status,
             managed_action,
             open_blockbench,
             bootstrap_install,

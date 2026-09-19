@@ -108,6 +108,16 @@ pub struct ReadinessProjection {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ConnectionStatus {
+    pub schema: u8,
+    pub observed_at_unix_ms: u64,
+    pub blockbench_running: bool,
+    pub runtime_online: bool,
+    pub gateway_active: bool,
+    pub plugin_integrity: &'static str,
+}
+
+#[derive(Debug, Serialize)]
 pub struct SystemStatus {
     pub schema: u8,
     pub plugin_integrity: &'static str,
@@ -672,6 +682,66 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
         } else {
             None
         },
+    }
+}
+
+pub fn collect_connection_status() -> ConnectionStatus {
+    let mut system = System::new_all();
+    system.refresh_processes();
+    let blockbench_running = system.processes().values().any(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    });
+
+    let Some(root) = managed_root() else {
+        return ConnectionStatus {
+            schema: 1,
+            observed_at_unix_ms: observed_at_unix_ms(),
+            blockbench_running,
+            runtime_online: false,
+            gateway_active: false,
+            plugin_integrity: "unknown",
+        };
+    };
+
+    let plugin_integrity = managed_plugin_integrity(&root);
+    let Ok(executable) = manager_executable(&root) else {
+        return ConnectionStatus {
+            schema: 1,
+            observed_at_unix_ms: observed_at_unix_ms(),
+            blockbench_running,
+            runtime_online: false,
+            gateway_active: false,
+            plugin_integrity,
+        };
+    };
+
+    let output = run_output(
+        Command::new(&executable)
+            .arg("status")
+            .arg("--root")
+            .arg(&root),
+        Duration::from_secs(3),
+        "Managed connection status",
+    );
+
+    let (runtime_online, gateway_active) = match output {
+        Ok(output) if output.status.success() => {
+            match serde_json::from_slice::<ManagedStatus>(&output.stdout) {
+                Ok(managed) if managed.schema == 1 => (managed.runtime_online, managed.gateway_active),
+                _ => (false, false),
+            }
+        }
+        _ => (false, false),
+    };
+
+    ConnectionStatus {
+        schema: 1,
+        observed_at_unix_ms: observed_at_unix_ms(),
+        blockbench_running,
+        runtime_online,
+        gateway_active,
+        plugin_integrity,
     }
 }
 
