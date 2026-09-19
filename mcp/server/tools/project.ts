@@ -47,7 +47,6 @@ export const projectToolDocs: ToolSpec[] = [
       openWorldHint: true,
     },
     parameters: createProjectParameters,
-    outputSchema: createProjectOutputSchema,
     status: STATUS_STABLE,
   },
   {
@@ -117,6 +116,7 @@ function currentProjectLifecycle() {
 export function registerProjectTools() {
   createTool(projectToolDocs[0].name, {
     ...projectToolDocs[0],
+    outputSchema: createProjectOutputSchema,
     async execute({ name, discard_unsaved, resolution }) {
       if (Project && Project.saved === false && discard_unsaved !== true) {
         throw new Error(

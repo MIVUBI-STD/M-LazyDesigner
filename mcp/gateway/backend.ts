@@ -74,10 +74,10 @@ export type GatewayRuntimeStatus = {
     failed: number;
     timed_out: number;
     rejected_busy: number;
-    last_queue_wait_ms: number | null;
-    max_queue_wait_ms: number;
-    last_duration_ms: number | null;
-    max_duration_ms: number;
+    last_queue_wait_ms?: number | null;
+    max_queue_wait_ms?: number;
+    last_duration_ms?: number | null;
+    max_duration_ms?: number;
   };
   last_error: string | null;
 };
