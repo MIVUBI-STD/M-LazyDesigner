@@ -263,14 +263,22 @@ export function registerPaintTextureTransactionTool(): void {
         }
 
         Canvas.updateAll();
-        const affectedRegionImage = imageContent(
-          rgbaRectToPngDataUrl(
-            fullTextureRgba(texture).pixels,
-            before.width,
-            before.height,
-            plannedReceipt.affected_rect
-          )
-        ).content[0];
+        let affectedRegionImage: ReturnType<typeof imageContent>["content"][number] | null = null;
+        try {
+          const finalBitmap = fullTextureRgba(texture);
+          affectedRegionImage = imageContent(
+            rgbaRectToPngDataUrl(
+              finalBitmap.pixels,
+              finalBitmap.width,
+              finalBitmap.height,
+              plannedReceipt.affected_rect
+            )
+          ).content[0];
+        } catch {
+          // Visual evidence is optional optimization. DOM/image encoding may be
+          // unavailable in headless Runtime verification; authored mutation and
+          // revision proof remain valid and Control will request follow-up read.
+        }
         const outputReceipt = preparedOutput
           ? {
               path: preparedOutput.state.path,
@@ -283,19 +291,21 @@ export function registerPaintTextureTransactionTool(): void {
           content: [
             {
               type: "text" as const,
-              text: `Applied ${plannedReceipt.operation_count} texture operation(s) as one Undo transaction on "${texture.name}"${outputReceipt ? `; verified PNG saved to ${outputReceipt.path}` : ""}. The attached PNG is the exact affected atlas region after mutation.`,
+              text: `Applied ${plannedReceipt.operation_count} texture operation(s) as one Undo transaction on "${texture.name}"${outputReceipt ? `; verified PNG saved to ${outputReceipt.path}` : ""}.${affectedRegionImage ? " The attached PNG is the exact affected atlas region after mutation." : ""}`,
             },
-            affectedRegionImage,
+            ...(affectedRegionImage ? [affectedRegionImage] : []),
           ],
           structuredContent: {
             ...plannedReceipt,
-            visual_evidence: {
-              kind: "affected_region_png",
-              affected_rect: plannedReceipt.affected_rect,
-              revision: plannedReceipt.revision.after,
-              width: plannedReceipt.affected_size[0],
-              height: plannedReceipt.affected_size[1],
-            },
+            visual_evidence: affectedRegionImage
+              ? {
+                  kind: "affected_region_png",
+                  affected_rect: plannedReceipt.affected_rect,
+                  revision: plannedReceipt.revision.after,
+                  width: plannedReceipt.affected_size[0],
+                  height: plannedReceipt.affected_size[1],
+                }
+              : null,
             output: outputReceipt,
           },
         };
