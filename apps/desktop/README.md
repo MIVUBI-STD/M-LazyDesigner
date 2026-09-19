@@ -59,3 +59,35 @@ invalid
 ```
 
 A future Desktop change must update the canonical manifest rather than hard-code new Blockbench version ranges inside Rust or Svelte.
+
+
+## Gateway lifecycle supervision
+
+The managed Gateway is a persistent **stdio child owned by the MCP client/Codex session**. Desktop therefore does not launch, restart, terminate, or watchdog Gateway processes.
+
+Desktop projects a bounded supervision state instead:
+
+```text
+healthy
+waiting-runtime
+client-disconnected
+runtime-offline
+idle
+```
+
+Recovery guidance follows ownership:
+
+```text
+Gateway active + Runtime offline
+→ keep the Gateway session
+→ restore/reload Blockbench Runtime
+
+Runtime online + Gateway inactive
+→ reconnect LazyDesigner MCP in the client
+
+both inactive
+→ start Blockbench
+→ reconnect LazyDesigner MCP in the client
+```
+
+Do not add a Desktop `Start Gateway` or `Restart Gateway` command unless the MCP/client integration gains a real lifecycle-control contract. Starting `blockit.exe mcp` without a stdio client owner would create the wrong process model.

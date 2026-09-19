@@ -34,3 +34,7 @@ footer { margin-top: 12px; padding-top: 20px; border-top: 1px solid #252a2e; col
 @media (max-width:720px) { .actions { align-items:stretch; flex-direction:column; } .action-buttons { justify-content:flex-start; } }
 
 article strong.bad { color:#e49aa4; }
+
+.gateway-guidance { display:grid; gap:5px; }
+.gateway-guidance strong { color:#d7dadd; font-size:12px; }
+.gateway-guidance span { color:#9aa3aa; font-size:11px; line-height:1.45; }

@@ -34,6 +34,13 @@ pub struct BlockbenchState {
 }
 
 #[derive(Debug, Serialize)]
+pub struct GatewaySupervision {
+    pub ownership: &'static str,
+    pub state: &'static str,
+    pub action: Option<&'static str>,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ManagedActionResult {
     pub action: String,
     pub receipt: Value,
@@ -43,6 +50,7 @@ pub struct ManagedActionResult {
 pub struct SystemStatus {
     pub schema: u8,
     pub blockbench: BlockbenchState,
+    pub gateway: GatewaySupervision,
     pub manager_available: bool,
     pub managed: Option<Value>,
     pub diagnostic: Option<String>,
@@ -204,11 +212,52 @@ fn detect_blockbench() -> BlockbenchState {
     }
 }
 
+
+fn project_gateway(managed: Option<&Value>, blockbench_running: bool) -> GatewaySupervision {
+    let active = managed
+        .and_then(|value| value.get("gateway_active"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    let runtime_online = managed
+        .and_then(|value| value.get("runtime_online"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+
+    match (active, runtime_online, blockbench_running) {
+        (true, true, _) => GatewaySupervision {
+            ownership: "client-owned",
+            state: "healthy",
+            action: None,
+        },
+        (true, false, _) => GatewaySupervision {
+            ownership: "client-owned",
+            state: "waiting-runtime",
+            action: Some("Keep the current client Gateway session and restore/reload the Blockbench Runtime. Do not start a second Gateway."),
+        },
+        (false, true, _) => GatewaySupervision {
+            ownership: "client-owned",
+            state: "client-disconnected",
+            action: Some("Reconnect LazyDesigner MCP in Codex or the active MCP client; that client owns Gateway startup."),
+        },
+        (false, false, true) => GatewaySupervision {
+            ownership: "client-owned",
+            state: "runtime-offline",
+            action: Some("Restore or reload the LazyDesigner Runtime in Blockbench, then reconnect LazyDesigner MCP in the client if needed."),
+        },
+        (false, false, false) => GatewaySupervision {
+            ownership: "client-owned",
+            state: "idle",
+            action: Some("Start Blockbench, then reconnect LazyDesigner MCP in Codex or the active MCP client."),
+        },
+    }
+}
+
 pub fn collect() -> SystemStatus {
     let blockbench = detect_blockbench();
     let Some(root) = managed_root() else {
         return SystemStatus {
             schema: 1,
+            gateway: project_gateway(None, blockbench.running),
             blockbench,
             manager_available: false,
             managed: None,
@@ -239,6 +288,7 @@ pub fn collect() -> SystemStatus {
         Err(error) => {
             return SystemStatus {
                 schema: 1,
+                gateway: project_gateway(None, blockbench.running),
                 blockbench,
                 manager_available: true,
                 managed: None,
@@ -251,6 +301,7 @@ pub fn collect() -> SystemStatus {
         let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
         return SystemStatus {
             schema: 1,
+            gateway: project_gateway(None, blockbench.running),
             blockbench,
             manager_available: true,
             managed: None,
@@ -263,15 +314,20 @@ pub fn collect() -> SystemStatus {
     }
 
     match serde_json::from_slice::<Value>(&output.stdout) {
-        Ok(managed) => SystemStatus {
-            schema: 1,
-            blockbench,
-            manager_available: true,
-            managed: Some(managed),
-            diagnostic: None,
+        Ok(managed) => {
+            let gateway = project_gateway(Some(&managed), blockbench.running);
+            SystemStatus {
+                schema: 1,
+                gateway,
+                blockbench,
+                manager_available: true,
+                managed: Some(managed),
+                diagnostic: None,
+            }
         },
         Err(_) => SystemStatus {
             schema: 1,
+            gateway: project_gateway(None, blockbench.running),
             blockbench,
             manager_available: true,
             managed: None,
@@ -335,5 +391,17 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn gateway_supervision_preserves_client_ownership() {
+        let managed = serde_json::json!({
+            "gateway_active": false,
+            "runtime_online": true
+        });
+        let result = project_gateway(Some(&managed), true);
+        assert_eq!(result.ownership, "client-owned");
+        assert_eq!(result.state, "client-disconnected");
+        assert!(result.action.unwrap().contains("Reconnect LazyDesigner MCP"));
     }
 }

@@ -25,9 +25,16 @@
     runtime_online?: boolean;
   };
 
+  type GatewaySupervision = {
+    ownership: 'client-owned';
+    state: 'healthy' | 'waiting-runtime' | 'client-disconnected' | 'runtime-offline' | 'idle';
+    action: string | null;
+  };
+
   type SystemStatus = {
     schema: number;
     blockbench: BlockbenchState;
+    gateway: GatewaySupervision;
     manager_available: boolean;
     managed: ManagedStatus | null;
     diagnostic: string | null;
@@ -136,8 +143,17 @@
 
       <article>
         <span>Gateway</span>
-        <strong class:ok={status.managed?.gateway_active}>{yesNo(status.managed?.gateway_active)}</strong>
-        <small>Persistent MCP client boundary.</small>
+        <strong
+          class:ok={status.gateway.state === 'healthy'}
+          class:warn={status.gateway.state === 'waiting-runtime' || status.gateway.state === 'client-disconnected'}
+          class:bad={status.gateway.state === 'runtime-offline'}
+        >
+          {status.gateway.state === 'healthy' ? 'Healthy' :
+           status.gateway.state === 'waiting-runtime' ? 'Waiting for Runtime' :
+           status.gateway.state === 'client-disconnected' ? 'Client disconnected' :
+           status.gateway.state === 'runtime-offline' ? 'Runtime offline' : 'Idle'}
+        </strong>
+        <small>Ownership: {status.gateway.ownership}. The MCP client owns Gateway startup.</small>
       </article>
 
       <article>
@@ -174,6 +190,13 @@
         </button>
       </div>
     </section>
+
+    {#if status.gateway.action}
+      <section class="notice gateway-guidance">
+        <strong>Gateway guidance</strong>
+        <span>{status.gateway.action}</span>
+      </section>
+    {/if}
 
     {#if actionMessage}
       <section class="notice ok-notice">{actionMessage}</section>
