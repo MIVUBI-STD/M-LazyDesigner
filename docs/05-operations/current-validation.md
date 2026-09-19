@@ -63,6 +63,7 @@ Runtime signature/catalog invalidation
 catalog fast-path for discovery
 serialized Runtime mutations
 bounded queue-wait / operation-duration observability through Gateway status
+deterministic Gateway fault contracts for queue saturation, interrupted reads/mutations, and runtime-signature invalidation
 fail-closed project affinity
 phase affinity
 structured recovery semantics
