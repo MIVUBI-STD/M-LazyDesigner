@@ -1,8 +1,10 @@
 import { ensureRuntimeTlsIdentity } from "../distribution/runtime-tls";
 
-export { ensureRuntimeTlsIdentity as setupRuntimeTls };
+/** Compatibility wrapper for local development/tests; canonical ownership is distribution/runtime-tls.ts. */
+export function setupRuntimeTls(): string {
+  return ensureRuntimeTlsIdentity().cert;
+}
 
 if (import.meta.main) {
-  const status = ensureRuntimeTlsIdentity();
-  console.log(`Runtime TLS ready: ${status.cert}`);
+  console.log(`Runtime TLS ready: ${setupRuntimeTls()}`);
 }

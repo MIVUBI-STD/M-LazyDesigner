@@ -1,5 +1,5 @@
 import { createPrivateKey, X509Certificate } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { runtimeTlsPaths } from "../lib/runtimeConnection";
 
@@ -53,7 +53,15 @@ export function runtimeTlsStatus(
   env: Record<string, string | undefined> = process.env,
   platform: string = process.platform
 ): RuntimeTlsStatus {
-  return validateRuntimeTlsIdentity(env, platform);
+  try {
+    return validateRuntimeTlsIdentity(env, platform);
+  } catch (error) {
+    return {
+      ready: false,
+      cert: "",
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 /** Provision once outside the checkout. Never overwrite an existing pair. */
@@ -136,6 +144,10 @@ export function ensureRuntimeTlsIdentity(
       { encoding: "utf8", windowsHide: true, env }
     );
     if (result.status !== 0) {
+      // Both files were absent before this attempt, so only this failed
+      // provisioning attempt can own any partial output at these paths.
+      rmSync(paths.cert, { force: true });
+      rmSync(paths.key, { force: true });
       throw new Error(`TLS provisioning failed: ${result.stderr}`);
     }
     if (platform !== "win32") chmodSync(paths.key, 0o600);
