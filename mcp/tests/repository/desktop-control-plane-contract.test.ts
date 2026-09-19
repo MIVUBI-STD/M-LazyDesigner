@@ -126,6 +126,8 @@ describe("Desktop release/version contract", () => {
     expect(workflow).toContain("workflow_dispatch:");
     expect(workflow).toContain("if: github.ref == 'refs/heads/main'");
     expect(workflow).toContain("desktop-v${{ inputs.version }}");
+    expect(workflow).toContain("desktop-dev-v${{ inputs.version }}-$shortSha");
+    expect(workflow).toContain("--prerelease");
     expect(workflow).toContain("Requested Desktop version");
     expect(workflow).toContain("does not match source version");
     expect(workflow).toContain("npm run verify:source");

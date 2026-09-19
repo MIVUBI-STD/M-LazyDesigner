@@ -114,8 +114,11 @@ jobs:
       - name: Reject duplicate Desktop release
         shell: pwsh
         run: |
-          gh release view "desktop-v${{ inputs.version }}" --repo $env:GITHUB_REPOSITORY 2>$null
-          if ($LASTEXITCODE -eq 0) { throw 'A Desktop release for this version already exists.' }
+          $trusted = [System.Convert]::ToBoolean('${{ inputs.trusted }}')
+          $shortSha = $env:GITHUB_SHA.Substring(0, 12)
+          $tag = if ($trusted) { "desktop-v${{ inputs.version }}" } else { "desktop-dev-v${{ inputs.version }}-$shortSha" }
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "A Desktop draft release for $tag already exists." }
           $global:LASTEXITCODE = 0
 
       - name: Import Windows signing certificate
@@ -194,7 +197,7 @@ jobs:
 
           $provenance = [ordered]@{
             schema = 1
-            release_tag = "desktop-v${{ inputs.version }}"
+            release_tag = if ($trusted) { "desktop-v${{ inputs.version }}" } else { "desktop-dev-v${{ inputs.version }}-$($env:GITHUB_SHA.Substring(0, 12))" }
             source_sha = $env:GITHUB_SHA
             desktop_version = '${{ inputs.version }}'
             installer = $installer.Name
@@ -237,11 +240,17 @@ jobs:
             $trustNote = 'TRUSTED DRAFT — Authenticode installer identity, Tauri updater artifact signature, and static update manifest were verified during this workflow. Self-update runtime remains disabled.'
           }
 
-          gh release create "desktop-v${{ inputs.version }}" @assets `
+          $trusted = [System.Convert]::ToBoolean('${{ inputs.trusted }}')
+          $shortSha = $env:GITHUB_SHA.Substring(0, 12)
+          $tag = if ($trusted) { "desktop-v${{ inputs.version }}" } else { "desktop-dev-v${{ inputs.version }}-$shortSha" }
+          $title = if ($trusted) { "LazyDesigner Desktop v${{ inputs.version }}" } else { "LazyDesigner Desktop Development Draft v${{ inputs.version }} ($shortSha)" }
+          $releaseFlags = @('--draft')
+          if (!$trusted) { $releaseFlags += '--prerelease' }
+
+          gh release create $tag @assets @releaseFlags `
             --repo $env:GITHUB_REPOSITORY `
             --target $env:GITHUB_SHA `
-            --draft `
-            --title "LazyDesigner Desktop v${{ inputs.version }}" `
+            --title $title `
             --notes "$trustNote Exact source SHA: $env:GITHUB_SHA. Installer SHA-256: ${{ steps.release.outputs.sha256 }}. Managed components are bundled from the same source SHA. Publication remains a separate explicit action."
 
       - name: Release summary

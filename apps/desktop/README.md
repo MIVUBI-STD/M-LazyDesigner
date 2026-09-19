@@ -298,3 +298,12 @@ https://github.com/MIVUBI-STD/M-LazyDesigner/releases/latest/download/latest.jso
 ```
 
 This is release infrastructure only. `release-channel.json` keeps `selfUpdateRuntimeEnabled` false, and the Desktop contains no updater plugin or embedded updater public key yet. Enabling runtime update checks remains a separate change with its own lockfile/config/security review.
+
+Development and trusted drafts also use separate tag namespaces:
+
+```text
+development draft → desktop-dev-vMAJOR.MINOR.PATCH-<source-sha-prefix>  (prerelease)
+trusted draft     → desktop-vMAJOR.MINOR.PATCH
+```
+
+An unsigned development artifact therefore cannot reserve or masquerade as the final trusted release tag.
