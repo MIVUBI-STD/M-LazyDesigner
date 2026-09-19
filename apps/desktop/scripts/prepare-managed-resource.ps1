@@ -24,14 +24,12 @@ $manifestPath = Join-Path $sourcePackage 'blockit-package.json'
 if (!(Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
   throw 'Managed package manifest is missing.'
 }
+
 $sourceSha = (git -C $repo rev-parse HEAD).Trim()
-if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[a-f0-9]{40} -LiteralPath $resource -Recurse -Force -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Path (Split-Path -Parent $resource) -Force | Out-Null
-Copy-Item -LiteralPath $sourcePackage -Destination $resource -Recurse
-Write-Host "Prepared exact-SHA managed bootstrap resource at $resource"
-) {
+if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[a-f0-9]{40}$') {
   throw 'Unable to resolve Desktop source SHA.'
 }
+
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 if ($manifest.source_sha -ne $sourceSha) {
   throw "Managed bootstrap source SHA $($manifest.source_sha) does not match Desktop source SHA $sourceSha."
