@@ -1116,7 +1116,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn readiness_projection_covers_workstation_states() {
         let healthy = ManagedStatus {
             schema: 1,
@@ -1159,6 +1158,7 @@ mod tests {
         assert_eq!(attention.state, "needs-attention");
     }
 
+    #[test]
     fn maintenance_projection_matches_managed_runtime_safety_gate() {
         let idle = ManagedStatus {
             schema: 1,

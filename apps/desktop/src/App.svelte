@@ -82,10 +82,6 @@
     receipt: Record<string, unknown>;
   };
 
-  type BlockbenchActionResult = {
-    status: 'STARTED' | 'ALREADY_RUNNING';
-  };
-
   type ManagedActionResult = {
     action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls';
     receipt: Record<string, unknown>;
@@ -115,7 +111,7 @@
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
+  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | null = null;
   let pluginApprovalNeeded = false;
   let readinessReason = '';
   let actionMessage = '';
@@ -157,7 +153,6 @@
 
   function clearSuccessToast() {
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
-    if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
     successToastTimer = null;
     actionMessage = '';
   }
@@ -277,25 +272,6 @@
     }
   }
 
-  async function openBlockbench() {
-    if (busyAction) return;
-    closeUtilityMenu();
-    busyAction = 'open-blockbench';
-    error = '';
-    clearSuccessToast();
-    try {
-      const result = await invoke<BlockbenchActionResult>('open_blockbench');
-      showSuccessToast(result.status === 'STARTED' ? 'Blockbench started.' : 'Blockbench is already running.');
-      recordOperation('Open Blockbench', 'success', result.status);
-      await refresh();
-    } catch (cause) {
-      recordOperation('Open Blockbench', 'failed', errorCode(cause));
-      error = errorMessage(cause);
-    } finally {
-      busyAction = null;
-    }
-  }
-
   async function exportDiagnostics() {
     if (busyAction) return;
     closeUtilityMenu();
@@ -377,13 +353,9 @@
   onDestroy(() => {
     stopProgressListener?.();
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
+    if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
   });
 
-  const tlsLabel = (managerAvailable: boolean, managed: ManagedStatus | null) => {
-    if (!managerAvailable) return 'Unavailable';
-    if (!managed) return 'Unknown';
-    return managed.tls_ready ? 'Ready' : 'Needs setup';
-  };
   const compatibilityLabel = (value: Compatibility['status'] | undefined) => {
     if (value === 'validated') return 'Validated';
     if (value === 'compatible-unverified') return 'Compatible · unverified';
@@ -400,30 +372,60 @@
 
   function applyDevFixture(base: SystemStatus, fixture: DevFixture): SystemStatus {
     const next = structuredClone(base);
+    const runtimeOnline = ['ready', 'client-wait', 'repair-blocked'].includes(fixture);
+    const gatewayActive = ['ready', 'repair-blocked'].includes(fixture);
+
     next.manager_available = fixture !== 'fresh-install';
     next.bootstrap_available = true;
     next.plugin_integrity = fixture === 'plugin-missing' ? 'missing' : fixture === 'plugin-modified' ? 'modified' : 'ready';
-    next.blockbench.running = !['fresh-install'].includes(fixture);
-    if (fixture === 'unsupported' && next.blockbench.compatibility) next.blockbench.compatibility.status = 'unsupported';
-    if (next.managed) {
-      next.managed.runtime_online = ['ready', 'client-wait'].includes(fixture);
-      next.managed.gateway_active = fixture === 'ready';
-      if (fixture === 'repair-blocked') {
-        next.managed.runtime_online = true;
-        next.managed.gateway_active = true;
-      }
-    }
-    next.gateway.state = fixture === 'ready' ? 'healthy'
-      : fixture === 'client-wait' ? 'client-disconnected'
-      : fixture === 'runtime-offline' || fixture === 'approval-required' ? 'runtime-offline'
-      : 'idle';
-    next.readiness.ready = fixture === 'ready';
-    next.readiness.state = fixture === 'ready' ? 'ready'
-      : fixture === 'fresh-install' ? 'setup-required'
-      : fixture === 'client-wait' || fixture === 'runtime-offline' || fixture === 'approval-required' ? 'needs-connection'
-      : 'needs-attention';
-    next.maintenance.repair = fixture !== 'repair-blocked';
-    if (fixture === 'repair-blocked') next.maintenance.blocked_reason = 'Runtime or Gateway is active.';
+    next.blockbench.running = fixture !== 'fresh-install';
+    next.blockbench.version = next.blockbench.version ?? '5.2.0';
+    next.blockbench.compatibility = {
+      status: fixture === 'unsupported' ? 'unsupported' : 'validated',
+      minimum_version: next.blockbench.compatibility?.minimum_version ?? '5.2.0',
+      review_boundary_version: next.blockbench.compatibility?.review_boundary_version ?? '5.3.0',
+      source_type_baseline: next.blockbench.compatibility?.source_type_baseline ?? 'desktop',
+      live_validated: fixture !== 'unsupported',
+    };
+
+    next.managed = fixture === 'fresh-install' ? null : {
+      schema: 1,
+      installed: next.managed?.installed ?? { source_sha: '0000000000000000000000000000000000000000' },
+      pending: false,
+      gateway_active: gatewayActive,
+      runtime_online: runtimeOnline,
+      tls_ready: true,
+      tls_error: null,
+      rollback: { available: false, previous_source_sha: null, transaction: null },
+    };
+
+    next.gateway = {
+      ownership: 'client-owned',
+      state: fixture === 'ready' ? 'healthy'
+        : fixture === 'client-wait' ? 'client-disconnected'
+        : fixture === 'repair-blocked' ? 'healthy'
+        : fixture === 'runtime-offline' || fixture === 'approval-required' || fixture === 'plugin-missing' ? 'runtime-offline'
+        : 'idle',
+      action: null,
+    };
+
+    next.readiness = {
+      ready: fixture === 'ready',
+      state: fixture === 'ready' ? 'ready'
+        : fixture === 'fresh-install' ? 'setup-required'
+        : fixture === 'client-wait' || fixture === 'runtime-offline' || fixture === 'approval-required' || fixture === 'plugin-missing' ? 'needs-connection'
+        : 'needs-attention',
+      summary: fixture === 'ready' ? 'LazyDesigner is ready.' : 'Fixture state.',
+    };
+
+    next.maintenance = {
+      ...next.maintenance,
+      update: fixture !== 'fresh-install',
+      repair: fixture !== 'repair-blocked' && fixture !== 'fresh-install',
+      recover: fixture !== 'repair-blocked' && fixture !== 'fresh-install',
+      setup_tls: false,
+      blocked_reason: fixture === 'repair-blocked' ? 'Runtime or Gateway is active.' : null,
+    };
     return next;
   }
 
@@ -438,6 +440,8 @@
     if (!value.manager_available) return 'welcome';
     if (value.managed?.tls_ready === false) return 'security-setup';
     if (value.blockbench.compatibility?.status === 'unsupported' || value.blockbench.compatibility?.status === 'invalid') return 'unsupported';
+    if (value.plugin_integrity === 'modified' || value.plugin_integrity === 'invalid') return 'attention';
+    if (value.plugin_integrity === 'missing' && value.blockbench.running) return 'plugin-setup';
     if (!value.blockbench.running) return 'ready-start';
     if (!value.managed?.runtime_online) return 'plugin-setup';
     if (value.gateway.state === 'healthy') return 'ready';
@@ -475,6 +479,8 @@
     if (mode === 'security-setup' && !value.maintenance.setup_tls) return value.maintenance.blocked_reason ?? 'Secure setup is temporarily unavailable. Close active authoring tasks and try again.';
     if (mode === 'unsupported') return 'Update Blockbench to a supported version, then refresh this page.';
     if (mode === 'plugin-setup' && pluginApprovalNeeded) return 'Blockbench needs one-time approval for the LazyDesigner plugin.';
+    if (mode === 'attention' && value.plugin_integrity === 'modified') return 'The managed Blockbench plugin was modified. Review or repair it before starting Blockbench.';
+    if (mode === 'attention' && value.plugin_integrity === 'invalid') return 'The managed Blockbench plugin state is invalid. Open Support for recovery.';
     if (mode === 'attention') return value.gateway.action ?? value.blockbench.diagnostic ?? value.diagnostic ?? 'Open Support for troubleshooting tools.';
     return null;
   }
@@ -559,7 +565,7 @@
           {#if busyAction && progressStage}
             <section class="task-strip" aria-live="polite">
               <span class="task-spinner"></span>
-              <span>{busyAction === 'update' ? 'Updating LazyDesigner' : busyAction === 'rollback' ? 'Restoring previous version' : busyAction === 'repair' ? 'Repairing LazyDesigner' : busyAction === 'recover' ? 'Finishing setup' : busyAction === 'setup-tls' ? 'Finishing setup' : busyAction === 'connect-blockbench' ? 'Connecting to Blockbench' : busyAction === 'open-blockbench' ? 'Opening Blockbench' : 'Working'}</span>
+              <span>{busyAction === 'update' ? 'Updating LazyDesigner' : busyAction === 'rollback' ? 'Restoring previous version' : busyAction === 'repair' ? 'Repairing LazyDesigner' : busyAction === 'recover' ? 'Finishing setup' : busyAction === 'setup-tls' ? 'Finishing setup' : busyAction === 'connect-blockbench' ? 'Connecting to Blockbench' : 'Working'}</span>
               <small>{progressLabel(progressStage)}</small>
             </section>
           {/if}
@@ -611,15 +617,15 @@
 
                   <div class="resource-actions">
                     {#if productMode(status) === 'ready'}
-                      <button class="secondary-button" onclick={openBlockbench} disabled={busyAction !== null}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
-                      <button class="primary-button" onclick={openBlockbench} disabled={busyAction !== null}>{busyAction === 'open-blockbench' ? 'Opening…' : 'Open'}</button>
+                      <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
                     {:else if productMode(status) === 'plugin-setup'}
-                      <button class="secondary-button" onclick={openBlockbench} disabled={busyAction !== null}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null}>Open</button>
                     {:else if productMode(status) === 'unsupported'}
                       <button class="secondary-button" onclick={refresh} disabled={loading || busyAction !== null}>Check again</button>
                     {:else}
-                      <button class="secondary-button" onclick={openBlockbench} disabled={busyAction !== null}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null}>Open</button>
                     {/if}
                     <button class="icon-button" aria-label="Blockbench actions" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null}>•••</button>
                   </div>

@@ -8,7 +8,7 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
-use system_status::{BlockbenchActionResult, BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, SystemStatus};
+use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, SystemStatus};
 
 #[tauri::command]
 fn system_status(app: tauri::AppHandle) -> SystemStatus {
@@ -38,13 +38,6 @@ fn managed_action(app: tauri::AppHandle, action: String) -> Result<ManagedAction
 }
 
 #[tauri::command]
-fn open_blockbench() -> Result<BlockbenchActionResult, DesktopError> {
-    let result = system_status::open_blockbench();
-    operation_log::record("open_blockbench", if result.is_ok() { "ok" } else { "error" });
-    result.map_err(|message| DesktopError::recoverable("BLOCKBENCH_OPEN_FAILED", message))
-}
-
-#[tauri::command]
 fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, DesktopError> {
     let result = system_status::bootstrap_install(&app);
     operation_log::record("bootstrap_install", if result.is_ok() { "ok" } else { "error" });
@@ -69,7 +62,6 @@ fn main() {
             connection_status,
             ensure_ready,
             managed_action,
-            open_blockbench,
             bootstrap_install,
             show_plugin_file,
             export_diagnostics

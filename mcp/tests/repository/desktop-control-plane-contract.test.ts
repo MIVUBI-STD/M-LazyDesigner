@@ -19,9 +19,10 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('"resources/managed/blockit.exe"');
     expect(rust).toContain('"--plugin-path"');
     expect(rust).toContain('join("plugins").join("blockit_mcp.js")');
-    expect(app).toContain("Show plugin file");
-    expect(app).toContain("Setup Runtime Security");
-    expect(app).toContain("Update managed components");
+    expect(app).toContain("ensure_ready");
+    expect(app).toContain("show_plugin_file");
+    expect(app).toContain("setup-tls");
+    expect(app).toContain("runManagedAction('update')");
     expect(app).toContain("tls_ready");
     expect(app).toContain("'update' | 'rollback' | 'recover' | 'repair'");
     for (const command of ["update", "rollback", "recover", "repair", "status", "mcp"]) {
@@ -107,7 +108,24 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('state: "unknown"');
     expect(rust).toContain("Managed status is unavailable; refresh before maintenance.");
     expect(readme).toContain("Desktop therefore does not launch, restart, terminate, or watchdog Gateway processes.");
+    expect(rust).toContain("pub fn ensure_ready");
+    expect(rust).toContain("manual_plugin_approval_recommended");
+    expect(rust).toContain("PLUGIN_INTEGRITY");
     expect(readme).not.toContain("Start Gateway command");
+  });
+  test("Desktop UI uses one canonical workstation readiness path", async () => {
+    const [app, main, rust] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+    ]);
+
+    expect(app).toContain("invoke<EnsureReadyResult>('ensure_ready')");
+    expect(app).not.toContain("invoke<BlockbenchActionResult>('open_blockbench')");
+    expect(main).not.toContain("fn open_blockbench()");
+    expect(rust).toContain("open_blockbench()?");
+    expect(app).toContain("value.plugin_integrity === 'modified'");
+    expect(app).toContain("next.managed = fixture === 'fresh-install' ? null :");
   });
 });
 
