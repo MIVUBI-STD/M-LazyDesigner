@@ -92,6 +92,22 @@ human acceptance
 
 Do not introduce a hybrid surface before equivalent Golden Task measurements exist.
 
+## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
+
+Local acceptance is now activated. Use `docs/05-operations/local-acceptance-runbook.md` as the single execution runbook.
+
+Prepared remote baseline:
+
+```text
+SHA 7d3abf40238373461085fac179fcbbc07a7da300
+Head Proof PASS
+MCP Verify PASS
+MCP Conformance PASS
+Managed Distribution PASS
+```
+
+Do not repeat the remote audit or rerun accepted CI checks merely for reassurance. Start by pinning the local checkout, installing the frozen lockfile, validating the local toolchain, deploying the exact verified artifact/build, then execute the bounded live scripts in the runbook.
+
 ## LOCAL_CODE Residue
 
 Local proof should use a clean checkout matching the current `Local` SHA.

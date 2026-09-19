@@ -1,10 +1,10 @@
 # Local Acceptance Runbook
 
-Updated: 2026-09-11  
+Updated: 2026-09-19  
 Owner: `LIVE_BLOCKBENCH` formal acceptance procedure  
 Current state: native LazyDesigner authoring path only.
 
-This procedure activates only when `docs/05-operations/next-action.md` explicitly reactivates local testing. `LIVE_BLOCKBENCH` is an execution capability; it does not activate this procedure by itself. Targeted live debugging may use that capability without formal Local Acceptance.
+This procedure is now **ACTIVE** for the current Local handoff. `LIVE_BLOCKBENCH` is an execution capability; it does not by itself prove acceptance.
 
 Use only for native residue; prepare source proof and deterministic fixtures first.
 
@@ -25,6 +25,20 @@ Source/CI is not visual proof. Static Footprint is a guardrail; Authoring Effici
 
 ## 2. Pin Local State
 
+Remote source baseline prepared for handoff:
+
+```text
+repository: MIVUBI-STD/M-LazyDesigner
+branch: Local
+remote-verified SHA: 7d3abf40238373461085fac179fcbbc07a7da300
+Head Proof: PASS
+MCP Verify: PASS
+MCP Conformance: PASS
+Managed Distribution: PASS
+```
+
+On the local machine:
+
 ```bash
 git switch Local
 git pull --ff-only
@@ -32,20 +46,34 @@ git status --short
 git rev-parse HEAD
 ```
 
-Require a clean tree before reusing proof. Do not reuse source checks from another SHA.
+Require:
+
+```text
+HEAD == 7d3abf40238373461085fac179fcbbc07a7da300
+working tree clean
+```
+
+If HEAD differs because Local advanced after this handoff, use the newer exact-head proof instead of forcing/resetting history. Do not reuse this baseline across a changed source/package state.
 
 ## 3. Source Closure
 
 Use the full source gate in `GITHUB_RULES.md`: successful `verify:full`, or successful `verify:repository` + `verify:mcp` on the same exact `Local` SHA. Reuse only for a clean matching HEAD with no source/package edits.
 
-Install pinned local verifier dependencies once:
+Install pinned local dependencies once:
 
 ```bash
 cd mcp
 bun install --frozen-lockfile
 ```
 
-If exact source proof is missing or checkout changed, run once:
+For a clean checkout exactly matching the remote-verified SHA above, **do not rerun `verify:full` merely to repeat accepted CI proof**.
+
+Run local source verification only when:
+- local source/package inputs changed;
+- local toolchain behavior itself is under investigation; or
+- a later exact SHA lacks accepted source proof.
+
+Then use:
 
 ```bash
 bun run verify:full
@@ -67,13 +95,27 @@ bun run deploy:local -- /absolute/path/to/blockit_mcp.js
 
 Preserve unsaved projects/assets/settings/credentials/other plugins. Do not use `git clean -xfd`.
 
-## 5. Native Runtime Preflight
+## 5. Local-code Smoke Gate
+
+Before deploying into Blockbench, run only the environment-specific checks that CI cannot prove on this machine:
+
+```bash
+bun --version
+bun run typecheck
+bun run typecheck:gateway
+```
+
+Expected Bun version is owned by `.bun-version`. A local-only toolchain/environment failure must be fixed as an environment issue; do not redesign product architecture to make the machine pass.
+
+If these commands pass on an unchanged checkout, continue to deployment.
+
+## 6. Native Runtime Preflight
 
 Geometry/Texturing/Animation/Persistence/quality-fixture live verifiers share one preflight: installed `build_identity`, stable instance/startup identity, phase, stateless transport, initialize contract, `tools/list`, required tools, and forbidden-tool absence.
 
 `verify:stateless-local` is diagnostic only when that shared preflight fails or exact full-surface diagnosis is explicitly required. Do not run it automatically before every live verifier.
 
-## 6. Prepared Native Sequence
+## 7. Prepared Native Sequence
 
 Use the repository-owned disposable harness; do not redesign tests in Blockbench.
 
@@ -97,7 +139,109 @@ Geometry↔Texturing stays on the shared AUTHORING surface; no phase bounce. The
 
 Synthetic readiness never proves user asset approval. Tool/export success, low call count, or a scalar score cannot override **QUALITY FAIL**.
 
-## 7. Representative quality fixture
+
+
+### Recommended execution order for this handoff
+
+Run from `mcp/` after the exact verified plugin is deployed and Blockbench is open.
+
+Start with transport/runtime identity only:
+
+```bash
+bun run verify:stateless-local
+```
+
+Then test project affinity before authoring mutations:
+
+```bash
+bun run verify:project-affinity-live -- --confirm-disposable
+```
+
+Then run disposable authoring coverage in this order:
+
+```bash
+bun run verify:geometry-live -- --confirm-disposable
+bun run verify:surface-gap-live -- --confirm-disposable
+bun run verify:template-live -- --confirm-disposable
+bun run verify:uv-density-live -- --confirm-disposable
+bun run verify:texturing-live -- --confirm-disposable
+bun run verify:texture-runtime-live -- --confirm-disposable
+bun run verify:animation-live -- --confirm-disposable
+bun run verify:particle-live -- --confirm-disposable
+```
+
+Persistence is two-stage:
+
+```bash
+bun run verify:persistence-live -- --prepare --confirm-disposable
+```
+
+Then close/reopen the prepared fixture exactly as instructed by the script and run:
+
+```bash
+bun run verify:persistence-live -- --verify --confirm-disposable
+```
+
+For UV-density persistence, reopen the saved fixture, then:
+
+```bash
+bun run verify:uv-density-live -- --verify-reopen --confirm-disposable
+```
+
+### Lifecycle / recovery proof
+
+Keep the same Gateway/client task active while exercising:
+
+```text
+Runtime/plugin reload
+→ Gateway remains the client boundary
+→ Runtime reconnects below it
+
+Geometry → Texturing
+→ shared AUTHORING surface remains semantically identical
+
+AUTHORING → Animation → AUTHORING
+→ catalog changes and returns correctly
+
+Blockbench close → open
+→ Gateway survives temporary Runtime loss
+→ no silent project rebind
+```
+
+Do not restart the Gateway merely to make a failing recovery scenario pass.
+
+### Evidence to record
+
+For each command, retain:
+
+```text
+exact git SHA
+installed build_identity
+Gateway/runtime instance identity
+command
+PASS / FAIL
+first failing assertion if any
+project UUID
+authoring phase
+queue/operation timing from Gateway status when relevant
+script-reported call metrics
+saved fixture/checkpoint path when produced
+```
+
+Do not convert technical PASS into visual/reference approval.
+
+### Safety boundary
+
+Use only disposable fixtures for scripts that require `--confirm-disposable`.
+
+Do not run destructive acceptance commands against:
+- an unsaved production model;
+- the rejected/approved source fixture itself;
+- a project whose current state is not backed up.
+
+If a mutation becomes `OUTCOME_UNKNOWN`, inspect the current Blockbench state before any retry.
+
+## 8. Representative quality fixture
 
 A committed sample asset is **only a representative test fixture** for LazyDesigner/MCP workflow quality. It is not a product target and **must not create fixture-specific tool behavior**, schema, thresholds, workflow law, or acceptance rules. Another suitable fixture may replace it without changing production Runtime semantics.
 
@@ -105,11 +249,11 @@ Never mutate the approved fixture source for system testing. Use a disposable co
 
 Visual/reference `PASS` still requires the approved reference plus fresh comparable model evidence. Static metrics or automatic similarity scores cannot create visual PASS.
 
-## 8. Gateway Stability
+## 9. Gateway Stability
 
 Only when lifecycle proof is requested: use one continuous client task and prove offline→online recovery, AUTHORING↔Animation catalog handoff, plugin reload recovery, and close/open recovery without a new chat. Geometry↔Texturing remains shared AUTHORING. After `OUTCOME_UNKNOWN`, inspect state before retry.
 
-## 9. Authoring Efficiency
+## 10. Authoring Efficiency
 
 After the quality gate passes, compare calls, discovery, capability-search misses, redundant readbacks, correction attempts, same-cause retries, recovery, handoffs and available elapsed cost.
 
@@ -120,7 +264,7 @@ IMPROVED | UNCHANGED | REGRESSED
 
 Quality must stay accepted while Cost to Accepted Result decreases. Do not invent token/latency numbers.
 
-## 10. Failure / Completion
+## 11. Failure / Completion
 
 Targeted quality work uses disposable face/contact, adjoining texture and limb-cycle fixtures under the current specialist gates. Keep rejected assets frozen. Native and user visual proof remain separate from source tests.
 

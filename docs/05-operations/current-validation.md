@@ -245,6 +245,20 @@ Legacy-looking compatibility identifiers are not evidence of stale architecture 
 
 Historical BlockIT native/runtime proof predates the current LazyDesigner hardening. It must **not** be used as proof that the current `Local` source is installed, type-correct, live, or behaviorally accepted.
 
+## Local-Test Handoff Baseline
+
+The source state handed to local testing is:
+
+```text
+Local SHA: 7d3abf40238373461085fac179fcbbc07a7da300
+Head Proof: PASS
+MCP Verify: PASS
+MCP Conformance: PASS
+Managed Distribution: PASS
+```
+
+This closes the remote/source acceptance partition for that exact SHA. Local testing should not repeat the repository audit; it should prove only LOCAL_CODE and LIVE_BLOCKBENCH residue through `docs/05-operations/local-acceptance-runbook.md`.
+
 ## Current Proof Ceiling
 
 REMOTE_GITHUB verification has been exercised during the current synchronization pass and has already exposed stale contracts that were corrected. Source-changing verification heads are proven by the matching GitHub workflows through generated freshness, Runtime/Gateway typecheck, Runtime regression, authoring contracts, surface/phase measurement, build, provenance, and artifact upload.
