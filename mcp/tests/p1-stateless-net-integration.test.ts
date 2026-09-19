@@ -205,7 +205,7 @@ afterAll(async () => {
 });
 
 describe("P1.4 raw-net stateless integration", () => {
-  test("listener binds to loopback and health exposes stateless JSON mode", async () => {
+  test("listener binds to loopback and health exposes stateless auto response mode", async () => {
     const address = server.address();
     expect(address).not.toBeNull();
     expect(typeof address).not.toBe("string");
@@ -221,7 +221,7 @@ describe("P1.4 raw-net stateless integration", () => {
     const body = await bodyJson(response);
     expect(body.transport).toEqual({
       mode: "stateless",
-      response_mode: "json",
+      response_mode: "auto",
     });
     expect(body).not.toHaveProperty("sessions");
   });
