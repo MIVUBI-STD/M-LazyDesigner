@@ -7,7 +7,7 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
-use system_status::{BlockbenchActionResult, BootstrapActionResult, ConnectionStatus, ManagedActionResult, PluginFileActionResult, SystemStatus};
+use system_status::{BlockbenchActionResult, BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, SystemStatus};
 
 #[tauri::command]
 fn system_status(app: tauri::AppHandle) -> SystemStatus {
@@ -19,6 +19,12 @@ fn system_status(app: tauri::AppHandle) -> SystemStatus {
 #[tauri::command]
 fn connection_status() -> ConnectionStatus {
     system_status::collect_connection_status()
+}
+
+#[tauri::command]
+fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError> {
+    system_status::ensure_ready(&app)
+        .map_err(|message| DesktopError::recoverable("ENSURE_READY_FAILED", message))
 }
 
 #[tauri::command]
@@ -55,6 +61,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             system_status,
             connection_status,
+            ensure_ready,
             managed_action,
             open_blockbench,
             bootstrap_install,

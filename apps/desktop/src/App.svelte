@@ -91,6 +91,15 @@
     receipt: Record<string, unknown>;
   };
 
+  type EnsureReadyResult = {
+    status: 'READY' | 'RUNTIME_READY' | 'RUNTIME_UNAVAILABLE';
+    runtime_online: boolean;
+    gateway_active: boolean;
+    blockbench_running: boolean;
+    plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
+    manual_plugin_approval_recommended: boolean;
+  };
+
   type DesktopCommandError = {
     code: string;
     message: string;
@@ -192,126 +201,6 @@
     }
   }
 
-  const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
-
-
-  async function repairManagedPluginIfSafe(candidate: SystemStatus): Promise<SystemStatus> {
-    if (
-      candidate.manager_available
-      && candidate.plugin_integrity !== 'ready'
-      && candidate.maintenance.repair
-      && !candidate.blockbench.running
-      && !autoRepairAttempted
-      && busyAction === null
-    ) {
-      autoRepairAttempted = true;
-      busyAction = 'repair';
-      try {
-        await invoke<ManagedActionResult>('managed_action', { action: 'repair' });
-        recordOperation('Repair LazyDesigner', 'success', 'AUTO_REPAIR');
-        const repaired = await invoke<SystemStatus>('system_status');
-        repaired.bootstrap_available = candidate.bootstrap_available;
-        status = repaired;
-        if (repaired.plugin_integrity === 'ready') autoRepairAttempted = false;
-        return repaired;
-      } catch (cause) {
-        recordOperation('Repair LazyDesigner', 'failed', errorCode(cause));
-      } finally {
-        busyAction = null;
-      }
-    }
-    return candidate;
-  }
-
-  async function watchSystemStatus() {
-    if (busyAction || document.hidden || !status) return;
-    try {
-      const candidate = await invoke<ConnectionStatus>('connection_status');
-      mergeConnectionStatus(candidate);
-      if (candidate.plugin_integrity === 'ready') autoRepairAttempted = false;
-      if (candidate.runtime_online) pluginApprovalNeeded = false;
-
-      if (
-        candidate.plugin_integrity !== 'ready'
-        && !candidate.blockbench_running
-        && status.maintenance.repair
-        && !autoRepairAttempted
-      ) {
-        const repaired = await repairManagedPluginIfSafe(status);
-        status = repaired;
-      }
-    } catch {
-      // Keep the last known state. Explicit actions surface actionable errors.
-    }
-  }
-
-  function mergeConnectionStatus(candidate: ConnectionStatus) {
-    if (!status) return;
-    status = {
-      ...status,
-      observed_at_unix_ms: candidate.observed_at_unix_ms,
-      plugin_integrity: candidate.plugin_integrity,
-      blockbench: { ...status.blockbench, running: candidate.blockbench_running },
-      managed: status.managed ? {
-        ...status.managed,
-        runtime_online: candidate.runtime_online,
-        gateway_active: candidate.gateway_active,
-      } : status.managed,
-      gateway: {
-        ...status.gateway,
-        state: candidate.gateway_active && candidate.runtime_online
-          ? 'healthy'
-          : candidate.gateway_active
-            ? 'waiting-runtime'
-            : candidate.runtime_online
-              ? 'client-disconnected'
-              : candidate.blockbench_running
-                ? 'runtime-offline'
-                : 'idle',
-      },
-      readiness: {
-        ...status.readiness,
-        ready: candidate.gateway_active && candidate.runtime_online,
-        state: candidate.gateway_active && candidate.runtime_online
-          ? 'ready'
-          : !candidate.blockbench_running
-            ? 'ready-to-start'
-            : 'needs-connection',
-        summary: candidate.gateway_active && candidate.runtime_online
-          ? 'LazyDesigner is ready.'
-          : !candidate.blockbench_running
-            ? 'Open Blockbench to continue.'
-            : candidate.runtime_online
-              ? 'Blockbench is ready; waiting for an MCP client session.'
-              : 'Waiting for the LazyDesigner Runtime in Blockbench.',
-      },
-    };
-  }
-
-  async function waitForRuntime(timeoutMs = 15000): Promise<SystemStatus | null> {
-    const started = Date.now();
-    while (Date.now() - started < timeoutMs) {
-      const candidate = await invoke<ConnectionStatus>('connection_status');
-      mergeConnectionStatus(candidate);
-      if (candidate.runtime_online) {
-        pluginApprovalNeeded = false;
-        return status;
-      }
-      await wait(750);
-    }
-    return status;
-  }
-
-  async function prepareBlockbenchConnection(): Promise<boolean> {
-    if (!status?.blockbench.running) {
-      await invoke<BlockbenchActionResult>('open_blockbench');
-    }
-    const connected = await waitForRuntime();
-    if (connected?.managed?.runtime_online) return true;
-    pluginApprovalNeeded = true;
-    return false;
-  }
-
   async function connectBlockbench() {
     if (!status?.manager_available || busyAction) return;
     closeUtilityMenu();
@@ -319,8 +208,14 @@
     error = '';
     clearSuccessToast();
     try {
-      const connected = await prepareBlockbenchConnection();
-      if (connected) showSuccessToast('LazyDesigner is ready in Blockbench.');
+      const result = await invoke<EnsureReadyResult>('ensure_ready');
+      pluginApprovalNeeded = result.manual_plugin_approval_recommended;
+      await refresh();
+      if (result.status === 'READY') {
+        showSuccessToast('LazyDesigner is ready.');
+      } else if (result.status === 'RUNTIME_READY') {
+        showSuccessToast('Blockbench is ready. The MCP client can connect when needed.');
+      }
     } catch (cause) {
       error = errorMessage(cause);
     } finally {
@@ -338,8 +233,11 @@
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
       recordOperation('Install LazyDesigner', 'success', receiptStatus);
       await refresh();
-      const connected = await prepareBlockbenchConnection();
-      if (connected) showSuccessToast('Setup complete. LazyDesigner is ready in Blockbench.');
+      const ready = await invoke<EnsureReadyResult>('ensure_ready');
+      pluginApprovalNeeded = ready.manual_plugin_approval_recommended;
+      await refresh();
+      if (ready.status === 'READY') showSuccessToast('Setup complete. LazyDesigner is ready.');
+      else if (ready.status === 'RUNTIME_READY') showSuccessToast('Setup complete. Blockbench is ready.');
     } catch (cause) {
       recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
       error = errorMessage(cause);
@@ -623,7 +521,7 @@
 
               <div class="setup-footer">
                 {#if productGuidance(status)}<span class="setup-warning">{productGuidance(status)}</span>{:else}<span></span>{/if}
-                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null}>{busyAction === 'install' ? 'Setting up…' : 'Continue'}</button>
+                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null}>{busyAction === 'install' ? 'Setting up…' : 'Set up'}</button>
               </div>
             </section>
 
@@ -672,7 +570,7 @@
                       <strong>LazyDesigner is not active yet</strong>
                       <span>Desktop can open Blockbench and verify the Runtime automatically.</span>
                     </div>
-                    <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Connecting…' : 'Connect'}</button>
+                    <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Prepare Blockbench'}</button>
                   {:else}
                     <div>
                       <strong>One-time approval required</strong>
@@ -683,7 +581,7 @@
                       <li>Select the highlighted LazyDesigner plugin.</li>
                       <li>Approve the Blockbench trust prompt.</li>
                     </ol>
-                    <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>{busyAction === 'show-plugin' ? 'Opening…' : 'Approve plugin'}</button>
+                    <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>{busyAction === 'show-plugin' ? 'Opening…' : 'Show approval file'}</button>
                   {/if}
                 </div>
               {:else if productMode(status) === 'unsupported'}

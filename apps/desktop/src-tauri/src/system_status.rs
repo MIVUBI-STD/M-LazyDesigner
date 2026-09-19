@@ -97,6 +97,16 @@ pub struct ManagedActionResult {
     pub action: String,
     pub receipt: Value,
 }
+
+#[derive(Debug, Serialize)]
+pub struct EnsureReadyResult {
+    pub status: &'static str,
+    pub runtime_online: bool,
+    pub gateway_active: bool,
+    pub blockbench_running: bool,
+    pub plugin_integrity: &'static str,
+    pub manual_plugin_approval_recommended: bool,
+}
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ManagedProgressEvent { pub schema: u8, pub kind: String, pub action: String, pub stage: String }
 
@@ -507,6 +517,54 @@ pub fn open_blockbench() -> Result<BlockbenchActionResult, String> {
         .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
 
     Ok(BlockbenchActionResult { status: "STARTED" })
+}
+
+
+pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
+    let initial = collect();
+    if !initial.manager_available {
+        return Err("LazyDesigner is not installed yet.".to_string());
+    }
+
+    let mut current = collect_connection_status();
+
+    if current.plugin_integrity != "ready" && !current.blockbench_running {
+        let maintenance = project_maintenance(true, initial.managed.as_ref());
+        if maintenance.repair {
+            let _ = run_managed_action(app, "repair")?;
+            current = collect_connection_status();
+        }
+    }
+
+    if !current.blockbench_running {
+        open_blockbench()?;
+    }
+
+    let started = std::time::Instant::now();
+    while started.elapsed() < Duration::from_secs(15) {
+        current = collect_connection_status();
+        if current.runtime_online {
+            return Ok(EnsureReadyResult {
+                status: if current.gateway_active { "READY" } else { "RUNTIME_READY" },
+                runtime_online: current.runtime_online,
+                gateway_active: current.gateway_active,
+                blockbench_running: current.blockbench_running,
+                plugin_integrity: current.plugin_integrity,
+                manual_plugin_approval_recommended: false,
+            });
+        }
+        std::thread::sleep(Duration::from_millis(750));
+    }
+
+    current = collect_connection_status();
+    Ok(EnsureReadyResult {
+        status: "RUNTIME_UNAVAILABLE",
+        runtime_online: current.runtime_online,
+        gateway_active: current.gateway_active,
+        blockbench_running: current.blockbench_running,
+        plugin_integrity: current.plugin_integrity,
+        manual_plugin_approval_recommended: current.blockbench_running && current.plugin_integrity == "ready",
+    })
 }
 
 fn unknown_gateway() -> GatewaySupervision {
