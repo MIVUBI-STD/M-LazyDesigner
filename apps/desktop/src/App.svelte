@@ -40,6 +40,10 @@
     diagnostic: string | null;
   };
 
+  type BlockbenchActionResult = {
+    status: 'STARTED' | 'ALREADY_RUNNING';
+  };
+
   type ManagedActionResult = {
     action: 'update' | 'recover';
     receipt: Record<string, unknown>;
@@ -48,7 +52,7 @@
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'update' | 'recover' | null = null;
+  let busyAction: 'update' | 'recover' | 'open-blockbench' | null = null;
   let actionMessage = '';
 
   async function refresh() {
@@ -60,6 +64,22 @@
       error = cause instanceof Error ? cause.message : String(cause);
     } finally {
       loading = false;
+    }
+  }
+
+  async function openBlockbench() {
+    if (busyAction) return;
+    busyAction = 'open-blockbench';
+    error = '';
+    actionMessage = '';
+    try {
+      const result = await invoke<BlockbenchActionResult>('open_blockbench');
+      actionMessage = result.status === 'STARTED' ? 'Blockbench started.' : 'Blockbench is already running.';
+      await refresh();
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : String(cause);
+    } finally {
+      busyAction = null;
     }
   }
 
@@ -175,6 +195,13 @@
         <p>Actions are explicit and delegated to the existing managed distribution.</p>
       </div>
       <div class="action-buttons">
+        <button
+          class="secondary"
+          onclick={openBlockbench}
+          disabled={busyAction !== null}
+        >
+          {busyAction === 'open-blockbench' ? 'Opening…' : status.blockbench.running ? 'Blockbench running' : 'Open Blockbench'}
+        </button>
         <button
           onclick={() => runManagedAction('update')}
           disabled={!status.manager_available || busyAction !== null}

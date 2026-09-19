@@ -91,3 +91,18 @@ both inactive
 ```
 
 Do not add a Desktop `Start Gateway` or `Restart Gateway` command unless the MCP/client integration gains a real lifecycle-control contract. Starting `blockit.exe mcp` without a stdio client owner would create the wrong process model.
+
+
+## Blockbench discovery and launch
+
+Windows Blockbench installation is not assumed to live at a fixed path. The official NSIS configuration allows the installation directory to be changed, so Desktop uses this bounded discovery order:
+
+```text
+running Blockbench process executable
+→ Windows uninstall registry entries with DisplayName=Blockbench
+→ validated existing Blockbench.exe path
+```
+
+The `Open Blockbench` action is explicit. If Blockbench is already running it returns `ALREADY_RUNNING`; otherwise it launches the discovered executable and does not create a restart/watchdog policy.
+
+Version and compatibility projection now also work when Blockbench is installed but closed, provided Windows exposes a valid uninstall entry.

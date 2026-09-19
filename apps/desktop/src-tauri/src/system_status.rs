@@ -41,6 +41,11 @@ pub struct GatewaySupervision {
 }
 
 #[derive(Debug, Serialize)]
+pub struct BlockbenchActionResult {
+    pub status: &'static str,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ManagedActionResult {
     pub action: String,
     pub receipt: Value,
@@ -132,79 +137,143 @@ fn evaluate_blockbench_compatibility(version: &str) -> Result<BlockbenchCompatib
     })
 }
 
-fn detect_blockbench() -> BlockbenchState {
-    let mut system = System::new_all();
-    system.refresh_processes();
-
-    let process = system.processes().values().find(|process| {
+fn discover_blockbench_executable(system: &System) -> Result<Option<PathBuf>, String> {
+    if let Some(process) = system.processes().values().find(|process| {
         let name = process.name().to_ascii_lowercase();
         name == "blockbench.exe" || name == "blockbench"
-    });
+    }) {
+        if let Some(path) = process.exe() {
+            if path.is_file() {
+                return Ok(Some(path.to_path_buf()));
+            }
+        }
+    }
 
-    let Some(process) = process else {
-        return BlockbenchState {
-            running: false,
-            version: None,
-            compatibility: None,
-            diagnostic: None,
-        };
-    };
+    let script = r#"
+$roots = @(
+  'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+)
+foreach ($root in $roots) {
+  foreach ($entry in @(Get-ItemProperty -Path $root -ErrorAction SilentlyContinue)) {
+    if ($entry.DisplayName -ne 'Blockbench') { continue }
+    $candidates = @()
+    if ($entry.InstallLocation) { $candidates += (Join-Path $entry.InstallLocation 'Blockbench.exe') }
+    if ($entry.DisplayIcon) {
+      $icon = [string]$entry.DisplayIcon
+      if ($icon.StartsWith('"')) {
+        $closing = $icon.IndexOf('"', 1)
+        if ($closing -gt 1) { $icon = $icon.Substring(1, $closing - 1) }
+      } else {
+        $icon = ($icon -split ',')[0].Trim()
+      }
+      if ($icon) { $candidates += $icon }
+    }
+    foreach ($candidate in $candidates) {
+      if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+        [Console]::Out.WriteLine((Resolve-Path -LiteralPath $candidate).Path)
+        exit 0
+      }
+    }
+  }
+}
+exit 0
+"#;
+    let output = Command::new("powershell.exe")
+        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
+        .output()
+        .map_err(|error| format!("Unable to discover Blockbench installation: {error}"))?;
 
-    let Some(executable) = process.exe() else {
-        return BlockbenchState {
-            running: true,
-            version: None,
-            compatibility: None,
-            diagnostic: Some("Blockbench is running, but its executable path is unavailable.".to_string()),
-        };
-    };
+    if !output.status.success() {
+        return Err("Blockbench registry discovery failed.".to_string());
+    }
 
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if path.is_empty() {
+        return Ok(None);
+    }
+
+    let executable = PathBuf::from(path);
+    if !executable.is_file() {
+        return Err("Blockbench registry entry does not point to an executable file.".to_string());
+    }
+    Ok(Some(executable))
+}
+
+fn blockbench_version(executable: &Path) -> Result<String, String> {
     let script = "(Get-Item -LiteralPath $env:LAZYDESIGNER_BLOCKBENCH_EXE).VersionInfo.ProductVersion";
-    let output = match Command::new("powershell.exe")
+    let output = Command::new("powershell.exe")
         .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
         .env("LAZYDESIGNER_BLOCKBENCH_EXE", executable)
         .output()
-    {
-        Ok(output) => output,
-        Err(error) => {
-            return BlockbenchState {
-                running: true,
-                version: None,
-                compatibility: None,
-                diagnostic: Some(format!("Unable to inspect Blockbench version: {error}")),
-            }
-        }
-    };
+        .map_err(|error| format!("Unable to inspect Blockbench version: {error}"))?;
 
     if !output.status.success() {
-        return BlockbenchState {
-            running: true,
-            version: None,
-            compatibility: None,
-            diagnostic: Some("Blockbench version inspection failed.".to_string()),
-        };
+        return Err("Blockbench version inspection failed.".to_string());
     }
 
     let raw = String::from_utf8_lossy(&output.stdout).trim().to_string();
     let version = raw.split_whitespace().next().unwrap_or("").to_string();
     if version.is_empty() {
-        return BlockbenchState {
-            running: true,
-            version: None,
-            compatibility: None,
-            diagnostic: Some("Blockbench version information is empty.".to_string()),
-        };
+        return Err("Blockbench version information is empty.".to_string());
     }
+    Ok(version)
+}
+
+fn detect_blockbench() -> BlockbenchState {
+    let mut system = System::new_all();
+    system.refresh_processes();
+    let running = system.processes().values().any(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    });
+
+    let executable = match discover_blockbench_executable(&system) {
+        Ok(Some(path)) => path,
+        Ok(None) => {
+            return BlockbenchState {
+                running,
+                version: None,
+                compatibility: None,
+                diagnostic: if running {
+                    Some("Blockbench is running, but its executable path is unavailable.".to_string())
+                } else {
+                    Some("Blockbench desktop installation was not found.".to_string())
+                },
+            }
+        }
+        Err(message) => {
+            return BlockbenchState {
+                running,
+                version: None,
+                compatibility: None,
+                diagnostic: Some(message),
+            }
+        }
+    };
+
+    let version = match blockbench_version(&executable) {
+        Ok(version) => version,
+        Err(message) => {
+            return BlockbenchState {
+                running,
+                version: None,
+                compatibility: None,
+                diagnostic: Some(message),
+            }
+        }
+    };
 
     match evaluate_blockbench_compatibility(&version) {
         Ok(compatibility) => BlockbenchState {
-            running: true,
+            running,
             version: Some(version),
             compatibility: Some(compatibility),
             diagnostic: None,
         },
         Err(message) => BlockbenchState {
-            running: true,
+            running,
             version: Some(version),
             compatibility: None,
             diagnostic: Some(message),
@@ -212,6 +281,26 @@ fn detect_blockbench() -> BlockbenchState {
     }
 }
 
+pub fn open_blockbench() -> Result<BlockbenchActionResult, String> {
+    let mut system = System::new_all();
+    system.refresh_processes();
+    let already_running = system.processes().values().any(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    });
+    if already_running {
+        return Ok(BlockbenchActionResult { status: "ALREADY_RUNNING" });
+    }
+
+    let executable = discover_blockbench_executable(&system)?
+        .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
+
+    Command::new(&executable)
+        .spawn()
+        .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
+
+    Ok(BlockbenchActionResult { status: "STARTED" })
+}
 
 fn project_gateway(managed: Option<&Value>, blockbench_running: bool) -> GatewaySupervision {
     let active = managed
@@ -270,6 +359,7 @@ pub fn collect() -> SystemStatus {
         Err(message) => {
             return SystemStatus {
                 schema: 1,
+                gateway: project_gateway(None, blockbench.running),
                 blockbench,
                 manager_available: false,
                 managed: None,
@@ -391,6 +481,12 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn version_parser_accepts_blockbench_release_and_prerelease_core() {
+        assert_eq!(parse_version("5.2.0"), Some((5, 2, 0)));
+        assert_eq!(parse_version("5.2.0-beta.2"), Some((5, 2, 0)));
     }
 
     #[test]
