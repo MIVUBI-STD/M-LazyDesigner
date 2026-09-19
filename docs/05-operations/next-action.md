@@ -5,7 +5,7 @@ Branch: `Local` only.
 
 This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/`; system ownership in `docs/04-system/`; proof history and interpretation in `docs/05-operations/current-validation.md`.
 
-Canonical Control source: `mcp/gateway/control/`.
+Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/navigator/` source is removed with no alias.
 
 ## Current State
 
@@ -24,6 +24,8 @@ legacy 2025 JSON initialize/list/call PASS
 ```
 
 These are historical reusable baselines only. A changed exact SHA still requires its applicable verifier before the new source is called verified.
+
+No hand-editing generated docs/output; generated prompt/API artifacts remain generator-owned.
 
 Core invariants:
 
