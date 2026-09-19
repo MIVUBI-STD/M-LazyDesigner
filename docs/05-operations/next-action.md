@@ -1,17 +1,17 @@
 # LazyDesigner Next Action
 
-Updated: 2026-09-19  
+Updated: 2026-09-20  
 Branch: `Local` only.
 
-This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/flow.md`; source/context ownership in `docs/04-system/`; proof interpretation in `docs/05-operations/current-validation.md`.
+This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/`; system ownership in `docs/04-system/`; proof history and interpretation in `docs/05-operations/current-validation.md`.
 
-Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/navigator/` source is removed with no alias; `Experimental/blockit-navigator/` is historical documentation only.
+Canonical Control source: `mcp/gateway/control/`.
 
 ## Current State
 
-Current REMOTE_GITHUB architecture is source-hardened across Control, Gateway, Runtime, Plugin, retained Tool capability, validation, context loading, and repository contracts.
+REMOTE_GITHUB architecture remains source-owned across Control, Gateway, Runtime, Plugin, Managed Distribution, Desktop, validation, and repository contracts.
 
-Remote handoff baseline (not the current local working-tree verdict):
+Reusable verified authoring baseline:
 
 ```text
 generated freshness PASS
@@ -19,205 +19,168 @@ Runtime/Gateway typecheck PASS
 Runtime regression PASS
 authoring contracts PASS
 surface/phase measurement PASS
-compatibility build + exact-SHA artifact PASS
 modern MCP 2026 negotiation/list/call PASS
 legacy 2025 JSON initialize/list/call PASS
 ```
 
-No hand-editing generated docs/output. Generated prompt/API artifacts remain generator-owned.
+These are historical reusable baselines only. A changed exact SHA still requires its applicable verifier before the new source is called verified.
 
 Core invariants:
 
 - Gateway exposes only `status`, `search_capabilities`, `describe_capability`, and `invoke_capability`.
-- Gateway is the persistent AI-client boundary; Runtime/plugin recovery happens beneath it.
-- Runtime owns capability registration, authoring surfaces, execution serialization, project/phase affinity, and Runtime result contracts.
-- Tool consolidation is routing-only; original executors, validation, native behavior, and domain intelligence remain retained.
-- Geometry↔Texturing share AUTHORING; Animation is the separate authoring Runtime surface.
-- Control is a thin routing/context layer, not a second Runtime, state database, dependency graph, or workflow engine.
-- Normal authoring loads one active specialist and reuses unchanged content-addressed context.
+- Gateway is the persistent AI-client boundary; Runtime/plugin recovery stays beneath it.
+- Runtime owns execution, authoring surfaces, affinity, and native Blockbench interaction.
+- Control remains a thin routing/context owner, not a second Runtime or state engine.
+- Geometry↔Texturing share AUTHORING; Animation is the separate Runtime surface.
 - Technical validation never creates visual PASS or user approval.
-- No capability/intelligence reduction is allowed merely for tool-count or context savings.
+- Capability/intelligence may not be reduced merely for context or tool-count savings.
 
-## Current High-End Continuation
+## Current Authoring Continuation
 
-Control freshness is source-implemented with semantic scopes for Geometry, UV, Texture, Material/Render, Animation motion/controller/effects, and Particle state. Receipts report `NO_CHANGE`, precise/conservative effects, or unknown outcomes; failed/ambiguous operations remain fail-closed.
+Receipt/freshness semantics are source-implemented across Geometry, UV, Texture, Material/Render, Animation, and Particle. Failed or ambiguous mutations remain fail-closed.
 
-Current receipt-economy rules:
+Evidence economy remains:
 
 ```text
-NO_CHANGE / read-only / compile-only / persistence-only
-→ receipt_only
-
-complete final affected-state receipt
+NO_CHANGE / read-only / complete final receipt
 → receipt_only
 
 partial mutation receipt
 → focused_read
 
 Cube / animation-motion mutation
-→ visual remains required
+→ visual evidence still required
 ```
 
-Complete receipt coverage is recorded in `current-validation.md`. Subtree translation remains focused-read because descendant state is summarized only; Cube simplify dry-run/unchanged is state-neutral.
+Change-scoped visual evidence is retained where the receipt proves exact targets. The deferred four-tool Gateway vs hybrid hot-path decision remains **UNMEASURED** until equivalent Golden Tasks measure accepted quality plus calls, corrections, redundant readbacks, errors, handoffs, and total cost to accepted result. Do not introduce the hybrid surface by preference.
 
-Incomplete/legacy shapes stay conservative. Visual verification is now change-scoped where receipts prove targets: Cube mutations emit exact Cube UUIDs plus rendered target bounds consumable by existing `capture_model_views(framing=explicit)`; keyframe mutations emit animation/bone/time range plus bounded review sampling; paint transactions emit texture/rect/revision and attach the exact post-mutation affected-region PNG, avoiding a full-atlas reread for local corrections. Visual class is unchanged; only evidence scope is narrowed. Do not add dependency databases, planners, extra routers, or public Gateway tools.
+## Desktop Control Plane
 
-## Deferred A/B Decision
-
-Keep the current four-tool Gateway unchanged.
-
-The alternative:
+Desktop remains the machine/workstation controller only:
 
 ```text
-4 meta-tools
-vs
-hybrid direct hot-path + long-tail catalog
+Desktop intent
+→ Rust readiness/product-state owner
+→ canonical Managed Distribution when mutation is required
+→ Blockbench + Runtime
+→ MCP client-owned Gateway
 ```
 
-must be decided by the existing Golden Tasks, not architectural preference.
+Current source includes:
 
-Golden Tasks remain `UNMEASURED` until matching live runs capture accepted quality plus:
+- one canonical `ensure_ready` launch/readiness path;
+- safe missing-plugin repair and modified-plugin fail-closed handling;
+- lightweight Blockbench/Runtime/Gateway/plugin watcher without managed-CLI heartbeat spawning;
+- explicit READY / RUNTIME_READY / APPROVAL_REQUIRED / NEEDS_ATTENTION outcomes;
+- bounded operation logging and diagnostics;
+- Blockbench compatibility, custom `--userData`, TLS, rollback, repair, recover, update and installer trust boundaries;
+- development-only deterministic UI fixtures.
+
+Desktop must not start, restart, terminate, or own the stdio Gateway.
+
+## Projects & Models — ACTIVE DEVELOPMENT
+
+The agreed navigation model is:
 
 ```text
-status/search/describe calls
-identity inspections
-visual capture batches
-mutation calls
-correction rounds
-redundant readbacks
-runtime/tool errors
-total calls to accepted result
-human acceptance
+Project
+→ one or more saved .bbmodel Models
 ```
 
-Do not introduce a hybrid surface before equivalent Golden Task measurements exist.
-
-## Current Desktop / Distribution Remote Baseline
-
-Current REMOTE_GITHUB Desktop Control Plane work is source-complete for the agreed scope.
-
-Proof chain:
+Example:
 
 ```text
-Distribution source baseline
-5cdf7342f29d3a76281a4d2fc10e74b018371807
-→ MCP Verify PASS
-→ Managed Distribution PASS
-→ Repository Verify PASS
-→ Head Proof PASS
-
-Desktop executable/package baseline
-be02af2d2f2316a12f3954c5568c41d0defe222e
-→ Desktop Verify PASS
-→ Repository Verify PASS
-→ Head Proof PASS
-
-Desktop release/version contract
-42328480b2c52e5c2e94cf0b65cf015192d27db2
-→ Repository Verify PASS
-→ Head Proof PASS
-→ manual draft-only release workflow added
-→ no tag/release published
-→ no Desktop self-updater added
+Furniture
+→ Modern Chair.bbmodel
+→ Sofa.bbmodel
+→ Table.bbmodel
 ```
 
-Remote-complete Desktop capabilities:
+Current REMOTE_GITHUB source implements:
+
+- Active Project + Active Model from Blockbench-owned state;
+- recent saved `.bbmodel` projection;
+- deterministic shallow grouping into Projects;
+- project `See details` model list;
+- Open Folder;
+- Open Model through `ensure_ready`;
+- Reveal model file;
+- Copy path only on explicit action;
+- missing-model state without drive scanning;
+- path-free normal Overview UI;
+- bounded local navigation snapshot rather than a second project database;
+- watcher refresh when the navigation snapshot changes.
+
+Project grouping order:
 
 ```text
-Tauri/Svelte/Rust Desktop shell
-exact-SHA managed bootstrap bundle
-silent NSIS install/bootstrap smoke
-Blockbench discovery/version/compatibility projection
-explicit Open Blockbench
-native Blockbench plugin-file handoff
-Gateway supervision without Gateway ownership theft
-Runtime/managed health
-typed unknown-state fail-closed projection
-managed update / repair / recover
-Runtime TLS provision + explicit renewal
-PowerShell syntax fail-fast
-installer checksum + build provenance
-draft Desktop release/version contract
+nearest bounded .lazydesigner-project.json marker
+→ parent of Models/Model folder
+→ direct .bbmodel parent folder
 ```
 
-The Desktop version remains `0.1.0` across package/Cargo/Tauri until an intentional release bump. `Update managed components` is not Desktop self-update. A future self-update mechanism requires a separate signed update-channel decision and is not current residue.
+Normal UI shows project/model names and relevant actions only. Paths, UUIDs, revision metadata, and filesystem details remain hidden unless an explicit detail action needs them.
 
-Desktop pre-local preparation now also covers one-click readiness orchestration, bounded self-healing, lightweight connection watching, explicit readiness outcomes, development-only UI state fixtures, multi-profile Blockbench userData fail-closed handling, and a bounded local operation log. Do not add further Desktop product features before local/native acceptance exposes a concrete gap.
+Quick Command / Command Palette and thumbnails are explicitly out of scope.
+
+P1 candidates after source/native proof, only if still useful:
+
+```text
+Pin Project
+project/model search
+Continue last Project/Model
+working-folder shortcuts
+Add existing model to Project
+```
+
+Do not add a full file browser, drive indexer, tags/kanban, thumbnails, cloud project database, or nested arbitrary hierarchy.
+
+## Current Verification Boundary
+
+The clean pre-navigation Desktop baseline was exact SHA `30929d77e4f557bb8cc7b4f846215ecd3c6d2d6b` with Desktop Verify, Repository Verify, and Head Proof PASS.
+
+Projects & Models changed Desktop + Plugin after that baseline. Its current exact-SHA verification must complete before it becomes a new accepted source baseline. Fix the first failing owner only; do not redesign working architecture to satisfy stale assertions.
 
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 
-Local acceptance is now activated. Use `docs/05-operations/local-acceptance-runbook.md` as the single execution runbook.
+Use `docs/05-operations/local-acceptance-runbook.md` as the single execution runbook.
 
-Earlier authoring/local-acceptance baseline:
+LOCAL_CODE residue is limited to environment/toolchain proof not already accepted for the exact source SHA.
 
-```text
-SHA 7d3abf40238373461085fac179fcbbc07a7da300
-Head Proof PASS
-MCP Verify PASS
-MCP Conformance PASS
-Managed Distribution PASS
-```
-
-This older baseline is retained only for the existing native authoring evidence below. The current Desktop/Distribution remote baseline is recorded above.
-
-Version 2.1 (`v2.1`, Local source release) uses authorized HTTPS loopback; `verify:full` passes 1,201 tests. Both blockers fixed: native Dirent-based export retains symlink/consent guards; texture harness uses current UUID/name identity. Build `c73fc8…` passes existing-file save/reopen and texture-runtime tests; earlier native/affinity/reload tests passed on `f5c65c…`. Codex config now selects the updated Gateway; a fresh stdio client using that config passes online/catalog/identity checks. Next: reconnect the existing Codex MCP process once. App-restart/interrupted-mutation recovery and visual quality remain unverified. See `current-validation.md`; disposable tabs remain, production assets untouched.
-
-## LOCAL_CODE Residue
-
-Local proof should use a clean checkout matching the current `Local` SHA.
-
-Relevant checks:
+LIVE_BLOCKBENCH must prove:
 
 ```text
-targeted Control/Gateway tests
-Runtime + Gateway typecheck
-authoring contract suite when affected
-surface/phase measurement when affected
-```
+Projects & Models:
+active project/model follows Blockbench tab changes
+saved recent models survive Desktop restart
+one Project correctly groups multiple .bbmodel files
+Open Folder targets the correct Project
+Open Model preserves Blockbench unsaved-work behavior
+Reveal Model selects the correct file
+missing model stays unavailable without filesystem crawling
+path stays absent from normal UI
 
-Phase transport proof still worth measuring later:
-
-```text
-Geometry → Texturing
-→ Runtime focus changes
-→ AUTHORING tool set remains identical
-→ determine whether Gateway catalog can remain warm
-
-AUTHORING → Animation
-→ Runtime applies Animation surface
-→ Gateway refreshes catalog
-
-Animation → AUTHORING
-→ Runtime restores AUTHORING surface
-→ Gateway refreshes catalog
-```
-
-Only relax Geometry↔Texturing catalog invalidation after this proof. Do not optimize it by assumption.
-
-Transport ownership and source-proven modern/legacy/conformance contracts are recorded in `current-validation.md`. Preserve SDK auto JSON/SSE selection, incremental streaming, generation fencing, legacy JSON compatibility, and isolated conformance fixtures; production registration/catalog remain unchanged.
-
-## LIVE_BLOCKBENCH Residue
-
-Prove the native boundaries that source/static work cannot establish:
-
-```text
+Lifecycle:
 persistent Gateway survives Runtime/plugin reload
-Runtime rebuild recovery
 Blockbench close → open recovery
+Runtime/plugin rebuild recovery
 AUTHORING ↔ Animation catalog handoff
-Geometry ↔ Texturing focus change preserves the shared surface
+Geometry ↔ Texturing shared-surface behavior
 project affinity / rebind behavior
 interrupted mutation → inspect-before-retry recovery
+
+Authoring:
 Geometry / Texturing / Animation / Particle execution
 Undo / playback / persistence / export behavior
 representative accepted-result quality + efficiency
 ```
 
-Measure **Cost to Accepted Result** without lowering accepted quality.
+Measure **Cost to Accepted Result** only after accepted quality is maintained.
 
 ## Stop Rules
 
 - no second Control/router/profile/state system;
+- no duplicate Desktop project database when Blockbench/local project projection is sufficient;
 - no dependency graph or persistent revision database without demonstrated need;
 - no direct/hybrid Gateway surface before Golden Task evidence;
 - no capability/intelligence reduction for context savings;
@@ -229,4 +192,4 @@ Measure **Cost to Accepted Result** without lowering accepted quality.
 
 ## Proof Boundary
 
-REMOTE_GITHUB proves only source/static/CI-verifiable contracts on the exact SHA. Installed Runtime behavior, native Blockbench behavior, visual quality, and measured end-to-end usage remain higher-context proof.
+REMOTE_GITHUB proves only source/static/CI-verifiable contracts on the exact SHA. Installed Runtime behavior, native Blockbench project navigation, native Undo/playback/persistence, visual quality, and measured end-to-end usage remain higher-context proof.
