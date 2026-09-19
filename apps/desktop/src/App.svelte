@@ -95,7 +95,8 @@
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
+  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
+  let pluginApprovalNeeded = false;
   let actionMessage = '';
   let progressStage = '';
   let stopProgressListener: (() => void) | null = null;
@@ -178,6 +179,48 @@
     }
   }
 
+  const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+
+  async function waitForRuntime(timeoutMs = 15000): Promise<SystemStatus | null> {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const candidate = await invoke<SystemStatus>('system_status');
+      status = candidate;
+      if (candidate.managed?.runtime_online) {
+        pluginApprovalNeeded = false;
+        return candidate;
+      }
+      await wait(750);
+    }
+    return status;
+  }
+
+  async function prepareBlockbenchConnection(): Promise<boolean> {
+    if (!status?.blockbench.running) {
+      await invoke<BlockbenchActionResult>('open_blockbench');
+    }
+    const connected = await waitForRuntime();
+    if (connected?.managed?.runtime_online) return true;
+    pluginApprovalNeeded = true;
+    return false;
+  }
+
+  async function connectBlockbench() {
+    if (!status?.manager_available || busyAction) return;
+    closeUtilityMenu();
+    busyAction = 'connect-blockbench';
+    error = '';
+    clearSuccessToast();
+    try {
+      const connected = await prepareBlockbenchConnection();
+      if (connected) showSuccessToast('LazyDesigner is ready in Blockbench.');
+    } catch (cause) {
+      error = errorMessage(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
   async function installLazyDesigner() {
     if (!status?.bootstrap_available || status.manager_available || busyAction) return;
     busyAction = 'install';
@@ -186,9 +229,10 @@
     try {
       const result = await invoke<BootstrapActionResult>('bootstrap_install');
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
-      showSuccessToast(`Setup complete. Open Blockbench and load the LazyDesigner plugin to finish connecting.`);
       recordOperation('Install LazyDesigner', 'success', receiptStatus);
       await refresh();
+      const connected = await prepareBlockbenchConnection();
+      if (connected) showSuccessToast('Setup complete. LazyDesigner is ready in Blockbench.');
     } catch (cause) {
       recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
       error = errorMessage(cause);
@@ -204,7 +248,7 @@
     error = '';
     try {
       await invoke<PluginFileActionResult>('show_plugin_file');
-      showSuccessToast('Plugin file is ready. In Blockbench choose Plugins → Load Plugin from File and select it.');
+      showSuccessToast('Plugin file highlighted. Approve it once in Blockbench to complete setup.');
     } catch (cause) {
       error = errorMessage(cause);
     } finally {
@@ -311,20 +355,16 @@
     return 'Unavailable';
   };
 
-  type ProductMode = 'welcome' | 'security-setup' | 'unsupported' | 'ready-start' | 'plugin-setup' | 'ready' | 'attention';
+  type ProductMode = 'welcome' | 'security-setup' | 'unsupported' | 'ready-start' | 'plugin-setup' | 'client-wait' | 'ready' | 'attention';
 
   function productMode(value: SystemStatus): ProductMode {
     if (!value.manager_available) return 'welcome';
     if (value.managed?.tls_ready === false) return 'security-setup';
     if (value.blockbench.compatibility?.status === 'unsupported' || value.blockbench.compatibility?.status === 'invalid') return 'unsupported';
     if (!value.blockbench.running) return 'ready-start';
-    if (
-      value.readiness.state === 'needs-connection'
-      || value.gateway.state === 'waiting-runtime'
-      || value.gateway.state === 'runtime-offline'
-      || value.gateway.state === 'client-disconnected'
-    ) return 'plugin-setup';
-    if (value.readiness.ready) return 'ready';
+    if (!value.managed?.runtime_online) return 'plugin-setup';
+    if (value.gateway.state === 'healthy') return 'ready';
+    if (value.gateway.state === 'client-disconnected') return 'client-wait';
     return 'attention';
   }
 
@@ -335,6 +375,7 @@
     if (mode === 'unsupported') return 'Blockbench version not supported';
     if (mode === 'ready-start') return 'Ready to start';
     if (mode === 'plugin-setup') return 'Connect LazyDesigner to Blockbench';
+    if (mode === 'client-wait') return 'Blockbench ready';
     if (mode === 'ready') return 'Ready to use';
     return 'Action required';
   }
@@ -345,7 +386,8 @@
     if (mode === 'security-setup') return 'Complete the secure local setup required for LazyDesigner to connect safely.';
     if (mode === 'unsupported') return 'This Blockbench version cannot be used safely with the current LazyDesigner build.';
     if (mode === 'ready-start') return 'Everything is installed. Open Blockbench when you are ready to work.';
-    if (mode === 'plugin-setup') return 'Open Blockbench and load or reload the LazyDesigner plugin to finish the connection.';
+    if (mode === 'plugin-setup') return 'LazyDesigner will try to connect to Blockbench automatically.';
+    if (mode === 'client-wait') return 'LazyDesigner is active in Blockbench and will connect when an MCP client starts a session.';
     if (mode === 'ready') return 'Everything is working. Continue in Blockbench.';
     return value.readiness.summary;
   }
@@ -355,7 +397,7 @@
     if (mode === 'welcome' && !value.bootstrap_available) return 'This Desktop build does not contain the setup package. Open Support and export diagnostics.';
     if (mode === 'security-setup' && !value.maintenance.setup_tls) return value.maintenance.blocked_reason ?? 'Secure setup is temporarily unavailable. Close active authoring tasks and try again.';
     if (mode === 'unsupported') return 'Update Blockbench to a supported version, then refresh this page.';
-    if (mode === 'plugin-setup') return 'Use Plugins → Load Plugin from File in Blockbench, then select the LazyDesigner plugin.';
+    if (mode === 'plugin-setup' && pluginApprovalNeeded) return 'Blockbench needs one-time approval for the LazyDesigner plugin.';
     if (mode === 'attention') return value.gateway.action ?? value.blockbench.diagnostic ?? value.diagnostic ?? 'Open Support for troubleshooting tools.';
     return null;
   }
@@ -439,7 +481,7 @@
           {#if busyAction && progressStage}
             <section class="task-strip" aria-live="polite">
               <span class="task-spinner"></span>
-              <span>{busyAction === 'update' ? 'Updating LazyDesigner' : busyAction === 'rollback' ? 'Restoring previous version' : busyAction === 'repair' ? 'Repairing LazyDesigner' : busyAction === 'recover' ? 'Finishing setup' : busyAction === 'setup-tls' ? 'Finishing setup' : busyAction === 'open-blockbench' ? 'Opening Blockbench' : 'Working'}</span>
+              <span>{busyAction === 'update' ? 'Updating LazyDesigner' : busyAction === 'rollback' ? 'Restoring previous version' : busyAction === 'repair' ? 'Repairing LazyDesigner' : busyAction === 'recover' ? 'Finishing setup' : busyAction === 'setup-tls' ? 'Finishing setup' : busyAction === 'connect-blockbench' ? 'Connecting to Blockbench' : busyAction === 'open-blockbench' ? 'Opening Blockbench' : 'Working'}</span>
               <small>{progressLabel(progressStage)}</small>
             </section>
           {/if}
@@ -448,17 +490,17 @@
             <section class="setup-panel">
               <div class="setup-copy">
                 <h2>Set up LazyDesigner</h2>
-                <p>Get LazyDesigner ready to work with Blockbench.</p>
+                <p>Desktop will install the required components, open Blockbench, and verify the connection automatically.</p>
               </div>
 
               <div class="setup-steps">
                 <div class="setup-step active">
                   <span class="step-number">1</span>
-                  <div><strong>Install LazyDesigner</strong><span>Install the required components on this computer.</span></div>
+                  <div><strong>Prepare workstation</strong><span>Install LazyDesigner, open Blockbench, and verify the local Runtime.</span></div>
                 </div>
                 <div class="setup-step">
                   <span class="step-number">2</span>
-                  <div><strong>Connect Blockbench</strong><span>Load the LazyDesigner plugin once in Blockbench.</span></div>
+                  <div><strong>Ready to work</strong><span>After the one-time Blockbench trust approval, future launches connect automatically.</span></div>
                 </div>
               </div>
 
@@ -483,8 +525,8 @@
                     <div class="resource-meta">
                       <span>{status.blockbench.version ?? 'Version unavailable'}</span>
                       <span class="meta-separator">·</span>
-                      <span class:status-good={productMode(status) === 'ready'} class:status-warning={productMode(status) === 'plugin-setup' || productMode(status) === 'unsupported'}>
-                        {productMode(status) === 'ready' ? 'Connected' : status.blockbench.running ? 'Running' : 'Not running'}
+                      <span class:status-good={productMode(status) === 'ready' || productMode(status) === 'client-wait'} class:status-warning={productMode(status) === 'plugin-setup' || productMode(status) === 'unsupported'}>
+                        {productMode(status) === 'ready' ? 'Connected' : productMode(status) === 'client-wait' ? 'Ready' : status.blockbench.running ? 'Running' : 'Not running'}
                       </span>
                     </div>
                   </div>
@@ -508,16 +550,24 @@
 
               {#if productMode(status) === 'plugin-setup'}
                 <div class="inline-guidance">
-                  <div>
-                    <strong>Connection required</strong>
-                    <span>Load the LazyDesigner plugin in Blockbench.</span>
-                  </div>
-                  <ol>
-                    <li>Open Blockbench.</li>
-                    <li>Choose Plugins → Load Plugin from File.</li>
-                    <li>Select the highlighted LazyDesigner plugin.</li>
-                  </ol>
-                  <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>{busyAction === 'show-plugin' ? 'Opening…' : 'Show plugin file'}</button>
+                  {#if !pluginApprovalNeeded}
+                    <div>
+                      <strong>LazyDesigner is not active yet</strong>
+                      <span>Desktop can open Blockbench and verify the Runtime automatically.</span>
+                    </div>
+                    <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Connecting…' : 'Connect'}</button>
+                  {:else}
+                    <div>
+                      <strong>One-time approval required</strong>
+                      <span>Blockbench requires your approval before a local plugin can run. This is only needed once.</span>
+                    </div>
+                    <ol>
+                      <li>Choose Plugins → Load Plugin from File in Blockbench.</li>
+                      <li>Select the highlighted LazyDesigner plugin.</li>
+                      <li>Approve the Blockbench trust prompt.</li>
+                    </ol>
+                    <button class="primary-button" onclick={showPluginFile} disabled={busyAction !== null}>{busyAction === 'show-plugin' ? 'Opening…' : 'Approve plugin'}</button>
+                  {/if}
                 </div>
               {:else if productMode(status) === 'unsupported'}
                 <div class="inline-alert danger-alert"><strong>Unsupported Blockbench version</strong><span>Update Blockbench to a supported version before continuing.</span></div>
@@ -532,8 +582,8 @@
               <div class="definition-rows">
                 <div class="definition-row">
                   <span>Status</span>
-                  <strong class:status-good={productMode(status) === 'ready'} class:status-warning={productMode(status) !== 'ready'}>
-                    {productMode(status) === 'ready' ? 'Ready' : productHeadline(status)}
+                  <strong class:status-good={productMode(status) === 'ready' || productMode(status) === 'client-wait'} class:status-warning={productMode(status) !== 'ready' && productMode(status) !== 'client-wait'}>
+                    {productMode(status) === 'ready' ? 'Ready' : productMode(status) === 'client-wait' ? 'Waiting for MCP client' : productHeadline(status)}
                   </strong>
                 </div>
                 <div class="definition-row">
@@ -550,6 +600,8 @@
 
               {#if productMode(status) === 'security-setup'}
                 <div class="inline-alert"><div><strong>Finish setup</strong><span>Complete the secure local connection before using LazyDesigner.</span></div><button class="primary-button small-button" onclick={() => runManagedAction('setup-tls')} disabled={!status.maintenance.setup_tls || busyAction !== null}>Finish setup</button></div>
+              {:else if productMode(status) === 'client-wait'}
+                <div class="inline-note"><strong>Blockbench Runtime is ready.</strong><span>The MCP client owns the Gateway connection and can attach when needed.</span></div>
               {:else if productMode(status) === 'attention'}
                 <div class="inline-alert"><div><strong>Action required</strong><span>{productGuidance(status) ?? status.readiness.summary}</span></div><button class="secondary-button small-button" onclick={() => navigate('Support')}>Open Support</button></div>
               {/if}
@@ -640,7 +692,7 @@
   .primary-button,.secondary-button,.icon-button{min-height:32px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}.primary-button,.secondary-button{padding:6px 11px}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text-soft)}.secondary-button:hover:not(:disabled){background:var(--surface-3);color:var(--text)}.icon-button{width:32px;border:1px solid transparent;background:transparent;color:var(--muted)}.icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}.small-button{min-height:28px;padding:4px 9px;font-size:9px}
   .content-section{margin-bottom:34px}.section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}.section-heading h2{margin:0;font-size:12px;font-weight:700}.section-heading p{margin:2px 0 0;color:var(--muted-2);font-size:9px}.resource-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.resource-row{min-height:74px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 12px 12px 14px}.app-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text-soft)}.app-icon :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.resource-main{min-width:0}.resource-title{font-size:11px;font-weight:700}.resource-meta{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--muted);font-size:9px}.meta-separator{color:var(--muted-2)}.status-good{color:#9ee8b9!important}.status-warning{color:#f6d97c!important}.resource-actions{display:flex;align-items:center;gap:5px}
   .definition-rows{border-top:1px solid var(--border-soft)}.definition-row{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border-soft)}.definition-row>span{color:var(--muted);font-size:10px}.definition-row>strong,.definition-row code{font-size:10px;font-weight:650;color:var(--text-soft)}.definition-row code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.inline-action{display:flex;align-items:center;gap:10px}
-  .inline-guidance{margin-top:10px;padding:14px 14px 13px;border:1px solid #5b4a22;border-radius:8px;background:var(--warning-bg)}.inline-guidance>div{display:grid;gap:2px}.inline-guidance strong{font-size:10px}.inline-guidance span{color:var(--muted);font-size:9px}.inline-guidance ol{margin:11px 0 12px;padding-left:18px;color:var(--text-soft);font-size:9px;line-height:1.75}.inline-alert{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;padding:10px 12px;border:1px solid #5b4a22;border-radius:7px;background:var(--warning-bg)}.inline-alert>div{display:grid;gap:2px}.inline-alert strong{font-size:9px}.inline-alert span{color:var(--muted);font-size:9px}.danger-alert{display:grid;gap:2px;border-color:#693437;background:var(--danger-bg)}
+  .inline-guidance{margin-top:10px;padding:14px 14px 13px;border:1px solid #5b4a22;border-radius:8px;background:var(--warning-bg)}.inline-guidance>div{display:grid;gap:2px}.inline-guidance strong{font-size:10px}.inline-guidance span{color:var(--muted);font-size:9px}.inline-guidance ol{margin:11px 0 12px;padding-left:18px;color:var(--text-soft);font-size:9px;line-height:1.75}.inline-note{display:flex;gap:8px;margin-top:10px;padding:9px 0;color:var(--muted);font-size:9px}.inline-note strong{color:var(--text-soft);font-size:9px}.inline-alert{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:10px;padding:10px 12px;border:1px solid #5b4a22;border-radius:7px;background:var(--warning-bg)}.inline-alert>div{display:grid;gap:2px}.inline-alert strong{font-size:9px}.inline-alert span{color:var(--muted);font-size:9px}.danger-alert{display:grid;gap:2px;border-color:#693437;background:var(--danger-bg)}
   .setup-panel{max-width:760px;padding-top:10px}.setup-copy h2{margin:0;font-size:20px;letter-spacing:-.02em}.setup-copy p{margin:6px 0 0;color:var(--muted);font-size:10px}.setup-steps{margin-top:24px;border-top:1px solid var(--border-soft)}.setup-step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;padding:14px 0;border-bottom:1px solid var(--border-soft)}.step-number{width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:9px;font-weight:700}.setup-step.active .step-number{background:rgba(99,168,255,.12);color:var(--info)}.setup-step>div{display:grid;gap:2px}.setup-step strong{font-size:10px}.setup-step span{color:var(--muted);font-size:9px}.setup-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px}.setup-warning{max-width:520px;color:var(--warning);font-size:9px}
   .message-state{max-width:760px;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:start;gap:12px;padding-top:12px}.message-icon{width:26px;height:26px;display:grid;place-items:center;border-radius:6px;background:var(--surface-2);font-size:11px;font-weight:800}.message-icon.danger{background:var(--danger-bg);color:var(--danger)}.message-copy h2{margin:0;font-size:16px}.message-copy p{margin:5px 0 0;color:var(--muted);font-size:10px}
   .task-strip{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 10px;border:1px solid var(--border-soft);border-radius:7px;background:var(--bg-elevated);font-size:9px}.task-spinner{width:9px;height:9px;border:2px solid var(--surface-4);border-top-color:var(--info);border-radius:50%;animation:spin .8s linear infinite}.task-strip small{margin-left:auto;color:var(--muted-2);font-size:8px}
