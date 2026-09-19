@@ -336,12 +336,20 @@ function animationVerificationScope(value: unknown): ControlVerificationScope | 
       .map((entry) => record(entry)?.time)
       .filter((time): time is number => typeof time === "number" && Number.isFinite(time));
     if (times.length === 0) continue;
+    const start = Math.min(...times);
+    const end = Math.max(...times);
+    const midpoint = start + (end - start) / 2;
     return {
       kind: "ANIMATION_RANGE",
       animation_uuid: animation.uuid,
       bone_uuid: bone.uuid,
       channel: typeof candidate.channel === "string" ? candidate.channel : null,
-      time_range: [Math.min(...times), Math.max(...times)],
+      time_range: [start, end],
+      review: {
+        bone_ids: [bone.uuid],
+        range: { start, end },
+        sample_times: [...new Set([start, midpoint, end])],
+      },
     };
   }
   return null;
@@ -361,11 +369,16 @@ function textureVerificationScope(value: unknown): ControlVerificationScope | nu
     ) {
       continue;
     }
+    const visualEvidence = record(candidate.visual_evidence);
     return {
       kind: "TEXTURE_REGION",
       texture_uuid: texture.uuid,
       affected_rect: rect as [number, number, number, number],
       revision: revision.after,
+      evidence_source:
+        visualEvidence?.kind === "affected_region_png"
+          ? "mutation_response"
+          : "follow_up_read",
     };
   }
   return null;

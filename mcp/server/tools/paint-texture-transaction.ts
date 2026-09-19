@@ -2,7 +2,7 @@
 
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { bakeNativeCubeAo } from "@/lib/cubeAoRuntime";
-import { getAndActivateTexture } from "@/lib/util";
+import { getAndActivateTexture, imageContent } from "@/lib/util";
 import {
   applyPaintTransactionRgba,
   buildPaintTransactionReceipt,
@@ -15,6 +15,7 @@ import {
 import { computeTextureRevision } from "@/lib/textureRevision";
 import {
   fullTextureRgba,
+  rgbaRectToPngDataUrl,
   rgbaToPngDataUrl,
 } from "@/lib/textureBitmapRuntime";
 
@@ -262,6 +263,14 @@ export function registerPaintTextureTransactionTool(): void {
         }
 
         Canvas.updateAll();
+        const affectedRegionImage = imageContent(
+          rgbaRectToPngDataUrl(
+            fullTextureRgba(texture).pixels,
+            before.width,
+            before.height,
+            plannedReceipt.affected_rect
+          )
+        ).content[0];
         const outputReceipt = preparedOutput
           ? {
               path: preparedOutput.state.path,
@@ -274,11 +283,19 @@ export function registerPaintTextureTransactionTool(): void {
           content: [
             {
               type: "text" as const,
-              text: `Applied ${plannedReceipt.operation_count} texture operation(s) as one Undo transaction on "${texture.name}"${outputReceipt ? `; verified PNG saved to ${outputReceipt.path}` : ""}.`,
+              text: `Applied ${plannedReceipt.operation_count} texture operation(s) as one Undo transaction on "${texture.name}"${outputReceipt ? `; verified PNG saved to ${outputReceipt.path}` : ""}. The attached PNG is the exact affected atlas region after mutation.`,
             },
+            affectedRegionImage,
           ],
           structuredContent: {
             ...plannedReceipt,
+            visual_evidence: {
+              kind: "affected_region_png",
+              affected_rect: plannedReceipt.affected_rect,
+              revision: plannedReceipt.revision.after,
+              width: plannedReceipt.affected_size[0],
+              height: plannedReceipt.affected_size[1],
+            },
             output: outputReceipt,
           },
         };

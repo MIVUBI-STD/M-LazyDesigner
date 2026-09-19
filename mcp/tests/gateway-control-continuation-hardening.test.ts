@@ -84,6 +84,11 @@ describe("LazyDesigner Control continuation hardening", () => {
       bone_uuid: "bone-a",
       channel: "rotation",
       time_range: [0.25, 0.75],
+      review: {
+        bone_ids: ["bone-a"],
+        range: { start: 0.25, end: 0.75 },
+        sample_times: [0.25, 0.5, 0.75],
+      },
     });
   });
 

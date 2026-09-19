@@ -29,12 +29,18 @@ export type ControlVerificationScope =
       bone_uuid: string;
       channel: string | null;
       time_range: [number, number];
+      review: {
+        bone_ids: string[];
+        range: { start: number; end: number };
+        sample_times: number[];
+      };
     }
   | {
       kind: "TEXTURE_REGION";
       texture_uuid: string;
       affected_rect: [number, number, number, number];
       revision: string;
+      evidence_source: "mutation_response" | "follow_up_read";
     };
 
 export type ControlContextHandle = {

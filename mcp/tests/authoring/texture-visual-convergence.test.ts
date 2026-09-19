@@ -35,6 +35,19 @@ describe("texture visual convergence contract", () => {
     expect(capture).toContain("structuredContent");
   });
 
+  test("paint transaction returns bounded post-mutation texture evidence without a full-atlas reread", async () => {
+    const [transaction, bitmap] = await Promise.all([
+      source("server/tools/paint-texture-transaction.ts"),
+      source("lib/textureBitmapRuntime.ts"),
+    ]);
+    expect(transaction).toContain("rgbaRectToPngDataUrl");
+    expect(transaction).toContain('kind: "affected_region_png"');
+    expect(transaction).toContain("affectedRegionImage");
+    expect(transaction).toContain("revision: plannedReceipt.revision.after");
+    expect(bitmap).toContain("export function rgbaRectToPngDataUrl");
+    expect(bitmap).toContain("pixels.subarray(sourceStart, sourceEnd)");
+  });
+
   test("local texture correction proves qualitative direction instead of mutation activity", async () => {
     const [skill, workflow, validation] = await Promise.all([
       source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
