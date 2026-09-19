@@ -11,7 +11,8 @@ describe("Plugin native boundary", () => {
 
     expect(indexSource).toContain("runtimeHost.acquireNativeNetwork(generation)");
     expect(indexSource).not.toContain("requireNativeModule(\"http\"");
-    expect(hostSource).toContain("requireNativeModule(\"http\"");
+    expect(hostSource).toContain("requireNativeModule(\"https\"");
+    expect(hostSource).not.toContain("requireNativeModule(\"http\"");
   });
 
   test("Blockbench integration owns setup and teardown services", async () => {

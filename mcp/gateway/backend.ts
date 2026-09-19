@@ -23,6 +23,7 @@ import {
   validateGatewayCapabilityEffectReceipt,
 } from "./capabilityEffects";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
+import { runtimeFetch } from "../lib/runtimeFetch";
 
 export type GatewayBackendErrorCode =
   | "BACKEND_UNAVAILABLE"
@@ -330,7 +331,7 @@ export class BlockitRuntimeBackend {
     const timer = setTimeout(() => controller.abort(), this.healthTimeoutMs);
 
     try {
-      const response = await fetch(`${this.runtimeUrl}/health`, {
+      const response = await runtimeFetch(`${this.runtimeUrl}/health`, {
         method: "GET",
         headers: this.runtimeRequestHeaders(),
         signal: controller.signal,
@@ -517,6 +518,7 @@ export class BlockitRuntimeBackend {
       }
     );
     const transport = new StreamableHTTPClientTransport(new URL(this.runtimeUrl), {
+      fetch: runtimeFetch,
       requestInit: { headers: this.runtimeRequestHeaders() },
     });
 

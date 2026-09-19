@@ -81,6 +81,8 @@ bun run verify:full
 
 ## 4. Deploy Exact Plugin
 
+Before the first native load, run `bun run setup:tls` from `mcp/`. The native endpoint is `https://127.0.0.1:3000/bb-mcp`; Blockbench, Gateway and live scripts must share the machine-local TLS identity. Follow [TLS setup](../../mcp/README.md#normal-client-boundary). Do not disable certificate verification or import this certificate into the system trust store. An old Gateway process must be replaced once for this transport migration; normal Runtime reload recovery remains beneath the persistent new Gateway.
+
 A successful `MCP Verify` may publish `blockit-mcp-verified` containing `blockit_mcp.js` and provenance. Prefer a matching exact-SHA artifact when available.
 
 ```bash
@@ -157,15 +159,16 @@ Then test project affinity before authoring mutations:
 bun run verify:project-affinity-live -- --confirm-disposable
 ```
 
-Then run disposable authoring coverage in this order:
+Keep the shared Geometry→Texturing→Animation fixture together:
 
 ```bash
 bun run verify:geometry-live -- --confirm-disposable
-bun run verify:surface-gap-live -- --confirm-disposable
-bun run verify:template-live -- --confirm-disposable
-bun run verify:uv-density-live -- --confirm-disposable
 bun run verify:texturing-live -- --confirm-disposable
-bun run verify:texture-runtime-live -- --confirm-disposable
+```
+
+Save a `.bbmodel` checkpoint whose basename is `blockit_geometry_e2e_disposable` (native export updates the project name). Perform the documented Gateway AUTHORING→Animation handoff with actual disposable-test readiness evidence, not a fabricated user-approval claim. Continue without replacing that Gateway:
+
+```bash
 bun run verify:animation-live -- --confirm-disposable
 bun run verify:particle-live -- --confirm-disposable
 ```
@@ -182,7 +185,17 @@ Then close/reopen the prepared fixture exactly as instructed by the script and r
 bun run verify:persistence-live -- --verify --confirm-disposable
 ```
 
-For UV-density persistence, reopen the saved fixture, then:
+Run independent fixtures only after the shared-fixture persistence sequence. Save the active disposable fixture before a verifier that intentionally refuses unsaved work; do not relax that safety guard:
+
+```bash
+bun run verify:surface-gap-live -- --confirm-disposable
+# Save the surface-gap disposable fixture to a new .bbmodel path.
+bun run verify:template-live -- --confirm-disposable
+bun run verify:uv-density-live -- --confirm-disposable
+bun run verify:texture-runtime-live -- --confirm-disposable
+```
+
+For UV-density persistence, close/reopen its saved fixture and run:
 
 ```bash
 bun run verify:uv-density-live -- --verify-reopen --confirm-disposable

@@ -11,7 +11,8 @@ import {
 import type { McpRegistrationProfile } from "@/lib/registrationProfile";
 import { PRODUCT_ID } from "@/lib/productIdentity";
 
-const DEFAULT_MCP_URL = "http://127.0.0.1:3000/bb-mcp";
+import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../lib/runtimeConnection";
+import { runtimeFetch as fetch } from "../lib/runtimeFetch";
 const DEFAULT_BUNDLE_PATH = "dist/blockit_mcp.js";
 const EXPECTED_PROFILE: McpRegistrationProfile = "bedrock_entity";
 const DEFAULT_PHASE: McpAuthoringPhase = "geometry";
@@ -322,7 +323,7 @@ async function verify(): Promise<void> {
     | { mode?: unknown; response_mode?: unknown }
     | undefined;
   preflight.transportMatches =
-    transport?.mode === "stateless" && transport?.response_mode === "json";
+    transport?.mode === "stateless" && transport?.response_mode === "auto";
   code = classifyPreflightFailure(preflight);
   if (code) {
     stop(code, "health transport", JSON.stringify(transport ?? {}));

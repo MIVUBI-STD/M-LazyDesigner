@@ -1,7 +1,9 @@
 import { PRODUCT_ID } from "@/lib/productIdentity";
 import { BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER } from "../gateway/projectAffinity";
 
-export const DEFAULT_MCP_URL = "http://127.0.0.1:3000/bb-mcp";
+export { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../lib/runtimeConnection";
+import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../lib/runtimeConnection";
+import { runtimeFetch as fetch } from "../lib/runtimeFetch";
 export const DEFAULT_BUNDLE_PATH = "dist/blockit_mcp.js";
 export const EXPECTED_PROFILES = new Set(["bedrock_entity", "extended"]);
 export const PROTOCOL_VERSION = "2025-06-18";
@@ -242,8 +244,8 @@ export class LiveMcpClient {
       `Stale installed BlockIT build: local=${buildIdentity}; live=${String(health.build_identity)}.`
     );
     expect(
-      transport.mode === "stateless" && transport.response_mode === "json",
-      "Live MCP transport is not the expected stateless JSON contract."
+      transport.mode === "stateless" && transport.response_mode === "auto",
+      "Live MCP transport is not the expected stateless auto-response contract."
     );
     expect(
       typeof health.instance_id === "string" && typeof health.startup_time === "string",

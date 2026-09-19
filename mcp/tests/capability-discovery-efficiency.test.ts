@@ -3,7 +3,8 @@ import {
   CAPABILITY_LIFECYCLE_SEARCH_PENALTY,
   getCapabilityMetadata,
 } from "../lib/capabilityMetadata";
-import { getEnabledToolDefinitions } from "../lib/factories";
+import { getMcpSurfaceToolNames } from "../server/tools";
+import { getAllToolDefinitions } from "../lib/factories";
 import { searchCapabilityCatalog, type BackendTool } from "../gateway/contract";
 import {
   classifyMcpToolPhase,
@@ -42,11 +43,16 @@ describe("capability discovery efficiency", () => {
   });
 
   test("Gateway discovery handles representative Indonesian authoring language", () => {
-    const tools = Object.entries(getEnabledToolDefinitions()).map(
-      ([name, tool]) => ({
+    const tools = getAllToolDefinitions();
+    const catalog = [...new Set(
+      (["geometry", "animation"] as const).flatMap((phase) =>
+        getMcpSurfaceToolNames("bedrock_entity", phase)
+      )
+    )].map(
+      (name) => ({
         name,
-        description: tool.description,
-        annotations: tool.annotations,
+        description: tools[name].description,
+        annotations: tools[name].annotations,
       })
     ) as BackendTool[];
 
@@ -66,7 +72,7 @@ describe("capability discovery efficiency", () => {
     ] as const;
 
     for (const [query, expected] of cases) {
-      const results = searchCapabilityCatalog(tools, query, 3);
+      const results = searchCapabilityCatalog(catalog, query, 3);
       expect(
         results.map((result) => result.capability_id),
         query

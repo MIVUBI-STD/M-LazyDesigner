@@ -90,10 +90,11 @@ type BlockITCodec = {
 
 type ExportFilesystem = {
   existsSync: (path: string) => boolean;
-  lstatSync: (path: string) => {
+  readdirSync: (path: string, options: { withFileTypes: true }) => Array<{
+    name: string;
     isFile: () => boolean;
     isSymbolicLink: () => boolean;
-  };
+  }>;
   writeFileSync: (
     path: string,
     data: string | Buffer,
@@ -249,7 +250,17 @@ export function registerExportTools() {
           }
           destinationExisted = exportFs.existsSync(path);
           if (destinationExisted) {
-            const destination = exportFs.lstatSync(path);
+            // Blockbench's permission-scoped fs exposes Dirents, not lstatSync.
+            // Dirents inspect the entry itself, so symlinks are not followed.
+            const directory = path.slice(0, Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\")) + 1);
+            const filename = filesystemFileName(path);
+            const entries = exportFs.readdirSync(directory, { withFileTypes: true });
+            const matches = entries.filter(entry => entry.name === filename ||
+              (process.platform === "win32" && entry.name.toLowerCase() === filename.toLowerCase()));
+            if (matches.length !== 1) {
+              throw new Error(`Cannot identify a unique export destination entry ${path}; no file was written.`);
+            }
+            const destination = matches[0];
             if (destination.isSymbolicLink()) {
               throw new Error(
                 `Refusing to write export through symbolic link ${path}. Choose the real destination path explicitly.`

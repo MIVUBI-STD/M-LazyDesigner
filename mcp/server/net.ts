@@ -814,7 +814,7 @@ export default function createNetServer (
 
         const requestUrl = new URL(
           rawPath,
-          `http://${hostHeader ?? `${host}:${port}`}`
+          `${(request.socket as Socket & { encrypted?: boolean }).encrypted ? 'https' : 'http'}://${hostHeader ?? `${host}:${port}`}`
         )
         const webHeaders = new Headers()
         for (const [key, value] of Object.entries(request.headers)) {
@@ -1008,7 +1008,7 @@ export default function createNetServer (
   }
 
   httpServer.listen(port, host, () => {
-    console.log(`[MCP] Server listening on http://${host}:${port}${endpoint}`)
+    console.log(`[MCP] Server listening on ${host}:${port}${endpoint}`)
   })
 
   httpServer.on('error', (error: Error) => {

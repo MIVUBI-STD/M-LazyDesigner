@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import {
   BEDROCK_ENTITY_REGISTRATION_FAMILIES,
   DEFAULT_MCP_REGISTRATION_PROFILE,
@@ -83,7 +84,7 @@ console.log("DISABLED_HIGH_RISK_TOOLS_PASS");
 
     const result = Bun.spawnSync({
       cmd: [process.execPath, "--eval", probe],
-      cwd: new URL("..", import.meta.url).pathname,
+      cwd: fileURLToPath(new URL("..", import.meta.url)),
       stdout: "pipe",
       stderr: "pipe",
       timeout: 15_000,

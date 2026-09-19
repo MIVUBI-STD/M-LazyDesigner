@@ -8,7 +8,8 @@ import {
 
 export const GATEWAY_NAME = "blockit-gateway";
 export const GATEWAY_VERSION = version;
-export const DEFAULT_RUNTIME_URL = "http://127.0.0.1:3000/bb-mcp";
+import { DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
+export { DEFAULT_RUNTIME_URL };
 
 export const GATEWAY_TOOLS = {
   status: "status",

@@ -12,11 +12,13 @@ import {
 } from "./watch-policy";
 import { deployArtifact, resolveDeployTarget } from "../scripts/deploy-local";
 import { version } from "../package.json";
+import { DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
+import { runtimeFetch as fetch } from "../lib/runtimeFetch";
 
 const OUTPUT_DIR = "./dist";
 const entryFile = resolve("./index.ts");
 const isSyncMode = Bun.argv.includes("--sync");
-const localRuntimeUrl = (process.env.BLOCKIT_MCP_URL ?? "http://127.0.0.1:3000/bb-mcp").replace(/\/+$/, "");
+const localRuntimeUrl = (process.env.BLOCKIT_MCP_URL ?? DEFAULT_RUNTIME_URL).replace(/\/+$/, "");
 const syncArtifactPath = resolve("./dist/blockit_mcp.js");
 let syncTarget: string | null = null;
 

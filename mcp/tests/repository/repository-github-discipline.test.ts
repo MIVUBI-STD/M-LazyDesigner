@@ -83,7 +83,7 @@ describe("repository GitHub discipline", () => {
     expect(compatibility).toContain("bun run docs:check");
   });
 
-  test("operations owners use the current hierarchical paths and defer live proof explicitly", async () => {
+  test("operations owners use current hierarchical paths and preserve the live proof boundary", async () => {
     const [runbook, validation, next, repositoryWorkflow] = await Promise.all([
       source("../docs/05-operations/local-acceptance-runbook.md"),
       source("../docs/05-operations/current-validation.md"),
@@ -96,7 +96,7 @@ describe("repository GitHub discipline", () => {
     expect(runbook).toContain("Cost to Accepted Result");
     expect(runbook).toContain("only a representative test fixture");
     expect(validation).toContain("proof interpretation only");
-    expect(validation).toMatch(/not been typechecked\/executed locally/i);
+    expect(validation).toContain("Do not strengthen source/static claims into local/live/visual claims without matching evidence from the exact current source SHA.");
     expect(next).toContain("continuation only");
     expect(next).toMatch(/LIVE_BLOCKBENCH|local\/live/i);
     expect(repositoryWorkflow).toContain('"docs/**"');

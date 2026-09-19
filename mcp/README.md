@@ -49,10 +49,14 @@ invoke_capability
 Native Runtime/debug endpoint:
 
 ```text
-http://127.0.0.1:3000/bb-mcp
+https://127.0.0.1:3000/bb-mcp
 ```
 
 Direct Runtime access is for Inspector/conformance/focused debugging only.
+
+Before the first native load, run `bun run setup:tls` (OpenSSL required; Git for Windows includes it). This creates a machine-local certificate/key outside the repository: `%APPDATA%/LazyDesigner/tls` on Windows, or `$XDG_CONFIG_HOME/LazyDesigner/tls` (default `$HOME/.config/LazyDesigner/tls`) elsewhere. `BLOCKIT_TLS_DIR` may override this with an absolute path shared by Blockbench and the Bun Gateway/live scripts. The private key is never bundled or committed. Blockbench requests native `https` and filesystem permissions through its normal permission mechanism.
+
+The Bun Gateway/live scripts trust that certificate only for loopback requests, retain hostname/expiry validation, and reject redirects. No Windows/system trust-store changes or TLS-verification bypass are needed. The self-signed identity expires after 365 days; setup reuses a valid pair and refuses to overwrite an invalid/incomplete pair. To renew, stop Runtime, explicitly back up/remove both files and rerun setup, then reload Runtime. Clients reread the certificate on each request. Explicit HTTP URLs remain available for isolated protocol/conformance fixtures, not as a native fallback.
 
 ## Authoring Model
 

@@ -32,8 +32,8 @@ describe("retired runtime wiring paths", () => {
     const violations: string[] = [];
     for (const root of roots) {
       for (const file of await walk(root)) {
-        if (file.endsWith("tests/repository/runtime-wiring-retirement.test.ts")) continue;
-        if (file.endsWith("tests/fixtures/regression-cases.json")) continue;
+        if (file === join("tests", "repository", "runtime-wiring-retirement.test.ts")) continue;
+        if (file === join("tests", "fixtures", "regression-cases.json")) continue;
         const body = await Bun.file(file).text();
         for (const token of retired) {
           if (body.includes(token)) violations.push(`${file}: ${token}`);

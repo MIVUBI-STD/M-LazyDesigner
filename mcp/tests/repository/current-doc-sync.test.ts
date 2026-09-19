@@ -84,7 +84,6 @@ describe("current developer-facing documentation sync", () => {
     expect(next).toMatch(/continuation only/i);
     expect(runbook).toMatch(/local acceptance/i);
     expect(validation).toMatch(/source\/static|static source|source architecture/i);
-    expect(validation).toMatch(/not\*{0,2} been typechecked\/executed locally/i);
     expect(runbook).toMatch(/live_blockbench/i);
   });
 

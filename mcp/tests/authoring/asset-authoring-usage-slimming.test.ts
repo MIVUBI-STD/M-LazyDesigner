@@ -72,7 +72,7 @@ describe("pre-local asset-authoring usage slimming", () => {
     for (const marker of [
       'destructiveHint: true',
       'codec_id === "bedrock" && destinationExisted',
-      "exportFs.lstatSync(path)",
+      "exportFs.readdirSync(directory, { withFileTypes: true })",
       "isSymbolicLink()",
       "exportFs.writeFileSync",
       "exportFs.statSync(path)",

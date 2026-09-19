@@ -73,7 +73,7 @@ canonical declarative capability effects
 producer-side affinity receipt schemas for project creation and phase handoff
 ```
 
-Plugin reload, Runtime rebuild, authoring phase change, or temporary Runtime loss are designed to recover below the persistent Gateway. Only replacing the Gateway process itself requires client reconnection. This behavior is **source-designed but not live-proven in the current phase**.
+Plugin reload, Runtime rebuild, authoring phase change, or temporary Runtime loss are designed to recover below the persistent Gateway. Only replacing the Gateway process itself requires client reconnection. The Windows acceptance section below records the subset actually exercised; rebuild and full application close/open recovery remain unverified.
 
 Catalog invalidation after phase changes remains intentionally conservative until same-AUTHORING-surface transport reuse is covered by local Gateway/Runtime tests. The Runtime receipt already distinguishes `surface_changed=false` for Geometry↔Texturing from true AUTHORING↔Animation handoff.
 
@@ -265,7 +265,39 @@ REMOTE_GITHUB verification has been exercised during the current synchronization
 
 A docs-only head must not be described as newly "exact-head verified" when no matching full workflow ran. The lightweight `Head Proof` workflow classifies each `Local` push as documentation-only or source-impacting. Documentation-only heads establish only that executable source did not change in that commit; they inherit no stronger runtime/local/live claim from wording alone. Source-impacting heads continue to require their normal verification workflows.
 
-The current head has **not been typechecked/executed locally** or proven live in Blockbench.
+### Windows local acceptance — 2026-09-19
+
+Base SHA: `f4525a9e567f3532c29c571b48eafecb2a772518`, with the HTTPS transport, test/harness and documentation changes delivered by release tag `v2.1` (Version 2.1). Tests below were executed on the pre-commit working tree, not by exact-commit CI. Consult GitHub Actions on the tag's commit for subsequent CI results. The release label is separate from the retained compatibility package/plugin version `0.2.0`; no version-only rebuild replaces the native-tested bundle. Bun `1.3.14` and the frozen lockfile were used. Installed Blockbench: 5.2.0 (Electron 43.4.0, Node 24.18.1).
+
+`bun run verify:full` PASS: 82 repository tests, 962 Runtime tests, 157 authoring tests (1,201 total), generated freshness, Runtime/Gateway typecheck, surface/phase measurement, and build. Earlier test corrections cover Windows paths, file-URL subprocess cwd, discovery catalog isolation and compact continuation. HTTPS regression exercises the canonical handler and Gateway, valid trust, rejection of an untrusted certificate, hostile Origin and non-loopback URL. Live preflight exposed stale `response_mode=json` assertions; corrected to the current `auto` contract with a red→green CLI regression. Blocker-fix regressions prove restricted-native-fs overwrite with symlink/non-file/consent protections and the actual texture-live creation payload against the canonical schema.
+
+Current installed build identity: `sha256:c73fc8c1556af4f92d8d456b7590b671001a3f1e05384cc55ce19672de06e674`. Deployed to `%APPDATA%/Blockbench/plugins/blockit_mcp.js`, with the prior plugin backed up. Initial stale-product preflight and unsupported native `http` startup were diagnosed before authoring. The user authorized the HTTPS migration and then both blocker fixes. Runtime uses native `https` with the same Node HTTP request handler and loopback protections; machine-local certificate trust stays in Bun clients, not the OS trust store. No permission or TLS-verification bypass was used.
+
+Executed native results on disposable fixtures only. The initial matrix ran on `sha256:f5c65cc502cd83856b7101e219b72046172fead86a96bb44b945aa13e56e43e8`; persistence and texture-runtime were retested on the current `c73fc8…` build after their bounded fixes. Earlier matrix results are not claimed as reruns on the new identity:
+
+| Check | Result |
+| --- | --- |
+| `verify:stateless-local` | PASS, 12/12; matching installed identity and 47 AUTHORING tools |
+| `verify:project-affinity-live` | PASS; two Gateways, separate projects, concurrent reads |
+| `verify:geometry-live` | PASS; native mutation/render change, thin per-face UV, Undo/Redo |
+| `verify:texturing-live` | PASS; repack/pixels, explicit target isolation, Painter Undo/Redo |
+| Gateway AUTHORING→Animation handoff | PASS; saved disposable checkpoint, AUTONOMOUS_VERIFIED test evidence, no user-approval claim, catalog refresh on same backend |
+| `verify:animation-live` | PASS; explicit targeting, playback start/pause/stop, keyframes and Undo/Redo |
+| `verify:particle-live` | PASS; authored parametric Molang readback and native preview load |
+| `verify:surface-gap-live` | PASS; gap/contact/cover/hidden-cover regression |
+| `verify:template-live` | PASS; brush sizes 1/2 changed 1/4 pixels, atlas rebuild, Undo/Redo, new-file export |
+| `verify:uv-density-live` + `--verify-reopen` | PASS; native 32x mapping/history; saved fixture was closed and reopened through Blockbench UI |
+| Persistent stdio client/Gateway across native plugin Reload | PASS; same client PID 5756, four public tools, preserved project affinity and successful post-reload read |
+| `verify:persistence-live --prepare` + `--verify` | PASS on current build; overwrote existing checkpoint, then native UI close/reopen preserved geometry, thin per-face UV, texture state and both animations |
+| `verify:texture-runtime-live` | PASS on current build; UUID/name project identity, focused PNG, stale-revision rejection, variant isolation and one-transaction Undo/Redo |
+
+Reload changed Runtime instance `5eb9648e-931e-41ae-8692-536120391543` → `ab85cd2d-2491-4a28-a129-c3775af88aa4` with the same build. The reload harness lives in ignored `mcp/.cache/verify-https-reload.ts`; UV reopen receipt is `mcp/.cache/uv-density-live/receipt.json`. Source/live logs are `%TEMP%/lazydesigner-*-https.log` (full source gate: `lazydesigner-verify-full-https.log`). Template verification used bundled Python/Pillow via `PYTHON`; no package installation was needed.
+
+Both reported blockers are closed. Export now uses native `readdirSync(..., {withFileTypes:true})` to inspect the destination entry without following leaf symlinks; missing/ambiguous entries, symlinks and non-files fail closed, and overwrite consent/Bedrock-file refusal remain intact. The texture verifier no longer sends retired `model_identifier` and verifies UUID/name identity instead. Current logs: `%TEMP%/lazydesigner-verify-full-blockers.log`, `lazydesigner-persistence-fixed-prepare.log`, `lazydesigner-persistence-fixed-reopen.log`, `lazydesigner-texture-runtime-fixed.log`. Persistence checkpoint SHA-256: `7ac9421294e44bbb4aadd3d5939ba44412d8f549f96e7ea4f6db7d0b855ec412`.
+
+Core tested workflows are usable; exhaustive native acceptance is not claimed. Runtime rebuild/app close-open recovery, interrupted-mutation recovery and visual/reference quality remain unverified. The pre-existing Codex MCP process targets old HTTP and reports Runtime offline. User-level `config.toml` now launches this checkout's `mcp/gateway/index.ts` through a durable Bun `1.3.14` installation, with the HTTPS loopback URL explicit; the previous config was backed up locally. A fresh official-SDK stdio client using that actual TOML entry passed initialization, four-tool discovery, Runtime catalog discovery (47 tools), and online/client-ready status with matching `c73fc8…` identity. This does not prove that the already-running Codex process reloaded its configuration: reconnect/restart the MCP connection once. Subsequent native plugin reloads stay beneath the Gateway. Seven disposable tabs remain open for inspection; production assets were not modified.
+
+Version 2.1 delivery includes the source fixes, regressions, setup/runbook updates and this proof record on `Local` only. Machine-local TLS keys/certificates, personal Codex configuration/backups, temporary logs and disposable model fixtures are excluded from Git. This is a source release, not acceptance of the separate managed Windows installer; provision TLS and use the updated source Gateway as documented.
 
 Safe current claims:
 
@@ -284,12 +316,10 @@ compatibility boundaries                         documented in source
 Still requiring terminal/current-head or higher-context proof:
 
 ```text
-installed LazyDesigner Runtime freshness
-live Gateway survival across reload/rebuild/close-open
-native phase-switch transport behavior on the current build
+live Gateway survival across rebuild/close-open
 same-AUTHORING-surface no-reconnect optimization
-native project affinity/rebind behavior
-Undo/playback/persistence/export execution
+activation of the updated HTTPS-aware Gateway in the existing Codex connection
+interrupted-mutation recovery
 visual/reference acceptance
 Minecraft in-game behavior
 measured token/latency or whole-task usage savings

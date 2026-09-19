@@ -2,12 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { getAllToolDefinitions, tools } from "@/lib/factories";
 import { PAINT_TEXTURE_TRANSACTION_TOOL_NAME } from "@/lib/paintTransactionPolicy";
 import { getToolRegistrationFamily } from "@/server/tools";
+import { createProjectParameters } from "@/server/tools/project";
+import { TEXTURE_RUNTIME_PROJECT_INPUT } from "../scripts/verify-texture-runtime-live";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
 describe("texture runtime live acceptance contract", () => {
+  test("actual live fixture payload matches the canonical project schema", () => {
+    expect(createProjectParameters.safeParse(TEXTURE_RUNTIME_PROJECT_INPUT).success).toBe(true);
+  });
   test("runtime surface exposes the transaction, variant, and focused evidence contracts without regressing legacy texture creation", () => {
     const definitions = getAllToolDefinitions();
     const createTexture = definitions.create_texture;
@@ -118,7 +123,7 @@ describe("texture runtime live acceptance contract", () => {
       "bun run ./scripts/verify-texture-runtime-live.ts"
     );
     for (const marker of [
-      "model_identifier",
+      "project_uuid",
       "get_project_info",
       "PAINT_TEXTURE_TRANSACTION_TOOL_NAME",
       "expected_revision",

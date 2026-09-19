@@ -80,7 +80,7 @@ describe("surface-gap live verifier contract (mock transport, not live proof)", 
             instance_id: instanceId,
             startup_time: startupTime,
             exposed_tool_count: names.length,
-            transport: { mode: "stateless", response_mode: "json" },
+            transport: { mode: "stateless", response_mode: "auto" },
           });
         }
         const rpc = await request.json() as { id: number; method: string; params?: JsonObject };

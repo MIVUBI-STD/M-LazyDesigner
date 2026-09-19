@@ -10,10 +10,14 @@ import {
 } from "./live-e2e-common";
 
 const PROJECT_NAME = "blockit_texture_runtime_e2e";
-const MODEL_IDENTIFIER = "geometry.blockit_texture_runtime_e2e";
 const BASE_NAME = "wiring_base";
 const VARIANT_NAME = "wiring_variant";
 const VARIANT_GROUP = "wiring_variants";
+export const TEXTURE_RUNTIME_PROJECT_INPUT = {
+  name: PROJECT_NAME,
+  discard_unsaved: true,
+  resolution: 128,
+} as const;
 
 const REQUIRED_TOOLS = [
   "create_project",
@@ -62,20 +66,15 @@ async function main(): Promise<void> {
   const created = structuredObject(
     await client.callTool(
       "create_project",
-      {
-        name: PROJECT_NAME,
-        discard_unsaved: true,
-        resolution: 128,
-        model_identifier: MODEL_IDENTIFIER,
-      },
+      TEXTURE_RUNTIME_PROJECT_INPUT,
       "mutation"
     ),
     "create_project"
   );
   const createdProject = (created.project ?? {}) as JsonObject;
   expect(
-    createdProject.model_identifier === MODEL_IDENTIFIER,
-    `create_project did not publish native model_identifier: ${JSON.stringify(createdProject)}.`
+    typeof createdProject.uuid === "string" && createdProject.name === PROJECT_NAME,
+    `create_project did not publish the disposable project identity: ${JSON.stringify(createdProject)}.`
   );
 
   const projectInfo = structuredObject(
@@ -84,8 +83,8 @@ async function main(): Promise<void> {
   );
   const project = (projectInfo.project ?? {}) as JsonObject;
   expect(
-    project.model_identifier === MODEL_IDENTIFIER,
-    `get_project_info did not read back native Project.model_identifier: ${JSON.stringify(project)}.`
+    project.uuid === createdProject.uuid && project.name === PROJECT_NAME,
+    `get_project_info did not read back the created project identity: ${JSON.stringify(project)}.`
   );
 
   const baseCreated = structuredObject(
@@ -248,7 +247,7 @@ async function main(): Promise<void> {
         ok: true,
         proof: "texture_runtime_live",
         build_identity: environment.buildIdentity,
-        model_identifier: MODEL_IDENTIFIER,
+        project_uuid: project.uuid,
         base_texture_uuid: base.uuid,
         variant_texture_uuid: variant.uuid,
         revision_before: beforeRevision,

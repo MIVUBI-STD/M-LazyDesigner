@@ -20,6 +20,7 @@
     "test": "bun test",
     "test:runtime": "bun test tests/*.test.ts",
     "gateway": "bun run ./gateway/index.ts",
+    "setup:tls": "bun run ./scripts/setup-runtime-tls.ts",
     "measure:surface": "bun run ./scripts/measure-default-surface.ts",
     "measure:phases": "bun run ./scripts/measure-phase-surfaces.ts",
     "measure:control": "bun run ./scripts/measure-control-context.ts",

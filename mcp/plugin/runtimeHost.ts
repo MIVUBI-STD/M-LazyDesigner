@@ -6,6 +6,7 @@ import {
 import type { NetServer } from "@/server/net";
 import createNetServer from "@/server/net";
 import { setStatusBarState } from "@/ui/statusBar";
+import { runtimeTlsPaths } from "@/lib/runtimeConnection";
 
 const SERVER_BIND_TIMEOUT_MS = 3_000;
 
@@ -23,21 +24,35 @@ export class RuntimeHost {
     if (!isRuntimeGenerationCurrent(generation)) return false;
 
     // @ts-ignore - requireNativeModule is a Blockbench desktop global.
-    const http = requireNativeModule("http", {
+    const https = requireNativeModule("https", {
       message: "Network access is required for the MCP server to accept connections.",
       detail:
         "The MCP plugin needs to create a local server that AI assistants can connect to.",
       optional: false,
-    }) as Parameters<typeof createNetServer>[0] | null;
+    }) as typeof import("node:https") | null;
 
-    if (!http) {
+    if (!https) {
       markRuntimeGenerationState(generation, "failed");
-      console.error("[MCP] Failed to get net module - server will not start");
+      console.error("[MCP] HTTPS permission unavailable - server will not start");
       Blockbench.showQuickMessage("MCP Server requires network permission", 3000);
       return false;
     }
 
-    this.nativeHttp = http;
+    const paths = runtimeTlsPaths();
+    // @ts-ignore - requireNativeModule is a Blockbench desktop global.
+    const fs = requireNativeModule("fs", {
+      message: "LazyDesigner reads this machine's local TLS certificate and private key.",
+      detail: `TLS identity directory: ${paths.directory}. Provision with bun run setup:tls.`,
+      optional: false,
+    }) as Pick<typeof import("node:fs"), "readFileSync"> | null;
+    if (!fs) throw new Error("LazyDesigner requires permission to read its TLS identity.");
+    const cert = fs.readFileSync(paths.cert, "utf8");
+    const key = fs.readFileSync(paths.key, "utf8");
+    this.nativeHttp = {
+      createServer: (options, callback) => https.createServer(
+        { ...options, cert, key, minVersion: "TLSv1.2" }, callback
+      ),
+    };
     return true;
   }
 

@@ -11,7 +11,7 @@ Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/naviga
 
 Current REMOTE_GITHUB architecture is source-hardened across Control, Gateway, Runtime, Plugin, retained Tool capability, validation, context loading, and repository contracts.
 
-Exact-head baseline remains:
+Remote handoff baseline (not the current local working-tree verdict):
 
 ```text
 generated freshness PASS
@@ -58,7 +58,7 @@ Cube / animation-motion mutation
 → visual remains required
 ```
 
-Complete mutation receipts now cover Animation Effects, affected Animation Controller state subgraphs, PBR Material create/configure/assign, Material Instance face changes, Locator/Null Object state, bounded Group add/modify, reparent final parent, TextureGroup creation with final texture assignments, and imported texture-set material state. Subtree translation remains focused-read because descendant final state is summarized only. Cube simplify dry-run/unchanged is state-neutral.
+Complete receipt coverage is recorded in `current-validation.md`. Subtree translation remains focused-read because descendant state is summarized only; Cube simplify dry-run/unchanged is state-neutral.
 
 Incomplete/legacy shapes stay conservative. Visual verification is now change-scoped where receipts prove targets: Cube mutations emit exact Cube UUIDs plus rendered target bounds consumable by existing `capture_model_views(framing=explicit)`; keyframe mutations emit animation/bone/time range plus bounded review sampling; paint transactions emit texture/rect/revision and attach the exact post-mutation affected-region PNG, avoiding a full-atlas reread for local corrections. Visual class is unchanged; only evidence scope is narrowed. Do not add dependency databases, planners, extra routers, or public Gateway tools.
 
@@ -106,7 +106,7 @@ MCP Conformance PASS
 Managed Distribution PASS
 ```
 
-Do not repeat the remote audit or rerun accepted CI checks merely for reassurance. Start by pinning the local checkout, installing the frozen lockfile, validating the local toolchain, deploying the exact verified artifact/build, then execute the bounded live scripts in the runbook.
+Version 2.1 (`v2.1`, Local source release) uses authorized HTTPS loopback; `verify:full` passes 1,201 tests. Both blockers fixed: native Dirent-based export retains symlink/consent guards; texture harness uses current UUID/name identity. Build `c73fc8…` passes existing-file save/reopen and texture-runtime tests; earlier native/affinity/reload tests passed on `f5c65c…`. Codex config now selects the updated Gateway; a fresh stdio client using that config passes online/catalog/identity checks. Next: reconnect the existing Codex MCP process once. App-restart/interrupted-mutation recovery and visual quality remain unverified. See `current-validation.md`; disposable tabs remain, production assets untouched.
 
 ## LOCAL_CODE Residue
 
@@ -140,7 +140,7 @@ Animation → AUTHORING
 
 Only relax Geometry↔Texturing catalog invalidation after this proof. Do not optimize it by assumption.
 
-Modern Streamable HTTP uses SDK `responseMode="auto"`: ordinary request/response stays JSON and related progress/log traffic may upgrade to SSE. The Node bridge pipes SSE incrementally and closes the request-owned handler only after stream completion/cancel. Finite MCP requests still force-close the socket; `subscriptions/listen` alone may remain long-lived. Runtime generation ownership is fenced both before and after serialized tool execution, preventing a retired generation from publishing a late result after reload. Legacy 2025 remains the bounded JSON-only compatibility shim. Official conformance runs the same LazyDesigner net/SDK transport against an isolated fixture surface and requires explicit harness opt-in plus the process-local fixture flag. Core content/resource/prompt/completion fixtures plus scored progress and SEP-2322 input-required/requestState flows are owned only by that harness; production registration remains unchanged. Production Runtime catalog remains unchanged.
+Transport ownership and source-proven modern/legacy/conformance contracts are recorded in `current-validation.md`. Preserve SDK auto JSON/SSE selection, incremental streaming, generation fencing, legacy JSON compatibility, and isolated conformance fixtures; production registration/catalog remain unchanged.
 
 ## LIVE_BLOCKBENCH Residue
 
