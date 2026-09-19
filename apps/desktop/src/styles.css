@@ -38,3 +38,15 @@ article strong.bad { color:#e49aa4; }
 .gateway-guidance { display:grid; gap:5px; }
 .gateway-guidance strong { color:#d7dadd; font-size:12px; }
 .gateway-guidance span { color:#9aa3aa; font-size:11px; line-height:1.45; }
+
+.operations { margin:0 0 22px; padding:18px; border:1px solid #252a2e; border-radius:12px; background:#111416; }
+.operations-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:12px; }
+.operations-heading h2 { margin:0 0 5px; font-size:16px; }
+.operations-heading p, .operations-heading small { font-size:11px; color:#747e86; }
+.operation-list { display:grid; gap:1px; border:1px solid #252a2e; border-radius:9px; overflow:hidden; }
+.operation-row { display:grid; grid-template-columns:90px minmax(180px,1fr) auto; gap:12px; align-items:center; padding:10px 12px; background:#0e1113; font-size:11px; }
+.operation-row span { color:#747e86; }
+.operation-row strong { font-weight:600; color:#cfd4d8; }
+.operation-row code { color:#89d9ad; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+.operation-row code.operation-failed { color:#e49aa4; }
+@media (max-width:720px) { .operation-row { grid-template-columns:1fr; gap:4px; } .operations-heading { flex-direction:column; } }

@@ -41,8 +41,16 @@
     action: string | null;
   };
 
+  type ReadinessProjection = {
+    state: 'ready' | 'ready-to-start' | 'needs-connection' | 'needs-attention' | 'setup-required';
+    summary: string;
+    ready: boolean;
+  };
+
   type SystemStatus = {
     schema: number;
+    observed_at_unix_ms: number;
+    readiness: ReadinessProjection;
     blockbench: BlockbenchState;
     gateway: GatewaySupervision;
     maintenance: MaintenanceAvailability;
@@ -87,6 +95,29 @@
   let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
   let actionMessage = '';
 
+  type OperationRecord = {
+    action: string;
+    outcome: 'success' | 'failed';
+    status: string;
+    at: string;
+  };
+  let operations: OperationRecord[] = [];
+
+  function recordOperation(action: string, outcome: 'success' | 'failed', status: string) {
+    operations = [
+      { action, outcome, status, at: new Date().toLocaleTimeString() },
+      ...operations,
+    ].slice(0, 8);
+  }
+
+  function errorCode(cause: unknown): string {
+    if (typeof cause === 'object' && cause !== null && 'code' in cause) {
+      const value = (cause as Partial<DesktopCommandError>).code;
+      if (typeof value === 'string' && value) return value;
+    }
+    return 'FAILED';
+  }
+
   function errorMessage(cause: unknown): string {
     if (typeof cause === 'object' && cause !== null && 'message' in cause) {
       const candidate = cause as Partial<DesktopCommandError>;
@@ -95,15 +126,6 @@
       }
     }
     return cause instanceof Error ? cause.message : String(cause);
-  }
-
-  function readiness(value: SystemStatus): { label: string; detail: string; ready: boolean } {
-    if (!value.manager_available) return { label: 'Setup required', detail: 'Install managed LazyDesigner components first.', ready: false };
-    if (!value.managed) return { label: 'Needs attention', detail: 'Managed status is unavailable. Export diagnostics if refresh does not recover.', ready: false };
-    if (!value.managed.tls_ready) return { label: 'Needs attention', detail: 'Runtime security setup is incomplete.', ready: false };
-    if (!value.blockbench.running) return { label: 'Ready to start', detail: 'Managed components are healthy; open Blockbench to begin.', ready: false };
-    if (value.gateway.state === 'healthy' && value.managed.runtime_online) return { label: 'Ready to work', detail: 'Blockbench Runtime and client-owned Gateway are connected.', ready: true };
-    return { label: 'Needs connection', detail: value.gateway.action ?? 'Restore Runtime/Gateway connectivity.', ready: false };
   }
 
   async function refresh() {
@@ -127,8 +149,10 @@
       const result = await invoke<BootstrapActionResult>('bootstrap_install');
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
       actionMessage = `Install: ${receiptStatus}. In Blockbench, use Plugins → Load Plugin from File once and select the managed plugin highlighted by Desktop.`;
+      recordOperation('Install LazyDesigner', 'success', receiptStatus);
       await refresh();
     } catch (cause) {
+      recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
       error = errorMessage(cause);
     } finally {
       busyAction = null;
@@ -157,8 +181,10 @@
     try {
       const result = await invoke<BlockbenchActionResult>('open_blockbench');
       actionMessage = result.status === 'STARTED' ? 'Blockbench started.' : 'Blockbench is already running.';
+      recordOperation('Open Blockbench', 'success', result.status);
       await refresh();
     } catch (cause) {
+      recordOperation('Open Blockbench', 'failed', errorCode(cause));
       error = errorMessage(cause);
     } finally {
       busyAction = null;
@@ -190,9 +216,13 @@
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      actionMessage = `${action === 'update' ? 'Managed components' : action === 'repair' ? 'Repair' : action === 'setup-tls' ? 'Runtime security' : 'Recovery'}: ${receiptStatus}`;
+      const actionLabel = action === 'update' ? 'Update managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
+      actionMessage = `${actionLabel}: ${receiptStatus}`;
+      recordOperation(actionLabel, 'success', receiptStatus);
       await refresh();
     } catch (cause) {
+      const actionLabel = action === 'update' ? 'Update managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
+      recordOperation(actionLabel, 'failed', errorCode(cause));
       error = errorMessage(cause);
     } finally {
       busyAction = null;
@@ -237,10 +267,14 @@
   {#if loading && !status}
     <section class="notice">Reading local LazyDesigner state…</section>
   {:else if status}
-    {@const ready = readiness(status)}
-    <section class={ready.ready ? 'notice ok-notice' : 'notice'} aria-live="polite">
-      <strong>{ready.label}</strong>
-      <span>{ready.detail}</span>
+    <section class={status.readiness.ready ? 'notice ok-notice' : 'notice'} aria-live="polite">
+      <strong>
+        {status.readiness.state === 'ready' ? 'Ready to work' :
+         status.readiness.state === 'ready-to-start' ? 'Ready to start' :
+         status.readiness.state === 'needs-connection' ? 'Needs connection' :
+         status.readiness.state === 'setup-required' ? 'Setup required' : 'Needs attention'}
+      </strong>
+      <span>{status.readiness.summary}</span>
     </section>
 
     <section class="grid" aria-live="polite">
@@ -417,6 +451,27 @@
 
     {#if status.diagnostic}
       <section class="notice">{status.diagnostic}</section>
+    {/if}
+
+    {#if operations.length > 0}
+      <section class="operations" aria-label="Current session operation history">
+        <div class="operations-heading">
+          <div>
+            <h2>Current session</h2>
+            <p>Recent explicit Desktop actions only. This history is not persisted.</p>
+          </div>
+          <small>Observed {new Date(status.observed_at_unix_ms).toLocaleTimeString()}</small>
+        </div>
+        <div class="operation-list">
+          {#each operations as operation}
+            <div class="operation-row">
+              <span>{operation.at}</span>
+              <strong>{operation.action}</strong>
+              <code class:operation-failed={operation.outcome === 'failed'}>{operation.status}</code>
+            </div>
+          {/each}
+        </div>
+      </section>
     {/if}
   {/if}
 

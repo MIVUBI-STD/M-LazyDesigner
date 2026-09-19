@@ -5,7 +5,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
-    time::Duration,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use crate::process::run_output;
 use sysinfo::System;
@@ -92,8 +92,17 @@ pub struct ManagedActionResult {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ReadinessProjection {
+    pub state: &'static str,
+    pub summary: &'static str,
+    pub ready: bool,
+}
+
+#[derive(Debug, Serialize)]
 pub struct SystemStatus {
     pub schema: u8,
+    pub observed_at_unix_ms: u64,
+    pub readiness: ReadinessProjection,
     pub blockbench: BlockbenchState,
     pub gateway: GatewaySupervision,
     pub maintenance: MaintenanceAvailability,
@@ -494,6 +503,95 @@ fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool) ->
 }
 
 
+fn project_readiness(
+    manager_available: bool,
+    managed: Option<&ManagedStatus>,
+    blockbench_running: bool,
+    gateway: &GatewaySupervision,
+) -> ReadinessProjection {
+    if !manager_available {
+        return ReadinessProjection {
+            state: "setup-required",
+            summary: "Install managed LazyDesigner components first.",
+            ready: false,
+        };
+    }
+    let Some(managed) = managed else {
+        return ReadinessProjection {
+            state: "needs-attention",
+            summary: "Managed status is unavailable. Export diagnostics if refresh does not recover.",
+            ready: false,
+        };
+    };
+    if !managed.tls_ready {
+        return ReadinessProjection {
+            state: "needs-attention",
+            summary: "Runtime security setup is incomplete.",
+            ready: false,
+        };
+    }
+    if !blockbench_running {
+        return ReadinessProjection {
+            state: "ready-to-start",
+            summary: "Managed components are healthy; open Blockbench to begin.",
+            ready: false,
+        };
+    }
+    if gateway.state == "healthy" && managed.runtime_online {
+        return ReadinessProjection {
+            state: "ready",
+            summary: "Blockbench Runtime and client-owned Gateway are connected.",
+            ready: true,
+        };
+    }
+    ReadinessProjection {
+        state: "needs-connection",
+        summary: gateway.action.unwrap_or("Restore Runtime/Gateway connectivity."),
+        ready: false,
+    }
+}
+
+fn observed_at_unix_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .min(u64::MAX as u128) as u64
+}
+
+fn compose_status(
+    blockbench: BlockbenchState,
+    manager_available: bool,
+    managed: Option<ManagedStatus>,
+    diagnostic: Option<String>,
+) -> SystemStatus {
+    let gateway = if manager_available && managed.is_none() {
+        unknown_gateway()
+    } else {
+        project_gateway(managed.as_ref(), blockbench.running)
+    };
+    let readiness = project_readiness(
+        manager_available,
+        managed.as_ref(),
+        blockbench.running,
+        &gateway,
+    );
+    let maintenance = project_maintenance(manager_available, managed.as_ref());
+
+    SystemStatus {
+        schema: 1,
+        observed_at_unix_ms: observed_at_unix_ms(),
+        readiness,
+        blockbench,
+        gateway,
+        maintenance,
+        manager_available,
+        bootstrap_available: false,
+        managed,
+        diagnostic,
+    }
+}
+
 fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>) -> MaintenanceAvailability {
     if !manager_available {
         return MaintenanceAvailability {
@@ -533,32 +631,17 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
 pub fn collect() -> SystemStatus {
     let blockbench = detect_blockbench();
     let Some(root) = managed_root() else {
-        return SystemStatus {
-            schema: 1,
-            gateway: project_gateway(None, blockbench.running),
-            maintenance: project_maintenance(false, None),
+        return compose_status(
             blockbench,
-            manager_available: false,
-            bootstrap_available: false,
-            managed: None,
-            diagnostic: Some("LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string()),
-        };
+            false,
+            None,
+            Some("LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string()),
+        );
     };
 
     let executable = match manager_executable(&root) {
         Ok(path) => path,
-        Err(message) => {
-            return SystemStatus {
-                schema: 1,
-                gateway: project_gateway(None, blockbench.running),
-                maintenance: project_maintenance(false, None),
-                blockbench,
-                manager_available: false,
-                bootstrap_available: false,
-                managed: None,
-                diagnostic: Some(message),
-            }
-        }
+        Err(message) => return compose_status(blockbench, false, None, Some(message)),
     };
 
     let output = match run_output(
@@ -571,62 +654,37 @@ pub fn collect() -> SystemStatus {
     ) {
         Ok(output) => output,
         Err(error) => {
-            return SystemStatus {
-                schema: 1,
-                gateway: unknown_gateway(),
-                maintenance: project_maintenance(true, None),
+            return compose_status(
                 blockbench,
-                manager_available: true,
-                bootstrap_available: false,
-                managed: None,
-                diagnostic: Some(format!("Unable to read managed status: {error}")),
-            }
+                true,
+                None,
+                Some(format!("Unable to read managed status: {error}")),
+            )
         }
     };
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        return SystemStatus {
-            schema: 1,
-            gateway: unknown_gateway(),
-            maintenance: project_maintenance(true, None),
+        return compose_status(
             blockbench,
-            manager_available: true,
-            bootstrap_available: false,
-            managed: None,
-            diagnostic: Some(if error.is_empty() {
+            true,
+            None,
+            Some(if error.is_empty() {
                 "Managed status command failed.".to_string()
             } else {
                 error
             }),
-        };
+        );
     }
 
     match serde_json::from_slice::<ManagedStatus>(&output.stdout) {
-        Ok(managed) if managed.schema == 1 => {
-            let gateway = project_gateway(Some(&managed), blockbench.running);
-            let maintenance = project_maintenance(true, Some(&managed));
-            SystemStatus {
-                schema: 1,
-                gateway,
-                maintenance,
-                blockbench,
-                manager_available: true,
-                bootstrap_available: false,
-                managed: Some(managed),
-                diagnostic: None,
-            }
-        },
-        Ok(_) | Err(_) => SystemStatus {
-            schema: 1,
-            gateway: unknown_gateway(),
-            maintenance: project_maintenance(true, None),
+        Ok(managed) if managed.schema == 1 => compose_status(blockbench, true, Some(managed), None),
+        Ok(_) | Err(_) => compose_status(
             blockbench,
-            manager_available: true,
-            bootstrap_available: false,
-            managed: None,
-            diagnostic: Some("Managed status returned invalid JSON.".to_string()),
-        },
+            true,
+            None,
+            Some("Managed status returned invalid JSON or an unsupported schema.".to_string()),
+        ),
     }
 }
 
@@ -798,6 +856,47 @@ mod tests {
     }
 
     #[test]
+    #[test]
+    fn readiness_projection_covers_workstation_states() {
+        let healthy = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: true,
+            runtime_online: true,
+            tls_ready: true,
+            tls_error: None,
+        };
+        let gateway = project_gateway(Some(&healthy), true);
+        let ready = project_readiness(true, Some(&healthy), true, &gateway);
+        assert_eq!(ready.state, "ready");
+        assert!(ready.ready);
+
+        let closed_gateway = project_gateway(Some(&healthy), false);
+        let start = project_readiness(true, Some(&healthy), false, &closed_gateway);
+        assert_eq!(start.state, "ready-to-start");
+        assert!(!start.ready);
+
+        let disconnected = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: false,
+            runtime_online: true,
+            tls_ready: true,
+            tls_error: None,
+        };
+        let disconnected_gateway = project_gateway(Some(&disconnected), true);
+        let connection = project_readiness(true, Some(&disconnected), true, &disconnected_gateway);
+        assert_eq!(connection.state, "needs-connection");
+
+        let setup = project_readiness(false, None, false, &unknown_gateway());
+        assert_eq!(setup.state, "setup-required");
+
+        let attention = project_readiness(true, None, false, &unknown_gateway());
+        assert_eq!(attention.state, "needs-attention");
+    }
+
     fn maintenance_projection_matches_managed_runtime_safety_gate() {
         let idle = ManagedStatus {
             schema: 1,
