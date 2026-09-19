@@ -29,6 +29,13 @@ describe("capability discovery efficiency", () => {
     expect(getCapabilityMetadata("modify_group").verificationClass).toBe(
       "focused_read"
     );
+    expect(getCapabilityMetadata("duplicate_element").verificationClass).toBe("visual");
+    expect(getCapabilityMetadata("bone_rigging").verificationClass).toBe("focused_read");
+    expect(getCapabilityMetadata("add_texture_group").verificationClass).toBe("focused_read");
+    expect(getCapabilityMetadata("import_texture_set").verificationClass).toBe("focused_read");
+    for (const capability of ["gradient_tool", "copy_brush_tool", "texture_layer_management"]) {
+      expect(getCapabilityMetadata(capability).verificationClass, capability).toBe("visual");
+    }
     expect(CAPABILITY_LIFECYCLE_SEARCH_PENALTY.deprecated).toBeLessThan(
       CAPABILITY_LIFECYCLE_SEARCH_PENALTY.active
     );
