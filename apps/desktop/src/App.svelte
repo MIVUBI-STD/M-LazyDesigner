@@ -263,257 +263,451 @@
     if (value === 'invalid') return 'Unknown version';
     return 'Unavailable';
   };
+
+  const readinessLabel = (state: ReadinessProjection['state']) => {
+    if (state === 'ready') return 'Ready to work';
+    if (state === 'ready-to-start') return 'Ready to start';
+    if (state === 'needs-connection') return 'Needs connection';
+    if (state === 'setup-required') return 'Setup required';
+    return 'Needs attention';
+  };
+
+  const gatewayLabel = (state: GatewaySupervision['state']) => {
+    if (state === 'healthy') return 'Healthy';
+    if (state === 'waiting-runtime') return 'Waiting for Runtime';
+    if (state === 'client-disconnected') return 'Client disconnected';
+    if (state === 'runtime-offline') return 'Runtime offline';
+    if (state === 'unknown') return 'Unknown';
+    return 'Idle';
+  };
+
+  const gatewayTone = (state: GatewaySupervision['state']) =>
+    state === 'healthy' ? 'positive' :
+    state === 'runtime-offline' ? 'negative' :
+    state === 'idle' ? 'neutral' : 'warning';
+
 </script>
 
-<main class="shell">
-  <header>
-    <div>
-      <span class="eyebrow">Desktop Control Plane</span>
-      <h1>LazyDesigner</h1>
-      <p>Installation, compatibility, runtime supervision, and diagnostics.</p>
-    </div>
-    <button onclick={refresh} disabled={loading || busyAction !== null}>{loading ? 'Checking…' : 'Refresh'}</button>
-  </header>
-
-  {#if error}
-    <section class="notice danger">{error}</section>
-  {/if}
-
-  {#if loading && !status}
-    <section class="notice">Reading local LazyDesigner state…</section>
-  {:else if status}
-    <section class={status.readiness.ready ? 'notice ok-notice' : 'notice'} aria-live="polite">
-      <strong>
-        {status.readiness.state === 'ready' ? 'Ready to work' :
-         status.readiness.state === 'ready-to-start' ? 'Ready to start' :
-         status.readiness.state === 'needs-connection' ? 'Needs connection' :
-         status.readiness.state === 'setup-required' ? 'Setup required' : 'Needs attention'}
-      </strong>
-      <span>{status.readiness.summary}</span>
-    </section>
-
-    <section class="grid" aria-live="polite">
-      <article>
-        <span>Blockbench</span>
-        <strong class:ok={status.blockbench.running}>{status.blockbench.running ? 'Running' : 'Closed'}</strong>
-        <small>{status.blockbench.version ? `Version ${status.blockbench.version}` : 'Desktop process detection only.'}</small>
-      </article>
-
-      <article>
-        <span>Compatibility</span>
-        <strong
-          class:ok={status.blockbench.compatibility?.status === 'validated'}
-          class:warn={status.blockbench.compatibility?.status === 'compatible-unverified' || status.blockbench.compatibility?.status === 'review-required'}
-          class:bad={status.blockbench.compatibility?.status === 'unsupported' || status.blockbench.compatibility?.status === 'invalid'}
-        >
-          {compatibilityLabel(status.blockbench.compatibility?.status)}
-        </strong>
-        <small>
-          {#if status.blockbench.compatibility}
-            Minimum {status.blockbench.compatibility.minimum_version} · review boundary {status.blockbench.compatibility.review_boundary_version}
-          {:else}
-            Start Blockbench to inspect compatibility.
-          {/if}
-        </small>
-      </article>
-
-      <article>
-        <span>Managed Installation</span>
-        <strong class:ok={status.manager_available}>{status.manager_available ? 'Available' : 'Not installed'}</strong>
-        <small>{status.managed?.installed?.source_sha?.slice(0, 12) ?? 'No active source identity'}</small>
-      </article>
-
-      <article>
-        <span>Rollback</span>
-        <strong class:ok={status.managed?.rollback?.available === true} class:warn={status.manager_available && status.managed?.rollback?.available !== true}>
-          {status.managed?.rollback?.available ? 'Previous version available' : 'No previous version'}
-        </strong>
-        <small>{status.managed?.rollback?.previous_source_sha ? `Previous source ${status.managed.rollback.previous_source_sha.slice(0, 12)}` : 'Only a verified committed version transition is rollback-eligible.'}</small>
-      </article>
-
-      <article>
-        <span>Gateway</span>
-        <strong
-          class:ok={status.gateway.state === 'healthy'}
-          class:warn={status.gateway.state === 'waiting-runtime' || status.gateway.state === 'client-disconnected' || status.gateway.state === 'unknown'}
-          class:bad={status.gateway.state === 'runtime-offline'}
-        >
-          {status.gateway.state === 'healthy' ? 'Healthy' :
-           status.gateway.state === 'waiting-runtime' ? 'Waiting for Runtime' :
-           status.gateway.state === 'client-disconnected' ? 'Client disconnected' :
-           status.gateway.state === 'runtime-offline' ? 'Runtime offline' :
-           status.gateway.state === 'unknown' ? 'Unknown' : 'Idle'}
-        </strong>
-        <small>Ownership: {status.gateway.ownership}. The MCP client owns Gateway startup.</small>
-      </article>
-
-      <article>
-        <span>Runtime</span>
-        <strong
-          class:ok={status.managed?.runtime_online === true}
-          class:bad={status.managed?.runtime_online === false}
-        >{onlineLabel(status.managed?.runtime_online)}</strong>
-        <small>Blockbench Runtime reachability.</small>
-      </article>
-
-      <article>
-        <span>Runtime Security</span>
-        <strong
-          class:ok={status.managed?.tls_ready === true}
-          class:bad={status.manager_available && status.managed?.tls_ready === false}
-        >
-          {tlsLabel(status.manager_available, status.managed)}
-        </strong>
-        <small>{status.managed?.tls_error ?? (status.managed ? 'Machine-local HTTPS identity is ready.' : 'Managed status is unavailable.')}</small>
-      </article>
-
-      <article>
-        <span>Update State</span>
-        <strong
-          class:warn={status.managed?.pending === true}
-          class:bad={status.manager_available && status.managed === null}
-        >{updateStateLabel(status.managed)}</strong>
-        <small>Managed-component state; Desktop app releases remain separate.</small>
-      </article>
-    </section>
-
-    <section class="actions" aria-label="LazyDesigner maintenance actions">
+<div class="app-frame">
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="brand-mark" aria-hidden="true">LD</div>
       <div>
-        <h2>Maintenance</h2>
-        <p>Actions are explicit and delegated to the existing managed distribution.</p>
+        <strong>LazyDesigner</strong>
+        <span>Desktop Control Plane</span>
       </div>
-      <div class="action-buttons">
-        {#if !status.manager_available}
-          <button
-            onclick={installLazyDesigner}
-            disabled={!status.bootstrap_available || busyAction !== null}
-            title={status.bootstrap_available ? undefined : 'This Desktop build does not contain a managed bootstrap package.'}
-          >
-            {busyAction === 'install' ? 'Installing…' : 'Install LazyDesigner'}
-          </button>
-        {/if}
-        {#if status.manager_available}
-          <button
-            class="secondary"
-            onclick={showPluginFile}
-            disabled={busyAction !== null}
-          >
-            {busyAction === 'show-plugin' ? 'Opening folder…' : 'Show plugin file'}
-          </button>
-        {/if}
-        <button
-          class="secondary"
-          onclick={openBlockbench}
-          disabled={busyAction !== null}
-        >
-          {busyAction === 'open-blockbench' ? 'Opening…' : status.blockbench.running ? 'Blockbench running' : 'Open Blockbench'}
-        </button>
-        <button
-          class="secondary"
-          onclick={exportDiagnostics}
-          disabled={busyAction !== null}
-        >
-          {busyAction === 'export-diagnostics' ? 'Exporting…' : 'Export diagnostics'}
-        </button>
-        <button
-          onclick={() => runManagedAction('update')}
-          disabled={!status.maintenance.update || busyAction !== null}
-        >
-          {busyAction === 'update' ? 'Updating…' : 'Update managed components'}
-        </button>
-        {#if status.manager_available && status.managed?.tls_ready === false}
-          <button
-            class="secondary"
-            onclick={() => runManagedAction('setup-tls')}
-            disabled={!status.maintenance.setup_tls || busyAction !== null}
-            title={status.maintenance.setup_tls ? undefined : status.maintenance.blocked_reason ?? undefined}
-          >
-            {busyAction === 'setup-tls' ? 'Securing…' : 'Setup Runtime Security'}
-          </button>
-        {/if}
-        <button
-          class="secondary"
-          onclick={() => runManagedAction('rollback')}
-          disabled={!status.maintenance.rollback || busyAction !== null}
-          title={status.maintenance.rollback ? 'Restore the previous committed managed version.' : status.maintenance.blocked_reason ?? 'No rollback-eligible previous version.'}
-        >
-          {busyAction === 'rollback' ? 'Rolling back…' : 'Rollback managed components'}
-        </button>
-        <button
-          class="secondary"
-          onclick={() => runManagedAction('repair')}
-          disabled={!status.maintenance.repair || busyAction !== null}
-          title={status.maintenance.repair ? undefined : status.maintenance.blocked_reason ?? undefined}
-        >
-          {busyAction === 'repair' ? 'Repairing…' : 'Repair installation'}
-        </button>
-        <button
-          class="secondary"
-          onclick={() => runManagedAction('recover')}
-          disabled={!status.maintenance.recover || busyAction !== null}
-          title={status.maintenance.recover ? undefined : status.maintenance.blocked_reason ?? undefined}
-        >
-          {busyAction === 'recover' ? 'Recovering…' : 'Recover interrupted install'}
-        </button>
+    </div>
+
+    <nav class="side-nav" aria-label="LazyDesigner sections">
+      <a class="active" href="#overview">
+        <span class="nav-dot"></span>
+        Overview
+      </a>
+      <a href="#maintenance">
+        <span class="nav-dot"></span>
+        Maintenance
+      </a>
+      <a href="#activity">
+        <span class="nav-dot"></span>
+        Activity
+      </a>
+    </nav>
+
+    <div class="sidebar-meta">
+      <span>Machine supervisor</span>
+      <small>Authoring remains in Blockbench.</small>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">System overview</span>
+        <h1>LazyDesigner</h1>
       </div>
-    </section>
+      <button class="button button-quiet" onclick={refresh} disabled={loading || busyAction !== null}>
+        {loading ? 'Checking…' : 'Refresh status'}
+      </button>
+    </header>
 
-    {#if status.maintenance.blocked_reason && status.manager_available}
-      <section class="notice">
-        <strong>Maintenance safety</strong>
-        <span>{status.maintenance.blocked_reason}</span>
-      </section>
-    {/if}
-
-    {#if status.gateway.action}
-      <section class="notice gateway-guidance">
-        <strong>Gateway guidance</strong>
-        <span>{status.gateway.action}</span>
-      </section>
-    {/if}
-
-    {#if busyAction && progressStage}
-      <section class="notice progress-notice">
-        <strong>Operation in progress</strong>
-        <span>{progressLabel(progressStage)}</span>
-      </section>
-    {/if}
-
-    {#if actionMessage}
-      <section class="notice ok-notice">{actionMessage}</section>
-    {/if}
-
-    {#if status.blockbench.diagnostic}
-      <section class="notice">{status.blockbench.diagnostic}</section>
-    {/if}
-
-    {#if status.diagnostic}
-      <section class="notice">{status.diagnostic}</section>
-    {/if}
-
-    {#if operations.length > 0}
-      <section class="operations" aria-label="Current session operation history">
-        <div class="operations-heading">
-          <div>
-            <h2>Current session</h2>
-            <p>Recent explicit Desktop actions only. This history is not persisted.</p>
-          </div>
-          <small>Observed {new Date(status.observed_at_unix_ms).toLocaleTimeString()}</small>
+    {#if error}
+      <section class="banner banner-danger" role="alert">
+        <div>
+          <strong>Action failed</strong>
+          <span>{error}</span>
         </div>
-        <div class="operation-list">
-          {#each operations as operation}
-            <div class="operation-row">
-              <span>{operation.at}</span>
-              <strong>{operation.action}</strong>
-              <code class:operation-failed={operation.outcome === 'failed'}>{operation.status}</code>
+      </section>
+    {/if}
+
+    {#if loading && !status}
+      <section class="loading-state">
+        <div class="loading-pulse"></div>
+        <div>
+          <strong>Reading local state</strong>
+          <span>Checking Blockbench, managed components, Runtime, and Gateway.</span>
+        </div>
+      </section>
+    {:else if status}
+      <section id="overview" class="overview-stack">
+        <section class:ready={status.readiness.ready} class="readiness-card" aria-live="polite">
+          <div class="readiness-main">
+            <span class="status-orb" aria-hidden="true"></span>
+            <div>
+              <span class="section-kicker">Current state</span>
+              <h2>{readinessLabel(status.readiness.state)}</h2>
+              <p>{status.readiness.summary}</p>
             </div>
-          {/each}
+          </div>
+
+          <div class="readiness-actions">
+            <div class="observation">
+              <span>Observed</span>
+              <strong>{new Date(status.observed_at_unix_ms).toLocaleTimeString()}</strong>
+            </div>
+
+            {#if !status.manager_available}
+              <button
+                class="button button-primary"
+                onclick={installLazyDesigner}
+                disabled={!status.bootstrap_available || busyAction !== null}
+              >
+                {busyAction === 'install' ? 'Installing…' : 'Install LazyDesigner'}
+              </button>
+            {:else}
+              <button
+                class="button button-primary"
+                onclick={openBlockbench}
+                disabled={busyAction !== null}
+              >
+                {busyAction === 'open-blockbench' ? 'Opening…' : status.blockbench.running ? 'Blockbench running' : 'Open Blockbench'}
+              </button>
+            {/if}
+          </div>
+        </section>
+
+        <div class="summary-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <span class="section-kicker">Authoring connection</span>
+                <h3>Blockbench & Runtime</h3>
+              </div>
+              <span class:positive={status.blockbench.running} class="state-pill">
+                {status.blockbench.running ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+
+            <div class="status-list">
+              <div class="status-row">
+                <div>
+                  <span>Blockbench</span>
+                  <small>{status.blockbench.version ? `Version ${status.blockbench.version}` : 'Desktop installation state'}</small>
+                </div>
+                <strong class:positive={status.blockbench.running}>{status.blockbench.running ? 'Running' : 'Closed'}</strong>
+              </div>
+
+              <div class="status-row">
+                <div>
+                  <span>Runtime</span>
+                  <small>Blockbench Runtime reachability</small>
+                </div>
+                <strong class:positive={status.managed?.runtime_online === true} class:negative={status.managed?.runtime_online === false}>
+                  {onlineLabel(status.managed?.runtime_online)}
+                </strong>
+              </div>
+
+              <div class="status-row">
+                <div>
+                  <span>Gateway</span>
+                  <small>Client-owned MCP connection</small>
+                </div>
+                <strong
+                  class:positive={gatewayTone(status.gateway.state) === 'positive'}
+                  class:warning={gatewayTone(status.gateway.state) === 'warning'}
+                  class:negative={gatewayTone(status.gateway.state) === 'negative'}
+                >
+                  {gatewayLabel(status.gateway.state)}
+                </strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <span class="section-kicker">Managed system</span>
+                <h3>Installation</h3>
+              </div>
+              <span class:positive={status.manager_available} class="state-pill">
+                {status.manager_available ? 'Installed' : 'Missing'}
+              </span>
+            </div>
+
+            <div class="status-list">
+              <div class="status-row">
+                <div>
+                  <span>Current source</span>
+                  <small>Exact managed source identity</small>
+                </div>
+                <code>{status.managed?.installed?.source_sha?.slice(0, 12) ?? '—'}</code>
+              </div>
+
+              <div class="status-row">
+                <div>
+                  <span>Update state</span>
+                  <small>Managed components only</small>
+                </div>
+                <strong class:warning={status.managed?.pending === true}>{updateStateLabel(status.managed)}</strong>
+              </div>
+
+              <div class="status-row">
+                <div>
+                  <span>Rollback</span>
+                  <small>{status.managed?.rollback?.previous_source_sha ? `Previous ${status.managed.rollback.previous_source_sha.slice(0, 12)}` : 'No verified previous transition'}</small>
+                </div>
+                <strong class:positive={status.managed?.rollback?.available === true}>
+                  {status.managed?.rollback?.available ? 'Available' : 'Unavailable'}
+                </strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <span class="section-kicker">Environment</span>
+                <h3>Security & compatibility</h3>
+              </div>
+            </div>
+
+            <div class="status-list">
+              <div class="status-row">
+                <div>
+                  <span>Runtime security</span>
+                  <small>{status.managed?.tls_error ?? 'Machine-local HTTPS identity'}</small>
+                </div>
+                <strong class:positive={status.managed?.tls_ready === true} class:negative={status.manager_available && status.managed?.tls_ready === false}>
+                  {tlsLabel(status.manager_available, status.managed)}
+                </strong>
+              </div>
+
+              <div class="status-row">
+                <div>
+                  <span>Compatibility</span>
+                  <small>
+                    {#if status.blockbench.compatibility}
+                      Minimum {status.blockbench.compatibility.minimum_version} · review at {status.blockbench.compatibility.review_boundary_version}
+                    {:else}
+                      Blockbench version not yet resolved
+                    {/if}
+                  </small>
+                </div>
+                <strong
+                  class:positive={status.blockbench.compatibility?.status === 'validated'}
+                  class:warning={status.blockbench.compatibility?.status === 'compatible-unverified' || status.blockbench.compatibility?.status === 'review-required'}
+                  class:negative={status.blockbench.compatibility?.status === 'unsupported' || status.blockbench.compatibility?.status === 'invalid'}
+                >
+                  {compatibilityLabel(status.blockbench.compatibility?.status)}
+                </strong>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
-    {/if}
-  {/if}
 
-  <footer>
-    Desktop is a supervisor only. Authoring remains owned by Blockbench Runtime; install/update/rollback remains owned by Managed Distribution.
-  </footer>
-</main>
+      <section id="maintenance" class="section-block">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Managed distribution</span>
+            <h2>Maintenance</h2>
+            <p>Routine actions stay visible. Recovery actions are kept separate.</p>
+          </div>
+        </div>
+
+        <section class="maintenance-card">
+          <div class="maintenance-primary">
+            <div>
+              <span class="maintenance-label">Managed components</span>
+              <h3>{status.managed?.pending ? 'Update waiting for activation' : 'Installation healthy'}</h3>
+              <p>Update Gateway, Runtime plugin, Skills, and managed workspace components through the canonical manager.</p>
+            </div>
+
+            <button
+              class="button button-primary"
+              onclick={() => runManagedAction('update')}
+              disabled={!status.maintenance.update || busyAction !== null}
+            >
+              {busyAction === 'update' ? 'Updating…' : 'Update managed components'}
+            </button>
+          </div>
+
+          <div class="utility-actions">
+            {#if status.manager_available}
+              <button class="button button-secondary" onclick={showPluginFile} disabled={busyAction !== null}>
+                {busyAction === 'show-plugin' ? 'Opening…' : 'Show plugin file'}
+              </button>
+            {/if}
+
+            <button class="button button-secondary" onclick={exportDiagnostics} disabled={busyAction !== null}>
+              {busyAction === 'export-diagnostics' ? 'Exporting…' : 'Export diagnostics'}
+            </button>
+
+            {#if status.manager_available && status.managed?.tls_ready === false}
+              <button
+                class="button button-secondary"
+                onclick={() => runManagedAction('setup-tls')}
+                disabled={!status.maintenance.setup_tls || busyAction !== null}
+              >
+                {busyAction === 'setup-tls' ? 'Securing…' : 'Setup Runtime Security'}
+              </button>
+            {/if}
+          </div>
+
+          <details class="advanced-panel">
+            <summary>
+              <span>
+                <strong>Advanced maintenance</strong>
+                <small>Rollback, repair, and interrupted-install recovery</small>
+              </span>
+              <span class="summary-chevron">⌄</span>
+            </summary>
+
+            <div class="advanced-grid">
+              <div class="advanced-action">
+                <div>
+                  <strong>Rollback managed components</strong>
+                  <span>Restore the previous committed managed version.</span>
+                </div>
+                <button
+                  class="button button-secondary"
+                  onclick={() => runManagedAction('rollback')}
+                  disabled={!status.maintenance.rollback || busyAction !== null}
+                >
+                  {busyAction === 'rollback' ? 'Rolling back…' : 'Rollback'}
+                </button>
+              </div>
+
+              <div class="advanced-action">
+                <div>
+                  <strong>Repair installation</strong>
+                  <span>Restore missing managed files from the active immutable package.</span>
+                </div>
+                <button
+                  class="button button-secondary"
+                  onclick={() => runManagedAction('repair')}
+                  disabled={!status.maintenance.repair || busyAction !== null}
+                >
+                  {busyAction === 'repair' ? 'Repairing…' : 'Repair'}
+                </button>
+              </div>
+
+              <div class="advanced-action">
+                <div>
+                  <strong>Recover interrupted install</strong>
+                  <span>Recover an interrupted managed transaction without upgrading.</span>
+                </div>
+                <button
+                  class="button button-secondary"
+                  onclick={() => runManagedAction('recover')}
+                  disabled={!status.maintenance.recover || busyAction !== null}
+                >
+                  {busyAction === 'recover' ? 'Recovering…' : 'Recover'}
+                </button>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        {#if status.maintenance.blocked_reason && status.manager_available}
+          <section class="banner">
+            <div>
+              <strong>Maintenance safety</strong>
+              <span>{status.maintenance.blocked_reason}</span>
+            </div>
+          </section>
+        {/if}
+
+        {#if status.gateway.action}
+          <section class="banner">
+            <div>
+              <strong>Gateway guidance</strong>
+              <span>{status.gateway.action}</span>
+            </div>
+          </section>
+        {/if}
+
+        {#if busyAction && progressStage}
+          <section class="banner banner-progress">
+            <div>
+              <strong>Operation in progress</strong>
+              <span>{progressLabel(progressStage)}</span>
+            </div>
+          </section>
+        {/if}
+
+        {#if actionMessage}
+          <section class="banner banner-success">
+            <div>
+              <strong>Completed</strong>
+              <span>{actionMessage}</span>
+            </div>
+          </section>
+        {/if}
+
+        {#if status.blockbench.diagnostic}
+          <section class="banner">
+            <div>
+              <strong>Blockbench diagnostic</strong>
+              <span>{status.blockbench.diagnostic}</span>
+            </div>
+          </section>
+        {/if}
+
+        {#if status.diagnostic}
+          <section class="banner">
+            <div>
+              <strong>Managed diagnostic</strong>
+              <span>{status.diagnostic}</span>
+            </div>
+          </section>
+        {/if}
+      </section>
+
+      <section id="activity" class="section-block section-last">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Current session</span>
+            <h2>Activity</h2>
+            <p>Only explicit Desktop actions from this session. Nothing is persisted.</p>
+          </div>
+        </div>
+
+        <section class="activity-card">
+          {#if operations.length > 0}
+            <div class="activity-list">
+              {#each operations as operation}
+                <div class="activity-row">
+                  <span class:failed={operation.outcome === 'failed'} class="activity-dot"></span>
+                  <div>
+                    <strong>{operation.action}</strong>
+                    <span>{operation.at}</span>
+                  </div>
+                  <code class:failed={operation.outcome === 'failed'}>{operation.status}</code>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="empty-state">
+              <strong>No actions yet</strong>
+              <span>Maintenance and launch actions will appear here during this session.</span>
+            </div>
+          {/if}
+        </section>
+      </section>
+
+      <footer>
+        LazyDesigner Desktop supervises machine state only. Authoring remains owned by Blockbench Runtime; managed install, update, rollback, and recovery remain owned by Managed Distribution.
+      </footer>
+    {/if}
+  </main>
+</div>
