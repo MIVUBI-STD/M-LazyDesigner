@@ -124,6 +124,31 @@ describe("LazyDesigner Control minimum invalidation", () => {
     }
   });
 
+  test("planned or unchanged Group rename previews preserve state", () => {
+    for (const execution of ["planned", "unchanged"] as const) {
+      const delta = buildControlDelta({
+        capability: "rename_element",
+        phaseBefore: "geometry",
+        phaseAfter: "geometry",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          execution,
+          changes: execution === "planned"
+            ? [{ id: "group-a", old_name: "arm", new_name: "arm_new" }]
+            : [],
+          affected_animations: 0,
+        },
+      });
+
+      expect(delta.invalidates.authoring_domains).toEqual([]);
+      expect(delta.invalidates.workspace_projection).toBe(false);
+      expect(delta.invalidates.acceptance_gates).toBe(false);
+      expect(delta.freshness.basis).toBe("NO_CHANGE");
+      expect(delta.verification_class).toBe("receipt_only");
+    }
+  });
+
   test("complete locator and hierarchy receipts avoid redundant focused reads", () => {
     const locator = buildControlDelta({
       capability: "manage_locator",
