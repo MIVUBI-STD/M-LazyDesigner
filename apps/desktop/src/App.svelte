@@ -311,6 +311,10 @@
     return null;
   }
 
+  function activityVisible() {
+    return busyAction !== null || Boolean(error) || operations.length > 0;
+  }
+
 </script>
 
 {#snippet navIcon(item: Page)}
@@ -337,16 +341,18 @@
         <button class:active={page === 'Overview'} aria-current={page === 'Overview' ? 'page' : undefined} onclick={() => (page = 'Overview')}>
           <span class="nav-icon">{@render navIcon('Overview')}</span><span>Overview</span>
         </button>
-        <button class:active={page === 'Activity'} aria-current={page === 'Activity' ? 'page' : undefined} onclick={() => (page = 'Activity')}>
-          <span class="nav-icon">{@render navIcon('Activity')}</span><span>Activity</span>
-          {#if busyAction || error}<span class:error={Boolean(error)} class="activity-status">{error ? '!' : '1'}</span>{/if}
-        </button>
+        {#if activityVisible()}
+          <button class:active={page === 'Activity'} aria-current={page === 'Activity' ? 'page' : undefined} onclick={() => (page = 'Activity')}>
+            <span class="nav-icon">{@render navIcon('Activity')}</span><span>Activity</span>
+            {#if busyAction || error}<span class:error={Boolean(error)} class="activity-status">{error ? '!' : '1'}</span>{/if}
+          </button>
+        {/if}
         <button class:active={page === 'Support'} aria-current={page === 'Support' ? 'page' : undefined} onclick={() => (page = 'Support')}>
           <span class="nav-icon">{@render navIcon('Support')}</span><span>Support</span>
         </button>
       </nav>
       <div class="navigation-spacer"></div>
-      <div class="navigation-footer"><span>Local machine</span></div>
+      <div class="navigation-footer"><span>Desktop</span></div>
     </aside>
 
     <section id="main-content" class="main-view" tabindex="-1">
@@ -407,6 +413,24 @@
             </div>
           </section>
 
+          {#if productMode(status) === 'welcome'}
+            <section class="onboarding-card" aria-label="Getting started">
+              <div class="onboarding-heading"><strong>Getting started</strong><span>Two steps</span></div>
+              <div class="setup-steps">
+                <div class="setup-step current"><span>1</span><div><strong>Set up LazyDesigner</strong><small>Install the components required on this computer.</small></div></div>
+                <div class="setup-step"><span>2</span><div><strong>Connect Blockbench</strong><small>Open Blockbench and load the LazyDesigner plugin once.</small></div></div>
+              </div>
+            </section>
+          {:else if productMode(status) === 'security-setup'}
+            <section class="onboarding-card compact" aria-label="Setup progress">
+              <div class="setup-step current"><span>2</span><div><strong>Secure local connection</strong><small>Finish the final machine setup before connecting Blockbench.</small></div></div>
+            </section>
+          {:else if productMode(status) === 'plugin-setup'}
+            <section class="onboarding-card compact" aria-label="Blockbench connection">
+              <div class="setup-step current"><span>✓</span><div><strong>LazyDesigner is installed</strong><small>Load the plugin in Blockbench to complete the connection.</small></div></div>
+            </section>
+          {/if}
+
           {#if productMode(status) === 'ready'}
             <section class="quiet-summary">
               <div><span class="quiet-label">Blockbench</span><strong>{status.blockbench.version ? 'v' + status.blockbench.version : 'Running'}</strong></div>
@@ -427,7 +451,7 @@
         </main>
 
       {:else if page === 'Activity'}
-        <header class="page-toolbar"><div><h1>Activity</h1><p>Recent actions from this session.</p></div></header>
+        <header class="page-toolbar"><div><h1>Activity</h1><p>Tasks and recent actions from this session.</p></div></header>
         <main class="content">
           <section class="activity-page">
             {#if busyAction}
@@ -522,8 +546,9 @@
   .more-menu{position:relative}.more-menu summary{width:38px;height:38px;display:grid;place-items:center;list-style:none;border-radius:8px;color:var(--muted);cursor:pointer}.more-menu summary:hover{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:42px;width:180px;display:grid;padding:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:8px 9px;border-radius:7px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
   .product-state{min-height:178px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:26px;border-bottom:1px solid var(--border-soft)}.state-symbol{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:18px;font-weight:800}.ready-state{border-bottom-color:color-mix(in srgb,var(--accent) 24%,var(--border-soft))}.ready-state .state-symbol{background:var(--accent-soft);color:var(--accent)}.attention-state{border-bottom-color:#4b421f}.attention-state .state-symbol{background:var(--warning-bg);color:var(--warning)}.setup-state{border-bottom-color:#36587d}.setup-state .state-symbol{background:rgba(99,168,255,.12);color:var(--info)}.state-copy h1,.state-copy h2{margin:0;font-size:20px;letter-spacing:-.018em}.state-copy p{max-width:560px;margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.state-actions{display:flex;align-items:center;gap:8px}
   .quiet-summary{display:flex;align-items:center;gap:18px;padding:16px 26px}.quiet-summary>div{display:grid;gap:2px}.quiet-label{color:var(--muted-2);font-size:8px;text-transform:uppercase;letter-spacing:.04em}.quiet-summary strong{font-size:11px}.quiet-divider{width:1px;height:26px;background:var(--border-soft)}.text-action{width:max-content;margin:2px 26px 0;padding:4px 0;background:transparent;color:var(--muted);font-size:10px;cursor:pointer}.text-action:hover{color:var(--text-soft)}.guidance-card{margin:16px 26px 0;padding:13px 14px;border:1px solid #5f5125;border-radius:9px;background:var(--warning-bg)}.guidance-card strong{font-size:10px}.guidance-card p{margin:4px 0 0;color:var(--text-soft);font-size:10px;line-height:1.5}.update-callout{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:24px 26px 0;padding:14px;border:1px solid var(--accent-border);border-radius:10px;background:var(--accent-soft)}.update-callout>div{display:grid;gap:3px}.update-callout strong{font-size:11px}.update-callout span{color:var(--muted);font-size:10px}
+  .onboarding-card{margin:18px 26px 0;padding:14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--bg-elevated)}.onboarding-card.compact{padding:11px 13px}.onboarding-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:11px}.onboarding-heading strong{font-size:10px}.onboarding-heading span{color:var(--muted-2);font-size:8px;text-transform:uppercase;letter-spacing:.04em}.setup-steps{display:grid;gap:1px;overflow:hidden;border:1px solid var(--border-soft);border-radius:8px;background:var(--border-soft)}.setup-step{display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--surface)}.setup-step>span{width:22px;height:22px;display:grid;place-items:center;flex:0 0 auto;border-radius:50%;background:var(--surface-3);color:var(--muted);font-size:9px;font-weight:800}.setup-step.current>span{background:rgba(99,168,255,.12);color:var(--info)}.setup-step>div{display:grid;gap:2px}.setup-step strong{font-size:10px}.setup-step small{color:var(--muted);font-size:9px;line-height:1.4}
   .operation-list{display:grid;gap:8px}.operation-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;min-height:58px;padding:11px 13px;border:1px solid var(--border-soft);border-radius:9px;background:var(--surface)}.status-dot{width:8px;height:8px;border-radius:50%;background:#697078}.status-dot.running{background:var(--accent)}.status-dot.transition{background:var(--info)}.status-dot.danger{background:var(--danger)}.operation-card>div{display:grid;gap:2px}.operation-card strong{font-size:10px}.operation-card span{color:var(--muted);font-size:9px}.operation-card code{color:#9ee8b9;font:9px ui-monospace,SFMono-Regular,Consolas,monospace}.operation-card code.danger-text{color:#ff9aa2}.operation-state{color:var(--info)!important;font-weight:700}.active-operation{margin-bottom:10px;border-color:#36587d}.empty-state{min-height:280px;display:grid;place-content:center;justify-items:center;text-align:center}.empty-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:12px;background:var(--surface-2);margin-bottom:12px}.empty-icon :global(svg){width:21px;height:21px;fill:none;stroke:var(--muted);stroke-width:1.8}.empty-state h2{margin:0;font-size:15px}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:10px}
   .support-group{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:22px 0;border-top:1px solid var(--border-soft)}.support-group:first-child{border-top:0;padding-top:0}.group-copy h3{margin:0;font-size:12px}.group-copy p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.support-stack{display:grid;gap:9px}.support-card{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.support-card>div{display:grid;gap:3px}.support-card strong{font-size:11px}.support-card span{color:var(--muted);font-size:10px;line-height:1.45}.support-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:hidden;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.support-overview>div{display:grid;gap:3px;padding:11px 12px;border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft)}.support-overview>div:nth-child(2n){border-right:0}.support-overview>div:nth-last-child(-n+2){border-bottom:0}.support-overview span{color:var(--muted-2);font-size:8px;text-transform:uppercase}.support-overview strong{font-size:10px}.troubleshooting-details,.technical-details{border:1px solid var(--border-soft);border-radius:10px;background:var(--surface)}.troubleshooting-details summary,.technical-details summary{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;list-style:none;cursor:pointer}.troubleshooting-details summary::-webkit-details-marker,.technical-details summary::-webkit-details-marker{display:none}.troubleshooting-details summary>span:first-child,.technical-details summary>span:first-child{display:grid;gap:2px}.troubleshooting-details small,.technical-details small{color:var(--muted);font-size:9px}.recovery-list,.technical-list{display:grid;border-top:1px solid var(--border-soft)}.recovery-list>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:11px 12px;border-bottom:1px solid var(--border-soft)}.recovery-list>div:last-child{border-bottom:0}.recovery-list>div>span{display:grid;gap:2px}.recovery-list strong{font-size:10px}.recovery-list small{color:var(--muted);font-size:9px}.technical-list>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:9px 12px;border-bottom:1px solid var(--border-soft)}.technical-list>div:last-child{border-bottom:0}.technical-list span{color:var(--muted);font-size:9px}.technical-list code{font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text-soft)}
   .operation-attention{position:fixed;z-index:220;right:20px;bottom:20px;width:min(410px,calc(100vw - 40px));display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:start;padding:13px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.operation-attention.success{border-color:var(--accent-border)}.operation-attention.error{border-color:#705c26}.attention-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--surface-3);font-weight:800}.success .attention-icon{background:var(--accent-soft);color:#9ee8b9}.error .attention-icon{background:var(--warning-bg);color:#fde68a}.attention-copy{display:grid;gap:3px}.attention-copy strong{font-size:11px}.attention-copy span{color:var(--muted);font-size:10px;line-height:1.45}.attention-actions{display:flex;gap:5px}.attention-actions button{min-height:30px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface-3);font-size:9px;font-weight:700;cursor:pointer}.attention-actions .dismiss{width:30px;padding:0;border:0;background:transparent;color:var(--muted);font-size:18px}
-  @media(max-width:760px){.desktop-shell{grid-template-columns:72px minmax(0,1fr)}.navigation-brand strong,.global-nav button>span:not(.nav-icon):not(.activity-status),.navigation-footer{display:none}.navigation{padding-inline:10px}.navigation-brand{justify-content:center;padding-inline:0}.global-nav button{justify-content:center;padding:0}.activity-status{position:absolute;right:2px;top:2px}.page-toolbar{padding:14px 18px}.content{width:calc(100% - 28px);padding-top:22px}.product-state{grid-template-columns:1fr;min-height:0;padding:22px 18px}.quiet-summary{padding-inline:18px}.text-action{margin-left:18px}.update-callout{margin-inline:18px}.support-group{grid-template-columns:1fr;gap:10px}.support-card,.recovery-list>div{align-items:flex-start;flex-direction:column}.support-overview{grid-template-columns:1fr}.support-overview>div{border-right:0;border-bottom:1px solid var(--border-soft)}.support-overview>div:nth-last-child(-n+2){border-bottom:1px solid var(--border-soft)}.support-overview>div:last-child{border-bottom:0}.operation-attention{right:12px;bottom:12px;width:calc(100vw - 24px);grid-template-columns:auto minmax(0,1fr)}.attention-actions{grid-column:2}}
+  @media(max-width:760px){.desktop-shell{grid-template-columns:72px minmax(0,1fr)}.navigation-brand strong,.global-nav button>span:not(.nav-icon):not(.activity-status),.navigation-footer{display:none}.navigation{padding-inline:10px}.navigation-brand{justify-content:center;padding-inline:0}.global-nav button{justify-content:center;padding:0}.activity-status{position:absolute;right:2px;top:2px}.page-toolbar{padding:14px 18px}.content{width:calc(100% - 28px);padding-top:22px}.product-state{grid-template-columns:1fr;min-height:0;padding:22px 18px}.quiet-summary{padding-inline:18px}.text-action{margin-left:18px}.update-callout,.onboarding-card{margin-inline:18px}.support-group{grid-template-columns:1fr;gap:10px}.support-card,.recovery-list>div{align-items:flex-start;flex-direction:column}.support-overview{grid-template-columns:1fr}.support-overview>div{border-right:0;border-bottom:1px solid var(--border-soft)}.support-overview>div:nth-last-child(-n+2){border-bottom:1px solid var(--border-soft)}.support-overview>div:last-child{border-bottom:0}.operation-attention{right:12px;bottom:12px;width:calc(100vw - 24px);grid-template-columns:auto minmax(0,1fr)}.attention-actions{grid-column:2}}
 </style>
