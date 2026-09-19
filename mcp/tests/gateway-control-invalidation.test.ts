@@ -149,6 +149,37 @@ describe("LazyDesigner Control minimum invalidation", () => {
     }
   });
 
+  test("complete texture-group receipt avoids redundant focused read", () => {
+    const delta = buildControlDelta({
+      capability: "add_texture_group",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "create_group",
+        texture_group: {
+          uuid: "group-a",
+          name: "variant_group",
+          is_material: false,
+        },
+        textures: [
+          {
+            uuid: "texture-a",
+            id: "texture_0",
+            name: "base.png",
+            group: "group-a",
+            pbr_channel: "color",
+          },
+        ],
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(delta.freshness.basis).toBe("PRECISE_EFFECT");
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
   test("complete locator and hierarchy receipts avoid redundant focused reads", () => {
     const locator = buildControlDelta({
       capability: "manage_locator",
