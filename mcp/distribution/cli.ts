@@ -16,8 +16,8 @@ const command = raw.shift() ?? "help";
 const flags = new Map<string, string>();
 for (let i = 0; i < raw.length; i++) {
   const flag = raw[i]!;
-  if (!["--root", "--workspace", "--plugin-path", "--config", "--package", "--tag", "--adopt", "--preview"].includes(flag) || flags.has(flag)) throw new Error(`Unknown or repeated option: ${flag}`);
-  if (["--adopt", "--preview"].includes(flag)) flags.set(flag, "true");
+  if (!["--root", "--workspace", "--plugin-path", "--config", "--package", "--tag", "--adopt", "--preview", "--progress-json"].includes(flag) || flags.has(flag)) throw new Error(`Unknown or repeated option: ${flag}`);
+  if (["--adopt", "--preview", "--progress-json"].includes(flag)) flags.set(flag, "true");
   else { const value = raw[++i]; if (!value || value.startsWith("--")) throw new Error(`Missing value for ${flag}`); flags.set(flag, value); }
 }
 const executableDir = dirname(process.execPath);
@@ -26,6 +26,7 @@ const root = resolve(flags.get("--root") ?? process.env.BLOCKIT_HOME ?? inferred
 const pendingPath = join(root, "pending.json");
 const parseToml = (text: string) => Bun.TOML.parse(text);
 const receipt = (value: unknown) => console.log(JSON.stringify(value, null, 2));
+const progress = (action: string, stage: string) => { if (flags.has("--progress-json")) console.error(JSON.stringify({ schema: 1, kind: "progress", action, stage })); };
 
 async function runtimeOnline(config?: string): Promise<boolean> {
   const parsed = config ? parseToml((await readOptional(config))?.toString() ?? "") as any : {};
@@ -136,6 +137,7 @@ async function main(): Promise<void> {
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
   if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline, runtimeTlsStatus)); return; }
   if (command === "setup-tls") {
+    progress("setup-tls", "preflight");
     const installed = await installedState(root);
     if (!installed) throw new Error("LazyDesigner is not installed; Runtime TLS setup requires an installed managed state.");
     await withInstallLock(root, async () => {
@@ -144,6 +146,7 @@ async function main(): Promise<void> {
       if (await activeGateways(root) || await runtimeOnline(current.options.config)) {
         throw new Error("Close Blockbench and active Codex MCP sessions before Runtime TLS setup.");
       }
+      progress("setup-tls", "provisioning");
       receipt({ status: "TLS_READY", ...renewRuntimeTlsIdentity() });
     });
     return;
@@ -170,22 +173,29 @@ async function main(): Promise<void> {
   await withInstallLock(root, async () => {
     const previous = await installedState(root);
     if (command === "recover" || command === "rollback") {
+      progress(command, "preflight");
       if (await activeGateways(root) || await runtimeOnline(previous?.options.config)) throw new Error("Close Blockbench and active Codex MCP sessions before recovery/rollback.");
+      progress(command, command === "rollback" ? "restoring-previous-version" : "recovering-transaction");
       await recoverInstallation(root, command === "rollback");
       if (command === "rollback") await rm(pendingPath, { force: true });
       receipt({ status: command.toUpperCase() + "_COMPLETE" }); return;
     }
     if (command === "repair") {
+      progress("repair", "preflight");
       if (!previous) throw new Error("LazyDesigner is not installed; repair cannot select an active version.");
       if (await activeGateways(root) || await runtimeOnline(previous.options.config)) throw new Error("Close Blockbench and active Codex MCP sessions before repair.");
+      progress("repair", "verifying-and-restoring");
       const result = await repairInstallation(root, parseToml);
       receipt({ status: "REPAIRED", ...result });
       return;
     }
+    progress(command, "preflight");
     await recoverInstallation(root);
     // Retrying a staged update uses its already-verified local package: no repeated download.
-    if (command === "update" && await readOptional(pendingPath) && !flags.has("--tag") && !flags.has("--preview")) { receipt(await activatePending()); return; }
+    if (command === "update" && await readOptional(pendingPath) && !flags.has("--tag") && !flags.has("--preview")) { progress("update", "activating-staged"); receipt(await activatePending()); return; }
+    if (command === "update") progress("update", "fetching-release");
     const source = command === "install" ? resolve(flags.get("--package") ?? executableDir) : await fetchRelease();
+    progress(command, "verifying-package");
     const manifest = await verifyPackage(source);
     const options: InstallOptions = previous?.options ?? {
       root, workspace: resolve(flags.get("--workspace") ?? join(homedir(), "BlockIT-Workspace")),
@@ -199,9 +209,11 @@ async function main(): Promise<void> {
       await mkdir(dirname(join(staging, f)), { recursive: true });
       await writeFile(join(staging, f), await readFile(join(source, f)), { flag: "wx" });
     }
+    progress(command, "staging");
     await verifyPackage(staging);
-    if (command === "install" && !previous) ensureRuntimeTlsIdentity();
+    if (command === "install" && !previous) { progress("install", "provisioning-runtime-security"); ensureRuntimeTlsIdentity(); }
     await atomicWrite(pendingPath, Buffer.from(JSON.stringify({ directory: staging, options, adopt: flags.has("--adopt") })));
+    progress(command, "activating");
     receipt(await activatePending());
   }, command === "recover");
 }

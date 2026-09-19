@@ -17,8 +17,8 @@ fn system_status(app: tauri::AppHandle) -> SystemStatus {
 }
 
 #[tauri::command]
-fn managed_action(action: String) -> Result<ManagedActionResult, DesktopError> {
-    system_status::run_managed_action(&action)
+fn managed_action(app: tauri::AppHandle, action: String) -> Result<ManagedActionResult, DesktopError> {
+    system_status::run_managed_action(&app, &action)
         .map_err(|message| DesktopError::recoverable("MANAGED_ACTION_FAILED", message))
 }
 

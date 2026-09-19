@@ -12,6 +12,7 @@ export const sha256 = (bytes: Uint8Array | string): string => createHash("sha256
 export type Manifest = { schema: 1; repository: string; source_sha: string; build_identity: string; platform: "windows-x64"; files: Array<{ path: string; size: number; sha256: string }> };
 export type InstallOptions = { root: string; workspace: string; plugin: string; config: string };
 type Installed = { schema: 1; source_sha: string; options: InstallOptions; owned: Record<string, string> };
+export type RollbackStatus = { available: boolean; previous_source_sha: string | null; transaction: string | null };
 export type Edit = { path: string; bytes: Uint8Array; expected: string | null };
 type Entry = { path: string; before: string | null; after: string; index: number };
 type Journal = { schema: 1; status: "prepared" | "committed" | "rolled_back"; entries: Entry[] };
@@ -258,6 +259,30 @@ export async function installedState(root: string): Promise<Installed | null> {
   const state: Installed = JSON.parse(raw.toString());
   if (state.schema !== 1 || !/^[a-f0-9]{40}$/.test(state.source_sha) || !state.owned || !state.options || !sameInstalledPath(state.options.root, root)) throw new Error("Invalid installation state.");
   return state;
+}
+
+export async function rollbackStatus(root: string): Promise<RollbackStatus> {
+  const pointer = await readOptional(join(root, "transaction.json"));
+  if (!pointer) return { available: false, previous_source_sha: null, transaction: null };
+  let id = "";
+  try { id = JSON.parse(pointer.toString()).id; } catch { return { available: false, previous_source_sha: null, transaction: null }; }
+  if (!/^[0-9a-f-]{36}$/.test(id)) return { available: false, previous_source_sha: null, transaction: null };
+  const dir = join(root, "transactions", id);
+  const journalBytes = await readOptional(join(dir, "journal.json"));
+  if (!journalBytes) return { available: false, previous_source_sha: null, transaction: id };
+  let journal: Journal;
+  try { journal = JSON.parse(journalBytes.toString()); } catch { return { available: false, previous_source_sha: null, transaction: id }; }
+  if (journal.schema !== 1 || journal.status !== "committed" || !Array.isArray(journal.entries)) return { available: false, previous_source_sha: null, transaction: id };
+  const statePath = resolve(join(root, "installed.json")).toLowerCase();
+  const stateEntry = journal.entries.find(entry => resolve(entry.path).toLowerCase() === statePath);
+  if (!stateEntry || stateEntry.before === null || !Number.isInteger(stateEntry.index)) return { available: false, previous_source_sha: null, transaction: id };
+  const backup = await readOptional(join(dir, `${stateEntry.index}.before`));
+  if (!backup || sha256(backup) !== stateEntry.before) return { available: false, previous_source_sha: null, transaction: id };
+  try {
+    const previous = JSON.parse(backup.toString()) as Installed;
+    if (previous.schema !== 1 || !/^[a-f0-9]{40}$/.test(previous.source_sha)) return { available: false, previous_source_sha: null, transaction: id };
+    return { available: true, previous_source_sha: previous.source_sha, transaction: id };
+  } catch { return { available: false, previous_source_sha: null, transaction: id }; }
 }
 
 export async function installPackage(directory: string, options: InstallOptions, parseToml: (s: string) => any, adopt = false): Promise<{ source_sha: string; changed_files: number; transaction: string | null }> {

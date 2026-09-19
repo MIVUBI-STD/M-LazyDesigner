@@ -121,3 +121,18 @@ Fresh install continues to use no-overwrite TLS provisioning. Existing valid mac
 The explicit `setup-tls` maintenance command is the only path allowed to renew a complete but invalid/expired pair. It requires an installed managed state and is refused while a Gateway session or Runtime is active. Renewal keeps the previous pair in memory during replacement and restores its bytes if new provisioning fails.
 
 An incomplete one-file identity remains fail-closed and is never guessed or silently replaced.
+
+
+## Read-only rollback projection and progress events
+
+`status` exposes a read-only rollback projection derived from the current transaction journal:
+
+```text
+rollback.available
+rollback.previous_source_sha
+rollback.transaction
+```
+
+Rollback is reported available only when the current transaction is committed, contains a valid backed-up prior `installed.json`, and that backup identifies a valid previous source SHA. Version-directory presence alone never authorizes rollback.
+
+Maintenance commands accept optional `--progress-json`. When enabled, the manager emits newline-delimited JSON progress events to stderr while preserving the existing final JSON receipt on stdout. Stages are descriptive only; no fake percentage is emitted. Callers must continue to treat the final exit status and receipt as authoritative.

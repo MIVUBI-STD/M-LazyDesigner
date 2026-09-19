@@ -7,9 +7,9 @@ use std::{
     process::Command,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use crate::process::run_output;
+use crate::process::{run_output, run_output_with_stderr_lines};
 use sysinfo::System;
-use tauri::{path::BaseDirectory, Manager};
+use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,6 +43,9 @@ pub struct ManagedInstalled {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct ManagedRollback { pub available: bool, pub previous_source_sha: Option<String>, pub transaction: Option<String> }
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ManagedStatus {
     pub schema: u8,
     pub installed: Option<ManagedInstalled>,
@@ -51,11 +54,14 @@ pub struct ManagedStatus {
     pub runtime_online: bool,
     pub tls_ready: bool,
     pub tls_error: Option<String>,
+    #[serde(default)]
+    pub rollback: Option<ManagedRollback>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct MaintenanceAvailability {
     pub update: bool,
+    pub rollback: bool,
     pub repair: bool,
     pub recover: bool,
     pub setup_tls: bool,
@@ -90,6 +96,8 @@ pub struct ManagedActionResult {
     pub action: String,
     pub receipt: Value,
 }
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ManagedProgressEvent { pub schema: u8, pub kind: String, pub action: String, pub stage: String }
 
 #[derive(Debug, Serialize)]
 pub struct ReadinessProjection {
@@ -596,6 +604,7 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
     if !manager_available {
         return MaintenanceAvailability {
             update: false,
+            rollback: false,
             repair: false,
             recover: false,
             setup_tls: false,
@@ -606,6 +615,7 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
     let Some(managed) = managed else {
         return MaintenanceAvailability {
             update: false,
+            rollback: false,
             repair: false,
             recover: false,
             setup_tls: false,
@@ -617,6 +627,7 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
     let tls_ready = managed.tls_ready;
     MaintenanceAvailability {
         update: true,
+        rollback: !busy && managed.rollback.as_ref().map(|value| value.available).unwrap_or(false),
         repair: !busy,
         recover: !busy,
         setup_tls: !busy && !tls_ready,
@@ -664,7 +675,7 @@ pub fn collect() -> SystemStatus {
     };
 
     if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let error = String::from_utf8_lossy(&output.stderr).lines().filter(|line| serde_json::from_str::<ManagedProgressEvent>(line).is_err()).collect::<Vec<_>>().join("\n").trim().to_string();
         return compose_status(
             blockbench,
             true,
@@ -740,7 +751,7 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
     )?;
 
     if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let error = String::from_utf8_lossy(&output.stderr).lines().filter(|line| serde_json::from_str::<ManagedProgressEvent>(line).is_err()).collect::<Vec<_>>().join("\n").trim().to_string();
         return Err(if error.is_empty() {
             "LazyDesigner bootstrap installation failed.".to_string()
         } else {
@@ -756,8 +767,8 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
     })
 }
 
-pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
-    if !matches!(action, "update" | "recover" | "repair" | "setup-tls") {
+pub fn run_managed_action(app: &AppHandle, action: &str) -> Result<ManagedActionResult, String> {
+    if !matches!(action, "update" | "rollback" | "recover" | "repair" | "setup-tls") {
         return Err("Unsupported LazyDesigner desktop action.".to_string());
     }
 
@@ -767,20 +778,22 @@ pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
 
     let timeout = match action {
         "setup-tls" => Duration::from_secs(60),
-        "update" | "recover" | "repair" => Duration::from_secs(300),
+        "update" | "rollback" | "recover" | "repair" => Duration::from_secs(300),
         _ => Duration::from_secs(60),
     };
-    let output = run_output(
-        Command::new(&executable)
-            .arg(action)
-            .arg("--root")
-            .arg(&root),
+    let output = run_output_with_stderr_lines(
+        Command::new(&executable).arg(action).arg("--root").arg(&root).arg("--progress-json"),
         timeout,
         &format!("Managed {action}"),
+        |line| {
+            if let Ok(event) = serde_json::from_str::<ManagedProgressEvent>(line) {
+                if event.schema == 1 && event.kind == "progress" && event.action == action { let _ = app.emit("managed-progress", event); }
+            }
+        },
     )?;
 
     if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let error = String::from_utf8_lossy(&output.stderr).lines().filter(|line| serde_json::from_str::<ManagedProgressEvent>(line).is_err()).collect::<Vec<_>>().join("\n").trim().to_string();
         return Err(if error.is_empty() {
             format!("Managed {action} failed.")
         } else {
@@ -848,6 +861,7 @@ mod tests {
             runtime_online: true,
             tls_ready: true,
             tls_error: None,
+            rollback: None,
         };
         let result = project_gateway(Some(&managed), true);
         assert_eq!(result.ownership, "client-owned");
@@ -866,6 +880,7 @@ mod tests {
             runtime_online: true,
             tls_ready: true,
             tls_error: None,
+            rollback: None,
         };
         let gateway = project_gateway(Some(&healthy), true);
         let ready = project_readiness(true, Some(&healthy), true, &gateway);
@@ -885,6 +900,7 @@ mod tests {
             runtime_online: true,
             tls_ready: true,
             tls_error: None,
+            rollback: None,
         };
         let disconnected_gateway = project_gateway(Some(&disconnected), true);
         let connection = project_readiness(true, Some(&disconnected), true, &disconnected_gateway);
@@ -906,9 +922,11 @@ mod tests {
             runtime_online: false,
             tls_ready: true,
             tls_error: None,
+            rollback: None,
         };
         let ready = project_maintenance(true, Some(&idle));
         assert!(ready.update && ready.repair && ready.recover);
+        assert!(!ready.rollback);
         assert!(!ready.setup_tls);
 
         let busy = ManagedStatus {
@@ -919,6 +937,7 @@ mod tests {
             runtime_online: false,
             tls_ready: false,
             tls_error: Some("missing identity".to_string()),
+            rollback: None,
         };
         let blocked = project_maintenance(true, Some(&busy));
         assert!(blocked.update);
@@ -942,6 +961,7 @@ mod tls_projection_tests {
             runtime_online: false,
             tls_ready: false,
             tls_error: Some("missing".to_string()),
+            rollback: None,
         };
         let availability = project_maintenance(true, Some(&missing));
         assert!(availability.setup_tls);

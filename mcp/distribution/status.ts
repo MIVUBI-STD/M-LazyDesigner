@@ -1,4 +1,4 @@
-import { activeGateways, installedState, readOptional } from "./managed-install";
+import { activeGateways, installedState, readOptional, rollbackStatus } from "./managed-install";
 
 export type ManagedStatus = {
   schema: 1;
@@ -8,6 +8,7 @@ export type ManagedStatus = {
   runtime_online: boolean;
   tls_ready: boolean;
   tls_error: string | null;
+  rollback: Awaited<ReturnType<typeof rollbackStatus>>;
 };
 
 export async function buildManagedStatus(
@@ -17,20 +18,12 @@ export async function buildManagedStatus(
   tlsStatus: () => { ready: boolean; error: string | null }
 ): Promise<ManagedStatus> {
   const installed = await installedState(root);
-  const [pending, gatewayActive, runtimeReachable] = await Promise.all([
+  const [pending, gatewayActive, runtimeReachable, rollback] = await Promise.all([
     readOptional(pendingPath).then(Boolean),
     activeGateways(root),
     runtimeOnline(installed?.options.config),
+    rollbackStatus(root),
   ]);
-
   const tls = tlsStatus();
-  return {
-    schema: 1,
-    installed,
-    pending,
-    gateway_active: gatewayActive,
-    runtime_online: runtimeReachable,
-    tls_ready: tls.ready,
-    tls_error: tls.error,
-  };
+  return { schema: 1, installed, pending, gateway_active: gatewayActive, runtime_online: runtimeReachable, tls_ready: tls.ready, tls_error: tls.error, rollback };
 }

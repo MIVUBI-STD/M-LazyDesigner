@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
 test("installation identity survives native Windows path virtualization", async () => {
@@ -87,6 +87,16 @@ test("update and rollback switch the complete managed package, never user assets
   assert.equal((await installedState(o.root))?.source_sha, "a".repeat(40));
   assert.deepEqual(await readFile(o.config), config); assert.deepEqual(await readFile(o.plugin), plugin);
   assert.equal((await readFile(join(o.workspace, "art.png"))).toString(), "USER ART");
+}));
+
+test("rollback status exposes only a committed previous managed version", async () => sandbox(async (d, o) => {
+  const a = join(d, "a"), b = join(d, "b"); await fixture(a); await fixture(b, "b");
+  assert.deepEqual(await rollbackStatus(o.root), { available: false, previous_source_sha: null, transaction: null });
+  await installPackage(a, o, parse); assert.equal((await rollbackStatus(o.root)).available, false);
+  await installPackage(b, o, parse);
+  const available = await rollbackStatus(o.root);
+  assert.equal(available.available, true); assert.equal(available.previous_source_sha, "a".repeat(40));
+  await recoverInstallation(o.root, true); assert.equal((await rollbackStatus(o.root)).available, false);
 }));
 
 test("user-modified managed skills block overwrite unless explicitly adopted", async () => sandbox(async (d, o) => {
@@ -186,6 +196,7 @@ test("managed status exposes one desktop-ready machine health contract", async (
     runtime_online: false,
     tls_ready: false,
     tls_error: "missing test identity",
+    rollback: { available: false, previous_source_sha: null, transaction: null },
   });
   assert.equal(observedConfig, undefined);
 }));

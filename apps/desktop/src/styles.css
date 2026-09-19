@@ -50,3 +50,7 @@ article strong.bad { color:#e49aa4; }
 .operation-row code { color:#89d9ad; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
 .operation-row code.operation-failed { color:#e49aa4; }
 @media (max-width:720px) { .operation-row { grid-template-columns:1fr; gap:4px; } .operations-heading { flex-direction:column; } }
+
+.progress-notice { display:grid; gap:5px; border-color:#3b4650; }
+.progress-notice strong { color:#d7dadd; font-size:12px; }
+.progress-notice span { color:#9fb1bf; font-size:11px; }

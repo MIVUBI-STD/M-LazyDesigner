@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api/core';
-  import { onMount } from 'svelte';
+  import { listen } from '@tauri-apps/api/event';
+  import { onDestroy, onMount } from 'svelte';
 
   type Compatibility = {
     status: 'validated' | 'compatible-unverified' | 'review-required' | 'unsupported' | 'invalid';
@@ -25,10 +26,12 @@
     runtime_online: boolean;
     tls_ready: boolean;
     tls_error: string | null;
+    rollback?: { available: boolean; previous_source_sha: string | null; transaction: string | null };
   };
 
   type MaintenanceAvailability = {
     update: boolean;
+    rollback: boolean;
     repair: boolean;
     recover: boolean;
     setup_tls: boolean;
@@ -74,7 +77,7 @@
   };
 
   type ManagedActionResult = {
-    action: 'update' | 'recover' | 'repair' | 'setup-tls';
+    action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls';
     receipt: Record<string, unknown>;
   };
 
@@ -92,8 +95,13 @@
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
+  let busyAction: 'install' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
   let actionMessage = '';
+  let progressStage = '';
+  let stopProgressListener: (() => void) | null = null;
+
+  type ManagedProgress = { schema: number; kind: 'progress'; action: string; stage: string };
+  const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 
   type OperationRecord = {
     action: string;
@@ -208,30 +216,37 @@
     }
   }
 
-  async function runManagedAction(action: 'update' | 'recover' | 'repair' | 'setup-tls') {
+  async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
     if (!status?.manager_available || busyAction) return;
     busyAction = action;
+    progressStage = 'preflight';
     error = '';
     actionMessage = '';
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      const actionLabel = action === 'update' ? 'Update managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
+      const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Rollback managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
       actionMessage = `${actionLabel}: ${receiptStatus}`;
       recordOperation(actionLabel, 'success', receiptStatus);
       await refresh();
     } catch (cause) {
-      const actionLabel = action === 'update' ? 'Update managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
+      const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Rollback managed components' : action === 'repair' ? 'Repair installation' : action === 'setup-tls' ? 'Setup Runtime Security' : 'Recover interrupted install';
       recordOperation(actionLabel, 'failed', errorCode(cause));
       error = errorMessage(cause);
     } finally {
       busyAction = null;
+      progressStage = '';
     }
   }
 
   onMount(() => {
     void refresh();
+    void listen<ManagedProgress>('managed-progress', event => {
+      if (busyAction && event.payload.action === busyAction) progressStage = event.payload.stage;
+    }).then(unlisten => { stopProgressListener = unlisten; });
   });
+
+  onDestroy(() => { stopProgressListener?.(); });
 
   const onlineLabel = (value: boolean | undefined) => value === undefined ? 'Unknown' : value ? 'Online' : 'Offline';
   const updateStateLabel = (managed: ManagedStatus | null) => managed === null ? 'Unknown' : managed.pending ? 'Pending activation' : 'Stable';
@@ -306,6 +321,14 @@
         <span>Managed Installation</span>
         <strong class:ok={status.manager_available}>{status.manager_available ? 'Available' : 'Not installed'}</strong>
         <small>{status.managed?.installed?.source_sha?.slice(0, 12) ?? 'No active source identity'}</small>
+      </article>
+
+      <article>
+        <span>Rollback</span>
+        <strong class:ok={status.managed?.rollback?.available === true} class:warn={status.manager_available && status.managed?.rollback?.available !== true}>
+          {status.managed?.rollback?.available ? 'Previous version available' : 'No previous version'}
+        </strong>
+        <small>{status.managed?.rollback?.previous_source_sha ? `Previous source ${status.managed.rollback.previous_source_sha.slice(0, 12)}` : 'Only a verified committed version transition is rollback-eligible.'}</small>
       </article>
 
       <article>
@@ -410,6 +433,14 @@
         {/if}
         <button
           class="secondary"
+          onclick={() => runManagedAction('rollback')}
+          disabled={!status.maintenance.rollback || busyAction !== null}
+          title={status.maintenance.rollback ? 'Restore the previous committed managed version.' : status.maintenance.blocked_reason ?? 'No rollback-eligible previous version.'}
+        >
+          {busyAction === 'rollback' ? 'Rolling back…' : 'Rollback managed components'}
+        </button>
+        <button
+          class="secondary"
           onclick={() => runManagedAction('repair')}
           disabled={!status.maintenance.repair || busyAction !== null}
           title={status.maintenance.repair ? undefined : status.maintenance.blocked_reason ?? undefined}
@@ -438,6 +469,13 @@
       <section class="notice gateway-guidance">
         <strong>Gateway guidance</strong>
         <span>{status.gateway.action}</span>
+      </section>
+    {/if}
+
+    {#if busyAction && progressStage}
+      <section class="notice progress-notice">
+        <strong>Operation in progress</strong>
+        <span>{progressLabel(progressStage)}</span>
       </section>
     {/if}
 
