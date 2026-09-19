@@ -164,25 +164,35 @@ fn managed_root() -> Option<PathBuf> {
 
 fn blockbench_user_data_dir() -> Result<PathBuf, String> {
     let script = r#"
-$process = Get-CimInstance Win32_Process -Filter "Name='Blockbench.exe'" -ErrorAction SilentlyContinue |
-  Where-Object {
-    $_.ExecutablePath -and
-    (Test-Path -LiteralPath $_.ExecutablePath -PathType Leaf) -and
-    ((Get-Item -LiteralPath $_.ExecutablePath).VersionInfo.ProductName -eq 'Blockbench')
-  } |
-  Select-Object -First 1
-if ($process) {
+if (!$env:APPDATA) { exit 2 }
+$defaultPath = [IO.Path]::GetFullPath((Join-Path $env:APPDATA 'Blockbench'))
+$processes = @(
+  Get-CimInstance Win32_Process -Filter "Name='Blockbench.exe'" -ErrorAction SilentlyContinue |
+    Where-Object {
+      $_.ExecutablePath -and
+      (Test-Path -LiteralPath $_.ExecutablePath -PathType Leaf) -and
+      ((Get-Item -LiteralPath $_.ExecutablePath).VersionInfo.ProductName -eq 'Blockbench')
+    }
+)
+$paths = @()
+foreach ($process in $processes) {
   if (!$process.CommandLine) { exit 3 }
   $match = [regex]::Match([string]$process.CommandLine, '(?i)(?:^|\s)--userData\s+(?:"([^"]+)"|(\S+))')
   if ($match.Success) {
     $value = if ($match.Groups[1].Success) { $match.Groups[1].Value } else { $match.Groups[2].Value }
     if (![IO.Path]::IsPathRooted($value)) { exit 4 }
-    [Console]::Out.WriteLine([IO.Path]::GetFullPath($value))
-    exit 0
+    $paths += [IO.Path]::GetFullPath($value)
+  } else {
+    $paths += $defaultPath
   }
 }
-if (!$env:APPDATA) { exit 2 }
-[Console]::Out.WriteLine((Join-Path $env:APPDATA 'Blockbench'))
+$distinct = @($paths | Sort-Object -Unique)
+if ($distinct.Count -gt 1) { exit 5 }
+if ($distinct.Count -eq 1) {
+  [Console]::Out.WriteLine($distinct[0])
+  exit 0
+}
+[Console]::Out.WriteLine($defaultPath)
 "#;
 
     let output = run_output(
@@ -196,6 +206,7 @@ if (!$env:APPDATA) { exit 2 }
         return Err(match output.status.code() {
             Some(3) => "Blockbench is running but its command line is unavailable; close Blockbench or run Desktop with sufficient access before first installation.".to_string(),
             Some(4) => "Blockbench --userData must be an absolute path for managed plugin installation.".to_string(),
+            Some(5) => "Multiple running Blockbench processes use different userData profiles; close the extra Blockbench window before setup.".to_string(),
             _ => "Blockbench userData could not be resolved.".to_string(),
         });
     }
@@ -1067,6 +1078,11 @@ mod tests {
     fn managed_plugin_filename_is_stable() {
         let path = Path::new("C:/Users/test/AppData/Roaming/Blockbench/plugins/blockit_mcp.js");
         assert_eq!(path.file_name().and_then(|name| name.to_str()), Some("blockit_mcp.js"));
+    }
+
+    #[test]
+    fn managed_plugin_integrity_is_fail_closed_for_missing_installation() {
+        assert_eq!(managed_plugin_integrity(Path::new("Z:/definitely-missing-lazydesigner-root")), "unknown");
     }
 
     #[test]

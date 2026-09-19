@@ -2,6 +2,7 @@
 
 mod desktop_error;
 mod diagnostics;
+mod operation_log;
 mod process;
 mod system_status;
 
@@ -23,26 +24,31 @@ fn connection_status() -> ConnectionStatus {
 
 #[tauri::command]
 fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError> {
-    system_status::ensure_ready(&app)
-        .map_err(|message| DesktopError::recoverable("ENSURE_READY_FAILED", message))
+    let result = system_status::ensure_ready(&app);
+    operation_log::record("ensure_ready", if result.is_ok() { "ok" } else { "error" });
+    result.map_err(|message| DesktopError::recoverable("ENSURE_READY_FAILED", message))
 }
 
 #[tauri::command]
 fn managed_action(app: tauri::AppHandle, action: String) -> Result<ManagedActionResult, DesktopError> {
-    system_status::run_managed_action(&app, &action)
-        .map_err(|message| DesktopError::recoverable("MANAGED_ACTION_FAILED", message))
+    let event = format!("managed:{}", action);
+    let result = system_status::run_managed_action(&app, &action);
+    operation_log::record(&event, if result.is_ok() { "ok" } else { "error" });
+    result.map_err(|message| DesktopError::recoverable("MANAGED_ACTION_FAILED", message))
 }
 
 #[tauri::command]
 fn open_blockbench() -> Result<BlockbenchActionResult, DesktopError> {
-    system_status::open_blockbench()
-        .map_err(|message| DesktopError::recoverable("BLOCKBENCH_OPEN_FAILED", message))
+    let result = system_status::open_blockbench();
+    operation_log::record("open_blockbench", if result.is_ok() { "ok" } else { "error" });
+    result.map_err(|message| DesktopError::recoverable("BLOCKBENCH_OPEN_FAILED", message))
 }
 
 #[tauri::command]
 fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, DesktopError> {
-    system_status::bootstrap_install(&app)
-        .map_err(|message| DesktopError::recoverable("BOOTSTRAP_INSTALL_FAILED", message))
+    let result = system_status::bootstrap_install(&app);
+    operation_log::record("bootstrap_install", if result.is_ok() { "ok" } else { "error" });
+    result.map_err(|message| DesktopError::recoverable("BOOTSTRAP_INSTALL_FAILED", message))
 }
 
 #[tauri::command]

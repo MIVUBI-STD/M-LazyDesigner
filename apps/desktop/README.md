@@ -8,7 +8,8 @@ This directory owns the desktop **machine control plane** only.
 - discover the existing LazyDesigner managed installation;
 - invoke the canonical managed `blockit.exe status` contract;
 - present Gateway/Runtime/update health;
-- later supervise explicit user-requested lifecycle actions.
+- supervise bounded user-requested lifecycle actions and safe self-healing;
+- keep lightweight Runtime/Blockbench connection readiness current while Desktop is active.
 
 ## Explicit non-ownership
 
@@ -21,7 +22,7 @@ Desktop does **not** own:
 
 Those remain owned by the existing Runtime/Gateway/Managed Distribution layers.
 
-The first source surface is intentionally read-only. It does not poll releases in the background and does not kill Blockbench/Gateway processes.
+Desktop does not poll releases in the background and never kills Blockbench/Gateway processes. Safe self-healing is limited to restoring owned managed files while Blockbench/Runtime/Gateway are idle.
 
 
 ## Explicit maintenance actions
@@ -307,3 +308,76 @@ trusted draft     → desktop-vMAJOR.MINOR.PATCH
 ```
 
 An unsigned development artifact therefore cannot reserve or masquerade as the final trusted release tag.
+
+
+## Workstation automation and first-run policy
+
+Normal operation is intent-driven rather than launch-driven:
+
+```text
+Desktop opens
+→ health/readiness observation only
+→ safe repair may restore a missing owned plugin while Blockbench is closed
+→ Desktop does not launch Blockbench automatically
+
+user chooses Set up / Prepare Blockbench / Open
+→ backend ensure_ready owns orchestration
+→ repair missing owned plugin when safe
+→ launch Blockbench if needed
+→ wait for Runtime
+→ report READY / RUNTIME_READY / APPROVAL_REQUIRED / NEEDS_ATTENTION
+```
+
+The first native local-plugin trust decision remains Blockbench-owned. Desktop may conclude that one-time approval is likely only when Blockbench is running, the managed plugin file is integrity-valid, and Runtime remains unavailable after the bounded readiness grace period. Timeout alone is not treated as proof of approval state.
+
+Frontend development builds support deterministic UI state fixtures through:
+
+```text
+?fixture=ready
+?fixture=fresh-install
+?fixture=approval-required
+?fixture=plugin-missing
+?fixture=plugin-modified
+?fixture=runtime-offline
+?fixture=client-wait
+?fixture=unsupported
+?fixture=repair-blocked
+```
+
+Fixtures are a development-only presentation overlay. They do not alter machine state and are disabled from connection watching while active.
+
+## Blockbench profile ambiguity
+
+A running Blockbench process without `--userData` resolves to the normal Windows Blockbench userData directory. A running process with an absolute `--userData` resolves to that profile.
+
+When multiple Blockbench processes are running, Desktop accepts setup only when all observed processes resolve to the same userData directory. Different simultaneous profiles are fail-closed because there is no safe single plugin destination. Desktop asks the user to close the extra Blockbench profile instead of guessing.
+
+## Bounded local operation log
+
+Desktop writes a minimal best-effort machine log under its LocalAppData directory. Entries contain only:
+
+```text
+timestamp
+bounded action token
+ok | error
+```
+
+The active file is capped at 512 KiB and rotates to one previous file. It does not record project content, file paths, environment values, command output, TLS material, Codex configuration, or arbitrary error prose. Diagnostic export does not automatically attach this log.
+
+This log is operational evidence only. Managed Distribution receipts remain authoritative for install/update/repair transitions.
+
+## Uninstall and ownership contract
+
+Desktop uninstall and LazyDesigner integration cleanup are separate ownership decisions.
+
+Current safety contract:
+
+- NSIS uninstall removes the Desktop application itself.
+- It must not silently delete the user's BlockIT workspace or authored assets.
+- Managed Distribution remains owner of managed Gateway/Runtime/Skill files and transaction state.
+- The Blockbench plugin is managed content and must not be removed by blindly deleting the entire Blockbench plugin directory.
+- Desktop must not edit Blockbench Local Storage/LevelDB to revoke plugin trust.
+- A future explicit **Remove LazyDesigner integration** action may delete only files proven owned by the current managed installation, after Runtime/Gateway are idle, while preserving user workspace by default.
+- Until that explicit cleanup contract exists, uninstall is conservative rather than destructive.
+
+Do not add uninstall cleanup directly to NSIS before the manager exposes a bounded ownership-aware removal command.

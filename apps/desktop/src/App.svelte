@@ -196,6 +196,7 @@
     error = '';
     try {
       status = await invoke<SystemStatus>('system_status');
+      if (status && devFixture) status = applyDevFixture(status, devFixture);
     } catch (cause) {
       error = errorMessage(cause);
     } finally {
@@ -348,6 +349,13 @@
       if (!document.hidden) void watchSystemStatus();
     };
     const onFocus = () => { void watchSystemStatus(); };
+    devFixture = devFixtureFromLocation();
+    if (devFixture === 'approval-required') {
+      pluginApprovalNeeded = true;
+      readinessReason = 'RUNTIME_TIMEOUT_WITH_HEALTHY_PLUGIN';
+    } else if (devFixture === 'plugin-missing') {
+      readinessReason = 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING';
+    }
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('focus', onFocus);
@@ -386,6 +394,45 @@
   };
 
   type ProductMode = 'welcome' | 'security-setup' | 'unsupported' | 'ready-start' | 'plugin-setup' | 'client-wait' | 'ready' | 'attention';
+
+  type DevFixture = 'ready' | 'fresh-install' | 'approval-required' | 'plugin-missing' | 'plugin-modified' | 'runtime-offline' | 'client-wait' | 'unsupported' | 'repair-blocked';
+  let devFixture: DevFixture | null = null;
+
+  function applyDevFixture(base: SystemStatus, fixture: DevFixture): SystemStatus {
+    const next = structuredClone(base);
+    next.manager_available = fixture !== 'fresh-install';
+    next.bootstrap_available = true;
+    next.plugin_integrity = fixture === 'plugin-missing' ? 'missing' : fixture === 'plugin-modified' ? 'modified' : 'ready';
+    next.blockbench.running = !['fresh-install'].includes(fixture);
+    if (fixture === 'unsupported' && next.blockbench.compatibility) next.blockbench.compatibility.status = 'unsupported';
+    if (next.managed) {
+      next.managed.runtime_online = ['ready', 'client-wait'].includes(fixture);
+      next.managed.gateway_active = fixture === 'ready';
+      if (fixture === 'repair-blocked') {
+        next.managed.runtime_online = true;
+        next.managed.gateway_active = true;
+      }
+    }
+    next.gateway.state = fixture === 'ready' ? 'healthy'
+      : fixture === 'client-wait' ? 'client-disconnected'
+      : fixture === 'runtime-offline' || fixture === 'approval-required' ? 'runtime-offline'
+      : 'idle';
+    next.readiness.ready = fixture === 'ready';
+    next.readiness.state = fixture === 'ready' ? 'ready'
+      : fixture === 'fresh-install' ? 'setup-required'
+      : fixture === 'client-wait' || fixture === 'runtime-offline' || fixture === 'approval-required' ? 'needs-connection'
+      : 'needs-attention';
+    next.maintenance.repair = fixture !== 'repair-blocked';
+    if (fixture === 'repair-blocked') next.maintenance.blocked_reason = 'Runtime or Gateway is active.';
+    return next;
+  }
+
+  function devFixtureFromLocation(): DevFixture | null {
+    if (!import.meta.env.DEV) return null;
+    const value = new URLSearchParams(window.location.search).get('fixture');
+    const allowed: DevFixture[] = ['ready','fresh-install','approval-required','plugin-missing','plugin-modified','runtime-offline','client-wait','unsupported','repair-blocked'];
+    return allowed.includes(value as DevFixture) ? value as DevFixture : null;
+  }
 
   function productMode(value: SystemStatus): ProductMode {
     if (!value.manager_available) return 'welcome';
@@ -481,6 +528,7 @@
       <header class="page-toolbar">
         <h1>{page}</h1>
         <div class="toolbar-actions">
+          {#if devFixture}<span class="fixture-badge">Fixture · {devFixture}</span>{/if}
           {#if page === 'Overview'}
             <details class="more-menu" bind:open={utilityMenuOpen}>
               <summary aria-label="More actions" aria-haspopup="menu" aria-expanded={utilityMenuOpen}>•••</summary>
@@ -725,7 +773,7 @@
   .skip-link{position:fixed;z-index:1000;top:8px;left:8px;transform:translateY(-150%);padding:8px 10px;border:1px solid var(--accent);border-radius:7px;background:var(--surface);color:var(--text);font-weight:700;text-decoration:none}.skip-link:focus{transform:translateY(0)}
   .desktop-shell{display:grid;grid-template-columns:168px minmax(0,1fr);width:100%;height:100vh;background:var(--bg)}
   .navigation{display:flex;flex-direction:column;padding:12px 9px;border-right:1px solid var(--border-soft);background:#0f1113}.navigation-brand{display:flex;align-items:center;gap:9px;padding:7px 8px 18px}.navigation-brand strong{font-size:12px;font-weight:700;letter-spacing:-.01em}.brand-mark{width:10px;height:10px;border-radius:3px;background:var(--accent)}.global-nav{display:grid;gap:2px}.global-nav button,.support-nav{min-height:36px;display:flex;align-items:center;gap:9px;padding:0 9px;border-radius:7px;background:transparent;color:var(--muted);font-size:11px;font-weight:600;text-align:left;cursor:pointer}.global-nav button:hover,.support-nav:hover{background:var(--surface);color:var(--text-soft)}.global-nav button.active,.support-nav.active{background:var(--surface);color:var(--text)}.nav-icon{width:17px;height:17px;display:grid;place-items:center}.nav-icon :global(svg){width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.navigation-spacer{flex:1}
-  .main-view{min-width:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}.page-toolbar{min-height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border-soft);background:var(--bg)}.page-toolbar h1{margin:0;font-size:16px;font-weight:680;letter-spacing:-.015em}.toolbar-actions{display:flex;align-items:center;gap:6px}.page-content{flex:1;min-height:0;overflow:auto;padding:24px 28px 44px}.settings-content{max-width:980px}
+  .main-view{min-width:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}.page-toolbar{min-height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border-soft);background:var(--bg)}.page-toolbar h1{margin:0;font-size:16px;font-weight:680;letter-spacing:-.015em}.toolbar-actions{display:flex;align-items:center;gap:6px}.fixture-badge{padding:3px 6px;border:1px solid var(--border);border-radius:5px;color:var(--muted-2);font-size:8px}.page-content{flex:1;min-height:0;overflow:auto;padding:24px 28px 44px}.settings-content{max-width:980px}
   .more-menu{position:relative}.more-menu summary{width:30px;height:30px;display:grid;place-items:center;list-style:none;border-radius:6px;color:var(--muted);cursor:pointer}.more-menu summary:hover,.more-menu[open] summary{background:var(--surface-2);color:var(--text)}.more-menu summary::-webkit-details-marker{display:none}.menu-popover{position:absolute;z-index:20;right:0;top:34px;width:168px;display:grid;padding:5px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}.menu-popover button:hover:not(:disabled){background:var(--surface-3)}
   .primary-button,.secondary-button,.icon-button{min-height:32px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}.primary-button,.secondary-button{padding:6px 11px}.primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}.primary-button:hover:not(:disabled){background:var(--accent-hover)}.secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text-soft)}.secondary-button:hover:not(:disabled){background:var(--surface-3);color:var(--text)}.icon-button{width:32px;border:1px solid transparent;background:transparent;color:var(--muted)}.icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}.small-button{min-height:28px;padding:4px 9px;font-size:9px}
   .content-section{margin-bottom:34px}.section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}.section-heading h2{margin:0;font-size:12px;font-weight:700}.section-heading p{margin:2px 0 0;color:var(--muted-2);font-size:9px}.resource-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}.resource-row{min-height:74px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 12px 12px 14px}.app-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text-soft)}.app-icon :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.resource-main{min-width:0}.resource-title{font-size:11px;font-weight:700}.resource-meta{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--muted);font-size:9px}.meta-separator{color:var(--muted-2)}.status-good{color:#9ee8b9!important}.status-warning{color:#f6d97c!important}.resource-actions{display:flex;align-items:center;gap:5px}

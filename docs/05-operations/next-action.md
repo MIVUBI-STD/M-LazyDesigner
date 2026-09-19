@@ -142,7 +142,7 @@ draft Desktop release/version contract
 
 The Desktop version remains `0.1.0` across package/Cargo/Tauri until an intentional release bump. `Update managed components` is not Desktop self-update. A future self-update mechanism requires a separate signed update-channel decision and is not current residue.
 
-No further Desktop feature expansion is recommended before local/native acceptance exposes a concrete gap.
+Desktop pre-local preparation now also covers one-click readiness orchestration, bounded self-healing, lightweight connection watching, explicit readiness outcomes, development-only UI state fixtures, multi-profile Blockbench userData fail-closed handling, and a bounded local operation log. Do not add further Desktop product features before local/native acceptance exposes a concrete gap.
 
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 
