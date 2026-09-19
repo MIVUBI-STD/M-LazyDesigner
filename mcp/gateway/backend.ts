@@ -74,6 +74,10 @@ export type GatewayRuntimeStatus = {
     failed: number;
     timed_out: number;
     rejected_busy: number;
+    last_queue_wait_ms: number | null;
+    max_queue_wait_ms: number;
+    last_duration_ms: number | null;
+    max_duration_ms: number;
   };
   last_error: string | null;
 };
@@ -185,6 +189,10 @@ export class BlockitRuntimeBackend {
   private failedOperations = 0;
   private timedOutOperations = 0;
   private rejectedBusyOperations = 0;
+  private lastQueueWaitMs: number | null = null;
+  private maxQueueWaitMs = 0;
+  private lastOperationDurationMs: number | null = null;
+  private maxOperationDurationMs = 0;
   private lastError: string | null = null;
 
   constructor(
@@ -234,6 +242,10 @@ export class BlockitRuntimeBackend {
       failed: this.failedOperations,
       timed_out: this.timedOutOperations,
       rejected_busy: this.rejectedBusyOperations,
+      last_queue_wait_ms: this.lastQueueWaitMs,
+      max_queue_wait_ms: this.maxQueueWaitMs,
+      last_duration_ms: this.lastOperationDurationMs,
+      max_duration_ms: this.maxOperationDurationMs,
     };
   }
 
@@ -250,9 +262,14 @@ export class BlockitRuntimeBackend {
       );
     }
 
+    const enqueuedAt = Date.now();
     this.pendingOperations += 1;
 
     const execute = async (): Promise<T> => {
+      const startedAt = Date.now();
+      const queueWaitMs = Math.max(0, startedAt - enqueuedAt);
+      this.lastQueueWaitMs = queueWaitMs;
+      this.maxQueueWaitMs = Math.max(this.maxQueueWaitMs, queueWaitMs);
       this.activeOperations = 1;
       try {
         const result = await operation();
@@ -268,6 +285,12 @@ export class BlockitRuntimeBackend {
         }
         throw error;
       } finally {
+        const durationMs = Math.max(0, Date.now() - startedAt);
+        this.lastOperationDurationMs = durationMs;
+        this.maxOperationDurationMs = Math.max(
+          this.maxOperationDurationMs,
+          durationMs
+        );
         this.activeOperations = 0;
         this.pendingOperations = Math.max(0, this.pendingOperations - 1);
       }

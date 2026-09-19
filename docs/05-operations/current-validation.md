@@ -62,6 +62,7 @@ bounded reconnect backoff
 Runtime signature/catalog invalidation
 catalog fast-path for discovery
 serialized Runtime mutations
+bounded queue-wait / operation-duration observability through Gateway status
 fail-closed project affinity
 phase affinity
 structured recovery semantics

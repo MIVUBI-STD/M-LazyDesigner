@@ -44,6 +44,10 @@ describe("projectGatewayStatus", () => {
         failed: 0,
         timed_out: 0,
         rejected_busy: 0,
+        last_queue_wait_ms: 3,
+        max_queue_wait_ms: 8,
+        last_duration_ms: 12,
+        max_duration_ms: 24,
       },
       last_error: null,
     });
@@ -53,5 +57,7 @@ describe("projectGatewayStatus", () => {
     expect("health" in projected.runtime).toBe(false);
     expect("endpoint" in projected.runtime).toBe(false);
     expect("runtime_signature" in projected.runtime).toBe(false);
+    expect(projected.operations.last_queue_wait_ms).toBe(3);
+    expect(projected.operations.max_duration_ms).toBe(24);
   });
 });
