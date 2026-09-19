@@ -44,8 +44,14 @@
     gateway: GatewaySupervision;
     maintenance: MaintenanceAvailability;
     manager_available: boolean;
+    bootstrap_available: boolean;
     managed: ManagedStatus | null;
     diagnostic: string | null;
+  };
+
+  type BootstrapActionResult = {
+    action: 'install';
+    receipt: Record<string, unknown>;
   };
 
   type BlockbenchActionResult = {
@@ -60,7 +66,7 @@
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'update' | 'recover' | 'repair' | 'open-blockbench' | null = null;
+  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'open-blockbench' | null = null;
   let actionMessage = '';
 
   async function refresh() {
@@ -72,6 +78,23 @@
       error = cause instanceof Error ? cause.message : String(cause);
     } finally {
       loading = false;
+    }
+  }
+
+  async function installLazyDesigner() {
+    if (!status?.bootstrap_available || status.manager_available || busyAction) return;
+    busyAction = 'install';
+    error = '';
+    actionMessage = '';
+    try {
+      const result = await invoke<BootstrapActionResult>('bootstrap_install');
+      const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
+      actionMessage = `Install: ${receiptStatus}. Open Blockbench and complete the first plugin trust/load step if requested.`;
+      await refresh();
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : String(cause);
+    } finally {
+      busyAction = null;
     }
   }
 
@@ -203,6 +226,15 @@
         <p>Actions are explicit and delegated to the existing managed distribution.</p>
       </div>
       <div class="action-buttons">
+        {#if !status.manager_available}
+          <button
+            onclick={installLazyDesigner}
+            disabled={!status.bootstrap_available || busyAction !== null}
+            title={status.bootstrap_available ? undefined : 'This Desktop build does not contain a managed bootstrap package.'}
+          >
+            {busyAction === 'install' ? 'Installing…' : 'Install LazyDesigner'}
+          </button>
+        {/if}
         <button
           class="secondary"
           onclick={openBlockbench}

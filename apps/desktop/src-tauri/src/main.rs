@@ -2,11 +2,13 @@
 
 mod system_status;
 
-use system_status::{BlockbenchActionResult, ManagedActionResult, SystemStatus};
+use system_status::{BlockbenchActionResult, BootstrapActionResult, ManagedActionResult, SystemStatus};
 
 #[tauri::command]
-fn system_status() -> SystemStatus {
-    system_status::collect()
+fn system_status(app: tauri::AppHandle) -> SystemStatus {
+    let mut status = system_status::collect();
+    status.bootstrap_available = system_status::bootstrap_available(&app);
+    status
 }
 
 #[tauri::command]
@@ -19,9 +21,14 @@ fn open_blockbench() -> Result<BlockbenchActionResult, String> {
     system_status::open_blockbench()
 }
 
+#[tauri::command]
+fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, String> {
+    system_status::bootstrap_install(&app)
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![system_status, managed_action, open_blockbench])
+        .invoke_handler(tauri::generate_handler![system_status, managed_action, open_blockbench, bootstrap_install])
         .run(tauri::generate_context!())
         .expect("error while running LazyDesigner Desktop");
 }

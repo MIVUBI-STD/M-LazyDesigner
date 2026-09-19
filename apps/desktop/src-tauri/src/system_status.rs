@@ -7,6 +7,7 @@ use std::{
     process::Command,
 };
 use sysinfo::System;
+use tauri::{path::BaseDirectory, Manager};
 
 #[derive(Debug, Deserialize)]
 struct BlockbenchCompatibilityManifest {
@@ -68,6 +69,12 @@ pub struct BlockbenchActionResult {
 }
 
 #[derive(Debug, Serialize)]
+pub struct BootstrapActionResult {
+    pub action: &'static str,
+    pub receipt: Value,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ManagedActionResult {
     pub action: String,
     pub receipt: Value,
@@ -80,6 +87,7 @@ pub struct SystemStatus {
     pub gateway: GatewaySupervision,
     pub maintenance: MaintenanceAvailability,
     pub manager_available: bool,
+    pub bootstrap_available: bool,
     pub managed: Option<ManagedStatus>,
     pub diagnostic: Option<String>,
 }
@@ -411,6 +419,7 @@ pub fn collect() -> SystemStatus {
             maintenance: project_maintenance(false, None),
             blockbench,
             manager_available: false,
+            bootstrap_available: false,
             managed: None,
             diagnostic: Some("LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string()),
         };
@@ -425,6 +434,7 @@ pub fn collect() -> SystemStatus {
                 maintenance: project_maintenance(false, None),
                 blockbench,
                 manager_available: false,
+                bootstrap_available: false,
                 managed: None,
                 diagnostic: Some(message),
             }
@@ -445,6 +455,7 @@ pub fn collect() -> SystemStatus {
                 maintenance: project_maintenance(true, None),
                 blockbench,
                 manager_available: true,
+                bootstrap_available: false,
                 managed: None,
                 diagnostic: Some(format!("Unable to read managed status: {error}")),
             }
@@ -459,6 +470,7 @@ pub fn collect() -> SystemStatus {
             maintenance: project_maintenance(true, None),
             blockbench,
             manager_available: true,
+            bootstrap_available: false,
             managed: None,
             diagnostic: Some(if error.is_empty() {
                 "Managed status command failed.".to_string()
@@ -478,6 +490,7 @@ pub fn collect() -> SystemStatus {
                 maintenance,
                 blockbench,
                 manager_available: true,
+                bootstrap_available: false,
                 managed: Some(managed),
                 diagnostic: None,
             }
@@ -488,10 +501,74 @@ pub fn collect() -> SystemStatus {
             maintenance: project_maintenance(true, None),
             blockbench,
             manager_available: true,
+            bootstrap_available: false,
             managed: None,
             diagnostic: Some("Managed status returned invalid JSON.".to_string()),
         },
     }
+}
+
+
+pub fn bootstrap_resource(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let manager = app
+        .path()
+        .resolve("resources/managed/blockit.exe", BaseDirectory::Resource)
+        .map_err(|error| format!("Unable to resolve LazyDesigner bootstrap resource: {error}"))?;
+    if !manager.is_file() {
+        return Err("LazyDesigner installer does not contain a managed bootstrap package.".to_string());
+    }
+    let package = manager
+        .parent()
+        .ok_or_else(|| "LazyDesigner bootstrap package path is invalid.".to_string())?;
+    if !package.join("blockit-package.json").is_file() {
+        return Err("LazyDesigner bootstrap package manifest is missing.".to_string());
+    }
+    Ok(manager)
+}
+
+pub fn bootstrap_available(app: &tauri::AppHandle) -> bool {
+    bootstrap_resource(app).is_ok()
+}
+
+pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult, String> {
+    if managed_root()
+        .and_then(|root| manager_executable(&root).ok())
+        .is_some()
+    {
+        return Err("LazyDesigner is already installed; use Update or Repair instead.".to_string());
+    }
+
+    let manager = bootstrap_resource(app)?;
+    let package = manager
+        .parent()
+        .ok_or_else(|| "LazyDesigner bootstrap package path is invalid.".to_string())?;
+    let root = managed_root()
+        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+
+    let output = Command::new(&manager)
+        .arg("install")
+        .arg("--root")
+        .arg(&root)
+        .arg("--package")
+        .arg(package)
+        .output()
+        .map_err(|error| format!("Unable to install LazyDesigner: {error}"))?;
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if error.is_empty() {
+            "LazyDesigner bootstrap installation failed.".to_string()
+        } else {
+            error
+        });
+    }
+
+    let receipt = serde_json::from_slice::<Value>(&output.stdout)
+        .map_err(|_| "LazyDesigner bootstrap returned invalid JSON.".to_string())?;
+    Ok(BootstrapActionResult {
+        action: "install",
+        receipt,
+    })
 }
 
 pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {

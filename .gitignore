@@ -52,3 +52,5 @@ workspace/**/mcp-data/cache/
 # LazyDesigner Desktop generated build/icon output
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/icons/
+
+apps/desktop/src-tauri/resources/managed/
