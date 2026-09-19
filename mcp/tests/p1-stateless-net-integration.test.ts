@@ -306,6 +306,31 @@ describe("P1.4 raw-net stateless integration", () => {
     expect(response).toContain("routing headers disagree");
   });
 
+  test("modern 2026 POST may return SSE when the client requests event-stream", async () => {
+    const response = await fetch(`${baseUrl}${ENDPOINT}`, {
+      method: "POST",
+      headers: {
+        accept: "text/event-stream",
+        "content-type": "application/json",
+        "mcp-protocol-version": "2026-07-28",
+        connection: "close",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 601,
+        method: "tools/list",
+        params: {},
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/event-stream");
+    const body = await response.text();
+    expect(body).toContain('"jsonrpc":"2.0"');
+    expect(body).toContain('"id":601');
+    expect(body).toContain('"tools"');
+  });
+
   test("modern 2026 client negotiates and calls tools on the same Runtime endpoint", async () => {
     const client = new Client(
       { name: "p1-modern-net-fixture", version: "1.0.0" },

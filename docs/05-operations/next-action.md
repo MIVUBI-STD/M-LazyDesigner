@@ -124,7 +124,7 @@ Animation → AUTHORING
 
 Only relax Geometry↔Texturing catalog invalidation after this proof. Do not optimize it by assumption.
 
-Transport ownership reduction is lower priority. Do not add a third transport path or expand the temporary legacy compatibility path.
+Modern Streamable HTTP transport is now allowed to forward SDK-owned JSON or SSE POST responses; legacy 2025 remains the bounded JSON-only compatibility shim. Continue conformance work from exact scored failures after this transport correction; do not add a third transport path.
 
 ## LIVE_BLOCKBENCH Residue
 

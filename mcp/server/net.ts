@@ -386,12 +386,12 @@ async function handleStatelessMcpRequest (
     })
 
     const contentType = webResponse.headers.get('content-type') || ''
-    if (contentType.includes('text/event-stream')) {
-      throw new Error(
-        'Unexpected SSE response in the request/response Runtime path.'
-      )
-    }
 
+    // MCP 2026 Streamable HTTP may represent a POST response as either JSON or
+    // text/event-stream according to the client's Accept header. The official
+    // modern SDK owns that choice. LazyDesigner buffers the finite response and
+    // forwards its exact content type; only the legacy compatibility leg is
+    // forced to JSON by handleLegacyJsonMcpRequest().
     if (!contentType && webResponse.status !== 204 && webResponse.status !== 202) {
       responseHeaders['content-type'] = 'application/json'
     }

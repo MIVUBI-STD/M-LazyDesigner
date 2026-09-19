@@ -18,6 +18,8 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(source).toContain("registerResourcesOnServer(requestServer)");
     expect(source).toContain("registerPromptsOnServer(requestServer)");
     expect(source).toContain("await requestServer.close()");
+    expect(source).not.toContain("Unexpected SSE response in the request/response Runtime path");
+    expect(source).toContain("MCP 2026 Streamable HTTP may represent a POST response as either JSON or");
 
     expect(source).not.toContain("mcp-session-id");
     expect(source).not.toContain("sessionManager");
