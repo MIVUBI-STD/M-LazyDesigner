@@ -807,8 +807,19 @@ export function registerTextureMaterialTools(): void {
           );
         }
         const [createdGroup] = createdGroups;
-  
-        return `Imported texture set from "${path}" as material "${createdGroup.name}" (uuid: ${createdGroup.uuid}).`;
+        const materialState = materialContinuationState(createdGroup);
+
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Imported texture set from "${path}" as material "${createdGroup.name}" (uuid: ${createdGroup.uuid}).`,
+          }],
+          structuredContent: {
+            operation: "import_texture_set" as const,
+            source_path: path,
+            material: materialState,
+          },
+        };
       },
     }, textureMaterialToolDocs[4].status);
   
