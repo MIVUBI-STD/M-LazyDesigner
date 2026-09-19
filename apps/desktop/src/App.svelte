@@ -819,12 +819,16 @@
                   <div class="project-row active-project-row">
                     <div class="project-main">
                       <div class="project-title">{activeNavigation.project_name ?? activeNavigation.model_name}</div>
-                      <div class="project-meta">{activeNavigation.saved ? activeNavigation.model_name : 'Not saved yet'}</div>
+                      {#if !activeNavigation.saved}
+                        <div class="project-meta">Not saved yet</div>
+                      {:else if activeNavigation.project_name && activeNavigation.project_name !== activeNavigation.model_name}
+                        <div class="project-meta">{activeNavigation.model_name}</div>
+                      {/if}
                     </div>
                     <div class="project-actions">
                       {#if activeNavigation.project_id}
                         <button class="secondary-button small-button" onclick={() => runProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busyAction !== null}>Open Folder</button>
-                        <button class="quiet-button" onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>See details</button>
+                        <button class="quiet-button" onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>{expandedProjectId === activeNavigation.project_id ? 'Hide details' : 'See details'}</button>
                       {/if}
                     </div>
                   </div>
@@ -841,7 +845,9 @@
                               {#if model.active}<span>Active</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
                             </div>
                             <div class="model-actions">
-                              <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>Open</button>
+                              {#if !model.active}
+                                <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>Open</button>
+                              {/if}
                               <details class="more-menu">
                                 <summary aria-label="Model actions">•••</summary>
                                 <div class="menu-popover" role="menu">
@@ -873,7 +879,7 @@
                       </div>
                       <div class="project-actions">
                         <button class="secondary-button small-button" onclick={() => runProjectAction('open-project-folder', project.id)} disabled={busyAction !== null}>Open Folder</button>
-                        <button class="quiet-button" onclick={() => toggleProjectDetails(project.id)}>See details</button>
+                        <button class="quiet-button" onclick={() => toggleProjectDetails(project.id)}>{expandedProjectId === project.id ? 'Hide details' : 'See details'}</button>
                       </div>
                     </div>
                     {#if expandedProjectId === project.id}
@@ -902,7 +908,7 @@
                   {/each}
                 </div>
                 {#if status.project_navigation.projects.filter(project => !project.active).length > 5}
-                  <button class="show-more-button" onclick={() => showAllProjects = !showAllProjects}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
+                  <button class="show-more-button" onclick={() => { showAllProjects = !showAllProjects; if (!showAllProjects) expandedProjectId = null; }}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
                 {/if}
               </section>
             {/if}
