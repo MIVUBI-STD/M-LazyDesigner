@@ -374,6 +374,41 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
+  test("complete imported material receipt avoids redundant focused read", () => {
+    const delta = buildControlDelta({
+      capability: "import_texture_set",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "import_texture_set",
+        source_path: "/rp/entity.texture_set.json",
+        material: {
+          uuid: "material-a",
+          name: "entity",
+          is_material: true,
+          channels: {
+            color: null,
+            normal: null,
+            height: null,
+            mer: null,
+          },
+          config: {
+            color_value: null,
+            mer_value: null,
+            subsurface_value: null,
+            saved: true,
+          },
+        },
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(delta.freshness.stale).toEqual(["TEXTURE_APPEARANCE", "MATERIAL_RENDER"]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
   test("complete animation-effects receipt is sufficient for continuation without reread", () => {
     const delta = buildControlDelta({
       capability: "manage_animation_effects",
