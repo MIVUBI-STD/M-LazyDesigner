@@ -14,7 +14,7 @@ describe("Desktop control-plane ownership", () => {
     ]);
 
     expect(rust).toContain('../../../../mcp/compatibility/blockbench.json');
-    expect(rust).toContain('"update" | "recover" | "repair" | "setup-tls"');
+    expect(rust).toContain('"update" | "rollback" | "recover" | "repair" | "setup-tls"');
     expect(rust).toContain('.arg("install")');
     expect(rust).toContain('"resources/managed/blockit.exe"');
     expect(rust).toContain('"--plugin-path"');
@@ -23,8 +23,8 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("Setup Runtime Security");
     expect(app).toContain("Update managed components");
     expect(app).toContain("tls_ready");
-    expect(app).toContain("'update' | 'recover' | 'repair'");
-    for (const command of ["update", "recover", "repair", "status", "mcp"]) {
+    expect(app).toContain("'update' | 'rollback' | 'recover' | 'repair'");
+    for (const command of ["update", "rollback", "recover", "repair", "status", "mcp"]) {
       expect(cli).toContain(command);
     }
 
