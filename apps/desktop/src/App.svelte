@@ -202,16 +202,22 @@
       && candidate.maintenance.repair
       && !candidate.blockbench.running
       && !autoRepairAttempted
+      && busyAction === null
     ) {
       autoRepairAttempted = true;
+      busyAction = 'repair';
       try {
         await invoke<ManagedActionResult>('managed_action', { action: 'repair' });
         recordOperation('Repair LazyDesigner', 'success', 'AUTO_REPAIR');
         const repaired = await invoke<SystemStatus>('system_status');
+        repaired.bootstrap_available = candidate.bootstrap_available;
         status = repaired;
+        if (repaired.plugin_integrity === 'ready') autoRepairAttempted = false;
         return repaired;
       } catch (cause) {
         recordOperation('Repair LazyDesigner', 'failed', errorCode(cause));
+      } finally {
+        busyAction = null;
       }
     }
     return candidate;
@@ -255,11 +261,13 @@
         ...status.gateway,
         state: candidate.gateway_active && candidate.runtime_online
           ? 'healthy'
-          : candidate.runtime_online
-            ? 'client-disconnected'
-            : candidate.blockbench_running
-              ? 'runtime-offline'
-              : 'idle',
+          : candidate.gateway_active
+            ? 'waiting-runtime'
+            : candidate.runtime_online
+              ? 'client-disconnected'
+              : candidate.blockbench_running
+                ? 'runtime-offline'
+                : 'idle',
       },
       readiness: {
         ...status.readiness,
@@ -269,6 +277,13 @@
           : !candidate.blockbench_running
             ? 'ready-to-start'
             : 'needs-connection',
+        summary: candidate.gateway_active && candidate.runtime_online
+          ? 'LazyDesigner is ready.'
+          : !candidate.blockbench_running
+            ? 'Open Blockbench to continue.'
+            : candidate.runtime_online
+              ? 'Blockbench is ready; waiting for an MCP client session.'
+              : 'Waiting for the LazyDesigner Runtime in Blockbench.',
       },
     };
   }
@@ -774,7 +789,7 @@
   </div>
 {/if}
 
-{#if error || actionMessage || (busyAction && progressStage)}
+{#if error || actionMessage || (busyAction && progressStage && busyAction !== 'repair')}
   <aside class:error={Boolean(error)} class:success={Boolean(actionMessage) && !error} class="operation-attention" aria-live={error ? 'assertive' : 'polite'}>
     <div class="attention-icon">{error ? '!' : actionMessage ? '✓' : '•'}</div>
     <div class="attention-copy"><strong>{error ? 'Something needs attention' : actionMessage ? 'Done' : 'Working'}</strong><span>{error || actionMessage || progressLabel(progressStage)}</span></div>
