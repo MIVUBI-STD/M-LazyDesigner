@@ -5,7 +5,9 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
+    time::Duration,
 };
+use crate::process::run_output;
 use sysinfo::System;
 use tauri::{path::BaseDirectory, Manager};
 
@@ -142,10 +144,12 @@ if (!$env:APPDATA) { exit 2 }
 [Console]::Out.WriteLine((Join-Path $env:APPDATA 'Blockbench'))
 "#;
 
-    let output = Command::new("powershell.exe")
-        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
-        .output()
-        .map_err(|error| format!("Unable to resolve Blockbench userData: {error}"))?;
+    let output = run_output(
+        Command::new("powershell.exe")
+            .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script]),
+        Duration::from_secs(8),
+        "Blockbench userData discovery",
+    )?;
 
     if !output.status.success() {
         return Err(match output.status.code() {
@@ -305,10 +309,12 @@ foreach ($root in $roots) {
 }
 exit 0
 "#;
-    let output = Command::new("powershell.exe")
-        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
-        .output()
-        .map_err(|error| format!("Unable to discover Blockbench installation: {error}"))?;
+    let output = run_output(
+        Command::new("powershell.exe")
+            .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script]),
+        Duration::from_secs(8),
+        "Blockbench installation discovery",
+    )?;
 
     if !output.status.success() {
         return Err("Blockbench registry discovery failed.".to_string());
@@ -343,11 +349,13 @@ $info = (Get-Item -LiteralPath $env:LAZYDESIGNER_BLOCKBENCH_EXE).VersionInfo
 if ($info.ProductName -ne 'Blockbench') { exit 2 }
 [Console]::Out.WriteLine($info.ProductVersion)
 "#;
-    let output = Command::new("powershell.exe")
-        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
-        .env("LAZYDESIGNER_BLOCKBENCH_EXE", executable)
-        .output()
-        .map_err(|error| format!("Unable to inspect Blockbench version: {error}"))?;
+    let output = run_output(
+        Command::new("powershell.exe")
+            .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
+            .env("LAZYDESIGNER_BLOCKBENCH_EXE", executable),
+        Duration::from_secs(8),
+        "Blockbench version inspection",
+    )?;
 
     if !output.status.success() {
         return Err("Blockbench version inspection failed.".to_string());
@@ -553,12 +561,14 @@ pub fn collect() -> SystemStatus {
         }
     };
 
-    let output = match Command::new(&executable)
-        .arg("status")
-        .arg("--root")
-        .arg(&root)
-        .output()
-    {
+    let output = match run_output(
+        Command::new(&executable)
+            .arg("status")
+            .arg("--root")
+            .arg(&root),
+        Duration::from_secs(5),
+        "Managed status",
+    ) {
         Ok(output) => output,
         Err(error) => {
             return SystemStatus {
@@ -658,16 +668,18 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
         .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
     let plugin = blockbench_managed_plugin_path()?;
 
-    let output = Command::new(&manager)
-        .arg("install")
-        .arg("--root")
-        .arg(&root)
-        .arg("--package")
-        .arg(package)
-        .arg("--plugin-path")
-        .arg(&plugin)
-        .output()
-        .map_err(|error| format!("Unable to install LazyDesigner: {error}"))?;
+    let output = run_output(
+        Command::new(&manager)
+            .arg("install")
+            .arg("--root")
+            .arg(&root)
+            .arg("--package")
+            .arg(package)
+            .arg("--plugin-path")
+            .arg(&plugin),
+        Duration::from_secs(300),
+        "LazyDesigner bootstrap installation",
+    )?;
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
@@ -695,12 +707,19 @@ pub fn run_managed_action(action: &str) -> Result<ManagedActionResult, String> {
         .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
     let executable = manager_executable(&root)?;
 
-    let output = Command::new(&executable)
-        .arg(action)
-        .arg("--root")
-        .arg(&root)
-        .output()
-        .map_err(|error| format!("Unable to run managed {action}: {error}"))?;
+    let timeout = match action {
+        "setup-tls" => Duration::from_secs(60),
+        "update" | "recover" | "repair" => Duration::from_secs(300),
+        _ => Duration::from_secs(60),
+    };
+    let output = run_output(
+        Command::new(&executable)
+            .arg(action)
+            .arg("--root")
+            .arg(&root),
+        timeout,
+        &format!("Managed {action}"),
+    )?;
 
     if !output.status.success() {
         let error = String::from_utf8_lossy(&output.stderr).trim().to_string();

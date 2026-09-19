@@ -70,11 +70,41 @@
     receipt: Record<string, unknown>;
   };
 
+  type DesktopCommandError = {
+    code: string;
+    message: string;
+    recoverable: boolean;
+  };
+
+  type DiagnosticExportResult = {
+    status: 'EXPORTED' | 'CANCELLED';
+    path: string | null;
+  };
+
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | null = null;
+  let busyAction: 'install' | 'update' | 'recover' | 'repair' | 'setup-tls' | 'open-blockbench' | 'show-plugin' | 'export-diagnostics' | null = null;
   let actionMessage = '';
+
+  function errorMessage(cause: unknown): string {
+    if (typeof cause === 'object' && cause !== null && 'message' in cause) {
+      const candidate = cause as Partial<DesktopCommandError>;
+      if (typeof candidate.message === 'string') {
+        return candidate.code ? `${candidate.code}: ${candidate.message}` : candidate.message;
+      }
+    }
+    return cause instanceof Error ? cause.message : String(cause);
+  }
+
+  function readiness(value: SystemStatus): { label: string; detail: string; ready: boolean } {
+    if (!value.manager_available) return { label: 'Setup required', detail: 'Install managed LazyDesigner components first.', ready: false };
+    if (!value.managed) return { label: 'Needs attention', detail: 'Managed status is unavailable. Export diagnostics if refresh does not recover.', ready: false };
+    if (!value.managed.tls_ready) return { label: 'Needs attention', detail: 'Runtime security setup is incomplete.', ready: false };
+    if (!value.blockbench.running) return { label: 'Ready to start', detail: 'Managed components are healthy; open Blockbench to begin.', ready: false };
+    if (value.gateway.state === 'healthy' && value.managed.runtime_online) return { label: 'Ready to work', detail: 'Blockbench Runtime and client-owned Gateway are connected.', ready: true };
+    return { label: 'Needs connection', detail: value.gateway.action ?? 'Restore Runtime/Gateway connectivity.', ready: false };
+  }
 
   async function refresh() {
     loading = true;
@@ -82,7 +112,7 @@
     try {
       status = await invoke<SystemStatus>('system_status');
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      error = errorMessage(cause);
     } finally {
       loading = false;
     }
@@ -99,7 +129,7 @@
       actionMessage = `Install: ${receiptStatus}. In Blockbench, use Plugins → Load Plugin from File once and select the managed plugin highlighted by Desktop.`;
       await refresh();
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      error = errorMessage(cause);
     } finally {
       busyAction = null;
     }
@@ -113,7 +143,7 @@
       await invoke<PluginFileActionResult>('show_plugin_file');
       actionMessage = 'Managed plugin file highlighted. In Blockbench choose Plugins → Load Plugin from File and select it once.';
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      error = errorMessage(cause);
     } finally {
       busyAction = null;
     }
@@ -129,7 +159,24 @@
       actionMessage = result.status === 'STARTED' ? 'Blockbench started.' : 'Blockbench is already running.';
       await refresh();
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      error = errorMessage(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function exportDiagnostics() {
+    if (busyAction) return;
+    busyAction = 'export-diagnostics';
+    error = '';
+    actionMessage = '';
+    try {
+      const result = await invoke<DiagnosticExportResult>('export_diagnostics');
+      actionMessage = result.status === 'EXPORTED'
+        ? `Diagnostic snapshot exported to ${result.path ?? 'the selected location'}.`
+        : 'Diagnostic export cancelled.';
+    } catch (cause) {
+      error = errorMessage(cause);
     } finally {
       busyAction = null;
     }
@@ -146,7 +193,7 @@
       actionMessage = `${action === 'update' ? 'Managed components' : action === 'repair' ? 'Repair' : action === 'setup-tls' ? 'Runtime security' : 'Recovery'}: ${receiptStatus}`;
       await refresh();
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      error = errorMessage(cause);
     } finally {
       busyAction = null;
     }
@@ -190,6 +237,12 @@
   {#if loading && !status}
     <section class="notice">Reading local LazyDesigner state…</section>
   {:else if status}
+    {@const ready = readiness(status)}
+    <section class={ready.ready ? 'notice ok-notice' : 'notice'} aria-live="polite">
+      <strong>{ready.label}</strong>
+      <span>{ready.detail}</span>
+    </section>
+
     <section class="grid" aria-live="polite">
       <article>
         <span>Blockbench</span>
@@ -297,6 +350,13 @@
           disabled={busyAction !== null}
         >
           {busyAction === 'open-blockbench' ? 'Opening…' : status.blockbench.running ? 'Blockbench running' : 'Open Blockbench'}
+        </button>
+        <button
+          class="secondary"
+          onclick={exportDiagnostics}
+          disabled={busyAction !== null}
+        >
+          {busyAction === 'export-diagnostics' ? 'Exporting…' : 'Export diagnostics'}
         </button>
         <button
           onclick={() => runManagedAction('update')}
