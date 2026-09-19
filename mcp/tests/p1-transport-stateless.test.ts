@@ -140,6 +140,9 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(source).toContain("mode: 'stateless'");
     expect(source).toContain("response_mode: 'json'");
     expect(source).toContain("responseMode: 'auto'");
+    expect(source).toContain("sendSerializedWebResponse");
+    expect(source).toContain("contentType.includes('text/event-stream')");
+    expect(source).toContain("serialized.body.getReader()");
     expect(source).not.toContain("sessions:");
   });
 

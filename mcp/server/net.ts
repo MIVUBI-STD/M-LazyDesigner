@@ -298,11 +298,12 @@ function projectContextErrorBody (
 interface SerializedWebResponse {
   status: number
   headers: Record<string, string>
-  body: string
+  body: string | ReadableStream<Uint8Array>
+  finalize?: () => Promise<void>
 }
 
 function isSuccessfulToolCallResponse (response: SerializedWebResponse): boolean {
-  if (response.status !== 200) return false
+  if (response.status !== 200 || typeof response.body !== 'string') return false
   try {
     const parsed = JSON.parse(response.body) as {
       error?: unknown
@@ -380,8 +381,10 @@ async function handleStatelessMcpRequest (
     }
   )
 
+  let deferModernClose = false
   try {
-    const webResponse = await isLegacyRequest(webRequest)
+    const legacyRequest = await isLegacyRequest(webRequest)
+    const webResponse = legacyRequest
       ? await handleLegacyJsonMcpRequest(webRequest, phase, profile, phaseScoped)
       : await modernHandler.fetch(webRequest)
 
@@ -401,13 +404,84 @@ async function handleStatelessMcpRequest (
       responseHeaders['content-type'] = 'application/json'
     }
 
+    if (
+      !legacyRequest &&
+      contentType.includes('text/event-stream') &&
+      webResponse.body
+    ) {
+      deferModernClose = true
+      return {
+        status: webResponse.status,
+        headers: responseHeaders,
+        body: webResponse.body,
+        finalize: async () => {
+          await modernHandler.close()
+        }
+      }
+    }
+
     return {
       status: webResponse.status,
       headers: responseHeaders,
       body: await webResponse.text()
     }
   } finally {
-    await modernHandler.close()
+    if (!deferModernClose) await modernHandler.close()
+  }
+}
+
+async function sendSerializedWebResponse (
+  response: ServerResponse,
+  serialized: SerializedWebResponse,
+  closeConnection: boolean
+): Promise<void> {
+  if (typeof serialized.body === 'string') {
+    sendNodeResponse(
+      response,
+      serialized.status,
+      serialized.headers,
+      serialized.body,
+      closeConnection
+    )
+    await serialized.finalize?.()
+    return
+  }
+
+  if (response.headersSent || response.writableEnded) {
+    await serialized.finalize?.()
+    return
+  }
+
+  response.statusCode = serialized.status
+  for (const [key, value] of Object.entries(serialized.headers)) {
+    if (key.toLowerCase() === 'content-length') continue
+    response.setHeader(key, value)
+  }
+  if (closeConnection) response.setHeader('connection', 'close')
+
+  const reader = serialized.body.getReader()
+  let clientClosed = false
+  const cancelReader = () => {
+    clientClosed = true
+    void reader.cancel().catch(() => {})
+  }
+  response.once('close', cancelReader)
+
+  try {
+    while (!clientClosed && !response.writableEnded) {
+      const { value, done } = await reader.read()
+      if (done) break
+      if (value && value.byteLength > 0) {
+        const writable = response.write(Buffer.from(value))
+        if (!writable) {
+          await new Promise<void>((resolve) => response.once('drain', resolve))
+        }
+      }
+    }
+  } finally {
+    response.off('close', cancelReader)
+    if (!response.writableEnded && !response.destroyed) response.end()
+    await serialized.finalize?.()
   }
 }
 
@@ -825,12 +899,10 @@ export default function createNetServer (
             requestMcpPhaseSwitch(envelope.targetAuthoringPhase)
           }
 
-          sendNodeResponse(
+          await sendSerializedWebResponse(
             response,
-            result.status,
-            result.headers,
-            result.body,
-            true
+            result,
+            connectionClose
           )
         } catch (error) {
           if (
