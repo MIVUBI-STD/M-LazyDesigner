@@ -127,6 +127,26 @@ Use stable native APIs where available. Private/internal Blockbench modules are 
 
 `RenderTargetSnapshot` remains blocked until a stable plugin-facing boundary exists.
 
+
+## Texture Efficiency Closure — REMOTE_GITHUB
+
+Implemented without adding a public tool:
+
+- `list_textures` defaults to inventory-only; bounded diagnostics are opt-in.
+- `diagnostic_scope=uv|coverage|seam|pbr|full` avoids unrelated scans while `diagnostics=true` without a scope preserves legacy full review.
+- coverage intelligence runs only for `coverage|full`; seam sampling only for `seam|full`; PBR content and production alignment only for `pbr|full`.
+- exact-pixel `paint_with_brush` decides the deterministic bitmap path before native Brush/slider/ColorPanel mutation.
+- existing `paint_texture_transaction` remains the preferred deterministic multi-operation path with revision protection and one Undo.
+
+Deliberately deferred until LIVE_BLOCKBENCH evidence exists:
+
+- removing texture activation from direct bitmap paths;
+- caching full-atlas revisions across native edits;
+- weakening transaction postcondition rereads;
+- adding layer-cohort transactions.
+
+These remain evidence-gated because stale editor state or layer/Undo coupling would cost more than the saved call.
+
 ## Acceptance Rules
 
 An efficiency change is acceptable only when:
