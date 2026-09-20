@@ -14,9 +14,16 @@ import {
 } from "./texture-atlas";
 
 export const listTexturesParameters = z.object({
-  diagnostics: z.boolean().optional().default(true).describe(
-    "Keep true for UV/coverage/seam/PBR review; false returns texture inventory without UV or pixel diagnostics."
+  diagnostics: z.boolean().optional().default(false).describe(
+    "Opt in to bounded diagnostics. false returns texture inventory only; true enables diagnostics selected by diagnostic_scope."
   ),
+  diagnostic_scope: z
+    .enum(["uv", "coverage", "seam", "pbr", "full"])
+    .optional()
+    .default("full")
+    .describe(
+      "Used only when diagnostics=true. full preserves the legacy combined UV/coverage/seam/PBR review."
+    ),
 });
 
 export const getTextureParameters = z.object({
@@ -27,7 +34,7 @@ export const getTextureParameters = z.object({
 export const listTexturesToolDoc: ToolSpec = {
     name: "list_textures",
     description:
-      "Lists texture identity. diagnostics=false returns inventory only; default true adds bounded UV/coverage/seam/PBR diagnostics. Seam checks are intra-Cube, empty scans are incomplete, and pixel-read budget counts unique texture regions. NON_INTEGRAL_PIXEL_MAPPING blocks invalid physical texels. Technical readiness is not visual approval.",
+      "Lists texture identity. Default diagnostics=false returns inventory only. diagnostics=true enables bounded review selected by diagnostic_scope; full preserves combined UV/coverage/seam/PBR diagnostics. Technical readiness is not visual approval.",
     annotations: {
       title: "List Textures",
       readOnlyHint: true,
@@ -58,17 +65,20 @@ export function registerTextureReadTools(): void {
   createTool(listTexturesToolDoc.name, {
       ...listTexturesToolDoc,
       parameters: listTexturesParameters,
-      async execute({ diagnostics }) {
+      async execute({ diagnostics, diagnostic_scope }) {
         const inventory = currentTextureInventory();
-        const uvAudit = diagnostics === false ? null : buildUvAtlasAudit(
+        const needsUvAudit =
+          diagnostics === true &&
+          ["uv", "coverage", "seam", "full"].includes(diagnostic_scope);
+        const uvAudit = needsUvAudit ? buildUvAtlasAudit(
           collectUvAtlasUsages(),
           Project?.texture_width ?? null,
           Project?.texture_height ?? null
-        );
+        ) : null;
         const uvGate =
           uvAudit?.state === "available"
             ? uvAudit.production_gate.state
-            : diagnostics === false ? "not_requested" : "unavailable";
+            : !needsUvAudit ? "not_requested" : "unavailable";
         const result = {
           logical_uv: {
             width: Project?.texture_width ?? null,
