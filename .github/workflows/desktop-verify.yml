@@ -109,6 +109,45 @@ jobs:
             throw "Bundled managed source SHA $($packageManifest.source_sha) does not match Desktop source SHA $env:GITHUB_SHA."
           }
 
+          # Desktop owns exactly one workstation process. A second launch must
+          # exit while the first process remains alive.
+          $firstDesktop = Start-Process -FilePath $desktop -PassThru
+          try {
+            Start-Sleep -Seconds 3
+            if ($firstDesktop.HasExited) {
+              throw "Primary Desktop exited unexpectedly with code $($firstDesktop.ExitCode)."
+            }
+
+            $secondDesktop = Start-Process -FilePath $desktop -PassThru
+            if (!$secondDesktop.WaitForExit(10000)) {
+              Stop-Process -Id $secondDesktop.Id -Force -ErrorAction SilentlyContinue
+              throw 'Second Desktop launch did not exit after detecting the existing instance.'
+            }
+            if ($secondDesktop.ExitCode -ne 0) {
+              throw "Second Desktop launch exited with code $($secondDesktop.ExitCode)."
+            }
+            if ($firstDesktop.HasExited) {
+              throw 'Primary Desktop was terminated by the second launch.'
+            }
+
+            $desktopPath = [IO.Path]::GetFullPath($desktop)
+            $ownedProcesses = @(
+              Get-CimInstance Win32_Process -Filter "Name='LazyDesigner.exe'" -ErrorAction SilentlyContinue |
+                Where-Object {
+                  $_.ExecutablePath -and
+                  ([IO.Path]::GetFullPath([string]$_.ExecutablePath) -eq $desktopPath)
+                }
+            )
+            if ($ownedProcesses.Count -ne 1) {
+              throw "Expected exactly one installed LazyDesigner process after second launch, found $($ownedProcesses.Count)."
+            }
+          } finally {
+            if ($firstDesktop -and !$firstDesktop.HasExited) {
+              Stop-Process -Id $firstDesktop.Id -Force -ErrorAction SilentlyContinue
+              $firstDesktop.WaitForExit(5000) | Out-Null
+            }
+          }
+
           $selfTest = (& $manager self-test | Out-String | ConvertFrom-Json)
           if ($selfTest.status -ne 'PASS') { throw 'Bundled managed executable self-test failed after NSIS installation.' }
 
