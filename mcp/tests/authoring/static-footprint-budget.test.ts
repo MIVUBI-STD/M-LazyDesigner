@@ -38,6 +38,24 @@ describe("static footprint budget", () => {
     expect(texturing.length).toBeLessThan(16_000);
     expect(animation.length).toBeLessThan(16_000);
     expect(workflow.length).toBeLessThan(15_000);
+    const gateway = await source("gateway/index.ts");
+    const instructionStart = gateway.indexOf("const GATEWAY_INSTRUCTIONS =");
+    const instructionEnd = gateway.indexOf("\n\ntype GatewayToolDefinition", instructionStart);
+    const instructionBlock = gateway.slice(instructionStart, instructionEnd);
+    expect(instructionStart).toBeGreaterThanOrEqual(0);
+    expect(instructionEnd).toBeGreaterThan(instructionStart);
+    expect(instructionBlock.length).toBeLessThan(1_100);
+    for (const invariant of [
+      "status only when orientation is unknown or stale",
+      "Known capability: invoke directly",
+      "Unknown/stale capability: search",
+      "Real schema uncertainty: describe",
+      "receipt_only=no confirmation read",
+      "focused_read=inspect only if returned state is insufficient",
+      "visual=refresh only decision-changing visual evidence",
+      "Geometry/Texturing share AUTHORING",
+      "Never auto-retry an interrupted mutation",
+    ]) expect(instructionBlock).toContain(invariant);
   });
 
   test("static footprint is explicitly separate from authoring efficiency", async () => {
