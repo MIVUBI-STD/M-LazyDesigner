@@ -292,6 +292,7 @@ Canonical context owners:
 docs/04-system/ai-context-loading.md
 docs/04-system/authoring-stage-context.md
 docs/04-system/control/context-projection.md
+docs/04-system/prompt-cache-and-compaction.md
 docs/04-system/skill-taxonomy.md
 ```
 
