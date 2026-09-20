@@ -403,6 +403,45 @@ describe("Control Texture mutation precision", () => {
     }
   });
 
+  test("layer rename preserves visual freshness and needs no review read", () => {
+    const delta = buildControlDelta({
+      capability: "texture_layer_management",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "rename_layer",
+        texture: {
+          uuid: "texture-a",
+          name: "atlas",
+          layers_enabled: true,
+          layer_count: 2,
+          selected_layer_uuid: "layer-a",
+        },
+        previous_name: "old",
+        layer: {
+          uuid: "layer-a",
+          name: "new",
+          index: 0,
+          opacity: 100,
+          blend_mode: "default",
+          width: 16,
+          height: 16,
+          offset: [0, 0],
+          parent_uuid: null,
+        },
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual([]);
+    expect(delta.invalidates.workspace_projection).toBe(true);
+    expect(delta.invalidates.acceptance_gates).toBe(false);
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.freshness.stale).toEqual([]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
   test("paint transaction visual verification scopes to the changed atlas region", () => {
     const delta = buildControlDelta({
       capability: "paint_texture_transaction",
