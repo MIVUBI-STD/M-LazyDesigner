@@ -75,7 +75,6 @@ sample an already-authored pixel whose value is unknown
 
 Rules:
 - If the intended color is already known from the reference/palette/previous evidence, pass the color directly; **do not call `color_picker_tool` just to put a known value into Blockbench's active color slot**.
-- Before looping the same mutation capability, ask whether the targets form one coherent same-owner cohort whose intermediate states do not change the next decision; if yes, use the existing transaction/batch route.
 - Prefer one coherent `paint_texture_transaction` over many one-pixel Painter calls when the result is deterministic and transaction operations can express it.
 - Prefer native Painter only when brush/fill/shape behavior itself is part of the required result.
 - Exact-data operations do not need proof that a Blockbench brush, slider, preset, or color slot was touched.
