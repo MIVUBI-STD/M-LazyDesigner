@@ -19,7 +19,6 @@ import {
 import { createProductIdentity } from '@/lib/productIdentity'
 import { getCapabilityMetadata } from '@/lib/capabilityMetadata'
 import {
-  DEFAULT_MCP_AUTHORING_PHASE,
   getActiveMcpAuthoringPhase,
   type McpAuthoringPhase
 } from '@/lib/authoringPhase'
