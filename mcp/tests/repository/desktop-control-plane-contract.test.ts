@@ -6,8 +6,9 @@ async function source(path: string): Promise<string> {
 
 describe("Desktop control-plane ownership", () => {
   test("Desktop depends on canonical compatibility and managed distribution owners", async () => {
-    const [rust, app, cli, managedStatus, runtimeHost, runtimeLease, workflow] = await Promise.all([
+    const [rust, blockbench, app, cli, managedStatus, runtimeHost, runtimeLease, workflow] = await Promise.all([
       source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src-tauri/src/blockbench.rs"),
       source("../apps/desktop/src/App.svelte"),
       source("distribution/cli.ts"),
       source("distribution/status.ts"),
@@ -16,7 +17,7 @@ describe("Desktop control-plane ownership", () => {
       source("../.github/workflows/desktop-verify.yml"),
     ]);
 
-    expect(rust).toContain('../../../../mcp/compatibility/blockbench.json');
+    expect(blockbench).toContain('../../../../mcp/compatibility/blockbench.json');
     expect(rust).toContain('"update" | "rollback" | "recover" | "repair" | "setup-tls"');
     expect(rust).toContain('.arg("install")');
     expect(rust).toContain('"resources/managed/blockit.exe"');
@@ -204,8 +205,11 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("valid_navigation_profile_id");
     expect(rust).toContain("managed_blockbench_user_data_dir");
     expect(rust).toContain("managed_navigation_profile_id");
-    expect(rust).toContain("snapshot.schema != 4");
-    expect(rust).toContain("snapshot.profile_id != expected_profile_id");
+    expect(rust).toContain("navigation_snapshot_is_valid");
+    expect(rust).toContain("snapshot.schema == 4");
+    expect(rust).toContain("snapshot.profile_id == expected_profile_id");
+    expect(rust).toContain("snapshot.open_models.len() <= 64");
+    expect(rust).toContain("snapshot.recent_models.len() <= 128");
     expect(rust).toContain("project_navigation_revision_is_profile_aware");
     expect(rust).toContain("live_open_models(&snapshot, session_live)");
     expect(rust).toContain("live_project_session_state_is_discarded_when_session_is_not_live");
@@ -288,7 +292,7 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("invoke<EnsureReadyResult>('ensure_ready')");
     expect(app).not.toContain("invoke<BlockbenchActionResult>('open_blockbench')");
     expect(main).not.toContain("fn open_blockbench()");
-    expect(rust).toContain("open_blockbench()?");
+    expect(rust).toContain("blockbench::open()?");
     expect(app).toContain("value.plugin_integrity === 'modified'");
     expect(app).toContain("next.managed = fixture === 'fresh-install' ? null :");
     expect(app).toContain("invoke<ConnectionStatus>('connection_status')");
