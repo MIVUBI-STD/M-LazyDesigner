@@ -136,6 +136,53 @@ export async function runZeroWasteTotalContextBenchmark() {
   };
 }
 
+export function assertZeroWasteTotalContextBenchmark(
+  report: Awaited<ReturnType<typeof runZeroWasteTotalContextBenchmark>>
+): void {
+  const failures: string[] = [];
+  if (!report.dynamic_workflow.quality_preserved) {
+    failures.push("workflow quality invariants are not preserved");
+  }
+  if (
+    report.dynamic_workflow.optimized_bytes >=
+    report.dynamic_workflow.baseline_bytes
+  ) {
+    failures.push("optimized dynamic workflow payload is not smaller");
+  }
+  if (
+    report.dynamic_workflow.optimized_calls >=
+    report.dynamic_workflow.baseline_calls
+  ) {
+    failures.push("optimized workflow call count is not smaller");
+  }
+  if (
+    report.compaction_checkpoint.checkpoint_bytes >=
+    report.compaction_checkpoint.full_internal_bytes
+  ) {
+    failures.push("continuation checkpoint is not smaller than internal state");
+  }
+  if (
+    report.control_headroom.continuation_reserve_proxy_bytes <= 0 ||
+    report.control_headroom.continuation_reserve_proxy_bytes >=
+      report.control_headroom.envelope_proxy_bytes
+  ) {
+    failures.push("Control continuation reserve is invalid");
+  }
+  for (const [name, task] of Object.entries(report.static_prefix.task_classes)) {
+    if (task.bytes <= 0) failures.push(`${name} static-prefix proxy is empty`);
+  }
+  if (report.live_measurement_required.actual_token_claim !== false) {
+    failures.push("remote proxy must not claim actual token savings");
+  }
+  if (failures.length > 0) {
+    throw new Error(
+      `Zero-Waste total-context regression:\n- ${failures.join("\n- ")}`
+    );
+  }
+}
+
 if (import.meta.main) {
-  console.log(JSON.stringify(await runZeroWasteTotalContextBenchmark(), null, 2));
+  const report = await runZeroWasteTotalContextBenchmark();
+  assertZeroWasteTotalContextBenchmark(report);
+  console.log(JSON.stringify(report, null, 2));
 }

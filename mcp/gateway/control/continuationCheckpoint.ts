@@ -24,7 +24,7 @@ export type ControlContinuationCheckpoint = {
   reference: ControlPacket["reference"];
   stage_context?: ReturnType<typeof projectControlStageContextWithHeadroom>["context"];
   context: {
-    required_ids: string[];
+    active_ids: string[];
     invalidated_ids: string[];
   };
   last_operation?: {
@@ -80,7 +80,17 @@ export function buildControlContinuationCheckpoint(
     reference: packet.reference,
     ...(stage ? { stage_context: stage } : {}),
     context: {
-      required_ids: packet.context.required.map((handle) => handle.id),
+      // A checkpoint may be created after unchanged handles were omitted from a
+      // status response via known_context_ids. Preserve both newly-required and
+      // already-cached current identities so upstream compaction cannot forget
+      // which specialist/profile context is still authoritative.
+      active_ids: [
+        ...new Set([
+          ...packet.context.required.map((handle) => handle.id),
+          ...packet.context.optional.map((handle) => handle.id),
+          ...packet.context.cached_ids,
+        ]),
+      ],
       invalidated_ids: [...packet.context.invalidated_ids],
     },
     ...(delta

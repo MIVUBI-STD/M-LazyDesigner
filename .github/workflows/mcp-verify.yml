@@ -71,8 +71,8 @@ jobs:
       - name: Run Authoring contract suite
         run: bun run verify:authoring
 
-      - name: Guard Zero-Waste workflow regression
-        run: bun run benchmark:zero-waste-workflow
+      - name: Guard total-context Zero-Waste regression
+        run: bun run benchmark:zero-waste-total
 
       - name: Report Zero-Waste bottlenecks
         run: bun run benchmark:zero-waste-bottlenecks

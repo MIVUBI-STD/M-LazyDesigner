@@ -96,6 +96,20 @@ describe("Control compaction-safe continuation checkpoint", () => {
     expect(checkpoint.last_operation).not.toHaveProperty("source_owner");
   });
 
+  test("keeps cached active context identities across a compaction boundary", async () => {
+    const first = await buildControlPacket(status);
+    const known = first.context.required.map((handle) => handle.id);
+    const cached = await buildControlPacket(status, { knownContextIds: known });
+
+    expect(cached.context.required).toEqual([]);
+    expect(cached.context.cached_ids).toEqual(known);
+
+    const checkpoint = buildControlContinuationCheckpoint(cached);
+    expect(checkpoint.context.active_ids).toEqual(known);
+    expect(checkpoint.context.invalidated_ids).toEqual([]);
+    expect(checkpoint.context).not.toHaveProperty("required_ids");
+  });
+
   test("is materially smaller than internal packet plus complete delta", async () => {
     const packet = await buildControlPacket(status);
     const delta = buildControlDelta({

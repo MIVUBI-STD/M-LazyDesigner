@@ -32,7 +32,7 @@ describe("static footprint budget", () => {
       source("prompts/bedrock_entity_workflow.md"),
     ]);
 
-    expect(root.length).toBeLessThan(12_000);
+    expect(root.length).toBeLessThan(9_500);
     expect(mcpAgents.length).toBeLessThan(9_000);
     for (const invariant of [
       "Capability/intelligence loss is forbidden as an efficiency technique",
