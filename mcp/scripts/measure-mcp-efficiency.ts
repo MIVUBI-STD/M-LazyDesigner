@@ -172,6 +172,49 @@ export function runMcpEfficiencyScorecard() {
     }
   );
 
+  const particleReceipt = workflow(
+    "particle_verified_write_receipt",
+    "ANIMATION",
+    [
+      step(
+        "mutate",
+        {
+          tool: "manage_particle",
+          write: "verified_atomic",
+          summary: "complete",
+        },
+        true
+      ),
+      step(
+        "inspect",
+        {
+          tool: "inspect_particle",
+          mode: "summary",
+          confirmation_only: true,
+        },
+        false
+      ),
+    ],
+    [
+      step(
+        "mutate",
+        {
+          tool: "manage_particle",
+          write: "verified_atomic",
+          summary: "complete",
+          receipt: "continuation_authoritative",
+        },
+        true
+      ),
+    ],
+    {
+      verified_write_kept: true,
+      particle_identity_kept: true,
+      diagnostics_kept: true,
+      freshness_scope_kept: true,
+    }
+  );
+
   const focusedDiscovery = workflow(
     "unknown_target_focused_discovery",
     "INSPECTION",
@@ -199,6 +242,7 @@ export function runMcpEfficiencyScorecard() {
     animationBatch,
     textureTransaction,
     receiptContinuation,
+    particleReceipt,
     focusedDiscovery,
   ];
 
