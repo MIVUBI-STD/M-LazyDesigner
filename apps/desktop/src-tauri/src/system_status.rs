@@ -485,6 +485,15 @@ fn valid_navigation_generation(value: &str) -> bool {
     })
 }
 
+fn navigation_snapshot_is_valid(snapshot: &NavigationSnapshot, expected_profile_id: &str) -> bool {
+    snapshot.schema == 4
+        && valid_navigation_generation(&snapshot.generation)
+        && valid_navigation_profile_id(&snapshot.profile_id)
+        && snapshot.profile_id == expected_profile_id
+        && snapshot.open_models.len() <= 64
+        && snapshot.recent_models.len() <= 128
+}
+
 fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
     let path = project_navigation_snapshot_path()?;
     let metadata = fs::metadata(&path).ok()?;
@@ -494,16 +503,7 @@ fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
 
     let expected_profile_id = managed_navigation_profile_id()?;
     let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
-    if snapshot.schema != 4
-        || !valid_navigation_generation(&snapshot.generation)
-        || !valid_navigation_profile_id(&snapshot.profile_id)
-        || snapshot.profile_id != expected_profile_id
-        || snapshot.open_models.len() > 64
-        || snapshot.recent_models.len() > 128
-    {
-        return None;
-    }
-    Some(snapshot)
+    navigation_snapshot_is_valid(&snapshot, &expected_profile_id).then_some(snapshot)
 }
 
 fn read_project_navigation_preferences() -> ProjectNavigationPreferences {
@@ -1940,6 +1940,128 @@ mod tests {
         assert_eq!(id, stable_project_id(&manifest));
         assert!(valid_navigation_generation(&manifest.project_uuid));
         fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn project_grouping_prefers_manifest_then_models_folder_then_direct_parent() {
+        let base = temp_project("grouping");
+        let manifest_root = base.join("ManifestProject");
+        let nested = manifest_root.join("Deep").join("Models");
+        fs::create_dir_all(&nested).unwrap();
+        write_project_manifest(&manifest_root, &fixed_manifest("Manifest Project")).unwrap();
+        let manifest_model = nested.join("Chair.bbmodel");
+        fs::write(&manifest_model, b"{}").unwrap();
+        assert_eq!(project_root_for_model(&manifest_model), Some(manifest_root.clone()));
+
+        let conventional_root = base.join("Furniture");
+        let models = conventional_root.join("Models");
+        fs::create_dir_all(&models).unwrap();
+        let sofa = models.join("Sofa.bbmodel");
+        fs::write(&sofa, b"{}").unwrap();
+        assert_eq!(project_root_for_model(&sofa), Some(conventional_root.clone()));
+
+        let direct_root = base.join("Loose");
+        fs::create_dir_all(&direct_root).unwrap();
+        let prop = direct_root.join("Prop.bbmodel");
+        fs::write(&prop, b"{}").unwrap();
+        assert_eq!(project_root_for_model(&prop), Some(direct_root.clone()));
+
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn two_models_in_one_project_share_project_identity_but_keep_model_identity() {
+        let base = temp_project("multi-model");
+        let root = base.join("Furniture");
+        let models = root.join("Models");
+        fs::create_dir_all(&models).unwrap();
+        write_project_manifest(&root, &fixed_manifest("Furniture")).unwrap();
+        let chair = models.join("Chair.bbmodel");
+        let sofa = models.join("Sofa.bbmodel");
+        fs::write(&chair, b"{}").unwrap();
+        fs::write(&sofa, b"{}").unwrap();
+
+        let snapshot = NavigationSnapshot {
+            schema: 4,
+            observed_at_unix_ms: 1,
+            generation: "11111111-1111-4111-8111-111111111111".to_string(),
+            profile_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
+            revision: 1,
+            last_model_path: Some(chair.to_string_lossy().to_string()),
+            active: None,
+            open_models: Vec::new(),
+            recent_models: vec![
+                NavigationSnapshotRecent {
+                    name: "Chair".to_string(),
+                    path: chair.to_string_lossy().to_string(),
+                    day: None,
+                    favorite: false,
+                },
+                NavigationSnapshotRecent {
+                    name: "Sofa".to_string(),
+                    path: sofa.to_string_lossy().to_string(),
+                    day: None,
+                    favorite: false,
+                },
+            ],
+        };
+        let identities = project_identity_map(&snapshot);
+        assert_eq!(identities.len(), 1);
+        let identity = identities.values().next().unwrap();
+        assert_eq!(identity.id, stable_project_id(&fixed_manifest("Furniture")));
+        assert_ne!(navigation_id("model", &chair), navigation_id("model", &sofa));
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn save_as_changes_model_identity_without_changing_manifest_project_identity() {
+        let base = temp_project("save-as");
+        let root = base.join("Furniture");
+        fs::create_dir_all(&root).unwrap();
+        let manifest = fixed_manifest("Furniture");
+        write_project_manifest(&root, &manifest).unwrap();
+        let before = root.join("Chair.bbmodel");
+        let after = root.join("Chair Copy.bbmodel");
+        fs::write(&before, b"{}").unwrap();
+        fs::write(&after, b"{}").unwrap();
+
+        let state = read_project_manifest_state(&root);
+        let project = project_identity_from_state(&root, &state, &HashSet::new());
+        assert_eq!(project.id, stable_project_id(&manifest));
+        assert_ne!(navigation_id("model", &before), navigation_id("model", &after));
+        assert_eq!(project_root_for_model(&before), project_root_for_model(&after));
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn navigation_snapshot_bounds_accept_64_open_and_128_recent_only() {
+        let make = |open_count: usize, recent_count: usize| NavigationSnapshot {
+            schema: 4,
+            observed_at_unix_ms: 1,
+            generation: "11111111-1111-4111-8111-111111111111".to_string(),
+            profile_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
+            revision: 1,
+            last_model_path: None,
+            active: None,
+            open_models: (0..open_count).map(|index| NavigationSnapshotOpen {
+                uuid: format!("open-{index}"),
+                name: format!("Model {index}"),
+                path: None,
+                saved: true,
+                dirty: false,
+                active: false,
+            }).collect(),
+            recent_models: (0..recent_count).map(|index| NavigationSnapshotRecent {
+                name: format!("Recent {index}"),
+                path: format!("C:/Project/{index}.bbmodel"),
+                day: None,
+                favorite: false,
+            }).collect(),
+        };
+        let profile = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        assert!(navigation_snapshot_is_valid(&make(64, 128), profile));
+        assert!(!navigation_snapshot_is_valid(&make(65, 128), profile));
+        assert!(!navigation_snapshot_is_valid(&make(64, 129), profile));
     }
 
     #[test]

@@ -110,24 +110,11 @@ The Blockbench detection/compatibility/open owner is now isolated in `apps/deskt
 
 Remaining Rust targets: runtime_health, readiness, project_navigation, managed. Svelte targets: Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. Refactor only by existing ownership; no new framework/router.
 
-### 5. Behavioral Project Navigator tests
+### 5. Behavioral Project Navigator tests — REMOTE COVERAGE EXPANDED
 
-Add behavior-focused tests, not mainly source-string assertions:
+Rust behavior tests now cover multi-model Project identity, manifest/conventional/direct-parent grouping fallback, Project move identity, malformed/unsupported manifests, duplicate UUID fail-closed behavior, Save As model identity, session-live clearing, profile/generation revision identity, Continue exact-last-model semantics, and exact 64-open / 128-recent bounds.
 
-```text
-two models in one Project
-manifest root / fallback root
-Project move with stable identity
-corrupt/unsupported manifest
-Blockbench close clears live state
-Plugin reload/generation change
-profile-scoped snapshot
-Save / Save As
-missing model
-Pin persistence
-Continue last-opened semantics
-64 open / 128 recent bounds
-```
+Still native-only: real Blockbench tab/Save/Save As event emission, missing-file UI interaction, Pin persistence across actual Desktop restart, and plugin reload lifecycle. Those remain in the LIVE_BLOCKBENCH acceptance set rather than being faked in CI.
 
 ### 6. Native LIVE_BLOCKBENCH acceptance
 
