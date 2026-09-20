@@ -680,8 +680,17 @@ export function registerPaintSelectionLayerTools(): void {
                 Undo.initEdit({ layers: [target] });
                 try {
                   target.name = layer_name!;
-                  texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  const syncTexture = texture as Texture & {
+                    sync_to_project?: string;
+                    syncToOtherProject?: () => unknown;
+                  };
+                  if (
+                    syncTexture.sync_to_project &&
+                    typeof syncTexture.syncToOtherProject === "function"
+                  ) {
+                    syncTexture.syncToOtherProject();
+                  }
                   refreshLayerInterface();
                   return {
                     content: [{ type: "text" as const, text: `Renamed layer "${previousName}" to "${target.name}".` }],
