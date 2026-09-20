@@ -224,8 +224,12 @@ export function registerPaintTextureTransactionTool(): void {
         try {
           texture.edit(
             (canvas, env) => {
-              const localX = dirtyRegion.left - env.offset[0];
-              const localY = dirtyRegion.top - env.offset[1];
+              const activeOffset =
+                Array.isArray(env.offset) && env.offset.length === 2
+                  ? env.offset
+                  : [0, 0];
+              const localX = dirtyRegion.left - activeOffset[0];
+              const localY = dirtyRegion.top - activeOffset[1];
               if (
                 localX < 0 ||
                 localY < 0 ||
