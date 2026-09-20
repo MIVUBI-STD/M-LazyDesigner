@@ -1,3 +1,8 @@
+import {
+  ensureTextureDiagnosticInvocationContext,
+  readTextureDiagnosticRegion,
+  textureDiagnosticReadMetrics,
+} from "@/lib/textureDiagnosticReadContext";
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 
@@ -103,19 +108,20 @@ function faceBoundaryPoint(
 }
 
 function pixelAt(
+  context: unknown,
   texture: Texture,
   mapping: ReturnType<typeof mapFaceUvToTexturePixels>,
   rotation: number,
   localX: number,
   localY: number,
-  context: string
+  contextLabel: string
 ): TextureSeamRgba | null {
   const atlas = mapFaceLocalPixelToAtlasPixel(
     mapping,
     rotation,
     localX,
     localY,
-    context
+    contextLabel
   );
   if (
     atlas.x < 0 ||
@@ -126,7 +132,14 @@ function pixelAt(
     return null;
   }
   try {
-    const pixel = texture.ctx.getImageData(atlas.x, atlas.y, 1, 1).data;
+    const pixel = readTextureDiagnosticRegion(
+      context,
+      texture,
+      atlas.x,
+      atlas.y,
+      1,
+      1
+    ).pixels;
     return [pixel[0], pixel[1], pixel[2], pixel[3]];
   } catch {
     return null;
@@ -134,13 +147,14 @@ function pixelAt(
 }
 
 function sampledEdge(
+  context: unknown,
   texture: Texture,
   face: RuntimeCubeFace,
   mapping: ReturnType<typeof mapFaceUvToTexturePixels>,
   edge: "left" | "right" | "top" | "bottom",
   localWidth: number,
   localHeight: number,
-  context: string
+  contextLabel: string
 ): TextureSeamRgba[] | null {
   const length = edge === "left" || edge === "right" ? localHeight : localWidth;
   const count = Math.max(1, Math.min(SEAM_SAMPLES_PER_EDGE, length));
@@ -160,14 +174,22 @@ function sampledEdge(
         : edge === "bottom"
           ? localHeight - 1
           : Math.min(localHeight - 1, Math.floor(t * localHeight));
-    const sample = pixelAt(texture, mapping, face.rotation, x, y, context);
+    const sample = pixelAt(
+      context,
+      texture,
+      mapping,
+      face.rotation,
+      x,
+      y,
+      contextLabel
+    );
     if (!sample) return null;
     samples.push(sample);
   }
   return samples;
 }
 
-function seamContinuityRuntime() {
+function seamContinuityRuntime(context?: unknown) {
   if (typeof Cube === "undefined" || typeof Texture === "undefined") {
     return {
       state: "unavailable" as const,
@@ -229,6 +251,7 @@ function seamContinuityRuntime() {
           const start = faceBoundaryPoint(face, ...boundary[edge][0]);
           const end = faceBoundaryPoint(face, ...boundary[edge][1]);
           const samples = sampledEdge(
+            context,
             texture,
             face,
             mapping,
@@ -281,7 +304,10 @@ function seamContinuityRuntime() {
   };
 }
 
-function sampleTexture(texture: Texture): Uint8ClampedArray | null {
+function sampleTexture(
+  context: unknown,
+  texture: Texture
+): Uint8ClampedArray | null {
   const width = texture.width;
   const height = texture.display_height;
   if (
@@ -296,7 +322,14 @@ function sampleTexture(texture: Texture): Uint8ClampedArray | null {
   try {
     const total = width * height;
     if (total <= PBR_SAMPLE_BUDGET) {
-      return texture.ctx.getImageData(0, 0, width, height).data;
+      return readTextureDiagnosticRegion(
+        context,
+        texture,
+        0,
+        0,
+        width,
+        height
+      ).pixels;
     }
     if (typeof document === "undefined") return null;
     const scale = Math.sqrt(PBR_SAMPLE_BUDGET / total);
@@ -325,7 +358,7 @@ function sampleTexture(texture: Texture): Uint8ClampedArray | null {
   }
 }
 
-function pbrContentRuntime() {
+function pbrContentRuntime(context?: unknown) {
   if (typeof TextureGroup === "undefined" || typeof Texture === "undefined") {
     return {
       state: "unavailable" as const,
@@ -345,7 +378,7 @@ function pbrContentRuntime() {
       if (channel !== "normal" && channel !== "height" && channel !== "mer") {
         continue;
       }
-      const pixels = sampleTexture(texture);
+      const pixels = sampleTexture(context, texture);
       if (!pixels) {
         unavailable.push({
           uuid: texture.uuid,
@@ -450,7 +483,9 @@ function wireTextureReads(): void {
   const listTextures = runtimeDefinition("list_textures");
   const originalListTextures = listTextures.execute.bind(listTextures);
   listTextures.execute = async (args, context) => {
-    const result = await originalListTextures(args, context);
+    const invocationContext =
+      ensureTextureDiagnosticInvocationContext(context);
+    const result = await originalListTextures(args, invocationContext);
     if (args.diagnostics !== true) return result;
     const scope =
       typeof args.diagnostic_scope === "string"
@@ -465,14 +500,15 @@ function wireTextureReads(): void {
       structuredContent: {
         ...structured,
         ...(scope === "seam" || scope === "full"
-          ? { seam_continuity: seamContinuityRuntime() }
+          ? { seam_continuity: seamContinuityRuntime(invocationContext) }
           : {}),
         production_alignment: {
           ...(alignment ?? {}),
           ...(scope === "pbr" || scope === "full"
-            ? { pbr_content: pbrContentRuntime() }
+            ? { pbr_content: pbrContentRuntime(invocationContext) }
             : {}),
         },
+        diagnostic_io: textureDiagnosticReadMetrics(invocationContext),
       },
     };
   };
