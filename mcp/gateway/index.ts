@@ -16,6 +16,7 @@ import { projectCapabilityInputSchema } from "./schemaProjection";
 import {
   authoringDomainForCapability,
   buildControlDelta,
+  projectControlDeltaForGateway,
   buildControlPacket,
   CONTROL_ROUTING_POLICY,
   decorateCapabilities,
@@ -433,10 +434,11 @@ registerGatewayTool(
         succeeded,
         result: result.structuredContent,
       });
+      const gatewayControlDelta = projectControlDeltaForGateway(controlDelta);
       if (result.structuredContent === undefined) {
         return {
           ...result,
-          structuredContent: { control_delta: controlDelta },
+          structuredContent: { control_delta: gatewayControlDelta },
         };
       }
       const compacted = compactGatewayCapabilityStructuredContent(
@@ -447,8 +449,8 @@ registerGatewayTool(
         ...result,
         structuredContent:
           compacted && typeof compacted === "object" && !Array.isArray(compacted)
-            ? { ...(compacted as JsonRecord), control_delta: controlDelta }
-            : { runtime_result: compacted, control_delta: controlDelta },
+            ? { ...(compacted as JsonRecord), control_delta: gatewayControlDelta }
+            : { runtime_result: compacted, control_delta: gatewayControlDelta },
       };
     } catch (error) {
       return gatewayErrorResult(error);

@@ -2,6 +2,7 @@ import {
   compactGatewayCapabilityStructuredContent,
 } from "../gateway/contract";
 import { projectCapabilityInputSchema } from "../gateway/schemaProjection";
+import { buildControlDelta, projectControlDeltaForGateway } from "../gateway/control";
 
 export type PayloadMeasurement = {
   name: string;
@@ -114,7 +115,21 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
     { field: "mode", value: "detail" }
   ).inputSchema;
 
+  const deltaBefore = buildControlDelta({
+    capability: "manage_cubes",
+    phaseBefore: "geometry",
+    phaseAfter: "geometry",
+    projectUuid: "fixture-project",
+    succeeded: true,
+    result: {
+      execution: "applied",
+      geometry_effect: { changed_fields: ["rotation"] },
+    },
+  });
+  const deltaAfter = projectControlDeltaForGateway(deltaBefore);
+
   return [
+    payloadMeasurement("control_delta_continuation", deltaBefore, deltaAfter),
     payloadMeasurement("manage_cubes_continuation", cubeBefore, cubeAfter),
     payloadMeasurement("inspect_elements_detail_schema", inspectBefore, inspectAfter),
   ];

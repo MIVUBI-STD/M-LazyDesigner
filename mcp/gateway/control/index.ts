@@ -4,7 +4,7 @@ export { readWorkspaceProjection } from "./workspace";
 export { readReferencePackageProjection } from "./referencePackage";
 export { buildControlStageContext, readinessForAuthoringDomain } from "./contextProjection";
 export { decorateCapabilities } from "./capabilities";
-export { buildControlDelta } from "./delta";
+export { buildControlDelta, projectControlDeltaForGateway } from "./delta";
 export { resolveDevelopmentIntent } from "./developmentIntent";
 export type {
   ControlDevelopmentDomain,
