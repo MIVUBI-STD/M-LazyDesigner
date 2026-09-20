@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { createServer as createHttpServer } from "node:http";
-import { createConnection, type AddressInfo, type Socket } from "node:net";
+import { createConnection, type AddressInfo } from "node:net";
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
