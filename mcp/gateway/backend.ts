@@ -754,6 +754,16 @@ export class BlockitRuntimeBackend {
     capability: string,
     args: JsonRecord = {},
     requestMeta?: JsonRecord
+  ): Promise<GatewayRuntimeCallResult> {
+    return (
+      await this.invokeCapabilityWithMetadata(capability, args, requestMeta)
+    ).result;
+  }
+
+  async invokeCapabilityWithMetadata(
+    capability: string,
+    args: JsonRecord = {},
+    requestMeta?: JsonRecord
   ): Promise<GatewayRuntimeInvocation> {
     return this.runExclusive(async () => {
       const capabilityMetadata = getCapabilityMetadata(capability);

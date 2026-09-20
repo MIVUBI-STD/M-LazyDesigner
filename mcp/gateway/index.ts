@@ -419,7 +419,7 @@ registerGatewayTool(
       const localResult = await localCapabilities.invoke(capability, args);
       const runtimeInvocation = localResult
         ? null
-        : await backend.invokeCapability(capability, args, traceMeta);
+        : await backend.invokeCapabilityWithMetadata(capability, args, traceMeta);
       const result = localResult ?? runtimeInvocation!.result;
       const readOnly =
         localResult !== null
