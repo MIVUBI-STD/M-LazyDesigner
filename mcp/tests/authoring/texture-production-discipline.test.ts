@@ -147,8 +147,8 @@ describe("texture production discipline", () => {
 
   test("texturing skill routes global audit first and face inspection conditionally", async () => {
     const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
-    expect(skill).toMatch(/UV\/atlas readiness\s+→ list_textures\(diagnostics=true\)/i);
-    expect(skill).toMatch(/discovery\s+→ list_textures\(diagnostics=false\)/i);
+    expect(skill).toMatch(/readiness\s+→ list_textures\(diagnostics=true, diagnostic_scope=uv\|coverage\|seam\|pbr\|full\)/i);
+    expect(skill).toMatch(/discovery\s+→ list_textures\(\)/i);
     expect(skill).toMatch(/face mapping\s+→ inspect_elements\(mode=detail\) only when needed/i);
     expect(skill).toContain("final Box UV locked with `autouv=0`");
     expect(skill).toMatch(/no invalid\/out-of-bounds\/partial-overlap/);
