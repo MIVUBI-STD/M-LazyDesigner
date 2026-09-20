@@ -60,7 +60,9 @@ async function main(): Promise<void> {
   }
   await inventory(packageDir);
   const manifest: Manifest = { schema: 1, repository: REPOSITORY, source_sha: sourceSha, build_identity: buildIdentity, platform: "windows-x64", files };
-  await writeFile(join(packageDir, "blockit-package.json"), JSON.stringify(manifest, null, 2) + "\n");
+  const manifestBytes = JSON.stringify(manifest, null, 2) + "\n";
+  await writeFile(join(packageDir, "blockit-package.json"), manifestBytes);
+  await writeFile(join(output, "blockit-package.json"), manifestBytes);
   await verifyPackage(packageDir);
   // Execute the compiled installer against disposable paths, never the runner's user config.
   const smokeRoot = join(output, "smoke");
