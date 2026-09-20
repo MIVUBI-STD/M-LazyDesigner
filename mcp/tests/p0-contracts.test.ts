@@ -136,7 +136,6 @@ describe("P0 MCP contract regressions", () => {
   });
 
   test("reconstructed registration preserves superRefine validation and annotations", async () => {
-    const initialCapture = createCaptureServer();
     const parameters = z
       .object({ start: z.number(), end: z.number() })
       .superRefine(({ start, end }, ctx) => {
