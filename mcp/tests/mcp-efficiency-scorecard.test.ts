@@ -10,6 +10,7 @@ describe("MCP efficiency scorecard", () => {
       "animation_coherent_keyframe_batch",
       "texture_atomic_region_transaction",
       "receipt_only_hierarchy_continuation",
+      "particle_verified_write_receipt",
       "unknown_target_focused_discovery",
     ]);
     expect(report.aggregate.quality_preserved).toBe(true);
@@ -50,6 +51,17 @@ describe("MCP efficiency scorecard", () => {
   test("receipt continuation removes only redundant readback", () => {
     const score = runMcpEfficiencyScorecard().scores.find(
       (item) => item.id === "receipt_only_hierarchy_continuation"
+    )!;
+
+    expect(score.baseline_inspection_calls).toBe(1);
+    expect(score.optimized_inspection_calls).toBe(0);
+    expect(score.optimized_mutation_calls).toBe(1);
+    expect(score.quality_preserved).toBe(true);
+  });
+
+  test("verified particle writes continue from the mutation receipt", () => {
+    const score = runMcpEfficiencyScorecard().scores.find(
+      (item) => item.id === "particle_verified_write_receipt"
     )!;
 
     expect(score.baseline_inspection_calls).toBe(1);
