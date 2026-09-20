@@ -268,6 +268,64 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(reparent.verification_class).toBe("receipt_only");
   });
 
+  test("complete element removal receipt avoids redundant focused reread", () => {
+    const delta = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        removed_root: {
+          uuid: "group-a",
+          name: "arm",
+          type: "group",
+          parent: "root",
+        },
+        removed_counts: {
+          groups: 2,
+          elements: 3,
+          total_nodes: 5,
+        },
+        affected_animations: 1,
+      },
+    });
+
+    expect(delta.verification_class).toBe("receipt_only");
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ]);
+  });
+
+  test("inconsistent element removal receipt stays focused-read", () => {
+    const delta = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        removed_root: {
+          uuid: "group-a",
+          name: "arm",
+          type: "group",
+          parent: "root",
+        },
+        removed_counts: {
+          groups: 2,
+          elements: 3,
+          total_nodes: 4,
+        },
+        affected_animations: 1,
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("complete Blockbench 5.2 native IK receipt avoids redundant focused read", () => {
     const delta = buildControlDelta({
       capability: "bone_rigging",
