@@ -12,6 +12,7 @@ use std::{
 use crate::{
     blockbench::{self, BlockbenchState},
     process::{run_output, run_output_with_stderr_lines},
+    readiness::{self, GatewaySupervision, MaintenanceAvailability, ReadinessProjection},
     runtime_health,
 };
 use sysinfo::{Pid, System};
@@ -42,23 +43,6 @@ pub struct ManagedStatus {
 
 fn default_runtime_url() -> String {
     "https://127.0.0.1:3000/bb-mcp".to_string()
-}
-
-#[derive(Debug, Serialize)]
-pub struct MaintenanceAvailability {
-    pub update: bool,
-    pub rollback: bool,
-    pub repair: bool,
-    pub recover: bool,
-    pub setup_tls: bool,
-    pub blocked_reason: Option<&'static str>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct GatewaySupervision {
-    pub ownership: &'static str,
-    pub state: &'static str,
-    pub action: Option<&'static str>,
 }
 
 #[derive(Debug, Serialize)]
@@ -1122,7 +1106,7 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             });
         }
 
-        let maintenance = project_maintenance(true, initial.managed.as_ref(), current.runtime_listener_live);
+        let maintenance = readiness::maintenance(true, initial.managed.as_ref(), current.runtime_listener_live);
         if !maintenance.repair {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
@@ -1219,148 +1203,6 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
     })
 }
 
-fn unknown_gateway() -> GatewaySupervision {
-    GatewaySupervision {
-        ownership: "client-owned",
-        state: "unknown",
-        action: Some("Managed status is unavailable; refresh or diagnose the managed installation before lifecycle decisions."),
-    }
-}
-
-fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool, runtime_ready: bool) -> GatewaySupervision {
-    let active = managed.map(|value| value.gateway_active).unwrap_or(false);
-
-    match (active, runtime_ready, blockbench_running) {
-        (true, true, _) => GatewaySupervision {
-            ownership: "client-owned",
-            state: "healthy",
-            action: None,
-        },
-        (true, false, _) => GatewaySupervision {
-            ownership: "client-owned",
-            state: "waiting-runtime",
-            action: Some("Keep the current client Gateway session and restore/reload the Blockbench Runtime. Do not start a second Gateway."),
-        },
-        (false, true, _) => GatewaySupervision {
-            ownership: "client-owned",
-            state: "client-disconnected",
-            action: Some("Reconnect LazyDesigner MCP in Codex or the active MCP client; that client owns Gateway startup."),
-        },
-        (false, false, true) => GatewaySupervision {
-            ownership: "client-owned",
-            state: "runtime-offline",
-            action: Some("Restore or reload the LazyDesigner Runtime in Blockbench, then reconnect LazyDesigner MCP in the client if needed."),
-        },
-        (false, false, false) => GatewaySupervision {
-            ownership: "client-owned",
-            state: "idle",
-            action: Some("Start Blockbench, then reconnect LazyDesigner MCP in Codex or the active MCP client."),
-        },
-    }
-}
-
-
-fn project_product_state(
-    manager_available: bool,
-    managed: Option<&ManagedStatus>,
-    blockbench: &BlockbenchState,
-    runtime_ready: bool,
-    gateway: &GatewaySupervision,
-    plugin_integrity: &str,
-) -> &'static str {
-    if !manager_available {
-        return "welcome";
-    }
-    let Some(managed) = managed else {
-        return "attention";
-    };
-    if !managed.tls_ready {
-        return "security-setup";
-    }
-    if matches!(
-        blockbench.compatibility.as_ref().map(|value| value.status.as_str()),
-        Some("unsupported" | "invalid")
-    ) {
-        return "unsupported";
-    }
-    if matches!(plugin_integrity, "modified" | "invalid") {
-        return "attention";
-    }
-    if plugin_integrity == "missing" && blockbench.running {
-        return "plugin-setup";
-    }
-    if !blockbench.running {
-        return "ready-start";
-    }
-    if !runtime_ready {
-        return "plugin-setup";
-    }
-    if gateway.state == "healthy" {
-        return "ready";
-    }
-    if gateway.state == "client-disconnected" {
-        return "client-wait";
-    }
-    "attention"
-}
-
-fn project_readiness(
-    manager_available: bool,
-    managed: Option<&ManagedStatus>,
-    blockbench_running: bool,
-    runtime_ready: bool,
-    gateway: &GatewaySupervision,
-    plugin_integrity: &str,
-) -> ReadinessProjection {
-    if !manager_available {
-        return ReadinessProjection {
-            state: "setup-required",
-            summary: "Install managed LazyDesigner components first.",
-            ready: false,
-        };
-    }
-    let Some(managed) = managed else {
-        return ReadinessProjection {
-            state: "needs-attention",
-            summary: "Managed status is unavailable. Export diagnostics if refresh does not recover.",
-            ready: false,
-        };
-    };
-    if !managed.tls_ready {
-        return ReadinessProjection {
-            state: "needs-attention",
-            summary: "Runtime security setup is incomplete.",
-            ready: false,
-        };
-    }
-    if matches!(plugin_integrity, "modified" | "invalid") {
-        return ReadinessProjection {
-            state: "needs-attention",
-            summary: "Managed Blockbench plugin integrity requires attention.",
-            ready: false,
-        };
-    }
-    if !blockbench_running {
-        return ReadinessProjection {
-            state: "ready-to-start",
-            summary: "Managed components are healthy; open Blockbench to begin.",
-            ready: false,
-        };
-    }
-    if gateway.state == "healthy" && runtime_ready {
-        return ReadinessProjection {
-            state: "ready",
-            summary: "Blockbench Runtime and client-owned Gateway are connected.",
-            ready: true,
-        };
-    }
-    ReadinessProjection {
-        state: "needs-connection",
-        summary: gateway.action.unwrap_or("Restore Runtime/Gateway connectivity."),
-        ready: false,
-    }
-}
-
 fn observed_at_unix_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -1397,11 +1239,11 @@ fn compose_status(
         &runtime_session,
     );
     let gateway = if manager_available && managed.is_none() {
-        unknown_gateway()
+        readiness::unknown_gateway()
     } else {
-        project_gateway(managed.as_ref(), blockbench.running, runtime_ready)
+        readiness::gateway(managed.as_ref(), blockbench.running, runtime_ready)
     };
-    let readiness = project_readiness(
+    let readiness = readiness::readiness(
         manager_available,
         managed.as_ref(),
         blockbench.running,
@@ -1409,10 +1251,10 @@ fn compose_status(
         &gateway,
         plugin_integrity,
     );
-    let maintenance = project_maintenance(manager_available, managed.as_ref(), runtime_session.live);
+    let maintenance = readiness::maintenance(manager_available, managed.as_ref(), runtime_session.live);
     let (_, project_session_live) = project_navigation_probe(blockbench.running);
     let project_navigation = project_navigation_projection(project_session_live);
-    let product_state = project_product_state(
+    let product_state = readiness::product_state(
         manager_available,
         managed.as_ref(),
         &blockbench,
@@ -1441,7 +1283,7 @@ fn compose_status(
     }
 }
 
-fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>, runtime_listener_live: bool) -> MaintenanceAvailability {
+fn readiness::maintenance(manager_available: bool, managed: Option<&ManagedStatus>, runtime_listener_live: bool) -> MaintenanceAvailability {
     if !manager_available {
         return MaintenanceAvailability {
             update: false,
@@ -2048,148 +1890,4 @@ mod tests {
         assert_eq!(managed_plugin_integrity(Path::new("Z:/definitely-missing-lazydesigner-root")), "unknown");
     }
 
-    #[test]
-    fn product_state_rejects_modified_plugin_before_launch() {
-        let managed = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: false,
-            runtime_online: false,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: true,
-            tls_error: None,
-            rollback: None,
-        };
-        let blockbench = BlockbenchState {
-            running: false,
-            version: Some("5.2.0".to_string()),
-            compatibility: Some(blockbench::evaluate_compatibility("5.2.0").unwrap()),
-            diagnostic: None,
-        };
-        let gateway = project_gateway(Some(&managed), false, false);
-        assert_eq!(project_product_state(true, Some(&managed), &blockbench, false, &gateway, "modified"), "attention");
-    }
-
-    #[test]
-    fn gateway_supervision_preserves_client_ownership() {
-        let managed = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: false,
-            runtime_online: true,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: true,
-            tls_error: None,
-            rollback: None,
-        };
-        let result = project_gateway(Some(&managed), true, true);
-        assert_eq!(result.ownership, "client-owned");
-        assert_eq!(result.state, "client-disconnected");
-        assert!(result.action.unwrap().contains("Reconnect LazyDesigner MCP"));
-    }
-
-    #[test]
-    fn readiness_projection_covers_workstation_states() {
-        let healthy = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: true,
-            runtime_online: true,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: true,
-            tls_error: None,
-            rollback: None,
-        };
-        let gateway = project_gateway(Some(&healthy), true, true);
-        let ready = project_readiness(true, Some(&healthy), true, true, &gateway, "ready");
-        assert_eq!(ready.state, "ready");
-        assert!(ready.ready);
-
-        let closed_gateway = project_gateway(Some(&healthy), false, false);
-        let start = project_readiness(true, Some(&healthy), false, false, &closed_gateway, "ready");
-        assert_eq!(start.state, "ready-to-start");
-        assert!(!start.ready);
-
-        let disconnected = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: false,
-            runtime_online: true,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: true,
-            tls_error: None,
-            rollback: None,
-        };
-        let disconnected_gateway = project_gateway(Some(&disconnected), true, true);
-        let connection = project_readiness(true, Some(&disconnected), true, true, &disconnected_gateway, "ready");
-        assert_eq!(connection.state, "needs-connection");
-
-        let setup = project_readiness(false, None, false, false, &unknown_gateway(), "unknown");
-        assert_eq!(setup.state, "setup-required");
-
-        let attention = project_readiness(true, None, false, false, &unknown_gateway(), "unknown");
-        assert_eq!(attention.state, "needs-attention");
-    }
-
-    #[test]
-    fn maintenance_projection_matches_managed_runtime_safety_gate() {
-        let idle = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: false,
-            runtime_online: false,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: true,
-            tls_error: None,
-            rollback: None,
-        };
-        let ready = project_maintenance(true, Some(&idle), false);
-        assert!(ready.update && ready.repair && ready.recover);
-        assert!(!ready.rollback);
-        assert!(!ready.setup_tls);
-
-        let busy = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: true,
-            runtime_online: false,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: false,
-            tls_error: Some("missing identity".to_string()),
-            rollback: None,
-        };
-        let blocked = project_maintenance(true, Some(&busy), true);
-        assert!(blocked.update);
-        assert!(!blocked.repair && !blocked.recover && !blocked.setup_tls);
-        assert!(blocked.blocked_reason.is_some());
-    }
-}
-
-
-#[cfg(test)]
-mod tls_projection_tests {
-    use super::*;
-
-    #[test]
-    fn maintenance_offers_tls_setup_only_when_idle_and_not_ready() {
-        let missing = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: false,
-            runtime_online: false,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: false,
-            tls_error: Some("missing".to_string()),
-            rollback: None,
-        };
-        let availability = project_maintenance(true, Some(&missing), false);
-        assert!(availability.setup_tls);
-    }
 }

@@ -282,6 +282,24 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).not.toContain("fn evaluate_blockbench_compatibility");
   });
 
+  test("Desktop readiness policy is isolated from machine observation", async () => {
+    const [readiness, rust] = await Promise.all([
+      source("../apps/desktop/src-tauri/src/readiness.rs"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+    ]);
+
+    expect(readiness).toContain("pub(crate) fn gateway");
+    expect(readiness).toContain("pub(crate) fn product_state");
+    expect(readiness).toContain("pub(crate) fn readiness");
+    expect(readiness).toContain("pub(crate) fn maintenance");
+    expect(readiness).not.toContain("Command::new");
+    expect(readiness).not.toContain("fs::");
+    expect(rust).toContain("readiness::gateway");
+    expect(rust).toContain("readiness::product_state");
+    expect(rust).not.toContain("fn project_product_state");
+    expect(rust).not.toContain("fn project_maintenance");
+  });
+
   test("Desktop UI uses one canonical workstation readiness path", async () => {
     const [app, main, rust, runtimeHealth] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
@@ -302,7 +320,9 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("RUNTIME_ENDPOINT_MISMATCH");
     expect(app).toContain("RUNTIME_START_FAILED");
     expect(app).toContain("value.product_state");
-    expect(rust).toContain("fn project_product_state(");
+    expect(rust).toContain("readiness::product_state(");
+    expect(rust).toContain("readiness::readiness(");
+    expect(rust).toContain("readiness::maintenance(");
     expect(rust).toContain("runtime_health::probe");
     expect(rust).toContain("runtime_health::endpoint_match");
     expect(rust).toContain("runtime_health::ready");

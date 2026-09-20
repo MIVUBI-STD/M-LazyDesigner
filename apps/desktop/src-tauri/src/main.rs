@@ -7,6 +7,7 @@ mod diagnostics;
 mod operation_log;
 mod runtime_health;
 mod process;
+mod readiness;
 mod system_status;
 
 use desktop_error::DesktopError;
