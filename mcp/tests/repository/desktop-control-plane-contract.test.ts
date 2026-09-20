@@ -241,13 +241,13 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("navigation={status.project_navigation}");
     expect(app).toContain("project_session_live");
     expect(app).toContain("navigation={status.project_navigation}");
-    expect(app).toContain("recentProjects(status).length > 5");
+    expect(navigator).toContain("recentProjects().length > 5");
     expect(navigator).toContain("model_count > 8");
     expect(navigator).toContain("Search projects");
     expect(navigator).toContain("Search models");
     expect(navigator).toContain("model.open ? 'Switch' : 'Open'");
     expect(navigator).toContain("Active · Modified");
-    expect(app).toContain("activeNavigation.dirty");
+    expect(navigator).toContain("activeNavigation.dirty");
     expect(navigator).toContain("folder-shortcuts");
     expect(navigator).toContain("Pin project");
     expect(navigator).toContain("Unpin project");
