@@ -314,11 +314,11 @@ An unsigned development artifact therefore cannot reserve or masquerade as the f
 
 Desktop establishes one machine-local owner **before** the Tauri application, connection watcher, maintenance controller, or preferences writer is created.
 
-The owner is published through an atomic directory rename under `%LOCALAPPDATA%\LazyDesigner\desktop-instance`. The complete bounded owner record is written before publication and contains only the Desktop PID, process start time, executable name, and schema. A second launch verifies the exact live process identity, restores/focuses that process's main window on Windows, and exits before constructing another Tauri application.
+On Windows, ownership uses a session-local named mutex: `Local\com.halokaryamedia.lazydesigner.desktop`. The mutex is created through Win32 directly from Rust, so no additional crate or lockfile mutation is required. A second launch receives `ERROR_ALREADY_EXISTS`, restores/focuses the canonical `LazyDesigner` main window, closes its temporary mutex handle, and exits before constructing another Tauri application.
 
-If a prior Desktop crashed, PID + process start time prevents PID-reuse from being treated as the old owner. Invalid or stale ownership is recovered once through the same atomic claim. The guard removes only its own matching owner on normal shutdown.
+The primary process holds the mutex for its lifetime and releases/closes the handle on shutdown. Windows releases kernel object ownership when the process terminates, so crash recovery does not depend on stale files, PID reuse, polling, or a cleanup database.
 
-This mechanism uses existing Rust/Windows facilities and adds no background service, dependency, project database, watcher, maintenance path, or preferences writer.
+This mechanism adds no background service, dependency, project database, watcher, maintenance path, or preferences writer.
 
 ## Workstation automation and first-run policy
 

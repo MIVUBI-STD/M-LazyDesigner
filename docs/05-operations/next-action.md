@@ -93,9 +93,9 @@ The pointer survives Plugin/Desktop restarts through the same bounded navigation
 
 ### 3. Single-instance Desktop — SOURCE IMPLEMENTED
 
-Desktop now acquires one atomic machine-local instance lease before Tauri startup. The bounded owner identity combines PID, process start time, and executable name. A second launch validates the live owner, restores/focuses that Windows process, and exits before creating a second watcher/controller/preferences writer. A stale/crashed owner is recovered once through the same atomic claim.
+Desktop now acquires a Windows session-local named mutex before Tauri startup. A second launch receives the existing-owner signal from the kernel, restores/focuses the canonical `LazyDesigner` window, and exits before creating a second watcher/controller/preferences writer.
 
-This implementation intentionally uses existing dependencies only; no Tauri single-instance dependency, lockfile regeneration, background service, or second state system is required. Native focus behavior remains LIVE_BLOCKBENCH/Windows acceptance residue.
+The implementation uses Win32 FFI directly from Rust, so there is no Tauri single-instance dependency, lockfile regeneration, filesystem lease, background service, or second state system. Kernel object lifetime also removes stale-file/PID-reuse recovery races. Native second-launch focus behavior remains Windows acceptance residue.
 
 ### 4. Split oversized owners without redesign
 

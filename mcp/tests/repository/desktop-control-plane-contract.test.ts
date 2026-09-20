@@ -150,14 +150,15 @@ describe("Desktop control-plane ownership", () => {
     expect(main).toContain("desktop_instance::acquire()");
     expect(main).toContain("InstanceAcquire::Secondary => return");
     expect(main.indexOf("desktop_instance::acquire()")).toBeLessThan(main.indexOf("tauri::Builder::default()"));
-    expect(instance).toContain("INSTANCE_DIR_NAME");
-    expect(instance).toContain("fs::rename(&candidate, &canonical)");
-    expect(instance).toContain("owner_process_is_live");
-    expect(instance).toContain("process.start_time()");
+    expect(instance).toContain("CreateMutexW");
+    expect(instance).toContain("ERROR_ALREADY_EXISTS");
+    expect(instance).toContain("Local\\\\com.halokaryamedia.lazydesigner.desktop");
+    expect(instance).toContain("FindWindowW");
     expect(instance).toContain("SetForegroundWindow");
     expect(instance).toContain("ShowWindowAsync");
+    expect(instance).toContain("ReleaseMutex");
+    expect(instance).toContain("CloseHandle");
     expect(instance).toContain("impl Drop for InstanceGuard");
-    expect(instance).toContain("candidate_owner_is_complete_before_publish");
     expect(instance).not.toContain("tauri_plugin_single_instance");
   });
 
