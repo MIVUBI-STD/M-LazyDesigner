@@ -184,10 +184,12 @@ describe("BlockIT Gateway contract", () => {
       },
     }]);
 
-    expect(projected.control.authoring_domain).toBe("GEOMETRY");
-    expect(projected.control).not.toHaveProperty("source_owner");
-    expect(projected.control).not.toHaveProperty("current_domain");
-    expect(projected.control).not.toHaveProperty("eligibility");
+    expect(projected.authoring_domain).toBe("GEOMETRY");
+    expect(projected.flags).toEqual(["destructive"]);
+    expect(projected).not.toHaveProperty("control");
+    expect(projected).not.toHaveProperty("read_only");
+    expect(projected).not.toHaveProperty("destructive");
+    expect(projected).not.toHaveProperty("idempotent");
   });
 
   test("describe capability exposes lifecycle semantics only on demand", async () => {
