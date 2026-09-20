@@ -237,6 +237,13 @@ stop/unload the Plugin while Blockbench remains open
 → project lease expires within the bounded TTL
 → Active/Open/Modified clear
 → Recent saved navigation remains
+
+custom Blockbench --userData profile
+→ Plugin writes a profile-scoped navigation snapshot
+→ Desktop follows only the managed plugin profile
+
+another Blockbench profile writes its own snapshot
+→ managed profile navigation is not replaced or cross-contaminated
 ```
 
 Do not add or validate viewport, selection, Undo, timeline, brush, panel, or other editor-session state in Desktop. Those remain Blockbench-owned and intentionally absent from the normal UI.

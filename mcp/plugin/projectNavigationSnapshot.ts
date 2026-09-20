@@ -6,9 +6,10 @@ type RecentProjectEntry = {
 };
 
 type NavigationSnapshot = {
-  schema: 2;
+  schema: 3;
   observed_at_unix_ms: number;
   generation: string;
+  profile_id: string;
   revision: number;
   active: {
     uuid: string;
@@ -38,14 +39,33 @@ type NativeFs = Pick<
   "mkdirSync" | "writeFileSync" | "renameSync" | "rmSync" | "utimesSync"
 >;
 
+type NativeCrypto = Pick<typeof import("node:crypto"), "createHash">;
+
 let listeners: Array<{ delete(): void }> = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let fs: NativeFs | null = null;
+let nativeCrypto: NativeCrypto | null = null;
 let outputPath: string | null = null;
+let profileId: string | null = null;
 const producerGeneration = globalThis.crypto.randomUUID().toLowerCase();
 let lastSignature = "";
 let revision = 0;
+
+function normalizeProfilePath(value: string): string {
+  return value
+    .replace(/\//g, "\\")
+    .replace(/\\+$/, "")
+    .replace(/[A-Z]/g, (character) => character.toLowerCase());
+}
+
+function profileIdentity(value: string, cryptoApi: NativeCrypto): string {
+  return cryptoApi
+    .createHash("sha256")
+    .update(normalizeProfilePath(value), "utf8")
+    .digest("hex")
+    .slice(0, 32);
+}
 
 function modelPath(project: ModelProject | null | undefined): string | null {
   if (!project) return null;
@@ -144,10 +164,12 @@ function buildSnapshot(): NavigationSnapshot {
     lastSignature = signature;
     revision += 1;
   }
+  if (!profileId) throw new Error("Project navigation profile identity is unavailable.");
   return {
-    schema: 2,
+    schema: 3,
     observed_at_unix_ms: Date.now(),
     generation: producerGeneration,
+    profile_id: profileId,
     revision,
     active,
     open_models,
@@ -204,7 +226,21 @@ export function setupProjectNavigationSnapshot(): void {
   }) as NativeFs | null;
   if (!fs) return;
 
-  outputPath = localAppData.replace(/[\\/]$/, "") + "\\LazyDesigner\\project-navigation.json";
+  // crypto is a Blockbench safe native API and does not add a new permission prompt.
+  // @ts-ignore - requireNativeModule is a Blockbench desktop global.
+  nativeCrypto = requireNativeModule("crypto") as NativeCrypto;
+  const userData = typeof SystemInfo !== "undefined" ? SystemInfo.user_data_directory : "";
+  if (!nativeCrypto || typeof userData !== "string" || !userData.trim()) {
+    fs = null;
+    nativeCrypto = null;
+    return;
+  }
+  profileId = profileIdentity(userData, nativeCrypto);
+  outputPath =
+    localAppData.replace(/[\\/]$/, "")
+    + "\\LazyDesigner\\project-navigation\\"
+    + profileId
+    + ".json";
 
   listeners.push(
     Blockbench.on("new_project", scheduleSnapshot),
@@ -227,5 +263,7 @@ export function teardownProjectNavigationSnapshot(): void {
   heartbeatTimer = null;
   for (const listener of listeners.splice(0)) listener.delete();
   fs = null;
+  nativeCrypto = null;
   outputPath = null;
+  profileId = null;
 }

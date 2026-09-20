@@ -252,6 +252,7 @@ struct NavigationSnapshot {
     #[allow(dead_code)]
     observed_at_unix_ms: u64,
     generation: String,
+    profile_id: String,
     revision: u64,
     active: Option<NavigationSnapshotActive>,
     #[serde(default)]
@@ -272,10 +273,56 @@ fn managed_root() -> Option<PathBuf> {
 }
 
 
+fn normalize_navigation_profile_path(path: &Path) -> String {
+    path.to_string_lossy()
+        .replace('/', "\\")
+        .trim_end_matches('\\')
+        .to_ascii_lowercase()
+}
+
+fn navigation_profile_id(path: &Path) -> String {
+    use sha2::{Digest, Sha256};
+    let digest = format!("{:x}", Sha256::digest(normalize_navigation_profile_path(path).as_bytes()));
+    digest[..32].to_string()
+}
+
+fn valid_navigation_profile_id(value: &str) -> bool {
+    value.len() == 32 && value.chars().all(|ch| ch.is_ascii_hexdigit())
+}
+
+fn managed_blockbench_user_data_dir() -> Option<PathBuf> {
+    let root = managed_root()?;
+    let bytes = fs::read(root.join("installed.json")).ok()?;
+    let installed: InstalledState = serde_json::from_slice(&bytes).ok()?;
+    let plugin = installed.options.plugin;
+    if plugin.file_name().and_then(|name| name.to_str()) != Some("blockit_mcp.js") {
+        return None;
+    }
+    let plugins_dir = plugin.parent()?;
+    if !plugins_dir
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.eq_ignore_ascii_case("plugins"))
+        .unwrap_or(false)
+    {
+        return None;
+    }
+    let user_data = plugins_dir.parent()?.to_path_buf();
+    if !user_data.is_absolute() {
+        return None;
+    }
+    Some(user_data)
+}
+
+fn managed_navigation_profile_id() -> Option<String> {
+    managed_blockbench_user_data_dir().map(|path| navigation_profile_id(&path))
+}
+
 fn project_navigation_snapshot_path() -> Option<PathBuf> {
+    let profile_id = managed_navigation_profile_id()?;
     env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
-        .map(|base| base.join("LazyDesigner").join("project-navigation.json"))
+        .map(|base| base.join("LazyDesigner").join("project-navigation").join(format!("{profile_id}.json")))
 }
 
 
@@ -306,9 +353,12 @@ fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
         return None;
     }
 
+    let expected_profile_id = managed_navigation_profile_id()?;
     let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
-    if snapshot.schema != 2
+    if snapshot.schema != 3
         || !valid_navigation_generation(&snapshot.generation)
+        || !valid_navigation_profile_id(&snapshot.profile_id)
+        || snapshot.profile_id != expected_profile_id
         || snapshot.open_models.len() > 64
         || snapshot.recent_models.len() > 128
     {
@@ -364,7 +414,7 @@ fn write_project_navigation_preferences(value: &ProjectNavigationPreferences) ->
 }
 
 fn navigation_revision_token(snapshot: &NavigationSnapshot) -> String {
-    format!("{}:{}", snapshot.generation, snapshot.revision)
+    format!("{}:{}:{}", snapshot.profile_id, snapshot.generation, snapshot.revision)
 }
 
 const PROJECT_SESSION_LEASE_TTL_MS: u64 = 30_000;
@@ -1739,6 +1789,14 @@ mod tests {
     }
 
     #[test]
+    fn navigation_profile_identity_normalizes_windows_path_shape() {
+        let first = navigation_profile_id(Path::new("C:/Users/Test/AppData/Roaming/Blockbench/"));
+        let second = navigation_profile_id(Path::new("c:\\users\\test\\appdata\\roaming\\blockbench"));
+        assert_eq!(first, second);
+        assert!(valid_navigation_profile_id(&first));
+    }
+
+    #[test]
     fn navigation_generation_validation_is_bounded() {
         assert!(valid_navigation_generation("11111111-1111-4111-8111-111111111111"));
         assert!(!valid_navigation_generation("not-a-generation"));
@@ -1756,9 +1814,10 @@ mod tests {
     #[test]
     fn project_navigation_revision_is_generation_aware() {
         let make = |generation: &str| NavigationSnapshot {
-            schema: 2,
+            schema: 3,
             observed_at_unix_ms: 1,
             generation: generation.to_string(),
+            profile_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
             revision: 1,
             active: None,
             open_models: Vec::new(),
@@ -1770,11 +1829,29 @@ mod tests {
     }
 
     #[test]
-    fn live_project_session_state_is_discarded_when_session_is_not_live() {
-        let snapshot = NavigationSnapshot {
-            schema: 2,
+    fn project_navigation_revision_is_profile_aware() {
+        let make = |profile_id: &str| NavigationSnapshot {
+            schema: 3,
             observed_at_unix_ms: 1,
             generation: "11111111-1111-4111-8111-111111111111".to_string(),
+            profile_id: profile_id.to_string(),
+            revision: 1,
+            active: None,
+            open_models: Vec::new(),
+            recent_models: Vec::new(),
+        };
+        let first = make("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        let second = make("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        assert_ne!(navigation_revision_token(&first), navigation_revision_token(&second));
+    }
+
+    #[test]
+    fn live_project_session_state_is_discarded_when_session_is_not_live() {
+        let snapshot = NavigationSnapshot {
+            schema: 3,
+            observed_at_unix_ms: 1,
+            generation: "11111111-1111-4111-8111-111111111111".to_string(),
+            profile_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
             revision: 7,
             active: None,
             open_models: vec![NavigationSnapshotOpen {

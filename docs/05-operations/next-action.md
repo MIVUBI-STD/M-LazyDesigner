@@ -112,6 +112,7 @@ Current REMOTE_GITHUB source implements:
 - path-free normal Overview UI;
 - bounded local navigation snapshot rather than a second project database;
 - generation-aware plugin navigation token plus bounded session lease;
+- profile-bound snapshot identity derived from the managed Blockbench userData profile;
 - stale Plugin sessions clear active/open/dirty without deleting Recent history;
 - bounded open-model inventory plus active/dirty state from Blockbench;
 - already-open models use native existing-tab selection and surface as `Switch`;
@@ -129,23 +130,15 @@ Normal UI shows project/model names and relevant actions only. Paths, UUIDs, rev
 
 Quick Command / Command Palette and thumbnails are explicitly out of scope.
 
-P1 candidates after source/native proof, only if still useful:
+Already implemented: Pin, contextual search, Continue, and existing-only working-folder shortcuts.
 
-```text
-Pin Project
-project/model search
-Continue last Project/Model
-working-folder shortcuts
-Add existing model to Project
-```
-
-Do not add a full file browser, drive indexer, tags/kanban, thumbnails, cloud project database, or nested arbitrary hierarchy.
+Add no further navigation UI before lifecycle/native proof. `Add existing model` stays deferred unless native use proves a need. No file browser, drive indexer, tags/kanban, thumbnails, cloud project DB, or arbitrary nested hierarchy.
 
 ## Current Verification Boundary
 
-The clean pre-navigation Desktop baseline was exact SHA `30929d77e4f557bb8cc7b4f846215ecd3c6d2d6b` with Desktop Verify, Repository Verify, and Head Proof PASS.
+Pre-profile lifecycle baseline `38c254bbe5c70720b6502d4e10e3d46526a113c5`: Repository Verify, Head Proof, Desktop source, Windows installer, and installer/bootstrap smoke PASS.
 
-Projects & Models changed Desktop + Plugin after that baseline. Its current exact-SHA verification must complete before it becomes a new accepted source baseline. Fix the first failing owner only; do not redesign working architecture to satisfy stale assertions.
+Profile binding changes after that baseline require their own exact-SHA verification. Fix the first failing owner only; do not redesign working architecture to satisfy stale assertions.
 
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 

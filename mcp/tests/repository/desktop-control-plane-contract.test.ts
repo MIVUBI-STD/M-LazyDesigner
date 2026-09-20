@@ -150,7 +150,11 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain("project-navigation.json");
     expect(snapshot).toContain("producerGeneration");
     expect(snapshot).toContain("crypto.randomUUID");
-    expect(snapshot).toContain("schema: 2");
+    expect(snapshot).toContain("schema: 3");
+    expect(snapshot).toContain("profile_id");
+    expect(snapshot).toContain("SystemInfo.user_data_directory");
+    expect(snapshot).toContain('requireNativeModule("crypto")');
+    expect(snapshot).toContain("project-navigation\\\\");
     expect(snapshot).toContain("heartbeatSnapshot");
     expect(snapshot).toContain("utimesSync");
     expect(rust).toContain("project_navigation_projection");
@@ -163,7 +167,12 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("pub dirty: bool");
     expect(rust).toContain("navigation_revision_token(&snapshot)");
     expect(rust).toContain("valid_navigation_generation");
-    expect(rust).toContain("snapshot.schema != 2");
+    expect(rust).toContain("valid_navigation_profile_id");
+    expect(rust).toContain("managed_blockbench_user_data_dir");
+    expect(rust).toContain("managed_navigation_profile_id");
+    expect(rust).toContain("snapshot.schema != 3");
+    expect(rust).toContain("snapshot.profile_id != expected_profile_id");
+    expect(rust).toContain("project_navigation_revision_is_profile_aware");
     expect(rust).toContain("live_open_models(&snapshot, session_live)");
     expect(rust).toContain("live_project_session_state_is_discarded_when_session_is_not_live");
     expect(rust).toContain('"open-project-folder"');

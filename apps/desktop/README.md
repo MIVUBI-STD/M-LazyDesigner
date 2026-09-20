@@ -371,13 +371,15 @@ When a known fast-probe value actually changes, Desktop performs one full `syste
 
 Desktop provides a compact filesystem-navigation layer without becoming a second project database or file manager.
 
-Blockbench remains the authority for the active model and recent saved models. The Runtime writes a bounded local projection to:
+Blockbench remains the authority for the active model and recent saved models. The managed Blockbench Plugin writes a bounded local projection scoped to the Blockbench userData profile where that managed plugin is installed:
 
 ```text
-%LOCALAPPDATA%\LazyDesigner\project-navigation.json
+%LOCALAPPDATA%\LazyDesigner\project-navigation\<profile-id>.json
 ```
 
-The projection contains only the active Blockbench project identity plus recent `.bbmodel` names/paths needed for local navigation. It is a cache/projection, not authored project state. Desktop does not edit Blockbench local storage to obtain recents.
+The profile ID is a deterministic hash of the normalized Blockbench userData path. The raw profile path is not exposed in the normal Desktop projection. A Plugin running under another userData profile writes a different file and cannot replace the managed profile's navigation snapshot.
+
+The projection contains bounded active/open/recent `.bbmodel` navigation state plus opaque producer/profile identity needed to determine freshness and ownership. It is a cache/projection, not authored project state. Desktop does not edit Blockbench local storage to obtain recents.
 
 Desktop converts the raw model paths into a path-free UI projection:
 
@@ -424,7 +426,7 @@ These shortcuts appear only when the corresponding directory actually exists und
 
 Opening a model from Desktop first passes through the canonical `ensure_ready` flow; project navigation does not create a second Blockbench lifecycle path. Missing files remain visible as unavailable rather than triggering a drive scan or guessed relocation.
 
-The active-window heartbeat watches the canonical navigation token emitted by the Blockbench plugin. The token is `<producer-generation>:<revision>`, so a plugin module reload cannot accidentally reuse the same apparent revision number. Desktop also watches a separate session-live projection derived from the Blockbench process plus a bounded plugin lease; Runtime reconnects do not invalidate project-session state by themselves.
+The active-window heartbeat watches the canonical navigation token emitted by the Blockbench plugin. The token is `<profile-id>:<producer-generation>:<revision>`, so profile changes and plugin module reloads cannot accidentally reuse the same apparent revision number. Desktop also watches a separate session-live projection derived from the Blockbench process plus a bounded plugin lease; Runtime reconnects do not invalidate project-session state by themselves.
 
 The plugin refreshes that lease every 10 seconds by touching snapshot metadata rather than rewriting the JSON payload. Desktop treats the lease as stale after 30 seconds. A stale or absent lease clears ephemeral `Active`, `Open`, and `Modified` state, while recent saved navigation remains available. When either the navigation token or session-live state changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
 
@@ -439,7 +441,7 @@ recent saved models
 
 Desktop uses that state only where it changes a user decision. An already-open model is presented with `Switch`; a dirty model is marked `Modified`. Other editor-session details stay hidden. Opening an existing `.bbmodel` still goes through Blockbench's normal native file-open path, whose existing-tab guard selects the already-open project instead of creating a duplicate tab.
 
-Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those flags whenever the Blockbench Runtime is not live, while recent saved models remain available for navigation. A stale snapshot therefore cannot keep rendering `Switch` or `Modified` after Blockbench closes.
+Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those flags whenever the bounded Plugin session lease is not live, while recent saved models remain available for navigation. Runtime reconnects do not invalidate a still-live Blockbench Plugin session. A stale snapshot therefore cannot keep rendering `Switch` or `Modified` after Blockbench closes.
 
 Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Pinning changes Recent Projects ordering only.
 
