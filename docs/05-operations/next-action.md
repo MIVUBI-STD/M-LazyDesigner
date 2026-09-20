@@ -3,7 +3,7 @@
 Updated: 2026-09-20
 Branch: `Local` only.
 
-Owns current implementation continuation only. Product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control: `mcp/gateway/control/`.
+Owns current implementation continuation only. Product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control: `mcp/gateway/control/`. Former `mcp/gateway/navigator/` source is removed.
 
 ## Current State
 
@@ -20,7 +20,7 @@ modern MCP 2026 negotiation/list/call PASS
 legacy 2025 JSON initialize/list/call PASS
 ```
 
-Historical baselines only; changed SHAs require their owning verifier. Generated prompt/API output remains generator-owned.
+Historical baselines only; changed SHAs require their owning verifier. No hand-editing generated docs/output; generated prompt/API output remains generator-owned.
 
 Core invariants:
 
