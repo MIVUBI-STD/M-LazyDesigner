@@ -201,7 +201,7 @@ describe("animation mutation contract", () => {
     expect(hasCaseInsensitiveRigNameCollision(groups, "hand")).toBe(false);
 
     const source = await Bun.file("server/tools/animation-rigging.ts").text();
-    expect(source).toContain("hasCaseInsensitiveRigNameCollision(Group.all, bone_data.name)");
+    expect(source).toContain("hasCaseInsensitiveRigNameCollision(Group.all, boneName)");
     expect(source).toContain("bone_data.new_name === targetBone.name");
     expect(source).not.toContain("group.name === bone_data.new_name");
   });
