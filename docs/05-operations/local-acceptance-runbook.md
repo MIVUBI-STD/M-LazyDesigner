@@ -474,6 +474,14 @@ mcp/tests/fixtures/astra-live-golden-tasks.json
 mcp/tests/fixtures/astra-usage-validation-template.json
 ```
 
+Before any live usage run, validate the checked-in measurement contract once from `mcp/`:
+
+```bash
+bun run verify:astra-usage-ready
+```
+
+This proves preparation only; it never upgrades LIVE_BLOCKBENCH or token telemetry state.
+
 For each Golden Task, run a comparable baseline and Zero-Waste variant on the same exact source/build state. Record only telemetry actually exposed by the client/harness. Leave unavailable values `null`; do not estimate them.
 
 Normalize the captured result into a copy of the template, then run from `mcp/`:

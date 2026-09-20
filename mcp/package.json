@@ -30,6 +30,7 @@
     "benchmark:zero-waste-bottlenecks": "bun run ./scripts/benchmark-zero-waste-bottlenecks.ts",
     "eval:quality-benchmark": "bun test tests/quality-benchmark-contract.test.ts",
     "eval:astra-usage": "bun run ./scripts/validate-astra-usage.ts",
+    "verify:astra-usage-ready": "bun run ./scripts/verify-astra-usage-ready.ts",
     "eval:call-efficiency": "bun test tests/tool-call-efficiency-contract.test.ts",
     "verify:repository": "bun test tests/repository/*.test.ts",
     "verify:authoring": "bun test tests/authoring/*.test.ts",
