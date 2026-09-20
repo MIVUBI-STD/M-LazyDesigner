@@ -96,6 +96,34 @@ describe("Control compaction-safe continuation checkpoint", () => {
     expect(checkpoint.last_operation).not.toHaveProperty("source_owner");
   });
 
+
+  test("preserves authoritative revision evidence needed after conversation compaction", async () => {
+    const packet = await buildControlPacket(status);
+    const delta = buildControlDelta({
+      capability: "paint_texture_transaction",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        texture: { uuid: "texture-a", name: "atlas" },
+        revision: {
+          before: "sha256:before",
+          after: "sha256:after",
+        },
+        operation_count: 1,
+        pixel_writes: 4,
+        affected_rect: [0, 0, 2, 2],
+      },
+    });
+
+    const checkpoint = buildControlContinuationCheckpoint(packet, delta);
+    expect(checkpoint.last_operation?.revision_evidence).toEqual({
+      TEXTURE_APPEARANCE: "sha256:after",
+    });
+  });
+
   test("keeps cached active context identities across a compaction boundary", async () => {
     const first = await buildControlPacket(status);
     const known = first.context.required.map((handle) => handle.id);
