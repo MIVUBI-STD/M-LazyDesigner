@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-20T20:21:42.480Z",
+  "generatedAt": "2026-09-20T20:40:18.300Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5629,7 +5629,7 @@
     {
       "name": "texture_layer_management",
       "title": "Texture Layer Management",
-      "description": "Creates, manages, and manipulates texture layers.",
+      "description": "Creates and mutates texture layers by explicit texture/layer identity with action-scoped Undo and compact continuation receipts.",
       "status": "experimental",
       "category": "Paint Tools",
       "annotations": {
@@ -5659,9 +5659,15 @@
             "type": "string",
             "minLength": 1
           },
+          "layer_id": {
+            "description": "Required for layer-targeted actions: exact layer UUID or unique exact layer name inside the resolved texture.",
+            "type": "string",
+            "minLength": 1
+          },
           "layer_name": {
-            "description": "Name of the layer.",
-            "type": "string"
+            "description": "Layer name for create/rename.",
+            "type": "string",
+            "minLength": 1
           },
           "opacity": {
             "description": "Layer opacity percentage.",
