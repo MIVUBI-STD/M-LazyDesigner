@@ -558,45 +558,6 @@ fn compose_status(
     }
 }
 
-fn readiness::maintenance(manager_available: bool, managed: Option<&ManagedStatus>, runtime_listener_live: bool) -> MaintenanceAvailability {
-    if !manager_available {
-        return MaintenanceAvailability {
-            update: false,
-            rollback: false,
-            repair: false,
-            recover: false,
-            setup_tls: false,
-            blocked_reason: Some("Managed LazyDesigner installation is unavailable."),
-        };
-    }
-
-    let Some(managed) = managed else {
-        return MaintenanceAvailability {
-            update: false,
-            rollback: false,
-            repair: false,
-            recover: false,
-            setup_tls: false,
-            blocked_reason: Some("Managed status is unavailable; refresh before maintenance."),
-        };
-    };
-
-    let busy = managed.gateway_active || managed.runtime_online || runtime_listener_live;
-    let tls_ready = managed.tls_ready;
-    MaintenanceAvailability {
-        update: true,
-        rollback: !busy && managed.rollback.as_ref().map(|value| value.available).unwrap_or(false),
-        repair: !busy,
-        recover: !busy,
-        setup_tls: !busy && !tls_ready,
-        blocked_reason: if busy {
-            Some("Close active Codex MCP sessions and Blockbench Runtime before repair, recovery, or Runtime security setup.")
-        } else {
-            None
-        },
-    }
-}
-
 fn gateway_active_fast(root: &Path, system: &System) -> Option<bool> {
     let leases = root.join("leases");
     let entries = match fs::read_dir(&leases) {
