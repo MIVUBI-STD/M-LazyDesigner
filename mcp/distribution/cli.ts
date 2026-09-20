@@ -9,7 +9,7 @@ import { DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
-import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
+import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
 const RELEASE_MANIFEST_ASSET = "blockit-package.json";
