@@ -7,6 +7,12 @@ import type { NetServer } from "@/server/net";
 import createNetServer from "@/server/net";
 import { setStatusBarState } from "@/ui/statusBar";
 import { runtimeTlsPaths } from "@/lib/runtimeConnection";
+import { type NativeCrypto } from "@/plugin/profileIdentity";
+import {
+  startRuntimeSessionLease,
+  stopRuntimeSessionLease,
+  type RuntimeSessionFs,
+} from "@/plugin/runtimeSessionLease";
 
 const SERVER_BIND_TIMEOUT_MS = 3_000;
 
@@ -18,6 +24,8 @@ export type RuntimeHostConfig = {
 export class RuntimeHost {
   private httpServer: NetServer | null = null;
   private nativeHttp: Parameters<typeof createNetServer>[0] | null = null;
+  private nativeFs: RuntimeSessionFs | null = null;
+  private nativeCrypto: NativeCrypto | null = null;
   private config: RuntimeHostConfig | null = null;
 
   acquireNativeNetwork(generation: number): boolean {
@@ -41,11 +49,14 @@ export class RuntimeHost {
     const paths = runtimeTlsPaths();
     // @ts-ignore - requireNativeModule is a Blockbench desktop global.
     const fs = requireNativeModule("fs", {
-      message: "LazyDesigner reads this machine's local TLS certificate and private key.",
-      detail: `TLS identity directory: ${paths.directory}. Provision with bun run setup:tls.`,
+      message: "LazyDesigner reads this machine's local TLS identity and maintains its local Runtime session lease.",
+      detail: `TLS identity directory: ${paths.directory}. Runtime session state remains local to this PC.`,
       optional: false,
-    }) as Pick<typeof import("node:fs"), "readFileSync"> | null;
-    if (!fs) throw new Error("LazyDesigner requires permission to read its TLS identity.");
+    }) as RuntimeSessionFs | null;
+    if (!fs) throw new Error("LazyDesigner requires permission to access its local Runtime identity.");
+    // @ts-ignore - requireNativeModule is a Blockbench desktop global.
+    const nativeCrypto = requireNativeModule("crypto") as NativeCrypto | null;
+    if (!nativeCrypto) throw new Error("LazyDesigner requires the native crypto module for local profile identity.");
     const cert = fs.readFileSync(paths.cert, "utf8");
     const key = fs.readFileSync(paths.key, "utf8");
     this.nativeHttp = {
@@ -53,6 +64,8 @@ export class RuntimeHost {
         { ...options, cert, key, minVersion: "TLSv1.2" }, callback
       ),
     };
+    this.nativeFs = fs;
+    this.nativeCrypto = nativeCrypto;
     return true;
   }
 
@@ -117,6 +130,7 @@ export class RuntimeHost {
     try {
       await this.waitForListening(candidate);
     } catch (error) {
+      stopRuntimeSessionLease();
       const reason = error instanceof Error ? error.message : String(error);
       candidate.closeActiveSockets();
       await candidate.closeAndWait();
@@ -138,17 +152,35 @@ export class RuntimeHost {
       return false;
     }
 
+    const sessionLeasePublished =
+      this.nativeFs !== null
+      && this.nativeCrypto !== null
+      && startRuntimeSessionLease(
+        this.nativeFs,
+        this.nativeCrypto,
+        config.port,
+        config.endpoint
+      );
+    if (!sessionLeasePublished) {
+      console.warn(
+        "[MCP] Runtime is live, but the optional Desktop health lease could not be published."
+      );
+    }
+
     markRuntimeGenerationState(generation, "running");
     setStatusBarState("running", `${config.port}${config.endpoint}`);
     return true;
   }
 
   teardown(generation: number | null): void {
+    stopRuntimeSessionLease();
     const current = this.httpServer;
     this.httpServer = null;
     const closePromise = current?.closeAndWait() ?? Promise.resolve();
 
     this.nativeHttp = null;
+    this.nativeFs = null;
+    this.nativeCrypto = null;
     this.config = null;
 
     if (generation === null) {

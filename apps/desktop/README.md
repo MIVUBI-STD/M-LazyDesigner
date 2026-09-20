@@ -359,13 +359,18 @@ The active-window heartbeat is deliberately cheaper than full `system_status`. I
 ```text
 Blockbench process
 managed plugin integrity
-Runtime loopback listener
+profile-bound Runtime session lease
 active Gateway lease
+project navigation generation/lease
 ```
 
-These probes use process/filesystem/socket inspection directly in Rust. They do not spawn `blockit.exe status` every few seconds. A probe that cannot determine Runtime or Gateway state returns unknown; the frontend preserves the last known full Rust projection rather than translating uncertainty into offline.
+The Runtime session lease is created only after RuntimeHost successfully binds its HTTPS listener and is removed by its owning Runtime generation during teardown. It contains a bounded profile identity, producer PID, Runtime instance identity, and canonical loopback Runtime URL. A short heartbeat makes a crashed or abandoned producer expire without relying on a hardcoded port probe.
 
-When a known fast-probe value actually changes, Desktop performs one full `system_status` refresh so compatibility, maintenance availability, Gateway supervision, readiness, and `product_state` are re-projected by the Rust owner.
+Full `system_status` compares the live listener URL with the canonical Runtime URL projected by Managed Distribution from the MCP client configuration. Runtime is ready only when the profile-bound listener lease is live, the configured endpoint is reachable, and both URLs match. An unrelated process occupying port 3000 therefore cannot make Desktop report Runtime ready, and custom ports remain valid when Blockbench and the MCP client are configured consistently.
+
+The heartbeat uses process/filesystem inspection directly in Rust. It does not spawn `blockit.exe status` every few seconds. Gateway uncertainty preserves the last known full Rust projection rather than translating uncertainty into offline.
+
+When a known fast-probe value changes, Desktop performs one full `system_status` refresh so compatibility, maintenance availability, Gateway supervision, readiness, Runtime endpoint agreement, and `product_state` are re-projected by their owning layers.
 
 ## Projects & Models navigation
 

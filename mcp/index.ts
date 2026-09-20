@@ -24,6 +24,7 @@ import {
   evaluateBlockbenchCompatibility,
 } from "@/lib/blockbenchCompatibility";
 import { getIcon } from "@/macros/getIcon" with { type: "macro" };
+import { normalizeRuntimeEndpoint } from "@/lib/runtimeConnection";
 import {
   setupLocalDevAutoReload,
   stopLocalDevAutoReload,
@@ -114,9 +115,22 @@ async function initializeBlockItRuntime(
 
   if (!(await blockbenchIntegration.loadPrompts())) return;
 
+  let runtimeEndpoint: string;
+  try {
+    runtimeEndpoint = normalizeRuntimeEndpoint(Settings.get("mcp_endpoint"));
+  } catch (error) {
+    markRuntimeGenerationState(generation, "failed");
+    console.error("[MCP] Invalid mcp_endpoint value - server will not start", error);
+    Blockbench.showQuickMessage(
+      "LazyDesigner couldn't start. Check its connection settings.",
+      4000
+    );
+    return;
+  }
+
   runtimeHost.setConfig({
     port: rawPort,
-    endpoint: String(Settings.get("mcp_endpoint") || "/bb-mcp"),
+    endpoint: runtimeEndpoint,
   });
 
   if (!(await runtimeHost.start(generation))) return;

@@ -1,3 +1,5 @@
+import { profileIdentity, type NativeCrypto } from "@/plugin/profileIdentity";
+
 type RecentProjectEntry = {
   name?: unknown;
   path?: unknown;
@@ -39,8 +41,6 @@ type NativeFs = Pick<
   "mkdirSync" | "writeFileSync" | "renameSync" | "rmSync" | "utimesSync"
 >;
 
-type NativeCrypto = Pick<typeof import("node:crypto"), "createHash">;
-
 let listeners: Array<{ delete(): void }> = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
@@ -51,21 +51,6 @@ let profileId: string | null = null;
 const producerGeneration = globalThis.crypto.randomUUID().toLowerCase();
 let lastSignature = "";
 let revision = 0;
-
-function normalizeProfilePath(value: string): string {
-  return value
-    .replace(/\//g, "\\")
-    .replace(/\\+$/, "")
-    .replace(/[A-Z]/g, (character) => character.toLowerCase());
-}
-
-function profileIdentity(value: string, cryptoApi: NativeCrypto): string {
-  return cryptoApi
-    .createHash("sha256")
-    .update(normalizeProfilePath(value), "utf8")
-    .digest("hex")
-    .slice(0, 32);
-}
 
 function modelPath(project: ModelProject | null | undefined): string | null {
   if (!project) return null;

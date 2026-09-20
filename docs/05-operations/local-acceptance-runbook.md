@@ -196,7 +196,33 @@ Runtime offline/online
 Gateway attach/detach
 ```
 
-The UI should update without manual Refresh. A transient fast-probe failure must preserve the last known full projection rather than falsely showing offline. The heartbeat must not spawn `blockit.exe status` continuously; full status refresh is expected only when a known fast-probe value changes or an explicit action requests it.
+The UI should update without manual Refresh. A transient Gateway fast-probe failure must preserve the last known full projection rather than falsely showing offline. The heartbeat must not spawn `blockit.exe status` continuously; full status refresh is expected only when a known fast-probe value changes or an explicit action requests it.
+
+Validate Runtime health authority separately:
+
+```text
+default Blockbench Runtime settings + default MCP client URL
+→ Runtime reaches ready
+
+matching custom Blockbench port/path + matching BLOCKIT_RUNTIME_URL
+→ Runtime reaches ready on the custom endpoint
+
+Blockbench listener URL differs from the MCP client Runtime URL
+→ fail closed
+→ Desktop does not report ready
+→ readiness identifies a local connection-settings mismatch
+
+unrelated process occupies 127.0.0.1:3000 while LazyDesigner Runtime is absent
+→ Desktop does not report Runtime ready
+
+RuntimeHost fails to bind
+→ no live Runtime session lease
+→ Desktop remains not ready
+
+Runtime crashes or Blockbench exits
+→ Runtime session lease expires/disappears
+→ maintenance never treats a live listener as idle
+```
 
 ### Projects & Models synchronization
 

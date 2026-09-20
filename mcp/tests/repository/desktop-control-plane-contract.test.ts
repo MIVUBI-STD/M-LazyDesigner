@@ -6,10 +6,13 @@ async function source(path: string): Promise<string> {
 
 describe("Desktop control-plane ownership", () => {
   test("Desktop depends on canonical compatibility and managed distribution owners", async () => {
-    const [rust, app, cli, workflow] = await Promise.all([
+    const [rust, app, cli, managedStatus, runtimeHost, runtimeLease, workflow] = await Promise.all([
       source("../apps/desktop/src-tauri/src/system_status.rs"),
       source("../apps/desktop/src/App.svelte"),
       source("distribution/cli.ts"),
+      source("distribution/status.ts"),
+      source("plugin/runtimeHost.ts"),
+      source("plugin/runtimeSessionLease.ts"),
       source("../.github/workflows/desktop-verify.yml"),
     ]);
 
@@ -28,6 +31,15 @@ describe("Desktop control-plane ownership", () => {
     for (const command of ["update", "rollback", "recover", "repair", "status", "mcp"]) {
       expect(cli).toContain(command);
     }
+
+    expect(cli).toContain("runtimeStatus");
+    expect(cli).toContain("DEFAULT_RUNTIME_URL");
+    expect(managedStatus).toContain("runtime_url");
+    expect(runtimeHost).toContain("startRuntimeSessionLease");
+    expect(runtimeHost).toContain("stopRuntimeSessionLease");
+    expect(runtimeLease).toContain("producer_pid");
+    expect(runtimeLease).toContain("runtime_url");
+    expect(runtimeLease).toContain("runtime-session");
 
     for (const dependency of [
       '"apps/desktop/**"',
@@ -229,10 +241,19 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("value.plugin_integrity === 'modified'");
     expect(app).toContain("next.managed = fixture === 'fresh-install' ? null :");
     expect(app).toContain("invoke<ConnectionStatus>('connection_status')");
+    expect(app).toContain("candidate.runtime_listener_live");
+    expect(app).not.toContain("candidate.runtime_online");
+    expect(app).toContain("RUNTIME_ENDPOINT_MISMATCH");
+    expect(app).toContain("RUNTIME_START_FAILED");
     expect(app).toContain("value.product_state");
     expect(rust).toContain("fn project_product_state(");
-    expect(rust).toContain("TcpStream::connect_timeout");
+    expect(rust).toContain("runtime_session_probe");
+    expect(rust).toContain("runtime_endpoint_match");
+    expect(rust).toContain("runtime_ready");
+    expect(rust).toContain("RUNTIME_SESSION_LEASE_TTL_MS");
     expect(rust).toContain("gateway_active_fast");
+    expect(rust).not.toContain("TcpStream::connect_timeout");
+    expect(rust).not.toContain("runtime_online_fast");
     expect(rust).not.toContain('"Managed connection status"');
 
     expect(app).toContain("async function connectBlockbench() {\n    if (devFixture) return;");

@@ -6,7 +6,6 @@ use std::{
     path::{Path, PathBuf},
     collections::{HashMap, HashSet},
     process::Command,
-    net::{SocketAddr, TcpStream},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use crate::process::{run_output, run_output_with_stderr_lines};
@@ -54,10 +53,16 @@ pub struct ManagedStatus {
     pub pending: bool,
     pub gateway_active: bool,
     pub runtime_online: bool,
+    #[serde(default = "default_runtime_url")]
+    pub runtime_url: String,
     pub tls_ready: bool,
     pub tls_error: Option<String>,
     #[serde(default)]
     pub rollback: Option<ManagedRollback>,
+}
+
+fn default_runtime_url() -> String {
+    "https://127.0.0.1:3000/bb-mcp".to_string()
 }
 
 #[derive(Debug, Serialize)]
@@ -124,7 +129,7 @@ pub struct ConnectionStatus {
     pub schema: u8,
     pub observed_at_unix_ms: u64,
     pub blockbench_running: bool,
-    pub runtime_online: Option<bool>,
+    pub runtime_listener_live: bool,
     pub gateway_active: Option<bool>,
     pub plugin_integrity: &'static str,
     pub project_revision: Option<String>,
@@ -199,6 +204,9 @@ pub struct SystemStatus {
     pub maintenance: MaintenanceAvailability,
     pub manager_available: bool,
     pub bootstrap_available: bool,
+    pub runtime_listener_live: bool,
+    pub runtime_endpoint_match: Option<bool>,
+    pub runtime_ready: bool,
     pub managed: Option<ManagedStatus>,
     pub project_navigation: ProjectNavigation,
     pub diagnostic: Option<String>,
@@ -214,6 +222,23 @@ struct InstalledState {
     source_sha: String,
     options: InstalledOptions,
     owned: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeSessionLease {
+    schema: u8,
+    profile_id: String,
+    producer_pid: u32,
+    instance_id: String,
+    runtime_url: String,
+    #[allow(dead_code)]
+    started_at_unix_ms: u64,
+}
+
+#[derive(Debug)]
+struct RuntimeSessionProbe {
+    live: bool,
+    runtime_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -323,6 +348,119 @@ fn project_navigation_snapshot_path() -> Option<PathBuf> {
     env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .map(|base| base.join("LazyDesigner").join("project-navigation").join(format!("{profile_id}.json")))
+}
+
+
+fn runtime_session_lease_path() -> Option<PathBuf> {
+    let profile_id = managed_navigation_profile_id()?;
+    env::var_os("LOCALAPPDATA")
+        .map(PathBuf::from)
+        .map(|base| base.join("LazyDesigner").join("runtime-session").join(format!("{profile_id}.json")))
+}
+
+const RUNTIME_SESSION_LEASE_TTL_MS: u64 = 15_000;
+
+fn runtime_endpoint_identity(value: &str) -> Option<(u16, String)> {
+    if value.len() > 512 || value.chars().any(|ch| matches!(ch, '\r' | '\n' | '\t')) {
+        return None;
+    }
+    let suffix = value
+        .strip_prefix("https://127.0.0.1")
+        .or_else(|| value.strip_prefix("https://localhost"))
+        .or_else(|| value.strip_prefix("https://[::1]"))?;
+
+    let (port, path) = if let Some(rest) = suffix.strip_prefix(':') {
+        let (raw_port, path) = match rest.split_once('/') {
+            Some((raw_port, path)) => (raw_port, format!("/{path}")),
+            None => (rest, "/".to_string()),
+        };
+        let port = raw_port.parse::<u16>().ok()?;
+        if port == 0 {
+            return None;
+        }
+        (port, path)
+    } else if suffix.is_empty() {
+        (443, "/".to_string())
+    } else if suffix.starts_with('/') {
+        (443, suffix.to_string())
+    } else {
+        return None;
+    };
+
+    let normalized_path = if path.len() > 1 {
+        path.trim_end_matches('/').to_string()
+    } else {
+        path
+    };
+    if normalized_path.is_empty() || normalized_path.chars().any(|ch| matches!(ch, '?' | '#')) {
+        return None;
+    }
+    Some((port, normalized_path))
+}
+
+fn valid_runtime_session_url(value: &str) -> bool {
+    runtime_endpoint_identity(value).is_some()
+}
+
+fn runtime_session_probe(blockbench_running: bool, system: &System) -> RuntimeSessionProbe {
+    if !blockbench_running {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    }
+    let Some(path) = runtime_session_lease_path() else {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    };
+    let Ok(metadata) = fs::metadata(&path) else {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    };
+    if metadata.len() == 0 || metadata.len() > 16 * 1024 {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    }
+    let Some(expected_profile_id) = managed_navigation_profile_id() else {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    };
+    let Ok(bytes) = fs::read(&path) else {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    };
+    let Ok(lease) = serde_json::from_slice::<RuntimeSessionLease>(&bytes) else {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    };
+    if lease.schema != 1
+        || lease.profile_id != expected_profile_id
+        || !valid_navigation_profile_id(&lease.profile_id)
+        || !valid_navigation_generation(&lease.instance_id)
+        || !valid_runtime_session_url(&lease.runtime_url)
+    {
+        return RuntimeSessionProbe { live: false, runtime_url: None };
+    }
+    let Some(process) = system.process(Pid::from_u32(lease.producer_pid)) else {
+        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
+    };
+    let name = process.name().to_ascii_lowercase();
+    if name != "blockbench.exe" && name != "blockbench" {
+        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
+    }
+    let Ok(modified) = metadata.modified() else {
+        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
+    };
+    let Ok(age) = SystemTime::now().duration_since(modified) else {
+        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
+    };
+    RuntimeSessionProbe {
+        live: age.as_millis() <= RUNTIME_SESSION_LEASE_TTL_MS as u128,
+        runtime_url: Some(lease.runtime_url),
+    }
+}
+
+fn runtime_endpoint_match(managed: Option<&ManagedStatus>, probe: &RuntimeSessionProbe) -> Option<bool> {
+    let managed = managed?;
+    let listener = runtime_endpoint_identity(probe.runtime_url.as_deref()?)?;
+    Some(runtime_endpoint_identity(&managed.runtime_url) == Some(listener))
+}
+
+fn runtime_ready(managed: Option<&ManagedStatus>, probe: &RuntimeSessionProbe) -> bool {
+    probe.live
+        && runtime_endpoint_match(managed, probe) == Some(true)
+        && managed.map(|value| value.runtime_online).unwrap_or(false)
 }
 
 
@@ -1170,7 +1308,7 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
         return Ok(EnsureReadyResult {
             status: "NEEDS_ATTENTION",
             reason: "PLUGIN_INTEGRITY",
-            runtime_online: current.runtime_online.unwrap_or(false),
+            runtime_online: false,
             gateway_active: current.gateway_active.unwrap_or(false),
             blockbench_running: current.blockbench_running,
             plugin_integrity: current.plugin_integrity,
@@ -1183,7 +1321,7 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
                 reason: "PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING",
-                runtime_online: current.runtime_online.unwrap_or(false),
+                runtime_online: false,
                 gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
@@ -1191,12 +1329,12 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             });
         }
 
-        let maintenance = project_maintenance(true, initial.managed.as_ref());
+        let maintenance = project_maintenance(true, initial.managed.as_ref(), current.runtime_listener_live);
         if !maintenance.repair {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
                 reason: "REPAIR_BLOCKED",
-                runtime_online: current.runtime_online.unwrap_or(false),
+                runtime_online: false,
                 gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
@@ -1210,7 +1348,7 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
             return Ok(EnsureReadyResult {
                 status: "NEEDS_ATTENTION",
                 reason: "REPAIR_DID_NOT_RESTORE_PLUGIN",
-                runtime_online: current.runtime_online.unwrap_or(false),
+                runtime_online: false,
                 gateway_active: current.gateway_active.unwrap_or(false),
                 blockbench_running: current.blockbench_running,
                 plugin_integrity: current.plugin_integrity,
@@ -1227,16 +1365,31 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
     while started.elapsed() < Duration::from_secs(15) {
         current = collect_connection_status();
 
-        if current.runtime_online == Some(true) {
-            return Ok(EnsureReadyResult {
-                status: if current.gateway_active == Some(true) { "READY" } else { "RUNTIME_READY" },
-                reason: if current.gateway_active == Some(true) { "CONNECTED" } else { "WAITING_FOR_MCP_CLIENT" },
-                runtime_online: true,
-                gateway_active: current.gateway_active.unwrap_or(false),
-                blockbench_running: current.blockbench_running,
-                plugin_integrity: current.plugin_integrity,
-                manual_plugin_approval_recommended: false,
-            });
+        if current.runtime_listener_live {
+            let verified = collect();
+            if verified.runtime_ready {
+                let gateway_active = verified.managed.as_ref().map(|value| value.gateway_active).unwrap_or(false);
+                return Ok(EnsureReadyResult {
+                    status: if gateway_active { "READY" } else { "RUNTIME_READY" },
+                    reason: if gateway_active { "CONNECTED" } else { "WAITING_FOR_MCP_CLIENT" },
+                    runtime_online: true,
+                    gateway_active,
+                    blockbench_running: current.blockbench_running,
+                    plugin_integrity: current.plugin_integrity,
+                    manual_plugin_approval_recommended: false,
+                });
+            }
+            if verified.runtime_endpoint_match == Some(false) {
+                return Ok(EnsureReadyResult {
+                    status: "NEEDS_ATTENTION",
+                    reason: "RUNTIME_ENDPOINT_MISMATCH",
+                    runtime_online: false,
+                    gateway_active: current.gateway_active.unwrap_or(false),
+                    blockbench_running: current.blockbench_running,
+                    plugin_integrity: current.plugin_integrity,
+                    manual_plugin_approval_recommended: false,
+                });
+            }
         }
 
         if !current.blockbench_running && started.elapsed() > Duration::from_secs(3) {
@@ -1255,16 +1408,17 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
     }
 
     current = collect_connection_status();
-    let probe_known = current.runtime_online.is_some() && current.gateway_active.is_some();
+    let probe_known = current.gateway_active.is_some();
     let likely_first_approval = probe_known
         && current.blockbench_running
         && current.plugin_integrity == "ready"
-        && current.runtime_online == Some(false);
+        && !current.runtime_listener_live
+        && !current.project_session_live;
 
     Ok(EnsureReadyResult {
         status: if likely_first_approval { "APPROVAL_REQUIRED" } else { "NEEDS_ATTENTION" },
-        reason: if !probe_known { "CONNECTION_PROBE_UNKNOWN" } else if likely_first_approval { "RUNTIME_TIMEOUT_WITH_HEALTHY_PLUGIN" } else { "RUNTIME_TIMEOUT" },
-        runtime_online: current.runtime_online.unwrap_or(false),
+        reason: if !probe_known { "CONNECTION_PROBE_UNKNOWN" } else if likely_first_approval { "RUNTIME_TIMEOUT_WITH_HEALTHY_PLUGIN" } else if current.project_session_live { "RUNTIME_START_FAILED" } else { "RUNTIME_TIMEOUT" },
+        runtime_online: false,
         gateway_active: current.gateway_active.unwrap_or(false),
         blockbench_running: current.blockbench_running,
         plugin_integrity: current.plugin_integrity,
@@ -1280,11 +1434,10 @@ fn unknown_gateway() -> GatewaySupervision {
     }
 }
 
-fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool) -> GatewaySupervision {
+fn project_gateway(managed: Option<&ManagedStatus>, blockbench_running: bool, runtime_ready: bool) -> GatewaySupervision {
     let active = managed.map(|value| value.gateway_active).unwrap_or(false);
-    let runtime_online = managed.map(|value| value.runtime_online).unwrap_or(false);
 
-    match (active, runtime_online, blockbench_running) {
+    match (active, runtime_ready, blockbench_running) {
         (true, true, _) => GatewaySupervision {
             ownership: "client-owned",
             state: "healthy",
@@ -1318,6 +1471,7 @@ fn project_product_state(
     manager_available: bool,
     managed: Option<&ManagedStatus>,
     blockbench: &BlockbenchState,
+    runtime_ready: bool,
     gateway: &GatewaySupervision,
     plugin_integrity: &str,
 ) -> &'static str {
@@ -1345,7 +1499,7 @@ fn project_product_state(
     if !blockbench.running {
         return "ready-start";
     }
-    if !managed.runtime_online {
+    if !runtime_ready {
         return "plugin-setup";
     }
     if gateway.state == "healthy" {
@@ -1361,6 +1515,7 @@ fn project_readiness(
     manager_available: bool,
     managed: Option<&ManagedStatus>,
     blockbench_running: bool,
+    runtime_ready: bool,
     gateway: &GatewaySupervision,
     plugin_integrity: &str,
 ) -> ReadinessProjection {
@@ -1399,7 +1554,7 @@ fn project_readiness(
             ready: false,
         };
     }
-    if gateway.state == "healthy" && managed.runtime_online {
+    if gateway.state == "healthy" && runtime_ready {
         return ReadinessProjection {
             state: "ready",
             summary: "Blockbench Runtime and client-owned Gateway are connected.",
@@ -1431,25 +1586,32 @@ fn compose_status(
         .as_deref()
         .map(managed_plugin_integrity)
         .unwrap_or("unknown");
+    let mut process_system = System::new_all();
+    process_system.refresh_processes();
+    let runtime_session = runtime_session_probe(blockbench.running, &process_system);
+    let runtime_endpoint_match = runtime_endpoint_match(managed.as_ref(), &runtime_session);
+    let runtime_ready = runtime_ready(managed.as_ref(), &runtime_session);
     let gateway = if manager_available && managed.is_none() {
         unknown_gateway()
     } else {
-        project_gateway(managed.as_ref(), blockbench.running)
+        project_gateway(managed.as_ref(), blockbench.running, runtime_ready)
     };
     let readiness = project_readiness(
         manager_available,
         managed.as_ref(),
         blockbench.running,
+        runtime_ready,
         &gateway,
         plugin_integrity,
     );
-    let maintenance = project_maintenance(manager_available, managed.as_ref());
+    let maintenance = project_maintenance(manager_available, managed.as_ref(), runtime_session.live);
     let (_, project_session_live) = project_navigation_probe(blockbench.running);
     let project_navigation = project_navigation_projection(project_session_live);
     let product_state = project_product_state(
         manager_available,
         managed.as_ref(),
         &blockbench,
+        runtime_ready,
         &gateway,
         plugin_integrity,
     );
@@ -1465,13 +1627,16 @@ fn compose_status(
         maintenance,
         manager_available,
         bootstrap_available: false,
+        runtime_listener_live: runtime_session.live,
+        runtime_endpoint_match,
+        runtime_ready,
         managed,
         project_navigation,
         diagnostic,
     }
 }
 
-fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>) -> MaintenanceAvailability {
+fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>, runtime_listener_live: bool) -> MaintenanceAvailability {
     if !manager_available {
         return MaintenanceAvailability {
             update: false,
@@ -1494,7 +1659,7 @@ fn project_maintenance(manager_available: bool, managed: Option<&ManagedStatus>)
         };
     };
 
-    let busy = managed.gateway_active || managed.runtime_online;
+    let busy = managed.gateway_active || managed.runtime_online || runtime_listener_live;
     let tls_ready = managed.tls_ready;
     MaintenanceAvailability {
         update: true,
@@ -1533,18 +1698,6 @@ fn gateway_active_fast(root: &Path, system: &System) -> Option<bool> {
     Some(false)
 }
 
-fn runtime_online_fast() -> Option<bool> {
-    let endpoint = SocketAddr::from(([127, 0, 0, 1], 3000));
-    match TcpStream::connect_timeout(&endpoint, Duration::from_millis(250)) {
-        Ok(stream) => {
-            drop(stream);
-            Some(true)
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::ConnectionRefused => Some(false),
-        Err(_) => None,
-    }
-}
-
 pub fn collect_connection_status() -> ConnectionStatus {
     let mut system = System::new_all();
     system.refresh_processes();
@@ -1554,13 +1707,14 @@ pub fn collect_connection_status() -> ConnectionStatus {
     });
 
     let (project_revision, project_session_live) = project_navigation_probe(blockbench_running);
+    let runtime_session = runtime_session_probe(blockbench_running, &system);
 
     let Some(root) = managed_root() else {
         return ConnectionStatus {
             schema: 1,
             observed_at_unix_ms: observed_at_unix_ms(),
             blockbench_running,
-            runtime_online: None,
+            runtime_listener_live: runtime_session.live,
             gateway_active: None,
             plugin_integrity: "unknown",
             project_revision: project_revision.clone(),
@@ -1574,7 +1728,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
             schema: 1,
             observed_at_unix_ms: observed_at_unix_ms(),
             blockbench_running,
-            runtime_online: None,
+            runtime_listener_live: runtime_session.live,
             gateway_active: None,
             plugin_integrity,
             project_revision: project_revision.clone(),
@@ -1586,7 +1740,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
         schema: 1,
         observed_at_unix_ms: observed_at_unix_ms(),
         blockbench_running,
-        runtime_online: runtime_online_fast(),
+        runtime_listener_live: runtime_session.live,
         gateway_active: gateway_active_fast(&root, &system),
         plugin_integrity,
         project_revision: project_revision.clone(),
@@ -1870,6 +2024,46 @@ mod tests {
     }
 
     #[test]
+    fn runtime_endpoint_match_requires_same_listener_and_gateway_url() {
+        let managed = ManagedStatus {
+            schema: 1,
+            installed: None,
+            pending: false,
+            gateway_active: false,
+            runtime_online: true,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
+            tls_ready: true,
+            tls_error: None,
+            rollback: None,
+        };
+        let matching = RuntimeSessionProbe {
+            live: true,
+            runtime_url: Some("https://127.0.0.1:3000/bb-mcp".to_string()),
+        };
+        let mismatched = RuntimeSessionProbe {
+            live: true,
+            runtime_url: Some("https://127.0.0.1:3100/bb-mcp".to_string()),
+        };
+
+        assert_eq!(runtime_endpoint_match(Some(&managed), &matching), Some(true));
+        assert!(runtime_ready(Some(&managed), &matching));
+        let localhost = RuntimeSessionProbe {
+            live: true,
+            runtime_url: Some("https://localhost:3000/bb-mcp".to_string()),
+        };
+        assert_eq!(runtime_endpoint_match(Some(&managed), &localhost), Some(true));
+        assert_eq!(runtime_endpoint_identity("https://localhost:443/"), Some((443, "/".to_string())));
+        assert_eq!(runtime_endpoint_identity("https://localhost"), Some((443, "/".to_string())));
+        assert_eq!(runtime_endpoint_match(Some(&managed), &mismatched), Some(false));
+        assert!(!runtime_ready(Some(&managed), &mismatched));
+        let legacy_http = ManagedStatus {
+            runtime_url: "http://127.0.0.1:3000/bb-mcp".to_string(),
+            ..managed
+        };
+        assert_eq!(runtime_endpoint_match(Some(&legacy_http), &matching), Some(false));
+    }
+
+    #[test]
     fn managed_plugin_filename_is_stable() {
         let path = Path::new("C:/Users/test/AppData/Roaming/Blockbench/plugins/blockit_mcp.js");
         assert_eq!(path.file_name().and_then(|name| name.to_str()), Some("blockit_mcp.js"));
@@ -1900,6 +2094,7 @@ mod tests {
             pending: false,
             gateway_active: false,
             runtime_online: false,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: true,
             tls_error: None,
             rollback: None,
@@ -1910,8 +2105,8 @@ mod tests {
             compatibility: Some(evaluate_blockbench_compatibility("5.2.0").unwrap()),
             diagnostic: None,
         };
-        let gateway = project_gateway(Some(&managed), false);
-        assert_eq!(project_product_state(true, Some(&managed), &blockbench, &gateway, "modified"), "attention");
+        let gateway = project_gateway(Some(&managed), false, false);
+        assert_eq!(project_product_state(true, Some(&managed), &blockbench, false, &gateway, "modified"), "attention");
     }
 
     #[test]
@@ -1922,11 +2117,12 @@ mod tests {
             pending: false,
             gateway_active: false,
             runtime_online: true,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: true,
             tls_error: None,
             rollback: None,
         };
-        let result = project_gateway(Some(&managed), true);
+        let result = project_gateway(Some(&managed), true, true);
         assert_eq!(result.ownership, "client-owned");
         assert_eq!(result.state, "client-disconnected");
         assert!(result.action.unwrap().contains("Reconnect LazyDesigner MCP"));
@@ -1940,17 +2136,18 @@ mod tests {
             pending: false,
             gateway_active: true,
             runtime_online: true,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: true,
             tls_error: None,
             rollback: None,
         };
-        let gateway = project_gateway(Some(&healthy), true);
-        let ready = project_readiness(true, Some(&healthy), true, &gateway, "ready");
+        let gateway = project_gateway(Some(&healthy), true, true);
+        let ready = project_readiness(true, Some(&healthy), true, true, &gateway, "ready");
         assert_eq!(ready.state, "ready");
         assert!(ready.ready);
 
-        let closed_gateway = project_gateway(Some(&healthy), false);
-        let start = project_readiness(true, Some(&healthy), false, &closed_gateway, "ready");
+        let closed_gateway = project_gateway(Some(&healthy), false, false);
+        let start = project_readiness(true, Some(&healthy), false, false, &closed_gateway, "ready");
         assert_eq!(start.state, "ready-to-start");
         assert!(!start.ready);
 
@@ -1960,18 +2157,19 @@ mod tests {
             pending: false,
             gateway_active: false,
             runtime_online: true,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: true,
             tls_error: None,
             rollback: None,
         };
-        let disconnected_gateway = project_gateway(Some(&disconnected), true);
-        let connection = project_readiness(true, Some(&disconnected), true, &disconnected_gateway, "ready");
+        let disconnected_gateway = project_gateway(Some(&disconnected), true, true);
+        let connection = project_readiness(true, Some(&disconnected), true, true, &disconnected_gateway, "ready");
         assert_eq!(connection.state, "needs-connection");
 
-        let setup = project_readiness(false, None, false, &unknown_gateway(), "unknown");
+        let setup = project_readiness(false, None, false, false, &unknown_gateway(), "unknown");
         assert_eq!(setup.state, "setup-required");
 
-        let attention = project_readiness(true, None, false, &unknown_gateway(), "unknown");
+        let attention = project_readiness(true, None, false, false, &unknown_gateway(), "unknown");
         assert_eq!(attention.state, "needs-attention");
     }
 
@@ -1983,11 +2181,12 @@ mod tests {
             pending: false,
             gateway_active: false,
             runtime_online: false,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: true,
             tls_error: None,
             rollback: None,
         };
-        let ready = project_maintenance(true, Some(&idle));
+        let ready = project_maintenance(true, Some(&idle), false);
         assert!(ready.update && ready.repair && ready.recover);
         assert!(!ready.rollback);
         assert!(!ready.setup_tls);
@@ -1998,11 +2197,12 @@ mod tests {
             pending: false,
             gateway_active: true,
             runtime_online: false,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: false,
             tls_error: Some("missing identity".to_string()),
             rollback: None,
         };
-        let blocked = project_maintenance(true, Some(&busy));
+        let blocked = project_maintenance(true, Some(&busy), true);
         assert!(blocked.update);
         assert!(!blocked.repair && !blocked.recover && !blocked.setup_tls);
         assert!(blocked.blocked_reason.is_some());
@@ -2022,11 +2222,12 @@ mod tls_projection_tests {
             pending: false,
             gateway_active: false,
             runtime_online: false,
+            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
             tls_ready: false,
             tls_error: Some("missing".to_string()),
             rollback: None,
         };
-        let availability = project_maintenance(true, Some(&missing));
+        let availability = project_maintenance(true, Some(&missing), false);
         assert!(availability.setup_tls);
     }
 }

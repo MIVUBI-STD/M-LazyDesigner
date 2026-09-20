@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { normalizeRuntimeUrl } from "../gateway/contract";
+import { DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
@@ -28,11 +29,23 @@ const parseToml = (text: string) => Bun.TOML.parse(text);
 const receipt = (value: unknown) => console.log(JSON.stringify(value, null, 2));
 const progress = (action: string, stage: string) => { if (flags.has("--progress-json")) console.error(JSON.stringify({ schema: 1, kind: "progress", action, stage })); };
 
-async function runtimeOnline(config?: string): Promise<boolean> {
+async function runtimeStatus(config?: string): Promise<{ online: boolean; url: string }> {
   const parsed = config ? parseToml((await readOptional(config))?.toString() ?? "") as any : {};
-  const endpoint = normalizeRuntimeUrl(parsed.mcp_servers?.blockit?.env?.BLOCKIT_RUNTIME_URL ?? process.env.BLOCKIT_RUNTIME_URL ?? "http://127.0.0.1:3000/bb-mcp");
+  const endpoint = normalizeRuntimeUrl(
+    parsed.mcp_servers?.blockit?.env?.BLOCKIT_RUNTIME_URL
+      ?? process.env.BLOCKIT_RUNTIME_URL
+      ?? DEFAULT_RUNTIME_URL
+  );
   const url = new URL(endpoint);
-  return probeLoopbackPort(url.hostname.replace(/^\[|\]$/g, ""), Number(url.port || (url.protocol === "https:" ? 443 : 80)));
+  const online = await probeLoopbackPort(
+    url.hostname.replace(/^\[|\]$/g, ""),
+    Number(url.port || (url.protocol === "https:" ? 443 : 80))
+  );
+  return { online, url: endpoint };
+}
+
+async function runtimeOnline(config?: string): Promise<boolean> {
+  return (await runtimeStatus(config)).online;
 }
 
 async function activatePending(): Promise<unknown> {
@@ -135,7 +148,7 @@ async function main(): Promise<void> {
   if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | setup-tls | status | mcp. No app, user build, or manual file replacement."); return; }
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
-  if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeOnline, runtimeTlsStatus)); return; }
+  if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeStatus, runtimeTlsStatus)); return; }
   if (command === "setup-tls") {
     progress("setup-tls", "preflight");
     const installed = await installedState(root);

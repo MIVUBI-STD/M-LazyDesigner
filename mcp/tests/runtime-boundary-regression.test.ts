@@ -1,3 +1,4 @@
+import { normalizeRuntimeEndpoint } from "@/lib/runtimeConnection";
 import { describe, expect, test } from "bun:test";
 
 const repoFile = (relative: string) =>
@@ -47,6 +48,22 @@ describe("Runtime boundary regressions", () => {
     expect(source.slice(postCheckIndex, returnIndex)).toContain(
       "throw new RuntimeGenerationRetiredError(generation)"
     );
+  });
+
+  test("Runtime endpoint settings are canonical before listener bind", () => {
+    expect(normalizeRuntimeEndpoint("/bb-mcp")).toBe("/bb-mcp");
+    expect(normalizeRuntimeEndpoint("/bb-mcp/")).toBe("/bb-mcp");
+    expect(normalizeRuntimeEndpoint(undefined)).toBe("/bb-mcp");
+
+    for (const invalid of [
+      "bb-mcp",
+      "/bb-mcp?debug=1",
+      "/bb-mcp#fragment",
+      "/a/../bb-mcp",
+      "/bb-mcp\nother",
+    ]) {
+      expect(() => normalizeRuntimeEndpoint(invalid)).toThrow();
+    }
   });
 
   test("Runtime transport consumes canonical capability effects", async () => {

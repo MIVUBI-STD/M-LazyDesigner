@@ -24,6 +24,7 @@
     pending: boolean;
     gateway_active: boolean;
     runtime_online: boolean;
+    runtime_url: string;
     tls_ready: boolean;
     tls_error: string | null;
     rollback?: { available: boolean; previous_source_sha: string | null; transaction: string | null };
@@ -54,7 +55,7 @@
     schema: number;
     observed_at_unix_ms: number;
     blockbench_running: boolean;
-    runtime_online: boolean | null;
+    runtime_listener_live: boolean;
     gateway_active: boolean | null;
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
     project_revision: string | null;
@@ -113,6 +114,9 @@
     maintenance: MaintenanceAvailability;
     manager_available: boolean;
     bootstrap_available: boolean;
+    runtime_listener_live: boolean;
+    runtime_endpoint_match: boolean | null;
+    runtime_ready: boolean;
     managed: ManagedStatus | null;
     project_navigation: ProjectNavigation;
     diagnostic: string | null;
@@ -344,13 +348,13 @@
     if (devFixture || busyAction || document.hidden || !status) return;
     try {
       const candidate = await invoke<ConnectionStatus>('connection_status');
-      if (candidate.runtime_online === null || candidate.gateway_active === null) return;
 
       const changed =
         candidate.blockbench_running !== status.blockbench.running
         || candidate.plugin_integrity !== status.plugin_integrity
-        || candidate.runtime_online !== status.managed?.runtime_online
-        || candidate.gateway_active !== status.managed?.gateway_active
+        || candidate.runtime_listener_live !== status.runtime_listener_live
+        || (candidate.gateway_active !== null
+          && candidate.gateway_active !== status.managed?.gateway_active)
         || candidate.project_revision !== status.project_navigation.revision
         || candidate.project_session_live !== status.project_navigation.session_live;
 
@@ -381,9 +385,13 @@
           ? 'The managed Blockbench plugin was modified and needs review.'
           : result.reason === 'BLOCKBENCH_EXITED'
             ? 'Blockbench closed before LazyDesigner could become ready.'
-            : result.reason === 'CONNECTION_PROBE_UNKNOWN'
-              ? 'LazyDesigner could not verify the local Runtime connection. Try again or open Support.'
-              : 'LazyDesigner could not prepare Blockbench automatically.';
+            : result.reason === 'RUNTIME_ENDPOINT_MISMATCH'
+              ? 'Blockbench and the MCP client are using different local connection settings. Restore matching connection settings or open Support.'
+              : result.reason === 'RUNTIME_START_FAILED'
+                ? 'LazyDesigner loaded in Blockbench, but its local Runtime could not start. Open Support.'
+                : result.reason === 'CONNECTION_PROBE_UNKNOWN'
+                  ? 'LazyDesigner could not verify the local Runtime connection. Try again or open Support.'
+                  : 'LazyDesigner could not prepare Blockbench automatically.';
       }
     } catch (cause) {
       error = errorMessage(cause);
@@ -412,7 +420,11 @@
       else if (ready.status === 'NEEDS_ATTENTION') {
         error = ready.reason === 'PLUGIN_INTEGRITY'
           ? 'Setup completed, but the managed Blockbench plugin needs review.'
-          : 'Setup completed, but Blockbench could not become ready automatically.';
+          : ready.reason === 'RUNTIME_ENDPOINT_MISMATCH'
+            ? 'Setup completed, but Blockbench and the MCP client use different local connection settings.'
+            : ready.reason === 'RUNTIME_START_FAILED'
+              ? 'Setup completed, but the local Runtime could not start in Blockbench.'
+              : 'Setup completed, but Blockbench could not become ready automatically.';
       }
     } catch (cause) {
       recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
@@ -561,10 +573,15 @@
       pending: false,
       gateway_active: gatewayActive,
       runtime_online: runtimeOnline,
+      runtime_url: next.managed?.runtime_url ?? 'https://127.0.0.1:3000/bb-mcp',
       tls_ready: true,
       tls_error: null,
       rollback: { available: false, previous_source_sha: null, transaction: null },
     };
+
+    next.runtime_listener_live = runtimeOnline;
+    next.runtime_endpoint_match = runtimeOnline ? true : null;
+    next.runtime_ready = runtimeOnline;
 
     next.gateway = {
       ownership: 'client-owned',
@@ -671,6 +688,7 @@
     if (mode === 'welcome' && !value.bootstrap_available) return 'This Desktop build does not contain the setup package. Open Support and export diagnostics.';
     if (mode === 'security-setup' && !value.maintenance.setup_tls) return value.maintenance.blocked_reason ?? 'Secure setup is temporarily unavailable. Close active authoring tasks and try again.';
     if (mode === 'unsupported') return 'Update Blockbench to a supported version, then refresh this page.';
+    if (mode === 'plugin-setup' && value.runtime_endpoint_match === false) return 'Blockbench and the MCP client use different local connection settings. Open Support before trying again.';
     if (mode === 'plugin-setup' && pluginApprovalNeeded) return 'Blockbench needs one-time approval for the LazyDesigner plugin.';
     if (mode === 'attention' && value.plugin_integrity === 'modified') return 'The managed Blockbench plugin was modified. Review or repair it before starting Blockbench.';
     if (mode === 'attention' && value.plugin_integrity === 'invalid') return 'The managed Blockbench plugin state is invalid. Open Support for recovery.';
@@ -827,7 +845,13 @@
 
               {#if productMode(status) === 'plugin-setup'}
                 <div class="inline-guidance">
-                  {#if !pluginApprovalNeeded}
+                  {#if status.runtime_endpoint_match === false}
+                    <div>
+                      <strong>Local connection settings do not match</strong>
+                      <span>Blockbench and the MCP client must use the same LazyDesigner connection settings.</span>
+                    </div>
+                    <button class="secondary-button" onclick={() => navigate('Support')}>Open Support</button>
+                  {:else if !pluginApprovalNeeded}
                     <div>
                       <strong>LazyDesigner is not active yet</strong>
                       <span>Desktop can open Blockbench and verify the Runtime automatically.</span>

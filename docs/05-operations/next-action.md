@@ -72,7 +72,7 @@ Current source includes:
 
 - one canonical `ensure_ready` launch/readiness path;
 - safe missing-plugin repair and modified-plugin fail-closed handling;
-- lightweight Blockbench/Runtime/Gateway/plugin watcher without managed-CLI heartbeat spawning;
+- profile-bound Runtime lease + Gateway/config endpoint agreement; no hardcoded Runtime-port readiness probe;
 - explicit READY / RUNTIME_READY / APPROVAL_REQUIRED / NEEDS_ATTENTION outcomes;
 - bounded operation logging and diagnostics;
 - Blockbench compatibility, custom `--userData`, TLS, rollback, repair, recover, update and installer trust boundaries;

@@ -184,7 +184,7 @@ test("managed status exposes one desktop-ready machine health contract", async (
     join(o.root, "pending.json"),
     async config => {
       observedConfig = config;
-      return false;
+      return { online: false, url: "https://127.0.0.1:3000/bb-mcp" };
     },
     () => ({ ready: false, error: "missing test identity" })
   );
@@ -194,6 +194,7 @@ test("managed status exposes one desktop-ready machine health contract", async (
     pending: false,
     gateway_active: false,
     runtime_online: false,
+    runtime_url: "https://127.0.0.1:3000/bb-mcp",
     tls_ready: false,
     tls_error: "missing test identity",
     rollback: { available: false, previous_source_sha: null, transaction: null },
