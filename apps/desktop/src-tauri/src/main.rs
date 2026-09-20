@@ -7,6 +7,7 @@ mod diagnostics;
 mod operation_log;
 mod runtime_health;
 mod process;
+mod project_navigation;
 mod readiness;
 mod system_status;
 

@@ -165,9 +165,10 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
-    const [app, rust, integration, snapshot, readme] = await Promise.all([
+    const [app, rust, projectNavigation, integration, snapshot, readme] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src-tauri/src/project_navigation.rs"),
       source("plugin/blockbenchIntegration.ts"),
       source("plugin/projectNavigationSnapshot.ts"),
       source("../apps/desktop/README.md"),
@@ -193,46 +194,46 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain('+ ".json"');
     expect(snapshot).toContain("heartbeatSnapshot");
     expect(snapshot).toContain("utimesSync");
-    expect(rust).toContain("project_navigation_projection");
-    expect(rust).toContain("project_navigation_probe");
-    expect(rust).toContain("PROJECT_SESSION_LEASE_TTL_MS");
-    expect(rust).toContain("project_session_lease_requires_live_blockbench_and_fresh_snapshot");
-    expect(rust).toContain("project_navigation_revision_is_generation_aware");
-    expect(rust).toContain("open_models");
-    expect(rust).toContain("pub open: bool");
-    expect(rust).toContain("pub dirty: bool");
-    expect(rust).toContain("navigation_revision_token(&snapshot)");
-    expect(rust).toContain("valid_navigation_generation");
+    expect(projectNavigation).toContain("project_navigation_projection");
+    expect(projectNavigation).toContain("project_navigation_probe");
+    expect(projectNavigation).toContain("PROJECT_SESSION_LEASE_TTL_MS");
+    expect(projectNavigation).toContain("project_session_lease_requires_live_blockbench_and_fresh_snapshot");
+    expect(projectNavigation).toContain("project_navigation_revision_is_generation_aware");
+    expect(projectNavigation).toContain("open_models");
+    expect(projectNavigation).toContain("pub open: bool");
+    expect(projectNavigation).toContain("pub dirty: bool");
+    expect(projectNavigation).toContain("navigation_revision_token(&snapshot)");
+    expect(projectNavigation).toContain("valid_navigation_generation");
     expect(rust).toContain("valid_navigation_profile_id");
     expect(rust).toContain("managed_blockbench_user_data_dir");
     expect(rust).toContain("managed_navigation_profile_id");
     expect(rust).toContain("navigation_snapshot_is_valid");
-    expect(rust).toContain("snapshot.schema == 4");
-    expect(rust).toContain("snapshot.profile_id == expected_profile_id");
-    expect(rust).toContain("snapshot.open_models.len() <= 64");
-    expect(rust).toContain("snapshot.recent_models.len() <= 128");
-    expect(rust).toContain("project_navigation_revision_is_profile_aware");
-    expect(rust).toContain("live_open_models(&snapshot, session_live)");
-    expect(rust).toContain("live_project_session_state_is_discarded_when_session_is_not_live");
-    expect(rust).toContain('"open-project-folder"');
-    expect(rust).toContain('"open-model"');
-    expect(rust).toContain('"reveal-model"');
-    expect(rust).toContain('"open-folder"');
-    expect(rust).toContain('"pin-project" | "unpin-project"');
-    expect(rust).toContain("project-preferences.json");
-    expect(rust).toContain("pinned_project_ids");
-    expect(rust).toContain('navigation_id("project"');
-    expect(rust).toContain('("models", "Models"');
-    expect(rust).toContain('("references", "References"');
-    expect(rust).toContain('("textures", "Textures"');
-    expect(rust).toContain('("exports", "Exports"');
-    expect(rust).toContain(".lazydesigner-project.json");
-    expect(rust).toContain("struct ProjectManifest");
-    expect(rust).toContain("project_uuid");
-    expect(rust).toContain("ensure_project_manifest_for_pin");
-    expect(rust).toContain("manifest_identity_survives_project_move");
-    expect(rust).toContain("malformed_or_unsupported_manifest_is_not_overwritten");
-    expect(rust).toContain("duplicate_manifest_ids_fall_back_to_distinct_path_ids");
+    expect(projectNavigation).toContain("snapshot.schema == 4");
+    expect(projectNavigation).toContain("snapshot.profile_id == expected_profile_id");
+    expect(projectNavigation).toContain("snapshot.open_models.len() <= 64");
+    expect(projectNavigation).toContain("snapshot.recent_models.len() <= 128");
+    expect(projectNavigation).toContain("project_navigation_revision_is_profile_aware");
+    expect(projectNavigation).toContain("live_open_models(&snapshot, session_live)");
+    expect(projectNavigation).toContain("live_project_session_state_is_discarded_when_session_is_not_live");
+    expect(projectNavigation).toContain('"open-project-folder"');
+    expect(projectNavigation).toContain('"open-model"');
+    expect(projectNavigation).toContain('"reveal-model"');
+    expect(projectNavigation).toContain('"open-folder"');
+    expect(projectNavigation).toContain('"pin-project" | "unpin-project"');
+    expect(projectNavigation).toContain("project-preferences.json");
+    expect(projectNavigation).toContain("pinned_project_ids");
+    expect(projectNavigation).toContain('navigation_id("project"');
+    expect(projectNavigation).toContain('("models", "Models"');
+    expect(projectNavigation).toContain('("references", "References"');
+    expect(projectNavigation).toContain('("textures", "Textures"');
+    expect(projectNavigation).toContain('("exports", "Exports"');
+    expect(projectNavigation).toContain(".lazydesigner-project.json");
+    expect(projectNavigation).toContain("struct ProjectManifest");
+    expect(projectNavigation).toContain("project_uuid");
+    expect(projectNavigation).toContain("ensure_project_manifest_for_pin");
+    expect(projectNavigation).toContain("manifest_identity_survives_project_move");
+    expect(projectNavigation).toContain("malformed_or_unsupported_manifest_is_not_overwritten");
+    expect(projectNavigation).toContain("duplicate_manifest_ids_fall_back_to_distinct_path_ids");
     expect(app).toContain("Active Project");
     expect(app).toContain("Recent Projects");
     expect(app).toContain("See details");
@@ -255,15 +256,33 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("continueTarget");
     expect(snapshot).toContain("last_model_path");
     expect(snapshot).toContain("restoreLastModelPath");
-    expect(rust).toContain("continue_model_id_for_path");
-    expect(rust).toContain("continue_model_id");
-    expect(rust).toContain("continue_model_requires_the_exact_last_saved_model_to_exist");
+    expect(projectNavigation).toContain("continue_model_id_for_path");
+    expect(projectNavigation).toContain("continue_model_id");
+    expect(projectNavigation).toContain("continue_model_requires_the_exact_last_saved_model_to_exist");
     expect(app).toContain("value.project_navigation.continue_model_id");
     expect(app).toContain("candidate.id === modelId && candidate.exists");
     expect(app).toContain("!status.project_navigation.active && continueTarget(status)");
     expect(app).toContain("candidate.exists");
     expect(app).not.toContain("project.root_path");
     expect(readme).toContain("Paths stay hidden in the normal UI");
+  });
+
+  test("Desktop Project Navigation owner is isolated from workstation orchestration", async () => {
+    const [projectNavigation, rust] = await Promise.all([
+      source("../apps/desktop/src-tauri/src/project_navigation.rs"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+    ]);
+
+    expect(projectNavigation).toContain("pub(crate) fn probe");
+    expect(projectNavigation).toContain("pub(crate) fn projection");
+    expect(projectNavigation).toContain("pub(crate) fn action");
+    expect(projectNavigation).toContain("pub(crate) fn path");
+    expect(projectNavigation).toContain("struct ProjectManifest");
+    expect(projectNavigation).toContain("ensure_project_manifest_for_pin");
+    expect(projectNavigation).not.toContain("installed.json");
+    expect(rust).toContain("project_navigation::probe");
+    expect(rust).toContain("project_navigation::projection");
+    expect(rust).not.toContain("struct ProjectManifest");
   });
 
   test("Desktop Blockbench owner is isolated from workstation orchestration", async () => {
