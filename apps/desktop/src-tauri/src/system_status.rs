@@ -81,13 +81,6 @@ pub struct EnsureReadyResult {
 pub struct ManagedProgressEvent { pub schema: u8, pub kind: String, pub action: String, pub stage: String }
 
 #[derive(Debug, Serialize)]
-pub struct ReadinessProjection {
-    pub state: &'static str,
-    pub summary: &'static str,
-    pub ready: bool,
-}
-
-#[derive(Debug, Serialize)]
 pub struct ConnectionStatus {
     pub schema: u8,
     pub observed_at_unix_ms: u64,
