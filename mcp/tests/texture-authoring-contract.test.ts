@@ -6,6 +6,7 @@ import {
   isExactPixelAuthoringRequest,
   normalizeTexturePixelRegion,
   paintFillToolParameters,
+  listTexturesParameters,
   requirePaintCoordinates,
   requireTextureCoordinatesWithinBounds,
   texturePixelRectToUvTag,
@@ -34,6 +35,24 @@ function rectanglesOverlap(
 }
 
 describe("texturing authoring contract", () => {
+  test("texture inventory is cheap by default and diagnostics remain explicit", () => {
+    const baseline = listTexturesParameters.parse({});
+    expect(baseline.diagnostics).toBe(false);
+    expect(baseline.diagnostic_scope).toBe("full");
+
+    const uvOnly = listTexturesParameters.parse({
+      diagnostics: true,
+      diagnostic_scope: "uv",
+    });
+    expect(uvOnly).toEqual({ diagnostics: true, diagnostic_scope: "uv" });
+
+    const legacyFull = listTexturesParameters.parse({ diagnostics: true });
+    expect(legacyFull).toEqual({
+      diagnostics: true,
+      diagnostic_scope: "full",
+    });
+  });
+
   test("fill surface omits unsupported synthetic tolerance", async () => {
     expect(Object.keys(paintFillToolParameters.shape)).not.toContain("tolerance");
     const paint = await source("server/tools/paint-primitives.ts");
@@ -353,6 +372,7 @@ describe("texturing authoring contract", () => {
     for (const marker of [
       "isExactPixelAuthoringRequest(coordinates",
       'brush_settings?.blend_mode ?? "default"',
+      "Decide the direct deterministic path before mutating native tool",
       "texture.getActiveCanvas()",
       "Undo.initEdit(undoAspects)",
       "texture.edit(",
@@ -467,7 +487,7 @@ describe("texturing authoring contract", () => {
         if (size === 1) {
           expect(writes).toEqual([[3, 4, 1, 1]]);
           expect(cleared).toEqual([[3, 4, 1, 1]]);
-          expect(nativeCalls).toEqual([["select"]]);
+          expect(nativeCalls).toEqual([]);
           expect(undoCalls).toEqual(["init", "finish"]);
           expect(typeof result).not.toBe("string");
           if (typeof result === "string") throw new Error("Expected exact-pixel receipt.");
