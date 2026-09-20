@@ -207,7 +207,7 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("valid_navigation_profile_id");
     expect(rust).toContain("managed_blockbench_user_data_dir");
     expect(rust).toContain("managed_navigation_profile_id");
-    expect(rust).toContain("navigation_snapshot_is_valid");
+    expect(projectNavigation).toContain("navigation_snapshot_is_valid");
     expect(projectNavigation).toContain("snapshot.schema == 4");
     expect(projectNavigation).toContain("snapshot.profile_id == expected_profile_id");
     expect(projectNavigation).toContain("snapshot.open_models.len() <= 64");
