@@ -2120,7 +2120,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">List Textures</p>
-      <p class="card-desc">Lists texture identity. diagnostics=false returns inventory only; default true adds bounded UV/coverage/seam/PBR diagnostics. Seam checks are intra-Cube, empty scans are incomplete, and pixel-read budget counts unique texture regions. NON_INTEGRAL_PIXEL_MAPPING blocks invalid physical texels. Technical readiness is not visual approval.</p>
+      <p class="card-desc">Lists texture identity. Default diagnostics=false returns inventory only. diagnostics=true enables bounded review selected by diagnostic_scope; full preserves combined UV/coverage/seam/PBR diagnostics. Technical readiness is not visual approval.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -2135,7 +2135,12 @@ bun run docs:check
       <td class="col-name">diagnostics</td>
       <td class="col-type">boolean</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Keep true for UV/coverage/seam/PBR review; false returns texture inventory without UV or pixel diagnostics. <span class="param-meta">(default: <code>true</code>)</span></td>
+      <td class="col-desc">Opt in to bounded diagnostics. false returns texture inventory only; true enables diagnostics selected by diagnostic_scope. <span class="param-meta">(default: <code>false</code>)</span></td>
+    </tr><tr>
+      <td class="col-name">diagnostic_scope</td>
+      <td class="col-type">&quot;uv&quot; | &quot;coverage&quot; | &quot;seam&quot; | &quot;pbr&quot; | &quot;full&quot;</td>
+      <td><span class="param-optional">optional</span></td>
+      <td class="col-desc">Used only when diagnostics=true. full preserves the legacy combined UV/coverage/seam/PBR review. <span class="param-meta">(default: <code>&quot;full&quot;</code>)</span></td>
     </tr></tbody>
     </table>
       </div>
@@ -2530,7 +2535,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-20T18:28:24.718Z from Zod schemas
+        Generated 2026-09-20T20:17:20.758Z from Zod schemas
       </footer>
     </main>
   </div>

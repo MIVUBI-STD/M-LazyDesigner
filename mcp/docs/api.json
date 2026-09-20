@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-20T18:28:24.718Z",
+  "generatedAt": "2026-09-20T20:17:20.758Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -7166,7 +7166,7 @@
     {
       "name": "list_textures",
       "title": "List Textures",
-      "description": "Lists texture identity. diagnostics=false returns inventory only; default true adds bounded UV/coverage/seam/PBR diagnostics. Seam checks are intra-Cube, empty scans are incomplete, and pixel-read budget counts unique texture regions. NON_INTEGRAL_PIXEL_MAPPING blocks invalid physical texels. Technical readiness is not visual approval.",
+      "description": "Lists texture identity. Default diagnostics=false returns inventory only. diagnostics=true enables bounded review selected by diagnostic_scope; full preserves combined UV/coverage/seam/PBR diagnostics. Technical readiness is not visual approval.",
       "status": "stable",
       "category": "Textures",
       "annotations": {
@@ -7177,9 +7177,21 @@
         "type": "object",
         "properties": {
           "diagnostics": {
-            "default": true,
-            "description": "Keep true for UV/coverage/seam/PBR review; false returns texture inventory without UV or pixel diagnostics.",
+            "default": false,
+            "description": "Opt in to bounded diagnostics. false returns texture inventory only; true enables diagnostics selected by diagnostic_scope.",
             "type": "boolean"
+          },
+          "diagnostic_scope": {
+            "default": "full",
+            "description": "Used only when diagnostics=true. full preserves the legacy combined UV/coverage/seam/PBR review.",
+            "type": "string",
+            "enum": [
+              "uv",
+              "coverage",
+              "seam",
+              "pbr",
+              "full"
+            ]
           }
         }
       }
