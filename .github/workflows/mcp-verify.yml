@@ -6,7 +6,6 @@ on:
       - Local
     paths:
       - "mcp/**"
-      - "!mcp/AGENTS.md"
       - "!mcp/README.md"
       - "!mcp/about.md"
       - "!mcp/gateway/README.md"
@@ -18,7 +17,10 @@ on:
       # Executable contract tests read these non-mcp owners directly.
       - ".agents/skills/lazydesigner-modelling/**"
       - ".agents/skills/lazydesigner-texturing/**"
+      - "AGENTS.md"
       - ".agents/skills/lazydesigner-animation/**"
+      - "docs/04-system/prompt-cache-and-compaction.md"
+      - "docs/04-system/zero-waste-token-efficiency-plan.md"
       - "docs/05-operations/next-action.md"
       - ".bun-version"
       - ".github/workflows/mcp-verify.yml"
