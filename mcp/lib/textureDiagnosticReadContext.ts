@@ -1,5 +1,9 @@
 /// <reference types="blockbench-types" />
 
+type DiagnosticInvocationContext = {
+  reportProgress: (progress: { progress: number; total: number }) => void;
+};
+
 type DiagnosticRegionRead = {
   pixels: Uint8ClampedArray;
   cache_hit: boolean;
@@ -115,8 +119,17 @@ function regionKey(
  */
 export function ensureTextureDiagnosticInvocationContext(
   context: unknown
-): object {
-  return contextObject(context) ?? {};
+): DiagnosticInvocationContext {
+  const candidate = contextObject(context) as
+    | (DiagnosticInvocationContext & object)
+    | null;
+  if (
+    candidate &&
+    typeof candidate.reportProgress === "function"
+  ) {
+    return candidate;
+  }
+  return { reportProgress: () => {} };
 }
 
 export function hasTextureDiagnosticRegion(
