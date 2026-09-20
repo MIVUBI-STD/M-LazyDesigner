@@ -34,7 +34,7 @@ describe("authoring tool-call efficiency contract", () => {
     expect(source).toContain("cost to accepted result");
     expect(source).toContain("not progress rituals");
     expect(source).toContain("known target uuid/state -> mutate directly");
-    expect(source).toContain("diagnostics=true only when uv/coverage readiness is actually unknown");
+    expect(source).toContain("diagnostics=true only when decision-changing review is needed");
     expect(source).toContain("inspect_animation is for unknown/stale clip state, not mandatory before every edit");
     expect(source).toContain("fewer calls are an improvement only when acceptance quality is equivalent or better");
   });
