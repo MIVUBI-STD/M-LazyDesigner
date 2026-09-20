@@ -147,10 +147,6 @@ export function getMcpRuntimeSurface(
   return phase === "animation" ? "ANIMATION" : "AUTHORING";
 }
 
-function isAuthoringStage(phase: McpAuthoringPhase): boolean {
-  return getMcpRuntimeSurface(phase) === "AUTHORING";
-}
-
 const PHASE_OWNER_SUMMARY: Record<McpAuthoringPhase, string> = {
   geometry: "AUTHORING focus: Geometry/rig/UV Layout.",
   texturing: "AUTHORING focus: Texture/Painter/PBR/Texture Verify.",
