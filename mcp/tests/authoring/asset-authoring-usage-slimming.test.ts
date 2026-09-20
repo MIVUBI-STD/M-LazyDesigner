@@ -28,7 +28,7 @@ describe("pre-local asset-authoring usage slimming", () => {
       source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
     ]);
 
-    expect(texturing.length).toBeLessThan(16_000);
+    expect(texturing.length).toBeLessThan(13_200);
     expect(control).toContain("buildControlStageContext");
     expect(control).toContain("contextForAuthoringDomain");
     expect(control).toContain("stage_context");
@@ -54,6 +54,8 @@ describe("pre-local asset-authoring usage slimming", () => {
       "Atlas-Island Discipline",
       "color_picker_tool",
       "BASE | SHADOW | HIGHLIGHT | ACCENT/IDENTITY",
+      "Pixel Art is conditional reference evidence",
+      "texture-reference.md",
     ]) expect(texturing).toContain(required);
 
     for (const required of ["SUPPORTED", "PROVISIONAL", "CONFLICTING", "UNAVAILABLE", "FAIL", "UNVERIFIED", "PASS", "BLOCKED"]) {

@@ -35,13 +35,13 @@ describe("static footprint budget", () => {
     expect(referenceGenerator.length).toBeLessThan(20_000);
     expect(controlPacket.length).toBeLessThan(14_000);
     expect(modelling.length).toBeLessThan(17_500);
-    expect(texturing.length).toBeLessThan(14_200);
+    expect(texturing.length).toBeLessThan(13_200);
     expect(animation.length).toBeLessThan(14_500);
     expect(workflow.length).toBeLessThan(15_000);
 
     for (const [skill, terms] of [
       [modelling, ["selected_profile", "PROFILE_RECLASSIFICATION_REQUIRED", "approved reference evidence"]],
-      [texturing, ["stage-specific Texturing projection", "Geometry APPROVED + UV Layout PASS", "request only that exact context"]],
+      [texturing, ["stage-specific Texturing projection", "Geometry APPROVED + UV Layout PASS", "request only that exact context", "Pixel Art is conditional reference evidence", "never load the full Pixel Art corpus"]],
       [animation, ["stage-specific Animation projection", "participating semantic IDs", "request only that exact context"]],
     ] as const) {
       for (const term of terms) expect(skill).toContain(term);

@@ -18,63 +18,11 @@ If a decision-critical item is missing, request only that exact context through 
 
 ## Pixel Art Reference Intake
 
-A Pixel Art artifact is **reference evidence**, not a second Texturing workflow or a Control stage.
+Pixel Art is conditional reference evidence, never a second Texturing workflow. When an approved Pixel Art artifact exists, consume only its compact visual handoff: identity, target grid/scale, authoritative palette/material/marking/alpha/orientation/style constraints, provenance, and blockers.
 
-When an approved/usable Pixel Art artifact is supplied, consume only the fields that can change mapped appearance:
+Do not inherit production UV/atlas coordinates, Blockbench texture IDs, material-instance/render-profile state, mapped-surface PASS, or particle runtime semantics from Pixel Art. Actual UV mapping, atlas mutation, render/material state, and mapped-model verification remain Texturing-owned.
 
-```text
-artifact identity
-canvas / grid dimensions
-palette roles or exact palette when authoritative
-material grouping
-identity markings / landmark regions
-orientation / projection
-alpha intent
-style_lock_id + relevant style fields only
-reference-fidelity constraints
-source/reference identity
-known blockers
-provenance class when provided
-```
-
-Interpret provenance without promotion:
-
-```text
-USER_REQUIREMENT
-REFERENCE_SUPPORTED
-EXISTING_STYLE_SUPPORTED
-PROVISIONAL
-```
-
-`PROVISIONAL` Pixel Art choices remain provisional until stronger authority resolves them.
-
-Do **not** import from Pixel Art:
-
-```text
-UV coordinates
-atlas placement
-Blockbench texture UUID
-material-instance state
-render-profile state
-mapped-surface PASS claims
-particle runtime semantics
-```
-
-unless those facts came from the actual Runtime/Texturing owner.
-
-Consumption rule:
-
-```text
-Pixel Art visual contract
-→ map intent onto actual UV/surface state
-→ preserve approved identity/style constraints
-→ adapt only where mapped-surface reality requires it
-→ verify on mapped model
-```
-
-A Pixel Art artifact may guide palette, clusters, material language, alpha silhouette, or markings, but it does not prove those relationships are already valid on the model. Mapped-surface verification remains Texturing-owned.
-
-Do not load the full Pixel Art corpus during normal Texturing. If one visual fact is missing, request the compact artifact/handoff fact or the specific approved reference evidence, not all Pixel Art docs.
+Use the active handoff facts directly. Load `docs/02-reference/pixel-art/texture-reference.md` only when the Pixel-Art→Texturing boundary or missing visual contract is materially unclear; never load the full Pixel Art corpus as reassurance.
 
 ## Asset-Only Visual Runtime Boundary
 No RP dev: opaque/cutout/blend/emissive; Texture variants asset-only.
