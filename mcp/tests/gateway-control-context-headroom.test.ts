@@ -62,10 +62,6 @@ describe("Control stage-context headroom", () => {
         { length: 32 },
         (_, index) => `non-blocking-${index}-${"x".repeat(180)}`
       ),
-      reference_image_ids: Array.from(
-        { length: 32 },
-        (_, index) => `IMG_${index}_${"y".repeat(80)}`
-      ),
       reference_document: "D".repeat(1600),
       workspace: {
         ...fixture().workspace,
