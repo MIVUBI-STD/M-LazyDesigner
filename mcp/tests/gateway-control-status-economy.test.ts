@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { buildControlPacket, decorateCapabilities, projectControlPacketForGateway } from "@/gateway/control";
 import type { GatewayRuntimeStatus } from "@/gateway/backend";
+import { projectGatewayStatus } from "@/gateway/statusProjection";
 
 describe("LazyDesigner Control status economy", () => {
   test("capability decoration stays useful without a status-only current domain", () => {
@@ -113,5 +114,51 @@ describe("LazyDesigner Control status projection economy", () => {
     expect(source).toContain("projectControlPacketForGateway(control)");
     expect(source).toContain("control: gatewayControl");
     expect(source).not.toContain("structuredContent: { control }");
+  });
+});
+
+
+describe("Gateway status telemetry projection", () => {
+  test("ready idle status omits historical counters and timestamps", () => {
+    const projected = projectGatewayStatus(projectionStatus);
+    expect(projected.connection).toEqual({ state: "ready" });
+    expect(projected.operations).toEqual({ active: 0, queued: 0 });
+    expect(projected).not.toHaveProperty("last_error");
+    expect(projected.connection).not.toHaveProperty("generation");
+    expect(projected.connection).not.toHaveProperty("last_ready_at");
+    expect(projected.operations).not.toHaveProperty("completed");
+    expect(projected.operations).not.toHaveProperty("failed");
+    expect(projected.operations).not.toHaveProperty("timed_out");
+    expect(projected.operations).not.toHaveProperty("rejected_busy");
+  });
+
+  test("non-ready or busy state keeps decision-changing recovery data", () => {
+    const projected = projectGatewayStatus({
+      ...projectionStatus,
+      connection: {
+        ...projectionStatus.connection,
+        state: "backoff",
+        reconnect_count: 3,
+        reconnect: { failures: 2, retry_after_ms: 750 },
+      },
+      operations: {
+        ...projectionStatus.operations,
+        active: 1,
+        queued: 2,
+      },
+      last_error: { code: "BACKEND_UNAVAILABLE" },
+    } as GatewayRuntimeStatus);
+
+    expect(projected.connection).toEqual({
+      state: "backoff",
+      reconnect_count: 3,
+      reconnect: { failures: 2, retry_after_ms: 750 },
+    });
+    expect(projected.operations).toEqual({
+      active: 1,
+      queued: 2,
+      max_queue_depth: 8,
+    });
+    expect(projected.last_error).toEqual({ code: "BACKEND_UNAVAILABLE" });
   });
 });

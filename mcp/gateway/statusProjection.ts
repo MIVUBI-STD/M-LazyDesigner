@@ -32,6 +32,23 @@ function runtimeIdentity(health: JsonRecord | null) {
  * and is intentionally not copied into the normal Gateway status contract.
  */
 export function projectGatewayStatus(status: GatewayRuntimeStatus) {
+  const connection =
+    status.connection.state === "ready"
+      ? { state: status.connection.state }
+      : {
+          state: status.connection.state,
+          reconnect_count: status.connection.reconnect_count,
+          reconnect: status.connection.reconnect,
+        };
+  const operations =
+    status.operations.active === 0 && status.operations.queued === 0
+      ? { active: 0, queued: 0 }
+      : {
+          active: status.operations.active,
+          queued: status.operations.queued,
+          max_queue_depth: status.operations.max_queue_depth,
+        };
+
   return {
     gateway: status.gateway,
     affinity: status.affinity,
@@ -42,8 +59,8 @@ export function projectGatewayStatus(status: GatewayRuntimeStatus) {
       catalog_count: status.runtime.catalog_count,
       identity: runtimeIdentity(status.runtime.health),
     },
-    connection: status.connection,
-    operations: status.operations,
-    last_error: status.last_error,
+    connection,
+    operations,
+    ...(status.last_error !== null ? { last_error: status.last_error } : {}),
   };
 }

@@ -8,6 +8,7 @@ import {
   type ControlPacket,
 } from "../gateway/control";
 import type { GatewayRuntimeStatus } from "../gateway/backend";
+import { projectGatewayStatus } from "../gateway/statusProjection";
 
 const status: GatewayRuntimeStatus = {
   gateway: "ready",
@@ -88,6 +89,8 @@ try {
   const cachedChars = chars(cached);
   const deltaChars = chars(delta);
   const statusChars = chars(status);
+  const projectedStatus = projectGatewayStatus(status);
+  const projectedStatusChars = chars(projectedStatus);
   const fullEnvelopeChars = chars({ ...status, control: full });
   const cachedEnvelopeChars = chars({ ...status, control: cached });
   const projectedFull = projectControlPacketForGateway(full);
@@ -106,6 +109,8 @@ try {
     cached_packet_chars: cachedChars,
     delta_chars: deltaChars,
     gateway_status_chars: statusChars,
+    gateway_status_projected_chars: projectedStatusChars,
+    gateway_status_saved_chars: Math.max(0, statusChars - projectedStatusChars),
     gateway_envelope_full_chars: fullEnvelopeChars,
     gateway_envelope_cached_chars: cachedEnvelopeChars,
     gateway_envelope_projected_full_chars: projectedFullEnvelopeChars,
