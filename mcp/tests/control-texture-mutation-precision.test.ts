@@ -241,6 +241,127 @@ describe("Control Texture mutation precision", () => {
     expect(singleCompileOnly.verification_class).toBe("receipt_only");
   });
 
+  test("complete render-profile write receipts avoid redundant focused rereads", () => {
+    const assign = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        operation: "assign",
+        write: {
+          key: "render_controller",
+          path: "/rp/render_controllers/example.render_controllers.json",
+          byte_length: 128,
+          replaced_existing: true,
+          transaction: "single_atomic",
+        },
+        render_controller: "controller.render.example",
+        bone_pattern: "body*",
+        slot: "default",
+      },
+    });
+    expect(assign.verification_class).toBe("receipt_only");
+    expect(assign.freshness.stale).toEqual(["MATERIAL_RENDER"]);
+
+    const setSlot = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        operation: "set_slot",
+        slot: "default",
+        render_profile: "opaque",
+        minecraft_material_code: "entity",
+        write: {
+          key: "client_entity",
+          path: "/rp/entity/example.entity.json",
+          byte_length: 256,
+          replaced_existing: false,
+          transaction: "single_atomic",
+        },
+        summary: {
+          slots: [{ slot: "default", minecraft_material_code: "entity" }],
+          assignments: [],
+          diagnostics: [],
+        },
+      },
+    });
+    expect(setSlot.verification_class).toBe("receipt_only");
+
+    const bind = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        operation: "bind",
+        binding: {
+          slot: "default",
+          minecraft_material_code: "entity",
+        },
+        write_transaction: {
+          state: "paired_atomic",
+          write_count: 2,
+        },
+        client_entity_write: {
+          key: "client_entity",
+          path: "/rp/entity/example.entity.json",
+          byte_length: 256,
+          replaced_existing: true,
+          transaction: "paired_atomic",
+        },
+        render_controller_write: {
+          key: "render_controller",
+          path: "/rp/render_controllers/example.render_controllers.json",
+          byte_length: 192,
+          replaced_existing: true,
+          transaction: "paired_atomic",
+        },
+        summary: {
+          slots: [{ slot: "default", minecraft_material_code: "entity" }],
+          assignments: [{ index: 0, bone_pattern: "body*", expression: "Material.default", direct_slot: "default" }],
+          diagnostics: [],
+        },
+      },
+    });
+    expect(bind.verification_class).toBe("receipt_only");
+  });
+
+  test("incomplete render-profile write receipt stays focused-read", () => {
+    const delta = buildControlDelta({
+      capability: "manage_render_profile",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "render_profile",
+        operation: "assign",
+        write: {
+          path: "/rp/render_controllers/example.render_controllers.json",
+          byte_length: 128,
+        },
+        render_controller: "controller.render.example",
+        bone_pattern: "body*",
+        slot: "default",
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("render-profile writes invalidate only material/render freshness", () => {
     const write = buildControlDelta({
       capability: "manage_render_profile",
