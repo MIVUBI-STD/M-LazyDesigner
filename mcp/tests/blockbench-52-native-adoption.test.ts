@@ -56,6 +56,17 @@ describe("Blockbench 5.2 native adoption", () => {
         },
       }).success
     ).toBe(false);
+
+    expect(
+      boneRiggingParameters.safeParse({
+        action: "set_ik_controller",
+        bone_data: {
+          name: "compatibility-placeholder",
+          controller: "ik_controller",
+          ik_target: "legacy_bone_target",
+        },
+      }).success
+    ).toBe(false);
   });
 
   test("legacy bone IK contract remains accepted", () => {
