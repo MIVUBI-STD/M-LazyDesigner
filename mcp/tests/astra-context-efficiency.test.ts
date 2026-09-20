@@ -7,19 +7,30 @@ import {
 describe("Astra context efficiency measurement", () => {
   test("reports deterministic serialized payload reduction without claiming token counts", () => {
     const measurements = measureAstraContextPayloads();
-    const cubes = measurements.find(
-      (entry) => entry.name === "manage_cubes_continuation"
+    const byName = new Map(
+      measurements.map((entry) => [entry.name, entry] as const)
     );
-    const inspect = measurements.find(
-      (entry) => entry.name === "inspect_elements_detail_schema"
-    );
+    const delta = byName.get("control_delta_continuation");
+    const search = byName.get("capability_search_projection");
+    const cubes = byName.get("manage_cubes_continuation");
+    const inspect = byName.get("inspect_elements_detail_schema");
 
-    expect(cubes).toBeDefined();
-    expect(inspect).toBeDefined();
-    expect(cubes!.saved_bytes).toBeGreaterThan(0);
-    expect(cubes!.reduction_percent).toBeGreaterThan(20);
-    expect(inspect!.saved_bytes).toBeGreaterThan(0);
+    for (const measurement of [delta, search, cubes, inspect]) {
+      expect(measurement).toBeDefined();
+      expect(measurement!.saved_bytes).toBeGreaterThan(0);
+      expect(measurement!.after_bytes).toBeLessThan(measurement!.before_bytes);
+    }
+
+    expect(delta!.reduction_percent).toBeGreaterThan(15);
+    expect(search!.reduction_percent).toBeGreaterThan(5);
+    expect(cubes!.reduction_percent).toBeGreaterThan(35);
     expect(inspect!.reduction_percent).toBeGreaterThan(60);
+
+    const totalSaved = measurements.reduce(
+      (sum, entry) => sum + entry.saved_bytes,
+      0
+    );
+    expect(totalSaved).toBeGreaterThan(500);
   });
 
   test("measurement never fabricates savings when payload grows", () => {
