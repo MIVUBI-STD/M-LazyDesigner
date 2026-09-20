@@ -112,7 +112,11 @@ describe("LazyDesigner Control status projection economy", () => {
     expect(projected.context).not.toHaveProperty("cached_ids");
     expect(projected.context).not.toHaveProperty("optional");
     expect(projected.context).not.toHaveProperty("invalidated_ids");
-    expect(projected.stage_context).toEqual(full.stage_context);
+    if (full.stage_context === null) {
+      expect(projected).not.toHaveProperty("stage_context");
+    } else {
+      expect(projected.stage_context).toEqual(full.stage_context);
+    }
 
     expect(JSON.stringify(projected).length).toBeLessThan(JSON.stringify(full).length);
   });
