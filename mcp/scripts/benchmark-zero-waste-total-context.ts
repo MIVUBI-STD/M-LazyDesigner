@@ -39,8 +39,8 @@ const status: GatewayRuntimeStatus = {
     generation: 1,
     reconnect_count: 0,
     catalog_refresh_count: 1,
-    last_ready_at: null,
-    last_transition_at: null,
+    last_ready_at: "2026-09-20T00:00:00.000Z",
+    last_transition_at: "2026-09-20T00:00:00.000Z",
     reconnect: { failures: 0, retry_after_ms: 0 },
   },
   operations: {

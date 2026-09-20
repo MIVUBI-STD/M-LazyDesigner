@@ -37,8 +37,11 @@ function utf8Bytes(value: unknown): number {
 }
 
 function exported(node: ts.Node): boolean {
+  if (!ts.canHaveModifiers(node)) return false;
   return Boolean(
-    node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)
+    ts.getModifiers(node)?.some(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword
+    )
   );
 }
 
