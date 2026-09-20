@@ -27,6 +27,15 @@ type Calls = {
   recovery: NullableNumber;
 };
 
+type Performance = {
+  wall_time_ms: NullableNumber;
+  accepted_result_ms: NullableNumber;
+  model_latency_ms: NullableNumber;
+  tool_latency_ms: NullableNumber;
+  image_inputs: NullableNumber;
+  tool_result_bytes: NullableNumber;
+};
+
 type UsageRun = {
   task_id: string;
   variant: Variant;
@@ -36,6 +45,7 @@ type UsageRun = {
   usage: Usage;
   model_events?: ModelUsageEvent[];
   calls: Calls;
+  performance?: Performance;
 };
 
 type UsageDocument = {
@@ -66,6 +76,14 @@ const CALL_FIELDS: (keyof Calls)[] = [
   "mutate",
   "verify",
   "recovery",
+];
+const PERFORMANCE_FIELDS: (keyof Performance)[] = [
+  "wall_time_ms",
+  "accepted_result_ms",
+  "model_latency_ms",
+  "tool_latency_ms",
+  "image_inputs",
+  "tool_result_bytes",
 ];
 
 function requireNullableNonNegativeNumber(value: unknown, field: string): asserts value is NullableNumber {
@@ -110,6 +128,29 @@ export function effectiveTotalTokens(run: UsageRun): number | null {
   if (events.length === 0) return run.usage.total_tokens;
   if (events.some((event) => event.total_tokens === null)) return null;
   return events.reduce((sum, event) => sum + (event.total_tokens as number), 0);
+}
+
+function cacheEfficiency(run: UsageRun): number | null {
+  const events = run.model_events ?? [];
+  const input =
+    events.length > 0 && events.every((event) => event.input_tokens !== null)
+      ? events.reduce((sum, event) => sum + (event.input_tokens as number), 0)
+      : run.usage.input_tokens;
+  const cached =
+    events.length > 0 && events.every((event) => event.cached_input_tokens !== null)
+      ? events.reduce((sum, event) => sum + (event.cached_input_tokens as number), 0)
+      : run.usage.cached_input_tokens;
+  if (input === null || cached === null || input <= 0) return null;
+  return Number(((cached / input) * 100).toFixed(2));
+}
+
+function performanceDiagnostics(run: UsageRun) {
+  const performance = run.performance;
+  if (!performance) return null;
+  return {
+    ...performance,
+    cache_efficiency_percent: cacheEfficiency(run),
+  };
 }
 
 function eventDiagnostics(run: UsageRun) {
@@ -167,6 +208,17 @@ function validateRun(run: UsageRun, index: number): void {
   if (!run.calls || typeof run.calls !== "object") throw new Error(`runs[${index}].calls is required.`);
   for (const field of CALL_FIELDS) {
     requireNullableNonNegativeNumber(run.calls[field], `runs[${index}].calls.${field}`);
+  }
+  if (run.performance !== undefined) {
+    if (!run.performance || typeof run.performance !== "object") {
+      throw new Error(`runs[${index}].performance must be an object when provided.`);
+    }
+    for (const field of PERFORMANCE_FIELDS) {
+      requireNullableNonNegativeNumber(
+        run.performance[field],
+        `runs[${index}].performance.${field}`
+      );
+    }
   }
 }
 
@@ -242,6 +294,10 @@ export function summarizeAstraUsage(document: UsageDocument) {
           baseline: eventDiagnostics(baseline),
           zero_waste: eventDiagnostics(optimized),
         },
+        performance: {
+          baseline: performanceDiagnostics(baseline),
+          zero_waste: performanceDiagnostics(optimized),
+        },
       };
     }
 
@@ -262,6 +318,10 @@ export function summarizeAstraUsage(document: UsageDocument) {
       telemetry: {
         baseline: eventDiagnostics(baseline),
         zero_waste: eventDiagnostics(optimized),
+      },
+      performance: {
+        baseline: performanceDiagnostics(baseline),
+        zero_waste: performanceDiagnostics(optimized),
       },
       user_corrections: {
         baseline: baseline.user_corrections,
@@ -286,7 +346,7 @@ export function summarizeAstraUsage(document: UsageDocument) {
     model: document.model,
     telemetry_source: document.telemetry_source,
     rule:
-      "Never derive task total_tokens from input/output/reasoning components. For multi-event tasks, sum only source-provided total_tokens from every response/compaction event after both quality gates PASS.",
+      "Never derive task total_tokens from input/output/reasoning components. For multi-event tasks, sum only source-provided total_tokens from every response/compaction event after both quality gates PASS. Performance/vision/tool-payload dimensions are descriptive and must never be collapsed into an invented aggregate score.",
     comparisons,
     aggregate: {
       measured_pairs: measured.length,
