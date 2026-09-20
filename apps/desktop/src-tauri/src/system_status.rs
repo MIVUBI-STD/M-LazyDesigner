@@ -128,6 +128,7 @@ pub struct ConnectionStatus {
     pub gateway_active: Option<bool>,
     pub plugin_integrity: &'static str,
     pub project_revision: Option<String>,
+    pub project_session_live: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -171,6 +172,7 @@ pub struct ActiveProjectNavigation {
 #[derive(Debug, Serialize)]
 pub struct ProjectNavigation {
     pub revision: Option<String>,
+    pub session_live: bool,
     pub active: Option<ActiveProjectNavigation>,
     pub projects: Vec<ProjectNavigationProject>,
 }
@@ -249,7 +251,7 @@ struct NavigationSnapshot {
     schema: u8,
     #[allow(dead_code)]
     observed_at_unix_ms: u64,
-    #[allow(dead_code)]
+    generation: String,
     revision: u64,
     active: Option<NavigationSnapshotActive>,
     #[serde(default)]
@@ -329,26 +331,46 @@ fn write_project_navigation_preferences(value: &ProjectNavigationPreferences) ->
     Ok(())
 }
 
-fn project_navigation_revision() -> Option<String> {
-    read_navigation_snapshot().map(|snapshot| snapshot.revision.to_string())
+fn navigation_revision_token(snapshot: &NavigationSnapshot) -> String {
+    format!("{}:{}", snapshot.generation, snapshot.revision)
 }
 
-fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
-    let path = project_navigation_snapshot_path()?;
-    let metadata = fs::metadata(&path).ok()?;
-    if metadata.len() == 0 || metadata.len() > 512 * 1024 {
-        return None;
-    }
-    let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
-    if snapshot.schema != 1 || snapshot.recent_models.len() > 128 || snapshot.open_models.len() > 64 {
-        return None;
-    }
-    Some(snapshot)
+const PROJECT_SESSION_LEASE_TTL_MS: u64 = 30_000;
+
+fn project_session_fresh(blockbench_running: bool, modified_unix_ms: u64, now_unix_ms: u64) -> bool {
+    blockbench_running
+        && now_unix_ms.saturating_sub(modified_unix_ms) <= PROJECT_SESSION_LEASE_TTL_MS
 }
 
+fn project_navigation_probe(blockbench_running: bool) -> (Option<String>, bool) {
+    let Some(path) = project_navigation_snapshot_path() else {
+        return (None, false);
+    };
+    let Ok(metadata) = fs::metadata(&path) else {
+        return (None, false);
+    };
+    let Some(snapshot) = read_navigation_snapshot() else {
+        return (None, false);
+    };
+    let revision = Some(navigation_revision_token(&snapshot));
+    if !blockbench_running {
+        return (revision, false);
+    }
+    let Ok(modified) = metadata.modified() else {
+        return (revision, false);
+    };
+    let Ok(duration) = modified.duration_since(UNIX_EPOCH) else {
+        return (revision, false);
+    };
+    let modified_unix_ms = duration.as_millis().min(u64::MAX as u128) as u64;
+    (
+        revision,
+        project_session_fresh(true, modified_unix_ms, observed_at_unix_ms()),
+    )
+}
 
-fn live_open_models(snapshot: &NavigationSnapshot, runtime_active: bool) -> &[NavigationSnapshotOpen] {
-    if runtime_active {
+fn live_open_models(snapshot: &NavigationSnapshot, session_live: bool) -> &[NavigationSnapshotOpen] {
+    if session_live {
         snapshot.open_models.as_slice()
     } else {
         &[]
@@ -480,17 +502,17 @@ fn navigation_paths() -> (
     (projects, models, folders)
 }
 
-fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
+fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
     let pinned: HashSet<String> = read_project_navigation_preferences()
         .pinned_project_ids
         .into_iter()
         .collect();
     let Some(snapshot) = read_navigation_snapshot() else {
-        return ProjectNavigation { revision: None, active: None, projects: Vec::new() };
+        return ProjectNavigation { revision: None, session_live: false, active: None, projects: Vec::new() };
     };
-    let revision = Some(snapshot.revision.to_string());
+    let revision = Some(navigation_revision_token(&snapshot));
 
-    let active_path = if runtime_active {
+    let active_path = if session_live {
         snapshot.active.as_ref()
             .and_then(|value| value.model_path.as_ref())
             .map(PathBuf::from)
@@ -502,7 +524,7 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
     let active_project_root = active_path.as_ref().and_then(|path| project_root_for_model(path));
     let active_project_id = active_project_root.as_ref().map(|root| navigation_id("project", root));
 
-    let active = if runtime_active {
+    let active = if session_live {
         snapshot.active.as_ref().map(|value| ActiveProjectNavigation {
             project_id: active_project_id.clone(),
             project_name: active_project_root.as_ref().map(|root| project_name(root)),
@@ -521,7 +543,7 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
         None
     };
 
-    let live_open_models = live_open_models(&snapshot, runtime_active);
+    let live_open_models = live_open_models(&snapshot, session_live);
     let open_by_path: HashMap<String, (bool, bool)> = live_open_models.iter()
         .filter_map(|model| {
             let path = model.path.as_ref()?;
@@ -598,7 +620,7 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
     projects.sort_by_key(|project| {
         if project.active { 0 } else if project.pinned { 1 } else { 2 }
     });
-    ProjectNavigation { revision, active, projects }
+    ProjectNavigation { revision, session_live, active, projects }
 }
 
 pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNavigationActionResult, String> {
@@ -1340,8 +1362,8 @@ fn compose_status(
         plugin_integrity,
     );
     let maintenance = project_maintenance(manager_available, managed.as_ref());
-    let runtime_active = blockbench.running && managed.as_ref().map(|value| value.runtime_online).unwrap_or(false);
-    let project_navigation = project_navigation_projection(runtime_active);
+    let (_, project_session_live) = project_navigation_probe(blockbench.running);
+    let project_navigation = project_navigation_projection(project_session_live);
     let product_state = project_product_state(
         manager_available,
         managed.as_ref(),
@@ -1449,6 +1471,8 @@ pub fn collect_connection_status() -> ConnectionStatus {
         name == "blockbench.exe" || name == "blockbench"
     });
 
+    let (project_revision, project_session_live) = project_navigation_probe(blockbench_running);
+
     let Some(root) = managed_root() else {
         return ConnectionStatus {
             schema: 1,
@@ -1457,7 +1481,8 @@ pub fn collect_connection_status() -> ConnectionStatus {
             runtime_online: None,
             gateway_active: None,
             plugin_integrity: "unknown",
-            project_revision: project_navigation_revision(),
+            project_revision: project_revision.clone(),
+            project_session_live,
         };
     };
 
@@ -1470,7 +1495,8 @@ pub fn collect_connection_status() -> ConnectionStatus {
             runtime_online: None,
             gateway_active: None,
             plugin_integrity,
-            project_revision: project_navigation_revision(),
+            project_revision: project_revision.clone(),
+            project_session_live,
         };
     }
 
@@ -1481,7 +1507,8 @@ pub fn collect_connection_status() -> ConnectionStatus {
         runtime_online: runtime_online_fast(),
         gateway_active: gateway_active_fast(&root, &system),
         plugin_integrity,
-        project_revision: project_navigation_revision(),
+        project_revision: project_revision.clone(),
+        project_session_live,
     }
 }
 
@@ -1680,10 +1707,35 @@ mod tests {
     }
 
     #[test]
-    fn live_project_session_state_is_discarded_when_runtime_is_inactive() {
-        let snapshot = NavigationSnapshot {
-            schema: 1,
+    fn project_session_lease_requires_live_blockbench_and_fresh_snapshot() {
+        let now = 100_000;
+        assert!(project_session_fresh(true, now - 5_000, now));
+        assert!(!project_session_fresh(false, now - 5_000, now));
+        assert!(!project_session_fresh(true, now - PROJECT_SESSION_LEASE_TTL_MS - 1, now));
+    }
+
+    #[test]
+    fn project_navigation_revision_is_generation_aware() {
+        let make = |generation: &str| NavigationSnapshot {
+            schema: 2,
             observed_at_unix_ms: 1,
+            generation: generation.to_string(),
+            revision: 1,
+            active: None,
+            open_models: Vec::new(),
+            recent_models: Vec::new(),
+        };
+        let first = make("11111111-1111-4111-8111-111111111111");
+        let second = make("22222222-2222-4222-8222-222222222222");
+        assert_ne!(navigation_revision_token(&first), navigation_revision_token(&second));
+    }
+
+    #[test]
+    fn live_project_session_state_is_discarded_when_session_is_not_live() {
+        let snapshot = NavigationSnapshot {
+            schema: 2,
+            observed_at_unix_ms: 1,
+            generation: "11111111-1111-4111-8111-111111111111".to_string(),
             revision: 7,
             active: None,
             open_models: vec![NavigationSnapshotOpen {

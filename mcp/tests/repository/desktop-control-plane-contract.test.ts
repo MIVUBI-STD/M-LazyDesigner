@@ -148,7 +148,16 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain('Blockbench.on("select_project"');
     expect(snapshot).toContain(".bbmodel");
     expect(snapshot).toContain("project-navigation.json");
+    expect(snapshot).toContain("producerGeneration");
+    expect(snapshot).toContain("crypto.randomUUID");
+    expect(snapshot).toContain("schema: 2");
+    expect(snapshot).toContain("heartbeatSnapshot");
+    expect(snapshot).toContain("utimesSync");
     expect(rust).toContain("project_navigation_projection");
+    expect(rust).toContain("project_navigation_probe");
+    expect(rust).toContain("PROJECT_SESSION_LEASE_TTL_MS");
+    expect(rust).toContain("project_session_lease_requires_live_blockbench_and_fresh_snapshot");
+    expect(rust).toContain("project_navigation_revision_is_generation_aware");
     expect(rust).toContain("open_models");
     expect(rust).toContain("pub open: bool");
     expect(rust).toContain("pub dirty: bool");
@@ -172,6 +181,8 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("Recent Projects");
     expect(app).toContain("See details");
     expect(app).toContain("status.project_navigation");
+    expect(app).toContain("project_session_live");
+    expect(app).toContain("status.project_navigation.session_live");
     expect(app).toContain("recentProjects(status).length > 5");
     expect(app).toContain("model_count > 8");
     expect(app).toContain("Search projects");

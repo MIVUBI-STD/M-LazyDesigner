@@ -58,6 +58,7 @@
     gateway_active: boolean | null;
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
     project_revision: string | null;
+    project_session_live: boolean;
   };
 
   type ProjectNavigationModel = {
@@ -96,6 +97,7 @@
 
   type ProjectNavigation = {
     revision: string | null;
+    session_live: boolean;
     active: ActiveProjectNavigation | null;
     projects: ProjectNavigationProject[];
   };
@@ -349,7 +351,8 @@
         || candidate.plugin_integrity !== status.plugin_integrity
         || candidate.runtime_online !== status.managed?.runtime_online
         || candidate.gateway_active !== status.managed?.gateway_active
-        || candidate.project_revision !== status.project_navigation.revision;
+        || candidate.project_revision !== status.project_navigation.revision
+        || candidate.project_session_live !== status.project_navigation.session_live;
 
       if (changed) await refresh();
     } catch {
@@ -592,7 +595,8 @@
       : 'attention';
 
     next.project_navigation = {
-      revision: 'fixture',
+      revision: 'fixture:1',
+      session_live: fixture !== 'fresh-install' && fixture !== 'runtime-offline',
       active: fixture === 'fresh-install' ? null : {
         project_id: 'project-fixture',
         project_name: 'Furniture',

@@ -6,8 +6,9 @@ type RecentProjectEntry = {
 };
 
 type NavigationSnapshot = {
-  schema: 1;
+  schema: 2;
   observed_at_unix_ms: number;
+  generation: string;
   revision: number;
   active: {
     uuid: string;
@@ -34,13 +35,15 @@ type NavigationSnapshot = {
 
 type NativeFs = Pick<
   typeof import("node:fs"),
-  "mkdirSync" | "writeFileSync" | "renameSync" | "rmSync"
+  "mkdirSync" | "writeFileSync" | "renameSync" | "rmSync" | "utimesSync"
 >;
 
 let listeners: Array<{ delete(): void }> = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let fs: NativeFs | null = null;
 let outputPath: string | null = null;
+const producerGeneration = globalThis.crypto.randomUUID().toLowerCase();
 let lastSignature = "";
 let revision = 0;
 
@@ -142,8 +145,9 @@ function buildSnapshot(): NavigationSnapshot {
     revision += 1;
   }
   return {
-    schema: 1,
+    schema: 2,
     observed_at_unix_ms: Date.now(),
+    generation: producerGeneration,
     revision,
     active,
     open_models,
@@ -174,6 +178,17 @@ function scheduleSnapshot(): void {
   }, 60);
 }
 
+function heartbeatSnapshot(): void {
+  if (!fs || !outputPath) return;
+  try {
+    const now = new Date();
+    fs.utimesSync(outputPath, now, now);
+  } catch {
+    writeSnapshot();
+  }
+}
+
+
 export function setupProjectNavigationSnapshot(): void {
   teardownProjectNavigationSnapshot();
 
@@ -184,7 +199,7 @@ export function setupProjectNavigationSnapshot(): void {
   fs = requireNativeModule("fs", {
     message: "LazyDesigner keeps a local project navigation snapshot.",
     detail:
-      "This stores only recent .bbmodel paths and the active Blockbench project on this PC so the Desktop app can open them quickly.",
+      "This stores bounded local project navigation state so the Desktop app can follow active, open, and recent Blockbench models.",
     optional: true,
   }) as NativeFs | null;
   if (!fs) return;
@@ -202,11 +217,14 @@ export function setupProjectNavigationSnapshot(): void {
     Blockbench.on("update_recent_project_data", scheduleSnapshot),
   );
   writeSnapshot();
+  heartbeatTimer = setInterval(heartbeatSnapshot, 10_000);
 }
 
 export function teardownProjectNavigationSnapshot(): void {
   if (timer) clearTimeout(timer);
   timer = null;
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = null;
   for (const listener of listeners.splice(0)) listener.delete();
   fs = null;
   outputPath = null;

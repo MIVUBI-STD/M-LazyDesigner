@@ -228,6 +228,15 @@ close one model
 click Switch for an already-open model
 → Blockbench selects the existing tab
 → no duplicate project tab is created
+
+Runtime reconnect while Blockbench/plugin remain alive
+→ Active/Open/Modified remain stable
+→ no false project-session drop
+
+stop/unload the Plugin while Blockbench remains open
+→ project lease expires within the bounded TTL
+→ Active/Open/Modified clear
+→ Recent saved navigation remains
 ```
 
 Do not add or validate viewport, selection, Undo, timeline, brush, panel, or other editor-session state in Desktop. Those remain Blockbench-owned and intentionally absent from the normal UI.

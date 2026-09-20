@@ -424,7 +424,9 @@ These shortcuts appear only when the corresponding directory actually exists und
 
 Opening a model from Desktop first passes through the canonical `ensure_ready` flow; project navigation does not create a second Blockbench lifecycle path. Missing files remain visible as unavailable rather than triggering a drive scan or guessed relocation.
 
-The active-window heartbeat watches only the canonical navigation revision emitted by the Blockbench plugin. When it changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
+The active-window heartbeat watches the canonical navigation token emitted by the Blockbench plugin. The token is `<producer-generation>:<revision>`, so a plugin module reload cannot accidentally reuse the same apparent revision number. Desktop also watches a separate session-live projection derived from the Blockbench process plus a bounded plugin lease; Runtime reconnects do not invalidate project-session state by themselves.
+
+The plugin refreshes that lease every 10 seconds by touching snapshot metadata rather than rewriting the JSON payload. Desktop treats the lease as stale after 30 seconds. A stale or absent lease clears ephemeral `Active`, `Open`, and `Modified` state, while recent saved navigation remains available. When either the navigation token or session-live state changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
 
 The plugin projection also carries the bounded saved/open model inventory needed for navigation:
 
