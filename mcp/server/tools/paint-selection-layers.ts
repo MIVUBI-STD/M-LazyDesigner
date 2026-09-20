@@ -132,7 +132,7 @@ export function registerPaintSelectionLayerTools(): void {
                     if (!selectionArray) {
                       throw new Error("Custom texture selection has no backing matrix.");
                     }
-                    selection.forEachPixel((x, y, value, index) => {
+                    selection.forEachPixel((_x, _y, value, index) => {
                       selectionArray[index] = value ? 0 : 1;
                     });
                   } else {
@@ -203,7 +203,7 @@ export function registerPaintSelectionLayerTools(): void {
                     if (!selectionArray) {
                       throw new Error("Texture selection matrix is unavailable.");
                     }
-                    selection.forEachPixel((x, y, value, index) => {
+                    selection.forEachPixel((x, y, _value, index) => {
                       const selected =
                         x >= selectionRadius &&
                         y >= selectionRadius &&
@@ -242,7 +242,7 @@ export function registerPaintSelectionLayerTools(): void {
                 if (previousOverride === true) selectionArray.fill(1);
                 if (previousOverride === false) selectionArray.fill(0);
       
-                selection.forEachPixel((x, y, value, index) => {
+                selection.forEachPixel((x, y, _value, index) => {
                   const inside = predicate(x, y);
                   switch (mode) {
                     case "create":
