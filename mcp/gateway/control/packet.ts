@@ -350,6 +350,18 @@ export async function buildControlPacket(
  * the same orientation facts twice to the model.
  */
 export function projectControlPacketForGateway(packet: ControlPacket) {
+  const context = {
+    ...(packet.context.required.length > 0
+      ? { required: packet.context.required }
+      : {}),
+    ...(packet.context.optional.length > 0
+      ? { optional: packet.context.optional }
+      : {}),
+    ...(packet.context.invalidated_ids.length > 0
+      ? { invalidated_ids: packet.context.invalidated_ids }
+      : {}),
+  };
+
   return {
     protocol: packet.protocol,
     system: packet.system,
@@ -372,7 +384,7 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
     reference: packet.reference,
     stage_context: packet.stage_context,
     development: packet.development,
-    context: packet.context,
+    context,
     blockers: packet.blockers,
   };
 }

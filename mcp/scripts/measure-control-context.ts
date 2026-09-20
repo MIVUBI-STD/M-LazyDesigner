@@ -119,6 +119,11 @@ try {
     cached_packet_reduction_percent: cachedReduction,
     required_context_handles_full: full.context.required.length,
     required_context_handles_cached: cached.context.required.length,
+    echoed_cached_context_ids_internal: cached.context.cached_ids.length,
+    echoed_cached_context_ids_gateway: Object.prototype.hasOwnProperty.call(
+      projectedCached.context,
+      "cached_ids"
+    ) ? (projectedCached.context as { cached_ids?: string[] }).cached_ids?.length ?? 0 : 0,
     repeated_orientation_projection_chars: chars(controlOrientation),
     repeated_orientation_values_equal:
       JSON.stringify(statusOrientation) === JSON.stringify(controlOrientation),

@@ -102,11 +102,29 @@ describe("LazyDesigner Control status projection economy", () => {
     expect(projected.authoring.next_intent).toBe(full.authoring.next_intent);
     expect(projected.runtime.runtime_signature).toBe(full.runtime.runtime_signature);
     expect(projected.readiness).toEqual(full.readiness);
-    expect(projected.context).toEqual(full.context);
+    expect(projected.context).toEqual({
+      required: full.context.required,
+    });
+    expect(projected.context).not.toHaveProperty("cached_ids");
+    expect(projected.context).not.toHaveProperty("optional");
+    expect(projected.context).not.toHaveProperty("invalidated_ids");
     expect(projected.stage_context).toEqual(full.stage_context);
     expect(projected.blockers).toEqual(full.blockers);
 
     expect(JSON.stringify(projected).length).toBeLessThan(JSON.stringify(full).length);
+  });
+
+  test("cached context IDs are not echoed back to the AI client", async () => {
+    const first = await buildControlPacket(projectionStatus);
+    const known = first.context.required.map((entry) => entry.id);
+    const cached = await buildControlPacket(projectionStatus, {
+      knownContextIds: known,
+    });
+    const projected = projectControlPacketForGateway(cached);
+
+    expect(cached.context.cached_ids).toEqual(known);
+    expect(cached.context.required).toEqual([]);
+    expect(projected.context).toEqual({});
   });
 
   test("Gateway source uses the compact Control projection only at the AI-client boundary", async () => {
