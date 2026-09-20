@@ -820,7 +820,7 @@ pub fn check_managed_update() -> Result<ManagedUpdateCheck, String> {
                 !version.is_empty()
                     && version
                         .chars()
-                        .all(|ch| ch.is_ascii_digit() || matches!(ch, '.' | '-' ))
+                        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '-' ))
             })
             .unwrap_or(false);
         if !valid {
