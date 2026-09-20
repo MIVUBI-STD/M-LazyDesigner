@@ -36,6 +36,7 @@ export type ControlContinuationCheckpoint = {
       stale: ControlDelta["freshness"]["stale"];
       unknown: ControlDelta["freshness"]["unknown"];
     };
+    revision_evidence?: ControlDelta["revision_evidence"];
     next_intent: string;
     verification_class: ControlDelta["verification_class"];
     verification_scope: ControlDelta["verification_scope"];
@@ -104,6 +105,9 @@ export function buildControlContinuationCheckpoint(
               stale: [...delta.freshness.stale],
               unknown: [...delta.freshness.unknown],
             },
+            ...(Object.keys(delta.revision_evidence).length > 0
+              ? { revision_evidence: { ...delta.revision_evidence } }
+              : {}),
             next_intent: delta.next_intent,
             verification_class: delta.verification_class,
             verification_scope: delta.verification_scope,
