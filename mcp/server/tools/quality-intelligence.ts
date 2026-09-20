@@ -1,3 +1,8 @@
+import {
+  ensureTextureDiagnosticInvocationContext,
+  hasTextureDiagnosticRegion,
+  readTextureDiagnosticRegion,
+} from "@/lib/textureDiagnosticReadContext";
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 
@@ -136,7 +141,7 @@ function textureColorProfileRuntime(
   }
 }
 
-export function textureOptimizationRuntime() {
+export function textureOptimizationRuntime(context?: unknown) {
   if (typeof Cube === "undefined" || typeof Texture === "undefined") {
     return {
       state: "unavailable" as const,
@@ -228,16 +233,38 @@ export function textureOptimizationRuntime() {
       const pixelCount = width * height;
       const regionKey = JSON.stringify([texture.uuid, left, top, width, height]);
       const cached = regions.get(regionKey);
-      if (!cached && pixelBudgetUsed + pixelCount > TEXTURE_OPTIMIZATION_PIXEL_BUDGET) {
+      const sharedCached = hasTextureDiagnosticRegion(
+        context,
+        texture,
+        left,
+        top,
+        width,
+        height
+      );
+      if (
+        !cached &&
+        !sharedCached &&
+        pixelBudgetUsed + pixelCount > TEXTURE_OPTIMIZATION_PIXEL_BUDGET
+      ) {
         omit("budget", cube, faceKey);
         continue;
       }
 
       try {
-        const pixels = cached ?? ctx.getImageData(left, top, width, height).data;
+        const shared = cached
+          ? { pixels: cached, cache_hit: true }
+          : readTextureDiagnosticRegion(
+              context,
+              texture,
+              left,
+              top,
+              width,
+              height
+            );
+        const pixels = shared.pixels;
         if (!cached) {
           regions.set(regionKey, pixels);
-          pixelBudgetUsed += pixelCount;
+          if (!shared.cache_hit) pixelBudgetUsed += pixelCount;
         }
         patches.push({
           cube_uuid: cube.uuid,
@@ -383,7 +410,10 @@ function animationQualityRuntime(structuredContent: Record<string, unknown>) {
 
 type ToolAugmentation = {
   field: string;
-  read: (structuredContent: Record<string, unknown>) => unknown;
+  read: (
+    structuredContent: Record<string, unknown>,
+    context?: unknown
+  ) => unknown;
 };
 
 function wireTool(
@@ -395,7 +425,11 @@ function wireTool(
   if (!definition) return;
   const execute = definition.execute;
   definition.execute = async (args, context) => {
-    const result = await execute(args, context);
+    const invocationContext =
+      toolName === "list_textures"
+        ? ensureTextureDiagnosticInvocationContext(context)
+        : context;
+    const result = await execute(args, invocationContext);
     if (
       (toolName === "inspect_animation" && args.diagnostics !== true) ||
       (toolName === "list_textures" &&
@@ -412,7 +446,10 @@ function wireTool(
 
     const additions: Record<string, unknown> = {};
     for (const augmentation of augmentations) {
-      additions[augmentation.field] = augmentation.read(structured);
+      additions[augmentation.field] = augmentation.read(
+        structured,
+        invocationContext
+      );
     }
 
     return {
@@ -437,7 +474,10 @@ export function wireAuthoringQualityIntelligence(): void {
     { field: "rig_graph", read: () => rigGraphRuntime() },
   ]);
   wireTool("list_textures", [
-    { field: "optimization_opportunities", read: () => textureOptimizationRuntime() },
+    {
+      field: "optimization_opportunities",
+      read: (_structured, context) => textureOptimizationRuntime(context),
+    },
   ]);
   wireTool("get_texture", [
     { field: "color_profile", read: textureColorProfileRuntime },
