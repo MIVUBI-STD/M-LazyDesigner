@@ -102,7 +102,7 @@ apps/desktop/src/App.svelte
 
 Blockbench detection/compatibility/open now lives in `apps/desktop/src-tauri/src/blockbench.rs`.
 
-Runtime health lives in `runtime_health.rs`; readiness/product/maintenance policy lives in `readiness.rs`; Project snapshot/identity/grouping/Pin/Continue/actions now live in `project_navigation.rs`. Remaining Rust target: managed ownership. Svelte targets remain Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. Refactor only by existing ownership; no new framework/router.
+Runtime health lives in `runtime_health.rs`; readiness/product/maintenance policy lives in `readiness.rs`; Project backend lives in `project_navigation.rs`; Project Navigator presentation now lives in `ProjectNavigator.svelte` while App retains command orchestration. Remaining refactor candidates are managed ownership and smaller Support/operation UI only if they show clear value. No new framework/router.
 
 ### 5. Behavioral Project Navigator tests — REMOTE COVERAGE EXPANDED
 

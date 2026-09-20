@@ -165,8 +165,9 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
-    const [app, rust, projectNavigation, integration, snapshot, readme] = await Promise.all([
+    const [app, navigator, rust, projectNavigation, integration, snapshot, readme] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src/ProjectNavigator.svelte"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
       source("../apps/desktop/src-tauri/src/project_navigation.rs"),
       source("plugin/blockbenchIntegration.ts"),
@@ -234,35 +235,35 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain("manifest_identity_survives_project_move");
     expect(projectNavigation).toContain("malformed_or_unsupported_manifest_is_not_overwritten");
     expect(projectNavigation).toContain("duplicate_manifest_ids_fall_back_to_distinct_path_ids");
-    expect(app).toContain("Active Project");
-    expect(app).toContain("Recent Projects");
-    expect(app).toContain("See details");
-    expect(app).toContain("status.project_navigation");
+    expect(navigator).toContain("Active Project");
+    expect(navigator).toContain("Recent Projects");
+    expect(navigator).toContain("See details");
+    expect(app).toContain("navigation={status.project_navigation}");
     expect(app).toContain("project_session_live");
-    expect(app).toContain("status.project_navigation.session_live");
+    expect(app).toContain("navigation={status.project_navigation}");
     expect(app).toContain("recentProjects(status).length > 5");
-    expect(app).toContain("model_count > 8");
-    expect(app).toContain("Search projects");
-    expect(app).toContain("Search models");
-    expect(app).toContain("model.open ? 'Switch' : 'Open'");
-    expect(app).toContain("Active · Modified");
+    expect(navigator).toContain("model_count > 8");
+    expect(navigator).toContain("Search projects");
+    expect(navigator).toContain("Search models");
+    expect(navigator).toContain("model.open ? 'Switch' : 'Open'");
+    expect(navigator).toContain("Active · Modified");
     expect(app).toContain("activeNavigation.dirty");
-    expect(app).toContain("folder-shortcuts");
-    expect(app).toContain("Pin project");
-    expect(app).toContain("Unpin project");
-    expect(app).toContain("project.pinned");
-    expect(app).toContain("activeProject.folders.length > 0");
-    expect(app).toContain("project.folders.length > 0");
-    expect(app).toContain("continueTarget");
+    expect(navigator).toContain("folder-shortcuts");
+    expect(navigator).toContain("Pin project");
+    expect(navigator).toContain("Unpin project");
+    expect(navigator).toContain("project.pinned");
+    expect(navigator).toContain("activeProject.folders.length > 0");
+    expect(navigator).toContain("project.folders.length > 0");
+    expect(navigator).toContain("continueTarget");
     expect(snapshot).toContain("last_model_path");
     expect(snapshot).toContain("restoreLastModelPath");
     expect(projectNavigation).toContain("continue_model_id_for_path");
     expect(projectNavigation).toContain("continue_model_id");
     expect(projectNavigation).toContain("continue_model_requires_the_exact_last_saved_model_to_exist");
-    expect(app).toContain("value.project_navigation.continue_model_id");
-    expect(app).toContain("candidate.id === modelId && candidate.exists");
-    expect(app).toContain("!status.project_navigation.active && continueTarget(status)");
-    expect(app).toContain("candidate.exists");
+    expect(navigator).toContain("navigation.continue_model_id");
+    expect(navigator).toContain("candidate.id === modelId && candidate.exists");
+    expect(navigator).toContain("!navigation.active && continueTarget()");
+    expect(navigator).toContain("candidate.exists");
     expect(app).not.toContain("project.root_path");
     expect(readme).toContain("Paths stay hidden in the normal UI");
   });
@@ -283,6 +284,21 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("project_navigation::probe");
     expect(rust).toContain("project_navigation::projection");
     expect(rust).not.toContain("struct ProjectManifest");
+  });
+
+  test("Desktop Project Navigator UI is isolated from command orchestration", async () => {
+    const [app, navigator] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src/ProjectNavigator.svelte"),
+    ]);
+
+    expect(app).toContain("<ProjectNavigator");
+    expect(app).toContain("onOpenModel={openProjectModel}");
+    expect(app).toContain("onProjectAction={runProjectAction}");
+    expect(navigator).toContain("Active Project");
+    expect(navigator).toContain("Recent Projects");
+    expect(navigator).toContain("Continue");
+    expect(navigator).not.toContain("invoke<");
   });
 
   test("Desktop Blockbench owner is isolated from workstation orchestration", async () => {

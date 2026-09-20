@@ -2,6 +2,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { listen } from '@tauri-apps/api/event';
   import { onDestroy, onMount } from 'svelte';
+  import ProjectNavigator from './ProjectNavigator.svelte';
 
   type Compatibility = {
     status: 'validated' | 'compatible-unverified' | 'review-required' | 'unsupported' | 'invalid';
@@ -180,10 +181,6 @@
   let statusWatcherTimer: number | null = null;
   type Page = 'Overview' | 'Support';
   let page: Page = 'Overview';
-  let expandedProjectId: string | null = null;
-  let showAllProjects = false;
-  let projectSearch = '';
-  let modelSearch = '';
 
   type ManagedProgress = { schema: number; kind: 'progress'; action: string; stage: string };
   const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -258,42 +255,6 @@
     } finally {
       loading = false;
     }
-  }
-
-  const recentProjects = (value: SystemStatus) =>
-    value.project_navigation.projects.filter(project => !project.active);
-
-  const visibleRecentProjects = (value: SystemStatus) => {
-    const query = projectSearch.trim().toLowerCase();
-    const projects = recentProjects(value).filter(project =>
-      !query
-      || project.name.toLowerCase().includes(query)
-      || project.models.some(model => model.name.toLowerCase().includes(query))
-    );
-    return query || showAllProjects ? projects : projects.slice(0, 5);
-  };
-
-  const visibleProjectModels = (project: ProjectNavigationProject) => {
-    const query = modelSearch.trim().toLowerCase();
-    return query
-      ? project.models.filter(model => model.name.toLowerCase().includes(query))
-      : project.models;
-  };
-
-  const continueTarget = (value: SystemStatus) => {
-    if (value.project_navigation.active) return null;
-    const modelId = value.project_navigation.continue_model_id;
-    if (!modelId) return null;
-    for (const project of value.project_navigation.projects) {
-      const model = project.models.find(candidate => candidate.id === modelId && candidate.exists);
-      if (model) return { project, model };
-    }
-    return null;
-  };
-
-  function toggleProjectDetails(id: string) {
-    expandedProjectId = expandedProjectId === id ? null : id;
-    modelSearch = '';
   }
 
   async function runProjectAction(action: 'open-project-folder' | 'open-folder' | 'reveal-model' | 'pin-project' | 'unpin-project', id: string) {
@@ -886,179 +847,13 @@
               {/if}
             </section>
 
-            {#if !status.project_navigation.active && continueTarget(status)}
-              {@const target = continueTarget(status)}
-              {#if target}
-                <section class="content-section">
-                  <div class="section-heading">
-                    <div><h2>Continue</h2></div>
-                  </div>
-                  <div class="project-list">
-                    <div class="project-row">
-                      <div class="project-main">
-                        <div class="project-title">{target.project.name}</div>
-                        {#if target.project.name !== target.model.name}
-                          <div class="project-meta">{target.model.name}</div>
-                        {/if}
-                      </div>
-                      <div class="project-actions">
-                        <button class="primary-button small-button" onclick={() => openProjectModel(target.model.id)} disabled={busyAction !== null}>{target.model.open ? 'Switch' : 'Continue'}</button>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              {/if}
-            {/if}
-
-            {#if status.project_navigation.active}
-              {@const activeNavigation = status.project_navigation.active}
-              <section class="content-section">
-                <div class="section-heading">
-                  <div><h2>Active Project</h2></div>
-                </div>
-                <div class="project-list">
-                  <div class="project-row active-project-row">
-                    <div class="project-main">
-                      <div class="project-title">{activeNavigation.project_name ?? activeNavigation.model_name}</div>
-                      {#if !activeNavigation.saved}
-                        <div class="project-meta">Not saved yet{activeNavigation.dirty ? ' · Modified' : ''}</div>
-                      {:else if activeNavigation.project_name && activeNavigation.project_name !== activeNavigation.model_name}
-                        <div class="project-meta">{activeNavigation.model_name}{activeNavigation.dirty ? ' · Modified' : ''}</div>
-                      {:else if activeNavigation.dirty}
-                        <div class="project-meta">Modified</div>
-                      {/if}
-                    </div>
-                    <div class="project-actions">
-                      {#if activeNavigation.project_id}
-                        <button class="secondary-button small-button" onclick={() => runProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busyAction !== null}>Open Folder</button>
-                        <button class="quiet-button" onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>{expandedProjectId === activeNavigation.project_id ? 'Hide details' : 'See details'}</button>
-                      {/if}
-                    </div>
-                  </div>
-
-                  {#if activeNavigation.project_id && expandedProjectId === activeNavigation.project_id}
-                    {@const activeProject = status.project_navigation.projects.find(project => project.id === activeNavigation.project_id)}
-                    {#if activeProject}
-                      <div class="project-details">
-                        <div class="project-details-heading">
-                          <span>Models</span>
-                          {#if activeProject.model_count > 8}
-                            <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
-                          {/if}
-                        </div>
-                        {#each visibleProjectModels(activeProject) as model}
-                          <div class="model-row">
-                            <div class="model-main">
-                              <strong>{model.name}</strong>
-                              {#if model.active}<span>{model.dirty ? 'Active · Modified' : 'Active'}</span>{:else if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
-                            </div>
-                            <div class="model-actions">
-                              {#if !model.active}
-                                <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>{model.open ? 'Switch' : 'Open'}</button>
-                              {/if}
-                              <details class="more-menu">
-                                <summary aria-label="Model actions">•••</summary>
-                                <div class="menu-popover" role="menu">
-                                  <button role="menuitem" onclick={() => runProjectAction('reveal-model', model.id)} disabled={!model.exists || busyAction !== null}>Reveal model file</button>
-                                  <button role="menuitem" onclick={() => copyNavigationPath(model.id)} disabled={busyAction !== null}>Copy path</button>
-                                </div>
-                              </details>
-                            </div>
-                          </div>
-                        {/each}
-                        {#if visibleProjectModels(activeProject).length === 0}
-                          <div class="project-empty">No models found.</div>
-                        {/if}
-                        {#if activeProject.folders.length > 0}
-                          <div class="project-details-heading folder-heading"><span>Folders</span></div>
-                          <div class="folder-shortcuts">
-                            {#each activeProject.folders as folder}
-                              <button class="folder-shortcut" onclick={() => runProjectAction('open-folder', folder.id)} disabled={busyAction !== null}>{folder.label}</button>
-                            {/each}
-                          </div>
-                        {/if}
-                        <div class="project-detail-actions">
-                          <button class="quiet-button" onclick={() => runProjectAction(activeProject.pinned ? 'unpin-project' : 'pin-project', activeProject.id)} disabled={busyAction !== null}>{activeProject.pinned ? 'Unpin project' : 'Pin project'}</button>
-                        </div>
-                      </div>
-                    {/if}
-                  {/if}
-                </div>
-              </section>
-            {/if}
-
-            {#if recentProjects(status).length > 0}
-              <section class="content-section">
-                <div class="section-heading">
-                  <div><h2>Recent Projects</h2></div>
-                  {#if recentProjects(status).length > 5}
-                    <input class="compact-search project-search" type="search" placeholder="Search projects" aria-label="Search projects" bind:value={projectSearch} />
-                  {/if}
-                </div>
-                <div class="project-list">
-                  {#each visibleRecentProjects(status) as project}
-                    <div class="project-row">
-                      <div class="project-main">
-                        <div class="project-title">{project.name}</div>
-                        <div class="project-meta">{project.model_count} {project.model_count === 1 ? 'model' : 'models'}{#if project.pinned}<span class="pinned-label"> · Pinned</span>{/if}</div>
-                      </div>
-                      <div class="project-actions">
-                        <button class="secondary-button small-button" onclick={() => runProjectAction('open-project-folder', project.id)} disabled={busyAction !== null}>Open Folder</button>
-                        <button class="quiet-button" onclick={() => toggleProjectDetails(project.id)}>{expandedProjectId === project.id ? 'Hide details' : 'See details'}</button>
-                      </div>
-                    </div>
-                    {#if expandedProjectId === project.id}
-                      <div class="project-details">
-                        <div class="project-details-heading">
-                          <span>Models</span>
-                          {#if project.model_count > 8}
-                            <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
-                          {/if}
-                        </div>
-                        {#each visibleProjectModels(project) as model}
-                          <div class="model-row">
-                            <div class="model-main">
-                              <strong>{model.name}</strong>
-                              {#if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
-                            </div>
-                            <div class="model-actions">
-                              <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>{model.open ? 'Switch' : 'Open'}</button>
-                              <details class="more-menu">
-                                <summary aria-label="Model actions">•••</summary>
-                                <div class="menu-popover" role="menu">
-                                  <button role="menuitem" onclick={() => runProjectAction('reveal-model', model.id)} disabled={!model.exists || busyAction !== null}>Reveal model file</button>
-                                  <button role="menuitem" onclick={() => copyNavigationPath(model.id)} disabled={busyAction !== null}>Copy path</button>
-                                </div>
-                              </details>
-                            </div>
-                          </div>
-                        {/each}
-                        {#if visibleProjectModels(project).length === 0}
-                          <div class="project-empty">No models found.</div>
-                        {/if}
-                        {#if project.folders.length > 0}
-                          <div class="project-details-heading folder-heading"><span>Folders</span></div>
-                          <div class="folder-shortcuts">
-                            {#each project.folders as folder}
-                              <button class="folder-shortcut" onclick={() => runProjectAction('open-folder', folder.id)} disabled={busyAction !== null}>{folder.label}</button>
-                            {/each}
-                          </div>
-                        {/if}
-                        <div class="project-detail-actions">
-                          <button class="quiet-button" onclick={() => runProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busyAction !== null}>{project.pinned ? 'Unpin project' : 'Pin project'}</button>
-                        </div>
-                      </div>
-                    {/if}
-                  {/each}
-                  {#if visibleRecentProjects(status).length === 0}
-                    <div class="project-empty project-empty-list">No projects found.</div>
-                  {/if}
-                </div>
-                {#if recentProjects(status).length > 5 && !projectSearch.trim()}
-                  <button class="show-more-button" onclick={() => { showAllProjects = !showAllProjects; if (!showAllProjects) expandedProjectId = null; }}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
-                {/if}
-              </section>
-            {/if}
+            <ProjectNavigator
+              navigation={status.project_navigation}
+              busy={busyAction !== null}
+              onOpenModel={openProjectModel}
+              onProjectAction={runProjectAction}
+              onCopyPath={copyNavigationPath}
+            />
 
             <section class="content-section">
               <div class="section-heading">
