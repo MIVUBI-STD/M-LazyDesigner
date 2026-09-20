@@ -13,8 +13,17 @@ type DiagnosticMetrics = {
   cached_regions: number;
 };
 
+type CachedRegion = {
+  texture_uuid: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  pixels: Uint8ClampedArray;
+};
+
 type DiagnosticReadState = {
-  regions: Map<string, Uint8ClampedArray>;
+  regions: Map<string, CachedRegion>;
   metrics: Omit<DiagnosticMetrics, "cached_regions">;
 };
 
@@ -41,6 +50,52 @@ function stateFor(context: object): DiagnosticReadState {
     contexts.set(context, state);
   }
   return state;
+}
+
+function cropCachedRegion(
+  region: CachedRegion,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(width * height * 4);
+  const offsetX = x - region.x;
+  const offsetY = y - region.y;
+  for (let row = 0; row < height; row += 1) {
+    const sourceStart =
+      ((offsetY + row) * region.width + offsetX) * 4;
+    const sourceEnd = sourceStart + width * 4;
+    out.set(
+      region.pixels.subarray(sourceStart, sourceEnd),
+      row * width * 4
+    );
+  }
+  return out;
+}
+
+function containingRegion(
+  state: DiagnosticReadState,
+  texture: Texture,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): CachedRegion | null {
+  const right = x + width;
+  const bottom = y + height;
+  for (const region of state.regions.values()) {
+    if (
+      region.texture_uuid === texture.uuid &&
+      x >= region.x &&
+      y >= region.y &&
+      right <= region.x + region.width &&
+      bottom <= region.y + region.height
+    ) {
+      return region;
+    }
+  }
+  return null;
 }
 
 function regionKey(
@@ -74,8 +129,10 @@ export function hasTextureDiagnosticRegion(
 ): boolean {
   const keyContext = contextObject(context);
   if (!keyContext) return false;
-  return stateFor(keyContext).regions.has(
-    regionKey(texture, x, y, width, height)
+  const state = stateFor(keyContext);
+  return (
+    state.regions.has(regionKey(texture, x, y, width, height)) ||
+    containingRegion(state, texture, x, y, width, height) !== null
   );
 }
 
@@ -97,16 +154,32 @@ export function readTextureDiagnosticRegion(
 
   const state = stateFor(keyContext);
   const key = regionKey(texture, x, y, width, height);
-  const cached = state.regions.get(key);
-  if (cached) {
+  const exact = state.regions.get(key);
+  if (exact) {
     state.metrics.cache_hits += 1;
-    return { pixels: cached, cache_hit: true };
+    return { pixels: exact.pixels, cache_hit: true };
+  }
+
+  const parent = containingRegion(state, texture, x, y, width, height);
+  if (parent) {
+    state.metrics.cache_hits += 1;
+    return {
+      pixels: cropCachedRegion(parent, x, y, width, height),
+      cache_hit: true,
+    };
   }
 
   const pixels = new Uint8ClampedArray(
     texture.ctx.getImageData(x, y, width, height).data
   );
-  state.regions.set(key, pixels);
+  state.regions.set(key, {
+    texture_uuid: texture.uuid,
+    x,
+    y,
+    width,
+    height,
+    pixels,
+  });
   state.metrics.read_calls += 1;
   state.metrics.pixels_read += width * height;
   state.metrics.bytes_read += pixels.byteLength;
