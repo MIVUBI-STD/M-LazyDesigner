@@ -56,7 +56,6 @@ export function projectCapabilitiesForSearch(
     idempotent: capability.idempotent,
     control: {
       authoring_domain: capability.control.authoring_domain,
-      source_owner: capability.control.source_owner,
     },
   }));
 }

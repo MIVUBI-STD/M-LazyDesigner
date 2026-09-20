@@ -165,7 +165,7 @@ describe("BlockIT Gateway contract", () => {
     }]);
 
     expect(projected.control.authoring_domain).toBe("GEOMETRY");
-    expect(projected.control.source_owner.source).toBe("mcp/server/tools/cubes.ts");
+    expect(projected.control).not.toHaveProperty("source_owner");
     expect(projected.control).not.toHaveProperty("current_domain");
     expect(projected.control).not.toHaveProperty("eligibility");
   });
@@ -177,6 +177,7 @@ describe("BlockIT Gateway contract", () => {
     expect(source).toContain("lifecycle: metadata.lifecycle");
     expect(source).toContain("execution_class: metadata.executionClass");
     expect(source).toContain("verification_class: metadata.verificationClass");
+    expect(source).toContain("source_owner: sourceOwnerForCapability(capability)");
 
     const searchBlock = source.slice(
       source.indexOf("GATEWAY_TOOLS.searchCapabilities"),
@@ -185,6 +186,7 @@ describe("BlockIT Gateway contract", () => {
     expect(searchBlock).not.toContain("execution_class");
     expect(searchBlock).not.toContain("verification_class");
     expect(searchBlock).not.toContain("lifecycle:");
+    expect(searchBlock).not.toContain("source_owner: sourceOwnerForCapability");
   });
 
   test("branch projection keeps only continuation-relevant consolidated Animation fields", () => {

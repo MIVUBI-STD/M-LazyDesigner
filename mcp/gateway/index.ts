@@ -15,6 +15,7 @@ import {
 import { projectCapabilityInputSchema } from "./schemaProjection";
 import {
   authoringDomainForCapability,
+  sourceOwnerForCapability,
   buildControlDelta,
   projectControlDeltaForGateway,
   buildControlPacket,
@@ -394,6 +395,7 @@ registerGatewayTool(
             },
             control: {
               authoring_domain: authoringDomainForCapability(capability),
+              source_owner: sourceOwnerForCapability(capability),
             },
           },
         },
