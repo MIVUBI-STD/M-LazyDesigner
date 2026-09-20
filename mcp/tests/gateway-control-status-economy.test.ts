@@ -137,7 +137,7 @@ describe("Gateway status telemetry projection", () => {
       ...projectionStatus,
       connection: {
         ...projectionStatus.connection,
-        state: "backoff",
+        state: "degraded",
         reconnect_count: 3,
         reconnect: { failures: 2, retry_after_ms: 750 },
       },
@@ -146,11 +146,11 @@ describe("Gateway status telemetry projection", () => {
         active: 1,
         queued: 2,
       },
-      last_error: { code: "BACKEND_UNAVAILABLE" },
+      last_error: "BACKEND_UNAVAILABLE",
     } as GatewayRuntimeStatus);
 
     expect(projected.connection).toEqual({
-      state: "backoff",
+      state: "degraded",
       reconnect_count: 3,
       reconnect: { failures: 2, retry_after_ms: 750 },
     });
@@ -159,6 +159,6 @@ describe("Gateway status telemetry projection", () => {
       queued: 2,
       max_queue_depth: 8,
     });
-    expect(projected.last_error).toEqual({ code: "BACKEND_UNAVAILABLE" });
+    expect(projected.last_error).toBe("BACKEND_UNAVAILABLE");
   });
 });
