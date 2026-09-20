@@ -285,6 +285,38 @@ fn project_navigation_preferences_path() -> Option<PathBuf> {
         .map(|base| base.join("LazyDesigner").join("project-preferences.json"))
 }
 
+
+fn valid_navigation_generation(value: &str) -> bool {
+    if value.len() != 36 {
+        return false;
+    }
+    value.chars().enumerate().all(|(index, ch)| {
+        if matches!(index, 8 | 13 | 18 | 23) {
+            ch == '-'
+        } else {
+            ch.is_ascii_hexdigit()
+        }
+    })
+}
+
+fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
+    let path = project_navigation_snapshot_path()?;
+    let metadata = fs::metadata(&path).ok()?;
+    if metadata.len() == 0 || metadata.len() > 512 * 1024 {
+        return None;
+    }
+
+    let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
+    if snapshot.schema != 2
+        || !valid_navigation_generation(&snapshot.generation)
+        || snapshot.open_models.len() > 64
+        || snapshot.recent_models.len() > 128
+    {
+        return None;
+    }
+    Some(snapshot)
+}
+
 fn read_project_navigation_preferences() -> ProjectNavigationPreferences {
     let Some(path) = project_navigation_preferences_path() else {
         return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
@@ -1704,6 +1736,13 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn navigation_generation_validation_is_bounded() {
+        assert!(valid_navigation_generation("11111111-1111-4111-8111-111111111111"));
+        assert!(!valid_navigation_generation("not-a-generation"));
+        assert!(!valid_navigation_generation("111111111111411181111111111111111111"));
     }
 
     #[test]

@@ -161,9 +161,11 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("open_models");
     expect(rust).toContain("pub open: bool");
     expect(rust).toContain("pub dirty: bool");
-    expect(rust).toContain("read_navigation_snapshot().map(|snapshot| snapshot.revision.to_string())");
-    expect(rust).toContain("live_open_models(&snapshot, runtime_active)");
-    expect(rust).toContain("live_project_session_state_is_discarded_when_runtime_is_inactive");
+    expect(rust).toContain("navigation_revision_token(&snapshot)");
+    expect(rust).toContain("valid_navigation_generation");
+    expect(rust).toContain("snapshot.schema != 2");
+    expect(rust).toContain("live_open_models(&snapshot, session_live)");
+    expect(rust).toContain("live_project_session_state_is_discarded_when_session_is_not_live");
     expect(rust).toContain('"open-project-folder"');
     expect(rust).toContain('"open-model"');
     expect(rust).toContain('"reveal-model"');
