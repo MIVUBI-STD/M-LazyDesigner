@@ -125,9 +125,9 @@ Only after the above is stable:
 3. Desktop self-update only after signed updater public-key/channel policy is finalized.
 4. Dependency/security scanning and release hardening before broader distribution.
 
-## Blockbench 5.2 Native Adoption — SOURCE IMPLEMENTED
+## Blockbench 5.2 Native Adoption
 
-Native Null Object IK target/source/pole + target-rotation lock are integrated under existing `bone_rigging`; no public capability was added. Detailed implementation boundary and deferred 5.2 features: `docs/05-operations/blockbench-5.2-native-adoption.md`. LIVE_BLOCKBENCH proof remains deferred.
+Native IK controller support is source-integrated under `bone_rigging`. Details and live residue: `docs/05-operations/blockbench-5.2-native-adoption.md`.
 
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 
