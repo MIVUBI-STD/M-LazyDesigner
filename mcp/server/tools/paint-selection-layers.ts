@@ -73,7 +73,14 @@ export const textureLayerManagementParameters = z.object({
     ])
     .describe("Layer management action."),
   texture_id: textureIdOptionalSchema,
-  layer_name: z.string().optional().describe("Name of the layer."),
+  layer_id: z
+    .string()
+    .min(1)
+    .optional()
+    .describe(
+      "Required for layer-targeted actions: exact layer UUID or unique exact layer name inside the resolved texture."
+    ),
+  layer_name: z.string().min(1).optional().describe("Layer name for create/rename."),
   opacity: z
     .number()
     .min(0)
@@ -87,8 +94,100 @@ export const textureLayerManagementParameters = z.object({
     .nonnegative()
     .optional()
     .describe("0-based final layer index."),
+}).superRefine((value, ctx) => {
+  const needsLayer = value.action !== "create_layer" && value.action !== "flatten_layers";
+  if (needsLayer && !value.layer_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["layer_id"],
+      message: `layer_id is required for ${value.action}; editor selection is not a semantic target.`,
+    });
+  }
+  if (value.action === "rename_layer" && !value.layer_name) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["layer_name"],
+      message: "layer_name is required for rename_layer.",
+    });
+  }
+  if (value.action === "set_opacity" && value.opacity === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["opacity"],
+      message: "opacity is required for set_opacity.",
+    });
+  }
+  if (value.action === "set_blend_mode" && !value.blend_mode) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["blend_mode"],
+      message: "blend_mode is required for set_blend_mode.",
+    });
+  }
+  if (value.action === "move_layer" && value.target_index === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["target_index"],
+      message: "target_index is required for move_layer.",
+    });
+  }
 });
 
+
+type ManagedTextureLayer = TextureLayer & {
+  parent_uuid?: string;
+};
+
+function resolveManagedTextureLayer(
+  texture: Texture,
+  reference: string
+): ManagedTextureLayer {
+  const layers = (texture.layers ?? []).filter(
+    (layer): layer is ManagedTextureLayer => layer instanceof TextureLayer
+  );
+  const uuidMatch = layers.find((layer) => layer.uuid === reference);
+  if (uuidMatch) return uuidMatch;
+
+  const nameMatches = layers.filter((layer) => layer.name === reference);
+  if (nameMatches.length === 1) return nameMatches[0];
+  if (nameMatches.length > 1) {
+    throw new Error(
+      `Texture layer name "${reference}" is ambiguous inside texture "${texture.name}". Pass the exact layer UUID.`
+    );
+  }
+  throw new Error(
+    `Texture layer "${reference}" was not found inside texture "${texture.name}".`
+  );
+}
+
+function layerContinuationState(texture: Texture, layer: ManagedTextureLayer) {
+  return {
+    uuid: layer.uuid,
+    name: layer.name,
+    index: texture.layers.indexOf(layer),
+    opacity: layer.opacity,
+    blend_mode: layer.blend_mode,
+    width: layer.width,
+    height: layer.height,
+    offset: Array.isArray(layer.offset) ? [...layer.offset] : null,
+    parent_uuid: layer.parent_uuid || null,
+  };
+}
+
+function textureLayerContinuationState(texture: Texture) {
+  return {
+    uuid: texture.uuid,
+    name: texture.name,
+    layers_enabled: texture.layers_enabled === true,
+    layer_count: texture.layers.length,
+    selected_layer_uuid: texture.selected_layer?.uuid ?? null,
+  };
+}
+
+function refreshLayerInterface(updateConditions = false): void {
+  updateInterfacePanels();
+  if (updateConditions) BARS.updateConditions();
+}
 
 export const paintSelectionLayerToolDocs: ToolSpec[] = [
   {
@@ -104,7 +203,7 @@ export const paintSelectionLayerToolDocs: ToolSpec[] = [
       },
   {
         name: "texture_layer_management",
-        description: "Creates, manages, and manipulates texture layers.",
+        description: "Creates and mutates texture layers by explicit texture/layer identity with action-scoped Undo and compact continuation receipts.",
         annotations: {
           title: "Texture Layer Management",
           destructiveHint: true,
@@ -329,308 +428,314 @@ export function registerPaintSelectionLayerTools(): void {
             async execute({
               action,
               texture_id,
+              layer_id,
               layer_name,
               opacity,
               blend_mode,
               target_index,
             }) {
               const texture = getAndActivateTexture(texture_id);
-      
-              Undo.initEdit({
-                textures: [texture],
-                layers: texture.layers,
-                bitmap: true,
-              });
-      
+              const layer =
+                action === "create_layer" || action === "flatten_layers"
+                  ? null
+                  : resolveManagedTextureLayer(texture, layer_id!);
+
               if (action === "create_layer") {
-                let result = "";
-      
+                Undo.initEdit({ textures: [texture], bitmap: true });
                 try {
-                  if (!texture.layers_enabled) {
-                    texture.activateLayers(false);
-                  }
+                  if (!texture.layers_enabled) texture.activateLayers(false);
                   const newLayer = new TextureLayer(
-                    {
-                      name: layer_name || `Layer ${texture.layers.length + 1}`,
-                    },
+                    { name: layer_name || `Layer ${texture.layers.length + 1}` },
                     texture
-                  );
+                  ) as ManagedTextureLayer;
                   newLayer.setSize(texture.width, texture.height);
                   newLayer.addForEditing();
-                  result = `Created layer "${newLayer.name}"`;
-      
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface(true);
+                  return {
+                    content: [{ type: "text" as const, text: `Created layer "${newLayer.name}".` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      layer: layerContinuationState(texture, newLayer),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface(true);
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "delete_layer") {
-                let result = "";
-      
+                const target = layer!;
+                const removed = layerContinuationState(texture, target);
+                Undo.initEdit({ textures: [texture], bitmap: true });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  const layerToDelete = TextureLayer.selected;
-                  layerToDelete.remove(false);
-                  result = `Deleted layer "${layerToDelete.name}"`;
-      
+                  target.remove(false);
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface(true);
+                  return {
+                    content: [{ type: "text" as const, text: `Deleted layer "${removed.name}".` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      removed_layer: removed,
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface(true);
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "duplicate_layer") {
-                let result = "";
-      
+                const source = layer!;
+                const layerCopy = source.getUndoCopy(
+                  true
+                ) as ConstructorParameters<typeof TextureLayer>[0];
+                layerCopy.name = `${source.name} copy`;
+                Undo.initEdit({ textures: [texture], bitmap: true });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  const layerToDuplicate = TextureLayer.selected;
-                  const layerCopy = layerToDuplicate.getUndoCopy(
-                    true
-                  ) as ConstructorParameters<typeof TextureLayer>[0];
-                  layerCopy.name = `${layerToDuplicate.name} copy`;
-                  const duplicatedLayer = new TextureLayer(layerCopy, texture);
+                  const duplicatedLayer = new TextureLayer(
+                    layerCopy,
+                    texture
+                  ) as ManagedTextureLayer;
                   duplicatedLayer.addForEditing();
-                  result = `Duplicated layer "${duplicatedLayer.name}"`;
-      
                   texture.updateLayerChanges(true);
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface(true);
+                  return {
+                    content: [{ type: "text" as const, text: `Duplicated layer "${source.name}".` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      source_layer_uuid: source.uuid,
+                      layer: layerContinuationState(texture, duplicatedLayer),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface(true);
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "merge_down") {
-                let result = "";
-      
+                const source = layer!;
+                const sourceIndex = texture.layers.indexOf(source);
+                const down = texture.layers[sourceIndex - 1];
+                if (!(down instanceof TextureLayer)) {
+                  throw new Error(
+                    `Layer "${source.name}" has no pixel layer directly below it to merge into.`
+                  );
+                }
+                const sourceReceipt = layerContinuationState(texture, source);
+                Undo.initEdit({ textures: [texture], bitmap: true });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  TextureLayer.selected.mergeDown(false);
-                  result = "Merged layer down";
-      
+                  source.mergeDown(false);
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface(true);
+                  return {
+                    content: [{ type: "text" as const, text: `Merged layer "${source.name}" down.` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      merged_layer: sourceReceipt,
+                      layer: layerContinuationState(texture, down as ManagedTextureLayer),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface(true);
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "set_opacity") {
-                let result = "";
-      
+                const target = layer!;
+                if (target.opacity === opacity) {
+                  throw new Error(
+                    `Layer "${target.name}" already has opacity ${opacity}%; no authored change is required.`
+                  );
+                }
+                Undo.initEdit({ layers: [target] });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  if (opacity === undefined) {
-                    throw new Error("Opacity value required.");
-                  }
-                  TextureLayer.selected.opacity = opacity;
-                  result = `Set layer opacity to ${opacity}%`;
-      
+                  target.opacity = opacity!;
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface();
+                  return {
+                    content: [{ type: "text" as const, text: `Set layer opacity to ${opacity}%.` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      layer: layerContinuationState(texture, target),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface();
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "set_blend_mode") {
-                let result = "";
-      
+                const target = layer!;
+                if (target.blend_mode === blend_mode) {
+                  throw new Error(
+                    `Layer "${target.name}" already uses blend mode ${blend_mode}; no authored change is required.`
+                  );
+                }
+                Undo.initEdit({ layers: [target] });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  if (!blend_mode) {
-                    throw new Error("Blend mode required.");
-                  }
-                  TextureLayer.selected.blend_mode = blend_mode;
-                  result = `Set layer blend mode to ${blend_mode}`;
-      
+                  target.blend_mode = blend_mode!;
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface();
+                  return {
+                    content: [{ type: "text" as const, text: `Set layer blend mode to ${blend_mode}.` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      layer: layerContinuationState(texture, target),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface();
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "move_layer") {
-                let result = "";
-      
+                const target = layer!;
+                const currentIndex = texture.layers.indexOf(target);
+                if (target_index! >= texture.layers.length) {
+                  throw new Error(
+                    `Target index ${target_index} is out of range for ${texture.layers.length} layers.`
+                  );
+                }
+                if (currentIndex === target_index) {
+                  throw new Error(
+                    `Layer "${target.name}" is already at index ${target_index}; no authored change is required.`
+                  );
+                }
+                Undo.initEdit({ textures: [texture] });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  if (target_index === undefined) {
-                    throw new Error("Target index required.");
-                  }
-                  if (target_index >= texture.layers.length) {
-                    throw new Error(
-                      `Target index ${target_index} is out of range for ${texture.layers.length} layers.`
-                    );
-                  }
-      
-                  const layerToMove = TextureLayer.selected;
-                  texture.layers.remove(layerToMove);
-                  texture.layers.splice(target_index, 0, layerToMove);
-                  result = `Moved layer to position ${target_index}`;
-      
+                  texture.layers.remove(target);
+                  texture.layers.splice(target_index!, 0, target);
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface();
+                  return {
+                    content: [{ type: "text" as const, text: `Moved layer to position ${target_index}.` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      previous_index: currentIndex,
+                      layer: layerContinuationState(texture, target),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface();
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "rename_layer") {
-                let result = "";
-      
+                const target = layer!;
+                if (target.name === layer_name) {
+                  throw new Error(
+                    `Layer already has the exact name "${layer_name}"; no authored change is required.`
+                  );
+                }
+                const collision = texture.layers.some(
+                  (candidate) =>
+                    candidate !== target &&
+                    candidate.name.toLowerCase() === layer_name!.toLowerCase()
+                );
+                if (collision) {
+                  throw new Error(
+                    `Layer name "${layer_name}" collides case-insensitively inside texture "${texture.name}".`
+                  );
+                }
+                const previousName = target.name;
+                Undo.initEdit({ layers: [target] });
                 try {
-                  if (!TextureLayer.selected) {
-                    throw new Error("No layer selected.");
-                  }
-                  if (!layer_name) {
-                    throw new Error("New layer name required.");
-                  }
-                  const oldName = TextureLayer.selected.name;
-                  TextureLayer.selected.name = layer_name;
-                  result = `Renamed layer from "${oldName}" to "${layer_name}"`;
-      
+                  target.name = layer_name!;
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  refreshLayerInterface();
+                  return {
+                    content: [{ type: "text" as const, text: `Renamed layer "${previousName}" to "${target.name}".` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      previous_name: previousName,
+                      layer: layerContinuationState(texture, target),
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface();
                   throw error;
                 }
-      
-                updateInterfacePanels();
-                return result;
               }
-      
+
               if (action === "flatten_layers") {
-                let result = "";
-      
+                if (!texture.layers_enabled) {
+                  throw new Error("Texture has no layers to flatten.");
+                }
+                const nativeTexture = texture as Texture & { flatten?: () => void };
+                if (typeof nativeTexture.flatten !== "function") {
+                  throw new Error(
+                    "Native Blockbench texture.flatten() is unavailable. Refusing approximate fallback because layer blend/alpha-mask semantics could be lost."
+                  );
+                }
+                const flattenedLayerCount = texture.layers.length;
+                Undo.initEdit({ textures: [texture], bitmap: true });
                 try {
-                  if (!texture.layers_enabled) {
-                    throw new Error("Texture has no layers to flatten.");
-                  }
-                  // Composite all layer canvases onto the base bitmap before disabling layers.
-                  // Previous implementation emptied layers without merging, losing painted pixels (DEFECT-LOCAL-2).
-                  const layersSnapshot = [...texture.layers] as Array<TextureLayer & { canvas: HTMLCanvasElement; opacity?: number; offset?: [number, number] }>;
-                  const anyTexture = texture as unknown as { flatten?: () => void };
-                  if (typeof anyTexture.flatten === "function") {
-                    anyTexture.flatten();
-                  } else {
-                    const off = document.createElement("canvas");
-                    off.width = texture.width;
-                    off.height = texture.height;
-                    const offCtx = off.getContext("2d")!;
-                    offCtx.clearRect(0, 0, off.width, off.height);
-                    // Preserve base bitmap before overlaying layers — previous fallback drew only layers, losing pre-flatten pixels.
-                    const baseCanvas = (texture as unknown as { canvas: HTMLCanvasElement }).canvas;
-                    if (baseCanvas) {
-                      offCtx.globalAlpha = 1;
-                      offCtx.globalCompositeOperation = "source-over";
-                      offCtx.drawImage(baseCanvas, 0, 0);
-                    }
-                    for (const layer of layersSnapshot) {
-                      const layerCanvas = (layer as unknown as { canvas: HTMLCanvasElement }).canvas;
-                      if (!layerCanvas) continue;
-                      const opacity = (layer as unknown as { opacity?: number }).opacity;
-                      offCtx.globalAlpha = opacity !== undefined ? opacity / 100 : 1;
-                      offCtx.globalCompositeOperation = "source-over";
-                      const offset = (layer as unknown as { offset?: [number, number] }).offset ?? [0, 0];
-                      offCtx.drawImage(layerCanvas, offset[0], offset[1]);
-                    }
-                    offCtx.globalAlpha = 1;
-                    texture.layers_enabled = false;
-                    texture.selected_layer = null;
-                    texture.layers.empty();
-                    // @ts-ignore - texture.edit is available in Blockbench runtime
-                    texture.edit(
-                      (canvas, env) => {
-                        env.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        env.ctx.drawImage(off, 0, 0);
-                      },
-                      { no_undo: true }
+                  nativeTexture.flatten();
+                  if (texture.layers_enabled) {
+                    throw new Error(
+                      "Native texture flatten returned without disabling layer state."
                     );
                   }
-                  if (texture.layers_enabled) {
-                    texture.layers_enabled = false;
-                    texture.selected_layer = null;
-                    texture.layers.empty();
-                  }
-                  result = "Flattened all layers";
-      
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
+                  UVEditor.vue.layer = null;
+                  refreshLayerInterface(true);
+                  return {
+                    content: [{ type: "text" as const, text: `Flattened ${flattenedLayerCount} layer(s).` }],
+                    structuredContent: {
+                      operation: action,
+                      texture: textureLayerContinuationState(texture),
+                      flattened_layer_count: flattenedLayerCount,
+                      native_flatten: true,
+                    },
+                  };
                 } catch (error) {
                   Undo.cancelEdit(true);
                   Canvas.updateAll();
-                  updateInterfacePanels();
+                  refreshLayerInterface(true);
                   throw error;
                 }
-      
-                UVEditor.vue.layer = null;
-                updateInterfacePanels();
-                BARS.updateConditions();
-                return result;
               }
-      
+
               throw new Error(`Unsupported texture layer action: ${action}`);
             },
           },
