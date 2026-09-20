@@ -97,6 +97,14 @@
     receipt: Record<string, unknown>;
   };
 
+  type ManagedUpdateCheck = {
+    status: 'NOT_INSTALLED' | 'UP_TO_DATE' | 'UPDATE_AVAILABLE' | 'UPDATE_STAGED';
+    installed_source_sha: string | null;
+    available_source_sha: string | null;
+    tag: string | null;
+    published_at: string | null;
+  };
+
   type EnsureReadyResult = {
     status: 'READY' | 'RUNTIME_READY' | 'APPROVAL_REQUIRED' | 'NEEDS_ATTENTION';
     reason: string;
@@ -138,6 +146,8 @@
   let successToastTimer: number | null = null;
   let utilityMenuOpen = false;
   let statusWatcherTimer: number | null = null;
+  let updateCheck: ManagedUpdateCheck | null = null;
+  let updateCheckStarted = false;
   type Page = 'Overview' | 'Support';
   let page: Page = 'Overview';
 
@@ -390,6 +400,17 @@
     }
   }
 
+  async function checkManagedUpdateOnce() {
+    if (devFixture || updateCheckStarted || !status?.manager_available) return;
+    updateCheckStarted = true;
+    try {
+      updateCheck = await invoke<ManagedUpdateCheck>('check_managed_update');
+    } catch {
+      // Advisory only: offline/restricted networks never block local use.
+      updateCheck = null;
+    }
+  }
+
   async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
     if (devFixture) return;
     if (!status?.manager_available || busyAction) return;
@@ -405,6 +426,7 @@
       showSuccessToast(`${actionLabel} completed.`);
       recordOperation(actionLabel, 'success', receiptStatus);
       await refresh();
+      if (action === 'update') updateCheck = null;
     } catch (cause) {
       const actionLabel = action === 'update' ? 'Update LazyDesigner' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       recordOperation(actionLabel, 'failed', errorCode(cause));
@@ -438,7 +460,10 @@
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibilityChange);
-    void refresh().then(() => watchSystemStatus());
+    void refresh().then(() => {
+      void checkManagedUpdateOnce();
+      void watchSystemStatus();
+    });
     statusWatcherTimer = window.setInterval(() => { void watchSystemStatus(); }, 3000);
     void listen<ManagedProgress>('managed-progress', event => {
       if (busyAction && event.payload.action === busyAction) progressStage = event.payload.stage;
@@ -830,10 +855,13 @@
                   <span>Version</span>
                   <strong>0.1.0</strong>
                 </div>
-                {#if status.managed?.pending}
+                {#if status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED'}
                   <div class="definition-row update-definition">
                     <span>Update</span>
-                    <div class="inline-action"><strong>Available</strong><button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null}>{busyAction === 'update' ? 'Updating…' : 'Update'}</button></div>
+                    <div class="inline-action">
+                      <strong>{status.managed?.pending || updateCheck?.status === 'UPDATE_STAGED' ? 'Ready to install' : (updateCheck?.tag ?? 'Available')}</strong>
+                      <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null}>{busyAction === 'update' ? 'Updating…' : 'Update'}</button>
+                    </div>
                   </div>
                 {/if}
               </div>
