@@ -1,6 +1,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod desktop_error;
+mod desktop_instance;
 mod diagnostics;
 mod operation_log;
 mod process;
@@ -91,6 +92,13 @@ fn export_diagnostics() -> Result<DiagnosticExportResult, DesktopError> {
 }
 
 fn main() {
+    let _instance_guard = match desktop_instance::acquire()
+        .expect("LazyDesigner Desktop instance ownership failed")
+    {
+        desktop_instance::InstanceAcquire::Primary(guard) => guard,
+        desktop_instance::InstanceAcquire::Secondary => return,
+    };
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             system_status,

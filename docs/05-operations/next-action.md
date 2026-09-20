@@ -91,9 +91,11 @@ missing/moved exact file
 
 The pointer survives Plugin/Desktop restarts through the same bounded navigation snapshot and does not create a second project database. Native LIVE_BLOCKBENCH proof is still required.
 
-### 3. Single-instance Desktop
+### 3. Single-instance Desktop — SOURCE IMPLEMENTED
 
-Second LazyDesigner launch must focus the existing window. Goals: one watcher, one maintenance controller, one preferences writer, no duplicate notifications/actions. Do not add a background service just for this.
+Desktop now acquires one atomic machine-local instance lease before Tauri startup. The bounded owner identity combines PID, process start time, and executable name. A second launch validates the live owner, restores/focuses that Windows process, and exits before creating a second watcher/controller/preferences writer. A stale/crashed owner is recovered once through the same atomic claim.
+
+This implementation intentionally uses existing dependencies only; no Tauri single-instance dependency, lockfile regeneration, background service, or second state system is required. Native focus behavior remains LIVE_BLOCKBENCH/Windows acceptance residue.
 
 ### 4. Split oversized owners without redesign
 

@@ -141,6 +141,26 @@ describe("Desktop control-plane ownership", () => {
     expect(runbook).toContain("transient Gateway fast-probe failure");
   });
 
+  test("Desktop enforces one workstation owner before Tauri startup", async () => {
+    const [main, instance] = await Promise.all([
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src-tauri/src/desktop_instance.rs"),
+    ]);
+
+    expect(main).toContain("desktop_instance::acquire()");
+    expect(main).toContain("InstanceAcquire::Secondary => return");
+    expect(main.indexOf("desktop_instance::acquire()")).toBeLessThan(main.indexOf("tauri::Builder::default()"));
+    expect(instance).toContain("INSTANCE_DIR_NAME");
+    expect(instance).toContain("fs::rename(&candidate, &canonical)");
+    expect(instance).toContain("owner_process_is_live");
+    expect(instance).toContain("process.start_time()");
+    expect(instance).toContain("SetForegroundWindow");
+    expect(instance).toContain("ShowWindowAsync");
+    expect(instance).toContain("impl Drop for InstanceGuard");
+    expect(instance).toContain("candidate_owner_is_complete_before_publish");
+    expect(instance).not.toContain("tauri_plugin_single_instance");
+  });
+
   test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
     const [app, rust, integration, snapshot, readme] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),

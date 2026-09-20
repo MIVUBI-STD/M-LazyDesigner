@@ -310,6 +310,16 @@ trusted draft     → desktop-vMAJOR.MINOR.PATCH
 An unsigned development artifact therefore cannot reserve or masquerade as the final trusted release tag.
 
 
+## Single-instance Desktop ownership
+
+Desktop establishes one machine-local owner **before** the Tauri application, connection watcher, maintenance controller, or preferences writer is created.
+
+The owner is published through an atomic directory rename under `%LOCALAPPDATA%\LazyDesigner\desktop-instance`. The complete bounded owner record is written before publication and contains only the Desktop PID, process start time, executable name, and schema. A second launch verifies the exact live process identity, restores/focuses that process's main window on Windows, and exits before constructing another Tauri application.
+
+If a prior Desktop crashed, PID + process start time prevents PID-reuse from being treated as the old owner. Invalid or stale ownership is recovered once through the same atomic claim. The guard removes only its own matching owner on normal shutdown.
+
+This mechanism uses existing Rust/Windows facilities and adds no background service, dependency, project database, watcher, maintenance path, or preferences writer.
+
 ## Workstation automation and first-run policy
 
 Normal operation is intent-driven rather than launch-driven:
