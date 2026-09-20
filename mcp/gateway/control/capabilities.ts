@@ -47,15 +47,18 @@ export function decorateCapabilities(
 export function projectCapabilitiesForSearch(
   capabilities: readonly ControlCapabilitySummary[]
 ) {
-  return capabilities.map((capability) => ({
-    capability_id: capability.capability_id,
-    description: capability.description,
-    tier: capability.tier,
-    read_only: capability.read_only,
-    destructive: capability.destructive,
-    idempotent: capability.idempotent,
-    control: {
+  return capabilities.map((capability) => {
+    const flags = [
+      ...(capability.read_only ? ["read_only" as const] : []),
+      ...(capability.destructive ? ["destructive" as const] : []),
+      ...(capability.idempotent ? ["idempotent" as const] : []),
+    ];
+    return {
+      capability_id: capability.capability_id,
+      description: capability.description,
+      tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
-    },
-  }));
+      ...(flags.length > 0 ? { flags } : {}),
+    };
+  });
 }

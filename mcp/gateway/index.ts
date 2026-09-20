@@ -311,7 +311,7 @@ registerGatewayTool(
   {
     title: "Search LazyDesigner Capabilities",
     description:
-      "Fallback search over exposed capabilities; returns bounded domain/source ownership without a status reread.",
+      "Fallback search over exposed capabilities; returns bounded domain + true safety flags (read_only/destructive/idempotent) without a status reread.",
     inputSchema: searchInput.shape,
     annotations: {
       readOnlyHint: true,

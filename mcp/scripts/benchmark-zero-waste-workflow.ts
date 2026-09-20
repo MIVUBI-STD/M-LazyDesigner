@@ -115,10 +115,8 @@ const representativeSearch = {
       capability_id: "manage_cubes",
       description: "Create or update Bedrock cubes.",
       tier: "primary",
-      read_only: false,
-      destructive: true,
-      idempotent: false,
-      control: { authoring_domain: "GEOMETRY" },
+      authoring_domain: "GEOMETRY",
+      flags: ["destructive"],
     },
   ],
 };

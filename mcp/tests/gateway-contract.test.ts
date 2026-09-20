@@ -618,6 +618,67 @@ describe("BlockIT Gateway contract", () => {
     ).toBe(unrelated);
   });
 
+  test("search projection preserves safety semantics with compact true-only flags", async () => {
+    const { projectCapabilitiesForSearch } = await import("@/gateway/control");
+    const projected = projectCapabilitiesForSearch([
+      {
+        capability_id: "manage_cubes",
+        description: "Create or update Bedrock cubes.",
+        tier: "primary",
+        read_only: false,
+        destructive: true,
+        idempotent: false,
+        control: {
+          authoring_domain: "GEOMETRY",
+          current_domain: false,
+          eligibility: "AVAILABLE",
+          source_owner: { source: "x", specialist: null, test_owner: null },
+        },
+      },
+      {
+        capability_id: "inspect_elements",
+        description: "Inspect model elements.",
+        tier: "primary",
+        read_only: true,
+        destructive: false,
+        idempotent: true,
+        control: {
+          authoring_domain: "CORE",
+          current_domain: false,
+          eligibility: "AVAILABLE",
+          source_owner: { source: "y", specialist: null, test_owner: null },
+        },
+      },
+    ] as any);
+
+    expect(projected[0]).toEqual({
+      capability_id: "manage_cubes",
+      description: "Create or update Bedrock cubes.",
+      tier: "primary",
+      authoring_domain: "GEOMETRY",
+      flags: ["destructive"],
+    });
+    expect(projected[1]).toEqual({
+      capability_id: "inspect_elements",
+      description: "Inspect model elements.",
+      tier: "primary",
+      authoring_domain: "CORE",
+      flags: ["read_only", "idempotent"],
+    });
+
+    const decode = (item: any) => ({
+      read_only: item.flags?.includes("read_only") ?? false,
+      destructive: item.flags?.includes("destructive") ?? false,
+      idempotent: item.flags?.includes("idempotent") ?? false,
+    });
+    expect(decode(projected[0])).toEqual({
+      read_only: false, destructive: true, idempotent: false,
+    });
+    expect(decode(projected[1])).toEqual({
+      read_only: true, destructive: false, idempotent: true,
+    });
+  });
+
   test("phase handoff invalidates only backend state and explicitly keeps the client task alive", async () => {
     const backendSource = await Bun.file("gateway/backend.ts").text();
 
