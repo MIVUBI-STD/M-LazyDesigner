@@ -36,3 +36,27 @@ export function decorateCapabilities(
     };
   });
 }
+
+
+/**
+ * Search runs without an orientation status read, so current_domain=false and
+ * eligibility=AVAILABLE carry no decision signal. Keep the richer internal
+ * decoration for policy/tests, but omit those constant fields at the AI-client
+ * search boundary.
+ */
+export function projectCapabilitiesForSearch(
+  capabilities: readonly ControlCapabilitySummary[]
+) {
+  return capabilities.map((capability) => ({
+    capability_id: capability.capability_id,
+    description: capability.description,
+    tier: capability.tier,
+    read_only: capability.read_only,
+    destructive: capability.destructive,
+    idempotent: capability.idempotent,
+    control: {
+      authoring_domain: capability.control.authoring_domain,
+      source_owner: capability.control.source_owner,
+    },
+  }));
+}

@@ -21,6 +21,7 @@ import {
   projectControlPacketForGateway,
   CONTROL_ROUTING_POLICY,
   decorateCapabilities,
+  projectCapabilitiesForSearch,
 } from "./control";
 import { LocalCapabilityRegistry } from "./localCapabilities";
 import { recoveryForGatewayError } from "./recovery";
@@ -151,48 +152,48 @@ const statusInput = z.object({
     .boolean()
     .default(false)
     .describe(
-      "One-time explicit bind/rebind: select the intended Blockbench project tab, then set true so this Gateway adopts it. Required before first authoring when multiple project tabs are open; leave false for normal status checks."
+      "Explicitly bind the selected Blockbench project; false for normal status reads."
     ),
   known_context_ids: z
     .array(z.string().min(1).max(160))
     .max(16)
     .default([])
     .describe(
-      "Optional LazyDesigner Control context handles already loaded in this task. Matching current hashes are omitted from delivery; stale same-family handles are returned as invalidated IDs."
+      "Already-loaded Control context IDs; current matches are omitted and stale same-family IDs invalidated."
     ),
   workspace_path: z
     .string()
     .min(1)
     .optional()
     .describe(
-      "Optional Active Workspace directory or README.md path. Supply when Runtime cannot resolve the asset workspace from the bound project."
+      "Workspace directory or README.md path when not resolved from the bound project."
     ),
   reference_package_path: z
     .string()
     .min(1)
     .optional()
     .describe(
-      "Optional LazyDesigner Reference Package directory or REFERENCE.json path. Control reads only the compact machine-readable package projection and selects active-stage document/image identities."
+      "Reference Package directory or REFERENCE.json path for active-stage projection."
     ),
   current_user_delta: z
     .string()
     .max(1000)
     .optional()
     .describe(
-      "Optional current asset correction/change request. Control includes this delta in the stage-specific context identity without replacing original reference intent."
+      "Current asset correction/change request; included in stage-context identity."
     ),
   task_mode: z
     .enum(["ASSET_AUTHORING", "SYSTEM_DEVELOPMENT"])
     .default("ASSET_AUTHORING")
     .describe(
-      "LazyDesigner Control task class. ASSET_AUTHORING projects the current authoring stage; SYSTEM_DEVELOPMENT routes LazyDesigner source/Gateway/Runtime/build work to bounded owners."
+      "ASSET_AUTHORING for asset work; SYSTEM_DEVELOPMENT for bounded source/runtime routing."
     ),
   task_intent: z
     .string()
     .max(500)
     .optional()
     .describe(
-      "Concrete system-development problem to route when task_mode=SYSTEM_DEVELOPMENT, for example 'animation terlalu kaku' or 'dev:sync stale build'."
+      "Concrete problem when task_mode=SYSTEM_DEVELOPMENT."
     ),
 });
 
@@ -216,7 +217,7 @@ const describeInput = z.object({
     .strict()
     .optional()
     .describe(
-      "Optional consolidated-capability branch projection. Use only when the branch discriminator/value is already known."
+      "Known consolidated branch discriminator/value for schema projection."
     ),
 });
 
@@ -246,7 +247,7 @@ function buildGatewayServer(): McpServer {
   {
     title: "LazyDesigner Status",
     description:
-      "Reports normalized Gateway/Runtime health plus a compact LazyDesigner Control packet. Raw Runtime health remains backend/debug evidence and is not copied into the normal AI-client status payload. Asset mode can project a Reference Package + Workspace into GEOMETRY_CONTEXT, TEXTURE_CONTEXT, or ANIMATION_CONTEXT. System-development mode returns bounded source/specialist/test ownership.",
+      "Returns compact Gateway/Runtime health and Control orientation/context for asset or system-development work.",
     inputSchema: statusInput.shape,
     annotations: {
       readOnlyHint: true,
@@ -308,7 +309,7 @@ registerGatewayTool(
   {
     title: "Search LazyDesigner Capabilities",
     description:
-      "Searches the current exposed capability catalog and bounded local read-only support providers, then decorates results with LazyDesigner Control domain/source ownership. Search is fallback-only; it does not perform an extra status read merely to label results.",
+      "Fallback search over exposed capabilities; returns bounded domain/source ownership without a status reread.",
     inputSchema: searchInput.shape,
     annotations: {
       readOnlyHint: true,
@@ -326,15 +327,15 @@ registerGatewayTool(
         runtimeCapabilities,
         limit
       );
-      const capabilities = decorateCapabilities(rawCapabilities);
+      const capabilities = projectCapabilitiesForSearch(decorateCapabilities(rawCapabilities));
       return {
         content: [
           {
             type: "text" as const,
-            text: `Found ${capabilities.length} LazyDesigner capabilities.`,
+            text: `${capabilities.length} capabilities.`,
           },
         ],
-        structuredContent: { query, count: capabilities.length, capabilities },
+        structuredContent: { count: capabilities.length, capabilities },
       };
     } catch (error) {
       return gatewayErrorResult(error);
@@ -347,7 +348,7 @@ registerGatewayTool(
   {
     title: "Describe LazyDesigner Capability",
     description:
-      "Returns description, annotations, exact input schema and semantic owner for one exposed capability. It does not perform a second status read merely to repeat current phase metadata.",
+      "Returns one capability's exact schema, annotations, lifecycle and domain without a status reread.",
     inputSchema: describeInput.shape,
     annotations: {
       readOnlyHint: true,
@@ -408,7 +409,7 @@ registerGatewayTool(
   {
     title: "Invoke LazyDesigner Capability",
     description:
-      "Invokes one exact LazyDesigner capability. Runtime calls use this Gateway's bound Blockbench project and authoring phase; bounded local support providers are read-only and own no authored project state. Runtime calls are serialized and never automatically retried after interruption.",
+      "Invokes one exact capability on the bound project/phase. Mutations are serialized and never auto-retried after interruption.",
     inputSchema: invokeInput.shape,
   },
   async (rawArgs, context) => {

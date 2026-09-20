@@ -45,6 +45,12 @@ describe("static footprint budget", () => {
     expect(instructionStart).toBeGreaterThanOrEqual(0);
     expect(instructionEnd).toBeGreaterThan(instructionStart);
     expect(instructionBlock.length).toBeLessThan(1_100);
+    const schemaStart = gateway.indexOf("const statusInput =");
+    const schemaEnd = gateway.indexOf("\n\nfunction buildGatewayServer", schemaStart);
+    const gatewaySchemaBlock = gateway.slice(schemaStart, schemaEnd);
+    expect(schemaStart).toBeGreaterThanOrEqual(0);
+    expect(schemaEnd).toBeGreaterThan(schemaStart);
+    expect(gatewaySchemaBlock.length).toBeLessThan(2_900);
     for (const invariant of [
       "status only when orientation is unknown or stale",
       "Known capability: invoke directly",

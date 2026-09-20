@@ -2,7 +2,7 @@ import {
   compactGatewayCapabilityStructuredContent,
 } from "../gateway/contract";
 import { projectCapabilityInputSchema } from "../gateway/schemaProjection";
-import { buildControlDelta, projectControlDeltaForGateway } from "../gateway/control";
+import { buildControlDelta, decorateCapabilities, projectCapabilitiesForSearch, projectControlDeltaForGateway } from "../gateway/control";
 
 export type PayloadMeasurement = {
   name: string;
@@ -108,6 +108,26 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
     cubeBefore
   );
 
+  const searchBefore = decorateCapabilities([
+    {
+      capability_id: "manage_cubes",
+      description: "Create or update Bedrock cubes.",
+      tier: "primary",
+      read_only: false,
+      destructive: true,
+      idempotent: false,
+    },
+    {
+      capability_id: "inspect_elements",
+      description: "Inspect Bedrock hierarchy or one element.",
+      tier: "primary",
+      read_only: true,
+      destructive: false,
+      idempotent: true,
+    },
+  ]);
+  const searchAfter = projectCapabilitiesForSearch(searchBefore);
+
   const inspectBefore = inspectSchemaFixture();
   const inspectAfter = projectCapabilityInputSchema(
     "inspect_elements",
@@ -130,6 +150,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
 
   return [
     payloadMeasurement("control_delta_continuation", deltaBefore, deltaAfter),
+    payloadMeasurement("capability_search_projection", searchBefore, searchAfter),
     payloadMeasurement("manage_cubes_continuation", cubeBefore, cubeAfter),
     payloadMeasurement("inspect_elements_detail_schema", inspectBefore, inspectAfter),
   ];

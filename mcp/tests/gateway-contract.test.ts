@@ -9,6 +9,7 @@ import {
   searchCapabilityCatalog,
   type BackendTool,
 } from "@/gateway/contract";
+import { projectCapabilitiesForSearch } from "@/gateway/control";
 import {
   getCapabilityBranchFields,
   projectCapabilityInputSchema,
@@ -141,6 +142,32 @@ describe("BlockIT Gateway contract", () => {
       capability_id: "manage_geometry_reference",
       tier: "support",
     });
+  });
+
+  test("search projection removes orientation constants but keeps routing ownership", () => {
+    const [projected] = projectCapabilitiesForSearch([{
+      capability_id: "manage_cubes",
+      description: "Create or update cubes.",
+      tier: "primary",
+      read_only: false,
+      destructive: true,
+      idempotent: false,
+      control: {
+        authoring_domain: "GEOMETRY",
+        current_domain: false,
+        eligibility: "AVAILABLE",
+        source_owner: {
+          source: "mcp/server/tools/cubes.ts",
+          specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
+          test_owner: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
+        },
+      },
+    }]);
+
+    expect(projected.control.authoring_domain).toBe("GEOMETRY");
+    expect(projected.control.source_owner.source).toBe("mcp/server/tools/cubes.ts");
+    expect(projected.control).not.toHaveProperty("current_domain");
+    expect(projected.control).not.toHaveProperty("eligibility");
   });
 
   test("describe capability exposes lifecycle semantics only on demand", async () => {

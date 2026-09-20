@@ -3,7 +3,7 @@ export { buildControlPacket, projectControlPacketForGateway } from "./packet";
 export { readWorkspaceProjection } from "./workspace";
 export { readReferencePackageProjection } from "./referencePackage";
 export { buildControlStageContext, readinessForAuthoringDomain } from "./contextProjection";
-export { decorateCapabilities } from "./capabilities";
+export { decorateCapabilities, projectCapabilitiesForSearch } from "./capabilities";
 export { buildControlDelta, projectControlDeltaForGateway } from "./delta";
 export { resolveDevelopmentIntent } from "./developmentIntent";
 export type {
