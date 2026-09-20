@@ -6,7 +6,6 @@ describe("Blockbench 5.2 native adoption", () => {
     const parsed = boneRiggingParameters.parse({
       action: "set_ik_controller",
       bone_data: {
-        name: "compatibility-placeholder",
         controller: "ik_controller",
         controller_target: "foot",
         controller_source: "upper_leg",
@@ -23,7 +22,6 @@ describe("Blockbench 5.2 native adoption", () => {
     const parsed = boneRiggingParameters.parse({
       action: "set_ik_controller",
       bone_data: {
-        name: "compatibility-placeholder",
         controller: "ik_controller",
         controller_target: null,
         controller_source: null,
@@ -41,7 +39,6 @@ describe("Blockbench 5.2 native adoption", () => {
       boneRiggingParameters.safeParse({
         action: "set_ik_controller",
         bone_data: {
-          name: "compatibility-placeholder",
           controller: "ik_controller",
         },
       }).success
@@ -51,7 +48,6 @@ describe("Blockbench 5.2 native adoption", () => {
       boneRiggingParameters.safeParse({
         action: "set_ik_controller",
         bone_data: {
-          name: "compatibility-placeholder",
           controller_pole: "knee_pole",
         },
       }).success
@@ -61,9 +57,20 @@ describe("Blockbench 5.2 native adoption", () => {
       boneRiggingParameters.safeParse({
         action: "set_ik_controller",
         bone_data: {
-          name: "compatibility-placeholder",
           controller: "ik_controller",
           ik_target: "legacy_bone_target",
+        },
+      }).success
+    ).toBe(false);
+  });
+
+  test("non-controller rig actions still require bone_data.name", () => {
+    expect(
+      boneRiggingParameters.safeParse({
+        action: "set_ik",
+        bone_data: {
+          ik_enabled: true,
+          ik_target: "foot_target",
         },
       }).success
     ).toBe(false);
