@@ -118,21 +118,6 @@ function invalidatePromptRegistrationRuntimeCache(): void {
   promptRegistrationCache = null;
 }
 
-function compactUnknownResult(name: string, result: unknown) {
-  if (typeof result === "string") {
-    return compactStringResult(name, result);
-  }
-
-  if (!result || typeof result !== "object" || !("content" in result)) {
-    return {
-      content: [{ type: "text" as const, text: `${name} returned structured data.` }],
-      structuredContent: result,
-    };
-  }
-
-  return result;
-}
-
 function compactStringResult(
   name: string,
   result: string
