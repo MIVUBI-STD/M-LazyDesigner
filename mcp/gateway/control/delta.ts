@@ -103,6 +103,36 @@ function locatorReceiptComplete(value: unknown): boolean {
   });
 }
 
+function boneRiggingDeletionReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (candidate.action !== "delete") return false;
+    const removedRoot = record(candidate.removed_root);
+    const removedCounts = record(candidate.removed_counts);
+    if (
+      !removedRoot ||
+      !removedCounts ||
+      typeof removedRoot.uuid !== "string" ||
+      removedRoot.uuid.length === 0 ||
+      typeof removedRoot.name !== "string" ||
+      removedRoot.name.length === 0 ||
+      typeof removedRoot.parent !== "string" ||
+      typeof removedCounts.groups !== "number" ||
+      typeof removedCounts.elements !== "number" ||
+      typeof removedCounts.total_nodes !== "number" ||
+      typeof candidate.affected_animations !== "number"
+    ) {
+      return false;
+    }
+    return (
+      removedCounts.groups >= 1 &&
+      removedCounts.elements >= 0 &&
+      removedCounts.total_nodes ===
+        removedCounts.groups + removedCounts.elements &&
+      candidate.affected_animations >= 0
+    );
+  });
+}
+
 function boneRiggingStateReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (
@@ -714,7 +744,7 @@ function verificationClassForResult(
     (
       nativeIkControllerReceiptComplete(result) ||
       boneRiggingStateReceiptComplete(result) ||
-      removeElementReceiptComplete(result)
+      boneRiggingDeletionReceiptComplete(result)
     )
   ) {
     return "receipt_only";
