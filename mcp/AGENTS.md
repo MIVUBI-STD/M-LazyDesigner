@@ -31,7 +31,7 @@ Follow root execution-context rules. MCP-specific additions:
 - `LOCAL_CODE` owns generators/dependencies/local toolchain proof unavailable remotely.
 - `LIVE_BLOCKBENCH` is required for installed `build_identity`, native Runtime behavior, Undo/playback/persistence/export, lifecycle and visual proof.
 - Runtime/plugin recovery stays **beneath the persistent Gateway**. A Runtime/plugin reload does not require a new task/chat; reconnect the client only if the Gateway itself is replaced/dies.
-- Finish independent lower-context work before handing off higher-context residue.
+- A higher-context residue does not transfer the entire task; finish independent lower-context work first.
 
 ## Public Boundary
 
@@ -139,7 +139,7 @@ build/docs-manifest.ts → build/docs.ts → docs/api.json + docs/index.html
 prompts/bedrock_entity_workflow.md → canonical generator → prompts/manifest.json
 ```
 
-Never hand-edit generated output. If the current context cannot run its generator, finish independent work and leave only generator-coupled residue for `LOCAL_CODE`. CI may verify/emit exact-SHA artifacts but is not the authoring path.
+Never hand-edit generated API/prompt output. If the current context cannot run its generator, finish independent work and leave only generator-coupled residue for `LOCAL_CODE`. CI may verify/emit exact-SHA artifacts but is not the authoring path.
 
 ## Dependency Closure
 
