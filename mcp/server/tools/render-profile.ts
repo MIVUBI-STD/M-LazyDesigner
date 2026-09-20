@@ -480,6 +480,7 @@ export function registerRenderProfileTools(): void {
             structuredContent: {
               execution: "applied",
               action: "render_profile",
+              operation: "bind",
               binding: result.binding,
               write_transaction: {
                 state: writes.length > 1 ? "paired_atomic" : writes.length === 1 ? "single_atomic" : "compile_only",
@@ -515,6 +516,14 @@ export function registerRenderProfileTools(): void {
             structuredContent: {
               execution: "applied",
               action: "render_profile",
+              operation: "set_slot",
+              slot: request.slot,
+              render_profile: request.render_profile,
+              minecraft_material_code:
+                request.minecraft_material_code ??
+                (inspectEntityRenderProfileBindings(document).slots.find(
+                  (entry) => entry.slot === request.slot
+                )?.minecraft_material_code ?? null),
               write,
               summary: inspectEntityRenderProfileBindings(document),
               ...bounded(text, max),
@@ -555,8 +564,11 @@ export function registerRenderProfileTools(): void {
           structuredContent: {
             execution: "applied",
             action: "render_profile",
+            operation: request.operation,
             write,
             render_controller: request.render_controller,
+            bone_pattern: request.bone_pattern,
+            slot: request.operation === "assign" ? request.slot : null,
             ...bounded(text, max),
           },
         };
