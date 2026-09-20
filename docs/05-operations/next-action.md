@@ -127,32 +127,7 @@ Only after the above is stable:
 
 ## Blockbench 5.2 Native Adoption — SOURCE IMPLEMENTED
 
-The current source keeps Blockbench 5.2 adoption below the existing capability surface rather than adding more public tools.
-
-Implemented:
-
-- `bone_rigging(action=set_ik_controller)` owns Blockbench 5.2 native Null Object IK-controller wiring: target, root/source, pole, and target-rotation lock.
-- Existing legacy `set_ik` behavior remains available; native-controller fields do not silently fall back to the legacy path.
-- Native controller references resolve by UUID first, then unique exact name; incompatible/ambiguous nodes fail closed before Undo.
-- Runtime feature detection requires the 5.2 `NullObject.ik_source` and `NullObject.ik_pole` properties before mutation.
-- Controller mutation remains one Undo transaction and returns compact continuation state rather than requiring a confirmation reread.
-- No Gateway/public capability was added; generated MCP API docs were refreshed from the canonical generator.
-- Exact source SHA `9b07efd729d12c2cca7892555602e9601c5bd909` passed MCP Verify, including docs freshness, Runtime/Gateway typecheck, unused-symbol audits, Runtime/authoring regression suites, Zero-Waste guard, surface/phase measurement, build, provenance, and verified bundle upload.
-
-Intentionally not wrapped as LazyDesigner APIs yet:
-
-- Blockbench 5.2 `RenderTargetSnapshot` is currently an exported internal module used by Painter, not a proven stable global plugin boundary. Do not copy/import private app internals into the plugin merely to claim adoption.
-- Screen-Space Brush, Layer Groups, and 3D Plane References remain native Blockbench authoring features until a stable plugin-facing contract is demonstrated. Avoid DOM/action emulation as a substitute.
-- Blockbench 5.2 native particle/sound resource discovery should be allowed to benefit preview naturally; do not duplicate it with a second resource scanner.
-- `BBAnimation`/`BBKeyframe` alias migration and a `blockbench-types` baseline bump remain dependency/toolchain work, not a runtime requirement. Keep the pinned 5.1 type baseline until the lockfile can be advanced and re-proven deliberately.
-
-LIVE_BLOCKBENCH residue:
-
-1. Create/use a native Null Object IK controller on Blockbench 5.2.
-2. Prove target + source + pole mutation, pole removal, and target-rotation lock through the Runtime.
-3. Prove native preview reacts correctly.
-4. Prove Undo/Redo and save/reopen persistence.
-5. Do not claim RenderTarget/Screen-Space/Layer-Group/reference-plane integration until their plugin boundary is separately proven.
+Native Null Object IK target/source/pole + target-rotation lock are integrated under existing `bone_rigging`; no public capability was added. Detailed implementation boundary and deferred 5.2 features: `docs/05-operations/blockbench-5.2-native-adoption.md`. LIVE_BLOCKBENCH proof remains deferred.
 
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 
