@@ -425,10 +425,11 @@ describe("BlockIT Gateway contract", () => {
     });
   });
 
-  test("successful inspect_elements omits redundant Control continuation but keeps failures fail-closed", () => {
-    expect(shouldAttachGatewayControlDelta("inspect_elements", true)).toBe(false);
-    expect(shouldAttachGatewayControlDelta("inspect_elements", false)).toBe(true);
-    expect(shouldAttachGatewayControlDelta("manage_cubes", true)).toBe(true);
+  test("successful read-only capabilities omit redundant Control continuation but failures remain fail-closed", () => {
+    expect(shouldAttachGatewayControlDelta(true, true)).toBe(false);
+    expect(shouldAttachGatewayControlDelta(false, true)).toBe(true);
+    expect(shouldAttachGatewayControlDelta(true, false)).toBe(true);
+    expect(shouldAttachGatewayControlDelta(false, false)).toBe(true);
 
     const verbose = [{
       type: "text",

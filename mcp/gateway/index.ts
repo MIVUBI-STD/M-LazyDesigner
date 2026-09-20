@@ -417,8 +417,14 @@ registerGatewayTool(
         ? (await backend.getStatus()).affinity.authoring_phase
         : null;
       const localResult = await localCapabilities.invoke(capability, args);
-      const result =
-        localResult ?? (await backend.invokeCapability(capability, args, traceMeta));
+      const runtimeInvocation = localResult
+        ? null
+        : await backend.invokeCapability(capability, args, traceMeta);
+      const result = localResult ?? runtimeInvocation!.result;
+      const readOnly =
+        localResult !== null
+          ? localCapabilities.readOnlyHint(capability) === true
+          : runtimeInvocation!.readOnly;
       const succeeded = result.isError !== true;
       const receipt = deriveControlReceipt(
         capability,
@@ -436,8 +442,8 @@ registerGatewayTool(
       });
       const gatewayControlDelta = projectControlDeltaForGateway(controlDelta);
       const attachControlDelta = shouldAttachGatewayControlDelta(
-        capability,
-        succeeded
+        succeeded,
+        readOnly
       );
       if (result.structuredContent === undefined) {
         return {

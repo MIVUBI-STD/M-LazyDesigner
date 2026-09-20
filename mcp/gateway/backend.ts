@@ -89,6 +89,11 @@ export type GatewayRuntimeCallResult = JsonRecord & {
   isError?: boolean;
 };
 
+export type GatewayRuntimeInvocation = {
+  result: GatewayRuntimeCallResult;
+  readOnly: boolean;
+};
+
 export type BlockitRuntimeBackendOptions = {
   connectTimeoutMs?: number;
   callTimeoutMs?: number;
@@ -749,7 +754,7 @@ export class BlockitRuntimeBackend {
     capability: string,
     args: JsonRecord = {},
     requestMeta?: JsonRecord
-  ): Promise<GatewayRuntimeCallResult> {
+  ): Promise<GatewayRuntimeInvocation> {
     return this.runExclusive(async () => {
       const capabilityMetadata = getCapabilityMetadata(capability);
       const projectTransition =
@@ -840,10 +845,16 @@ export class BlockitRuntimeBackend {
             await this.closeConnectionUnsafe();
           }
 
-          return normalizeGatewayManagedResult(phaseAffinityUpdated, managed);
+          return {
+            result: normalizeGatewayManagedResult(phaseAffinityUpdated, managed),
+            readOnly: tool.annotations?.readOnlyHint === true,
+          };
         }
 
-        return managed;
+        return {
+          result: managed,
+          readOnly: tool.annotations?.readOnlyHint === true,
+        };
       } catch (error) {
         const message = errorMessage(error);
         if (isRuntimeProjectContextError(error)) {

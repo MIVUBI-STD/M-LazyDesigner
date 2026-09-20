@@ -46,6 +46,11 @@ export class LocalCapabilityRegistry {
     return this.providerFor(capability) !== null;
   }
 
+  readOnlyHint(capability: string): boolean | null {
+    const provider = this.providerFor(capability);
+    return provider ? provider.tool.annotations?.readOnlyHint === true : null;
+  }
+
   async search(
     query: string,
     runtimeCapabilities: readonly CapabilitySummary[],

@@ -207,16 +207,14 @@ function receiptOnlyTextIsRedundant(
 }
 
 export function shouldAttachGatewayControlDelta(
-  capability: string,
-  succeeded: boolean
+  succeeded: boolean,
+  readOnly: boolean
 ): boolean {
   if (!succeeded) return true;
-  // inspect_elements is a read-only focused state read. Its successful result
-  // changes no authored state and the structured payload already owns the next
-  // decision evidence; repeating a NO_CHANGE Control delta is pure continuation
-  // overhead. Keep this capability-specific instead of assuming all reads are
-  // semantically equivalent.
-  return capability !== "inspect_elements";
+  // Runtime/local capability annotations already own read-only semantics and
+  // are also used for interrupted-call retry safety. Reuse that same source of
+  // truth instead of maintaining a second capability-name allowlist.
+  return !readOnly;
 }
 
 export function compactGatewayCapabilityContent(
