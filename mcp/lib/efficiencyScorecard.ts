@@ -147,3 +147,43 @@ export function aggregateEfficiencyScores(
     ),
   };
 }
+
+
+export type StaticDynamicTradeoffInput = Readonly<{
+  static_added_bytes: number;
+  dynamic_saved_bytes_per_use: number;
+  expected_uses_per_session: number;
+}>;
+
+export function evaluateStaticDynamicTradeoff(
+  input: StaticDynamicTradeoffInput
+) {
+  for (const [name, value] of Object.entries(input)) {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new Error(`${name} must be a finite non-negative number.`);
+    }
+  }
+
+  const breakEvenUses =
+    input.static_added_bytes === 0
+      ? 0
+      : input.dynamic_saved_bytes_per_use > 0
+        ? Math.ceil(
+            input.static_added_bytes / input.dynamic_saved_bytes_per_use
+          )
+        : null;
+  const projectedDynamicSavings =
+    input.dynamic_saved_bytes_per_use * input.expected_uses_per_session;
+  const projectedNetBytes =
+    projectedDynamicSavings - input.static_added_bytes;
+
+  return {
+    ...input,
+    break_even_uses: breakEvenUses,
+    projected_dynamic_savings_bytes: projectedDynamicSavings,
+    projected_net_savings_bytes: projectedNetBytes,
+    pays_back_within_session:
+      breakEvenUses !== null &&
+      input.expected_uses_per_session >= breakEvenUses,
+  };
+}
