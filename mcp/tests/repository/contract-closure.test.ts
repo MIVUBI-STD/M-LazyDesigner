@@ -13,6 +13,7 @@ describe("MCP dependency closure", () => {
     expect(packageJson.scripts["verify:closure"]).not.toContain("verify:mcp");
     expect(packageJson.scripts["verify:mcp"]).toContain("bun run test:runtime");
     expect(packageJson.scripts["verify:mcp"]).toContain("bun run verify:authoring");
+    expect(packageJson.scripts["verify:mcp"]).toContain("bun run benchmark:zero-waste-workflow");
     expect(packageJson.scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
     expect(packageJson.scripts["verify:release"]).toBe("bun run verify:full");
     expect(packageJson.scripts["verify:mcp"]).toContain("bun run docs:check");

@@ -71,6 +71,9 @@ jobs:
       - name: Run Authoring contract suite
         run: bun run verify:authoring
 
+      - name: Guard Zero-Waste workflow regression
+        run: bun run benchmark:zero-waste-workflow
+
       - name: Measure MCP surface
         run: bun run measure:surface
 
