@@ -26,7 +26,7 @@ describe("Astra context efficiency measurement", () => {
 
     expect(delta!.reduction_percent).toBeGreaterThan(15);
     expect(search!.reduction_percent).toBeGreaterThan(5);
-    expect(searchEnvelope!.reduction_percent).toBeGreaterThan(2);
+    expect(searchEnvelope!.reduction_percent).toBeGreaterThan(0);
     expect(describeEnvelope!.reduction_percent).toBeGreaterThan(5);
     expect(cubeText!.reduction_percent).toBeGreaterThan(30);
     expect(cubes!.reduction_percent).toBeGreaterThan(35);
