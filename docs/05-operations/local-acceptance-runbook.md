@@ -462,6 +462,55 @@ IMPROVED | UNCHANGED | REGRESSED
 
 Quality must stay accepted while Cost to Accepted Result decreases. Do not invent token/latency numbers.
 
+
+## 10A. Codex/Astra Usage Validation
+
+Usage validation happens **after** the corresponding quality gate passes. Source/static byte benchmarks remain proxies and must not be converted into token claims.
+
+Canonical fixtures:
+
+```text
+mcp/tests/fixtures/astra-live-golden-tasks.json
+mcp/tests/fixtures/astra-usage-validation-template.json
+```
+
+For each Golden Task, run a comparable baseline and Zero-Waste variant on the same exact source/build state. Record only telemetry actually exposed by the client/harness. Leave unavailable values `null`; do not estimate them.
+
+Normalize the captured result into a copy of the template, then run from `mcp/`:
+
+```bash
+bun run eval:astra-usage -- /absolute/path/to/astra-usage.json
+```
+
+A token-saving claim is available for one task only when both variants satisfy:
+
+```text
+quality_verdict = PASS
+task_success = true
+source-provided total_tokens is present
+```
+
+The validator deliberately does **not** derive `total_tokens` from input/output/reasoning/cached components because provider accounting semantics may differ. Component telemetry remains diagnostic only.
+
+Record alongside usage:
+
+```text
+exact git SHA
+installed build_identity
+model/client identity as reported
+telemetry source
+Golden Task ID
+baseline vs zero_waste
+quality verdict
+task success
+user correction count
+tool-call counts
+available token components
+source-provided total_tokens when available
+```
+
+If token telemetry is unavailable, report `token_claim_available=false` and retain the existing call/payload proxy evidence without upgrading it into a model-usage claim.
+
 ## 11. Failure / Completion
 
 Targeted quality work uses disposable face/contact, adjoining texture and limb-cycle fixtures under the current specialist gates. Keep rejected assets frozen. Native and user visual proof remain separate from source tests.

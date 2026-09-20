@@ -1,0 +1,128 @@
+{
+  "schema": "lazydesigner-live-golden-tasks-v1",
+  "proof_scope": "LIVE_BLOCKBENCH",
+  "quality_precedes_efficiency": true,
+  "aggregate_score": false,
+  "tasks": [
+    {
+      "id": "A_known_transform",
+      "class": "DIRECT",
+      "intent": "Apply one known-target transform to an existing authored element.",
+      "expected_route": [
+        "invoke_capability"
+      ],
+      "required_evidence": [
+        "exact target identity",
+        "authoritative mutation receipt",
+        "visual evidence only when the mutation class requires it"
+      ],
+      "quality_gate": [
+        "requested transform is exact",
+        "unrequested authored state is preserved",
+        "no confirmation reread when receipt is sufficient"
+      ]
+    },
+    {
+      "id": "B_unknown_target_edit",
+      "class": "SCOPED_DISCOVERY",
+      "intent": "Resolve one unknown target, then apply a bounded edit.",
+      "expected_route": [
+        "bounded discovery",
+        "one focused inspect",
+        "invoke_capability"
+      ],
+      "required_evidence": [
+        "unique target resolution",
+        "exact current authored state needed for the edit",
+        "post-mutation verification class honored"
+      ],
+      "quality_gate": [
+        "correct target edited",
+        "no sibling/adjacent target changed",
+        "no redundant describe or reread"
+      ]
+    },
+    {
+      "id": "C_component_create",
+      "class": "CONSTRUCTIVE_COMPONENT",
+      "intent": "Create one coherent geometry or hierarchy component.",
+      "expected_route": [
+        "direct capability when known",
+        "coherent batch mutation",
+        "bounded verification"
+      ],
+      "required_evidence": [
+        "component identity",
+        "parent/contact ownership",
+        "complete created-state receipt"
+      ],
+      "quality_gate": [
+        "required part exists",
+        "parent/contact relation is correct",
+        "no filler/duplicate component"
+      ]
+    },
+    {
+      "id": "D_texture_material_correction",
+      "class": "TEXTURE_MATERIAL",
+      "intent": "Correct one bounded texture/material issue without changing approved geometry.",
+      "expected_route": [
+        "focused texture/material capability",
+        "receipt or bounded image evidence according to verification class"
+      ],
+      "required_evidence": [
+        "target texture/material identity",
+        "affected region/channel",
+        "unchanged geometry invariant"
+      ],
+      "quality_gate": [
+        "requested appearance change is present",
+        "unaffected pixels/channels preserved",
+        "approved geometry unchanged"
+      ]
+    },
+    {
+      "id": "E_animation_correction",
+      "class": "ANIMATION",
+      "intent": "Correct one bounded animation/effect issue on an existing rig.",
+      "expected_route": [
+        "exact animation identity",
+        "coherent timeline/effect mutation",
+        "bounded playback/visual evidence when required"
+      ],
+      "required_evidence": [
+        "animation UUID",
+        "bone/channel/effect identity",
+        "final affected state"
+      ],
+      "quality_gate": [
+        "intended motion/effect changes",
+        "unrelated clip/state unchanged",
+        "no unsafe automatic retry"
+      ]
+    },
+    {
+      "id": "F_reference_driven_asset",
+      "class": "FULL_REFERENCE_DRIVEN",
+      "intent": "Execute a representative reference-driven asset workflow through required authoring stages.",
+      "expected_route": [
+        "Control stage context",
+        "Geometry/Texturing shared AUTHORING",
+        "Animation handoff only when required",
+        "quality gate before efficiency verdict"
+      ],
+      "required_evidence": [
+        "approved reference in active multimodal context",
+        "stage readiness",
+        "current authored evidence",
+        "accepted-result quality verdict"
+      ],
+      "quality_gate": [
+        "reference fidelity accepted",
+        "Bedrock validity accepted",
+        "no critical missing/extra part",
+        "user correction count does not regress"
+      ]
+    }
+  ]
+}
