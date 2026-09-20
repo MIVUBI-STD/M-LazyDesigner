@@ -13,7 +13,7 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
-use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, ProjectNavigationActionResult, ProjectPathResult, SystemStatus};
+use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, ManagedUpdateCheck, PluginFileActionResult, ProjectNavigationActionResult, ProjectPathResult, SystemStatus};
 
 #[tauri::command]
 fn system_status(app: tauri::AppHandle) -> SystemStatus {
@@ -42,6 +42,12 @@ fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError
         }
     }
     result.map_err(|message| DesktopError::recoverable("ENSURE_READY_FAILED", message))
+}
+
+#[tauri::command]
+fn check_managed_update() -> Result<ManagedUpdateCheck, DesktopError> {
+    system_status::check_managed_update()
+        .map_err(|message| DesktopError::recoverable("UPDATE_CHECK_FAILED", message))
 }
 
 #[tauri::command]
@@ -108,6 +114,7 @@ fn main() {
             system_status,
             connection_status,
             ensure_ready,
+            check_managed_update,
             managed_action,
             bootstrap_install,
             project_navigation_action,
