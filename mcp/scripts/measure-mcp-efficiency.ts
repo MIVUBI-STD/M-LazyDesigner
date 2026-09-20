@@ -1,3 +1,6 @@
+import "@/server/tools";
+import { z } from "zod";
+import { getAllToolDefinitions, tools } from "../lib/factories";
 import {
   aggregateEfficiencyScores,
   scoreEfficiencyWorkflow,
@@ -5,6 +8,54 @@ import {
   type EfficiencyStep,
   type EfficiencyStepKind,
 } from "../lib/efficiencyScorecard";
+
+const SCORECARD_RUNTIME_PRIMITIVES = [
+  "manage_cubes",
+  "manage_animation_timeline",
+  "paint_texture_transaction",
+  "reparent_element",
+  "inspect_elements",
+  "manage_particle",
+] as const;
+
+function runtimePrimitiveStaticCost() {
+  const definitions = getAllToolDefinitions();
+  const rows = SCORECARD_RUNTIME_PRIMITIVES.map((name) => {
+    const definition = definitions[name];
+    if (!definition) {
+      throw new Error(`Efficiency primitive ${name} is not registered.`);
+    }
+    const schema = z.toJSONSchema(definition.parameterSchema, {
+      io: "input",
+      target: "draft-2020-12",
+      unrepresentable: "any",
+      reused: "inline",
+    });
+    const descriptionBytes = new TextEncoder().encode(
+      definition.description
+    ).byteLength;
+    const schemaBytes = new TextEncoder().encode(
+      JSON.stringify(schema)
+    ).byteLength;
+    return {
+      capability: name,
+      schema_bytes: schemaBytes,
+      description_bytes: descriptionBytes,
+      static_bytes: schemaBytes + descriptionBytes,
+    };
+  });
+
+  return {
+    runtime_tool_count: Object.keys(tools).length,
+    reused_primitive_count: rows.length,
+    reused_primitives: rows,
+    reused_primitive_static_bytes: rows.reduce(
+      (sum, row) => sum + row.static_bytes,
+      0
+    ),
+    new_public_capabilities_required: 0,
+  };
+}
 
 function payloadBytes(value: unknown): number {
   return new TextEncoder().encode(JSON.stringify(value)).byteLength;
@@ -253,6 +304,7 @@ export function runMcpEfficiencyScorecard() {
       "Deterministic REMOTE_GITHUB workflow proxy. Call and payload reductions are representative architecture measurements, not live Codex token telemetry or native Blockbench latency.",
     scores,
     aggregate: aggregateEfficiencyScores(scores),
+    static_surface: runtimePrimitiveStaticCost(),
     opportunity_register: [
       {
         id: "geometry_coherent_cube_batch",
