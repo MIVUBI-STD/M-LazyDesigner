@@ -59,6 +59,8 @@ The command is part of `verify:mcp`.
 
 These values are deterministic architecture proxies. They are not live Codex token counts, wall-clock latency, or native Blockbench proof.
 
+Per-workflow call and payload deltas are signed. A complete receipt may intentionally trade a few payload bytes for removal of an entire confirmation call; do not require every workflow to improve every metric independently. Reject a change when it worsens both call count and payload without a quality/recovery benefit, and keep aggregate cost moving down.
+
 The scorecard also records the current Runtime tool count and JSON-schema/description bytes for reused hot-path primitives. Existing-path optimization should normally require zero new public capabilities; proposed schema growth must be weighed against recurring dynamic savings before implementation.
 
 For a proposed helper, use the static-vs-dynamic break-even rule: added schema bytes / recurring dynamic bytes saved per use = minimum uses needed to pay back the static cost. If expected use within a session does not reach that break-even point, do not add the helper.
