@@ -506,6 +506,7 @@ export function registerRenderProfileTools(): void {
             request.minecraft_material_code
           );
           const text = serializeClientEntityDocument(document);
+          const summary = inspectEntityRenderProfileBindings(document);
           const output = outputDecision(source.path, request.client_entity_output);
           const write = output
             ? writeAtomic("client_entity", output.path, text, output.allowReplace)
@@ -521,11 +522,11 @@ export function registerRenderProfileTools(): void {
               render_profile: request.render_profile,
               minecraft_material_code:
                 request.minecraft_material_code ??
-                (inspectEntityRenderProfileBindings(document).slots.find(
+                (summary.slots.find(
                   (entry) => entry.slot === request.slot
                 )?.minecraft_material_code ?? null),
               write,
-              summary: inspectEntityRenderProfileBindings(document),
+              summary,
               ...bounded(text, max),
             },
           };
