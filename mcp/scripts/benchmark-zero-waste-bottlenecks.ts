@@ -13,7 +13,9 @@ export type BottleneckRow = {
   kind: StepKind;
   baseline_calls: number;
   optimized_calls: number;
-  saved_calls: number;
+  removed_calls: number;
+  added_calls: number;
+  net_call_delta: number;
   baseline_bytes: number;
   optimized_bytes: number;
   saved_bytes: number;
@@ -28,7 +30,9 @@ export type BottleneckReport = {
   totals: {
     baseline_calls: number;
     optimized_calls: number;
-    saved_calls: number;
+    removed_calls: number;
+    added_calls: number;
+    net_saved_calls: number;
     baseline_bytes: number;
     optimized_bytes: number;
     saved_bytes: number;
@@ -58,7 +62,9 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
       kind,
       baseline_calls: 0,
       optimized_calls: 0,
-      saved_calls: 0,
+      removed_calls: 0,
+      added_calls: 0,
+      net_call_delta: 0,
       baseline_bytes: 0,
       optimized_bytes: 0,
       saved_bytes: 0,
@@ -80,11 +86,16 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
     }
   }
 
-  const raw = [...accumulator.values()].map((row) => ({
-    ...row,
-    saved_calls: Math.max(0, row.baseline_calls - row.optimized_calls),
-    saved_bytes: Math.max(0, row.baseline_bytes - row.optimized_bytes),
-  }));
+  const raw = [...accumulator.values()].map((row) => {
+    const netCallDelta = row.baseline_calls - row.optimized_calls;
+    return {
+      ...row,
+      removed_calls: Math.max(0, netCallDelta),
+      added_calls: Math.max(0, -netCallDelta),
+      net_call_delta: netCallDelta,
+      saved_bytes: Math.max(0, row.baseline_bytes - row.optimized_bytes),
+    };
+  });
 
   const totalBaselineBytes = raw.reduce(
     (sum, row) => sum + row.baseline_bytes,
@@ -108,13 +119,13 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
     .filter(
       (row) =>
         row.saved_bytes > 0 ||
-        row.saved_calls > 0 ||
+        row.removed_calls > 0 ||
         row.redundant_baseline_calls > 0
     )
     .sort(
       (left, right) =>
         right.saved_bytes - left.saved_bytes ||
-        right.saved_calls - left.saved_calls ||
+        right.removed_calls - left.removed_calls ||
         right.redundant_baseline_calls - left.redundant_baseline_calls ||
         left.kind.localeCompare(right.kind)
     );
@@ -125,7 +136,13 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
     totals: {
       baseline_calls: rows.reduce((sum, row) => sum + row.baseline_calls, 0),
       optimized_calls: rows.reduce((sum, row) => sum + row.optimized_calls, 0),
-      saved_calls: rows.reduce((sum, row) => sum + row.saved_calls, 0),
+      removed_calls: rows.reduce((sum, row) => sum + row.removed_calls, 0),
+      added_calls: rows.reduce((sum, row) => sum + row.added_calls, 0),
+      net_saved_calls: Math.max(
+        0,
+        rows.reduce((sum, row) => sum + row.baseline_calls, 0) -
+          rows.reduce((sum, row) => sum + row.optimized_calls, 0)
+      ),
       baseline_bytes: rows.reduce((sum, row) => sum + row.baseline_bytes, 0),
       optimized_bytes: rows.reduce((sum, row) => sum + row.optimized_bytes, 0),
       saved_bytes: rows.reduce((sum, row) => sum + row.saved_bytes, 0),

@@ -28,9 +28,12 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(report.totals.optimized_calls).toBe(optimizedCalls);
     expect(report.totals.baseline_bytes).toBe(baselineBytes);
     expect(report.totals.optimized_bytes).toBe(optimizedBytes);
-    expect(report.totals.saved_calls).toBe(
+    expect(report.totals.net_saved_calls).toBe(
       Math.max(0, baselineCalls - optimizedCalls)
     );
+    expect(
+      report.totals.removed_calls - report.totals.added_calls
+    ).toBe(baselineCalls - optimizedCalls);
     expect(report.totals.saved_bytes).toBe(
       Math.max(0, baselineBytes - optimizedBytes)
     );
@@ -43,7 +46,7 @@ describe("Zero-Waste bottleneck ranking", () => {
     for (const row of report.ranking) {
       expect(
         row.saved_bytes > 0 ||
-          row.saved_calls > 0 ||
+          row.removed_calls > 0 ||
           row.redundant_baseline_calls > 0,
         row.kind
       ).toBe(true);
@@ -56,7 +59,9 @@ describe("Zero-Waste bottleneck ranking", () => {
 
     expect(verify.baseline_calls).toBeGreaterThan(0);
     expect(verify.optimized_calls).toBe(verify.baseline_calls);
-    expect(verify.saved_calls).toBe(0);
+    expect(verify.removed_calls).toBe(0);
+    expect(verify.added_calls).toBe(0);
+    expect(verify.net_call_delta).toBe(0);
     expect(verify.redundant_baseline_calls).toBe(0);
   });
 
@@ -65,8 +70,21 @@ describe("Zero-Waste bottleneck ranking", () => {
     const inspect = report.rows.find((row) => row.kind === "inspect")!;
 
     expect(inspect.redundant_baseline_calls).toBeGreaterThan(0);
-    expect(inspect.saved_calls).toBeGreaterThan(0);
+    expect(inspect.removed_calls).toBeGreaterThan(0);
+    expect(inspect.added_calls).toBe(0);
     expect(inspect.optimized_calls).toBeGreaterThan(0);
+  });
+
+  test("category call accounting handles replacements without overstating net savings", () => {
+    const report = rankZeroWasteBottlenecks();
+    const mutate = report.rows.find((row) => row.kind === "mutate")!;
+    const recovery = report.rows.find((row) => row.kind === "recovery")!;
+
+    expect(mutate.removed_calls).toBeGreaterThan(0);
+    expect(recovery.added_calls).toBeGreaterThan(0);
+    expect(
+      report.totals.removed_calls - report.totals.added_calls
+    ).toBe(report.totals.net_saved_calls);
   });
 
   test("ranking percentages are descriptive metrics, not acceptance targets", () => {
