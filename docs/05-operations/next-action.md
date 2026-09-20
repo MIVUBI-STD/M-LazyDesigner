@@ -145,9 +145,6 @@ LOCAL_CODE owns only environment/toolchain residue. LIVE_BLOCKBENCH owns native/
 REMOTE_GITHUB proves only source/static/CI-verifiable contracts on the exact SHA. Installed Runtime behavior, native Blockbench project navigation, Undo/playback/persistence, visual quality, and measured end-to-end usage remain higher-context proof.
 
 
-## Zero-Waste Live Usage
+## Zero-Waste Usage — LIVE RESIDUE
 
-Remaining proof is LIVE_BLOCKBENCH only. Use `mcp/tests/fixtures/astra-live-golden-tasks.json` + the normalized usage template, then run `bun run eval:astra-usage -- <file>`. Quality PASS must precede any token claim; unavailable telemetry stays `null`. Do not resume source trimming without live evidence.
-
-## Zero-Waste Plan
-P1 Headroom + P2 supersession are source-verified. Next: live Astra A-F measurement per `docs/04-system/zero-waste-token-efficiency-plan.md`.
+Remote/source hardening is complete. Do not resume speculative payload trimming. Run `verify:astra-usage-ready`, Golden A–F, and `eval:astra-usage -- <file>`; only source-provided response/compaction telemetry plus quality PASS can prove Codex/Astra savings.

@@ -16,6 +16,61 @@ Reduce **total model usage per successful accepted task** while preserving or im
 
 Remote/source work may use serialized UTF-8 bytes and call counts only as deterministic regression proxies. **Actual token claims require source-provided Codex/Astra telemetry.**
 
+## Deep Audit Closure — Source Layer
+
+Status: **REMOTE_GITHUB SOURCE HARDENING COMPLETE** on the current implementation line. This is not a claim of measured Codex/Astra token savings.
+
+The deep efficiency audit now covers four separate cost layers:
+
+```text
+STATIC / CACHEABLE CANDIDATE
+→ root + MCP repository instructions
+→ stable four-tool Gateway instructions/schemas
+→ cross-stage common-prefix fingerprint
+→ one stage-stable specialist extension
+
+DYNAMIC TASK CONTEXT
+→ whole Control-envelope Headroom
+→ REQUIRED reference/user/readiness evidence protected
+→ bounded useful context
+→ explicit continuation reserve
+→ superseded specialist/profile identities invalidated
+
+TOOL / CONTINUATION OBSERVATIONS
+→ successful read-only operations omit redundant Control deltas
+→ audited read summaries compact duplicate prose
+→ authoritative mutation receipts replace reassurance rereads
+→ compaction-safe checkpoint preserves active context identities,
+   uncertainty and decision-changing verification scope
+
+SYSTEM DEVELOPMENT
+→ exact source-owner routing first
+→ bounded TypeScript symbol map only for ambiguous/cross-owner work
+→ model-facing development projection removes echoed intent/static policy
+```
+
+Canonical regression/proxy owners:
+
+```text
+measure:model-context
+measure:control
+measure:continuation
+benchmark:zero-waste-total
+benchmark:zero-waste-bottlenecks
+verify:astra-usage-ready
+eval:astra-usage
+```
+
+Current deterministic total-context benchmark keeps static-prefix, dynamic-workflow and checkpoint bytes separate; they must never be summed and called tokens. The source gate requires quality preservation, fewer workflow calls/payload, valid continuation reserve, a smaller checkpoint, non-empty static-prefix candidates, and no remote token claim.
+
+Read-only continuation suppression is annotation-owned rather than a capability-name delta allowlist. Read-summary prose compaction remains intentionally audited; image evidence and incomplete structured results are not compacted.
+
+Prompt-cache support is structural only: one cross-stage common prefix candidate is measured separately from one stage-stable specialist extension and the dynamic tail. LazyDesigner cannot force an upstream cache hit. Actual cache reuse requires source-provided client/provider telemetry.
+
+Conversation compaction is also client-owned. LazyDesigner exposes deterministic checkpoint data but does not delete chat history, run blind last-N pruning, or create a persistent observation database. An upstream compaction owner may treat a context ID as already-known only when the corresponding context content survives compaction; otherwise omit that ID so Control re-delivers current context.
+
+No further source trimming is authorized merely from byte counts. Continue source optimization only when live telemetry identifies a material decision-safe bottleneck and quality/correction count does not regress.
+
 ## Existing Coverage — Do Not Rebuild
 
 Already implemented:
