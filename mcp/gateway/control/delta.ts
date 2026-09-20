@@ -751,6 +751,23 @@ function staleScopesForMutation(
   return { stale: [], precise: false };
 }
 
+
+function authoritativeRevisionEvidence(
+  capability: string,
+  result: unknown
+): ControlDelta["revision_evidence"] {
+  if (capability !== "paint_texture_transaction") return {};
+
+  for (const candidate of resultCandidates(result)) {
+    const revision = record(candidate.revision);
+    if (typeof revision?.after === "string" && revision.after.length > 0) {
+      return { TEXTURE_APPEARANCE: revision.after };
+    }
+  }
+
+  return {};
+}
+
 function mutationFreshness(
   capability: string,
   domain: ControlAuthoringDomain,
@@ -806,6 +823,9 @@ export function buildControlDelta(input: {
     input.succeeded,
     input.result
   );
+  const revisionEvidence = input.succeeded
+    ? authoritativeRevisionEvidence(input.capability, input.result)
+    : {};
   const verificationClass = verificationClassForResult(
     input.capability,
     input.succeeded,
@@ -846,6 +866,7 @@ export function buildControlDelta(input: {
     changed,
     invalidates,
     freshness,
+    revision_evidence: revisionEvidence,
     next_intent: nextIntent,
     verification_class: verificationClass,
     verification_scope: verificationScope,
@@ -892,6 +913,9 @@ export function projectControlDeltaForGateway(delta: ControlDelta) {
       : {}),
     invalidates: delta.invalidates,
     freshness,
+    ...(Object.keys(delta.revision_evidence).length > 0
+      ? { revision_evidence: delta.revision_evidence }
+      : {}),
     next_intent: delta.next_intent,
     verification_class: delta.verification_class,
     ...(delta.verification_scope !== null
