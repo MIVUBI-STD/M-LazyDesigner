@@ -495,6 +495,7 @@ function wireTextureReads(): void {
     const structured = record ? objectRecord(record.structuredContent) : null;
     if (!record || !structured) return result;
     const alignment = objectRecord(structured.production_alignment);
+    const includePbr = scope === "pbr" || scope === "full";
     return {
       ...record,
       structuredContent: {
@@ -502,12 +503,16 @@ function wireTextureReads(): void {
         ...(scope === "seam" || scope === "full"
           ? { seam_continuity: seamContinuityRuntime(invocationContext) }
           : {}),
-        production_alignment: {
-          ...(alignment ?? {}),
-          ...(scope === "pbr" || scope === "full"
-            ? { pbr_content: pbrContentRuntime(invocationContext) }
-            : {}),
-        },
+        ...(alignment || includePbr
+          ? {
+              production_alignment: {
+                ...(alignment ?? {}),
+                ...(includePbr
+                  ? { pbr_content: pbrContentRuntime(invocationContext) }
+                  : {}),
+              },
+            }
+          : {}),
         diagnostic_io: textureDiagnosticReadMetrics(invocationContext),
       },
     };
