@@ -206,12 +206,39 @@ function receiptOnlyTextIsRedundant(
   return false;
 }
 
+export function shouldAttachGatewayControlDelta(
+  capability: string,
+  succeeded: boolean
+): boolean {
+  if (!succeeded) return true;
+  // inspect_elements is a read-only focused state read. Its successful result
+  // changes no authored state and the structured payload already owns the next
+  // decision evidence; repeating a NO_CHANGE Control delta is pure continuation
+  // overhead. Keep this capability-specific instead of assuming all reads are
+  // semantically equivalent.
+  return capability !== "inspect_elements";
+}
+
 export function compactGatewayCapabilityContent(
   capability: string,
   structuredContent: unknown,
   content: unknown,
   verificationClass?: CapabilityVerificationClass
 ): unknown {
+  if (
+    capability === "inspect_elements" &&
+    isRecord(structuredContent) &&
+    typeof structuredContent.uuid === "string" &&
+    typeof structuredContent.name === "string" &&
+    typeof structuredContent.type === "string" &&
+    Array.isArray(content) &&
+    content.length === 1 &&
+    isRecord(content[0]) &&
+    content[0].type === "text"
+  ) {
+    return [{ type: "text", text: "Inspection ready." }];
+  }
+
   if (
     capability === "manage_cubes" &&
     isRecord(structuredContent) &&

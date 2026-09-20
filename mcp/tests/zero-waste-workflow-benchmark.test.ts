@@ -59,11 +59,11 @@ describe("Zero-Waste workflow benchmark", () => {
       (item) => item.kind === "inspect"
     )!;
 
-    expect(optimizedInspect.ai_payload_bytes).toBe(
+    expect(optimizedInspect.ai_payload_bytes).toBeLessThan(
       baselineRequiredInspect.ai_payload_bytes
     );
     expect(optimizedInspect.reason).toContain(
-      "schema projection cost is not part of the inspect response"
+      "omits redundant NO_CHANGE control_delta"
     );
   });
 

@@ -96,17 +96,32 @@ function summarize(
   };
 }
 
+const representativeInspectState = {
+  uuid: "cube-leg",
+  name: "leg",
+  type: "cube",
+  parent: { uuid: "group-leg", name: "leg_root" },
+  from: [0, 0, 0],
+  to: [2, 8, 2],
+  origin: [1, 0, 1],
+  rotation: [0, 0, 0],
+};
+
 const representativeInspect = {
-  element: {
-    uuid: "cube-leg",
-    name: "leg",
-    type: "cube",
-    parent: { uuid: "group-leg", name: "leg_root" },
-    from: [0, 0, 0],
-    to: [2, 8, 2],
-    origin: [1, 0, 1],
-    rotation: [0, 0, 0],
+  content: [{ type: "text", text: 'Inspected cube "leg" (cube-leg).' }],
+  structuredContent: representativeInspectState,
+  control_delta: {
+    authoring_domain: "CORE",
+    freshness: { basis: "NO_CHANGE" },
+    next_intent: "CONTINUE_CURRENT_TASK",
+    verification_class: "not_applicable",
+    requires_status_refresh: false,
   },
+};
+
+const compactRepresentativeInspect = {
+  content: [{ type: "text", text: "Inspection ready." }],
+  structuredContent: representativeInspectState,
 };
 
 const representativeSearch = {
@@ -254,9 +269,9 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       ),
       step(
         "inspect",
-        representativeInspect,
+        compactRepresentativeInspect,
         true,
-        "One focused target-resolution read; schema projection cost is not part of the inspect response."
+        "One focused target-resolution read; successful read omits redundant NO_CHANGE control_delta and repeated prose."
       ),
       step(
         "mutate",

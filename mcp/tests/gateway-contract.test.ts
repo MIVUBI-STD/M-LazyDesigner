@@ -5,6 +5,7 @@ import {
   classifyInterruptedCall,
   compactGatewayCapabilityStructuredContent,
   compactGatewayCapabilityContent,
+  shouldAttachGatewayControlDelta,
   createRuntimeSignature,
   normalizeRuntimeUrl,
   searchCapabilityCatalog,
@@ -422,6 +423,40 @@ describe("BlockIT Gateway contract", () => {
       code: "OUTCOME_UNKNOWN",
       safe_to_retry: false,
     });
+  });
+
+  test("successful inspect_elements omits redundant Control continuation but keeps failures fail-closed", () => {
+    expect(shouldAttachGatewayControlDelta("inspect_elements", true)).toBe(false);
+    expect(shouldAttachGatewayControlDelta("inspect_elements", false)).toBe(true);
+    expect(shouldAttachGatewayControlDelta("manage_cubes", true)).toBe(true);
+
+    const verbose = [{
+      type: "text",
+      text: 'Inspected cube "leg" (cube-leg).',
+    }];
+    expect(
+      compactGatewayCapabilityContent(
+        "inspect_elements",
+        {
+          uuid: "cube-leg",
+          name: "leg",
+          type: "cube",
+          from: [0, 0, 0],
+          to: [2, 8, 2],
+        },
+        verbose,
+        "not_applicable"
+      )
+    ).toEqual([{ type: "text", text: "Inspection ready." }]);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "inspect_elements",
+        { name: "leg" },
+        verbose,
+        "not_applicable"
+      )
+    ).toBe(verbose);
   });
 
   test("Gateway compacts only audited receipt-only prose and preserves non-receipt or path-bearing text", () => {

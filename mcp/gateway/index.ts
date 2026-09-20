@@ -11,6 +11,7 @@ import {
   GATEWAY_VERSION,
   compactGatewayCapabilityStructuredContent,
   compactGatewayCapabilityContent,
+  shouldAttachGatewayControlDelta,
   type JsonRecord,
 } from "./contract";
 import { projectCapabilityInputSchema } from "./schemaProjection";
@@ -434,10 +435,16 @@ registerGatewayTool(
         result: result.structuredContent,
       });
       const gatewayControlDelta = projectControlDeltaForGateway(controlDelta);
+      const attachControlDelta = shouldAttachGatewayControlDelta(
+        capability,
+        succeeded
+      );
       if (result.structuredContent === undefined) {
         return {
           ...result,
-          structuredContent: { control_delta: gatewayControlDelta },
+          ...(attachControlDelta
+            ? { structuredContent: { control_delta: gatewayControlDelta } }
+            : {}),
         };
       }
       const compacted = compactGatewayCapabilityStructuredContent(
@@ -455,8 +462,18 @@ registerGatewayTool(
         content: compactedContent as typeof result.content,
         structuredContent:
           compacted && typeof compacted === "object" && !Array.isArray(compacted)
-            ? { ...(compacted as JsonRecord), control_delta: gatewayControlDelta }
-            : { runtime_result: compacted, control_delta: gatewayControlDelta },
+            ? {
+                ...(compacted as JsonRecord),
+                ...(attachControlDelta
+                  ? { control_delta: gatewayControlDelta }
+                  : {}),
+              }
+            : {
+                runtime_result: compacted,
+                ...(attachControlDelta
+                  ? { control_delta: gatewayControlDelta }
+                  : {}),
+              },
       };
     } catch (error) {
       return gatewayErrorResult(error);
