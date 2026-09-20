@@ -12,6 +12,7 @@ use std::{
 use crate::{
     blockbench::{self, BlockbenchState},
     process::{run_output, run_output_with_stderr_lines},
+    runtime_health,
 };
 use sysinfo::{Pid, System};
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
@@ -199,23 +200,6 @@ struct InstalledState {
 }
 
 #[derive(Debug, Deserialize)]
-struct RuntimeSessionLease {
-    schema: u8,
-    profile_id: String,
-    producer_pid: u32,
-    instance_id: String,
-    runtime_url: String,
-    #[allow(dead_code)]
-    started_at_unix_ms: u64,
-}
-
-#[derive(Debug)]
-struct RuntimeSessionProbe {
-    live: bool,
-    runtime_url: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
 struct NavigationSnapshotActive {
     uuid: String,
     name: String,
@@ -358,112 +342,6 @@ fn runtime_session_lease_path() -> Option<PathBuf> {
         .map(PathBuf::from)
         .map(|base| base.join("LazyDesigner").join("runtime-session").join(format!("{profile_id}.json")))
 }
-
-const RUNTIME_SESSION_LEASE_TTL_MS: u64 = 15_000;
-
-fn runtime_endpoint_identity(value: &str) -> Option<(u16, String)> {
-    if value.len() > 512 || value.chars().any(|ch| matches!(ch, '\r' | '\n' | '\t')) {
-        return None;
-    }
-    let suffix = value
-        .strip_prefix("https://127.0.0.1")
-        .or_else(|| value.strip_prefix("https://localhost"))
-        .or_else(|| value.strip_prefix("https://[::1]"))?;
-
-    let (port, path) = if let Some(rest) = suffix.strip_prefix(':') {
-        let (raw_port, path) = match rest.split_once('/') {
-            Some((raw_port, path)) => (raw_port, format!("/{path}")),
-            None => (rest, "/".to_string()),
-        };
-        let port = raw_port.parse::<u16>().ok()?;
-        if port == 0 {
-            return None;
-        }
-        (port, path)
-    } else if suffix.is_empty() {
-        (443, "/".to_string())
-    } else if suffix.starts_with('/') {
-        (443, suffix.to_string())
-    } else {
-        return None;
-    };
-
-    let normalized_path = if path.len() > 1 {
-        path.trim_end_matches('/').to_string()
-    } else {
-        path
-    };
-    if normalized_path.is_empty() || normalized_path.chars().any(|ch| matches!(ch, '?' | '#')) {
-        return None;
-    }
-    Some((port, normalized_path))
-}
-
-fn valid_runtime_session_url(value: &str) -> bool {
-    runtime_endpoint_identity(value).is_some()
-}
-
-fn runtime_session_probe(blockbench_running: bool, system: &System) -> RuntimeSessionProbe {
-    if !blockbench_running {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    }
-    let Some(path) = runtime_session_lease_path() else {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    };
-    let Ok(metadata) = fs::metadata(&path) else {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    };
-    if metadata.len() == 0 || metadata.len() > 16 * 1024 {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    }
-    let Some(expected_profile_id) = managed_navigation_profile_id() else {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    };
-    let Ok(bytes) = fs::read(&path) else {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    };
-    let Ok(lease) = serde_json::from_slice::<RuntimeSessionLease>(&bytes) else {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    };
-    if lease.schema != 1
-        || lease.profile_id != expected_profile_id
-        || !valid_navigation_profile_id(&lease.profile_id)
-        || !valid_navigation_generation(&lease.instance_id)
-        || !valid_runtime_session_url(&lease.runtime_url)
-    {
-        return RuntimeSessionProbe { live: false, runtime_url: None };
-    }
-    let Some(process) = system.process(Pid::from_u32(lease.producer_pid)) else {
-        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
-    };
-    let name = process.name().to_ascii_lowercase();
-    if name != "blockbench.exe" && name != "blockbench" {
-        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
-    }
-    let Ok(modified) = metadata.modified() else {
-        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
-    };
-    let Ok(age) = SystemTime::now().duration_since(modified) else {
-        return RuntimeSessionProbe { live: false, runtime_url: Some(lease.runtime_url) };
-    };
-    RuntimeSessionProbe {
-        live: age.as_millis() <= RUNTIME_SESSION_LEASE_TTL_MS as u128,
-        runtime_url: Some(lease.runtime_url),
-    }
-}
-
-fn runtime_endpoint_match(managed: Option<&ManagedStatus>, probe: &RuntimeSessionProbe) -> Option<bool> {
-    let managed = managed?;
-    let listener = runtime_endpoint_identity(probe.runtime_url.as_deref()?)?;
-    Some(runtime_endpoint_identity(&managed.runtime_url) == Some(listener))
-}
-
-fn runtime_ready(managed: Option<&ManagedStatus>, probe: &RuntimeSessionProbe) -> bool {
-    probe.live
-        && runtime_endpoint_match(managed, probe) == Some(true)
-        && managed.map(|value| value.runtime_online).unwrap_or(false)
-}
-
 
 fn project_navigation_preferences_path() -> Option<PathBuf> {
     env::var_os("LOCALAPPDATA")
@@ -1503,9 +1381,21 @@ fn compose_status(
         .unwrap_or("unknown");
     let mut process_system = System::new_all();
     process_system.refresh_processes();
-    let runtime_session = runtime_session_probe(blockbench.running, &process_system);
-    let runtime_endpoint_match = runtime_endpoint_match(managed.as_ref(), &runtime_session);
-    let runtime_ready = runtime_ready(managed.as_ref(), &runtime_session);
+    let runtime_lease_path = runtime_session_lease_path();
+    let runtime_profile_id = managed_navigation_profile_id();
+    let runtime_session = runtime_health::probe(
+        blockbench.running,
+        &process_system,
+        runtime_lease_path.as_deref(),
+        runtime_profile_id.as_deref(),
+    );
+    let managed_runtime_url = managed.as_ref().map(|value| value.runtime_url.as_str());
+    let runtime_endpoint_match = runtime_health::endpoint_match(managed_runtime_url, &runtime_session);
+    let runtime_ready = runtime_health::ready(
+        managed.as_ref().map(|value| value.runtime_online).unwrap_or(false),
+        managed_runtime_url,
+        &runtime_session,
+    );
     let gateway = if manager_available && managed.is_none() {
         unknown_gateway()
     } else {
@@ -1622,7 +1512,14 @@ pub fn collect_connection_status() -> ConnectionStatus {
     });
 
     let (project_revision, project_session_live) = project_navigation_probe(blockbench_running);
-    let runtime_session = runtime_session_probe(blockbench_running, &system);
+    let runtime_lease_path = runtime_session_lease_path();
+    let runtime_profile_id = managed_navigation_profile_id();
+    let runtime_session = runtime_health::probe(
+        blockbench_running,
+        &system,
+        runtime_lease_path.as_deref(),
+        runtime_profile_id.as_deref(),
+    );
 
     let Some(root) = managed_root() else {
         return ConnectionStatus {
@@ -2138,46 +2035,6 @@ mod tests {
 
         assert_eq!(live_open_models(&snapshot, true).len(), 1);
         assert!(live_open_models(&snapshot, false).is_empty());
-    }
-
-    #[test]
-    fn runtime_endpoint_match_requires_same_listener_and_gateway_url() {
-        let managed = ManagedStatus {
-            schema: 1,
-            installed: None,
-            pending: false,
-            gateway_active: false,
-            runtime_online: true,
-            runtime_url: "https://127.0.0.1:3000/bb-mcp".to_string(),
-            tls_ready: true,
-            tls_error: None,
-            rollback: None,
-        };
-        let matching = RuntimeSessionProbe {
-            live: true,
-            runtime_url: Some("https://127.0.0.1:3000/bb-mcp".to_string()),
-        };
-        let mismatched = RuntimeSessionProbe {
-            live: true,
-            runtime_url: Some("https://127.0.0.1:3100/bb-mcp".to_string()),
-        };
-
-        assert_eq!(runtime_endpoint_match(Some(&managed), &matching), Some(true));
-        assert!(runtime_ready(Some(&managed), &matching));
-        let localhost = RuntimeSessionProbe {
-            live: true,
-            runtime_url: Some("https://localhost:3000/bb-mcp".to_string()),
-        };
-        assert_eq!(runtime_endpoint_match(Some(&managed), &localhost), Some(true));
-        assert_eq!(runtime_endpoint_identity("https://localhost:443/"), Some((443, "/".to_string())));
-        assert_eq!(runtime_endpoint_identity("https://localhost"), Some((443, "/".to_string())));
-        assert_eq!(runtime_endpoint_match(Some(&managed), &mismatched), Some(false));
-        assert!(!runtime_ready(Some(&managed), &mismatched));
-        let legacy_http = ManagedStatus {
-            runtime_url: "http://127.0.0.1:3000/bb-mcp".to_string(),
-            ..managed
-        };
-        assert_eq!(runtime_endpoint_match(Some(&legacy_http), &matching), Some(false));
     }
 
     #[test]

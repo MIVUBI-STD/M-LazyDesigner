@@ -102,7 +102,7 @@ apps/desktop/src/App.svelte
 
 Blockbench detection/compatibility/open now lives in `apps/desktop/src-tauri/src/blockbench.rs`.
 
-Remaining Rust targets: runtime_health, readiness, project_navigation, managed. Svelte targets: Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. Refactor only by existing ownership; no new framework/router.
+Runtime listener/session verification is now isolated in `runtime_health.rs`. Remaining Rust targets: readiness, project_navigation, managed. Svelte targets: Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. Refactor only by existing ownership; no new framework/router.
 
 ### 5. Behavioral Project Navigator tests — REMOTE COVERAGE EXPANDED
 

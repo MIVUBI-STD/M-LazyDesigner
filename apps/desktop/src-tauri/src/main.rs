@@ -5,6 +5,7 @@ mod desktop_error;
 mod desktop_instance;
 mod diagnostics;
 mod operation_log;
+mod runtime_health;
 mod process;
 mod system_status;
 

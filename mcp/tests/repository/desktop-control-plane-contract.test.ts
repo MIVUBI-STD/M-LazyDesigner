@@ -283,10 +283,11 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop UI uses one canonical workstation readiness path", async () => {
-    const [app, main, rust] = await Promise.all([
+    const [app, main, rust, runtimeHealth] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
       source("../apps/desktop/src-tauri/src/main.rs"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src-tauri/src/runtime_health.rs"),
     ]);
 
     expect(app).toContain("invoke<EnsureReadyResult>('ensure_ready')");
@@ -302,10 +303,12 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("RUNTIME_START_FAILED");
     expect(app).toContain("value.product_state");
     expect(rust).toContain("fn project_product_state(");
-    expect(rust).toContain("runtime_session_probe");
-    expect(rust).toContain("runtime_endpoint_match");
-    expect(rust).toContain("runtime_ready");
-    expect(rust).toContain("RUNTIME_SESSION_LEASE_TTL_MS");
+    expect(rust).toContain("runtime_health::probe");
+    expect(rust).toContain("runtime_health::endpoint_match");
+    expect(rust).toContain("runtime_health::ready");
+    expect(runtimeHealth).toContain("RUNTIME_SESSION_LEASE_TTL_MS");
+    expect(runtimeHealth).toContain("RuntimeSessionLease");
+    expect(runtimeHealth).toContain("endpoint_identity");
     expect(rust).toContain("gateway_active_fast");
     expect(rust).not.toContain("TcpStream::connect_timeout");
     expect(rust).not.toContain("runtime_online_fast");
