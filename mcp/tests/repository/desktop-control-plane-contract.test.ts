@@ -142,9 +142,8 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
-    const [app, main, rust, integration, snapshot, readme] = await Promise.all([
+    const [app, rust, integration, snapshot, readme] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
-      source("../apps/desktop/src-tauri/src/main.rs"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
       source("plugin/blockbenchIntegration.ts"),
       source("plugin/projectNavigationSnapshot.ts"),
@@ -172,12 +171,6 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain("heartbeatSnapshot");
     expect(snapshot).toContain("utimesSync");
     expect(rust).toContain("project_navigation_projection");
-    expect(main).toContain("tauri_plugin_single_instance::init");
-    expect(main).toContain("focus_existing_window");
-    expect(main).toContain('get_webview_window("main")');
-    expect(main).toContain("window.show()");
-    expect(main).toContain("window.unminimize()");
-    expect(main).toContain("window.set_focus()");
     expect(rust).toContain("project_navigation_probe");
     expect(rust).toContain("PROJECT_SESSION_LEASE_TTL_MS");
     expect(rust).toContain("project_session_lease_requires_live_blockbench_and_fresh_snapshot");

@@ -8,7 +8,6 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
-use tauri::Manager;
 use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, PluginFileActionResult, ProjectNavigationActionResult, ProjectPathResult, SystemStatus};
 
 #[tauri::command]
@@ -91,19 +90,8 @@ fn export_diagnostics() -> Result<DiagnosticExportResult, DesktopError> {
     diagnostics::export()
 }
 
-fn focus_existing_window(app: &tauri::AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
-        let _ = window.unminimize();
-        let _ = window.set_focus();
-    }
-}
-
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            focus_existing_window(app);
-        }))
         .invoke_handler(tauri::generate_handler![
             system_status,
             connection_status,

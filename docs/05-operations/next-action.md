@@ -91,11 +91,9 @@ missing/moved exact file
 
 The pointer survives Plugin/Desktop restarts through the same bounded navigation snapshot and does not create a second project database. Native LIVE_BLOCKBENCH proof is still required.
 
-### 3. Single-instance Desktop — SOURCE IMPLEMENTED
+### 3. Single-instance Desktop
 
-Desktop now uses Tauri's official single-instance plugin as the first registered plugin. A second launch delegates to the existing instance, which shows, unminimizes, and focuses the `main` window. The callback does not run maintenance/readiness/Project actions, so watcher/controller/preferences ownership stays singular without a background service.
-
-Native second-launch/focus behavior remains a Windows acceptance item.
+Second LazyDesigner launch must focus the existing window. Goals: one watcher, one maintenance controller, one preferences writer, no duplicate notifications/actions. Do not add a background service just for this.
 
 ### 4. Split oversized owners without redesign
 

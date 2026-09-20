@@ -20,7 +20,6 @@ serde_yaml = "0.9"
 sha2 = "0.10"
 sysinfo = "0.30"
 tauri = { version = "2", features = [] }
-tauri-plugin-single-instance = "=2.4.3"
 ureq = { version = "2.12", features = ["json"] }
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
 
