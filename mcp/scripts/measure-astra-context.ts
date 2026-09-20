@@ -120,7 +120,31 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
   const mutationTextAfter = compactGatewayCapabilityContent(
     "manage_cubes",
     { execution: "applied", modified: 4 },
-    mutationTextBefore
+    mutationTextBefore,
+    "visual"
+  );
+  const receiptTextBefore = [{
+    type: "text",
+    text: "Updated locator hand (locator-a); changed: position.",
+  }];
+  const receiptTextAfter = compactGatewayCapabilityContent(
+    "manage_locator",
+    {
+      execution: "applied",
+      action: "update",
+      id: "locator-a",
+      changed_fields: ["position"],
+      state: {
+        uuid: "locator-a",
+        name: "hand",
+        type: "locator",
+        position: [1, 2, 3],
+        rotation: [0, 0, 0],
+        ignore_inherited_scale: false,
+      },
+    },
+    receiptTextBefore,
+    "receipt_only"
   );
 
   const cubeBefore = manageCubesFixture();
@@ -221,6 +245,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
   return [
     payloadMeasurement("control_delta_continuation", deltaBefore, deltaAfter),
     payloadMeasurement("manage_cubes_text_summary", mutationTextBefore, mutationTextAfter),
+    payloadMeasurement("receipt_only_text_summary", receiptTextBefore, receiptTextAfter),
     payloadMeasurement("capability_search_projection", searchBefore, searchAfter),
     payloadMeasurement("capability_search_envelope", searchEnvelopeBefore, searchEnvelopeAfter),
     payloadMeasurement("capability_describe_envelope", describeEnvelopeBefore, describeEnvelopeAfter),

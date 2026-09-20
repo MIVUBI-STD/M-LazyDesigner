@@ -422,6 +422,51 @@ describe("BlockIT Gateway contract", () => {
     });
   });
 
+  test("Gateway compacts only audited receipt-only prose and preserves non-receipt or path-bearing text", () => {
+    const verbose = [{ type: "text", text: "Updated locator hand (locator-a); changed: position." }];
+
+    expect(
+      compactGatewayCapabilityContent(
+        "manage_locator",
+        {
+          execution: "applied",
+          action: "update",
+          id: "locator-a",
+          changed_fields: ["position"],
+          state: {
+            uuid: "locator-a",
+            name: "hand",
+            type: "locator",
+            position: [1, 2, 3],
+            rotation: [0, 0, 0],
+            ignore_inherited_scale: false,
+          },
+        },
+        verbose,
+        "receipt_only"
+      )
+    ).toEqual([{ type: "text", text: "Receipt complete." }]);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "manage_locator",
+        { execution: "applied", id: "locator-a" },
+        verbose,
+        "focused_read"
+      )
+    ).toBe(verbose);
+
+    const saved = [{ type: "text", text: "Saved material config to C:/asset/material.json." }];
+    expect(
+      compactGatewayCapabilityContent(
+        "manage_material",
+        { operation: "save", scope: "material_persistence_only" },
+        saved,
+        "receipt_only"
+      )
+    ).toBe(saved);
+  });
+
   test("Gateway compacts applied cube mutation prose only when structured receipt is authoritative", () => {
     const verbose = [{
       type: "text",

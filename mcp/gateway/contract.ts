@@ -4,6 +4,7 @@ import {
   CAPABILITY_TIER_BOOST,
   getCapabilityMetadata,
   type CapabilityTier,
+  type CapabilityVerificationClass,
 } from "../lib/capabilityMetadata";
 
 export const GATEWAY_NAME = "blockit-gateway";
@@ -180,10 +181,36 @@ function compactManageCubesStructuredContent(value: unknown): unknown {
 }
 
 
+function receiptOnlyTextIsRedundant(
+  capability: string,
+  structuredContent: unknown
+): boolean {
+  if (!isRecord(structuredContent)) return false;
+
+  if (["add_group", "modify_group", "reparent_element", "manage_locator", "manage_null_object", "add_texture_group", "manage_animation_effects", "manage_animation_controller"].includes(capability)) {
+    return true;
+  }
+
+  if (capability === "manage_material") {
+    return ["create", "configure", "assign_channel", "import_texture_set"].includes(
+      String(structuredContent.operation)
+    );
+  }
+
+  if (capability === "manage_material_instances") {
+    return ["set", "bulk_set", "clear"].includes(
+      String(structuredContent.operation)
+    );
+  }
+
+  return false;
+}
+
 export function compactGatewayCapabilityContent(
   capability: string,
   structuredContent: unknown,
-  content: unknown
+  content: unknown,
+  verificationClass?: CapabilityVerificationClass
 ): unknown {
   if (
     capability === "manage_cubes" &&
@@ -193,6 +220,18 @@ export function compactGatewayCapabilityContent(
   ) {
     return [{ type: "text", text: "Cube mutation applied; use structured receipt." }];
   }
+
+  if (
+    verificationClass === "receipt_only" &&
+    receiptOnlyTextIsRedundant(capability, structuredContent) &&
+    Array.isArray(content) &&
+    content.length === 1 &&
+    isRecord(content[0]) &&
+    content[0].type === "text"
+  ) {
+    return [{ type: "text", text: "Receipt complete." }];
+  }
+
   return content;
 }
 

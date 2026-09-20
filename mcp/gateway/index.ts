@@ -447,7 +447,8 @@ registerGatewayTool(
       const compactedContent = compactGatewayCapabilityContent(
         capability,
         result.structuredContent,
-        result.content
+        result.content,
+        controlDelta.verification_class
       );
       return {
         ...result,
