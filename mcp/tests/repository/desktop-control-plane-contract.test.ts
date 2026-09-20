@@ -138,7 +138,7 @@ describe("Desktop control-plane ownership", () => {
     expect(log).toContain("MAX_LOG_BYTES");
     expect(runbook).toContain("Desktop Control Plane Acceptance");
     expect(runbook).toContain("managed plugin modified");
-    expect(runbook).toContain("transient fast-probe failure");
+    expect(runbook).toContain("transient Gateway fast-probe failure");
   });
 
   test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
