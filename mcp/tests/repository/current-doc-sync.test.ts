@@ -66,7 +66,8 @@ describe("current developer-facing documentation sync", () => {
 
     expect(reference).toContain("docs/02-reference/image/standard.md");
     expect(reference).toContain("docs/02-reference/package/README.md");
-    expect(modelling).toContain("docs/03-authoring/modelling/profiles/README.md");
+    expect(modelling).toContain("docs/03-authoring/modelling/standard.md");
+    expect(modelling).toContain("docs/03-authoring/modelling/profiles/");
     for (const owner of [reference, modelling]) {
       expect(owner).not.toContain("docs/knowledge/");
       expect(owner).not.toContain("docs/foundation/");

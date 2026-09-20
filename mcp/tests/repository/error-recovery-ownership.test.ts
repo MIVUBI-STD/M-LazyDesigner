@@ -27,7 +27,7 @@ describe("Gateway and Control recovery ownership", () => {
     expect(gateway).toContain("safeToRetry: error.safeToRetry");
     expect(gateway).toContain("recoveryForGatewayError(");
     expect(gateway).toContain("known.safeToRetry");
-    expect(gateway).toContain("invoke_capability never auto-retries an interrupted mutation");
+    expect(gateway).toMatch(/never auto-retry an interrupted mutation/i);
     expect(gateway).not.toContain("autoRetry");
     expect(gateway).not.toContain("automaticRetry");
   });

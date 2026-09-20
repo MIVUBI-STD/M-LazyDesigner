@@ -67,7 +67,8 @@ describe("Control context ownership", () => {
     expect(referenceSource).toContain("selected_profile: selectedProfile");
     expect(registry).toContain("contextForAuthoringDomain(");
     expect(registry).toContain("PROFILE_PATHS[selectedProfile]");
-    expect(modelling).toContain("Reference Preparation / `REFERENCE.json`");
+    expect(modelling).toContain("accept `selected_profile` from Control");
+    expect(modelling).toContain("current Reference Package");
     expect(projectionDoc).toContain("Control does not independently classify the asset");
   });
   test("fallback source ownership points to the canonical Runtime surface owner", async () => {
