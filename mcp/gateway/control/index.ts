@@ -50,3 +50,6 @@ export type {
   ControlSnapshot,
   ControlSourceOwner,
 } from "./types";
+
+export { buildControlContinuationCheckpoint } from "./continuationCheckpoint";
+export type { ControlContinuationCheckpoint } from "./continuationCheckpoint";
