@@ -254,12 +254,9 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       ),
       step(
         "inspect",
-        {
-          projected_schema_bytes: discovery.after_bytes,
-          result: representativeInspect,
-        },
+        representativeInspect,
         true,
-        "One focused target-resolution read."
+        "One focused target-resolution read; schema projection cost is not part of the inspect response."
       ),
       step(
         "mutate",

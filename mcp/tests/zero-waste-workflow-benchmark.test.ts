@@ -48,6 +48,25 @@ describe("Zero-Waste workflow benchmark", () => {
     }
   });
 
+  test("inspect accounting excludes describe/schema payload", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "unknown_target_geometry_edit"
+    )!;
+    const baselineRequiredInspect = workflow.baseline.steps.find(
+      (item) => item.kind === "inspect" && item.required_for_decision
+    )!;
+    const optimizedInspect = workflow.optimized.steps.find(
+      (item) => item.kind === "inspect"
+    )!;
+
+    expect(optimizedInspect.ai_payload_bytes).toBe(
+      baselineRequiredInspect.ai_payload_bytes
+    );
+    expect(optimizedInspect.reason).toContain(
+      "schema projection cost is not part of the inspect response"
+    );
+  });
+
   test("receipt-only workflows eliminate confirmation reads but keep authoritative state", () => {
     const receiptWorkflows = runZeroWasteWorkflowBenchmark().filter(
       (workflow) =>
