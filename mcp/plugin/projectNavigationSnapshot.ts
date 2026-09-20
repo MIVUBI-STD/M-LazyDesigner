@@ -8,11 +8,12 @@ type RecentProjectEntry = {
 };
 
 type NavigationSnapshot = {
-  schema: 3;
+  schema: 4;
   observed_at_unix_ms: number;
   generation: string;
   profile_id: string;
   revision: number;
+  last_model_path: string | null;
   active: {
     uuid: string;
     name: string;
@@ -38,7 +39,7 @@ type NavigationSnapshot = {
 
 type NativeFs = Pick<
   typeof import("node:fs"),
-  "mkdirSync" | "writeFileSync" | "renameSync" | "rmSync" | "utimesSync"
+  "mkdirSync" | "writeFileSync" | "readFileSync" | "renameSync" | "rmSync" | "utimesSync"
 >;
 
 let listeners: Array<{ delete(): void }> = [];
@@ -48,6 +49,7 @@ let fs: NativeFs | null = null;
 let nativeCrypto: NativeCrypto | null = null;
 let outputPath: string | null = null;
 let profileId: string | null = null;
+let lastModelPath: string | null = null;
 const producerGeneration = globalThis.crypto.randomUUID().toLowerCase();
 let lastSignature = "";
 let revision = 0;
@@ -80,6 +82,29 @@ function openModels(): NavigationSnapshot["open_models"] {
       active: project === Project || project.selected === true,
     };
   });
+}
+
+function restoreLastModelPath(): void {
+  if (!fs || !outputPath || !profileId) return;
+  try {
+    const previous = JSON.parse(fs.readFileSync(outputPath, "utf8")) as {
+      profile_id?: unknown;
+      last_model_path?: unknown;
+      active?: { model_path?: unknown } | null;
+    };
+    if (previous.profile_id !== profileId) return;
+    const candidate =
+      typeof previous.last_model_path === "string"
+        ? previous.last_model_path
+        : typeof previous.active?.model_path === "string"
+          ? previous.active.model_path
+          : null;
+    if (candidate && /\.bbmodel$/i.test(candidate)) {
+      lastModelPath = candidate;
+    }
+  } catch {
+    // No prior valid profile snapshot is a normal first-run state.
+  }
 }
 
 function recentModels(): NavigationSnapshot["recent_models"] {
@@ -117,6 +142,7 @@ function buildSnapshot(): NavigationSnapshot {
       ? Project
       : null;
   const activePath = modelPath(activeProject);
+  if (activePath) lastModelPath = activePath;
   const active = activeProject
     ? {
         uuid: String(activeProject.uuid ?? ""),
@@ -151,11 +177,12 @@ function buildSnapshot(): NavigationSnapshot {
   }
   if (!profileId) throw new Error("Project navigation profile identity is unavailable.");
   return {
-    schema: 3,
+    schema: 4,
     observed_at_unix_ms: Date.now(),
     generation: producerGeneration,
     profile_id: profileId,
     revision,
+    last_model_path: lastModelPath,
     active,
     open_models,
     recent_models,
@@ -226,6 +253,7 @@ export function setupProjectNavigationSnapshot(): void {
     + "\\LazyDesigner\\project-navigation\\"
     + profileId
     + ".json";
+  restoreLastModelPath();
 
   listeners.push(
     Blockbench.on("new_project", scheduleSnapshot),
@@ -251,4 +279,5 @@ export function teardownProjectNavigationSnapshot(): void {
   nativeCrypto = null;
   outputPath = null;
   profileId = null;
+  lastModelPath = null;
 }

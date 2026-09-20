@@ -86,15 +86,21 @@ display name
 
 Requirements: Project move/rename must preserve identity and Pin; malformed/unsupported manifest must fail safely; manifest must not become a second project database; keep model membership filesystem/Blockbench-derived unless evidence proves otherwise. Audit migration/collision behavior before coding.
 
-### 2. Correct Continue semantics
+### 2. Correct Continue semantics — SOURCE IMPLEMENTED
 
-`Continue` must mean last actual work, not the first Project after display sorting.
+`Continue` now resolves one exact last active saved `.bbmodel` pointer from the profile-scoped Plugin snapshot. Pin/Favorite/Recent display ordering no longer decides the target.
 
 ```text
-Pinned ordering ≠ Recent ordering ≠ Last opened model
+last active saved model
+→ exact file still exists
+→ Continue
+
+missing/moved exact file
+→ no Continue
+→ user chooses from Recent Projects
 ```
 
-Use canonical Blockbench recent/session evidence. Do not infer last work from Pin order.
+The pointer survives Plugin/Desktop restarts through the same bounded navigation snapshot and does not create a second project database. Native LIVE_BLOCKBENCH proof is still required.
 
 ### 3. Single-instance Desktop
 

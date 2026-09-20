@@ -178,6 +178,7 @@ pub struct ActiveProjectNavigation {
 pub struct ProjectNavigation {
     pub revision: Option<String>,
     pub session_live: bool,
+    pub continue_model_id: Option<String>,
     pub active: Option<ActiveProjectNavigation>,
     pub projects: Vec<ProjectNavigationProject>,
 }
@@ -279,6 +280,7 @@ struct NavigationSnapshot {
     generation: String,
     profile_id: String,
     revision: u64,
+    last_model_path: Option<String>,
     active: Option<NavigationSnapshotActive>,
     #[serde(default)]
     open_models: Vec<NavigationSnapshotOpen>,
@@ -493,7 +495,7 @@ fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
 
     let expected_profile_id = managed_navigation_profile_id()?;
     let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
-    if snapshot.schema != 3
+    if snapshot.schema != 4
         || !valid_navigation_generation(&snapshot.generation)
         || !valid_navigation_profile_id(&snapshot.profile_id)
         || snapshot.profile_id != expected_profile_id
@@ -573,6 +575,7 @@ fn project_navigation_probe(blockbench_running: bool) -> (Option<String>, bool) 
         return (None, false);
     };
     let revision = Some(navigation_revision_token(&snapshot));
+    let continue_model_id = continue_model_id_for_path(snapshot.last_model_path.as_deref());
     if !blockbench_running {
         return (revision, false);
     }
@@ -708,6 +711,9 @@ fn navigation_paths() -> (
         }
     };
 
+    if let Some(last) = snapshot.last_model_path.as_deref() {
+        add(last);
+    }
     if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) {
         add(active);
     }
@@ -722,13 +728,21 @@ fn navigation_paths() -> (
     (projects, models, folders)
 }
 
+fn continue_model_id_for_path(raw: Option<&str>) -> Option<String> {
+    let path = PathBuf::from(raw?);
+    if !is_bbmodel_path(&path) || !path.is_file() {
+        return None;
+    }
+    Some(navigation_id("model", &path))
+}
+
 fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
     let pinned: HashSet<String> = read_project_navigation_preferences()
         .pinned_project_ids
         .into_iter()
         .collect();
     let Some(snapshot) = read_navigation_snapshot() else {
-        return ProjectNavigation { revision: None, session_live: false, active: None, projects: Vec::new() };
+        return ProjectNavigation { revision: None, session_live: false, continue_model_id: None, active: None, projects: Vec::new() };
     };
     let revision = Some(navigation_revision_token(&snapshot));
 
@@ -819,6 +833,9 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
         project.model_count = project.models.len();
     };
 
+    if let Some(last) = snapshot.last_model_path.as_deref() {
+        add_model(PathBuf::from(last), "", false);
+    }
     if let (Some(path), Some(active_snapshot)) = (active_path.clone(), snapshot.active.as_ref()) {
         add_model(path, &active_snapshot.name, true);
     }
@@ -840,7 +857,7 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
     projects.sort_by_key(|project| {
         if project.active { 0 } else if project.pinned { 1 } else { 2 }
     });
-    ProjectNavigation { revision, session_live, active, projects }
+    ProjectNavigation { revision, session_live, continue_model_id, active, projects }
 }
 
 pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNavigationActionResult, String> {
@@ -1951,6 +1968,25 @@ mod tests {
     }
 
     #[test]
+    fn continue_model_requires_the_exact_last_saved_model_to_exist() {
+        let path = std::env::temp_dir().join(format!(
+            "lazydesigner-continue-{}-{}.bbmodel",
+            std::process::id(),
+            observed_at_unix_ms()
+        ));
+        fs::write(&path, b"{}").unwrap();
+        let raw = path.to_string_lossy().to_string();
+
+        let resolved = continue_model_id_for_path(Some(&raw));
+        assert!(resolved.as_deref().unwrap_or("").starts_with("model-"));
+
+        fs::remove_file(&path).unwrap();
+        assert!(continue_model_id_for_path(Some(&raw)).is_none());
+        assert!(continue_model_id_for_path(Some("C:/Projects/not-a-model.txt")).is_none());
+        assert!(continue_model_id_for_path(None).is_none());
+    }
+
+    #[test]
     fn navigation_generation_validation_is_bounded() {
         assert!(valid_navigation_generation("11111111-1111-4111-8111-111111111111"));
         assert!(!valid_navigation_generation("not-a-generation"));
@@ -1968,11 +2004,12 @@ mod tests {
     #[test]
     fn project_navigation_revision_is_generation_aware() {
         let make = |generation: &str| NavigationSnapshot {
-            schema: 3,
+            schema: 4,
             observed_at_unix_ms: 1,
             generation: generation.to_string(),
             profile_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
             revision: 1,
+            last_model_path: None,
             active: None,
             open_models: Vec::new(),
             recent_models: Vec::new(),
@@ -1985,11 +2022,12 @@ mod tests {
     #[test]
     fn project_navigation_revision_is_profile_aware() {
         let make = |profile_id: &str| NavigationSnapshot {
-            schema: 3,
+            schema: 4,
             observed_at_unix_ms: 1,
             generation: "11111111-1111-4111-8111-111111111111".to_string(),
             profile_id: profile_id.to_string(),
             revision: 1,
+            last_model_path: None,
             active: None,
             open_models: Vec::new(),
             recent_models: Vec::new(),
@@ -2002,11 +2040,12 @@ mod tests {
     #[test]
     fn live_project_session_state_is_discarded_when_session_is_not_live() {
         let snapshot = NavigationSnapshot {
-            schema: 3,
+            schema: 4,
             observed_at_unix_ms: 1,
             generation: "11111111-1111-4111-8111-111111111111".to_string(),
             profile_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
             revision: 7,
+            last_model_path: None,
             active: None,
             open_models: vec![NavigationSnapshotOpen {
                 uuid: "open-model".to_string(),

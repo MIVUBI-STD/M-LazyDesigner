@@ -450,6 +450,8 @@ Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those
 
 Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Pinning changes Recent Projects ordering only.
 
+`Continue` is deliberately independent from pinned/recent display ordering. The profile snapshot preserves one exact last active saved `.bbmodel` pointer across Plugin/Desktop restarts. Desktop exposes Continue only while that exact file still exists; it never guesses a replacement from pinned projects or favorite-reordered Blockbench recents.
+
 ## Bounded local operation log
 
 Desktop writes a minimal best-effort machine log under its LocalAppData directory. Entries contain only:

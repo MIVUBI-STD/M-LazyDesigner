@@ -161,7 +161,7 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain(".bbmodel");
     expect(snapshot).toContain("producerGeneration");
     expect(snapshot).toContain("crypto.randomUUID");
-    expect(snapshot).toContain("schema: 3");
+    expect(snapshot).toContain("schema: 4");
     expect(snapshot).toContain("profile_id");
     expect(snapshot).toContain("SystemInfo.user_data_directory");
     expect(snapshot).toContain('requireNativeModule("crypto")');
@@ -183,7 +183,7 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("valid_navigation_profile_id");
     expect(rust).toContain("managed_blockbench_user_data_dir");
     expect(rust).toContain("managed_navigation_profile_id");
-    expect(rust).toContain("snapshot.schema != 3");
+    expect(rust).toContain("snapshot.schema != 4");
     expect(rust).toContain("snapshot.profile_id != expected_profile_id");
     expect(rust).toContain("project_navigation_revision_is_profile_aware");
     expect(rust).toContain("live_open_models(&snapshot, session_live)");
@@ -221,6 +221,13 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("activeProject.folders.length > 0");
     expect(app).toContain("project.folders.length > 0");
     expect(app).toContain("continueTarget");
+    expect(snapshot).toContain("last_model_path");
+    expect(snapshot).toContain("restoreLastModelPath");
+    expect(rust).toContain("continue_model_id_for_path");
+    expect(rust).toContain("continue_model_id");
+    expect(rust).toContain("continue_model_requires_the_exact_last_saved_model_to_exist");
+    expect(app).toContain("value.project_navigation.continue_model_id");
+    expect(app).toContain("candidate.id === modelId && candidate.exists");
     expect(app).toContain("!status.project_navigation.active && continueTarget(status)");
     expect(app).toContain("candidate.exists");
     expect(app).not.toContain("project.root_path");

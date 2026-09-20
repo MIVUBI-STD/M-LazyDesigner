@@ -99,6 +99,7 @@
   type ProjectNavigation = {
     revision: string | null;
     session_live: boolean;
+    continue_model_id: string | null;
     active: ActiveProjectNavigation | null;
     projects: ProjectNavigationProject[];
   };
@@ -281,8 +282,10 @@
 
   const continueTarget = (value: SystemStatus) => {
     if (value.project_navigation.active) return null;
+    const modelId = value.project_navigation.continue_model_id;
+    if (!modelId) return null;
     for (const project of value.project_navigation.projects) {
-      const model = project.models.find(candidate => candidate.exists);
+      const model = project.models.find(candidate => candidate.id === modelId && candidate.exists);
       if (model) return { project, model };
     }
     return null;
@@ -614,6 +617,7 @@
     next.project_navigation = {
       revision: 'fixture:1',
       session_live: fixture !== 'fresh-install' && fixture !== 'runtime-offline',
+      continue_model_id: fixture === 'fresh-install' ? null : 'model-fixture',
       active: fixture === 'fresh-install' ? null : {
         project_id: 'project-fixture',
         project_name: 'Furniture',

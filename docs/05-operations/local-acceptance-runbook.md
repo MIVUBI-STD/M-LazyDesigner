@@ -255,6 +255,14 @@ click Switch for an already-open model
 → Blockbench selects the existing tab
 → no duplicate project tab is created
 
+pin an older Project, then close Blockbench after working in a newer saved model
+→ Continue points to the newer last active model
+→ Pin affects Recent ordering only
+
+move/delete the exact last active model while Blockbench is closed
+→ Continue is absent
+→ Desktop does not guess another recent/pinned model
+
 Runtime reconnect while Blockbench/plugin remain alive
 → Active/Open/Modified remain stable
 → no false project-session drop
