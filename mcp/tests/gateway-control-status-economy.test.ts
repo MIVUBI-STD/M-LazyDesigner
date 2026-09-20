@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { decorateCapabilities } from "@/gateway/control";
+import { buildControlPacket, decorateCapabilities, projectControlPacketForGateway } from "@/gateway/control";
+import type { GatewayRuntimeStatus } from "@/gateway/backend";
 
 describe("LazyDesigner Control status economy", () => {
   test("capability decoration stays useful without a status-only current domain", () => {
@@ -39,5 +40,78 @@ describe("LazyDesigner Control status economy", () => {
     const source = await Bun.file("gateway/index.ts").text();
     expect(source).toContain("await backend.getStatus()");
     expect(source).toContain("capabilityNeedsPhaseSnapshot(capability)");
+  });
+});
+
+
+const projectionStatus: GatewayRuntimeStatus = {
+  gateway: "ready",
+  affinity: { project_uuid: "project-a", authoring_phase: "geometry" },
+  runtime: {
+    online: true,
+    endpoint: "http://127.0.0.1:3000/bb-mcp",
+    mcp_client_ready: true,
+    catalog_stale: false,
+    runtime_signature: "runtime-a",
+    connected_signature: "runtime-a",
+    catalog_count: 47,
+    health: {
+      build_identity: "sha256:build-a",
+      product: { authoring_phase: "geometry" },
+      project_context: {
+        active_project_uuid: "project-a",
+        requested_project_uuid: "project-a",
+        requested_project_available: true,
+        open_project_count: 1,
+      },
+    },
+  },
+  connection: {
+    state: "ready", generation: 1, reconnect_count: 0, catalog_refresh_count: 1,
+    last_ready_at: null, last_transition_at: null,
+    reconnect: { failures: 0, retry_after_ms: 0 },
+  },
+  operations: {
+    active: 0, queued: 0, max_queue_depth: 8, completed: 0,
+    failed: 0, timed_out: 0, rejected_busy: 0,
+  },
+  last_error: null,
+};
+
+describe("LazyDesigner Control status projection economy", () => {
+  test("Gateway projection removes duplicated orientation while preserving unique Control decisions", async () => {
+    const full = await buildControlPacket(projectionStatus);
+    const projected = projectControlPacketForGateway(full);
+
+    expect(full.project.affinity_uuid).toBe("project-a");
+    expect(full.authoring.phase).toBe("geometry");
+    expect(full.runtime.online).toBe(true);
+    expect(full.runtime.build_identity).toBe("sha256:build-a");
+    expect(full.runtime.catalog_count).toBe(47);
+
+    expect(projected.project).not.toHaveProperty("affinity_uuid");
+    expect(projected.authoring).not.toHaveProperty("phase");
+    expect(projected.runtime).not.toHaveProperty("online");
+    expect(projected.runtime).not.toHaveProperty("build_identity");
+    expect(projected.runtime).not.toHaveProperty("catalog_count");
+    expect(projected.runtime).not.toHaveProperty("catalog_stale");
+
+    expect(projected.project.binding).toBe(full.project.binding);
+    expect(projected.authoring.domain).toBe(full.authoring.domain);
+    expect(projected.authoring.next_intent).toBe(full.authoring.next_intent);
+    expect(projected.runtime.runtime_signature).toBe(full.runtime.runtime_signature);
+    expect(projected.readiness).toEqual(full.readiness);
+    expect(projected.context).toEqual(full.context);
+    expect(projected.stage_context).toEqual(full.stage_context);
+    expect(projected.blockers).toEqual(full.blockers);
+
+    expect(JSON.stringify(projected).length).toBeLessThan(JSON.stringify(full).length);
+  });
+
+  test("Gateway source uses the compact Control projection only at the AI-client boundary", async () => {
+    const source = await Bun.file("gateway/index.ts").text();
+    expect(source).toContain("projectControlPacketForGateway(control)");
+    expect(source).toContain("control: gatewayControl");
+    expect(source).not.toContain("structuredContent: { control }");
   });
 });

@@ -341,3 +341,38 @@ export async function buildControlPacket(
     blockers,
   };
 }
+
+
+/**
+ * AI-client status projection. The sibling Gateway status payload already owns
+ * project affinity, authoring phase, runtime online/catalog state and build
+ * identity. Keep those values in the internal Control packet, but do not send
+ * the same orientation facts twice to the model.
+ */
+export function projectControlPacketForGateway(packet: ControlPacket) {
+  return {
+    protocol: packet.protocol,
+    system: packet.system,
+    mode: packet.mode,
+    task_context_id: packet.task_context_id,
+    project: {
+      active_uuid: packet.project.active_uuid,
+      open_project_count: packet.project.open_project_count,
+      binding: packet.project.binding,
+    },
+    authoring: {
+      domain: packet.authoring.domain,
+      next_intent: packet.authoring.next_intent,
+    },
+    runtime: {
+      runtime_signature: packet.runtime.runtime_signature,
+    },
+    readiness: packet.readiness,
+    workspace: packet.workspace,
+    reference: packet.reference,
+    stage_context: packet.stage_context,
+    development: packet.development,
+    context: packet.context,
+    blockers: packet.blockers,
+  };
+}

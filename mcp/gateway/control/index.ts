@@ -1,5 +1,5 @@
 export { buildControlSnapshot } from "./snapshot";
-export { buildControlPacket } from "./packet";
+export { buildControlPacket, projectControlPacketForGateway } from "./packet";
 export { readWorkspaceProjection } from "./workspace";
 export { readReferencePackageProjection } from "./referencePackage";
 export { buildControlStageContext, readinessForAuthoringDomain } from "./contextProjection";

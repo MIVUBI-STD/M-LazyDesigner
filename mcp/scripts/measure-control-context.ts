@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   buildControlDelta,
   buildControlPacket,
+  projectControlPacketForGateway,
   type ControlPacket,
 } from "../gateway/control";
 import type { GatewayRuntimeStatus } from "../gateway/backend";
@@ -89,6 +90,10 @@ try {
   const statusChars = chars(status);
   const fullEnvelopeChars = chars({ ...status, control: full });
   const cachedEnvelopeChars = chars({ ...status, control: cached });
+  const projectedFull = projectControlPacketForGateway(full);
+  const projectedCached = projectControlPacketForGateway(cached);
+  const projectedFullEnvelopeChars = chars({ ...status, control: projectedFull });
+  const projectedCachedEnvelopeChars = chars({ ...status, control: projectedCached });
   const statusOrientation = statusOrientationProjection(status);
   const controlOrientation = controlOrientationProjection(full);
   const cachedReduction = fullChars > 0
@@ -103,6 +108,9 @@ try {
     gateway_status_chars: statusChars,
     gateway_envelope_full_chars: fullEnvelopeChars,
     gateway_envelope_cached_chars: cachedEnvelopeChars,
+    gateway_envelope_projected_full_chars: projectedFullEnvelopeChars,
+    gateway_envelope_projected_cached_chars: projectedCachedEnvelopeChars,
+    status_projection_saved_chars: Math.max(0, fullEnvelopeChars - projectedFullEnvelopeChars),
     cached_packet_reduction_percent: cachedReduction,
     required_context_handles_full: full.context.required.length,
     required_context_handles_cached: cached.context.required.length,
@@ -110,7 +118,7 @@ try {
     repeated_orientation_values_equal:
       JSON.stringify(statusOrientation) === JSON.stringify(controlOrientation),
     note:
-      "Gateway status and Control intentionally overlap on normalized orientation today. Measure before changing the stable status contract; do not infer removable token cost from this static character count alone.",
+      "Gateway client projection removes only orientation values already present in the sibling status payload. Static characters remain a regression signal, not a claim of Astra token savings.",
   }, null, 2));
 } finally {
   await rm(directory, { recursive: true, force: true });

@@ -18,6 +18,7 @@ import {
   buildControlDelta,
   projectControlDeltaForGateway,
   buildControlPacket,
+  projectControlPacketForGateway,
   CONTROL_ROUTING_POLICY,
   decorateCapabilities,
 } from "./control";
@@ -276,6 +277,7 @@ function buildGatewayServer(): McpServer {
         taskMode: task_mode,
         taskIntent: task_intent,
       });
+      const gatewayControl = projectControlPacketForGateway(control);
       return {
         content: [
           {
@@ -292,7 +294,7 @@ function buildGatewayServer(): McpServer {
         ],
         structuredContent: {
           ...projectGatewayStatus(status),
-          control,
+          control: gatewayControl,
         },
       };
     } catch (error) {
