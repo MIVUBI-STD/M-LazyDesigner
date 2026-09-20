@@ -326,6 +326,79 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
+  test("complete legacy bone rigging state receipt avoids redundant focused reread", () => {
+    const delta = buildControlDelta({
+      capability: "bone_rigging",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "set_ik",
+        bone: {
+          uuid: "bone-a",
+          name: "leg",
+          parent: "root",
+          origin: [0, 8, 0],
+          rotation: [0, 0, 0],
+          ik_enabled: true,
+          ik_target: "target-a",
+        },
+      },
+    });
+
+    expect(delta.verification_class).toBe("receipt_only");
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "ANIMATION_MOTION",
+    ]);
+  });
+
+  test("complete bone-rigging deletion receipt avoids redundant focused reread", () => {
+    const delta = buildControlDelta({
+      capability: "bone_rigging",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "delete",
+        removed_root: {
+          uuid: "bone-a",
+          name: "leg",
+          parent: "root",
+        },
+        removed_counts: {
+          groups: 2,
+          elements: 1,
+          total_nodes: 3,
+        },
+        affected_animations: 1,
+      },
+    });
+
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("incomplete bone rigging receipt retains focused-read verification", () => {
+    const delta = buildControlDelta({
+      capability: "bone_rigging",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "set_ik",
+        bone: {
+          uuid: "bone-a",
+          name: "leg",
+        },
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("complete Blockbench 5.2 native IK receipt avoids redundant focused read", () => {
     const delta = buildControlDelta({
       capability: "bone_rigging",
