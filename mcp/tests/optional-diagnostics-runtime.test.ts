@@ -56,7 +56,18 @@ describe("optional diagnostic execution", () => {
       globalThis.Texture={all:[texture]};globalThis.TextureGroup={all:[]};
       globalThis.Cube={all:[{uuid:"cube",name:"cube",faces:{north:{uv:[0,0,4,4],rotation:0,getTexture:()=>texture}}}]};
       const defs=getAllToolDefinitions();
-      for(const name of ["list_textures","list_materials","get_material_info","manage_material"])
+      defs.list_textures={
+        execute:async(args)=>({
+          content:[],
+          structuredContent:{
+            textures:[{uuid:"atlas"}],
+            ...(args.diagnostics===true && ["uv","coverage","seam","full"].includes(args.diagnostic_scope ?? "full")
+              ? {uv_audit:{state:"available",production_gate:{state:"ready"}}}
+              : {})
+          }
+        })
+      };
+      for(const name of ["list_materials","get_material_info","manage_material"])
         defs[name]={execute:async()=>({content:[],structuredContent:{textures:[{uuid:"atlas"}]}})};
       wireAuthoringQualityIntelligence();wireTextureAuthoringRuntime();
       const out=[];
