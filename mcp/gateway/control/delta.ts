@@ -341,6 +341,38 @@ function particleMutationReceiptComplete(value: unknown): boolean {
   });
 }
 
+function removeElementReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    const removedRoot = record(candidate.removed_root);
+    const removedCounts = record(candidate.removed_counts);
+    if (
+      !removedRoot ||
+      !removedCounts ||
+      typeof removedRoot.uuid !== "string" ||
+      removedRoot.uuid.length === 0 ||
+      typeof removedRoot.name !== "string" ||
+      removedRoot.name.length === 0 ||
+      typeof removedRoot.type !== "string" ||
+      typeof removedRoot.parent !== "string" ||
+      typeof removedCounts.groups !== "number" ||
+      typeof removedCounts.elements !== "number" ||
+      typeof removedCounts.total_nodes !== "number" ||
+      typeof candidate.affected_animations !== "number"
+    ) {
+      return false;
+    }
+
+    return (
+      removedCounts.groups >= 0 &&
+      removedCounts.elements >= 0 &&
+      removedCounts.total_nodes > 0 &&
+      removedCounts.total_nodes ===
+        removedCounts.groups + removedCounts.elements &&
+      candidate.affected_animations >= 0
+    );
+  });
+}
+
 function renderProfileWriteReceiptComplete(value: unknown): boolean {
   const write = record(value);
   return Boolean(
@@ -616,6 +648,14 @@ function verificationClassForResult(
   ) {
     return "receipt_only";
   }
+
+  if (
+    capability === "remove_element" &&
+    removeElementReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
 
 
   if (
