@@ -8,7 +8,7 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 ## Modelling Specialist / Profile Contract
 
-This Skill is the hot-path Geometry/UV specialist. Durable policy belongs to `docs/03-authoring/modelling/standard.md`; asset-class guidance belongs to the single Control-selected profile under `docs/03-authoring/modelling/profiles/`.
+This Skill is the hot-path Geometry/UV specialist. Durable Geometry policy belongs to `docs/03-authoring/modelling/standard.md`; asset-class guidance belongs to the single Control-selected profile under `docs/03-authoring/modelling/profiles/`.
 
 Normal context:
 ```text
