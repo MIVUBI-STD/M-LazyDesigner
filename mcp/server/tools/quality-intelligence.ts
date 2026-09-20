@@ -1,10 +1,10 @@
+/// <reference types="three" />
+/// <reference types="blockbench-types" />
 import {
   ensureTextureDiagnosticInvocationContext,
   hasTextureDiagnosticRegion,
   readTextureDiagnosticRegion,
 } from "@/lib/textureDiagnosticReadContext";
-/// <reference types="three" />
-/// <reference types="blockbench-types" />
 
 import { getAllToolDefinitions } from "@/lib/factories";
 import { analyzeGeometryHygiene } from "@/lib/geometryQuality";
