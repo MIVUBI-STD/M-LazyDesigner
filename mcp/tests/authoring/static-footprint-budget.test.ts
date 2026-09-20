@@ -21,8 +21,9 @@ async function source(path: string): Promise<string> {
 
 describe("static footprint budget", () => {
   test("current instruction owners stay within deliberate guardrail ceilings", async () => {
-    const [root, referenceGenerator, controlPacket, modelling, texturing, animation, workflow] = await Promise.all([
+    const [root, mcpAgents, referenceGenerator, controlPacket, modelling, texturing, animation, workflow] = await Promise.all([
       source("../AGENTS.md"),
+      source("AGENTS.md"),
       source("../.agents/skills/lazydesigner-reference-preparation/SKILL.md"),
       source("gateway/control/packet.ts"),
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
@@ -32,6 +33,15 @@ describe("static footprint budget", () => {
     ]);
 
     expect(root.length).toBeLessThan(12_000);
+    expect(mcpAgents.length).toBeLessThan(9_000);
+    for (const invariant of [
+      "Capability/intelligence loss is forbidden as an efficiency technique",
+      "structuredContent",
+      "Cost to Accepted Result",
+      "persistent Gateway",
+      "not auto-retried",
+      "tests are evidence",
+    ]) expect(mcpAgents).toContain(invariant);
     expect(referenceGenerator.length).toBeLessThan(20_000);
     expect(controlPacket.length).toBeLessThan(14_000);
     expect(modelling.length).toBeLessThan(17_500);
