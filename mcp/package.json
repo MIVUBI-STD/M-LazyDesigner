@@ -24,6 +24,7 @@
     "measure:surface": "bun run ./scripts/measure-default-surface.ts",
     "measure:phases": "bun run ./scripts/measure-phase-surfaces.ts",
     "measure:control": "bun run ./scripts/measure-control-context.ts",
+    "measure:astra-context": "bun run ./scripts/measure-astra-context.ts",
     "eval:quality-benchmark": "bun test tests/quality-benchmark-contract.test.ts",
     "eval:call-efficiency": "bun test tests/tool-call-efficiency-contract.test.ts",
     "verify:repository": "bun test tests/repository/*.test.ts",
