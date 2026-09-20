@@ -81,7 +81,7 @@ describe("LazyDesigner Control routing", () => {
   });
 
   test("unrelated historical context does not create false invalidation noise", async () => {
-    const packet = await buildControlPacket(status, { knownContextIds: ["ctx:skill/unrelated@deadbeef0000"] });
+    const packet = await buildControlPacket(status, { knownContextIds: ["ctx:doc/unrelated@deadbeef0000"] });
     expect(packet.context.invalidated_ids).toEqual([]);
   });
 });
