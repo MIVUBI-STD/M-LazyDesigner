@@ -81,6 +81,20 @@ describe("MCP efficiency scorecard", () => {
     expect(score.quality_preserved).toBe(true);
   });
 
+  test("implemented optimizations reuse the existing Runtime surface", () => {
+    const report = runMcpEfficiencyScorecard();
+
+    expect(report.static_surface.runtime_tool_count).toBe(54);
+    expect(report.static_surface.reused_primitive_count).toBe(6);
+    expect(report.static_surface.new_public_capabilities_required).toBe(0);
+    expect(report.static_surface.reused_primitive_static_bytes).toBeGreaterThan(0);
+
+    for (const row of report.static_surface.reused_primitives) {
+      expect(row.schema_bytes, row.capability).toBeGreaterThan(0);
+      expect(row.static_bytes, row.capability).toBeGreaterThan(row.schema_bytes);
+    }
+  });
+
   test("opportunity register separates implemented savings from unproven helpers", () => {
     const report = runMcpEfficiencyScorecard();
     const byId = new Map(
