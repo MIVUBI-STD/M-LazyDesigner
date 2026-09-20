@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
+import { morphBinaryMaskRound } from "@/lib/binaryMaskMorphology";
 import { getAndActivateTexture, resolvePaintTexture } from "@/lib/util";
 import { textureIdOptionalSchema } from "@/lib/zodObjects";
 
@@ -49,8 +50,10 @@ export const textureSelectionParameters = z.object({
     .describe("Selection area coordinates."),
   radius: z
     .number()
+    .int()
+    .nonnegative()
     .optional()
-    .describe("Radius for expand/contract operations."),
+    .describe("Non-negative integer pixel radius for expand/contract operations."),
   mode: z
     .enum(["create", "add", "subtract", "intersect"])
     .optional()
@@ -268,37 +271,19 @@ export function registerPaintSelectionLayerTools(): void {
                 try {
                   const selection = texture.selection;
                   const selectionRadius = Math.abs(signedRadius);
-                  const radiusSquared = signedRadius ** 2;
       
                   if (selection.is_custom) {
                     const selectionArray = selection.array;
                     if (!selectionArray) {
                       throw new Error("Custom texture selection has no backing matrix.");
                     }
-                    const selectionCopy = selectionArray.slice();
-                    const expectedValue = signedRadius < 0 ? 0 : 1;
-      
-                    selection.forEachPixel((x, y, value, index) => {
-                      if (value === expectedValue) return;
-                      for (
-                        let offsetX = -selectionRadius;
-                        offsetX <= selectionRadius;
-                        offsetX++
-                      ) {
-                        for (
-                          let offsetY = -selectionRadius;
-                          offsetY <= selectionRadius;
-                          offsetY++
-                        ) {
-                          if (offsetX ** 2 + offsetY ** 2 > radiusSquared) continue;
-                          if (selection.get(x + offsetX, y + offsetY) === expectedValue) {
-                            selectionCopy[index] = expectedValue;
-                            return;
-                          }
-                        }
-                      }
-                    });
-                    selection.array = selectionCopy;
+                    selection.array = morphBinaryMaskRound(
+                      selectionArray,
+                      selection.width,
+                      selection.height,
+                      selectionRadius,
+                      signedRadius < 0 ? "contract" : "expand"
+                    );
                   } else if (selection.override === true && signedRadius < 0) {
                     selection.setOverride(null);
                     const selectionArray = selection.array;
