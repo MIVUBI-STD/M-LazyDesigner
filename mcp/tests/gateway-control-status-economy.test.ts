@@ -115,7 +115,23 @@ describe("LazyDesigner Control status projection economy", () => {
     if (full.stage_context === null) {
       expect(projected).not.toHaveProperty("stage_context");
     } else {
-      expect(projected.stage_context).toEqual(full.stage_context);
+      expect(projected.stage_context).toMatchObject({
+        context_type: full.stage_context.context_type,
+        context_hash: full.stage_context.context_hash,
+        original_user_intent: full.stage_context.original_user_intent,
+        current_user_delta: full.stage_context.current_user_delta,
+        selected_profile: full.stage_context.selected_profile,
+        reference_package_id_or_hash:
+          full.stage_context.reference_package_id_or_hash,
+        workspace_revision_or_hash:
+          full.stage_context.workspace_revision_or_hash,
+        stage_readiness: full.stage_context.stage_readiness,
+        blocking_unknowns: full.stage_context.blocking_unknowns,
+        requirements: full.stage_context.requirements,
+      });
+      expect(projected.stage_context?.workspace.gates).toEqual(
+        full.stage_context.workspace.gates
+      );
     }
 
     expect(JSON.stringify(projected).length).toBeLessThan(JSON.stringify(full).length);

@@ -7,6 +7,7 @@ import {
   buildControlStageContext,
   type ControlStageContext,
 } from "./contextProjection";
+import { projectControlStageContextWithHeadroom } from "./contextHeadroom";
 import { readReferencePackageProjection, type ControlReferenceProjection } from "./referencePackage";
 import { readWorkspaceProjection, type ControlWorkspaceProjection } from "./workspace";
 import type {
@@ -362,6 +363,10 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
       : {}),
   };
 
+  const projectedStageContext = packet.stage_context !== null
+    ? projectControlStageContextWithHeadroom(packet.stage_context).context
+    : null;
+
   return {
     system: packet.system,
     task_context_id: packet.task_context_id,
@@ -380,8 +385,8 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
     readiness: packet.readiness,
     workspace: packet.workspace,
     reference: packet.reference,
-    ...(packet.stage_context !== null
-      ? { stage_context: packet.stage_context }
+    ...(projectedStageContext !== null
+      ? { stage_context: projectedStageContext }
       : {}),
     ...(packet.development !== null
       ? { development: packet.development }
