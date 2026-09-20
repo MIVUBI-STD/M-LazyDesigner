@@ -365,6 +365,12 @@ export function wireTextureQualityRuntime(): void {
   const originalList = listTextures.execute.bind(listTextures);
   listTextures.execute = async (args, context) => {
     const result = await originalList(args, context);
+    if (args.diagnostics !== true) return result;
+    const scope =
+      typeof args.diagnostic_scope === "string"
+        ? args.diagnostic_scope
+        : "full";
+    if (scope !== "pbr" && scope !== "full") return result;
     const record = objectRecord(result);
     const structured = record ? objectRecord(record.structuredContent) : null;
     if (!record || !structured) return result;
