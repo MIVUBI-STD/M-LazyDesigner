@@ -27,6 +27,7 @@
     "measure:astra-context": "bun run ./scripts/measure-astra-context.ts",
     "benchmark:zero-waste": "bun run ./scripts/benchmark-zero-waste-golden.ts",
     "benchmark:zero-waste-workflow": "bun run ./scripts/benchmark-zero-waste-workflow.ts",
+    "benchmark:zero-waste-bottlenecks": "bun run ./scripts/benchmark-zero-waste-bottlenecks.ts",
     "eval:quality-benchmark": "bun test tests/quality-benchmark-contract.test.ts",
     "eval:call-efficiency": "bun test tests/tool-call-efficiency-contract.test.ts",
     "verify:repository": "bun test tests/repository/*.test.ts",
