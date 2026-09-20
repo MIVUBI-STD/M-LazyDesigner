@@ -15,6 +15,8 @@ describe("Astra local-measurement preflight", () => {
     expect(source).toContain("REMOTE_GITHUB_PREP_ONLY");
     expect(source).toContain("token_claim_available_now: false");
     expect(source).toContain("never synthesize total_tokens from components");
+    expect(source).toContain("capture wall/accepted-result/model/tool latency");
+    expect(source).toContain("never invent one aggregate efficiency score");
     expect(source).toContain("session_policy_template");
     expect(source).toContain("session_policy_command");
     expect(source).toContain("eval:session-policy");
