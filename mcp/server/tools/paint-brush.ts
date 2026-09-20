@@ -165,6 +165,18 @@ export function registerPaintEraserTool(): void {
               ...(shape === undefined ? {} : {brush_shape:shape}),
             });
     
+            // Native Painter setup is required only for non-deterministic brush semantics.
+            // @ts-ignore - official Blockbench Painter tool ID
+            BarItems.brush_tool.select();
+            setBarItemValues({
+              slider_brush_size: size,
+              slider_brush_opacity: opacity,
+              slider_brush_softness: softness,
+              brush_shape: shape,
+              blend_mode: blendMode,
+            });
+            ColorPanel.set(colorHex, false, false);
+
             const first = coordinates[0];
             runPaintStroke(() => {
               getRuntimePainter().startPaintTool(
@@ -217,14 +229,10 @@ export function registerPaintBrushTools(): void {
             // Neutral default must match blendModeEnum's "default" so omitted
             // settings can still qualify for the bounded exact-pixel path.
             const blendMode = brush_settings?.blend_mode ?? "default";
+            const painter = getRuntimePainter();
     
-            // Native sliders store settings on the selected tool.
-            // @ts-ignore - official Blockbench Painter tool ID
-            BarItems.brush_tool.select();
-            setBarItemValues({slider_brush_size:size,slider_brush_opacity:opacity,
-              slider_brush_softness:softness,brush_shape:shape,blend_mode:blendMode});
-            ColorPanel.set(colorHex, false, false);
-    
+            // Decide the direct deterministic path before mutating native tool,
+            // slider, or ColorPanel state. Exact-pixel writes do not consume that UI state.
             const exactPixelMode = isExactPixelAuthoringRequest(coordinates, {
               size,
               opacity,
@@ -232,9 +240,9 @@ export function registerPaintBrushTools(): void {
               shape,
               blendMode,
               connectStrokes: connect_strokes,
-              mirrorPainting: getRuntimePainter().mirror_painting,
-              lockAlpha: getRuntimePainter().lock_alpha,
-              eraseMode: getRuntimePainter().erase_mode,
+              mirrorPainting: painter.mirror_painting,
+              lockAlpha: painter.lock_alpha,
+              eraseMode: painter.erase_mode,
             });
     
             if (exactPixelMode) {
