@@ -1,12 +1,28 @@
 import { createHash } from "node:crypto";
 import type { ControlStageContext } from "./contextProjection";
 
-export const CONTROL_STAGE_CONTEXT_HEADROOM_BYTES = 4096;
+export const CONTROL_GATEWAY_ENVELOPE_PROXY_BYTES = 8192;
+export const CONTROL_CONTINUATION_RESERVE_PROXY_BYTES = 2048;
+// Compatibility/export convenience: maximum stage allowance when the rest of
+// the envelope is empty. Real allowance is computed from the current envelope.
+export const CONTROL_STAGE_CONTEXT_HEADROOM_BYTES =
+  CONTROL_GATEWAY_ENVELOPE_PROXY_BYTES -
+  CONTROL_CONTINUATION_RESERVE_PROXY_BYTES;
 
 export type ControlStageContextHeadroomState =
   | "WITHIN_BUDGET"
   | "BOUNDED"
   | "REQUIRED_OVER_BUDGET";
+
+export type ControlHeadroomPolicy = {
+  envelope_bytes: number;
+  continuation_reserve_bytes: number;
+};
+
+export const DEFAULT_CONTROL_HEADROOM_POLICY: ControlHeadroomPolicy = {
+  envelope_bytes: CONTROL_GATEWAY_ENVELOPE_PROXY_BYTES,
+  continuation_reserve_bytes: CONTROL_CONTINUATION_RESERVE_PROXY_BYTES,
+};
 
 export type ProjectedControlStageContext = {
   context_type: ControlStageContext["context_type"];
@@ -19,6 +35,7 @@ export type ProjectedControlStageContext = {
   stage_readiness: string | null;
   blocking_unknowns: string[];
   requirements: ControlStageContext["requirements"];
+  reference_image_ids: string[];
   workspace: {
     asset: string | null;
     current_stage: string | null;
@@ -27,7 +44,6 @@ export type ProjectedControlStageContext = {
   };
   non_blocking_unknowns_relevant_to_stage?: string[];
   reference_document?: string | null;
-  reference_image_ids?: string[];
   headroom_state?: "REQUIRED_OVER_BUDGET";
 };
 
@@ -37,15 +53,25 @@ export type ControlStageContextHeadroomDiagnostics = {
   after_bytes: number;
   required_bytes: number;
   useful_bytes: number;
-  optional_bytes: number;
-  dropped_optional_fields: string[];
+  non_required_bytes: number;
+  dropped_fields: string[];
   dropped_useful_items: number;
   required_over_budget: boolean;
   state: ControlStageContextHeadroomState;
   projection_hash: string;
 };
 
-function serializedUtf8Bytes(value: unknown): number {
+export type ControlEnvelopeHeadroomDiagnostics = {
+  envelope_budget_bytes: number;
+  continuation_reserve_bytes: number;
+  fixed_envelope_bytes: number;
+  stage_allowance_bytes: number;
+  final_envelope_bytes: number;
+  envelope_over_budget: boolean;
+  stage: ControlStageContextHeadroomDiagnostics | null;
+};
+
+export function serializedUtf8Bytes(value: unknown): number {
   return new TextEncoder().encode(JSON.stringify(value)).byteLength;
 }
 
@@ -67,6 +93,9 @@ function requiredProjection(
     stage_readiness: context.stage_readiness,
     blocking_unknowns: [...context.blocking_unknowns],
     requirements: context.requirements,
+    // These IDs identify the stage-approved visual evidence set. Dropping them
+    // based only on size can silently reduce reference fidelity.
+    reference_image_ids: [...context.reference_image_ids],
     workspace: {
       asset: context.workspace.asset,
       current_stage: context.workspace.current_stage,
@@ -79,14 +108,13 @@ function fitsBudget(value: unknown, budgetBytes: number): boolean {
   return serializedUtf8Bytes(value) <= budgetBytes;
 }
 
-function addArrayItemsWithinBudget(
+function addStringItemsWithinBudget(
   base: ProjectedControlStageContext,
-  field: "non_blocking_unknowns_relevant_to_stage" | "reference_image_ids",
+  field: "non_blocking_unknowns_relevant_to_stage",
   values: readonly string[],
   budgetBytes: number
 ): { context: ProjectedControlStageContext; dropped: number } {
   if (values.length === 0) return { context: base, dropped: 0 };
-
   let projected = base;
   let accepted = 0;
   for (const value of values) {
@@ -99,12 +127,28 @@ function addArrayItemsWithinBudget(
   return { context: projected, dropped: values.length - accepted };
 }
 
+export function normalizeControlHeadroomPolicy(
+  policy: Partial<ControlHeadroomPolicy> = {}
+): ControlHeadroomPolicy {
+  const envelope = Number.isFinite(policy.envelope_bytes)
+    ? Math.max(1024, Math.trunc(policy.envelope_bytes!))
+    : DEFAULT_CONTROL_HEADROOM_POLICY.envelope_bytes;
+  const requestedReserve = Number.isFinite(policy.continuation_reserve_bytes)
+    ? Math.max(0, Math.trunc(policy.continuation_reserve_bytes!))
+    : DEFAULT_CONTROL_HEADROOM_POLICY.continuation_reserve_bytes;
+  return {
+    envelope_bytes: envelope,
+    continuation_reserve_bytes: Math.min(
+      requestedReserve,
+      Math.max(0, envelope - 1)
+    ),
+  };
+}
+
 /**
- * Deterministic AI-facing stage-context projection.
- *
- * Canonical Control/reference/workspace state remains complete. This projection
- * only prevents useful/optional model-facing context from expanding without a
- * bound. REQUIRED evidence always wins over the byte proxy budget.
+ * Bounds only the dynamic stage projection. REQUIRED decision evidence always
+ * wins over the proxy budget. This is a byte regression proxy, never a token
+ * or model-context-window claim.
  */
 export function projectControlStageContextWithHeadroom(
   context: ControlStageContext,
@@ -125,25 +169,22 @@ export function projectControlStageContextWithHeadroom(
       ...required,
       headroom_state: "REQUIRED_OVER_BUDGET" as const,
     };
-    const afterBytes = serializedUtf8Bytes(projected);
     return {
       context: projected,
       diagnostics: {
         budget_bytes: normalizedBudget,
         before_bytes: beforeBytes,
-        after_bytes: afterBytes,
+        after_bytes: serializedUtf8Bytes(projected),
         required_bytes: requiredBytes,
         useful_bytes: 0,
-        optional_bytes: Math.max(0, beforeBytes - requiredBytes),
-        dropped_optional_fields: [
+        non_required_bytes: Math.max(0, beforeBytes - requiredBytes),
+        dropped_fields: [
           "non_blocking_unknowns_relevant_to_stage",
           "reference_document",
-          "reference_image_ids",
           "workspace.next_step",
         ],
         dropped_useful_items:
           context.non_blocking_unknowns_relevant_to_stage.length +
-          context.reference_image_ids.length +
           (context.reference_document ? 1 : 0) +
           (context.workspace.next_step ? 1 : 0),
         required_over_budget: true,
@@ -155,9 +196,9 @@ export function projectControlStageContextWithHeadroom(
 
   let projected = required;
   let droppedUsefulItems = 0;
-  const droppedOptionalFields: string[] = [];
+  const droppedFields: string[] = [];
 
-  const unknowns = addArrayItemsWithinBudget(
+  const unknowns = addStringItemsWithinBudget(
     projected,
     "non_blocking_unknowns_relevant_to_stage",
     context.non_blocking_unknowns_relevant_to_stage,
@@ -166,7 +207,7 @@ export function projectControlStageContextWithHeadroom(
   projected = unknowns.context;
   droppedUsefulItems += unknowns.dropped;
   if (unknowns.dropped > 0) {
-    droppedOptionalFields.push("non_blocking_unknowns_relevant_to_stage");
+    droppedFields.push("non_blocking_unknowns_relevant_to_stage");
   }
 
   if (context.reference_document) {
@@ -174,41 +215,23 @@ export function projectControlStageContextWithHeadroom(
     if (fitsBudget(candidate, normalizedBudget)) projected = candidate;
     else {
       droppedUsefulItems += 1;
-      droppedOptionalFields.push("reference_document");
+      droppedFields.push("reference_document");
     }
   }
-
-  const images = addArrayItemsWithinBudget(
-    projected,
-    "reference_image_ids",
-    context.reference_image_ids,
-    normalizedBudget
-  );
-  projected = images.context;
-  droppedUsefulItems += images.dropped;
-  if (images.dropped > 0) droppedOptionalFields.push("reference_image_ids");
 
   if (context.workspace.next_step) {
     const candidate = {
       ...projected,
-      workspace: {
-        ...projected.workspace,
-        next_step: context.workspace.next_step,
-      },
+      workspace: { ...projected.workspace, next_step: context.workspace.next_step },
     };
     if (fitsBudget(candidate, normalizedBudget)) projected = candidate;
     else {
       droppedUsefulItems += 1;
-      droppedOptionalFields.push("workspace.next_step");
+      droppedFields.push("workspace.next_step");
     }
   }
 
   const afterBytes = serializedUtf8Bytes(projected);
-  const state: ControlStageContextHeadroomState =
-    droppedUsefulItems > 0 || beforeBytes > afterBytes
-      ? "BOUNDED"
-      : "WITHIN_BUDGET";
-
   return {
     context: projected,
     diagnostics: {
@@ -217,11 +240,14 @@ export function projectControlStageContextWithHeadroom(
       after_bytes: afterBytes,
       required_bytes: requiredBytes,
       useful_bytes: Math.max(0, afterBytes - requiredBytes),
-      optional_bytes: Math.max(0, beforeBytes - requiredBytes),
-      dropped_optional_fields: droppedOptionalFields,
+      non_required_bytes: Math.max(0, beforeBytes - requiredBytes),
+      dropped_fields: droppedFields,
       dropped_useful_items: droppedUsefulItems,
       required_over_budget: false,
-      state,
+      state:
+        droppedUsefulItems > 0 || beforeBytes > afterBytes
+          ? "BOUNDED"
+          : "WITHIN_BUDGET",
       projection_hash: projectionHash(projected),
     },
   };

@@ -5,7 +5,7 @@ import {
   buildControlDelta,
   buildControlPacket,
   projectControlPacketForGateway,
-  projectControlStageContextWithHeadroom,
+  projectControlPacketForGatewayWithDiagnostics,
   type ControlPacket,
 } from "../gateway/control";
 import type { GatewayRuntimeStatus } from "../gateway/backend";
@@ -94,11 +94,11 @@ try {
   const projectedStatusChars = chars(projectedStatus);
   const fullEnvelopeChars = chars({ ...status, control: full });
   const cachedEnvelopeChars = chars({ ...status, control: cached });
-  const projectedFull = projectControlPacketForGateway(full);
-  const projectedCached = projectControlPacketForGateway(cached);
-  const headroom = full.stage_context
-    ? projectControlStageContextWithHeadroom(full.stage_context)
-    : null;
+  const projectedFullResult = projectControlPacketForGatewayWithDiagnostics(full);
+  const projectedCachedResult = projectControlPacketForGatewayWithDiagnostics(cached);
+  const projectedFull = projectedFullResult.packet;
+  const projectedCached = projectedCachedResult.packet;
+  const headroom = projectedFullResult.diagnostics;
   const projectedFullEnvelopeChars = chars({ ...status, control: projectedFull });
   const projectedCachedEnvelopeChars = chars({ ...status, control: projectedCached });
   const statusOrientation = statusOrientationProjection(status);
@@ -131,16 +131,21 @@ try {
     repeated_orientation_projection_chars: chars(controlOrientation),
     repeated_orientation_values_equal:
       JSON.stringify(statusOrientation) === JSON.stringify(controlOrientation),
-    stage_context_before_bytes: headroom?.diagnostics.before_bytes ?? 0,
-    stage_context_after_bytes: headroom?.diagnostics.after_bytes ?? 0,
-    stage_context_required_bytes: headroom?.diagnostics.required_bytes ?? 0,
-    stage_context_useful_bytes: headroom?.diagnostics.useful_bytes ?? 0,
-    stage_context_optional_bytes: headroom?.diagnostics.optional_bytes ?? 0,
-    stage_context_dropped_optional_fields:
-      headroom?.diagnostics.dropped_optional_fields ?? [],
+    control_envelope_budget_bytes: headroom.envelope_budget_bytes,
+    control_continuation_reserve_bytes: headroom.continuation_reserve_bytes,
+    control_fixed_envelope_bytes: headroom.fixed_envelope_bytes,
+    control_stage_allowance_bytes: headroom.stage_allowance_bytes,
+    control_final_envelope_bytes: headroom.final_envelope_bytes,
+    control_envelope_over_budget: headroom.envelope_over_budget,
+    stage_context_before_bytes: headroom.stage?.before_bytes ?? 0,
+    stage_context_after_bytes: headroom.stage?.after_bytes ?? 0,
+    stage_context_required_bytes: headroom.stage?.required_bytes ?? 0,
+    stage_context_useful_bytes: headroom.stage?.useful_bytes ?? 0,
+    stage_context_non_required_bytes: headroom.stage?.non_required_bytes ?? 0,
+    stage_context_dropped_fields: headroom.stage?.dropped_fields ?? [],
     stage_context_required_over_budget:
-      headroom?.diagnostics.required_over_budget ?? false,
-    stage_context_headroom_state: headroom?.diagnostics.state ?? null,
+      headroom.stage?.required_over_budget ?? false,
+    stage_context_headroom_state: headroom.stage?.state ?? null,
     note:
       "Gateway client projection removes only orientation values already present in the sibling status payload. Static characters remain a regression signal, not a claim of Astra token savings.",
   }, null, 2));

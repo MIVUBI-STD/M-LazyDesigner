@@ -1,13 +1,24 @@
 export { buildControlSnapshot } from "./snapshot";
-export { buildControlPacket, projectControlPacketForGateway } from "./packet";
+export {
+  buildControlPacket,
+  projectControlPacketForGateway,
+  projectControlPacketForGatewayWithDiagnostics,
+} from "./packet";
 export { readWorkspaceProjection } from "./workspace";
 export { readReferencePackageProjection } from "./referencePackage";
 export { buildControlStageContext, readinessForAuthoringDomain } from "./contextProjection";
 export {
+  CONTROL_GATEWAY_ENVELOPE_PROXY_BYTES,
+  CONTROL_CONTINUATION_RESERVE_PROXY_BYTES,
   CONTROL_STAGE_CONTEXT_HEADROOM_BYTES,
+  DEFAULT_CONTROL_HEADROOM_POLICY,
+  normalizeControlHeadroomPolicy,
   projectControlStageContextWithHeadroom,
+  serializedUtf8Bytes,
 } from "./contextHeadroom";
 export type {
+  ControlEnvelopeHeadroomDiagnostics,
+  ControlHeadroomPolicy,
   ControlStageContextHeadroomDiagnostics,
   ControlStageContextHeadroomState,
   ProjectedControlStageContext,

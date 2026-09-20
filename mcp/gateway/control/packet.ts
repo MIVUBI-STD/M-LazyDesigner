@@ -7,7 +7,14 @@ import {
   buildControlStageContext,
   type ControlStageContext,
 } from "./contextProjection";
-import { projectControlStageContextWithHeadroom } from "./contextHeadroom";
+import {
+  DEFAULT_CONTROL_HEADROOM_POLICY,
+  normalizeControlHeadroomPolicy,
+  projectControlStageContextWithHeadroom,
+  serializedUtf8Bytes,
+  type ControlEnvelopeHeadroomDiagnostics,
+  type ControlHeadroomPolicy,
+} from "./contextHeadroom";
 import { readReferencePackageProjection, type ControlReferenceProjection } from "./referencePackage";
 import { readWorkspaceProjection, type ControlWorkspaceProjection } from "./workspace";
 import type {
@@ -358,7 +365,54 @@ export async function buildControlPacket(
  * identity. Keep those values in the internal Control packet, but do not send
  * the same orientation facts twice to the model.
  */
-export function projectControlPacketForGateway(packet: ControlPacket) {
+export function projectControlPacketForGatewayWithDiagnostics(
+  packet: ControlPacket,
+  policy: Partial<ControlHeadroomPolicy> = DEFAULT_CONTROL_HEADROOM_POLICY
+): {
+  packet: ReturnType<typeof buildGatewayPacketWithoutStage> & {
+    stage_context?: ReturnType<typeof projectControlStageContextWithHeadroom>["context"];
+  };
+  diagnostics: ControlEnvelopeHeadroomDiagnostics;
+} {
+  const normalizedPolicy = normalizeControlHeadroomPolicy(policy);
+  const base = buildGatewayPacketWithoutStage(packet);
+  const fixedEnvelopeBytes = serializedUtf8Bytes(base);
+  const stageAllowanceBytes = Math.max(
+    1,
+    normalizedPolicy.envelope_bytes -
+      normalizedPolicy.continuation_reserve_bytes -
+      fixedEnvelopeBytes
+  );
+  const stage = packet.stage_context
+    ? projectControlStageContextWithHeadroom(
+        packet.stage_context,
+        stageAllowanceBytes
+      )
+    : null;
+  const projected = {
+    ...base,
+    ...(stage ? { stage_context: stage.context } : {}),
+  };
+  const finalEnvelopeBytes = serializedUtf8Bytes(projected);
+
+  return {
+    packet: projected,
+    diagnostics: {
+      envelope_budget_bytes: normalizedPolicy.envelope_bytes,
+      continuation_reserve_bytes:
+        normalizedPolicy.continuation_reserve_bytes,
+      fixed_envelope_bytes: fixedEnvelopeBytes,
+      stage_allowance_bytes: stageAllowanceBytes,
+      final_envelope_bytes: finalEnvelopeBytes,
+      envelope_over_budget:
+        finalEnvelopeBytes + normalizedPolicy.continuation_reserve_bytes >
+        normalizedPolicy.envelope_bytes,
+      stage: stage?.diagnostics ?? null,
+    },
+  };
+}
+
+function buildGatewayPacketWithoutStage(packet: ControlPacket) {
   const context = {
     ...(packet.context.required.length > 0
       ? { required: packet.context.required }
@@ -370,10 +424,6 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
       ? { invalidated_ids: packet.context.invalidated_ids }
       : {}),
   };
-
-  const projectedStageContext = packet.stage_context !== null
-    ? projectControlStageContextWithHeadroom(packet.stage_context).context
-    : null;
 
   return {
     system: packet.system,
@@ -393,9 +443,6 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
     readiness: packet.readiness,
     workspace: packet.workspace,
     reference: packet.reference,
-    ...(projectedStageContext !== null
-      ? { stage_context: projectedStageContext }
-      : {}),
     ...(packet.development !== null
       ? { development: packet.development }
       : {}),
@@ -404,4 +451,8 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
       ? { blockers: packet.blockers }
       : {}),
   };
+}
+
+export function projectControlPacketForGateway(packet: ControlPacket) {
+  return projectControlPacketForGatewayWithDiagnostics(packet).packet;
 }

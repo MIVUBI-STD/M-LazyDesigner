@@ -81,6 +81,7 @@ describe("Control stage-context headroom", () => {
       projected.diagnostics.after_bytes
     );
     expect(projected.diagnostics.dropped_useful_items).toBeGreaterThan(0);
+    expect(projected.context.reference_image_ids).toEqual(input.reference_image_ids);
 
     expect(projected.context.original_user_intent).toBe(input.original_user_intent);
     expect(projected.context.current_user_delta).toBe(input.current_user_delta);

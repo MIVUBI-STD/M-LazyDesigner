@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { buildControlPacket, decorateCapabilities, projectControlPacketForGateway } from "@/gateway/control";
+import {
+  buildControlPacket,
+  decorateCapabilities,
+  projectControlPacketForGateway,
+  projectControlPacketForGatewayWithDiagnostics,
+} from "@/gateway/control";
 import type { GatewayRuntimeStatus } from "@/gateway/backend";
 import { projectGatewayStatus } from "@/gateway/statusProjection";
 
@@ -135,6 +140,23 @@ describe("LazyDesigner Control status projection economy", () => {
     }
 
     expect(JSON.stringify(projected).length).toBeLessThan(JSON.stringify(full).length);
+  });
+
+  test("Gateway Control headroom reserves continuation space at the whole-envelope boundary", async () => {
+    const full = await buildControlPacket(projectionStatus);
+    const result = projectControlPacketForGatewayWithDiagnostics(full, {
+      envelope_bytes: 4096,
+      continuation_reserve_bytes: 1024,
+    });
+
+    expect(result.diagnostics.envelope_budget_bytes).toBe(4096);
+    expect(result.diagnostics.continuation_reserve_bytes).toBe(1024);
+    expect(result.diagnostics.fixed_envelope_bytes).toBeGreaterThan(0);
+    expect(result.diagnostics.stage_allowance_bytes).toBeGreaterThan(0);
+    expect(result.diagnostics.stage?.required_over_budget).toBe(false);
+    expect(result.packet.stage_context?.reference_image_ids).toEqual(
+      full.stage_context?.reference_image_ids
+    );
   });
 
   test("cached context IDs are not echoed back to the AI client", async () => {
