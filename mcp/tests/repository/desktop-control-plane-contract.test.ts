@@ -112,14 +112,15 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop preserves client-owned Gateway semantics", async () => {
-    const [rust, readme] = await Promise.all([
+    const [rust, readiness, readme] = await Promise.all([
       source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src-tauri/src/readiness.rs"),
       source("../apps/desktop/README.md"),
     ]);
 
-    expect(rust).toContain('ownership: "client-owned"');
-    expect(rust).toContain('state: "unknown"');
-    expect(rust).toContain("Managed status is unavailable; refresh before maintenance.");
+    expect(readiness).toContain('ownership: "client-owned"');
+    expect(readiness).toContain('state: "unknown"');
+    expect(readiness).toContain("Managed status is unavailable; refresh before maintenance.");
     expect(readme).toContain("Desktop therefore does not launch, restart, terminate, or watchdog Gateway processes.");
     expect(rust).toContain("pub fn ensure_ready");
     expect(rust).toContain("manual_plugin_approval_recommended");
