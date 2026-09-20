@@ -22,6 +22,8 @@ const SCORECARD_RUNTIME_PRIMITIVES = [
   "manage_render_profile",
   "remove_element",
   "bone_rigging",
+  "list_textures",
+  "paint_with_brush",
 ] as const;
 
 function runtimePrimitiveStaticCost() {
@@ -167,6 +169,43 @@ export function runMcpEfficiencyScorecard() {
       collision_preflight_kept: true,
       one_undo_unit: true,
       representative_visual_evidence_kept: true,
+    }
+  );
+
+  const textureInventoryDefault = workflow(
+    "texture_inventory_default",
+    "TEXTURING",
+    [
+      step(
+        "inspect",
+        {
+          tool: "list_textures",
+          diagnostics: true,
+          diagnostic_scope: "full",
+          uv_audit: "included",
+          coverage: "included",
+          seam: "included",
+          pbr: "included",
+        },
+        true
+      ),
+    ],
+    [
+      step(
+        "inspect",
+        {
+          tool: "list_textures",
+          diagnostics: false,
+          inventory_only: true,
+        },
+        true
+      ),
+    ],
+    {
+      texture_identity_kept: true,
+      atlas_state_kept: true,
+      logical_uv_kept: true,
+      diagnostics_remain_opt_in: true,
     }
   );
 
@@ -429,6 +468,7 @@ export function runMcpEfficiencyScorecard() {
   const scores = [
     geometryBatch,
     animationBatch,
+    textureInventoryDefault,
     textureTransaction,
     receiptContinuation,
     particleReceipt,
@@ -460,10 +500,22 @@ export function runMcpEfficiencyScorecard() {
         next_gate: "retain",
       },
       {
+        id: "texture_inventory_default",
+        status: "implemented",
+        primitive: "list_textures",
+        next_gate: "retain cheap default; request scoped diagnostics only when decision-changing",
+      },
+      {
         id: "texture_atomic_region_transaction",
         status: "implemented",
         primitive: "paint_texture_transaction",
         next_gate: "retain",
+      },
+      {
+        id: "texture_exact_pixel_ui_bypass",
+        status: "implemented",
+        primitive: "paint_with_brush",
+        next_gate: "retain direct bitmap path before native Painter setup",
       },
       {
         id: "receipt_only_continuation",
