@@ -10,6 +10,7 @@ import {
   GATEWAY_TOOLS,
   GATEWAY_VERSION,
   compactGatewayCapabilityStructuredContent,
+  compactGatewayCapabilityContent,
   type JsonRecord,
 } from "./contract";
 import { projectCapabilityInputSchema } from "./schemaProjection";
@@ -450,8 +451,14 @@ registerGatewayTool(
         capability,
         result.structuredContent
       );
+      const compactedContent = compactGatewayCapabilityContent(
+        capability,
+        result.structuredContent,
+        result.content
+      );
       return {
         ...result,
+        content: compactedContent as typeof result.content,
         structuredContent:
           compacted && typeof compacted === "object" && !Array.isArray(compacted)
             ? { ...(compacted as JsonRecord), control_delta: gatewayControlDelta }

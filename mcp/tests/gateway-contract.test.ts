@@ -4,6 +4,7 @@ import {
   classifyCapabilityTier,
   classifyInterruptedCall,
   compactGatewayCapabilityStructuredContent,
+  compactGatewayCapabilityContent,
   createRuntimeSignature,
   normalizeRuntimeUrl,
   searchCapabilityCatalog,
@@ -400,6 +401,39 @@ describe("BlockIT Gateway contract", () => {
       code: "OUTCOME_UNKNOWN",
       safe_to_retry: false,
     });
+  });
+
+  test("Gateway compacts applied cube mutation prose only when structured receipt is authoritative", () => {
+    const verbose = [{
+      type: "text",
+      text: "Applied authored update to Cube leg. Structural effect recorded; reference fidelity was not evaluated.",
+    }];
+
+    expect(
+      compactGatewayCapabilityContent(
+        "manage_cubes",
+        { execution: "applied", modified: 1, after: { uuid: "cube-a" } },
+        verbose
+      )
+    ).toEqual([
+      { type: "text", text: "Cube mutation applied; use structured receipt." },
+    ]);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "manage_cubes",
+        { execution: "applied", added: 4, cubes: [{ uuid: "cube-a" }] },
+        verbose
+      )
+    ).toBe(verbose);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "manage_cubes",
+        { execution: "planned", updates: [] },
+        verbose
+      )
+    ).toBe(verbose);
   });
 
   test("Gateway compacts manage_cubes continuation receipts without dropping UV-changing state", () => {

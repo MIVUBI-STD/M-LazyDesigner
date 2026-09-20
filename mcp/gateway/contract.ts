@@ -179,6 +179,23 @@ function compactManageCubesStructuredContent(value: unknown): unknown {
   return value;
 }
 
+
+export function compactGatewayCapabilityContent(
+  capability: string,
+  structuredContent: unknown,
+  content: unknown
+): unknown {
+  if (
+    capability === "manage_cubes" &&
+    isRecord(structuredContent) &&
+    structuredContent.execution === "applied" &&
+    typeof structuredContent.modified === "number"
+  ) {
+    return [{ type: "text", text: "Cube mutation applied; use structured receipt." }];
+  }
+  return content;
+}
+
 /**
  * Keep the Runtime receipt complete for direct/debug clients while presenting
  * only continuation-relevant state through the stable AI-client Gateway.

@@ -1,5 +1,6 @@
 import {
   compactGatewayCapabilityStructuredContent,
+  compactGatewayCapabilityContent,
 } from "../gateway/contract";
 import { projectCapabilityInputSchema } from "../gateway/schemaProjection";
 import { buildControlDelta, decorateCapabilities, projectCapabilitiesForSearch, projectControlDeltaForGateway } from "../gateway/control";
@@ -112,6 +113,16 @@ function inspectSchemaFixture() {
 }
 
 export function measureAstraContextPayloads(): PayloadMeasurement[] {
+  const mutationTextBefore = [{
+    type: "text",
+    text: "Applied authored updates to 4 Cubes in one Undo unit; 4 targets changed geometry. Structural effects recorded; reference fidelity was not evaluated.",
+  }];
+  const mutationTextAfter = compactGatewayCapabilityContent(
+    "manage_cubes",
+    { execution: "applied", modified: 4 },
+    mutationTextBefore
+  );
+
   const cubeBefore = manageCubesFixture();
   const cubeAfter = compactGatewayCapabilityStructuredContent(
     "manage_cubes",
@@ -160,6 +171,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
 
   return [
     payloadMeasurement("control_delta_continuation", deltaBefore, deltaAfter),
+    payloadMeasurement("manage_cubes_text_summary", mutationTextBefore, mutationTextAfter),
     payloadMeasurement("capability_search_projection", searchBefore, searchAfter),
     payloadMeasurement("manage_cubes_continuation", cubeBefore, cubeAfter),
     payloadMeasurement("inspect_elements_detail_schema", inspectBefore, inspectAfter),
