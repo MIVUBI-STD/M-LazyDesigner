@@ -37,7 +37,12 @@ function repoPath(path: string): string { return resolve(process.cwd(), "..", pa
 describe("LazyDesigner Control system-development intent", () => {
   test("animation quality wording routes directly to animation quality owners", () => {
     const result = resolveDevelopmentIntent("animasi keyframe terlalu kaku");
-    expect(result).toMatchObject({ task_class: "SYSTEM_DEVELOPMENT", domain: "ANIMATION", confidence: "STRONG" });
+    expect(result).toMatchObject({
+      task_class: "SYSTEM_DEVELOPMENT",
+      domain: "ANIMATION",
+      confidence: "STRONG",
+      context_strategy: "DIRECT_SOURCE_OWNERS",
+    });
     expect(result.source_owners.some((entry) => entry.source === "mcp/lib/animationMotionDynamics.ts")).toBe(true);
     expect(result.source_owners.some((entry) => entry.source === "mcp/lib/animationQuality.ts")).toBe(true);
     expect(result.required_context_paths).toContain(".agents/skills/lazydesigner-animation/SKILL.md");
@@ -75,6 +80,7 @@ describe("LazyDesigner Control system-development intent", () => {
     const result = resolveDevelopmentIntent("geometry texture");
     expect(result.domain).toBe("UNRESOLVED");
     expect(result.confidence).toBe("AMBIGUOUS");
+    expect(result.context_strategy).toBe("BOUNDED_SYMBOL_MAP");
     expect(result.source_owners.length).toBeGreaterThan(0);
   });
 
@@ -82,6 +88,7 @@ describe("LazyDesigner Control system-development intent", () => {
     const result = resolveDevelopmentIntent("something unusual elsewhere");
     expect(result.domain).toBe("UNRESOLVED");
     expect(result.confidence).toBe("UNRESOLVED");
+    expect(result.context_strategy).toBe("TARGETED_SEARCH");
     expect(result.source_owners).toEqual([]);
     expect(result.required_context_paths).toEqual(["AGENTS.md", "mcp/AGENTS.md"]);
   });
@@ -111,6 +118,7 @@ describe("LazyDesigner Control system-development intent", () => {
     expect(development).toMatchObject({
       domain: "GATEWAY",
       confidence: "STRONG",
+      context_strategy: "DIRECT_SOURCE_OWNERS",
     });
     expect(development.source_owners.length).toBeGreaterThan(0);
     expect(development.required_context_paths).toEqual(["AGENTS.md", "mcp/AGENTS.md"]);
@@ -133,6 +141,7 @@ describe("LazyDesigner Control system-development intent", () => {
     expect(projected.development).toMatchObject({
       domain: "UNRESOLVED",
       confidence: "AMBIGUOUS",
+      context_strategy: "BOUNDED_SYMBOL_MAP",
     });
     expect(projected.development?.matched_terms).toEqual(
       expect.arrayContaining(["geometry", "texture"])

@@ -17,6 +17,10 @@ export type ControlDevelopmentResolution = {
   intent: string;
   domain: ControlDevelopmentDomain;
   confidence: "STRONG" | "AMBIGUOUS" | "UNRESOLVED";
+  context_strategy:
+    | "DIRECT_SOURCE_OWNERS"
+    | "BOUNDED_SYMBOL_MAP"
+    | "TARGETED_SEARCH";
   matched_terms: string[];
   source_owners: ControlSourceOwner[];
   required_context_paths: string[];
@@ -139,6 +143,7 @@ function baseResolution(intent: string): ControlDevelopmentResolution {
     intent,
     domain: "UNRESOLVED",
     confidence: "UNRESOLVED",
+    context_strategy: "TARGETED_SEARCH",
     matched_terms: [],
     source_owners: [],
     required_context_paths: [...BASE_CONTEXT],
@@ -167,6 +172,7 @@ export function resolveDevelopmentIntent(intent: string): ControlDevelopmentReso
       intent: intent.trim(),
       domain: "UNRESOLVED",
       confidence: "AMBIGUOUS",
+      context_strategy: "BOUNDED_SYMBOL_MAP",
       matched_terms: [...new Set(tied.flatMap((entry) => entry.matched))],
       source_owners: uniqueOwners(tied.flatMap((entry) => entry.rule.owners())).slice(0, 8),
       required_context_paths: [...BASE_CONTEXT],
@@ -184,6 +190,7 @@ export function resolveDevelopmentIntent(intent: string): ControlDevelopmentReso
     intent: intent.trim(),
     domain: best.rule.domain,
     confidence: "STRONG",
+    context_strategy: "DIRECT_SOURCE_OWNERS",
     matched_terms: best.matched,
     source_owners: owners,
     required_context_paths: [...new Set([...BASE_CONTEXT, ...specialistPaths])],

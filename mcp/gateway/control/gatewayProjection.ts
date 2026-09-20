@@ -68,6 +68,7 @@ function projectDevelopmentForGateway(
   return {
     domain: development.domain,
     confidence: development.confidence,
+    context_strategy: development.context_strategy,
     source_owners: development.source_owners,
     required_context_paths: development.required_context_paths,
     ...(development.confidence !== "STRONG" &&
