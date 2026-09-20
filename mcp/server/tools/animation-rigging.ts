@@ -19,6 +19,7 @@ export const boneRiggingParameters = z.object({
       "rename",
       "set_pivot",
       "set_ik",
+      "set_ik_controller",
       "mirror",
     ])
     .describe("Action to perform on the bone structure."),
@@ -58,7 +59,30 @@ export const boneRiggingParameters = z.object({
       ik_target: z
         .string()
         .optional()
-        .describe("Existing target Group UUID or exact unique name for IK."),
+        .describe("Existing target Group UUID or exact unique name for legacy bone IK."),
+      controller: z
+        .string()
+        .optional()
+        .describe("Blockbench 5.2+ native IK controller Null Object UUID or unique exact name."),
+      controller_target: z
+        .string()
+        .nullable()
+        .optional()
+        .describe("Blockbench 5.2+ IK target node UUID/name; null clears the target."),
+      controller_source: z
+        .string()
+        .nullable()
+        .optional()
+        .describe("Blockbench 5.2+ IK root/source node UUID/name; null clears the source."),
+      controller_pole: z
+        .string()
+        .nullable()
+        .optional()
+        .describe("Blockbench 5.2+ IK pole Group/Locator/Null Object UUID/name; null clears the pole."),
+      lock_ik_target_rotation: z
+        .boolean()
+        .optional()
+        .describe("Blockbench 5.2+ native IK controller target-rotation lock."),
       mirror_axis: axisEnum
         .optional()
         .describe("Axis required by mirror; no implicit mirror axis is assumed."),
@@ -77,13 +101,36 @@ export const boneRiggingParameters = z.object({
         "set_ik requires ik_enabled and/or ik_target; an empty IK update is not a mutation."
     });
   }
+
+  if (params.action === "set_ik_controller") {
+    if (!params.bone_data.controller) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bone_data", "controller"],
+        message: "set_ik_controller requires a native IK controller Null Object."
+      });
+    }
+    if (
+      params.bone_data.controller_target === undefined &&
+      params.bone_data.controller_source === undefined &&
+      params.bone_data.controller_pole === undefined &&
+      params.bone_data.lock_ik_target_rotation === undefined
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bone_data"],
+        message:
+          "set_ik_controller requires at least one controller_target/controller_source/controller_pole/lock_ik_target_rotation update."
+      });
+    }
+  }
 });
 
 
 export const boneRiggingToolDoc: ToolSpec = {
   name: "bone_rigging",
   description:
-    "Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring; legacy overlapping actions remain for compatibility.",
+    "Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring. Blockbench 5.2+ native IK controller target/root/pole settings are handled by set_ik_controller without adding another capability; legacy overlapping actions remain for compatibility.",
   annotations: {
     title: "Bone Rigging",
     destructiveHint: true,
@@ -113,6 +160,99 @@ function resolveRigElement(reference: string): OutlinerElement {
   throw new Error(
     `Outliner element "${reference}" not found. Use inspect_elements(mode=outline) to confirm the intended child UUID.`
   );
+}
+
+type NativeIkControllerState = {
+  uuid: string;
+  name: string;
+  ik_target: string | null;
+  ik_source: string | null;
+  ik_pole: string | null;
+  lock_ik_target_rotation: boolean;
+};
+
+function assertNativeIkControllerRuntime(): void {
+  const properties = (
+    NullObject as typeof NullObject & {
+      properties?: Record<string, unknown>;
+    }
+  ).properties;
+  if (!properties || !("ik_source" in properties) || !("ik_pole" in properties)) {
+    throw new Error(
+      "Native IK controller roots/poles require Blockbench 5.2 or newer. Update Blockbench or use the legacy set_ik operation."
+    );
+  }
+}
+
+function resolveNativeIkController(reference: string): NullObject {
+  const candidate = resolveRigElement(reference);
+  if (!(candidate instanceof NullObject)) {
+    throw new Error(
+      `IK controller "${reference}" must resolve to a Null Object. Received ${candidate.type} "${candidate.name}".`
+    );
+  }
+  return candidate;
+}
+
+function resolveNativeIkTarget(reference: string): OutlinerElement {
+  const candidate = resolveRigElement(reference);
+  const constructorWithAnimator = candidate.constructor as typeof candidate.constructor & {
+    animator?: unknown;
+  };
+  if (!(candidate instanceof Locator) && !constructorWithAnimator.animator) {
+    throw new Error(
+      `IK target "${reference}" must be an animatable outliner node or Locator.`
+    );
+  }
+  return candidate;
+}
+
+function resolveNativeIkSource(reference: string): OutlinerElement {
+  const candidate = resolveRigElement(reference);
+  const constructorWithAnimator = candidate.constructor as typeof candidate.constructor & {
+    animator?: unknown;
+  };
+  if (!constructorWithAnimator.animator) {
+    throw new Error(
+      `IK root/source "${reference}" must be an animatable outliner node.`
+    );
+  }
+  return candidate;
+}
+
+function resolveNativeIkPole(
+  reference: string,
+  controllerUuid: string
+): OutlinerElement {
+  const candidate = resolveRigElement(reference);
+  if (
+    candidate.uuid === controllerUuid ||
+    !(
+      candidate instanceof Group ||
+      candidate instanceof Locator ||
+      candidate instanceof NullObject
+    )
+  ) {
+    throw new Error(
+      `IK pole "${reference}" must be a different Group, Locator, or Null Object.`
+    );
+  }
+  return candidate;
+}
+
+function nativeIkControllerState(controller: NullObject): NativeIkControllerState {
+  const runtime = controller as NullObject & {
+    ik_source?: string;
+    ik_pole?: string;
+  };
+  return {
+    uuid: controller.uuid,
+    name: controller.name,
+    ik_target: controller.ik_target || null,
+    ik_source: runtime.ik_source || null,
+    ik_pole: runtime.ik_pole || null,
+    lock_ik_target_rotation: controller.lock_ik_target_rotation === true,
+  };
 }
 
 export function deriveMirroredRigName(name: string): string {
@@ -163,6 +303,10 @@ export function registerBoneRiggingTool(): void {
         let deleteGroups: Group[] = [];
         let deleteAnimations: _Animation[] = [];
         let ikTarget: Group | undefined;
+        let ikController: NullObject | undefined;
+        let controllerTarget: OutlinerElement | null | undefined;
+        let controllerSource: OutlinerElement | null | undefined;
+        let controllerPole: OutlinerElement | null | undefined;
         let mirroredBoneName: string | undefined;
         const boneIdentity = (group: Group) => ({
           uuid: group.uuid,
@@ -326,6 +470,32 @@ export function registerBoneRiggingTool(): void {
             }
             break;
   
+          case "set_ik_controller":
+            assertNativeIkControllerRuntime();
+            ikController = resolveNativeIkController(bone_data.controller!);
+            controllerTarget =
+              bone_data.controller_target === null
+                ? null
+                : bone_data.controller_target
+                  ? resolveNativeIkTarget(bone_data.controller_target)
+                  : undefined;
+            controllerSource =
+              bone_data.controller_source === null
+                ? null
+                : bone_data.controller_source
+                  ? resolveNativeIkSource(bone_data.controller_source)
+                  : undefined;
+            controllerPole =
+              bone_data.controller_pole === null
+                ? null
+                : bone_data.controller_pole
+                  ? resolveNativeIkPole(
+                      bone_data.controller_pole,
+                      ikController.uuid
+                    )
+                  : undefined;
+            break;
+
           case "mirror":
             targetBone = resolveAnimationRigGroup(bone_data.name);
             if (!bone_data.mirror_axis) {
@@ -359,7 +529,12 @@ export function registerBoneRiggingTool(): void {
                 affected_animations: deleteAnimations.length,
               }
             : null;
-        const undoElements = action === "delete" ? deleteElements : childElements;
+        const undoElements =
+          action === "delete"
+            ? deleteElements
+            : action === "set_ik_controller" && ikController
+              ? [ikController]
+              : childElements;
         const undoGroups =
           action === "delete" ? deleteGroups : targetBone ? [targetBone] : [];
         Undo.initEdit({
@@ -447,6 +622,30 @@ export function registerBoneRiggingTool(): void {
               break;
             }
   
+            case "set_ik_controller": {
+              const controller = ikController!;
+              const runtime = controller as NullObject & {
+                ik_source?: string;
+                ik_pole?: string;
+              };
+              if (controllerTarget !== undefined) {
+                controller.ik_target = controllerTarget?.uuid ?? "";
+              }
+              if (controllerSource !== undefined) {
+                runtime.ik_source = controllerSource?.uuid ?? "";
+              }
+              if (controllerPole !== undefined) {
+                runtime.ik_pole = controllerPole?.uuid ?? "";
+              }
+              if (bone_data.lock_ik_target_rotation !== undefined) {
+                controller.lock_ik_target_rotation =
+                  bone_data.lock_ik_target_rotation;
+              }
+              if (Modes.animate) Animator.preview();
+              resultText = `Updated native IK controller "${controller.name}"`;
+              break;
+            }
+
             case "mirror": {
               const axis = bone_data.mirror_axis!;
               const mirroredBone = targetBone!.duplicate();
@@ -477,6 +676,16 @@ export function registerBoneRiggingTool(): void {
           const result = {
             action,
             ...deletionReceipt!,
+          };
+          return {
+            content: [{ type: "text" as const, text: resultText }],
+            structuredContent: result,
+          };
+        }
+        if (action === "set_ik_controller") {
+          const result = {
+            action,
+            controller: nativeIkControllerState(ikController!),
           };
           return {
             content: [{ type: "text" as const, text: resultText }],
