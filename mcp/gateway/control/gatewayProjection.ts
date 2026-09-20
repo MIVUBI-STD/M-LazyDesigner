@@ -1,4 +1,5 @@
 import type { ControlPacket } from "./packet";
+import type { ControlDevelopmentResolution } from "./developmentIntent";
 import {
   DEFAULT_CONTROL_HEADROOM_POLICY,
   normalizeControlHeadroomPolicy,
@@ -61,6 +62,21 @@ export function projectControlPacketForGatewayWithDiagnostics(
   };
 }
 
+function projectDevelopmentForGateway(
+  development: ControlDevelopmentResolution
+) {
+  return {
+    domain: development.domain,
+    confidence: development.confidence,
+    source_owners: development.source_owners,
+    required_context_paths: development.required_context_paths,
+    ...(development.confidence !== "STRONG" &&
+    development.matched_terms.length > 0
+      ? { matched_terms: development.matched_terms }
+      : {}),
+  };
+}
+
 function buildGatewayPacketWithoutStage(packet: ControlPacket) {
   const context = {
     ...(packet.context.required.length > 0
@@ -93,7 +109,7 @@ function buildGatewayPacketWithoutStage(packet: ControlPacket) {
     workspace: packet.workspace,
     reference: packet.reference,
     ...(packet.development !== null
-      ? { development: packet.development }
+      ? { development: projectDevelopmentForGateway(packet.development) }
       : {}),
     context,
     ...(packet.blockers.length > 0

@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { buildControlPacket, resolveDevelopmentIntent } from "@/gateway/control";
+import {
+  buildControlPacket,
+  projectControlPacketForGateway,
+  resolveDevelopmentIntent,
+} from "@/gateway/control";
 import type { GatewayRuntimeStatus } from "@/gateway/backend";
 
 const status: GatewayRuntimeStatus = {
@@ -93,6 +97,48 @@ describe("LazyDesigner Control system-development intent", () => {
       }
       for (const path of result.required_context_paths) expect(existsSync(repoPath(path)), `${intent}: context ${path}`).toBe(true);
     }
+  });
+
+  test("Gateway development projection removes request echoes while preserving exact routing decisions", async () => {
+    const internal = await buildControlPacket(status, {
+      taskMode: "SYSTEM_DEVELOPMENT",
+      taskIntent: "gateway capability catalog bermasalah",
+    });
+    const projected = projectControlPacketForGateway(internal);
+    const development = projected.development!;
+
+    expect(internal.development?.confidence).toBe("STRONG");
+    expect(development).toMatchObject({
+      domain: "GATEWAY",
+      confidence: "STRONG",
+    });
+    expect(development.source_owners.length).toBeGreaterThan(0);
+    expect(development.required_context_paths).toEqual(["AGENTS.md", "mcp/AGENTS.md"]);
+    expect(development).not.toHaveProperty("task_class");
+    expect(development).not.toHaveProperty("intent");
+    expect(development).not.toHaveProperty("avoid_context_classes");
+    expect(development).not.toHaveProperty("matched_terms");
+    expect(JSON.stringify(development).length).toBeLessThan(
+      JSON.stringify(internal.development).length
+    );
+  });
+
+  test("ambiguous development projection keeps matched terms needed to resolve ownership", async () => {
+    const internal = await buildControlPacket(status, {
+      taskMode: "SYSTEM_DEVELOPMENT",
+      taskIntent: "geometry texture",
+    });
+    const projected = projectControlPacketForGateway(internal);
+
+    expect(projected.development).toMatchObject({
+      domain: "UNRESOLVED",
+      confidence: "AMBIGUOUS",
+    });
+    expect(projected.development?.matched_terms).toEqual(
+      expect.arrayContaining(["geometry", "texture"])
+    );
+    expect(projected.development).not.toHaveProperty("intent");
+    expect(projected.development).not.toHaveProperty("avoid_context_classes");
   });
 
   test("development packet skips workspace/reference parsing and authoring Skill retransmission", async () => {
