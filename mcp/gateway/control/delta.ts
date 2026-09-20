@@ -304,6 +304,43 @@ function materialInstanceMutationReceiptComplete(value: unknown): boolean {
   });
 }
 
+function particleMutationReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (
+      candidate.valid !== true ||
+      candidate.artifact_ready !== true ||
+      typeof candidate.wrote_to_path !== "string" ||
+      candidate.wrote_to_path.length === 0 ||
+      !Array.isArray(candidate.writes)
+    ) {
+      return false;
+    }
+
+    const summary = record(candidate.summary);
+    if (
+      !summary ||
+      typeof summary.identifier !== "string" ||
+      summary.identifier.length === 0 ||
+      typeof summary.component_count !== "number" ||
+      !Array.isArray(summary.diagnostics)
+    ) {
+      return false;
+    }
+
+    return candidate.writes.some((entry) => {
+      const write = record(entry);
+      return Boolean(
+        write &&
+          write.kind === "particle" &&
+          write.path === candidate.wrote_to_path &&
+          typeof write.byte_length === "number" &&
+          write.byte_length > 0 &&
+          typeof write.replaced_existing === "boolean"
+      );
+    });
+  });
+}
+
 function animationEffectsReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (
@@ -456,6 +493,14 @@ function verificationClassForResult(
   ) {
     return "receipt_only";
   }
+
+  if (
+    capability === "manage_particle" &&
+    particleMutationReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
 
   if (
     capability === "manage_animation_controller" &&
