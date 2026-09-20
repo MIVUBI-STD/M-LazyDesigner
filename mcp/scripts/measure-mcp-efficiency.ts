@@ -1,6 +1,9 @@
 import "@/server/tools";
 import { z } from "zod";
-import { getAllToolDefinitions, tools } from "../lib/factories";
+import {
+  getAllToolDefinitions,
+  getEnabledToolDefinitions,
+} from "../lib/factories";
 import {
   aggregateEfficiencyScores,
   scoreEfficiencyWorkflow,
@@ -46,7 +49,7 @@ function runtimePrimitiveStaticCost() {
   });
 
   return {
-    runtime_tool_count: Object.keys(tools).length,
+    runtime_tool_count: Object.keys(getEnabledToolDefinitions()).length,
     reused_primitive_count: rows.length,
     reused_primitives: rows,
     reused_primitive_static_bytes: rows.reduce(
