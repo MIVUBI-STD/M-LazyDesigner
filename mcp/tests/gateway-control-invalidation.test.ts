@@ -268,6 +268,56 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(reparent.verification_class).toBe("receipt_only");
   });
 
+  test("complete Blockbench 5.2 native IK receipt avoids redundant focused read", () => {
+    const delta = buildControlDelta({
+      capability: "bone_rigging",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "set_ik_controller",
+        controller: {
+          uuid: "null-a",
+          name: "leg_ik",
+          ik_target: "foot",
+          ik_source: "upper_leg",
+          ik_pole: "knee_pole",
+          lock_ik_target_rotation: false,
+        },
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual([
+      "GEOMETRY",
+      "ANIMATION",
+    ]);
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "ANIMATION_MOTION",
+    ]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("incomplete native IK receipt retains focused-read verification", () => {
+    const delta = buildControlDelta({
+      capability: "bone_rigging",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "set_ik_controller",
+        controller: {
+          uuid: "null-a",
+          name: "leg_ik",
+        },
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("subtree translation receipt remains focused-read because descendants are summarized only", () => {
     const delta = buildControlDelta({
       capability: "modify_group",
