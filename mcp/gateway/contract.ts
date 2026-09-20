@@ -181,6 +181,23 @@ function compactManageCubesStructuredContent(value: unknown): unknown {
 }
 
 
+const READ_ONLY_SUMMARY_COMPACTION_CAPABILITIES = new Set([
+  "get_project_info",
+  "list_textures",
+  "inspect_animation",
+  "inspect_particle",
+]);
+
+function readOnlySummaryTextIsRedundant(
+  capability: string,
+  structuredContent: unknown
+): boolean {
+  return (
+    READ_ONLY_SUMMARY_COMPACTION_CAPABILITIES.has(capability) &&
+    isRecord(structuredContent)
+  );
+}
+
 function receiptOnlyTextIsRedundant(
   capability: string,
   structuredContent: unknown
@@ -223,6 +240,16 @@ export function compactGatewayCapabilityContent(
   content: unknown,
   verificationClass?: CapabilityVerificationClass
 ): unknown {
+  if (
+    readOnlySummaryTextIsRedundant(capability, structuredContent) &&
+    Array.isArray(content) &&
+    content.length === 1 &&
+    isRecord(content[0]) &&
+    content[0].type === "text"
+  ) {
+    return [{ type: "text", text: "Read complete." }];
+  }
+
   if (
     capability === "inspect_elements" &&
     isRecord(structuredContent) &&

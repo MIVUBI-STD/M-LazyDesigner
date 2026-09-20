@@ -425,6 +425,50 @@ describe("BlockIT Gateway contract", () => {
     });
   });
 
+  test("Gateway compacts audited read-only summaries while preserving non-text evidence", () => {
+    const summary = [{ type: "text", text: "Project fixture: 4 Cubes, 2 Groups, 1 Texture." }];
+    const structured = {
+      project: { uuid: "project-a", name: "fixture" },
+      counts: { cubes: 4, groups: 2, textures: 1 },
+    };
+
+    for (const capability of [
+      "get_project_info",
+      "list_textures",
+      "inspect_animation",
+      "inspect_particle",
+    ]) {
+      expect(
+        compactGatewayCapabilityContent(
+          capability,
+          structured,
+          summary,
+          "not_applicable"
+        ),
+        capability
+      ).toEqual([{ type: "text", text: "Read complete." }]);
+    }
+
+    const image = [{ type: "image", data: "fixture", mimeType: "image/png" }];
+    expect(
+      compactGatewayCapabilityContent(
+        "get_texture",
+        structured,
+        image,
+        "not_applicable"
+      )
+    ).toBe(image);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "get_project_info",
+        undefined,
+        summary,
+        "not_applicable"
+      )
+    ).toBe(summary);
+  });
+
   test("successful read-only capabilities omit redundant Control continuation but failures remain fail-closed", () => {
     expect(shouldAttachGatewayControlDelta(true, true)).toBe(false);
     expect(shouldAttachGatewayControlDelta(false, true)).toBe(true);
