@@ -602,7 +602,6 @@ fn project_navigation_probe(blockbench_running: bool) -> (Option<String>, bool) 
         return (None, false);
     };
     let revision = Some(navigation_revision_token(&snapshot));
-    let continue_model_id = continue_model_id_for_path(snapshot.last_model_path.as_deref());
     if !blockbench_running {
         return (revision, false);
     }
@@ -897,6 +896,7 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
         return ProjectNavigation { revision: None, session_live: false, continue_model_id: None, active: None, projects: Vec::new() };
     };
     let revision = Some(navigation_revision_token(&snapshot));
+    let continue_model_id = continue_model_id_for_path(snapshot.last_model_path.as_deref());
     let identities = project_identity_map(&snapshot);
 
     let active_path = if session_live {
