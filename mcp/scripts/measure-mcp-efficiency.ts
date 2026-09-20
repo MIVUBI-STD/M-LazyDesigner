@@ -19,6 +19,7 @@ const SCORECARD_RUNTIME_PRIMITIVES = [
   "reparent_element",
   "inspect_elements",
   "manage_particle",
+  "manage_render_profile",
 ] as const;
 
 function runtimePrimitiveStaticCost() {
@@ -269,6 +270,50 @@ export function runMcpEfficiencyScorecard() {
     }
   );
 
+  const renderProfileReceipt = workflow(
+    "render_profile_verified_write_receipt",
+    "TEXTURING",
+    [
+      step(
+        "mutate",
+        {
+          tool: "manage_render_profile",
+          operation: "assign",
+          write: "verified_atomic",
+        },
+        true
+      ),
+      step(
+        "inspect",
+        {
+          tool: "manage_render_profile",
+          operation: "inspect",
+          confirmation_only: true,
+        },
+        false
+      ),
+    ],
+    [
+      step(
+        "mutate",
+        {
+          tool: "manage_render_profile",
+          operation: "assign",
+          write: "verified_atomic",
+          receipt: "mutation_identity_complete",
+        },
+        true
+      ),
+    ],
+    {
+      verified_write_kept: true,
+      controller_identity_kept: true,
+      bone_pattern_kept: true,
+      slot_identity_kept: true,
+      material_render_freshness_scope_kept: true,
+    }
+  );
+
   const focusedDiscovery = workflow(
     "unknown_target_focused_discovery",
     "INSPECTION",
@@ -297,6 +342,7 @@ export function runMcpEfficiencyScorecard() {
     textureTransaction,
     receiptContinuation,
     particleReceipt,
+    renderProfileReceipt,
     focusedDiscovery,
   ];
 
@@ -332,6 +378,12 @@ export function runMcpEfficiencyScorecard() {
         status: "implemented",
         primitive: "Control mutation receipts",
         next_gate: "expand only when a mutation already returns complete final state",
+      },
+      {
+        id: "render_profile_verified_write_receipt",
+        status: "implemented",
+        primitive: "manage_render_profile",
+        next_gate: "retain",
       },
       {
         id: "focused_discovery",
