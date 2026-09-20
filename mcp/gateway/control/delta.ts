@@ -103,6 +103,50 @@ function locatorReceiptComplete(value: unknown): boolean {
   });
 }
 
+function boneRiggingStateReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (
+      ![
+        "create",
+        "parent",
+        "unparent",
+        "rename",
+        "set_pivot",
+        "set_ik",
+        "mirror",
+      ].includes(String(candidate.action))
+    ) {
+      return false;
+    }
+
+    const bone = record(candidate.bone);
+    if (
+      !bone ||
+      typeof bone.uuid !== "string" ||
+      bone.uuid.length === 0 ||
+      typeof bone.name !== "string" ||
+      bone.name.length === 0 ||
+      typeof bone.parent !== "string" ||
+      !Array.isArray(bone.origin) ||
+      bone.origin.length !== 3 ||
+      !bone.origin.every(
+        (value) => typeof value === "number" && Number.isFinite(value)
+      ) ||
+      !Array.isArray(bone.rotation) ||
+      bone.rotation.length !== 3 ||
+      !bone.rotation.every(
+        (value) => typeof value === "number" && Number.isFinite(value)
+      ) ||
+      typeof bone.ik_enabled !== "boolean" ||
+      !Object.prototype.hasOwnProperty.call(bone, "ik_target")
+    ) {
+      return false;
+    }
+
+    return bone.ik_target === null || typeof bone.ik_target === "string";
+  });
+}
+
 function nativeIkControllerReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (candidate.action !== "set_ik_controller") return false;
@@ -667,7 +711,11 @@ function verificationClassForResult(
 
   if (
     capability === "bone_rigging" &&
-    nativeIkControllerReceiptComplete(result)
+    (
+      nativeIkControllerReceiptComplete(result) ||
+      boneRiggingStateReceiptComplete(result) ||
+      removeElementReceiptComplete(result)
+    )
   ) {
     return "receipt_only";
   }
