@@ -305,7 +305,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Bone Rigging</p>
-      <p class="card-desc">Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring; legacy overlapping actions remain for compatibility.</p>
+      <p class="card-desc">Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring. Blockbench 5.2+ native IK controller target/root/pole settings are handled by set_ik_controller without adding another capability; legacy overlapping actions remain for compatibility.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -318,7 +318,7 @@ bun run docs:check
       </thead>
       <tbody><tr>
       <td class="col-name">action</td>
-      <td class="col-type">&quot;create&quot; | &quot;parent&quot; | &quot;unparent&quot; | &quot;delete&quot; | &quot;rename&quot; | &quot;set_pivot&quot; | &quot;set_ik&quot; | &quot;mirror&quot;</td>
+      <td class="col-type">&quot;create&quot; | &quot;parent&quot; | &quot;unparent&quot; | &quot;delete&quot; | &quot;rename&quot; | &quot;set_pivot&quot; | &quot;set_ik&quot; | &quot;set_ik_controller&quot; | &quot;mirror&quot;</td>
       <td><span class="param-required">required</span></td>
       <td class="col-desc">Action to perform on the bone structure.</td>
     </tr><tr>
@@ -2530,7 +2530,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-18T15:53:59.493Z from Zod schemas
+        Generated 2026-09-20T17:05:12.649Z from Zod schemas
       </footer>
     </main>
   </div>

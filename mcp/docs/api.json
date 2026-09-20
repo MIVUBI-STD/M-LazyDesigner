@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-18T15:53:59.493Z",
+  "generatedAt": "2026-09-20T17:05:12.649Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -1763,7 +1763,7 @@
     {
       "name": "bone_rigging",
       "title": "Bone Rigging",
-      "description": "Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring; legacy overlapping actions remain for compatibility.",
+      "description": "Advanced/compatibility rig operations. Normal hierarchy mutation uses add_group, modify_group, reparent_element, rename_element, and remove_element. Prefer bone_rigging only for IK or bone mirroring. Blockbench 5.2+ native IK controller target/root/pole settings are handled by set_ik_controller without adding another capability; legacy overlapping actions remain for compatibility.",
       "status": "experimental",
       "category": "Animation",
       "annotations": {
@@ -1783,6 +1783,7 @@
               "rename",
               "set_pivot",
               "set_ik",
+              "set_ik_controller",
               "mirror"
             ],
             "description": "Action to perform on the bone structure."
@@ -1834,8 +1835,37 @@
                 "type": "boolean"
               },
               "ik_target": {
-                "description": "Existing target Group UUID or exact unique name for IK.",
+                "description": "Existing target Group UUID or exact unique name for legacy bone IK.",
                 "type": "string"
+              },
+              "controller": {
+                "description": "Blockbench 5.2+ native IK controller Null Object UUID or unique exact name.",
+                "type": "string"
+              },
+              "controller_target": {
+                "description": "Blockbench 5.2+ IK target node UUID/name; null clears the target.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "controller_source": {
+                "description": "Blockbench 5.2+ IK root/source node UUID/name; null clears the source.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "controller_pole": {
+                "description": "Blockbench 5.2+ IK pole Group/Locator/Null Object UUID/name; null clears the pole.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lock_ik_target_rotation": {
+                "description": "Blockbench 5.2+ native IK controller target-rotation lock.",
+                "type": "boolean"
               },
               "mirror_axis": {
                 "description": "Axis required by mirror; no implicit mirror axis is assumed.",
