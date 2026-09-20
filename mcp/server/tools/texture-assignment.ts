@@ -94,12 +94,6 @@ export const activateTextureToolDoc: ToolSpec = {
 
 type ApplyTextureElement = Cube | Group;
 
-function applyTextureElementType(
-  element: ApplyTextureElement
-): "cube" | "group" {
-  return element instanceof Cube ? "cube" : "group";
-}
-
 function resolveApplyTextureElement(reference: string): ApplyTextureElement {
   return resolveCoreCubeOrGroup(
     reference,
