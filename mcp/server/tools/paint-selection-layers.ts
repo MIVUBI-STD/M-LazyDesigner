@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { getAndActivateTexture } from "@/lib/util";
+import { getAndActivateTexture, resolvePaintTexture } from "@/lib/util";
 import { textureIdOptionalSchema } from "@/lib/zodObjects";
 
 const textureLayerBlendModeEnum = z.enum([
@@ -434,7 +434,11 @@ export function registerPaintSelectionLayerTools(): void {
               blend_mode,
               target_index,
             }) {
-              const texture = getAndActivateTexture(texture_id);
+              const requiresEditorLayerSelection =
+                action === "create_layer" || action === "duplicate_layer";
+              const texture = requiresEditorLayerSelection
+                ? getAndActivateTexture(texture_id)
+                : resolvePaintTexture(texture_id);
               const layer =
                 action === "create_layer" || action === "flatten_layers"
                   ? null
