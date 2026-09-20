@@ -817,6 +817,12 @@ function renderProfileStateNeutral(value: unknown): boolean {
   });
 }
 
+function textureLayerMetadataOnly(value: unknown): boolean {
+  return resultCandidates(value).some(
+    (candidate) => candidate.operation === "rename_layer"
+  );
+}
+
 function renameElementStateNeutral(value: unknown): boolean {
   return resultCandidates(value).some(
     (candidate) =>
@@ -832,6 +838,12 @@ function capabilityMutatesState(
   if (!succeeded || !STATE_MUTATIONS.has(capability)) return false;
   if (capability === "manage_cubes" && cubeStateNeutral(result)) return false;
   if (capability === "rename_element" && renameElementStateNeutral(result)) return false;
+  if (
+    capability === "texture_layer_management" &&
+    textureLayerMetadataOnly(result)
+  ) {
+    return false;
+  }
   if (capability === "manage_particle") {
     if (particleTextureHandoffRequired(result)) return false;
     return particleHasAuthoredEffect(result);
@@ -896,6 +908,18 @@ function mutationInvalidation(
     succeeded &&
     capability === "manage_material" &&
     materialPersistenceOnly(result)
+  ) {
+    return {
+      authoring_domains: [],
+      workspace_projection: true,
+      acceptance_gates: false,
+    };
+  }
+
+  if (
+    succeeded &&
+    capability === "texture_layer_management" &&
+    textureLayerMetadataOnly(result)
   ) {
     return {
       authoring_domains: [],
