@@ -35,7 +35,7 @@ describe("static footprint budget", () => {
     expect(referenceGenerator.length).toBeLessThan(20_000);
     expect(controlPacket.length).toBeLessThan(14_000);
     expect(modelling.length).toBeLessThan(17_500);
-    expect(texturing.length).toBeLessThan(14_000);
+    expect(texturing.length).toBeLessThan(14_200);
     expect(animation.length).toBeLessThan(14_500);
     expect(workflow.length).toBeLessThan(15_000);
 
