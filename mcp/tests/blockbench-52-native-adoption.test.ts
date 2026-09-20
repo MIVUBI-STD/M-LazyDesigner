@@ -15,6 +15,7 @@ describe("Blockbench 5.2 native adoption", () => {
     });
 
     expect(parsed.action).toBe("set_ik_controller");
+    expect(parsed.bone_data.name).toBeUndefined();
     expect(parsed.bone_data.controller_pole).toBe("knee_pole");
   });
 
