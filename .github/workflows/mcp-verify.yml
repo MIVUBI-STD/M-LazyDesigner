@@ -74,6 +74,9 @@ jobs:
       - name: Guard Zero-Waste workflow regression
         run: bun run benchmark:zero-waste-workflow
 
+      - name: Report Zero-Waste bottlenecks
+        run: bun run benchmark:zero-waste-bottlenecks
+
       - name: Measure MCP surface
         run: bun run measure:surface
 

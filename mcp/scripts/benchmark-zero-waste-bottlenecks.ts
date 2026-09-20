@@ -28,7 +28,8 @@ export type BottleneckRow = {
 
 export type BottleneckReport = {
   rows: BottleneckRow[];
-  ranking: BottleneckRow[];
+  eliminated_waste_ranking: BottleneckRow[];
+  remaining_cost_ranking: BottleneckRow[];
   totals: {
     baseline_calls: number;
     optimized_calls: number;
@@ -123,7 +124,7 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
         : Number(((row.removed_bytes / totalRemovedBytes) * 100).toFixed(2)),
   }));
 
-  const ranking = [...rows]
+  const eliminatedWasteRanking = [...rows]
     .filter(
       (row) =>
         row.removed_bytes > 0 ||
@@ -138,9 +139,19 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
         left.kind.localeCompare(right.kind)
     );
 
+  const remainingCostRanking = [...rows]
+    .filter((row) => row.optimized_calls > 0 || row.optimized_bytes > 0)
+    .sort(
+      (left, right) =>
+        right.optimized_bytes - left.optimized_bytes ||
+        right.optimized_calls - left.optimized_calls ||
+        left.kind.localeCompare(right.kind)
+    );
+
   return {
     rows,
-    ranking,
+    eliminated_waste_ranking: eliminatedWasteRanking,
+    remaining_cost_ranking: remainingCostRanking,
     totals: {
       baseline_calls: rows.reduce((sum, row) => sum + row.baseline_calls, 0),
       optimized_calls: rows.reduce((sum, row) => sum + row.optimized_calls, 0),
@@ -175,7 +186,7 @@ if (import.meta.main) {
         schema: 1,
         report: "zero-waste-bottleneck-ranking",
         proof_scope:
-          "REMOTE_GITHUB deterministic workflow-proxy ranking. Bytes and calls are benchmark fixtures, not Codex Astra token telemetry.",
+          "REMOTE_GITHUB deterministic workflow-proxy ranking. eliminated_waste_ranking reports already-removed waste; remaining_cost_ranking reports residual benchmark cost only and is not permission to remove required evidence. Bytes and calls are benchmark fixtures, not Codex Astra token telemetry.",
         ...rankZeroWasteBottlenecks(),
       },
       null,

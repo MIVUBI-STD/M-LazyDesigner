@@ -45,8 +45,8 @@ describe("Zero-Waste bottleneck ranking", () => {
   test("only evidence-backed waste categories appear in the actionable ranking", () => {
     const report = rankZeroWasteBottlenecks();
 
-    expect(report.ranking.length).toBeGreaterThan(0);
-    for (const row of report.ranking) {
+    expect(report.eliminated_waste_ranking.length).toBeGreaterThan(0);
+    for (const row of report.eliminated_waste_ranking) {
       expect(
         row.removed_bytes > 0 ||
           row.removed_calls > 0 ||
@@ -54,6 +54,18 @@ describe("Zero-Waste bottleneck ranking", () => {
         row.kind
       ).toBe(true);
     }
+  });
+
+  test("remaining-cost ranking is separate from eliminated waste", () => {
+    const report = rankZeroWasteBottlenecks();
+
+    expect(report.remaining_cost_ranking.length).toBeGreaterThan(0);
+    expect(report.eliminated_waste_ranking.length).toBeGreaterThan(0);
+    expect(
+      report.remaining_cost_ranking.map((row) => row.kind)
+    ).not.toEqual(
+      report.eliminated_waste_ranking.map((row) => row.kind)
+    );
   });
 
   test("ranking never treats required verification as removable waste", () => {
@@ -66,6 +78,12 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(verify.added_calls).toBe(0);
     expect(verify.net_call_delta).toBe(0);
     expect(verify.redundant_baseline_calls).toBe(0);
+    expect(
+      report.eliminated_waste_ranking.some((row) => row.kind === "verify")
+    ).toBe(false);
+    expect(
+      report.remaining_cost_ranking.some((row) => row.kind === "verify")
+    ).toBe(true);
   });
 
   test("inspection is ranked as call waste only where workflow contracts mark it redundant", () => {
