@@ -527,22 +527,15 @@ describe("texturing authoring contract", () => {
     }
   });
 
-  test("flatten_layers preserves base bitmap before compositing layers", async () => {
+  test("flatten_layers uses native Blockbench semantics and rejects approximation", async () => {
     const paint = await source("server/tools/paint-selection-layers.ts");
     const start = paint.indexOf('if (action === "flatten_layers")');
-    const end = paint.indexOf("if (texture.layers_enabled)", start);
-    const block = paint.slice(start, end);
-    for (const marker of [
-      "Preserve base bitmap",
-      "baseCanvas",
-      "texture.layers",
-      "offCtx.drawImage(baseCanvas",
-      "offCtx.drawImage(layerCanvas",
-    ]) {
-      expect(block).toContain(marker);
-    }
-    // Ensure base draw occurs before layer loop
-    expect(block.indexOf("baseCanvas")).toBeLessThan(block.indexOf("for (const layer of layersSnapshot)"));
+    const block = paint.slice(start);
+    expect(block).toContain('typeof nativeTexture.flatten !== "function"');
+    expect(block).toContain("Refusing approximate fallback");
+    expect(block).toContain("nativeTexture.flatten()");
+    expect(block).not.toContain('document.createElement("canvas")');
+    expect(block).not.toContain('globalCompositeOperation = "source-over"');
   });
 
 });
