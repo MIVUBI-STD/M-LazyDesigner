@@ -24,6 +24,7 @@ Already implemented and retained:
 - verified particle writes continue from their transactional write receipt;
 - verified render-profile writes continue from compact mutation identity + write receipts;
 - element removal continues from consistent deleted-root/count/animation-impact receipts;
+- bone rigging continues from complete final bone/controller/deletion receipts;
 - bounded search + focused inspection when identity is unknown;
 - change-scoped freshness/invalidation;
 - no automatic retry after uncertain mutation outcome.
