@@ -451,7 +451,11 @@ function wireTextureReads(): void {
   const originalListTextures = listTextures.execute.bind(listTextures);
   listTextures.execute = async (args, context) => {
     const result = await originalListTextures(args, context);
-    if (args.diagnostics === false) return result;
+    if (args.diagnostics !== true) return result;
+    const scope =
+      typeof args.diagnostic_scope === "string"
+        ? args.diagnostic_scope
+        : "full";
     const record = objectRecord(result);
     const structured = record ? objectRecord(record.structuredContent) : null;
     if (!record || !structured) return result;
@@ -460,10 +464,14 @@ function wireTextureReads(): void {
       ...record,
       structuredContent: {
         ...structured,
-        seam_continuity: seamContinuityRuntime(),
+        ...(scope === "seam" || scope === "full"
+          ? { seam_continuity: seamContinuityRuntime() }
+          : {}),
         production_alignment: {
           ...(alignment ?? {}),
-          pbr_content: pbrContentRuntime(),
+          ...(scope === "pbr" || scope === "full"
+            ? { pbr_content: pbrContentRuntime() }
+            : {}),
         },
       },
     };
