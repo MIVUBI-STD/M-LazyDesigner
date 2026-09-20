@@ -67,6 +67,15 @@ pub struct ManagedActionResult {
     pub receipt: Value,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ManagedUpdateCheck {
+    pub status: String,
+    pub installed_source_sha: Option<String>,
+    pub available_source_sha: Option<String>,
+    pub tag: Option<String>,
+    pub published_at: Option<String>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct EnsureReadyResult {
     pub status: &'static str,
@@ -761,6 +770,64 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
         action: "install",
         receipt,
     })
+}
+
+pub fn check_managed_update() -> Result<ManagedUpdateCheck, String> {
+    let root = managed_root()
+        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+    let executable = manager_executable(&root)?;
+    let output = run_output(
+        Command::new(&executable)
+            .arg("check-update")
+            .arg("--root")
+            .arg(&root),
+        Duration::from_secs(12),
+        "Managed update check",
+    )?;
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if error.is_empty() {
+            "Managed update check failed.".to_string()
+        } else {
+            error
+        });
+    }
+
+    let result = serde_json::from_slice::<ManagedUpdateCheck>(&output.stdout)
+        .map_err(|_| "Managed update check returned invalid JSON.".to_string())?;
+    if !matches!(
+        result.status.as_str(),
+        "NOT_INSTALLED" | "UP_TO_DATE" | "UPDATE_AVAILABLE" | "UPDATE_STAGED"
+    ) {
+        return Err("Managed update check returned an unsupported status.".to_string());
+    }
+    for sha in [
+        result.installed_source_sha.as_deref(),
+        result.available_source_sha.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if sha.len() != 40 || !sha.chars().all(|ch| ch.is_ascii_hexdigit()) {
+            return Err("Managed update check returned an invalid source identity.".to_string());
+        }
+    }
+    if let Some(tag) = result.tag.as_deref() {
+        let valid = tag
+            .strip_prefix("blockit-v")
+            .map(|version| {
+                !version.is_empty()
+                    && version
+                        .chars()
+                        .all(|ch| ch.is_ascii_digit() || matches!(ch, '.' | '-' ))
+            })
+            .unwrap_or(false);
+        if !valid {
+            return Err("Managed update check returned an invalid release tag.".to_string());
+        }
+    }
+    Ok(result)
 }
 
 pub fn run_managed_action(app: &AppHandle, action: &str) -> Result<ManagedActionResult, String> {
