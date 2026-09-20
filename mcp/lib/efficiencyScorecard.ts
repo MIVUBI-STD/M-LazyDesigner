@@ -33,10 +33,12 @@ export type EfficiencyWorkflowScore = Readonly<{
   baseline_calls: number;
   optimized_calls: number;
   saved_calls: number;
+  net_call_delta: number;
   call_reduction_percent: number;
   baseline_payload_bytes: number;
   optimized_payload_bytes: number;
   saved_payload_bytes: number;
+  net_payload_delta_bytes: number;
   payload_reduction_percent: number;
   baseline_mutation_calls: number;
   optimized_mutation_calls: number;
@@ -78,10 +80,12 @@ export function scoreEfficiencyWorkflow(
     baseline_calls: baselineCalls,
     optimized_calls: optimizedCalls,
     saved_calls: Math.max(0, baselineCalls - optimizedCalls),
+    net_call_delta: baselineCalls - optimizedCalls,
     call_reduction_percent: percent(baselineCalls, optimizedCalls),
     baseline_payload_bytes: baselinePayload,
     optimized_payload_bytes: optimizedPayload,
     saved_payload_bytes: Math.max(0, baselinePayload - optimizedPayload),
+    net_payload_delta_bytes: baselinePayload - optimizedPayload,
     payload_reduction_percent: percent(baselinePayload, optimizedPayload),
     baseline_mutation_calls: countKind(input.baseline, "mutate"),
     optimized_mutation_calls: countKind(input.optimized, "mutate"),
@@ -116,10 +120,12 @@ export function aggregateEfficiencyScores(
     baseline_calls: baselineCalls,
     optimized_calls: optimizedCalls,
     saved_calls: Math.max(0, baselineCalls - optimizedCalls),
+    net_call_delta: baselineCalls - optimizedCalls,
     call_reduction_percent: percent(baselineCalls, optimizedCalls),
     baseline_payload_bytes: baselinePayload,
     optimized_payload_bytes: optimizedPayload,
     saved_payload_bytes: Math.max(0, baselinePayload - optimizedPayload),
+    net_payload_delta_bytes: baselinePayload - optimizedPayload,
     payload_reduction_percent: percent(baselinePayload, optimizedPayload),
     baseline_mutation_calls: scores.reduce(
       (sum, item) => sum + item.baseline_mutation_calls,
