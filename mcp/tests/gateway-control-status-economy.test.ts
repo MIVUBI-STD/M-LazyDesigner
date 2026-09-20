@@ -90,6 +90,10 @@ describe("LazyDesigner Control status projection economy", () => {
     expect(full.runtime.build_identity).toBe("sha256:build-a");
     expect(full.runtime.catalog_count).toBe(47);
 
+    expect(projected).not.toHaveProperty("protocol");
+    expect(projected).not.toHaveProperty("mode");
+    expect(projected).not.toHaveProperty("development");
+    expect(projected).not.toHaveProperty("blockers");
     expect(projected.project).not.toHaveProperty("affinity_uuid");
     expect(projected.authoring).not.toHaveProperty("phase");
     expect(projected.runtime).not.toHaveProperty("online");
@@ -109,7 +113,6 @@ describe("LazyDesigner Control status projection economy", () => {
     expect(projected.context).not.toHaveProperty("optional");
     expect(projected.context).not.toHaveProperty("invalidated_ids");
     expect(projected.stage_context).toEqual(full.stage_context);
-    expect(projected.blockers).toEqual(full.blockers);
 
     expect(JSON.stringify(projected).length).toBeLessThan(JSON.stringify(full).length);
   });

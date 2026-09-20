@@ -363,9 +363,7 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
   };
 
   return {
-    protocol: packet.protocol,
     system: packet.system,
-    mode: packet.mode,
     task_context_id: packet.task_context_id,
     project: {
       active_uuid: packet.project.active_uuid,
@@ -382,9 +380,15 @@ export function projectControlPacketForGateway(packet: ControlPacket) {
     readiness: packet.readiness,
     workspace: packet.workspace,
     reference: packet.reference,
-    stage_context: packet.stage_context,
-    development: packet.development,
+    ...(packet.stage_context !== null
+      ? { stage_context: packet.stage_context }
+      : {}),
+    ...(packet.development !== null
+      ? { development: packet.development }
+      : {}),
     context,
-    blockers: packet.blockers,
+    ...(packet.blockers.length > 0
+      ? { blockers: packet.blockers }
+      : {}),
   };
 }
