@@ -25,6 +25,26 @@ Those remain owned by the existing Runtime/Gateway/Managed Distribution layers.
 Desktop does not poll releases in the background and never kills Blockbench/Gateway processes. Safe self-healing is limited to restoring owned managed files while Blockbench/Runtime/Gateway are idle.
 
 
+## Startup-only managed update discovery
+
+Managed-component update discovery follows a one-shot startup policy similar to mature desktop IDEs that support a startup-only update mode:
+
+```text
+Desktop opens
+→ local system_status renders first
+→ check_managed_update runs once, asynchronously
+→ fetch published release metadata + digest-verified blockit-package.json only
+→ same source SHA: remain silent
+→ newer source SHA: show Update
+→ user chooses Update: canonical Managed Distribution update path runs
+```
+
+The startup check is read-only. It does not download the managed ZIP, stage files, restart processes, mutate configuration, or block normal Desktop startup. Network failure is advisory and silent: local LazyDesigner health remains usable.
+
+The check is deliberately absent from the 3-second connection heartbeat, focus handling, visibility handling, and MCP startup. There is no resident updater process, scheduled task, daemon, or background polling loop. The full package is downloaded only after explicit user Update intent. A previously staged verified update is surfaced without another network lookup.
+
+
+
 ## Explicit maintenance actions
 
 Desktop may invoke only bounded, named commands from the existing manager. The first mutating surface is:
