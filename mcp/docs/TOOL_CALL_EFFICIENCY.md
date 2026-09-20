@@ -72,8 +72,8 @@ Do not reread unaffected hierarchy or full model state.
 ### New Texture Pass
 
 ```text
-list_textures(diagnostics=false) once for atlas discovery
--> diagnostics=true only when UV/coverage readiness is actually unknown
+list_textures() once for inventory-only atlas discovery
+-> diagnostics=true only when decision-changing review is needed; use diagnostic_scope=uv|coverage|seam|pbr before full
 -> create/activate target texture only when required
 -> one identity-critical representative patch/cohort
 -> mapped model capture for reference judgement
@@ -97,7 +97,7 @@ A Geometry/UV-owned defect exits Texturing instead of triggering extra paint cal
 
 ### Existing-Model Texture Edit
 
-Known atlas and mapped target -> direct paint operation. Inspect face mapping only when the requested region cannot be located reliably from fresh state.
+Known atlas and mapped target -> direct paint operation. Inspect face mapping only when the requested region cannot be located reliably from fresh state. Exact-pixel work bypasses native Painter UI state; native brush/fill/shape/gradient semantics use Painter only when those semantics are required.
 
 ## Animation
 
