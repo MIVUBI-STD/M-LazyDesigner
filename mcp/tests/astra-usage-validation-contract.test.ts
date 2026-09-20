@@ -133,6 +133,82 @@ describe("Astra usage validation contract", () => {
     ).toThrow(/non-negative/);
   });
 
+  test("multi-event task counts source-provided compaction totals", () => {
+    const common = {
+      task_id: "F_reference_driven_asset",
+      quality_verdict: "PASS",
+      task_success: true,
+      user_corrections: 0,
+      usage: { total_tokens: null, input_tokens: null, cached_input_tokens: null, output_tokens: null, reasoning_tokens: null },
+      calls: { total: 4, search: 0, describe: 0, inspect: 1, mutate: 2, verify: 1, recovery: 0 },
+    };
+    const doc = {
+      schema: "lazydesigner-astra-usage-v1",
+      proof_scope: "LIVE_BLOCKBENCH",
+      source_sha: "abc",
+      model: "Codex Astra",
+      telemetry_source: "captured-client-telemetry",
+      runs: [
+        {
+          ...common,
+          variant: "baseline",
+          model_events: [
+            { kind: "response", total_tokens: 800, input_tokens: 600, cached_input_tokens: 100, output_tokens: 200, reasoning_tokens: null },
+            { kind: "compaction", total_tokens: 200, input_tokens: 150, cached_input_tokens: 0, output_tokens: 50, reasoning_tokens: null },
+          ],
+        },
+        {
+          ...common,
+          variant: "zero_waste",
+          model_events: [
+            { kind: "response", total_tokens: 650, input_tokens: 500, cached_input_tokens: 150, output_tokens: 150, reasoning_tokens: null },
+            { kind: "compaction", total_tokens: 100, input_tokens: 80, cached_input_tokens: 0, output_tokens: 20, reasoning_tokens: null },
+          ],
+        },
+      ],
+    } as any;
+
+    const summary = summarizeAstraUsage(doc);
+    expect(summary.comparisons[0]).toMatchObject({
+      comparison_state: "MEASURED",
+      total_tokens: {
+        baseline: 1000,
+        zero_waste: 750,
+        delta: 250,
+        reduction_percent: 25,
+      },
+      telemetry: {
+        baseline: { event_count: 2, compaction_events: 1 },
+        zero_waste: { event_count: 2, compaction_events: 1 },
+      },
+    });
+  });
+
+  test("missing event total prevents a token-saving claim", () => {
+    const common = {
+      task_id: "A_known_transform",
+      quality_verdict: "PASS",
+      task_success: true,
+      user_corrections: 0,
+      usage: { total_tokens: null, input_tokens: null, cached_input_tokens: null, output_tokens: null, reasoning_tokens: null },
+      calls: { total: 1, search: 0, describe: 0, inspect: 0, mutate: 1, verify: 0, recovery: 0 },
+    };
+    const doc = {
+      schema: "lazydesigner-astra-usage-v1",
+      proof_scope: "LIVE_BLOCKBENCH",
+      source_sha: "abc",
+      model: "Codex Astra",
+      telemetry_source: "captured-client-telemetry",
+      runs: [
+        { ...common, variant: "baseline", model_events: [{ kind: "response", total_tokens: null, input_tokens: 900, cached_input_tokens: 100, output_tokens: 100, reasoning_tokens: 50 }] },
+        { ...common, variant: "zero_waste", model_events: [{ kind: "response", total_tokens: 700, input_tokens: 500, cached_input_tokens: 100, output_tokens: 150, reasoning_tokens: 50 }] },
+      ],
+    } as any;
+
+    const summary = summarizeAstraUsage(doc);
+    expect(summary.comparisons[0].token_claim_available).toBe(false);
+  });
+
   test("live Golden manifest covers A-F and keeps quality before efficiency", async () => {
     const manifest = await Bun.file(
       "tests/fixtures/astra-live-golden-tasks.json"

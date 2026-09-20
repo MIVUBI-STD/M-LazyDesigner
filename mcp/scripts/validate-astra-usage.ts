@@ -11,6 +11,12 @@ type Usage = {
   reasoning_tokens: NullableNumber;
 };
 
+type ModelUsageEvent = Usage & {
+  kind: "response" | "compaction";
+  cache_missed_tokens?: NullableNumber;
+  comparison_reusable_tokens?: NullableNumber;
+};
+
 type Calls = {
   total: NullableNumber;
   search: NullableNumber;
@@ -28,6 +34,7 @@ type UsageRun = {
   task_success: boolean | null;
   user_corrections: NullableNumber;
   usage: Usage;
+  model_events?: ModelUsageEvent[];
   calls: Calls;
 };
 
@@ -43,6 +50,7 @@ type UsageDocument = {
 
 const VERDICTS = new Set<Verdict>(["PASS", "FAIL", "UNVERIFIED"]);
 const VARIANTS = new Set<Variant>(["baseline", "zero_waste"]);
+const EVENT_KINDS = new Set<ModelUsageEvent["kind"]>(["response", "compaction"]);
 const USAGE_FIELDS: (keyof Usage)[] = [
   "total_tokens",
   "input_tokens",
@@ -67,6 +75,64 @@ function requireNullableNonNegativeNumber(value: unknown, field: string): assert
   }
 }
 
+
+function validateUsage(usage: Usage, prefix: string): void {
+  if (!usage || typeof usage !== "object") {
+    throw new Error(`${prefix} is required.`);
+  }
+  for (const field of USAGE_FIELDS) {
+    requireNullableNonNegativeNumber(usage[field], `${prefix}.${field}`);
+  }
+}
+
+function validateEvent(
+  event: ModelUsageEvent,
+  runIndex: number,
+  eventIndex: number
+): void {
+  const prefix = `runs[${runIndex}].model_events[${eventIndex}]`;
+  if (!event || typeof event !== "object") {
+    throw new Error(`${prefix} must be an object.`);
+  }
+  if (!EVENT_KINDS.has(event.kind)) {
+    throw new Error(`${prefix}.kind is invalid.`);
+  }
+  validateUsage(event, prefix);
+  for (const field of ["cache_missed_tokens", "comparison_reusable_tokens"] as const) {
+    if (event[field] !== undefined) {
+      requireNullableNonNegativeNumber(event[field], `${prefix}.${field}`);
+    }
+  }
+}
+
+export function effectiveTotalTokens(run: UsageRun): number | null {
+  const events = run.model_events ?? [];
+  if (events.length === 0) return run.usage.total_tokens;
+  if (events.some((event) => event.total_tokens === null)) return null;
+  return events.reduce((sum, event) => sum + (event.total_tokens as number), 0);
+}
+
+function eventDiagnostics(run: UsageRun) {
+  const events = run.model_events ?? [];
+  return {
+    event_count: events.length,
+    response_events: events.filter((event) => event.kind === "response").length,
+    compaction_events: events.filter((event) => event.kind === "compaction").length,
+    cached_input_tokens:
+      events.length > 0 && events.every((event) => event.cached_input_tokens !== null)
+        ? events.reduce((sum, event) => sum + (event.cached_input_tokens as number), 0)
+        : run.usage.cached_input_tokens,
+    cache_missed_tokens:
+      events.length > 0 && events.every((event) => event.cache_missed_tokens != null)
+        ? events.reduce((sum, event) => sum + (event.cache_missed_tokens as number), 0)
+        : null,
+    comparison_reusable_tokens:
+      events.length > 0 && events.every((event) => event.comparison_reusable_tokens != null)
+        ? events.reduce((sum, event) => sum + (event.comparison_reusable_tokens as number), 0)
+        : null,
+  };
+}
+
 function validateRun(run: UsageRun, index: number): void {
   if (!run || typeof run !== "object") throw new Error(`runs[${index}] must be an object.`);
   if (typeof run.task_id !== "string" || run.task_id.length === 0) {
@@ -78,9 +144,25 @@ function validateRun(run: UsageRun, index: number): void {
     throw new Error(`runs[${index}].task_success must be boolean or null.`);
   }
   requireNullableNonNegativeNumber(run.user_corrections, `runs[${index}].user_corrections`);
-  if (!run.usage || typeof run.usage !== "object") throw new Error(`runs[${index}].usage is required.`);
-  for (const field of USAGE_FIELDS) {
-    requireNullableNonNegativeNumber(run.usage[field], `runs[${index}].usage.${field}`);
+  validateUsage(run.usage, `runs[${index}].usage`);
+  if (run.model_events !== undefined) {
+    if (!Array.isArray(run.model_events)) {
+      throw new Error(`runs[${index}].model_events must be an array.`);
+    }
+    run.model_events.forEach((event, eventIndex) =>
+      validateEvent(event, index, eventIndex)
+    );
+    const eventTotal = effectiveTotalTokens(run);
+    if (
+      run.model_events.length > 0 &&
+      run.usage.total_tokens !== null &&
+      eventTotal !== null &&
+      run.usage.total_tokens !== eventTotal
+    ) {
+      throw new Error(
+        `runs[${index}].usage.total_tokens conflicts with summed source-provided model event totals.`
+      );
+    }
   }
   if (!run.calls || typeof run.calls !== "object") throw new Error(`runs[${index}].calls is required.`);
   for (const field of CALL_FIELDS) {
@@ -108,8 +190,8 @@ function canClaimUsageComparison(baseline: UsageRun, optimized: UsageRun): boole
     optimized.quality_verdict === "PASS" &&
     baseline.task_success === true &&
     optimized.task_success === true &&
-    baseline.usage.total_tokens !== null &&
-    optimized.usage.total_tokens !== null
+    effectiveTotalTokens(baseline) !== null &&
+    effectiveTotalTokens(optimized) !== null
   );
 }
 
@@ -138,6 +220,9 @@ export function summarizeAstraUsage(document: UsageDocument) {
       };
     }
 
+    const baselineTotal = effectiveTotalTokens(baseline);
+    const optimizedTotal = effectiveTotalTokens(optimized);
+
     if (!canClaimUsageComparison(baseline, optimized)) {
       return {
         task_id: taskId,
@@ -150,14 +235,18 @@ export function summarizeAstraUsage(document: UsageDocument) {
           zero_waste: optimized.quality_verdict,
         },
         total_tokens: {
-          baseline: baseline.usage.total_tokens,
-          zero_waste: optimized.usage.total_tokens,
+          baseline: baselineTotal,
+          zero_waste: optimizedTotal,
+        },
+        telemetry: {
+          baseline: eventDiagnostics(baseline),
+          zero_waste: eventDiagnostics(optimized),
         },
       };
     }
 
-    const before = baseline.usage.total_tokens as number;
-    const after = optimized.usage.total_tokens as number;
+    const before = baselineTotal as number;
+    const after = optimizedTotal as number;
     const saved = before - after;
     return {
       task_id: taskId,
@@ -169,6 +258,10 @@ export function summarizeAstraUsage(document: UsageDocument) {
         delta: saved,
         reduction_percent:
           before === 0 ? 0 : Number(((saved / before) * 100).toFixed(2)),
+      },
+      telemetry: {
+        baseline: eventDiagnostics(baseline),
+        zero_waste: eventDiagnostics(optimized),
       },
       user_corrections: {
         baseline: baseline.user_corrections,
@@ -187,13 +280,13 @@ export function summarizeAstraUsage(document: UsageDocument) {
   );
 
   return {
-    schema: 1,
+    schema: 2,
     proof_scope: document.proof_scope,
     source_sha: document.source_sha,
     model: document.model,
     telemetry_source: document.telemetry_source,
     rule:
-      "Never derive total_tokens from components; compare only source-provided total_tokens after both quality gates PASS.",
+      "Never derive task total_tokens from input/output/reasoning components. For multi-event tasks, sum only source-provided total_tokens from every response/compaction event after both quality gates PASS.",
     comparisons,
     aggregate: {
       measured_pairs: measured.length,

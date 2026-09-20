@@ -4,7 +4,7 @@
   "source_sha": null,
   "model": null,
   "telemetry_source": null,
-  "notes": "Populate only values actually exposed by the Codex/Astra client or captured harness. Leave unavailable telemetry null.",
+  "notes": "Populate only source-provided Codex/Astra telemetry. For long tasks, record each response/compaction event so compaction cost is included. Leave unavailable fields null.",
   "runs": [
     {
       "task_id": "A_known_transform",
@@ -27,7 +27,8 @@
         "mutate": null,
         "verify": null,
         "recovery": null
-      }
+      },
+      "model_events": []
     },
     {
       "task_id": "A_known_transform",
@@ -50,7 +51,8 @@
         "mutate": null,
         "verify": null,
         "recovery": null
-      }
+      },
+      "model_events": []
     }
   ]
 }
