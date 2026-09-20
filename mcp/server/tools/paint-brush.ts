@@ -4,7 +4,11 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { runPaintStroke } from "@/lib/paintStroke";
-import { getAndActivateTexture, setBarItemValues } from "@/lib/util";
+import {
+  getAndActivateTexture,
+  resolvePaintTexture,
+  setBarItemValues,
+} from "@/lib/util";
 import {
   blendModeEnum,
   brushSettingsSchema,
@@ -206,7 +210,7 @@ export function registerPaintBrushTools(): void {
             connect_strokes,
           }) {
             requirePaintCoordinates(coordinates, "paint_with_brush");
-            const texture = getAndActivateTexture(texture_id);
+            const texture = resolvePaintTexture(texture_id);
             requirePixelsWithinTexture(texture, coordinates);
     
             const colorHex = brush_settings?.color ?? "#000000";
@@ -256,7 +260,7 @@ export function registerPaintBrushTools(): void {
                 }
               }
     
-              const undoAspects: UndoAspects = { selected_texture: true, bitmap: true };
+              const undoAspects: UndoAspects = { bitmap: true };
               if (texture.layers_enabled && texture.layers[0]) {
                 const activeLayer = texture.getActiveLayer();
                 if (!activeLayer) {
@@ -321,7 +325,9 @@ export function registerPaintBrushTools(): void {
               };
             }
 
-            // Native Painter setup is required only for non-deterministic brush semantics.
+            // Native Painter state is activated only after the deterministic
+            // compatibility path has been ruled out.
+            if (Texture.selected?.uuid !== texture.uuid) texture.select();
             // @ts-ignore - official Blockbench Painter tool ID
             BarItems.brush_tool.select();
             setBarItemValues({
