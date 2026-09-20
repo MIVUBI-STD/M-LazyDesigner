@@ -69,6 +69,19 @@ describe("MCP efficiency scorecard", () => {
     expect(score.quality_preserved).toBe(true);
   });
 
+  test("opportunity register separates implemented savings from unproven helpers", () => {
+    const report = runMcpEfficiencyScorecard();
+    const byId = new Map(
+      report.opportunity_register.map((item) => [item.id, item] as const)
+    );
+
+    expect(byId.get("geometry_coherent_cube_batch")?.status).toBe("implemented");
+    expect(byId.get("animation_coherent_keyframe_batch")?.status).toBe("implemented");
+    expect(byId.get("texture_atomic_region_transaction")?.status).toBe("implemented");
+    expect(byId.get("rig_locator_cohort_mutation")?.status).toBe("evidence_required");
+    expect(byId.get("render_target_native_adapter")?.status).toBe("blocked_by_stable_api");
+  });
+
   test("aggregate establishes a guarded material saving floor", () => {
     const { aggregate } = runMcpEfficiencyScorecard();
 
