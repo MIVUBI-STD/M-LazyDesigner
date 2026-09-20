@@ -3,6 +3,7 @@
   import { listen } from '@tauri-apps/api/event';
   import { onDestroy, onMount } from 'svelte';
   import ProjectNavigator from './ProjectNavigator.svelte';
+  import type { ProjectAction, ProjectNavigation } from './projectNavigationTypes';
 
   type Compatibility = {
     status: 'validated' | 'compatible-unverified' | 'review-required' | 'unsupported' | 'invalid';
@@ -61,48 +62,6 @@
     plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
     project_revision: string | null;
     project_session_live: boolean;
-  };
-
-  type ProjectNavigationModel = {
-    id: string;
-    name: string;
-    active: boolean;
-    open: boolean;
-    dirty: boolean;
-    exists: boolean;
-  };
-
-  type ProjectNavigationFolder = {
-    id: string;
-    label: string;
-    kind: 'models' | 'references' | 'textures' | 'exports';
-  };
-
-  type ProjectNavigationProject = {
-    id: string;
-    name: string;
-    active: boolean;
-    pinned: boolean;
-    model_count: number;
-    models: ProjectNavigationModel[];
-    folders: ProjectNavigationFolder[];
-  };
-
-  type ActiveProjectNavigation = {
-    project_id: string | null;
-    project_name: string | null;
-    model_id: string | null;
-    model_name: string;
-    saved: boolean;
-    dirty: boolean;
-  };
-
-  type ProjectNavigation = {
-    revision: string | null;
-    session_live: boolean;
-    continue_model_id: string | null;
-    active: ActiveProjectNavigation | null;
-    projects: ProjectNavigationProject[];
   };
 
   type SystemStatus = {
@@ -257,7 +216,7 @@
     }
   }
 
-  async function runProjectAction(action: 'open-project-folder' | 'open-folder' | 'reveal-model' | 'pin-project' | 'unpin-project', id: string) {
+  async function runProjectAction(action: ProjectAction, id: string) {
     if (devFixture || busyAction) return;
     busyAction = 'project-action';
     error = '';

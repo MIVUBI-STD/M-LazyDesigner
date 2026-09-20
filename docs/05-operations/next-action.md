@@ -102,7 +102,7 @@ apps/desktop/src/App.svelte
 
 Blockbench detection/compatibility/open now lives in `apps/desktop/src-tauri/src/blockbench.rs`.
 
-Runtime health lives in `runtime_health.rs`; readiness/product/maintenance policy lives in `readiness.rs`; Project backend lives in `project_navigation.rs`; Project Navigator presentation now lives in `ProjectNavigator.svelte` while App retains command orchestration. Remaining refactor candidates are managed ownership and smaller Support/operation UI only if they show clear value. No new framework/router.
+Runtime health lives in `runtime_health.rs`; readiness/product/maintenance policy lives in `readiness.rs`; Project backend lives in `project_navigation.rs`; Project Navigator presentation lives in `ProjectNavigator.svelte`; shared Project Navigation types live in `projectNavigationTypes.ts`. App retains command orchestration. Further splits are deferred unless audit evidence shows clear value.
 
 ### 5. Behavioral Project Navigator tests — REMOTE COVERAGE EXPANDED
 

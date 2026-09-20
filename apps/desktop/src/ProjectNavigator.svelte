@@ -1,47 +1,5 @@
 <script lang="ts">
-  type ProjectNavigationModel = {
-    id: string;
-    name: string;
-    active: boolean;
-    open: boolean;
-    dirty: boolean;
-    exists: boolean;
-  };
-
-  type ProjectNavigationFolder = {
-    id: string;
-    label: string;
-    kind: 'models' | 'references' | 'textures' | 'exports';
-  };
-
-  type ProjectNavigationProject = {
-    id: string;
-    name: string;
-    active: boolean;
-    pinned: boolean;
-    model_count: number;
-    models: ProjectNavigationModel[];
-    folders: ProjectNavigationFolder[];
-  };
-
-  type ActiveProjectNavigation = {
-    project_id: string | null;
-    project_name: string | null;
-    model_id: string | null;
-    model_name: string;
-    saved: boolean;
-    dirty: boolean;
-  };
-
-  type ProjectNavigation = {
-    revision: string | null;
-    session_live: boolean;
-    continue_model_id: string | null;
-    active: ActiveProjectNavigation | null;
-    projects: ProjectNavigationProject[];
-  };
-
-  type ProjectAction = 'open-project-folder' | 'open-folder' | 'reveal-model' | 'pin-project' | 'unpin-project';
+  import type { ProjectAction, ProjectNavigation, ProjectNavigationProject } from './projectNavigationTypes';
 
   export let navigation: ProjectNavigation;
   export let busy = false;
