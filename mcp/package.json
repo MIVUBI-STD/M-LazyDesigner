@@ -41,7 +41,7 @@
     "verify:authoring": "bun test tests/authoring/*.test.ts",
     "verify:fixture-static": "bun test tests/authoring/current-workspace-fixture-static.test.ts",
     "verify:closure": "bun run verify:repository && bun run verify:authoring && bun run docs:check",
-    "verify:mcp": "bun run docs:check && bun run typecheck && bun run typecheck:gateway && bun run audit:unused && bun run audit:unused:gateway && bun run test:runtime && bun run verify:authoring && bun run benchmark:zero-waste-total && bun run measure:surface && bun run measure:phases && bun run build",
+    "verify:mcp": "bun run docs:check && bun run typecheck && bun run typecheck:gateway && bun run audit:unused && bun run audit:unused:gateway && bun run test:runtime && bun run verify:authoring && bun run benchmark:zero-waste-total && bun run measure:mcp-efficiency && bun run measure:surface && bun run measure:phases && bun run build",
     "verify:full": "bun run verify:repository && bun run verify:mcp",
     "verify:release": "bun run verify:full",
     "eval:tool-discovery": "bun run ./scripts/evaluate-tool-discovery.ts",
@@ -71,7 +71,8 @@
     "audit:unused": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "audit:unused:gateway": "tsc -p gateway/tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters",
     "verify:texture-runtime-live": "bun run ./scripts/verify-texture-runtime-live.ts",
-    "conformance:serve": "bun run ./scripts/serve-conformance-runtime.ts"
+    "conformance:serve": "bun run ./scripts/serve-conformance-runtime.ts",
+    "measure:mcp-efficiency": "bun run ./scripts/measure-mcp-efficiency.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
