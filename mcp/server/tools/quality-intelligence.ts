@@ -398,7 +398,13 @@ function wireTool(
     const result = await execute(args, context);
     if (
       (toolName === "inspect_animation" && args.diagnostics !== true) ||
-      (toolName === "list_textures" && args.diagnostics === false)
+      (toolName === "list_textures" &&
+        (args.diagnostics !== true ||
+          !["coverage", "full"].includes(
+            typeof args.diagnostic_scope === "string"
+              ? args.diagnostic_scope
+              : "full"
+          )))
     ) return result;
     const record = objectRecord(result);
     const structured = record ? objectRecord(record.structuredContent) : null;
