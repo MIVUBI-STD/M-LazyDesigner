@@ -44,12 +44,18 @@ export function rgbaToPngDataUrl(
 }
 
 
-export function rgbaRectToPngDataUrl(
+export function cropRgbaRect(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
   rect: readonly [number, number, number, number]
-): string {
+): {
+  pixels: Uint8ClampedArray;
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+} {
   const [left, top, right, bottom] = rect;
   if (
     !Number.isSafeInteger(width) ||
@@ -83,5 +89,21 @@ export function rgbaRectToPngDataUrl(
       y * cropWidth * 4
     );
   }
-  return rgbaToPngDataUrl(crop, cropWidth, cropHeight);
+  return {
+    pixels: crop,
+    width: cropWidth,
+    height: cropHeight,
+    left,
+    top,
+  };
+}
+
+export function rgbaRectToPngDataUrl(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  rect: readonly [number, number, number, number]
+): string {
+  const crop = cropRgbaRect(pixels, width, height, rect);
+  return rgbaToPngDataUrl(crop.pixels, crop.width, crop.height);
 }
