@@ -209,6 +209,52 @@ export function runMcpEfficiencyScorecard() {
       "Deterministic REMOTE_GITHUB workflow proxy. Call and payload reductions are representative architecture measurements, not live Codex token telemetry or native Blockbench latency.",
     scores,
     aggregate: aggregateEfficiencyScores(scores),
+    opportunity_register: [
+      {
+        id: "geometry_coherent_cube_batch",
+        status: "implemented",
+        primitive: "manage_cubes",
+        next_gate: "retain",
+      },
+      {
+        id: "animation_coherent_keyframe_batch",
+        status: "implemented",
+        primitive: "manage_animation_timeline(batch)",
+        next_gate: "retain",
+      },
+      {
+        id: "texture_atomic_region_transaction",
+        status: "implemented",
+        primitive: "paint_texture_transaction",
+        next_gate: "retain",
+      },
+      {
+        id: "receipt_only_continuation",
+        status: "implemented",
+        primitive: "Control mutation receipts",
+        next_gate: "expand only when a mutation already returns complete final state",
+      },
+      {
+        id: "focused_discovery",
+        status: "implemented",
+        primitive: "bounded search + focused inspection",
+        next_gate: "retain",
+      },
+      {
+        id: "rig_locator_cohort_mutation",
+        status: "evidence_required",
+        primitive: null,
+        next_gate:
+          "Measure real repeated locator/Null Object/IK call frequency before widening existing schemas. Prefer one internal transaction only if repeated same-domain mutations materially dominate accepted-result cost.",
+      },
+      {
+        id: "render_target_native_adapter",
+        status: "blocked_by_stable_api",
+        primitive: null,
+        next_gate:
+          "Adopt only after Blockbench exposes a stable plugin-facing boundary; do not copy private RenderTarget internals.",
+      },
+    ],
   };
 }
 
