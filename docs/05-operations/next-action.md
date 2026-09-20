@@ -150,4 +150,4 @@ REMOTE_GITHUB proves only source/static/CI-verifiable contracts on the exact SHA
 Remaining proof is LIVE_BLOCKBENCH only. Use `mcp/tests/fixtures/astra-live-golden-tasks.json` + the normalized usage template, then run `bun run eval:astra-usage -- <file>`. Quality PASS must precede any token claim; unavailable telemetry stays `null`. Do not resume source trimming without live evidence.
 
 ## Zero-Waste Plan
-See `docs/04-system/zero-waste-token-efficiency-plan.md`. Further payload trimming waits for live Astra evidence.
+P1 Headroom + P2 supersession are source-verified. Next: live Astra A-F measurement per `docs/04-system/zero-waste-token-efficiency-plan.md`.

@@ -47,8 +47,8 @@ Do not add duplicate planners, routers, memory stores, summarizers, or schema sy
 
 ### P1 — Deterministic Context Headroom Guard
 
-**Status:** useful and not yet implemented as an explicit budget owner.  
-**Priority:** highest remaining source-layer improvement.
+**Status:** IMPLEMENTED on `Local`; exact-SHA MCP Verify PASS.  
+**Priority:** closed unless live telemetry exposes a defect.
 
 ### Problem
 
@@ -131,7 +131,7 @@ Do **not** expose these diagnostics to the model in normal status unless needed 
 - optional removal reduces projected size;
 - BLOCKED/reference-conflict context cannot be truncated;
 - current user requirement cannot disappear;
-- stage-context hash changes only when decision-relevant projected content changes;
+- canonical `context_hash` remains conservative source identity; Headroom owns a separate internal `projection_hash` for deterministic projection diagnostics;
 - no extra Gateway call;
 - no extra model inference;
 - workflow quality gates unchanged.
@@ -151,8 +151,8 @@ quality contract = unchanged
 
 ### P2 — Superseded Evidence Non-Repetition
 
-**Status:** partially implemented by context handles, freshness, invalidation and compact receipts.  
-**Priority:** implement only the narrow missing portion.
+**Status:** IMPLEMENTED on `Local`; exact-SHA MCP Verify PASS.  
+**Priority:** closed unless live telemetry exposes a repeated-context defect.
 
 ### Important boundary
 
@@ -205,8 +205,8 @@ Mostly prevents future re-expansion. Do not claim large savings until Astra tele
 
 ### P3 — Context Budget Telemetry / Headroom Diagnostics
 
-**Status:** not yet explicit.  
-**Priority:** implement together with P1, not as a separate subsystem.
+**Status:** IMPLEMENTED with P1 in `measure-control-context.ts` + Headroom diagnostics.  
+**Priority:** closed; diagnostics stay off the normal model-facing path.
 
 Purpose: make headroom measurable without putting diagnostics into normal model context.
 
@@ -341,7 +341,7 @@ Reason: overhead/risk is currently larger than proven usage savings.
 
 ## Implementation Order
 
-### Phase 1 — Headroom Guard
+### Phase 1 — Headroom Guard — COMPLETE
 
 Files:
 
@@ -368,7 +368,7 @@ Repository Verify
 Head Proof
 ```
 
-### Phase 2 — Superseded Non-Repetition
+### Phase 2 — Superseded Non-Repetition — COMPLETE
 
 Proceed only after Phase 1 exact-SHA gates pass.
 
@@ -376,7 +376,7 @@ Files should remain limited to existing Control projection/delta owners + focuse
 
 No persistent storage.
 
-### Phase 3 — Local/Live Astra Measurement
+### Phase 3 — Local/Live Astra Measurement — NEXT
 
 No further source trimming before running Golden A-F.
 
