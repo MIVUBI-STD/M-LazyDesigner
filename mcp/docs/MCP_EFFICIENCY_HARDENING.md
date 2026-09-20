@@ -132,20 +132,25 @@ Use stable native APIs where available. Private/internal Blockbench modules are 
 
 Implemented without adding a public tool:
 
-- `list_textures` defaults to inventory-only; bounded diagnostics are opt-in.
-- `diagnostic_scope=uv|coverage|seam|pbr|full` avoids unrelated scans while `diagnostics=true` without a scope preserves legacy full review.
-- coverage intelligence runs only for `coverage|full`; seam sampling only for `seam|full`; PBR content and production alignment only for `pbr|full`.
-- exact-pixel `paint_with_brush` decides the deterministic bitmap path before native Brush/slider/ColorPanel mutation.
-- existing `paint_texture_transaction` remains the preferred deterministic multi-operation path with revision protection and one Undo.
+- `list_textures` defaults to inventory-only; bounded diagnostics are opt-in and scoped with `diagnostic_scope=uv|coverage|seam|pbr|full`.
+- coverage, seam, and PBR diagnostics share a request-local containment-aware pixel-read context; cache state never survives the MCP invocation.
+- `diagnostic_io` exposes actual request-local read calls, cache hits, pixels read, bytes read, and cached-region count for measurable full-diagnostic cost.
+- deterministic texture targeting uses `resolvePaintTexture` and does not change editor selection; native Painter activation occurs only when native semantics are required.
+- exact-pixel `paint_with_brush` bypasses Brush/slider/ColorPanel setup and selection mutation.
+- `paint_texture_transaction` keeps full before/after revision proof but writes only the bounded dirty region to the canvas.
+- transaction evidence reuses the verified dirty-region buffer; no third full-atlas read is performed for the affected-region PNG.
+- `texture_layer_management` resolves an explicit `layer_id` inside the target texture instead of relying on global `TextureLayer.selected`.
+- layer Undo is action-scoped: metadata mutations snapshot layer metadata only, ordering changes avoid bitmap snapshots, and pixel-destructive layer operations retain texture-level bitmap Undo.
+- layer rename preserves Texture visual freshness and avoids a full texture recomposite/PNG serialization.
+- layer flattening is native-only and fails closed when `texture.flatten()` is unavailable; the removed manual fallback could not preserve all native blend/alpha-mask semantics.
 
-Deliberately deferred until LIVE_BLOCKBENCH evidence exists:
+Deliberately deferred until evidence justifies the added complexity:
 
-- removing texture activation from direct bitmap paths;
-- caching full-atlas revisions across native edits;
-- weakening transaction postcondition rereads;
-- adding layer-cohort transactions.
-
-These remain evidence-gated because stale editor state or layer/Undo coupling would cost more than the saved call.
+- persistent full-atlas revision ledgers/caches across calls — requires LIVE_BLOCKBENCH invalidation proof for manual edits, Undo/Redo, layers, reloads, and external changes.
+- weakening full transaction postcondition reads — current full after-revision remains the correctness boundary.
+- layer-cohort batching — technically feasible after explicit layer identity, but must first pass static-schema-vs-recurring-call break-even measurement.
+- global cross-subsystem diagnostic budgets beyond request-local read reuse — add only if measured full diagnostics still exceed the accepted cost envelope.
+- selection morphology replacement — conditional path only; optimize if real use justifies replacing the current radius-based scan.
 
 ## Acceptance Rules
 
