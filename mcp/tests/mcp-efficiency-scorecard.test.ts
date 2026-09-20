@@ -12,6 +12,7 @@ describe("MCP efficiency scorecard", () => {
       "texture_atomic_region_transaction",
       "receipt_only_hierarchy_continuation",
       "particle_verified_write_receipt",
+      "render_profile_verified_write_receipt",
       "unknown_target_focused_discovery",
     ]);
     expect(report.aggregate.quality_preserved).toBe(true);
@@ -75,6 +76,17 @@ describe("MCP efficiency scorecard", () => {
     expect(score.quality_preserved).toBe(true);
   });
 
+  test("verified render-profile writes continue from the mutation receipt", () => {
+    const score = runMcpEfficiencyScorecard().scores.find(
+      (item) => item.id === "render_profile_verified_write_receipt"
+    )!;
+
+    expect(score.baseline_inspection_calls).toBe(1);
+    expect(score.optimized_inspection_calls).toBe(0);
+    expect(score.optimized_mutation_calls).toBe(1);
+    expect(score.quality_preserved).toBe(true);
+  });
+
   test("focused discovery preserves the one identity read required for safe mutation", () => {
     const score = runMcpEfficiencyScorecard().scores.find(
       (item) => item.id === "unknown_target_focused_discovery"
@@ -90,7 +102,7 @@ describe("MCP efficiency scorecard", () => {
     const report = runMcpEfficiencyScorecard();
 
     expect(report.static_surface.runtime_tool_count).toBe(54);
-    expect(report.static_surface.reused_primitive_count).toBe(6);
+    expect(report.static_surface.reused_primitive_count).toBe(7);
     expect(report.static_surface.new_public_capabilities_required).toBe(0);
     expect(report.static_surface.reused_primitive_static_bytes).toBeGreaterThan(0);
 
