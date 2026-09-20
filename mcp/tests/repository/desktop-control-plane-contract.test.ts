@@ -194,8 +194,8 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain('+ ".json"');
     expect(snapshot).toContain("heartbeatSnapshot");
     expect(snapshot).toContain("utimesSync");
-    expect(projectNavigation).toContain("project_navigation_projection");
-    expect(projectNavigation).toContain("project_navigation_probe");
+    expect(projectNavigation).toContain("pub(crate) fn projection");
+    expect(projectNavigation).toContain("pub(crate) fn probe");
     expect(projectNavigation).toContain("PROJECT_SESSION_LEASE_TTL_MS");
     expect(projectNavigation).toContain("project_session_lease_requires_live_blockbench_and_fresh_snapshot");
     expect(projectNavigation).toContain("project_navigation_revision_is_generation_aware");
@@ -286,9 +286,10 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop Blockbench owner is isolated from workstation orchestration", async () => {
-    const [blockbench, rust] = await Promise.all([
+    const [blockbench, rust, projectNavigation] = await Promise.all([
       source("../apps/desktop/src-tauri/src/blockbench.rs"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src-tauri/src/project_navigation.rs"),
     ]);
 
     expect(blockbench).toContain("pub(crate) fn detect()");
@@ -297,7 +298,7 @@ describe("Desktop control-plane ownership", () => {
     expect(blockbench).toContain("BlockbenchCompatibilityManifest");
     expect(blockbench).toContain("Blockbench installation discovery");
     expect(rust).toContain("blockbench::detect()");
-    expect(rust).toContain("blockbench::open_model(path)");
+    expect(projectNavigation).toContain("blockbench::open_model(path)");
     expect(rust).not.toContain("fn discover_blockbench_executable");
     expect(rust).not.toContain("fn evaluate_blockbench_compatibility");
   });
