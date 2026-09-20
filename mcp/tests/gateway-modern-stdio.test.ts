@@ -23,6 +23,14 @@ describe("LazyDesigner Gateway modern stdio protocol", () => {
       expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
         Object.values(GATEWAY_TOOLS).sort()
       );
+
+      // Deterministic wire-payload guard only; do not translate byte counts into
+      // Astra tokens without real Codex usage telemetry.
+      const toolSurfaceBytes = new TextEncoder().encode(
+        JSON.stringify(listed.tools)
+      ).byteLength;
+      expect(toolSurfaceBytes).toBeGreaterThan(0);
+      expect(toolSurfaceBytes).toBeLessThan(16_000);
     } finally {
       await client.close();
     }
