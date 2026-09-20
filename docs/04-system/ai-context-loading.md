@@ -307,6 +307,10 @@ lazydesigner-development-brief
 ### CONDITIONAL
 
 ```text
+bounded symbol map (`bun run map:development -- "<intent>"`)
+  → only when exact owner routing is ambiguous/cross-owner and local source navigation would otherwise require broad reads
+  → signatures/imports only; never a full-repository payload
+
 docs/05-operations/next-action.md
   → only when continuing unfinished repository work
 CONTEXT.md

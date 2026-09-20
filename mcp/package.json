@@ -27,6 +27,7 @@
     "measure:astra-context": "bun run ./scripts/measure-astra-context.ts",
     "measure:model-context": "bun run ./scripts/measure-model-context-footprint.ts",
     "measure:continuation": "bun run ./scripts/measure-continuation-checkpoint.ts",
+    "map:development": "bun run ./scripts/build-development-symbol-map.ts",
     "benchmark:zero-waste": "bun run ./scripts/benchmark-zero-waste-golden.ts",
     "benchmark:zero-waste-workflow": "bun run ./scripts/benchmark-zero-waste-workflow.ts",
     "benchmark:zero-waste-bottlenecks": "bun run ./scripts/benchmark-zero-waste-bottlenecks.ts",
