@@ -59,6 +59,8 @@ The command is part of `verify:mcp`.
 
 These values are deterministic architecture proxies. They are not live Codex token counts, wall-clock latency, or native Blockbench proof.
 
+The scorecard also records the current Runtime tool count and JSON-schema/description bytes for reused hot-path primitives. Existing-path optimization should normally require zero new public capabilities; proposed schema growth must be weighed against recurring dynamic savings before implementation.
+
 ## Implementation Phases
 
 ### Phase A — Measurement contract — IMPLEMENTED
