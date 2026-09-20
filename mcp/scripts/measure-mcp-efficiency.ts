@@ -20,6 +20,7 @@ const SCORECARD_RUNTIME_PRIMITIVES = [
   "inspect_elements",
   "manage_particle",
   "manage_render_profile",
+  "remove_element",
 ] as const;
 
 function runtimePrimitiveStaticCost() {
@@ -270,6 +271,49 @@ export function runMcpEfficiencyScorecard() {
     }
   );
 
+  const elementRemovalReceipt = workflow(
+    "element_removal_receipt",
+    "GEOMETRY",
+    [
+      step(
+        "mutate",
+        {
+          tool: "remove_element",
+          target: "group-a",
+          result: "native_delete",
+        },
+        true
+      ),
+      step(
+        "inspect",
+        {
+          tool: "inspect_elements",
+          mode: "search",
+          target: "group-a",
+          confirmation_only: true,
+        },
+        false
+      ),
+    ],
+    [
+      step(
+        "mutate",
+        {
+          tool: "remove_element",
+          target: "group-a",
+          receipt: "removed_identity_counts_and_animation_impact",
+        },
+        true
+      ),
+    ],
+    {
+      removed_identity_kept: true,
+      subtree_count_kept: true,
+      affected_animation_count_kept: true,
+      undo_boundary_kept: true,
+    }
+  );
+
   const renderProfileReceipt = workflow(
     "render_profile_verified_write_receipt",
     "TEXTURING",
@@ -342,6 +386,7 @@ export function runMcpEfficiencyScorecard() {
     textureTransaction,
     receiptContinuation,
     particleReceipt,
+    elementRemovalReceipt,
     renderProfileReceipt,
     focusedDiscovery,
   ];
@@ -383,6 +428,12 @@ export function runMcpEfficiencyScorecard() {
         id: "render_profile_verified_write_receipt",
         status: "implemented",
         primitive: "manage_render_profile",
+        next_gate: "retain",
+      },
+      {
+        id: "element_removal_receipt",
+        status: "implemented",
+        primitive: "remove_element",
         next_gate: "retain",
       },
       {
