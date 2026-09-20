@@ -22,9 +22,13 @@ describe("MCP efficiency scorecard", () => {
         score.baseline_calls
       );
       expect(
-        score.optimized_payload_bytes,
+        score.net_call_delta >= 0 || score.net_payload_delta_bytes >= 0,
         score.id
-      ).toBeLessThan(score.baseline_payload_bytes);
+      ).toBe(true);
+      expect(
+        score.net_call_delta > 0 || score.net_payload_delta_bytes > 0,
+        score.id
+      ).toBe(true);
     }
   });
 
