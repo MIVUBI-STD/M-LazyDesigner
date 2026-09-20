@@ -61,6 +61,8 @@ These values are deterministic architecture proxies. They are not live Codex tok
 
 The scorecard also records the current Runtime tool count and JSON-schema/description bytes for reused hot-path primitives. Existing-path optimization should normally require zero new public capabilities; proposed schema growth must be weighed against recurring dynamic savings before implementation.
 
+For a proposed helper, use the static-vs-dynamic break-even rule: added schema bytes / recurring dynamic bytes saved per use = minimum uses needed to pay back the static cost. If expected use within a session does not reach that break-even point, do not add the helper.
+
 ## Implementation Phases
 
 ### Phase A — Measurement contract — IMPLEMENTED
