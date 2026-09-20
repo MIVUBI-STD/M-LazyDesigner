@@ -98,20 +98,43 @@ export async function measureModelContextFootprint() {
     gatewayInstructionsComponent,
     toolComponent,
   ];
+  const commonPrefix = {
+    bytes: common.reduce((sum, part) => sum + part.bytes, 0),
+    component_ids: common.map((part) => part.id),
+    sha256: fingerprint(common),
+  };
   const taskClasses = {
-    system_development: common,
-    geometry_authoring: [...common, byId.modelling_skill],
-    texturing_authoring: [...common, byId.texturing_skill],
-    animation_authoring: [...common, byId.animation_skill],
+    system_development: { parts: common, extension: null },
+    geometry_authoring: {
+      parts: [...common, byId.modelling_skill],
+      extension: byId.modelling_skill,
+    },
+    texturing_authoring: {
+      parts: [...common, byId.texturing_skill],
+      extension: byId.texturing_skill,
+    },
+    animation_authoring: {
+      parts: [...common, byId.animation_skill],
+      extension: byId.animation_skill,
+    },
   };
 
   const taskClassReport = Object.fromEntries(
-    Object.entries(taskClasses).map(([name, parts]) => [
+    Object.entries(taskClasses).map(([name, task]) => [
       name,
       {
-        bytes: parts.reduce((sum, part) => sum + part.bytes, 0),
-        component_ids: parts.map((part) => part.id),
-        stable_prefix_candidate_sha256: fingerprint(parts),
+        bytes: task.parts.reduce((sum, part) => sum + part.bytes, 0),
+        component_ids: task.parts.map((part) => part.id),
+        common_prefix_sha256: commonPrefix.sha256,
+        stage_extension:
+          task.extension === null
+            ? null
+            : {
+                component_id: task.extension.id,
+                bytes: task.extension.bytes,
+                sha256: task.extension.sha256,
+              },
+        stable_prefix_candidate_sha256: fingerprint(task.parts),
       },
     ])
   );
@@ -121,6 +144,7 @@ export async function measureModelContextFootprint() {
     proof_scope:
       "REMOTE_GITHUB static repo-owned context footprint only; not actual Codex prompt assembly, cache hit proof, or token usage.",
     components: [...entries, gatewayInstructionsComponent, toolComponent],
+    common_prefix: commonPrefix,
     task_classes: taskClassReport,
     dynamic_tail_excluded: [
       "user/task messages",
@@ -131,7 +155,7 @@ export async function measureModelContextFootprint() {
       "model reasoning/output",
     ],
     cache_note:
-      "Fingerprints detect repo-owned stable-prefix churn. Actual cache reuse must be measured from client/provider telemetry.",
+      "common_prefix is the cross-stage reusable candidate; one specialist is a stage-stable extension after that prefix. Fingerprints detect repo-owned churn only. Actual cache reuse must be measured from client/provider telemetry.",
   };
 }
 

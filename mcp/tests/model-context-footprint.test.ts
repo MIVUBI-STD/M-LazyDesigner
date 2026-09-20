@@ -20,10 +20,21 @@ describe("model context static-prefix footprint", () => {
     expect(report.dynamic_tail_excluded).toContain("Control stage_context");
     expect(report.dynamic_tail_excluded).toContain("tool results/history");
 
+    expect(report.common_prefix.bytes).toBeGreaterThan(0);
+    expect(report.common_prefix.sha256).toMatch(/^[a-f0-9]{64}$/);
+
     for (const task of Object.values(report.task_classes)) {
       expect(task.bytes).toBeGreaterThan(0);
+      expect(task.common_prefix_sha256).toBe(report.common_prefix.sha256);
       expect(task.stable_prefix_candidate_sha256).toMatch(/^[a-f0-9]{64}$/);
     }
+    expect(report.task_classes.system_development.stage_extension).toBeNull();
+    expect(report.task_classes.geometry_authoring.stage_extension?.component_id)
+      .toBe("modelling_skill");
+    expect(report.task_classes.texturing_authoring.stage_extension?.component_id)
+      .toBe("texturing_skill");
+    expect(report.task_classes.animation_authoring.stage_extension?.component_id)
+      .toBe("animation_skill");
   }, 20_000);
 
   test("combined static footprint has explicit guardrails without pretending they are token limits", async () => {

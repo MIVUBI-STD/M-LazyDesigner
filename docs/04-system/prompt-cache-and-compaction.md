@@ -9,11 +9,14 @@ This contract defines LazyDesigner-owned behavior that supports prompt-cache reu
 Minimize total model usage per accepted task by keeping reusable context stable and moving volatile task state into a bounded dynamic tail.
 
 ```text
-STABLE PREFIX CANDIDATE
+CROSS-STAGE COMMON PREFIX CANDIDATE
 → repository instructions that truly apply
 → stable Gateway instructions
 → four stable Gateway tool definitions
-→ one active specialist for the current semantic stage
+
+STAGE-STABLE EXTENSION
+→ exactly one active specialist for the current semantic stage
+→ appended after the common prefix so a stage change need not invalidate the earlier reusable prefix candidate
 
 DYNAMIC TAIL
 → user/task delta
@@ -39,7 +42,7 @@ Canonical static-footprint utility:
 bun run measure:model-context
 ```
 
-It reports repo-owned candidate prefix bytes and fingerprints separately for system development and each authoring specialist. Fingerprints detect source churn only; they do not prove upstream prompt assembly or cache hits.
+It reports one cross-stage common-prefix fingerprint plus the current stage-specialist extension and assembled task-class fingerprint. This lets development distinguish churn in truly reusable context from an expected Geometry/Texturing/Animation specialist change. Fingerprints detect source churn only; they do not prove upstream prompt assembly or cache hits.
 
 ## Dynamic Tail Rules
 
