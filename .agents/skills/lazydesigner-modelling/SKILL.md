@@ -95,6 +95,7 @@ rename a coherent Group cohort
 Rules:
 - Prefer explicit UUID/name targeting over editor selection. `select_all_of_type` / `get_selection` are support tools only when selection state itself is required by a native workflow.
 - Do **not** use `trigger_action`, `emulate_clicks`, or `fill_dialog` for normal Cube/Group creation, transforms, hierarchy, pivots, UV, or deletion.
+- Before looping the same mutation capability, ask whether the targets form one coherent same-owner cohort whose intermediate states do not change the next decision; if yes, pack the cohort into the existing batch/transaction route.
 - Do not create one Cube per MCP call when the masses form one coherent batch with known coordinates/parents.
 - Do not inspect each newly created Cube after a successful deterministic batch. Use the returned identities/effects, then one bounded structural/visual verification at the cohort level.
 - For corrections, inspect once only when current exact authored state is stale/unknown; then mutate the whole diagnosed cohort in one bounded operation where available.
