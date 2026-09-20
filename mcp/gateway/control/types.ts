@@ -125,6 +125,7 @@ export type ControlDelta = {
     fresh: ControlFreshnessScope[];
     unknown: ControlFreshnessScope[];
   };
+  revision_evidence: Partial<Record<ControlFreshnessScope, string>>;
   next_intent: string;
   verification_class: CapabilityVerificationClass;
   verification_scope: ControlVerificationScope | null;
