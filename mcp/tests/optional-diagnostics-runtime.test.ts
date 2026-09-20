@@ -24,15 +24,7 @@ describe("optional diagnostic execution", () => {
       defs.inspect_animation={execute:async()=>({content:[],structuredContent:{authored_space:"blockbench_animation",animation:{uuid:"target"}}})};
       wireAuthoringQualityIntelligence();
       const out=[];
-      for(const args of [
-        {},
-        {diagnostics:false},
-        {diagnostics:true, diagnostic_scope:"uv"},
-        {diagnostics:true, diagnostic_scope:"coverage"},
-        {diagnostics:true, diagnostic_scope:"seam"},
-        {diagnostics:true, diagnostic_scope:"pbr"},
-        {diagnostics:true},
-      ]) {
+      for(const args of [{},{diagnostics:false},{diagnostics:true}]) {
         const before=reads; const result=await defs.inspect_animation.execute(args);
         out.push({reads:reads-before,bytes:Buffer.byteLength(JSON.stringify(result)),state:result.structuredContent});
       }
@@ -68,7 +60,15 @@ describe("optional diagnostic execution", () => {
         defs[name]={execute:async()=>({content:[],structuredContent:{textures:[{uuid:"atlas"}]}})};
       wireAuthoringQualityIntelligence();wireTextureAuthoringRuntime();
       const out=[];
-      for(const args of [{},{diagnostics:false},{diagnostics:true}]) {
+      for(const args of [
+        {},
+        {diagnostics:false},
+        {diagnostics:true, diagnostic_scope:"uv"},
+        {diagnostics:true, diagnostic_scope:"coverage"},
+        {diagnostics:true, diagnostic_scope:"seam"},
+        {diagnostics:true, diagnostic_scope:"pbr"},
+        {diagnostics:true},
+      ]) {
         if(args.diagnostics===true)alpha=0;
         const before=reads; const parsed=listTexturesParameters.parse(args);
         const result=await defs.list_textures.execute(parsed);
