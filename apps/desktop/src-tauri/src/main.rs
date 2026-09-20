@@ -1,5 +1,6 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
+mod blockbench;
 mod desktop_error;
 mod desktop_instance;
 mod diagnostics;

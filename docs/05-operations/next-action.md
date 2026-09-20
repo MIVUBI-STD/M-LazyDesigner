@@ -97,7 +97,7 @@ Desktop now acquires a Windows session-local named mutex before Tauri startup. A
 
 The implementation uses Win32 FFI directly from Rust, so there is no Tauri single-instance dependency, lockfile regeneration, filesystem lease, background service, or second state system. Kernel object lifetime also removes stale-file/PID-reuse recovery races. Native second-launch focus behavior remains Windows acceptance residue.
 
-### 4. Split oversized owners without redesign
+### 4. Split oversized owners without redesign — IN PROGRESS
 
 Current maintainability hotspots:
 
@@ -106,7 +106,9 @@ apps/desktop/src-tauri/src/system_status.rs
 apps/desktop/src/App.svelte
 ```
 
-Refactor only by existing ownership. Rust targets: blockbench, runtime_health, readiness, project_navigation, managed. Svelte targets: Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. No new framework/router unless necessary.
+The Blockbench detection/compatibility/open owner is now isolated in `apps/desktop/src-tauri/src/blockbench.rs`; workstation orchestration calls that owner instead of retaining discovery/version logic inline.
+
+Remaining Rust targets: runtime_health, readiness, project_navigation, managed. Svelte targets: Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. Refactor only by existing ownership; no new framework/router.
 
 ### 5. Behavioral Project Navigator tests
 

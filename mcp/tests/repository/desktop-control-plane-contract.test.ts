@@ -261,6 +261,23 @@ describe("Desktop control-plane ownership", () => {
     expect(readme).toContain("Paths stay hidden in the normal UI");
   });
 
+  test("Desktop Blockbench owner is isolated from workstation orchestration", async () => {
+    const [blockbench, rust] = await Promise.all([
+      source("../apps/desktop/src-tauri/src/blockbench.rs"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+    ]);
+
+    expect(blockbench).toContain("pub(crate) fn detect()");
+    expect(blockbench).toContain("pub(crate) fn open_model");
+    expect(blockbench).toContain("pub(crate) fn open()");
+    expect(blockbench).toContain("BlockbenchCompatibilityManifest");
+    expect(blockbench).toContain("Blockbench installation discovery");
+    expect(rust).toContain("blockbench::detect()");
+    expect(rust).toContain("blockbench::open_model(path)");
+    expect(rust).not.toContain("fn discover_blockbench_executable");
+    expect(rust).not.toContain("fn evaluate_blockbench_compatibility");
+  });
+
   test("Desktop UI uses one canonical workstation readiness path", async () => {
     const [app, main, rust] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
