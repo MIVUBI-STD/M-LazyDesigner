@@ -2,7 +2,7 @@
 
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { bakeNativeCubeAo } from "@/lib/cubeAoRuntime";
-import { getAndActivateTexture, imageContent } from "@/lib/util";
+import { imageContent, resolvePaintTexture } from "@/lib/util";
 import {
   applyPaintTransactionRgba,
   buildPaintTransactionReceipt,
@@ -164,7 +164,7 @@ export function registerPaintTextureTransactionTool(): void {
       ...paintTextureTransactionToolDocs,
       parameters: paintTransactionParameters,
       async execute({ texture_id, expected_revision, operations, ambient_occlusion, output }) {
-        const texture = getAndActivateTexture(texture_id);
+        const texture = resolvePaintTexture(texture_id);
         requirePaintTransactionV1Target({
           texture_uuid: texture.uuid,
           texture_name: texture.name,
@@ -211,7 +211,6 @@ export function registerPaintTextureTransactionTool(): void {
           : null;
 
         const undoAspects: UndoAspects = {
-          selected_texture: true,
           bitmap: true,
           textures: [texture],
         };
@@ -265,12 +264,14 @@ export function registerPaintTextureTransactionTool(): void {
         Canvas.updateAll();
         let affectedRegionImage: ReturnType<typeof imageContent>["content"][number] | null = null;
         try {
-          const finalBitmap = fullTextureRgba(texture);
+          // The full postcondition read above already proved that the authored
+          // bitmap matches applied.pixels. Reuse the verified candidate rather
+          // than reading the entire atlas a third time just to crop evidence.
           affectedRegionImage = imageContent(
             rgbaRectToPngDataUrl(
-              finalBitmap.pixels,
-              finalBitmap.width,
-              finalBitmap.height,
+              applied.pixels,
+              before.width,
+              before.height,
               plannedReceipt.affected_rect
             )
           ).content[0];
