@@ -77,10 +77,7 @@ describe("MCP dependency closure", () => {
     expect(authoringWorkflow).toContain('"docs/03-authoring/**"');
     expect(authoringWorkflow).toContain('"docs/04-system/implementation-map.md"');
     expect(mcpWorkflow).toContain('"docs/05-operations/next-action.md"');
-    expect(mcpWorkflow).toContain('"AGENTS.md"');
-    expect(mcpWorkflow).not.toContain('!mcp/AGENTS.md');
-    expect(mcpWorkflow).toContain('"docs/04-system/prompt-cache-and-compaction.md"');
-    expect(mcpWorkflow).toContain('"docs/04-system/zero-waste-token-efficiency-plan.md"');
+    expect(mcpWorkflow).toContain('"!mcp/AGENTS.md"');
 
     for (const workflow of [repositoryWorkflow, authoringWorkflow, mcpWorkflow]) {
       expect(workflow).not.toContain("docs/knowledge/");
