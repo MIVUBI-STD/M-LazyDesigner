@@ -40,7 +40,7 @@ describe("static footprint budget", () => {
       "Cost to Accepted Result",
       "persistent Gateway",
       "not auto-retried",
-      "tests are evidence",
+      "Tests are evidence",
     ]) expect(mcpAgents).toContain(invariant);
     expect(referenceGenerator.length).toBeLessThan(20_000);
     expect(controlPacket.length).toBeLessThan(14_000);
