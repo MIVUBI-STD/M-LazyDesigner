@@ -175,38 +175,31 @@ export function setBarItemValue(id: string, value: unknown): void {
 }
 
 /**
- * Resolves a texture reference and activates it in the panel so that paint
- * tools, which historically act on `Texture.selected` regardless of their
- * `texture_id` argument, target the intended texture.
- *
- * With exactly one loaded texture, omission may use selected/default state.
- * With multiple textures (for example PBR support channels or explicit
- * variants), callers must pass an explicit texture identity so production
- * painting cannot drift to whichever panel texture happens to be selected.
+ * Resolves the intended paint texture without changing editor selection.
+ * Deterministic bitmap operations should use this path so target identity does
+ * not become unnecessary UI state. Native Painter callers can activate after
+ * they know native tool state is required.
  */
-export function getAndActivateTexture(id?: string): Texture {
+export function resolvePaintTexture(id?: string): Texture {
   if (!id) {
     const available = Project?.textures ?? Texture.all;
     if (available.length > 1) {
-      // Prefer the single base-color atlas when the request is implicit.
-      // This keeps iterative paint to-the-point without forcing the caller
-      // to pin texture_id on every brush stroke, while still requiring
-      // explicit identity when the base atlas is fragmented.
       const baseCandidates = available.filter((texture: Texture) => {
-        const channel = (texture as Texture & { pbr_channel?: string }).pbr_channel ?? "color";
+        const channel =
+          (texture as Texture & { pbr_channel?: string }).pbr_channel ?? "color";
         if (channel !== "color") return false;
         const groupId = (texture as Texture & { group?: string }).group;
         if (!groupId) return true;
-        const group = (globalThis as unknown as { TextureGroup?: { all: Array<{ uuid: string; is_material?: boolean }> } }).TextureGroup?.all.find(
-          (candidate) => candidate.uuid === groupId
-        );
+        const group = (
+          globalThis as unknown as {
+            TextureGroup?: {
+              all: Array<{ uuid: string; is_material?: boolean }>;
+            };
+          }
+        ).TextureGroup?.all.find((candidate) => candidate.uuid === groupId);
         return !group || group.is_material !== false;
       });
-      if (baseCandidates.length === 1) {
-        const base = baseCandidates[0];
-        if (Texture.selected?.uuid !== base.uuid) base.select();
-        return base;
-      }
+      if (baseCandidates.length === 1) return baseCandidates[0];
       throw new Error(
         "Multiple textures are loaded. Pass texture_id explicitly so painting targets the intended base-color atlas or support channel instead of implicit selected/default state."
       );
@@ -218,19 +211,21 @@ export function getAndActivateTexture(id?: string): Texture {
         "No texture available. Use create_texture first, or pass texture_id explicitly."
       );
     }
-    if (Texture.selected?.uuid !== active.uuid) {
-      active.select();
-    }
     return active;
   }
 
-  const texture = resolveCoreTexture(
+  return resolveCoreTexture(
     id,
     "Use list_textures to confirm the intended UUID or texture ID before painting."
   );
-  if (Texture.selected?.uuid !== texture.uuid) {
-    texture.select();
-  }
+}
+
+/**
+ * Resolves then activates the intended texture for native Painter operations.
+ */
+export function getAndActivateTexture(id?: string): Texture {
+  const texture = resolvePaintTexture(id);
+  if (Texture.selected?.uuid !== texture.uuid) texture.select();
   return texture;
 }
 
