@@ -33,6 +33,11 @@ BlockIT now has one native Geometry authoring path. Retired 3D-assisted/Hunyuan/
 
 Updates are explicit, not network polling during authoring. The package is downloaded/built and verified before activation. Active Gateway process leases or a responding Runtime postpone replacement. A pending update may activate only when no conflicting Gateway/Runtime is active.
 
+
+Desktop startup discovery uses the read-only `check-update` command. Published managed releases contain a separate digest-verified `blockit-package.json` asset so availability can be determined without downloading the full Windows ZIP. The command compares its authoritative `source_sha` with the installed source SHA and returns only `UP_TO_DATE`, `UPDATE_AVAILABLE`, `UPDATE_STAGED`, or `NOT_INSTALLED`.
+
+`check-update` never stages or activates files. Network lookup is bounded and happens only when explicitly invoked by the Desktop startup owner; it is not called by normal MCP launch or the Desktop connection heartbeat.
+
 The manager never kills applications, closes unsaved models, silently overwrites user-edited managed Skills, or mutates user assets. Transaction journals and hashes protect install/update/rollback. Local modifications require explicit adoption where supported.
 
 ## Codex configuration
