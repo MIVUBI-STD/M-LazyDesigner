@@ -301,6 +301,9 @@ describe("Control Texture mutation precision", () => {
     });
 
     expect(delta.verification_class).toBe("visual");
+    expect(delta.revision_evidence).toEqual({
+      TEXTURE_APPEARANCE: "b".repeat(64),
+    });
     expect(delta.verification_scope).toEqual({
       kind: "TEXTURE_REGION",
       texture_uuid: "texture-a",
