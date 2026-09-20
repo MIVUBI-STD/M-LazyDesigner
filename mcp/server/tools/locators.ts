@@ -307,6 +307,7 @@ function nullObjectState(element: NullObject) {
     ),
     ik_target: element.ik_target || null,
     ik_source: element.ik_source || null,
+    ik_pole: element.ik_pole || null,
     lock_ik_target_rotation: element.lock_ik_target_rotation,
     visibility: element.visibility !== false,
   };
