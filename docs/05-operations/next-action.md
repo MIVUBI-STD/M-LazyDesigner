@@ -3,9 +3,7 @@
 Updated: 2026-09-20
 Branch: `Local` only.
 
-This file owns **current implementation continuation only**. Product workflow belongs in `docs/01-product/`; system ownership in `docs/04-system/`; proof history in `docs/05-operations/current-validation.md`.
-
-Canonical Control source: `mcp/gateway/control/`. The former `mcp/gateway/navigator/` source is removed with no alias.
+Owns current implementation continuation only. Product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control: `mcp/gateway/control/`.
 
 ## Current State
 
@@ -22,9 +20,7 @@ modern MCP 2026 negotiation/list/call PASS
 legacy 2025 JSON initialize/list/call PASS
 ```
 
-These are historical baselines only. A changed exact SHA still requires its applicable verifier.
-
-No hand-editing generated docs/output; generated prompt/API artifacts remain generator-owned.
+Historical baselines only; changed SHAs require their owning verifier. Generated prompt/API output remains generator-owned.
 
 Core invariants:
 
@@ -45,7 +41,7 @@ Project
 
 Implemented: Active Project/Model, Recent Projects, Open Folder, Open/Switch Model, Reveal, Copy Path, See details, contextual search, Continue, Pin, existing-only Models/References/Textures/Exports shortcuts, dirty `Modified` state, profile-bound navigation projection, generation/session-aware sync, and stale live-state invalidation.
 
-Paths, UUIDs, revisions, and technical state stay hidden from normal UI. Quick Command, thumbnails, file browser, drive crawler, tags, cloud DB, and arbitrary nested hierarchy remain out of scope.
+Normal UI hides paths/UUIDs/revisions. Quick Command, thumbnails, file browser/crawler, tags, cloud DB, and arbitrary hierarchy remain out of scope.
 
 Project grouping fallback:
 
@@ -57,9 +53,7 @@ nearest bounded .lazydesigner-project.json marker
 
 ## High-End Audit Remediation — NEXT TO DO
 
-Do **not** add more user-facing features before this list is worked through.
-
-Already hardened; do not redo without evidence:
+No more user-facing features before this list. Already hardened; do not redo without evidence:
 
 1. Persistent Recent separated from ephemeral Active/Open/Dirty.
 2. Stale Plugin sessions cannot retain live `Switch`/`Modified` after session loss.
@@ -67,7 +61,7 @@ Already hardened; do not redo without evidence:
 4. Navigation snapshot is bound to the managed Blockbench userData profile.
 5. Runtime readiness is bound to the owned/configured Runtime listener rather than hardcoded port-only readiness.
 
-Current source authority is the actual `Local` branch HEAD; this continuation file does not embed a self-referential commit SHA.
+Source authority is current `Local` HEAD.
 
 ### 1. Stable Project identity — SOURCE IMPLEMENTED
 
@@ -89,13 +83,13 @@ missing/moved exact file
 → user chooses from Recent Projects
 ```
 
-The pointer survives Plugin/Desktop restarts through the same bounded navigation snapshot and does not create a second project database. Native LIVE_BLOCKBENCH proof is still required.
+The pointer survives Plugin/Desktop restarts through the bounded snapshot; native proof remains required.
 
 ### 3. Single-instance Desktop — SOURCE IMPLEMENTED
 
 Desktop now acquires a Windows session-local named mutex before Tauri startup. A second launch receives the existing-owner signal from the kernel, restores/focuses the canonical `LazyDesigner` window, and exits before creating a second watcher/controller/preferences writer.
 
-The implementation uses Win32 FFI directly from Rust, so there is no Tauri single-instance dependency, lockfile regeneration, filesystem lease, background service, or second state system. Kernel object lifetime also removes stale-file/PID-reuse recovery races. Native second-launch focus behavior remains Windows acceptance residue.
+Win32 FFI avoids new dependencies, lockfile changes, filesystem leases, services, and stale-file/PID-reuse races. Window-focus proof remains native residue.
 
 ### 4. Split oversized owners without redesign — IN PROGRESS
 
@@ -106,15 +100,15 @@ apps/desktop/src-tauri/src/system_status.rs
 apps/desktop/src/App.svelte
 ```
 
-The Blockbench detection/compatibility/open owner is now isolated in `apps/desktop/src-tauri/src/blockbench.rs`; workstation orchestration calls that owner instead of retaining discovery/version logic inline.
+Blockbench detection/compatibility/open now lives in `apps/desktop/src-tauri/src/blockbench.rs`.
 
 Remaining Rust targets: runtime_health, readiness, project_navigation, managed. Svelte targets: Overview, ProjectNavigator, ProjectDetails, Support, bounded operation state. Refactor only by existing ownership; no new framework/router.
 
 ### 5. Behavioral Project Navigator tests — REMOTE COVERAGE EXPANDED
 
-Rust behavior tests now cover multi-model Project identity, manifest/conventional/direct-parent grouping fallback, Project move identity, malformed/unsupported manifests, duplicate UUID fail-closed behavior, Save As model identity, session-live clearing, profile/generation revision identity, Continue exact-last-model semantics, and exact 64-open / 128-recent bounds.
+Rust tests now cover multi-model identity, grouping fallbacks, move identity, malformed/duplicate manifests, Save As identity, session clearing, profile/generation identity, Continue semantics, and 64-open/128-recent bounds.
 
-Still native-only: real Blockbench tab/Save/Save As event emission, missing-file UI interaction, Pin persistence across actual Desktop restart, and plugin reload lifecycle. Those remain in the LIVE_BLOCKBENCH acceptance set rather than being faked in CI.
+Native-only: real tab/Save/Save As events, missing-file UI, Pin across Desktop restart, and plugin reload lifecycle.
 
 ### 6. Native LIVE_BLOCKBENCH acceptance
 
@@ -133,9 +127,7 @@ Only after the above is stable:
 
 ## LOCAL_CODE / LIVE_BLOCKBENCH Handoff — ACTIVE
 
-LOCAL_CODE proves only environment/toolchain residue CI cannot prove. LIVE_BLOCKBENCH owns native Blockbench/session/visual proof.
-
-Remaining live residue includes persistent Gateway survives Runtime/plugin reload, Blockbench close/open recovery, AUTHORING↔Animation handoff, Geometry↔Texturing shared surface, project affinity/rebind, interrupted mutation inspect-before-retry, authoring execution, Undo/playback/persistence/export, and representative accepted-result quality + efficiency.
+LOCAL_CODE owns only environment/toolchain residue. LIVE_BLOCKBENCH owns native/session/visual proof: Gateway reload survival, close/open recovery, phase handoffs, affinity/rebind, interrupted mutation recovery, authoring, Undo/playback/persistence/export, and accepted-result quality/efficiency.
 
 ## Stop Rules
 
