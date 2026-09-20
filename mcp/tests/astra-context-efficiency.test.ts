@@ -12,11 +12,13 @@ describe("Astra context efficiency measurement", () => {
     );
     const delta = byName.get("control_delta_continuation");
     const search = byName.get("capability_search_projection");
+    const searchEnvelope = byName.get("capability_search_envelope");
+    const describeEnvelope = byName.get("capability_describe_envelope");
     const cubeText = byName.get("manage_cubes_text_summary");
     const cubes = byName.get("manage_cubes_continuation");
     const inspect = byName.get("inspect_elements_detail_schema");
 
-    for (const measurement of [delta, search, cubeText, cubes, inspect]) {
+    for (const measurement of [delta, search, searchEnvelope, describeEnvelope, cubeText, cubes, inspect]) {
       expect(measurement).toBeDefined();
       expect(measurement!.saved_bytes).toBeGreaterThan(0);
       expect(measurement!.after_bytes).toBeLessThan(measurement!.before_bytes);
@@ -24,6 +26,8 @@ describe("Astra context efficiency measurement", () => {
 
     expect(delta!.reduction_percent).toBeGreaterThan(15);
     expect(search!.reduction_percent).toBeGreaterThan(5);
+    expect(searchEnvelope!.reduction_percent).toBeGreaterThan(2);
+    expect(describeEnvelope!.reduction_percent).toBeGreaterThan(5);
     expect(cubeText!.reduction_percent).toBeGreaterThan(30);
     expect(cubes!.reduction_percent).toBeGreaterThan(35);
     expect(inspect!.reduction_percent).toBeGreaterThan(60);

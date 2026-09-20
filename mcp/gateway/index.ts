@@ -337,7 +337,7 @@ registerGatewayTool(
             text: `${capabilities.length} capabilities.`,
           },
         ],
-        structuredContent: { count: capabilities.length, capabilities },
+        structuredContent: { capabilities },
       };
     } catch (error) {
       return gatewayErrorResult(error);
@@ -375,14 +375,11 @@ registerGatewayTool(
         content: [
           {
             type: "text" as const,
-            text: projection.projected
-              ? `Capability ${capability} branch ${branch!.field}=${branch!.value} is available on the current LazyDesigner surface.`
-              : `Capability ${capability} is available on the current LazyDesigner surface.`,
+            text: "Schema ready.",
           },
         ],
         structuredContent: {
           capability: {
-            name: tool.name,
             description: tool.description ?? "",
             inputSchema: projection.inputSchema,
             outputSchema: tool.outputSchema ?? null,
@@ -390,10 +387,6 @@ registerGatewayTool(
             lifecycle: metadata.lifecycle,
             execution_class: metadata.executionClass,
             verification_class: metadata.verificationClass,
-            schema_projection: {
-              projected: projection.projected,
-              branch: projection.branch,
-            },
             control: {
               authoring_domain: authoringDomainForCapability(capability),
               source_owner: sourceOwnerForCapability(capability),

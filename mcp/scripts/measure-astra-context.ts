@@ -148,6 +148,55 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
     },
   ]);
   const searchAfter = projectCapabilitiesForSearch(searchBefore);
+  const searchEnvelopeBefore = {
+    content: [{ type: "text", text: `${searchAfter.length} capabilities.` }],
+    structuredContent: { count: searchAfter.length, capabilities: searchAfter },
+  };
+  const searchEnvelopeAfter = {
+    content: searchEnvelopeBefore.content,
+    structuredContent: { capabilities: searchAfter },
+  };
+  const describeEnvelopeBefore = {
+    content: [{
+      type: "text",
+      text: "Capability inspect_elements branch mode=detail is available on the current LazyDesigner surface.",
+    }],
+    structuredContent: {
+      capability: {
+        name: "inspect_elements",
+        description: "Inspect one exact element.",
+        inputSchema: { type: "object", properties: { id: { type: "string" }, detail: { const: "geometry" } } },
+        outputSchema: null,
+        annotations: { readOnlyHint: true },
+        lifecycle: { stage: "stable" },
+        execution_class: "read",
+        verification_class: "receipt_only",
+        schema_projection: {
+          projected: true,
+          branch: { field: "mode", value: "detail" },
+        },
+        control: {
+          authoring_domain: "GEOMETRY",
+          source_owner: { source: "mcp/server/tools/element-inspection.ts", specialist: null, test_owner: null },
+        },
+      },
+    },
+  };
+  const describeEnvelopeAfter = {
+    content: [{ type: "text", text: "Schema ready." }],
+    structuredContent: {
+      capability: {
+        description: describeEnvelopeBefore.structuredContent.capability.description,
+        inputSchema: describeEnvelopeBefore.structuredContent.capability.inputSchema,
+        outputSchema: null,
+        annotations: describeEnvelopeBefore.structuredContent.capability.annotations,
+        lifecycle: describeEnvelopeBefore.structuredContent.capability.lifecycle,
+        execution_class: "read",
+        verification_class: "receipt_only",
+        control: describeEnvelopeBefore.structuredContent.capability.control,
+      },
+    },
+  };
 
   const inspectBefore = inspectSchemaFixture();
   const inspectAfter = projectCapabilityInputSchema(
@@ -173,6 +222,8 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
     payloadMeasurement("control_delta_continuation", deltaBefore, deltaAfter),
     payloadMeasurement("manage_cubes_text_summary", mutationTextBefore, mutationTextAfter),
     payloadMeasurement("capability_search_projection", searchBefore, searchAfter),
+    payloadMeasurement("capability_search_envelope", searchEnvelopeBefore, searchEnvelopeAfter),
+    payloadMeasurement("capability_describe_envelope", describeEnvelopeBefore, describeEnvelopeAfter),
     payloadMeasurement("manage_cubes_continuation", cubeBefore, cubeAfter),
     payloadMeasurement("inspect_elements_detail_schema", inspectBefore, inspectAfter),
   ];

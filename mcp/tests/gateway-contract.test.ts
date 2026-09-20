@@ -17,6 +17,25 @@ import {
 } from "@/gateway/schemaProjection";
 
 describe("BlockIT Gateway contract", () => {
+
+  test("search and describe omit echoed or derivable request metadata", async () => {
+    const source = await Bun.file("gateway/index.ts").text();
+    const searchStart = source.indexOf("GATEWAY_TOOLS.searchCapabilities");
+    const describeStart = source.indexOf("GATEWAY_TOOLS.describeCapability");
+    const invokeStart = source.indexOf("GATEWAY_TOOLS.invokeCapability");
+    const searchBlock = source.slice(searchStart, describeStart);
+    const describeBlock = source.slice(describeStart, invokeStart);
+
+    expect(searchBlock).toContain("structuredContent: { capabilities }");
+    expect(searchBlock).not.toContain("structuredContent: { count:");
+    expect(describeBlock).toContain('text: "Schema ready."');
+    expect(describeBlock).not.toContain("name: tool.name");
+    expect(describeBlock).not.toContain("schema_projection:");
+    expect(describeBlock).toContain("inputSchema: projection.inputSchema");
+    expect(describeBlock).toContain("verification_class: metadata.verificationClass");
+    expect(describeBlock).toContain("source_owner: sourceOwnerForCapability(capability)");
+  });
+
   test("timeline discovery retains AI-callable easing and bone visibility arguments",()=>{
     const schema={type:"object",properties:{operation:{enum:["timeline","batch"]},action:{type:"string"},easing:{type:"object"},bone_ids:{type:"array"},parameters:{type:"object"}}};
     const result=projectCapabilityInputSchema("manage_animation_timeline",schema,{field:"operation",value:"timeline"});
