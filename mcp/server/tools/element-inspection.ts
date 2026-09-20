@@ -847,6 +847,7 @@ function inspectNullObject(element: NullObject) {
     position: requireFiniteInspectableVector3(element.position, `Null Object ${element.name} (${element.uuid}) position`),
     ik_target: element.ik_target || null,
     ik_source: element.ik_source || null,
+    ik_pole: element.ik_pole || null,
     lock_ik_target_rotation: element.lock_ik_target_rotation,
     export: element.export !== false,
     visibility: element.visibility !== false,
