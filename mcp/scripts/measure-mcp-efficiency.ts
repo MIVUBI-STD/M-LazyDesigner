@@ -21,6 +21,7 @@ const SCORECARD_RUNTIME_PRIMITIVES = [
   "manage_particle",
   "manage_render_profile",
   "remove_element",
+  "bone_rigging",
 ] as const;
 
 function runtimePrimitiveStaticCost() {
@@ -271,6 +272,51 @@ export function runMcpEfficiencyScorecard() {
     }
   );
 
+  const boneRiggingReceipt = workflow(
+    "bone_rigging_final_state_receipt",
+    "RIGGING",
+    [
+      step(
+        "mutate",
+        {
+          tool: "bone_rigging",
+          action: "set_ik",
+          target: "leg",
+        },
+        true
+      ),
+      step(
+        "inspect",
+        {
+          tool: "inspect_elements",
+          mode: "detail",
+          target: "leg",
+          confirmation_only: true,
+        },
+        false
+      ),
+    ],
+    [
+      step(
+        "mutate",
+        {
+          tool: "bone_rigging",
+          action: "set_ik",
+          target: "leg",
+          receipt: "complete_final_bone_state",
+        },
+        true
+      ),
+    ],
+    {
+      bone_identity_kept: true,
+      parent_state_kept: true,
+      pivot_rotation_state_kept: true,
+      ik_state_kept: true,
+      geometry_animation_invalidation_kept: true,
+    }
+  );
+
   const elementRemovalReceipt = workflow(
     "element_removal_receipt",
     "GEOMETRY",
@@ -386,6 +432,7 @@ export function runMcpEfficiencyScorecard() {
     textureTransaction,
     receiptContinuation,
     particleReceipt,
+    boneRiggingReceipt,
     elementRemovalReceipt,
     renderProfileReceipt,
     focusedDiscovery,
@@ -434,6 +481,12 @@ export function runMcpEfficiencyScorecard() {
         id: "element_removal_receipt",
         status: "implemented",
         primitive: "remove_element",
+        next_gate: "retain",
+      },
+      {
+        id: "bone_rigging_final_state_receipt",
+        status: "implemented",
+        primitive: "bone_rigging",
         next_gate: "retain",
       },
       {
