@@ -6,7 +6,6 @@ import {
   isExactPixelAuthoringRequest,
   normalizeTexturePixelRegion,
   paintFillToolParameters,
-  listTexturesParameters,
   requirePaintCoordinates,
   requireTextureCoordinatesWithinBounds,
   texturePixelRectToUvTag,
@@ -17,6 +16,7 @@ import {
   requireFiniteInspectableVector2,
 } from "@/server/tools/element-inspection";
 import { boxUvFootprint, packBoxUvOffsets } from "@/lib/boxUvLayout";
+import { listTexturesParameters } from "@/server/tools/texture";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
