@@ -310,6 +310,12 @@ trusted draft     → desktop-vMAJOR.MINOR.PATCH
 An unsigned development artifact therefore cannot reserve or masquerade as the final trusted release tag.
 
 
+## Single-instance Desktop
+
+LazyDesigner Desktop is single-instance. The official Tauri single-instance plugin is registered first in the Desktop builder. If a second launch is attempted, that process delegates to the existing instance and exits; the existing `main` window is shown, restored from a minimized state, and focused.
+
+This keeps workstation ownership singular: one connection watcher, one maintenance controller, one preferences writer, and one set of user-facing actions. No background service or second Desktop coordination database is introduced. The second-launch callback does not execute maintenance, readiness, or Project actions.
+
 ## Workstation automation and first-run policy
 
 Normal operation is intent-driven rather than launch-driven:
