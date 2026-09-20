@@ -28,7 +28,8 @@ export const boneRiggingParameters = z.object({
       name: z
         .string()
         .min(1)
-        .describe("Create: new name. Other actions: Group UUID or unique name."),
+        .optional()
+        .describe("Required for every action except set_ik_controller. Create: new name. Other actions: Group UUID or unique name."),
       new_name: z
         .string()
         .min(1)
@@ -89,6 +90,14 @@ export const boneRiggingParameters = z.object({
     })
     .describe("Bone configuration data."),
 }).superRefine((params, ctx) => {
+  if (params.action !== "set_ik_controller" && !params.bone_data.name) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["bone_data", "name"],
+      message: `${params.action} requires bone_data.name.`,
+    });
+  }
+
   if (
     params.action === "set_ik" &&
     params.bone_data.ik_enabled === undefined &&
@@ -296,6 +305,7 @@ export function registerBoneRiggingTool(): void {
       ...boneRiggingToolDoc,
       parameters: boneRiggingParameters,
       async execute({ action, bone_data }) {
+        const boneName = boneName ?? "";
         let targetBone: Group | undefined;
         let parentBone: Group | "root" | undefined;
         let childElements: OutlinerElement[] = [];
@@ -324,9 +334,9 @@ export function registerBoneRiggingTool(): void {
   
         switch (action) {
           case "create":
-            if (hasCaseInsensitiveRigNameCollision(Group.all, bone_data.name)) {
+            if (hasCaseInsensitiveRigNameCollision(Group.all, boneName)) {
               throw new Error(
-                `Bone name "${bone_data.name}" collides case-insensitively with an existing Group. Bedrock animation matching is case-insensitive; use a distinct bone name.`
+                `Bone name "${boneName}" collides case-insensitively with an existing Group. Bedrock animation matching is case-insensitive; use a distinct bone name.`
               );
             }
             parentBone = bone_data.parent
@@ -359,7 +369,7 @@ export function registerBoneRiggingTool(): void {
                   )
                 ) {
                   throw new Error(
-                    `Cannot create bone "${bone_data.name}" under "${createParentBone.name}" while adopting child Group "${child.name}" because that child is the parent itself, an ancestor of the parent, or the parent chain is already cyclic.`
+                    `Cannot create bone "${boneName}" under "${createParentBone.name}" while adopting child Group "${child.name}" because that child is the parent itself, an ancestor of the parent, or the parent chain is already cyclic.`
                   );
                 }
               });
@@ -375,7 +385,7 @@ export function registerBoneRiggingTool(): void {
             break;
   
           case "parent":
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             if (!bone_data.parent) {
               throw new Error(
                 "parent is required for the parent action. Use unparent to move a bone to root."
@@ -404,11 +414,11 @@ export function registerBoneRiggingTool(): void {
             break;
   
           case "unparent":
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             break;
   
           case "delete": {
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             deleteGroups = [targetBone];
             targetBone.forEachChild((element: any) => {
               if (element instanceof Group) {
@@ -429,7 +439,7 @@ export function registerBoneRiggingTool(): void {
           }
   
           case "rename":
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             if (!bone_data.new_name) {
               throw new Error("new_name is required for the rename action.");
             }
@@ -452,7 +462,7 @@ export function registerBoneRiggingTool(): void {
             break;
   
           case "set_pivot":
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             if (!bone_data.origin) {
               throw new Error(
                 "origin is required for set_pivot. Inspect the Group and provide the evidence-backed joint/attachment transform center explicitly."
@@ -461,7 +471,7 @@ export function registerBoneRiggingTool(): void {
             break;
   
           case "set_ik":
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             if (bone_data.ik_enabled === true && !bone_data.ik_target) {
               throw new Error("ik_target is required when ik_enabled=true.");
             }
@@ -497,7 +507,7 @@ export function registerBoneRiggingTool(): void {
             break;
 
           case "mirror":
-            targetBone = resolveAnimationRigGroup(bone_data.name);
+            targetBone = resolveAnimationRigGroup(boneName);
             if (!bone_data.mirror_axis) {
               throw new Error(
                 "mirror_axis is required for mirror. No implicit axis is assumed."
@@ -553,7 +563,7 @@ export function registerBoneRiggingTool(): void {
           switch (action) {
             case "create": {
               const group = new Group({
-                name: bone_data.name,
+                name: boneName,
                 origin: bone_data.origin ? toArrayVector3(bone_data.origin) : [0, 0, 0],
                 rotation: bone_data.rotation ? toArrayVector3(bone_data.rotation) : [0, 0, 0],
               }).init();
