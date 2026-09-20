@@ -10,10 +10,12 @@ describe("Astra local-measurement preflight", () => {
     );
     expect(source).toContain("astra-live-golden-tasks.json");
     expect(source).toContain("astra-usage-validation-template.json");
+    expect(source).toContain("codex-session-policy-input-template.json");
     expect(source).toContain("READY_FOR_LOCAL_MEASUREMENT");
     expect(source).toContain("REMOTE_GITHUB_PREP_ONLY");
     expect(source).toContain("token_claim_available_now: false");
     expect(source).toContain("never synthesize total_tokens from components");
+    expect(source).toContain("session_policy_template");
     expect(source).toContain("session_policy_command");
     expect(source).toContain("eval:session-policy");
     expect(pkg.scripts["eval:session-policy"]).toBe(

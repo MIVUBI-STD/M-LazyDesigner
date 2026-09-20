@@ -1,0 +1,15 @@
+{
+  "schema": "lazydesigner-codex-session-policy-input-v1",
+  "task_class": "DIRECT",
+  "pressure": "UNKNOWN",
+  "milestone": "NONE",
+  "checkpoint_state": "MISSING",
+  "recovery_uncertainty": false,
+  "visual_verification_pending": false,
+  "routing_ambiguity": false,
+  "common_prefix_stable": true,
+  "stage_extension_stable": true,
+  "tool_action_pending": false,
+  "telemetry_available": false,
+  "notes": "Populate only facts owned by the actual Codex/client session. UNKNOWN/MISSING is safer than guessing."
+}

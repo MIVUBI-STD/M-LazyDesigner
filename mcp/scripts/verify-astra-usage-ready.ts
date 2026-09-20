@@ -2,6 +2,8 @@ import { summarizeAstraUsage } from "./validate-astra-usage";
 
 const GOLDEN_PATH = "tests/fixtures/astra-live-golden-tasks.json";
 const TEMPLATE_PATH = "tests/fixtures/astra-usage-validation-template.json";
+const SESSION_POLICY_TEMPLATE_PATH =
+  "tests/fixtures/codex-session-policy-input-template.json";
 
 async function loadJson(path: string) {
   const file = Bun.file(path);
@@ -10,9 +12,10 @@ async function loadJson(path: string) {
 }
 
 async function main(): Promise<void> {
-  const [golden, template] = await Promise.all([
+  const [golden, template, sessionPolicyTemplate] = await Promise.all([
     loadJson(GOLDEN_PATH),
     loadJson(TEMPLATE_PATH),
+    loadJson(SESSION_POLICY_TEMPLATE_PATH),
   ]);
 
   if (golden.schema !== "lazydesigner-live-golden-tasks-v1") {
@@ -40,6 +43,13 @@ async function main(): Promise<void> {
     throw new Error("Golden Task A-F coverage drifted.");
   }
 
+  if (
+    sessionPolicyTemplate.schema !==
+    "lazydesigner-codex-session-policy-input-v1"
+  ) {
+    throw new Error("Unexpected Codex session-policy input schema.");
+  }
+
   const summary = summarizeAstraUsage(template);
   if (summary.aggregate.token_claim_available !== false) {
     throw new Error("Checked-in usage template must never claim measured token savings.");
@@ -55,6 +65,7 @@ async function main(): Promise<void> {
         usage_template: TEMPLATE_PATH,
         validator_command:
           "bun run eval:astra-usage -- /absolute/path/to/astra-usage.json",
+        session_policy_template: SESSION_POLICY_TEMPLATE_PATH,
         session_policy_command:
           "bun run eval:session-policy -- /absolute/path/to/session-policy-input.json",
         requirements: [
