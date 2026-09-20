@@ -35,7 +35,7 @@ unlocked/invalid UV → Geometry owner + bounded UV correction; no phase switch.
 ## Direct Routing
 Reuse fresh state.
 ```text
-discovery → list_textures(); UV/coverage/seam/PBR readiness → list_textures(diagnostics=true, diagnostic_scope=<needed scope>)
+discovery → list_textures(); readiness → list_textures(diagnostics=true, diagnostic_scope=uv|coverage|seam|pbr|full)
 face mapping → inspect_elements(mode=detail) only when needed
 blank atlas resolution unknown → get_project_info once
 atlas → list_textures / activate_texture / create_texture / get_texture
@@ -75,7 +75,7 @@ sample an already-authored pixel whose value is unknown
 
 Rules:
 - If the intended color is already known from the reference/palette/previous evidence, pass the color directly; **do not call `color_picker_tool` just to put a known value into Blockbench's active color slot**.
-- Prefer one coherent `paint_texture_transaction` over many one-pixel Painter calls when the result is deterministic and transaction operations can express it; exact-pixel brush compatibility also bypasses native Painter UI setup.
+- Prefer one `paint_texture_transaction` for deterministic pixel cohorts; exact-pixel brush compatibility bypasses native Painter UI setup.
 - Prefer native Painter only when brush/fill/shape behavior itself is part of the required result.
 - Exact-data operations do not need proof that a Blockbench brush, slider, preset, or color slot was touched.
 - Do not use `trigger_action`, `emulate_clicks`, or `fill_dialog` for normal texturing. Those are maintenance/UI fallbacks, not authoring executors.
