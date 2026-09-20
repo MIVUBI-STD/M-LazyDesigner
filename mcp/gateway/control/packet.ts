@@ -135,7 +135,15 @@ function taskContextId(
 
 function contextFamily(id: string): string {
   const at = id.lastIndexOf("@");
-  return at > 0 ? id.slice(0, at) : id;
+  const versionless = at > 0 ? id.slice(0, at) : id;
+
+  // Only one specialist and one Geometry profile may be active. Treat their
+  // concrete labels as members of a broad supersession family so a phase/profile
+  // change explicitly invalidates the prior handle instead of leaving two
+  // authoritative guidance sources live in the client context.
+  if (versionless.startsWith("ctx:skill/")) return "ctx:skill";
+  if (versionless.startsWith("ctx:profile/")) return "ctx:profile";
+  return versionless;
 }
 
 function filterContext(
