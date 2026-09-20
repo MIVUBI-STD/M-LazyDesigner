@@ -135,6 +135,9 @@ export const textureLayerManagementParameters = z.object({
 
 
 type ManagedTextureLayer = TextureLayer & {
+  width: number;
+  height: number;
+  offset?: [number, number];
   parent_uuid?: string;
 };
 
