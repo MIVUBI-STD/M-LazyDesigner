@@ -103,6 +103,22 @@ function locatorReceiptComplete(value: unknown): boolean {
   });
 }
 
+function nativeIkControllerReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (candidate.action !== "set_ik_controller") return false;
+    const controller = record(candidate.controller);
+    return Boolean(
+      controller &&
+      typeof controller.uuid === "string" &&
+      typeof controller.name === "string" &&
+      Object.prototype.hasOwnProperty.call(controller, "ik_target") &&
+      Object.prototype.hasOwnProperty.call(controller, "ik_source") &&
+      Object.prototype.hasOwnProperty.call(controller, "ik_pole") &&
+      typeof controller.lock_ik_target_rotation === "boolean"
+    );
+  });
+}
+
 function groupReceiptComplete(capability: string, value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (candidate.execution !== "applied") return false;
@@ -472,6 +488,13 @@ function verificationClassForResult(
   if (
     (capability === "manage_locator" || capability === "manage_null_object") &&
     locatorReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "bone_rigging" &&
+    nativeIkControllerReceiptComplete(result)
   ) {
     return "receipt_only";
   }
