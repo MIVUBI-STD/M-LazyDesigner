@@ -130,6 +130,11 @@ const SEARCH_ALIASES: Readonly<Record<string, readonly string[]>> = {
   bone_rigging: [
     "inverse kinematics",
     "ik target",
+    "ik controller",
+    "ik root",
+    "ik source",
+    "ik pole",
+    "pole vector",
     "mirror bone",
     "rig mirror",
   ],
