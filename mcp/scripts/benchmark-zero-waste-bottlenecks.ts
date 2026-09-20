@@ -58,7 +58,7 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
   const workflows = runZeroWasteWorkflowBenchmark();
   const accumulator = new Map<
     StepKind,
-    Omit<BottleneckRow, "byte_share_percent" | "saved_byte_share_percent">
+    Omit<BottleneckRow, "byte_share_percent" | "removed_byte_share_percent">
   >();
 
   for (const kind of STEP_KINDS) {
