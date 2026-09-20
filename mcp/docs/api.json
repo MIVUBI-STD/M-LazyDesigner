@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-20T20:52:12.868Z",
+  "generatedAt": "2026-09-20T20:58:09.142Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5606,8 +5606,10 @@
             ]
           },
           "radius": {
-            "description": "Radius for expand/contract operations.",
-            "type": "number"
+            "description": "Non-negative integer pixel radius for expand/contract operations.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           },
           "mode": {
             "default": "create",
