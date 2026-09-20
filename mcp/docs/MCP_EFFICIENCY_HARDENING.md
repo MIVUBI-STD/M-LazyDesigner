@@ -21,6 +21,9 @@ Already implemented and retained:
 - coherent Animation keyframe work through the existing batch timeline route;
 - exact Texture region work through `paint_texture_transaction`;
 - receipt-only continuation when a mutation returns complete authoritative state;
+- verified particle writes continue from their transactional write receipt;
+- verified render-profile writes continue from compact mutation identity + write receipts;
+- element removal continues from consistent deleted-root/count/animation-impact receipts;
 - bounded search + focused inspection when identity is unknown;
 - change-scoped freshness/invalidation;
 - no automatic retry after uncertain mutation outcome.
