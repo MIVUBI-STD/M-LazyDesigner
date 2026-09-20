@@ -83,6 +83,9 @@ jobs:
       - name: Report Zero-Waste bottlenecks
         run: bun run benchmark:zero-waste-bottlenecks
 
+      - name: Measure MCP efficiency scorecard
+        run: bun run measure:mcp-efficiency
+
       - name: Measure MCP surface
         run: bun run measure:surface
 
