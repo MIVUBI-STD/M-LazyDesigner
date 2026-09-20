@@ -153,6 +153,8 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("pub open: bool");
     expect(rust).toContain("pub dirty: bool");
     expect(rust).toContain("read_navigation_snapshot().map(|snapshot| snapshot.revision.to_string())");
+    expect(rust).toContain("live_open_models(&snapshot, runtime_active)");
+    expect(rust).toContain("live_project_session_state_is_discarded_when_runtime_is_inactive");
     expect(rust).toContain('"open-project-folder"');
     expect(rust).toContain('"open-model"');
     expect(rust).toContain('"reveal-model"');

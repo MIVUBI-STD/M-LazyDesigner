@@ -437,6 +437,8 @@ recent saved models
 
 Desktop uses that state only where it changes a user decision. An already-open model is presented with `Switch`; a dirty model is marked `Modified`. Other editor-session details stay hidden. Opening an existing `.bbmodel` still goes through Blockbench's normal native file-open path, whose existing-tab guard selects the already-open project instead of creating a duplicate tab.
 
+Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those flags whenever the Blockbench Runtime is not live, while recent saved models remain available for navigation. A stale snapshot therefore cannot keep rendering `Switch` or `Modified` after Blockbench closes.
+
 Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Pinning changes Recent Projects ordering only.
 
 ## Bounded local operation log

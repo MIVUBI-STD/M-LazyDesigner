@@ -346,6 +346,15 @@ fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
     Some(snapshot)
 }
 
+
+fn live_open_models(snapshot: &NavigationSnapshot, runtime_active: bool) -> &[NavigationSnapshotOpen] {
+    if runtime_active {
+        snapshot.open_models.as_slice()
+    } else {
+        &[]
+    }
+}
+
 fn is_bbmodel_path(path: &Path) -> bool {
     path.is_absolute()
         && path.extension()
@@ -460,6 +469,11 @@ fn navigation_paths() -> (
     if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) {
         add(active);
     }
+    for open in &snapshot.open_models {
+        if let Some(path) = open.path.as_deref() {
+            add(path);
+        }
+    }
     for recent in &snapshot.recent_models {
         add(&recent.path);
     }
@@ -507,7 +521,8 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
         None
     };
 
-    let open_by_path: HashMap<String, (bool, bool)> = snapshot.open_models.iter()
+    let live_open_models = live_open_models(&snapshot, runtime_active);
+    let open_by_path: HashMap<String, (bool, bool)> = live_open_models.iter()
         .filter_map(|model| {
             let path = model.path.as_ref()?;
             let path = PathBuf::from(path);
@@ -565,7 +580,7 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
     if let (Some(path), Some(active_snapshot)) = (active_path.clone(), snapshot.active.as_ref()) {
         add_model(path, &active_snapshot.name, true);
     }
-    for open in &snapshot.open_models {
+    for open in live_open_models {
         let Some(raw_path) = open.path.as_ref() else { continue; };
         let path = PathBuf::from(raw_path);
         if !is_bbmodel_path(&path) {
@@ -1662,6 +1677,28 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_blockbench_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn live_project_session_state_is_discarded_when_runtime_is_inactive() {
+        let snapshot = NavigationSnapshot {
+            schema: 1,
+            observed_at_unix_ms: 1,
+            revision: 7,
+            active: None,
+            open_models: vec![NavigationSnapshotOpen {
+                uuid: "open-model".to_string(),
+                name: "Sofa".to_string(),
+                path: Some("C:/Projects/Furniture/Sofa.bbmodel".to_string()),
+                saved: true,
+                dirty: true,
+                active: true,
+            }],
+            recent_models: Vec::new(),
+        };
+
+        assert_eq!(live_open_models(&snapshot, true).len(), 1);
+        assert!(live_open_models(&snapshot, false).is_empty());
     }
 
     #[test]
