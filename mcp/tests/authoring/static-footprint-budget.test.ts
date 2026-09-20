@@ -34,10 +34,18 @@ describe("static footprint budget", () => {
     expect(root.length).toBeLessThan(12_000);
     expect(referenceGenerator.length).toBeLessThan(20_000);
     expect(controlPacket.length).toBeLessThan(14_000);
-    expect(modelling.length).toBeLessThan(20_000);
-    expect(texturing.length).toBeLessThan(16_000);
-    expect(animation.length).toBeLessThan(16_000);
+    expect(modelling.length).toBeLessThan(17_500);
+    expect(texturing.length).toBeLessThan(14_000);
+    expect(animation.length).toBeLessThan(14_500);
     expect(workflow.length).toBeLessThan(15_000);
+
+    for (const [skill, terms] of [
+      [modelling, ["selected_profile", "PROFILE_RECLASSIFICATION_REQUIRED", "approved reference evidence"]],
+      [texturing, ["stage-specific Texturing projection", "Geometry APPROVED + UV Layout PASS", "request only that exact context"]],
+      [animation, ["stage-specific Animation projection", "participating semantic IDs", "request only that exact context"]],
+    ] as const) {
+      for (const term of terms) expect(skill).toContain(term);
+    }
     const gateway = await source("gateway/index.ts");
     const instructionStart = gateway.indexOf("const GATEWAY_INSTRUCTIONS =");
     const instructionEnd = gateway.indexOf("\n\ntype GatewayToolDefinition", instructionStart);

@@ -10,43 +10,11 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 ## Control Context Projection
 
-Normal Texturing starts from a **stage-specific projection prepared by LazyDesigner Control**, not by loading the complete Modelling Profile or complete Reference Package again.
+Start from LazyDesigner Control's stage-specific Texturing projection; do not reload the complete Modelling Profile or Reference Package.
 
-Control should provide only the material subset needed for the current texturing decision:
+Keep only decision-relevant context: current texture request, asset/profile label, Geometry APPROVED + UV Layout PASS, affected semantic/material IDs, identity markings/palette, render/PBR/alpha/emissive requirements, relevant approved reference views, current atlas/UV identity, and texture-stage blockers.
 
-```text
-original user intent / current texture request
-asset identity + selected_profile label
-Geometry APPROVED + UV Layout PASS state
-relevant semantic part IDs
-relevant material entries
-identity-critical markings / palette regions
-emissive / alpha / PBR requirements when applicable
-relevant approved reference image(s) / views
-current atlas / UV identity when known
-blocking texture-stage unknowns or upstream blockers
-```
-
-Do **not** load the full asset modelling profile by default. Profile knowledge already used to establish Geometry should reach Texturing only through relevant semantic parts/material relationships or narrowly justified guidance.
-
-Examples:
-
-```text
-VEHICLE texture task
-→ body / glass / wheel / lamp material entries
-→ paint/marking evidence
-→ no wheelbase, steering-pivot or suspension reasoning unless it directly changes texture ownership
-
-HUMANOID texture task
-→ skin / clothing / armor / face-marking regions
-→ no full joint/rig profile unless a material boundary depends on it
-
-PLANT_FOLIAGE texture task
-→ alpha silhouette, leaf/stem/flower material regions
-→ no unrelated foliage construction rules
-```
-
-If the projection lacks a decision-critical material fact, request only that missing context through Control. Do not broaden into the full profile as reassurance.
+If a decision-critical item is missing, request only that exact context through Control. Do not broaden into full-profile/reference loading as reassurance.
 
 ## Pixel Art Reference Intake
 

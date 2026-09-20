@@ -13,45 +13,11 @@ Durable Animation policy is owned by `docs/03-authoring/animation/standard.md`; 
 
 ## Control Context Projection
 
-Normal Animation starts from a **stage-specific projection prepared by LazyDesigner Control**. Do not reload the complete Modelling Profile or full Reference Package by default.
+Start from LazyDesigner Control's stage-specific Animation projection; do not reload the complete Modelling Profile or Reference Package.
 
-Control should provide only motion-relevant context:
+Keep only motion-relevant context: current animation request, approved checkpoint state, participating semantic IDs, parent/child articulation, pivot/axis intent, contact/clearance requirements, relevant pose/keyframe/deformation guidance and approved reference views, current clip identity/state, and animation-stage blockers.
 
-```text
-original user intent / current animation request
-asset identity + selected_profile label
-approved Geometry/Texture checkpoint state
-semantic moving part IDs
-parent-child articulation relationships
-pivot / axis intent
-joint coverage / clearance requirements
-motion participation classification
-relevant ANIMATION_KEYFRAME / POSE_ACTION / RIG_DEFORMATION guidance
-relevant approved reference image(s) / pose views
-current animation clip identity/state when known
-blocking animation-stage unknowns or upstream rig blockers
-```
-
-Profile knowledge should reach Animation through these resolved semantic relationships, not by loading the full `HUMANOID`, `CREATURE`, `VEHICLE`, `MECHANICAL`, or other profile unless a narrowly scoped unresolved relationship genuinely requires it.
-
-Examples:
-
-```text
-HUMANOID walk
-→ legs / feet / pelvis / torso / arms participating chain
-→ hip/knee/ankle coverage + foot contact + timing reference
-→ no clothing/UV/material profile detail unless it affects motion
-
-CREATURE tail motion
-→ tail chain + tail-base attachment + body interaction
-→ no full creature anatomy profile when unrelated limbs are unaffected
-
-VEHICLE wheel/door animation
-→ moving wheel/door IDs + parent + axis/pivot + contact/clearance
-→ no wheelbase/cockpit/material context unless it changes the motion decision
-```
-
-If a decision-critical motion relationship is missing, request only that exact context through Control. Do not broaden into full-profile discovery as reassurance.
+If a decision-critical motion relationship is missing, request only that exact context through Control. Never broaden into full-profile discovery as reassurance.
 
 ## Boundary
 

@@ -8,45 +8,20 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 ## Modelling Specialist / Profile Contract
 
-This Skill is the **modelling execution specialist**. Durable Geometry, hierarchy, pivot/rig-readiness, surface, UV Layout, correction, and verification policy is owned by `docs/03-authoring/modelling/standard.md`; this Skill carries the compact operational triggers needed on the hot path. Asset-class knowledge belongs in `docs/03-authoring/modelling/profiles/README.md` and the selected profile beneath that directory; it must not be duplicated here.
+This Skill is the hot-path Geometry/UV specialist. Durable policy belongs to `docs/03-authoring/modelling/standard.md`; asset-class guidance belongs to the single Control-selected profile under `docs/03-authoring/modelling/profiles/`.
 
-Canonical profile vocabulary:
-
+Normal context:
 ```text
-PROP_FURNITURE
-VEHICLE
-HUMANOID
-CREATURE
-MECHANICAL
-PLANT_FOLIAGE
-GENERIC
-```
-
-Initial profile classification is owned by Reference Preparation / `REFERENCE.json`. LazyDesigner Control transports and loads that `selected_profile`; this Skill may request `PROFILE_RECLASSIFICATION_REQUIRED` when fresh Geometry evidence proves the supplied profile materially wrong.
-
-Normal modelling context is:
-
-```text
-Control
-→ original user intent + current target + reference readiness
-→ selected_profile
-→ this modelling specialist
-→ exactly one selected profile
-→ Codex
+Control → current intent/reference readiness → selected_profile → this Skill → exactly one selected profile
 ```
 
 Rules:
-
-- accept `selected_profile` from Control when supplied; do not independently re-run broad profile discovery;
-- load only the selected profile for normal work;
-- do not stack full profiles by default;
-- narrowly scoped secondary guidance may be supplied by Control for one relationship without loading a second full profile;
-- `GENERIC` is fallback only when no specific profile materially improves the current decision;
-- if fresh evidence makes the selected profile materially wrong, report `PROFILE_RECLASSIFICATION_REQUIRED` with the better profile and reason; preserve valid reference/workspace/approval state;
-- profile change is context classification, not asset-state reset and not automatic downstream invalidation;
-- profile rules never override approved reference evidence, explicit dimensions, user requirements, or this core's safety/verification gates.
-
-If no profile is supplied during migration, use the smallest evidence-backed classification needed for the current decision and prefer a specific profile over `GENERIC`; do not load all profile files to decide.
+- accept `selected_profile` from Control; do not rerun broad profile discovery;
+- load only that profile; `GENERIC` is fallback when no specific profile materially helps;
+- fresh Geometry evidence may return `PROFILE_RECLASSIFICATION_REQUIRED` with the better profile + reason;
+- profile reclassification is context-only, not an asset reset or automatic downstream invalidation;
+- profile guidance never overrides approved reference evidence, explicit dimensions, user requirements, or safety/verification gates;
+- if migration supplies no profile, use the smallest evidence-backed classification; never load all profiles as reassurance.
 
 ## Minimum Necessary Evidence
 - **No per-Cube inspection ceremony** without a diagnosed problem.
