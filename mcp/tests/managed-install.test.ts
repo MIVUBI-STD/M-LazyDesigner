@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
 test("installation identity survives native Windows path virtualization", async () => {
@@ -176,7 +176,7 @@ test("availability probe rejects non-local targets and invalid deadlines", async
 });
 
 
-test("managed status exposes one desktop-ready machine health contract", async () => sandbox(async (d, o) => {
+test("managed status exposes one desktop-ready machine health contract", async () => sandbox(async (_d, o) => {
   const { buildManagedStatus } = await import("../distribution/status");
   let observedConfig: string | undefined;
   const status = await buildManagedStatus(
