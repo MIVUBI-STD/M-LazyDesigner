@@ -132,6 +132,57 @@ If hierarchy/pivot/contact Geometry is the cause, hand off immediately. Do not s
 
 Known animation UUID and known target cohort -> mutate directly. `inspect_animation` is for unknown/stale clip state, not mandatory before every edit.
 
+## Measurable Efficiency Scorecard
+
+`bun run measure:mcp-efficiency` measures representative hot paths with one canonical scorecard:
+
+```text
+baseline_calls
+optimized_calls
+saved_calls
+call_reduction_percent
+baseline_payload_bytes
+optimized_payload_bytes
+payload_reduction_percent
+baseline_mutation_calls
+optimized_mutation_calls
+baseline_inspection_calls
+optimized_inspection_calls
+baseline_verification_calls
+optimized_verification_calls
+quality_preserved
+```
+
+The scorecard is a deterministic architecture proxy, not live Codex token telemetry or native Blockbench latency. It is part of `verify:mcp` so an efficiency regression cannot silently land while ordinary behavior still passes.
+
+Current measured patterns:
+
+```text
+coherent Cube cohort      -> manage_cubes batch
+coherent keyframe cohort  -> manage_animation_timeline(batch)
+exact atlas region work   -> paint_texture_transaction
+complete mutation receipt -> no confirmation reread
+unknown target identity   -> one bounded discovery + one focused read
+```
+
+### Cohort rule
+
+Batch only when all operations share one semantic owner, the intermediate result does not change the next decision, and one rollback/Undo boundary is correct.
+
+Keep separate calls when:
+
+- the next mutation depends on visual/technical evidence from the previous one;
+- operations cross Geometry/Texturing/Animation ownership;
+- one failure must not roll back independent accepted work;
+- target identity is unresolved;
+- a native Blockbench API cannot represent the transaction safely.
+
+A lower call count that removes required evidence is a regression, not an optimization.
+
+### Opportunity register
+
+The scorecard also reports candidates that are not yet implemented. `evidence_required` means do not widen a schema until real workflow frequency justifies it. `blocked_by_stable_api` means do not emulate private Blockbench internals.
+
 ## Call-Budget Interpretation
 
 There is no universal fixed tool-call count because asset complexity differs. A call is justified only when at least one applies:
