@@ -14,7 +14,16 @@ type NavigationSnapshot = {
     name: string;
     model_path: string | null;
     saved: boolean;
+    dirty: boolean;
   } | null;
+  open_models: Array<{
+    uuid: string;
+    name: string;
+    path: string | null;
+    saved: boolean;
+    dirty: boolean;
+    active: boolean;
+  }>;
   recent_models: Array<{
     name: string;
     path: string;
@@ -41,6 +50,28 @@ function modelPath(project: ModelProject | null | undefined): string | null {
     if (typeof value === "string" && /\.bbmodel$/i.test(value)) return value;
   }
   return null;
+}
+
+function displayName(project: ModelProject): string {
+  return (
+    String(project.name || project.model_identifier || "Untitled Project").trim()
+    || "Untitled Project"
+  );
+}
+
+function openModels(): NavigationSnapshot["open_models"] {
+  if (typeof ModelProject === "undefined" || !Array.isArray(ModelProject.all)) return [];
+  return ModelProject.all.slice(0, 64).map((project) => {
+    const path = modelPath(project);
+    return {
+      uuid: String(project.uuid ?? ""),
+      name: displayName(project),
+      path,
+      saved: Boolean(path),
+      dirty: project.saved === false,
+      active: project === Project || project.selected === true,
+    };
+  });
 }
 
 function recentModels(): NavigationSnapshot["recent_models"] {
@@ -81,16 +112,24 @@ function buildSnapshot(): NavigationSnapshot {
   const active = activeProject
     ? {
         uuid: String(activeProject.uuid ?? ""),
-        name:
-          String(activeProject.name || activeProject.model_identifier || "Untitled Project").trim() ||
-          "Untitled Project",
+        name: displayName(activeProject),
         model_path: activePath,
         saved: Boolean(activePath),
+        dirty: activeProject.saved === false,
       }
     : null;
+  const open_models = openModels();
   const recent_models = recentModels();
   const signature = JSON.stringify({
     active,
+    open: open_models.map((entry) => [
+      entry.uuid,
+      entry.name,
+      entry.path,
+      entry.saved,
+      entry.dirty,
+      entry.active,
+    ]),
     recent: recent_models.map((entry) => [
       entry.name,
       entry.path,
@@ -107,6 +146,7 @@ function buildSnapshot(): NavigationSnapshot {
     observed_at_unix_ms: Date.now(),
     revision,
     active,
+    open_models,
     recent_models,
   };
 }
@@ -152,10 +192,13 @@ export function setupProjectNavigationSnapshot(): void {
   outputPath = localAppData.replace(/[\\/]$/, "") + "\\LazyDesigner\\project-navigation.json";
 
   listeners.push(
+    Blockbench.on("new_project", scheduleSnapshot),
+    Blockbench.on("setup_project", scheduleSnapshot),
     Blockbench.on("select_project", scheduleSnapshot),
     Blockbench.on("close_project", scheduleSnapshot),
     Blockbench.on("load_project", scheduleSnapshot),
     Blockbench.on("save_project", scheduleSnapshot),
+    Blockbench.on("saved_state_changed", scheduleSnapshot),
     Blockbench.on("update_recent_project_data", scheduleSnapshot),
   );
   writeSnapshot();

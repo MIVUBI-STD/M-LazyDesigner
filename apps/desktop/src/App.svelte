@@ -64,6 +64,8 @@
     id: string;
     name: string;
     active: boolean;
+    open: boolean;
+    dirty: boolean;
     exists: boolean;
   };
 
@@ -89,6 +91,7 @@
     model_id: string | null;
     model_name: string;
     saved: boolean;
+    dirty: boolean;
   };
 
   type ProjectNavigation = {
@@ -596,6 +599,7 @@
         model_id: 'model-fixture',
         model_name: 'Modern Chair',
         saved: true,
+        dirty: false,
       },
       projects: fixture === 'fresh-install' ? [] : [{
         id: 'project-fixture',
@@ -604,8 +608,8 @@
         pinned: true,
         model_count: 2,
         models: [
-          { id: 'model-fixture', name: 'Modern Chair', active: true, exists: true },
-          { id: 'model-fixture-2', name: 'Sofa', active: false, exists: true },
+          { id: 'model-fixture', name: 'Modern Chair', active: true, open: true, dirty: false, exists: true },
+          { id: 'model-fixture-2', name: 'Sofa', active: false, open: true, dirty: true, exists: true },
         ],
         folders: [
           { id: 'folder-fixture-models', label: 'Models', kind: 'models' },
@@ -866,7 +870,7 @@
                         {/if}
                       </div>
                       <div class="project-actions">
-                        <button class="primary-button small-button" onclick={() => openProjectModel(target.model.id)} disabled={busyAction !== null}>Continue</button>
+                        <button class="primary-button small-button" onclick={() => openProjectModel(target.model.id)} disabled={busyAction !== null}>{target.model.open ? 'Switch' : 'Continue'}</button>
                       </div>
                     </div>
                   </div>
@@ -885,9 +889,11 @@
                     <div class="project-main">
                       <div class="project-title">{activeNavigation.project_name ?? activeNavigation.model_name}</div>
                       {#if !activeNavigation.saved}
-                        <div class="project-meta">Not saved yet</div>
+                        <div class="project-meta">Not saved yet{activeNavigation.dirty ? ' · Modified' : ''}</div>
                       {:else if activeNavigation.project_name && activeNavigation.project_name !== activeNavigation.model_name}
-                        <div class="project-meta">{activeNavigation.model_name}</div>
+                        <div class="project-meta">{activeNavigation.model_name}{activeNavigation.dirty ? ' · Modified' : ''}</div>
+                      {:else if activeNavigation.dirty}
+                        <div class="project-meta">Modified</div>
                       {/if}
                     </div>
                     <div class="project-actions">
@@ -912,11 +918,11 @@
                           <div class="model-row">
                             <div class="model-main">
                               <strong>{model.name}</strong>
-                              {#if model.active}<span>Active</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
+                              {#if model.active}<span>{model.dirty ? 'Active · Modified' : 'Active'}</span>{:else if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
                             </div>
                             <div class="model-actions">
                               {#if !model.active}
-                                <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>Open</button>
+                                <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>{model.open ? 'Switch' : 'Open'}</button>
                               {/if}
                               <details class="more-menu">
                                 <summary aria-label="Model actions">•••</summary>
@@ -981,10 +987,10 @@
                           <div class="model-row">
                             <div class="model-main">
                               <strong>{model.name}</strong>
-                              {#if !model.exists}<span>Location unavailable</span>{/if}
+                              {#if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
                             </div>
                             <div class="model-actions">
-                              <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>Open</button>
+                              <button class="secondary-button small-button" onclick={() => openProjectModel(model.id)} disabled={!model.exists || busyAction !== null}>{model.open ? 'Switch' : 'Open'}</button>
                               <details class="more-menu">
                                 <summary aria-label="Model actions">•••</summary>
                                 <div class="menu-popover" role="menu">

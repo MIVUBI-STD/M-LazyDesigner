@@ -111,7 +111,10 @@ Current REMOTE_GITHUB source implements:
 - missing-model state without drive scanning;
 - path-free normal Overview UI;
 - bounded local navigation snapshot rather than a second project database;
-- watcher refresh when the navigation snapshot changes.
+- watcher refresh from the plugin's canonical navigation revision;
+- bounded open-model inventory plus active/dirty state from Blockbench;
+- already-open models use native existing-tab selection and surface as `Switch`;
+- `Modified` is shown only when unsaved changes affect a user decision.
 
 Project grouping order:
 

@@ -424,7 +424,18 @@ These shortcuts appear only when the corresponding directory actually exists und
 
 Opening a model from Desktop first passes through the canonical `ensure_ready` flow; project navigation does not create a second Blockbench lifecycle path. Missing files remain visible as unavailable rather than triggering a drive scan or guessed relocation.
 
-The active-window heartbeat watches only the navigation snapshot revision. When it changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
+The active-window heartbeat watches only the canonical navigation revision emitted by the Blockbench plugin. When it changes, Desktop performs one normal status refresh; it does not crawl project folders continuously.
+
+The plugin projection also carries the bounded saved/open model inventory needed for navigation:
+
+```text
+active model
+open saved models
+dirty/clean state
+recent saved models
+```
+
+Desktop uses that state only where it changes a user decision. An already-open model is presented with `Switch`; a dirty model is marked `Modified`. Other editor-session details stay hidden. Opening an existing `.bbmodel` still goes through Blockbench's normal native file-open path, whose existing-tab guard selects the already-open project instead of creating a duplicate tab.
 
 Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Pinning changes Recent Projects ordering only.
 

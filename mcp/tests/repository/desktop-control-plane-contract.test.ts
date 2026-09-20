@@ -141,9 +141,18 @@ describe("Desktop control-plane ownership", () => {
     expect(integration).toContain("setupProjectNavigationSnapshot");
     expect(integration).toContain("teardownProjectNavigationSnapshot");
     expect(snapshot).toContain("recent_projects");
+    expect(snapshot).toContain("ModelProject.all");
+    expect(snapshot).toContain("open_models");
+    expect(snapshot).toContain("project.saved === false");
+    expect(snapshot).toContain('Blockbench.on("saved_state_changed"');
+    expect(snapshot).toContain('Blockbench.on("select_project"');
     expect(snapshot).toContain(".bbmodel");
     expect(snapshot).toContain("project-navigation.json");
     expect(rust).toContain("project_navigation_projection");
+    expect(rust).toContain("open_models");
+    expect(rust).toContain("pub open: bool");
+    expect(rust).toContain("pub dirty: bool");
+    expect(rust).toContain("read_navigation_snapshot().map(|snapshot| snapshot.revision.to_string())");
     expect(rust).toContain('"open-project-folder"');
     expect(rust).toContain('"open-model"');
     expect(rust).toContain('"reveal-model"');
@@ -165,6 +174,9 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("model_count > 8");
     expect(app).toContain("Search projects");
     expect(app).toContain("Search models");
+    expect(app).toContain("model.open ? 'Switch' : 'Open'");
+    expect(app).toContain("Active · Modified");
+    expect(app).toContain("activeNavigation.dirty");
     expect(app).toContain("folder-shortcuts");
     expect(app).toContain("Pin project");
     expect(app).toContain("Unpin project");

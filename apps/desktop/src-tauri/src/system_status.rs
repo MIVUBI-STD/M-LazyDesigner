@@ -135,6 +135,8 @@ pub struct ProjectNavigationModel {
     pub id: String,
     pub name: String,
     pub active: bool,
+    pub open: bool,
+    pub dirty: bool,
     pub exists: bool,
 }
 
@@ -163,6 +165,7 @@ pub struct ActiveProjectNavigation {
     pub model_id: Option<String>,
     pub model_name: String,
     pub saved: bool,
+    pub dirty: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -217,6 +220,18 @@ struct NavigationSnapshotActive {
     name: String,
     model_path: Option<String>,
     saved: bool,
+    #[serde(default)]
+    dirty: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct NavigationSnapshotOpen {
+    uuid: String,
+    name: String,
+    path: Option<String>,
+    saved: bool,
+    dirty: bool,
+    active: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -237,6 +252,8 @@ struct NavigationSnapshot {
     #[allow(dead_code)]
     revision: u64,
     active: Option<NavigationSnapshotActive>,
+    #[serde(default)]
+    open_models: Vec<NavigationSnapshotOpen>,
     recent_models: Vec<NavigationSnapshotRecent>,
 }
 
@@ -313,18 +330,7 @@ fn write_project_navigation_preferences(value: &ProjectNavigationPreferences) ->
 }
 
 fn project_navigation_revision() -> Option<String> {
-    let path = project_navigation_snapshot_path()?;
-    let metadata = fs::metadata(path).ok()?;
-    if metadata.len() > 512 * 1024 {
-        return None;
-    }
-    let modified = metadata
-        .modified()
-        .ok()?
-        .duration_since(UNIX_EPOCH)
-        .ok()?
-        .as_millis();
-    Some(format!("{modified}:{}", metadata.len()))
+    read_navigation_snapshot().map(|snapshot| snapshot.revision.to_string())
 }
 
 fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
@@ -334,7 +340,7 @@ fn read_navigation_snapshot() -> Option<NavigationSnapshot> {
         return None;
     }
     let snapshot: NavigationSnapshot = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
-    if snapshot.schema != 1 || snapshot.recent_models.len() > 128 {
+    if snapshot.schema != 1 || snapshot.recent_models.len() > 128 || snapshot.open_models.len() > 64 {
         return None;
     }
     Some(snapshot)
@@ -461,14 +467,14 @@ fn navigation_paths() -> (
 }
 
 fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
-    let revision = project_navigation_revision();
     let pinned: HashSet<String> = read_project_navigation_preferences()
         .pinned_project_ids
         .into_iter()
         .collect();
     let Some(snapshot) = read_navigation_snapshot() else {
-        return ProjectNavigation { revision, active: None, projects: Vec::new() };
+        return ProjectNavigation { revision: None, active: None, projects: Vec::new() };
     };
+    let revision = Some(snapshot.revision.to_string());
 
     let active_path = if runtime_active {
         snapshot.active.as_ref()
@@ -495,10 +501,23 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
                 value.name.trim().to_string()
             },
             saved: value.saved && active_path.is_some(),
+            dirty: value.dirty,
         })
     } else {
         None
     };
+
+    let open_by_path: HashMap<String, (bool, bool)> = snapshot.open_models.iter()
+        .filter_map(|model| {
+            let path = model.path.as_ref()?;
+            let path = PathBuf::from(path);
+            if !is_bbmodel_path(&path) {
+                return None;
+            }
+            let key = path.to_string_lossy().replace('/', "\\").to_lowercase();
+            Some((key, (model.active, model.dirty)))
+        })
+        .collect();
 
     let mut projects: Vec<ProjectNavigationProject> = Vec::new();
     let mut add_model = |path: PathBuf, preferred: &str, active_model: bool| {
@@ -506,6 +525,8 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
         let project_id = navigation_id("project", &root);
         let model_id = navigation_id("model", &path);
         let project_active = active_project_id.as_deref() == Some(project_id.as_str());
+        let path_key = path.to_string_lossy().replace('/', "\\").to_lowercase();
+        let (open, dirty) = open_by_path.get(&path_key).copied().unwrap_or((false, false));
 
         let index = projects.iter().position(|project| project.id == project_id)
             .unwrap_or_else(|| {
@@ -523,17 +544,19 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
         let project = &mut projects[index];
         project.active |= project_active;
         if project.models.iter().any(|model| model.id == model_id) {
-            if active_model {
-                if let Some(model) = project.models.iter_mut().find(|model| model.id == model_id) {
-                    model.active = true;
-                }
+            if let Some(model) = project.models.iter_mut().find(|model| model.id == model_id) {
+                model.active |= active_model || open_by_path.get(&path_key).map(|state| state.0).unwrap_or(false);
+                model.open |= open;
+                model.dirty |= dirty;
             }
             return;
         }
         project.models.push(ProjectNavigationModel {
             id: model_id,
             name: model_name(&path, preferred),
-            active: active_model,
+            active: active_model || open_by_path.get(&path_key).map(|state| state.0).unwrap_or(false),
+            open,
+            dirty,
             exists: path.is_file(),
         });
         project.model_count = project.models.len();
@@ -541,6 +564,14 @@ fn project_navigation_projection(runtime_active: bool) -> ProjectNavigation {
 
     if let (Some(path), Some(active_snapshot)) = (active_path.clone(), snapshot.active.as_ref()) {
         add_model(path, &active_snapshot.name, true);
+    }
+    for open in &snapshot.open_models {
+        let Some(raw_path) = open.path.as_ref() else { continue; };
+        let path = PathBuf::from(raw_path);
+        if !is_bbmodel_path(&path) {
+            continue;
+        }
+        add_model(path, &open.name, open.active);
     }
     for recent in snapshot.recent_models {
         let path = PathBuf::from(&recent.path);

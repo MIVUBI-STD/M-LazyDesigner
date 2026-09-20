@@ -198,6 +198,40 @@ Gateway attach/detach
 
 The UI should update without manual Refresh. A transient fast-probe failure must preserve the last known full projection rather than falsely showing offline. The heartbeat must not spawn `blockit.exe status` continuously; full status refresh is expected only when a known fast-probe value changes or an explicit action requests it.
 
+### Projects & Models synchronization
+
+With one disposable Project containing at least two saved `.bbmodel` files, verify only the user-visible synchronization contract:
+
+```text
+open Model A
+→ Active Project/Model matches Blockbench
+
+open Model B in another Blockbench tab
+→ Model B appears in the same Project
+→ non-active open model uses Switch, not duplicate Open
+
+switch A ↔ B in Blockbench
+→ Desktop follows automatically without manual Refresh
+
+modify active model without saving
+→ Desktop shows Modified
+→ save
+→ Modified disappears
+
+Save As to a new .bbmodel path
+→ Desktop follows the new model identity/path-backed Project grouping
+
+close one model
+→ its open state clears
+→ recent saved navigation remains available
+
+click Switch for an already-open model
+→ Blockbench selects the existing tab
+→ no duplicate project tab is created
+```
+
+Do not add or validate viewport, selection, Undo, timeline, brush, panel, or other editor-session state in Desktop. Those remain Blockbench-owned and intentionally absent from the normal UI.
+
 ### Desktop evidence
 
 Retain:
