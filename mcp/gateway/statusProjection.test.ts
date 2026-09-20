@@ -57,7 +57,10 @@ describe("projectGatewayStatus", () => {
     expect("health" in projected.runtime).toBe(false);
     expect("endpoint" in projected.runtime).toBe(false);
     expect("runtime_signature" in projected.runtime).toBe(false);
-    expect(projected.operations.last_queue_wait_ms).toBe(3);
-    expect(projected.operations.max_duration_ms).toBe(24);
+    expect(projected.connection).toEqual({ state: "ready" });
+    expect(projected.operations).toEqual({ active: 0, queued: 0 });
+    expect("last_error" in projected).toBe(false);
+    expect("last_queue_wait_ms" in projected.operations).toBe(false);
+    expect("max_duration_ms" in projected.operations).toBe(false);
   });
 });
