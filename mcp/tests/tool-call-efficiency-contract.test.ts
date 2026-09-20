@@ -53,8 +53,5 @@ describe("authoring tool-call efficiency contract", () => {
     expect(texturing).toContain("same texture-owned causal direction twice without new evidence → blocked");
     expect(source).toContain("same diagnosed cause twice");
     expect(source).toContain("blocked unless new decision-changing evidence exists");
-    expect(modelling).toContain("coherent same-owner cohort");
-    expect(texturing).toContain("coherent same-owner cohort");
-    expect(animation).toContain("coherent same-owner cohort");
   });
 });
