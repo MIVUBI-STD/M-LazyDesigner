@@ -8,7 +8,8 @@ describe("prompt cache and compaction ownership", () => {
   test("canonical contract separates stable prefix, dynamic tail, checkpoint, and actual telemetry", async () => {
     const contract = await text("../docs/04-system/prompt-cache-and-compaction.md");
     for (const invariant of [
-      "STABLE PREFIX CANDIDATE",
+      "CROSS-STAGE COMMON PREFIX CANDIDATE",
+      "STAGE-STABLE EXTENSION",
       "DYNAMIC TAIL",
       "measure:model-context",
       "whole Gateway Control-envelope boundary",
