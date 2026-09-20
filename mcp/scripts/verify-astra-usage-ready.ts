@@ -72,6 +72,8 @@ async function main(): Promise<void> {
           "same exact source/build state for baseline and zero_waste pair",
           "quality PASS before usage comparison",
           "record only source-provided telemetry; unavailable fields stay null",
+          "capture wall/accepted-result/model/tool latency, image inputs and tool-result bytes when the client exposes them",
+          "keep performance dimensions separate; never invent one aggregate efficiency score",
           "never synthesize total_tokens from components",
           "session policy is advisory/client-owned and must not rewrite Codex model/settings configuration",
         ],
