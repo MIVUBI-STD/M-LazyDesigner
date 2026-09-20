@@ -1,3 +1,4 @@
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
@@ -285,6 +286,32 @@ struct NavigationSnapshot {
     #[serde(default)]
     open_models: Vec<NavigationSnapshotOpen>,
     recent_models: Vec<NavigationSnapshotRecent>,
+}
+
+const PROJECT_MANIFEST_FILE: &str = ".lazydesigner-project.json";
+const PROJECT_MANIFEST_SCHEMA: u8 = 1;
+const PROJECT_MANIFEST_MAX_BYTES: u64 = 4 * 1024;
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+struct ProjectManifest {
+    schema: u8,
+    project_uuid: String,
+    display_name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ProjectManifestState {
+    Missing,
+    LegacyMarker,
+    Valid(ProjectManifest),
+    Invalid,
+}
+
+#[derive(Debug, Clone)]
+struct ProjectIdentity {
+    id: String,
+    name: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -615,6 +642,141 @@ fn navigation_id(prefix: &str, path: &Path) -> String {
     format!("{prefix}-{}", &digest[..20])
 }
 
+fn navigation_path_key(path: &Path) -> String {
+    path.to_string_lossy().replace('/', "\\").trim_end_matches('\\').to_ascii_lowercase()
+}
+
+fn normalized_project_display_name(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() || trimmed.chars().count() > 128 || trimmed.chars().any(|ch| ch.is_control()) {
+        return None;
+    }
+    Some(trimmed.to_string())
+}
+
+fn read_project_manifest_state(root: &Path) -> ProjectManifestState {
+    let path = root.join(PROJECT_MANIFEST_FILE);
+    let metadata = match fs::metadata(&path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return ProjectManifestState::Missing,
+        Err(_) => return ProjectManifestState::Invalid,
+    };
+    if !metadata.is_file() || metadata.len() > PROJECT_MANIFEST_MAX_BYTES {
+        return ProjectManifestState::Invalid;
+    }
+    let Ok(bytes) = fs::read(&path) else { return ProjectManifestState::Invalid; };
+    if bytes.iter().all(|byte| byte.is_ascii_whitespace()) {
+        return ProjectManifestState::LegacyMarker;
+    }
+    let Ok(mut manifest) = serde_json::from_slice::<ProjectManifest>(&bytes) else {
+        return ProjectManifestState::Invalid;
+    };
+    let Some(display_name) = normalized_project_display_name(&manifest.display_name) else {
+        return ProjectManifestState::Invalid;
+    };
+    if manifest.schema != PROJECT_MANIFEST_SCHEMA || !valid_navigation_generation(&manifest.project_uuid) {
+        return ProjectManifestState::Invalid;
+    }
+    manifest.project_uuid = manifest.project_uuid.to_ascii_lowercase();
+    manifest.display_name = display_name;
+    ProjectManifestState::Valid(manifest)
+}
+
+fn stable_project_id(manifest: &ProjectManifest) -> String {
+    use sha2::{Digest, Sha256};
+    let digest = format!("{:x}", Sha256::digest(manifest.project_uuid.as_bytes()));
+    format!("project-{}", &digest[..20])
+}
+
+fn project_identity_from_state(root: &Path, state: &ProjectManifestState, collisions: &HashSet<String>) -> ProjectIdentity {
+    if let ProjectManifestState::Valid(manifest) = state {
+        let id = stable_project_id(manifest);
+        if !collisions.contains(&id) {
+            return ProjectIdentity { id, name: manifest.display_name.clone() };
+        }
+    }
+    ProjectIdentity { id: navigation_id("project", root), name: project_name(root) }
+}
+
+fn project_identity_map(snapshot: &NavigationSnapshot) -> HashMap<String, ProjectIdentity> {
+    let mut roots: HashMap<String, PathBuf> = HashMap::new();
+    let mut add = |raw: &str| {
+        let path = PathBuf::from(raw);
+        if let Some(root) = project_root_for_model(&path) {
+            roots.entry(navigation_path_key(&root)).or_insert(root);
+        }
+    };
+    if let Some(last) = snapshot.last_model_path.as_deref() { add(last); }
+    if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) { add(active); }
+    for open in &snapshot.open_models { if let Some(path) = open.path.as_deref() { add(path); } }
+    for recent in &snapshot.recent_models { add(&recent.path); }
+
+    let states: HashMap<String, ProjectManifestState> = roots.iter()
+        .map(|(key, root)| (key.clone(), read_project_manifest_state(root)))
+        .collect();
+    let mut counts: HashMap<String, usize> = HashMap::new();
+    for state in states.values() {
+        if let ProjectManifestState::Valid(manifest) = state {
+            *counts.entry(stable_project_id(manifest)).or_insert(0) += 1;
+        }
+    }
+    let collisions: HashSet<String> = counts.into_iter()
+        .filter_map(|(id, count)| (count > 1).then_some(id))
+        .collect();
+    roots.into_iter().filter_map(|(key, root)| {
+        states.get(&key).map(|state| (key, project_identity_from_state(&root, state, &collisions)))
+    }).collect()
+}
+
+fn generate_project_uuid() -> String {
+    let mut bytes = [0u8; 16];
+    rand::thread_rng().fill_bytes(&mut bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    let hex = format!("{:032x}", u128::from_be_bytes(bytes));
+    format!("{}-{}-{}-{}-{}", &hex[0..8], &hex[8..12], &hex[12..16], &hex[16..20], &hex[20..32])
+}
+
+fn write_project_manifest(root: &Path, manifest: &ProjectManifest) -> Result<(), String> {
+    if !root.is_dir() { return Err("Project folder is unavailable.".to_string()); }
+    let mut bytes = serde_json::to_vec_pretty(manifest)
+        .map_err(|error| format!("Unable to encode Project manifest: {error}"))?;
+    bytes.push(b'\n');
+    if bytes.len() > PROJECT_MANIFEST_MAX_BYTES as usize {
+        return Err("Project manifest exceeds the bounded size.".to_string());
+    }
+    fs::write(root.join(PROJECT_MANIFEST_FILE), bytes)
+        .map_err(|error| format!("Unable to write Project manifest: {error}"))
+}
+
+fn ensure_project_manifest_for_pin(root: &Path, occupied: &HashSet<String>) -> Result<String, String> {
+    match read_project_manifest_state(root) {
+        ProjectManifestState::Valid(manifest) => {
+            let id = stable_project_id(&manifest);
+            if occupied.contains(&id) {
+                Err("Project identity is duplicated by another visible Project.".to_string())
+            } else {
+                Ok(id)
+            }
+        }
+        ProjectManifestState::Invalid => Err("Project manifest is malformed or unsupported; LazyDesigner will not overwrite it.".to_string()),
+        ProjectManifestState::Missing | ProjectManifestState::LegacyMarker => {
+            for _ in 0..8 {
+                let manifest = ProjectManifest {
+                    schema: PROJECT_MANIFEST_SCHEMA,
+                    project_uuid: generate_project_uuid(),
+                    display_name: project_name(root),
+                };
+                let id = stable_project_id(&manifest);
+                if occupied.contains(&id) { continue; }
+                write_project_manifest(root, &manifest)?;
+                return Ok(id);
+            }
+            Err("Unable to allocate a unique Project identity.".to_string())
+        }
+    }
+}
+
 fn project_root_for_model(path: &Path) -> Option<PathBuf> {
     if !is_bbmodel_path(path) {
         return None;
@@ -622,7 +784,7 @@ fn project_root_for_model(path: &Path) -> Option<PathBuf> {
     let parent = path.parent()?.to_path_buf();
 
     for candidate in parent.ancestors().take(4) {
-        if candidate.join(".lazydesigner-project.json").is_file() {
+        if candidate.join(PROJECT_MANIFEST_FILE).is_file() {
             return Some(candidate.to_path_buf());
         }
     }
@@ -697,38 +859,28 @@ fn navigation_paths() -> (
     let Some(snapshot) = read_navigation_snapshot() else {
         return (HashMap::new(), HashMap::new(), HashMap::new());
     };
+    let identities = project_identity_map(&snapshot);
     let mut projects = HashMap::new();
     let mut models = HashMap::new();
     let mut folders = HashMap::new();
-
     let mut add = |raw: &str| {
         let path = PathBuf::from(raw);
         let Some(root) = project_root_for_model(&path) else { return; };
-        projects.entry(navigation_id("project", &root)).or_insert(root.clone());
+        let Some(identity) = identities.get(&navigation_path_key(&root)) else { return; };
+        projects.entry(identity.id.clone()).or_insert(root.clone());
         models.entry(navigation_id("model", &path)).or_insert(path);
         for (folder, _, _) in working_folders(&root) {
             folders.entry(navigation_id("folder", &folder)).or_insert(folder);
         }
     };
-
-    if let Some(last) = snapshot.last_model_path.as_deref() {
-        add(last);
-    }
-    if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) {
-        add(active);
-    }
-    for open in &snapshot.open_models {
-        if let Some(path) = open.path.as_deref() {
-            add(path);
-        }
-    }
-    for recent in &snapshot.recent_models {
-        add(&recent.path);
-    }
+    if let Some(last) = snapshot.last_model_path.as_deref() { add(last); }
+    if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) { add(active); }
+    for open in &snapshot.open_models { if let Some(path) = open.path.as_deref() { add(path); } }
+    for recent in &snapshot.recent_models { add(&recent.path); }
     (projects, models, folders)
 }
 
-fn continue_model_id_for_path(raw: Option<&str>) -> Option<String> {
+fn continue_model_id_for_pathfn continue_model_id_for_path(raw: Option<&str>) -> Option<String> {
     let path = PathBuf::from(raw?);
     if !is_bbmodel_path(&path) || !path.is_file() {
         return None;
@@ -745,6 +897,7 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
         return ProjectNavigation { revision: None, session_live: false, continue_model_id: None, active: None, projects: Vec::new() };
     };
     let revision = Some(navigation_revision_token(&snapshot));
+    let identities = project_identity_map(&snapshot);
 
     let active_path = if session_live {
         snapshot.active.as_ref()
@@ -756,12 +909,14 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
     };
     let active_model_id = active_path.as_ref().map(|path| navigation_id("model", path));
     let active_project_root = active_path.as_ref().and_then(|path| project_root_for_model(path));
-    let active_project_id = active_project_root.as_ref().map(|root| navigation_id("project", root));
+    let active_project_identity = active_project_root.as_ref()
+        .and_then(|root| identities.get(&navigation_path_key(root)));
+    let active_project_id = active_project_identity.map(|identity| identity.id.clone());
 
     let active = if session_live {
         snapshot.active.as_ref().map(|value| ActiveProjectNavigation {
             project_id: active_project_id.clone(),
-            project_name: active_project_root.as_ref().map(|root| project_name(root)),
+            project_name: active_project_identity.map(|identity| identity.name.clone()),
             model_id: active_model_id.clone(),
             model_name: if let Some(path) = active_path.as_ref() {
                 model_name(path, &value.name)
@@ -785,7 +940,7 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
             if !is_bbmodel_path(&path) {
                 return None;
             }
-            let key = path.to_string_lossy().replace('/', "\\").to_lowercase();
+            let key = navigation_path_key(&path);
             Some((key, (model.active, model.dirty)))
         })
         .collect();
@@ -793,19 +948,21 @@ fn project_navigation_projection(session_live: bool) -> ProjectNavigation {
     let mut projects: Vec<ProjectNavigationProject> = Vec::new();
     let mut add_model = |path: PathBuf, preferred: &str, active_model: bool| {
         let Some(root) = project_root_for_model(&path) else { return; };
-        let project_id = navigation_id("project", &root);
+        let Some(identity) = identities.get(&navigation_path_key(&root)) else { return; };
+        let project_id = identity.id.clone();
+        let legacy_project_id = navigation_id("project", &root);
         let model_id = navigation_id("model", &path);
         let project_active = active_project_id.as_deref() == Some(project_id.as_str());
-        let path_key = path.to_string_lossy().replace('/', "\\").to_lowercase();
+        let path_key = navigation_path_key(&path);
         let (open, dirty) = open_by_path.get(&path_key).copied().unwrap_or((false, false));
 
         let index = projects.iter().position(|project| project.id == project_id)
             .unwrap_or_else(|| {
                 projects.push(ProjectNavigationProject {
                     id: project_id.clone(),
-                    name: project_name(&root),
+                    name: identity.name.clone(),
                     active: project_active,
-                    pinned: pinned.contains(&project_id),
+                    pinned: pinned.contains(&project_id) || pinned.contains(&legacy_project_id),
                     model_count: 0,
                     models: Vec::new(),
                     folders: folder_projection(&root),
@@ -875,22 +1032,32 @@ pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNaviga
             Ok(ProjectNavigationActionResult { status: "OPENED" })
         }
         "pin-project" | "unpin-project" => {
-            if !projects.contains_key(id) {
-                return Err("Project is no longer available.".to_string());
-            }
+            let root = projects.get(id).ok_or_else(|| "Project is no longer available.".to_string())?;
+            let legacy_id = navigation_id("project", root);
+            let current_stable_id = match read_project_manifest_state(root) {
+                ProjectManifestState::Valid(manifest) => Some(stable_project_id(&manifest)),
+                _ => None,
+            };
             let mut preferences = read_project_navigation_preferences();
             preferences.schema = 1;
-            preferences.pinned_project_ids.retain(|candidate| candidate != id);
+            preferences.pinned_project_ids.retain(|candidate| {
+                candidate != id && candidate != &legacy_id && current_stable_id.as_deref() != Some(candidate.as_str())
+            });
             let pin = action == "pin-project";
             if pin {
-                preferences.pinned_project_ids.push(id.to_string());
+                let root_key = navigation_path_key(root);
+                let occupied: HashSet<String> = projects.values()
+                    .filter(|candidate| navigation_path_key(candidate) != root_key)
+                    .filter_map(|candidate| match read_project_manifest_state(candidate) {
+                        ProjectManifestState::Valid(manifest) => Some(stable_project_id(&manifest)),
+                        _ => None,
+                    }).collect();
+                preferences.pinned_project_ids.push(ensure_project_manifest_for_pin(root, &occupied)?);
             }
             preferences.pinned_project_ids.sort();
             preferences.pinned_project_ids.dedup();
             write_project_navigation_preferences(&preferences)?;
-            Ok(ProjectNavigationActionResult {
-                status: if pin { "PINNED" } else { "UNPINNED" },
-            })
+            Ok(ProjectNavigationActionResult { status: if pin { "PINNED" } else { "UNPINNED" } })
         }
         "open-folder" => {
             let path = folders.get(id).ok_or_else(|| "Folder is no longer available.".to_string())?;
@@ -1940,6 +2107,20 @@ pub fn run_managed_action(app: &AppHandle, action: &str) -> Result<ManagedAction
 mod tests {
     use super::*;
 
+    fn temp_project(label: &str) -> PathBuf {
+        let path = std::env::temp_dir().join(format!("lazydesigner-{label}-{}-{}", std::process::id(), generate_project_uuid()));
+        fs::create_dir_all(&path).unwrap();
+        path
+    }
+
+    fn fixed_manifest(name: &str) -> ProjectManifest {
+        ProjectManifest {
+            schema: PROJECT_MANIFEST_SCHEMA,
+            project_uuid: "11111111-2222-4333-8444-555555555555".to_string(),
+            display_name: name.to_string(),
+        }
+    }
+
     #[test]
     fn missing_installation_is_diagnostic_not_panic() {
         let result = manager_executable(Path::new("Z:/definitely-missing-lazydesigner-root"));
@@ -1984,6 +2165,63 @@ mod tests {
         assert!(continue_model_id_for_path(Some(&raw)).is_none());
         assert!(continue_model_id_for_path(Some("C:/Projects/not-a-model.txt")).is_none());
         assert!(continue_model_id_for_path(None).is_none());
+    }
+
+    #[test]
+    fn manifest_identity_survives_project_move() {
+        let base = temp_project("move");
+        let before = base.join("Before");
+        let after = base.join("After");
+        fs::create_dir_all(&before).unwrap();
+        write_project_manifest(&before, &fixed_manifest("Furniture")).unwrap();
+        let first = project_identity_from_state(&before, &read_project_manifest_state(&before), &HashSet::new());
+        fs::rename(&before, &after).unwrap();
+        let second = project_identity_from_state(&after, &read_project_manifest_state(&after), &HashSet::new());
+        assert_eq!(first.id, second.id);
+        assert_eq!(second.name, "Furniture");
+        fs::remove_dir_all(&base).unwrap();
+    }
+
+    #[test]
+    fn malformed_or_unsupported_manifest_is_not_overwritten() {
+        let root = temp_project("invalid");
+        let path = root.join(PROJECT_MANIFEST_FILE);
+        let raw = br#"{"schema":2,"project_uuid":"11111111-2222-4333-8444-555555555555","display_name":"Future"}"#;
+        fs::write(&path, raw).unwrap();
+        assert_eq!(read_project_manifest_state(&root), ProjectManifestState::Invalid);
+        assert!(ensure_project_manifest_for_pin(&root, &HashSet::new()).is_err());
+        assert_eq!(fs::read(&path).unwrap(), raw);
+        fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn duplicate_manifest_ids_fall_back_to_distinct_path_ids() {
+        let base = temp_project("collision");
+        let one = base.join("One");
+        let two = base.join("Two");
+        fs::create_dir_all(&one).unwrap();
+        fs::create_dir_all(&two).unwrap();
+        let manifest = fixed_manifest("Furniture");
+        write_project_manifest(&one, &manifest).unwrap();
+        write_project_manifest(&two, &manifest).unwrap();
+        let collision = HashSet::from([stable_project_id(&manifest)]);
+        let a = project_identity_from_state(&one, &read_project_manifest_state(&one), &collision);
+        let b = project_identity_from_state(&two, &read_project_manifest_state(&two), &collision);
+        assert_ne!(a.id, b.id);
+        assert!(ensure_project_manifest_for_pin(&one, &collision).is_err());
+        fs::remove_dir_all(&base).unwrap();
+    }
+
+    #[test]
+    fn pin_upgrades_empty_legacy_marker() {
+        let root = temp_project("legacy");
+        fs::write(root.join(PROJECT_MANIFEST_FILE), b" \n").unwrap();
+        assert_eq!(read_project_manifest_state(&root), ProjectManifestState::LegacyMarker);
+        let id = ensure_project_manifest_for_pin(&root, &HashSet::new()).unwrap();
+        let ProjectManifestState::Valid(manifest) = read_project_manifest_state(&root) else { panic!("manifest not upgraded"); };
+        assert_eq!(id, stable_project_id(&manifest));
+        assert!(valid_navigation_generation(&manifest.project_uuid));
+        fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]

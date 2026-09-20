@@ -67,24 +67,13 @@ Already hardened; do not redo without evidence:
 4. Navigation snapshot is bound to the managed Blockbench userData profile.
 5. Runtime readiness is bound to the owned/configured Runtime listener rather than hardcoded port-only readiness.
 
-Current Local HEAD at this handoff:
+Current source authority is the actual `Local` branch HEAD; this continuation file does not embed a self-referential commit SHA.
 
-```text
-abe71afbe361ec02d379e6e15a23f8d22dfa40c0
-test(desktop): align gateway probe wording
-```
+### 1. Stable Project identity — SOURCE IMPLEMENTED
 
-### 1. Stable Project identity
+`.lazydesigner-project.json` now owns only `schema = 1`, stable `project_uuid`, and `display_name`. Model membership remains filesystem/Blockbench-derived. Explicit Pin creates the minimal manifest when absent or upgrades only an empty legacy marker; malformed/unsupported manifests are never overwritten. Duplicate observed UUIDs fail closed to separate path-scoped identities and Pin is refused rather than merging Projects.
 
-Current Project identity is still path-derived. Upgrade `.lazydesigner-project.json` into a minimal canonical manifest:
-
-```text
-schema
-stable project UUID
-display name
-```
-
-Requirements: Project move/rename must preserve identity and Pin; malformed/unsupported manifest must fail safely; manifest must not become a second project database; keep model membership filesystem/Blockbench-derived unless evidence proves otherwise. Audit migration/collision behavior before coding.
+Legacy path-scoped Projects remain readable, and legacy path Pins remain recognized at their current location. Once Pin stores the manifest-backed identity, folder move/rename no longer changes the Pin key. Native move/rename + Pin proof remains LIVE_BLOCKBENCH residue.
 
 ### 2. Correct Continue semantics — SOURCE IMPLEMENTED
 

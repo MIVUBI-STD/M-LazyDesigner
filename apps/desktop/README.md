@@ -407,6 +407,8 @@ nearest .lazydesigner-project.json marker within the bounded parent search
 → otherwise direct parent folder
 ```
 
+A non-empty marker is a bounded canonical Project manifest containing only `schema`, stable `project_uuid`, and `display_name`. Model membership is not stored there. A valid unique manifest makes Project identity and Pin stable across folder move/rename. Explicit Pin creates this minimal manifest when missing or upgrades only an empty legacy marker. Malformed/unsupported manifests are never overwritten. Duplicate UUIDs among currently observed Projects fail closed to separate path identities; Desktop does not crawl drives to resolve collisions.
+
 This supports one project such as `Furniture` containing multiple `.bbmodel` files without requiring a global project database. Paths stay hidden in the normal UI. Backend actions resolve opaque project/model IDs back through the current local projection before opening Explorer or Blockbench.
 
 Normal UI actions are bounded to:
@@ -448,7 +450,7 @@ Desktop uses that state only where it changes a user decision. An already-open m
 
 Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those flags whenever the bounded Plugin session lease is not live, while recent saved models remain available for navigation. Runtime reconnects do not invalidate a still-live Blockbench Plugin session. A stale snapshot therefore cannot keep rendering `Switch` or `Modified` after Blockbench closes.
 
-Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Pinning changes Recent Projects ordering only.
+Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Legacy path Pins remain recognized at their current location; an explicit Pin migrates storage to the manifest-backed stable identity, which survives Project folder move/rename. Pinning changes Recent Projects ordering only.
 
 `Continue` is deliberately independent from pinned/recent display ordering. The profile snapshot preserves one exact last active saved `.bbmodel` pointer across Plugin/Desktop restarts. Desktop exposes Continue only while that exact file still exists; it never guesses a replacement from pinned projects or favorite-reordered Blockbench recents.
 

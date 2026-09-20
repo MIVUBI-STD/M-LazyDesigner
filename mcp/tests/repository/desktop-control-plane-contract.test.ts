@@ -201,6 +201,12 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('("textures", "Textures"');
     expect(rust).toContain('("exports", "Exports"');
     expect(rust).toContain(".lazydesigner-project.json");
+    expect(rust).toContain("struct ProjectManifest");
+    expect(rust).toContain("project_uuid");
+    expect(rust).toContain("ensure_project_manifest_for_pin");
+    expect(rust).toContain("manifest_identity_survives_project_move");
+    expect(rust).toContain("malformed_or_unsupported_manifest_is_not_overwritten");
+    expect(rust).toContain("duplicate_manifest_ids_fall_back_to_distinct_path_ids");
     expect(app).toContain("Active Project");
     expect(app).toContain("Recent Projects");
     expect(app).toContain("See details");
