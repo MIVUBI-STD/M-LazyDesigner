@@ -55,11 +55,14 @@ async function main(): Promise<void> {
         usage_template: TEMPLATE_PATH,
         validator_command:
           "bun run eval:astra-usage -- /absolute/path/to/astra-usage.json",
+        session_policy_command:
+          "bun run eval:session-policy -- /absolute/path/to/session-policy-input.json",
         requirements: [
           "same exact source/build state for baseline and zero_waste pair",
           "quality PASS before usage comparison",
           "record only source-provided telemetry; unavailable fields stay null",
           "never synthesize total_tokens from components",
+          "session policy is advisory/client-owned and must not rewrite Codex model/settings configuration",
         ],
         token_claim_available_now: false,
       },

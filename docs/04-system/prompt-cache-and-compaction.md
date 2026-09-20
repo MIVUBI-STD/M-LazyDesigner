@@ -121,6 +121,54 @@ bun run map:development -- "<intent>"
 
 The map is bounded and contains only source paths, imports and top-level signatures. It never includes implementation bodies and is not used by asset-authoring Runtime.
 
+## Client-Owned Session Policy
+
+LazyDesigner does not own the Codex/OpenAI conversation API and Managed Distribution must preserve unrelated Codex model/settings semantics. Session-lifecycle decisions are therefore exposed as a deterministic integration policy, not as hidden config rewriting.
+
+Canonical evaluator:
+
+```bash
+bun run eval:session-policy -- <session-policy-input.json>
+```
+
+Input comes from the actual client/controller owner and uses only provider-independent facts:
+
+```text
+task class
+context pressure state
+meaningful milestone
+continuation checkpoint freshness
+recovery uncertainty
+pending visual-verification evidence
+routing ambiguity
+common-prefix stability
+stage-extension stability
+whether another tool action is pending
+whether source-provided usage telemetry exists
+```
+
+The evaluator returns:
+
+```text
+KEEP_CONTEXT | REQUIRE_FRESH_CHECKPOINT | COMPACT_NOW
+REUSE_FULL_PREFIX | REUSE_COMMON_PREFIX | RESET_PREFIX_IDENTITY
+ECONOMY_WHEN_SUPPORTED | BALANCED | QUALITY_FIRST
+MINIMAL_INTERMEDIATE | NORMAL_USER_FACING
+```
+
+Safety rules:
+
+- compaction never proceeds without a fresh LazyDesigner continuation checkpoint;
+- non-critical recovery uncertainty remains expanded;
+- pending decision-changing visual evidence delays non-critical compaction;
+- a stage change may reuse the cross-stage common prefix without claiming the stage extension is unchanged;
+- lower reasoning is only an optional hint for deterministic direct work with no ambiguity, recovery uncertainty, or pending visual judgment;
+- intermediate prose may be minimized only while another tool action is pending;
+- no usage claim is available without source-provided telemetry;
+- the evaluator does not call a provider API, own chat history, or modify Codex configuration.
+
+A future client/controller that actually owns model invocation may map these decisions to provider-native cache, compaction, reasoning, and output controls. Until then, the evaluator is the tested handoff contract and must not be represented as active upstream execution.
+
 ## Measurement Layers
 
 Keep these measures separate:

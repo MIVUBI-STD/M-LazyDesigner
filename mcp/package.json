@@ -34,6 +34,7 @@
     "benchmark:zero-waste-total": "bun run ./scripts/benchmark-zero-waste-total-context.ts",
     "eval:quality-benchmark": "bun test tests/quality-benchmark-contract.test.ts",
     "eval:astra-usage": "bun run ./scripts/validate-astra-usage.ts",
+    "eval:session-policy": "bun run ./scripts/evaluate-codex-session-policy.ts",
     "verify:astra-usage-ready": "bun run ./scripts/verify-astra-usage-ready.ts",
     "eval:call-efficiency": "bun test tests/tool-call-efficiency-contract.test.ts",
     "verify:repository": "bun test tests/repository/*.test.ts",
