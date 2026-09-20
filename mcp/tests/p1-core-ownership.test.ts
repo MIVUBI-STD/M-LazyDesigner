@@ -199,7 +199,8 @@ describe("P1.3 core identity ownership", () => {
     expect(animationShared).toContain("resolveCoreGroup");
     expect(materialInstances).toContain("return resolveCoreCube(");
     expect(materialInstances).not.toContain("findElementOrThrow");
-    expect(util).toContain("const texture = resolveCoreTexture(");
+    expect(util).toContain("return resolveCoreTexture(");
+    expect(util).toContain("export function resolvePaintTexture");
     expect(util).not.toContain("export function findGroupOrThrow");
     expect(util).not.toContain("export function findElementOrThrow");
     expect(util).not.toContain("export function findTextureOrThrow");
