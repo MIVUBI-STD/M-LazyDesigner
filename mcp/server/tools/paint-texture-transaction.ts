@@ -230,11 +230,19 @@ export function registerPaintTextureTransactionTool(): void {
                   : [0, 0];
               const localX = dirtyRegion.left - activeOffset[0];
               const localY = dirtyRegion.top - activeOffset[1];
+              const canvasWidth =
+                canvas && Number.isFinite(canvas.width)
+                  ? canvas.width
+                  : before.width;
+              const canvasHeight =
+                canvas && Number.isFinite(canvas.height)
+                  ? canvas.height
+                  : before.height;
               if (
                 localX < 0 ||
                 localY < 0 ||
-                localX + dirtyRegion.width > canvas.width ||
-                localY + dirtyRegion.height > canvas.height
+                localX + dirtyRegion.width > canvasWidth ||
+                localY + dirtyRegion.height > canvasHeight
               ) {
                 throw new Error(
                   "Paint transaction dirty region falls outside the active texture canvas."
