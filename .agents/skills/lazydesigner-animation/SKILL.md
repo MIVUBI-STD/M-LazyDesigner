@@ -77,7 +77,6 @@ controller composition / transitions / nested controller operations
 
 Rules:
 - Do **not** use `trigger_action`, `emulate_clicks`, or `fill_dialog` for normal animation playback, timeline navigation, keyframes, graph edits, controllers, or effects.
-- Before looping the same mutation capability, ask whether the targets form one coherent same-owner cohort whose intermediate states do not change the next decision; if yes, use the existing bounded batch route.
 - Prefer one bounded keyframe/batch mutation over loops of one-key calls when a coherent cohort shares the same correction intent.
 - Reuse the animation UUID returned by creation/mutation; do not reselect or rediscover the clip merely to confirm identity.
 - Do not call `inspect_animation` after every successful deterministic mutation. Inspect only when required state is unknown/stale or when the next correction depends on a field not present in the mutation receipt.
