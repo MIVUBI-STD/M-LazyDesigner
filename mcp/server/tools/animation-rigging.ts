@@ -305,7 +305,7 @@ export function registerBoneRiggingTool(): void {
       ...boneRiggingToolDoc,
       parameters: boneRiggingParameters,
       async execute({ action, bone_data }) {
-        const boneName = boneName ?? "";
+        const boneName: string = bone_data.name ?? "";
         let targetBone: Group | undefined;
         let parentBone: Group | "root" | undefined;
         let childElements: OutlinerElement[] = [];
