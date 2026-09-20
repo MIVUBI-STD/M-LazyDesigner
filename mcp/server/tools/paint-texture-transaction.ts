@@ -14,8 +14,8 @@ import {
 } from "@/lib/paintTransactionPolicy";
 import { computeTextureRevision } from "@/lib/textureRevision";
 import {
+  cropRgbaRect,
   fullTextureRgba,
-  rgbaRectToPngDataUrl,
   rgbaToPngDataUrl,
 } from "@/lib/textureBitmapRuntime";
 
@@ -203,6 +203,12 @@ export function registerPaintTextureTransactionTool(): void {
           pixel_writes: applied.pixel_writes,
           affected_rect: applied.affected_rect,
         });
+        const dirtyRegion = cropRgbaRect(
+          applied.pixels,
+          before.width,
+          before.height,
+          plannedReceipt.affected_rect
+        );
         const outputBytes = output
           ? texturePngBytes(rgbaToPngDataUrl(applied.pixels, before.width, before.height))
           : null;
@@ -217,10 +223,25 @@ export function registerPaintTextureTransactionTool(): void {
         Undo.initEdit(undoAspects);
         try {
           texture.edit(
-            (_canvas, env) => {
-              const imageData = env.ctx.createImageData(before.width, before.height);
-              imageData.data.set(applied.pixels);
-              env.ctx.putImageData(imageData, 0, 0);
+            (canvas, env) => {
+              const localX = dirtyRegion.left - env.offset[0];
+              const localY = dirtyRegion.top - env.offset[1];
+              if (
+                localX < 0 ||
+                localY < 0 ||
+                localX + dirtyRegion.width > canvas.width ||
+                localY + dirtyRegion.height > canvas.height
+              ) {
+                throw new Error(
+                  "Paint transaction dirty region falls outside the active texture canvas."
+                );
+              }
+              const imageData = env.ctx.createImageData(
+                dirtyRegion.width,
+                dirtyRegion.height
+              );
+              imageData.data.set(dirtyRegion.pixels);
+              env.ctx.putImageData(imageData, localX, localY);
             },
             { no_undo: true }
           );
@@ -268,11 +289,10 @@ export function registerPaintTextureTransactionTool(): void {
           // bitmap matches applied.pixels. Reuse the verified candidate rather
           // than reading the entire atlas a third time just to crop evidence.
           affectedRegionImage = imageContent(
-            rgbaRectToPngDataUrl(
-              applied.pixels,
-              before.width,
-              before.height,
-              plannedReceipt.affected_rect
+            rgbaToPngDataUrl(
+              dirtyRegion.pixels,
+              dirtyRegion.width,
+              dirtyRegion.height
             )
           ).content[0];
         } catch {
