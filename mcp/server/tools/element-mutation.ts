@@ -231,7 +231,7 @@ export function registerElementMutationTools(): void {
             Canvas.updateAll();
             return {content:[{type:"text" as const,text:`Renamed ${changes.length} Groups and synchronized ${plan.references.length} animation(s).`}], structuredContent:{execution:"applied",changes,affected_animations:plan.references.length,...(singleElement ? {element: elementContinuationState(singleElement)} : {})}};
           }
-          const {id, new_name} = request;
+          const {new_name} = request;
           const element = singleElement!;
     
           if (element.name === new_name) {
