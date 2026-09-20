@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-20T17:05:12.649Z",
+  "generatedAt": "2026-09-20T18:28:24.718Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -1792,9 +1792,9 @@
             "type": "object",
             "properties": {
               "name": {
+                "description": "Required for every action except set_ik_controller. Create: new name. Other actions: Group UUID or unique name.",
                 "type": "string",
-                "minLength": 1,
-                "description": "Create: new name. Other actions: Group UUID or unique name."
+                "minLength": 1
               },
               "new_name": {
                 "description": "New name for rename.",
@@ -1877,9 +1877,6 @@
                 ]
               }
             },
-            "required": [
-              "name"
-            ],
             "description": "Bone configuration data."
           }
         },
