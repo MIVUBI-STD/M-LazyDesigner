@@ -9,6 +9,7 @@ describe("MCP efficiency scorecard", () => {
     expect(report.scores.map((item) => item.id)).toEqual([
       "geometry_coherent_cube_batch",
       "animation_coherent_keyframe_batch",
+      "texture_inventory_default",
       "texture_atomic_region_transaction",
       "receipt_only_hierarchy_continuation",
       "particle_verified_write_receipt",
@@ -33,6 +34,17 @@ describe("MCP efficiency scorecard", () => {
         score.id
       ).toBe(true);
     }
+  });
+
+  test("texture discovery defaults to inventory rather than full diagnostics", () => {
+    const score = runMcpEfficiencyScorecard().scores.find(
+      (item) => item.id === "texture_inventory_default"
+    )!;
+
+    expect(score.baseline_calls).toBe(1);
+    expect(score.optimized_calls).toBe(1);
+    expect(score.net_payload_delta_bytes).toBeGreaterThan(0);
+    expect(score.quality_preserved).toBe(true);
   });
 
   test("batch-capable domains collapse micro-mutations without deleting verification", () => {
@@ -126,7 +138,7 @@ describe("MCP efficiency scorecard", () => {
     const report = runMcpEfficiencyScorecard();
 
     expect(report.static_surface.runtime_tool_count).toBe(54);
-    expect(report.static_surface.reused_primitive_count).toBe(9);
+    expect(report.static_surface.reused_primitive_count).toBe(11);
     expect(report.static_surface.new_public_capabilities_required).toBe(0);
     expect(report.static_surface.reused_primitive_static_bytes).toBeGreaterThan(0);
 
