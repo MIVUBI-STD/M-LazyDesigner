@@ -218,7 +218,7 @@ function seamContinuityRuntime(context?: unknown) {
         continue;
       }
 
-      const context = `${cube.name}.${faceKey} seam`;
+      const contextLabel = `${cube.name}.${faceKey} seam`;
       try {
         const mapping = mapFaceUvToTexturePixels(
           face.uv,
@@ -228,12 +228,12 @@ function seamContinuityRuntime(context?: unknown) {
             uvWidth: texture.getUVWidth(),
             uvHeight: texture.getUVHeight(),
           },
-          context
+          contextLabel
         );
         const [localWidth, localHeight] = faceLocalPixelSize(
           mapping,
           face.rotation,
-          context
+          contextLabel
         );
         const boundary: Record<
           "left" | "right" | "top" | "bottom",
@@ -258,7 +258,7 @@ function seamContinuityRuntime(context?: unknown) {
             edge,
             localWidth,
             localHeight,
-            context
+            contextLabel
           );
           if (!start || !end || !samples) {
             complete = false;
