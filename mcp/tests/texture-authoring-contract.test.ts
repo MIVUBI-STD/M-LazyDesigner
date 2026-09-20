@@ -21,14 +21,6 @@ async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-function toolBlock(paint: string, index: number, nextIndex: number): string {
-  const start = paint.indexOf(`paintToolDocs[${index}].name`);
-  const end = paint.indexOf(`paintToolDocs[${nextIndex}].name`, start);
-  expect(start).toBeGreaterThanOrEqual(0);
-  expect(end).toBeGreaterThan(start);
-  return paint.slice(start, end);
-}
-
 function rectanglesOverlap(
   a: { x: number; y: number; width: number; height: number },
   b: { x: number; y: number; width: number; height: number }
