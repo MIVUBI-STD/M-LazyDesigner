@@ -431,6 +431,64 @@ describe("BlockIT Gateway contract", () => {
     expect(geometryJson).not.toContain('"face_uvs"');
     expect(geometryJson).toContain('"box_uv_region"');
     expect(geometryJson).toContain('"center_delta"');
+    expect(geometryJson).not.toContain('"rotation"');
+    expect(geometryJson).not.toContain('"origin"');
+
+    const batchProjection = compactGatewayCapabilityStructuredContent(
+      "manage_cubes",
+      {
+        modified: 1,
+        effects: [
+          {
+            before: {
+              uuid: "cube-transform",
+              name: "leg",
+              from: [0, 0, 0],
+              to: [2, 8, 2],
+              size: [2, 8, 2],
+              origin: [1, 0, 1],
+              rotation: [0, 0, 0],
+              inflate: 0,
+              box_uv: true,
+              uv_offset: [0, 0],
+              box_uv_region: { logical_rect: [0, 0, 8, 12] },
+              mirror_uv: false,
+              autouv: 1,
+              visibility: true,
+            },
+            after: {
+              uuid: "cube-transform",
+              name: "leg",
+              from: [1, 0, 0],
+              to: [3, 8, 2],
+              size: [2, 8, 2],
+              origin: [1, 0, 1],
+              rotation: [0, 0, 0],
+              inflate: 0,
+              box_uv: true,
+              uv_offset: [0, 0],
+              box_uv_region: { logical_rect: [0, 0, 8, 12] },
+              mirror_uv: false,
+              autouv: 1,
+              visibility: true,
+            },
+            geometry_effect: {
+              changed_fields: ["from", "to"],
+              center_delta: [1, 0, 0],
+              size_delta: [0, 0, 0],
+            },
+          },
+        ],
+      }
+    ) as any;
+    expect(batchProjection.effects[0].after).toEqual({
+      uuid: "cube-transform",
+      name: "leg",
+      from: [1, 0, 0],
+      to: [3, 8, 2],
+      size: [2, 8, 2],
+      box_uv_region: { logical_rect: [0, 0, 8, 12] },
+    });
 
     const uvUpdate = compactGatewayCapabilityStructuredContent(
       "manage_cubes",

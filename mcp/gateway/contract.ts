@@ -78,6 +78,47 @@ function changedFieldsFromEffect(value: unknown): string[] {
   );
 }
 
+function compactBatchCubeContinuationState(
+  value: unknown,
+  geometryEffect: unknown
+): unknown {
+  if (!isRecord(value)) return value;
+  const changedFields = new Set(changedFieldsFromEffect(geometryEffect));
+  const compact: JsonRecord = {};
+
+  if (typeof value.uuid === "string") compact.uuid = value.uuid;
+  if (typeof value.name === "string") compact.name = value.name;
+
+  const copy = (field: string) => {
+    if (value[field] !== undefined) compact[field] = value[field];
+  };
+
+  if (changedFields.has("name")) copy("name");
+  if (changedFields.has("from")) copy("from");
+  if (changedFields.has("to")) copy("to");
+  if (changedFields.has("from") || changedFields.has("to")) {
+    copy("size");
+    copy("box_uv_region");
+  }
+  if (changedFields.has("origin")) copy("origin");
+  if (changedFields.has("rotation")) copy("rotation");
+  if (changedFields.has("inflate")) copy("inflate");
+  if (changedFields.has("box_uv")) {
+    copy("box_uv");
+    copy("box_uv_region");
+  }
+  if (changedFields.has("uv_offset")) {
+    copy("uv_offset");
+    copy("box_uv_region");
+  }
+  if (changedFields.has("mirror_uv")) copy("mirror_uv");
+  if (changedFields.has("autouv")) copy("autouv");
+  if (changedFields.has("visibility")) copy("visibility");
+  if (changedFields.has("faces")) copy("face_uvs");
+
+  return compact;
+}
+
 function compactCubeContinuationState(
   value: unknown,
   geometryEffect: unknown
@@ -109,7 +150,7 @@ function compactManageCubesStructuredContent(value: unknown): unknown {
         return {
           ...rest,
           ...(after !== undefined
-            ? { after: compactCubeContinuationState(after, geometryEffect) }
+            ? { after: compactBatchCubeContinuationState(after, geometryEffect) }
             : {}),
           ...(geometryEffect !== undefined
             ? { geometry_effect: geometryEffect }
