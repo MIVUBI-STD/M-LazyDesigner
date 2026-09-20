@@ -65,6 +65,12 @@ jobs:
       - name: Typecheck Gateway
         run: bun run typecheck:gateway
 
+      - name: Audit unused Runtime symbols
+        run: bun run audit:unused
+
+      - name: Audit unused Gateway symbols
+        run: bun run audit:unused:gateway
+
       - name: Run Runtime regression suite
         run: bun run test:runtime
 
