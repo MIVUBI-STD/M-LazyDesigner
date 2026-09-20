@@ -6,7 +6,7 @@ test("timeline expansion includes keyed descendants and collapse preserves unrel
   const g=globalThis as any;
   const previous=Object.fromEntries(["Group","AnimationItem","Timeline","updateKeyframeSelection"].map(k=>[k,g[k]]));
   class Bone { static all:Bone[]=[];children:Bone[]=[];name:string;constructor(public uuid:string){this.name=uuid;Bone.all.push(this);}}
-  const root=new Bone("root"),child=new Bone("child"),empty=new Bone("empty"),other=new Bone("other");root.children=[child,empty];
+  const root=new Bone("root"),child=new Bone("child"),empty=new Bone("empty");new Bone("other");root.children=[child,empty];
   g.Group=Bone;g.Timeline={animators:[]};g.updateKeyframeSelection=()=>{};
   const make=(bone:Bone,keys:number)=>({uuid:bone.uuid,keyframes:Array(keys).fill({time:0}),addToTimeline(){if(!g.Timeline.animators.includes(this))g.Timeline.animators.push(this);}});
   const animators=Object.fromEntries(Bone.all.map(b=>[b.uuid,make(b,b===empty?0:1)]));
