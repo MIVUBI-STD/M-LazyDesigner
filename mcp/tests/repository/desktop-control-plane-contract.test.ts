@@ -147,7 +147,7 @@ describe("Desktop control-plane ownership", () => {
     expect(snapshot).toContain('Blockbench.on("saved_state_changed"');
     expect(snapshot).toContain('Blockbench.on("select_project"');
     expect(snapshot).toContain(".bbmodel");
-    expect(snapshot).toContain("project-navigation.json");
+    expect(snapshot).toContain("\\LazyDesigner\\project-navigation\\");
     expect(snapshot).toContain("producerGeneration");
     expect(snapshot).toContain("crypto.randomUUID");
     expect(snapshot).toContain("schema: 3");
