@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { runMcpEfficiencyScorecard } from "@/scripts/measure-mcp-efficiency";
+import { evaluateStaticDynamicTradeoff } from "@/lib/efficiencyScorecard";
 
 describe("MCP efficiency scorecard", () => {
   test("measures all prioritized hot paths with preserved quality", () => {
@@ -106,6 +107,34 @@ describe("MCP efficiency scorecard", () => {
     expect(byId.get("texture_atomic_region_transaction")?.status).toBe("implemented");
     expect(byId.get("rig_locator_cohort_mutation")?.status).toBe("evidence_required");
     expect(byId.get("render_target_native_adapter")?.status).toBe("blocked_by_stable_api");
+  });
+
+  test("schema growth must pay back against recurring dynamic savings", () => {
+    const paysBack = evaluateStaticDynamicTradeoff({
+      static_added_bytes: 1200,
+      dynamic_saved_bytes_per_use: 400,
+      expected_uses_per_session: 4,
+    });
+    expect(paysBack.break_even_uses).toBe(3);
+    expect(paysBack.projected_net_savings_bytes).toBe(400);
+    expect(paysBack.pays_back_within_session).toBe(true);
+
+    const doesNotPayBack = evaluateStaticDynamicTradeoff({
+      static_added_bytes: 1200,
+      dynamic_saved_bytes_per_use: 200,
+      expected_uses_per_session: 2,
+    });
+    expect(doesNotPayBack.break_even_uses).toBe(6);
+    expect(doesNotPayBack.projected_net_savings_bytes).toBe(-800);
+    expect(doesNotPayBack.pays_back_within_session).toBe(false);
+
+    expect(
+      evaluateStaticDynamicTradeoff({
+        static_added_bytes: 0,
+        dynamic_saved_bytes_per_use: 0,
+        expected_uses_per_session: 0,
+      }).break_even_uses
+    ).toBe(0);
   });
 
   test("aggregate establishes a guarded material saving floor", () => {
