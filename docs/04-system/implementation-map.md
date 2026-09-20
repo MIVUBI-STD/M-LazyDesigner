@@ -280,6 +280,10 @@ mcp/lib/authoringReadiness.ts
 
 Visual/reference PASS remains evidence-based and separate from technical success.
 
+## Zero-Waste Token Efficiency
+
+Remaining bounded source work is owned by `docs/04-system/zero-waste-token-efficiency-plan.md`. It may add a deterministic Gateway-facing Context Headroom projection and narrow non-repetition of superseded server-owned evidence. It must not add AI summarizers/planners, persistent observation state, or capability loss.
+
 ## Context / Knowledge
 
 Canonical context owners:
