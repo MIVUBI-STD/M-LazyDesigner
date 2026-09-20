@@ -151,7 +151,7 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
   bone_rigging: {
     source: "mcp/server/tools/animation-rigging.ts",
     specialist: MODELLING_PATH,
-    test_owner: "mcp/tests/authoring-phase-surface.test.ts",
+    test_owner: "mcp/tests/blockbench-52-native-adoption.test.ts",
   },
   capture_model_views: {
     source: "mcp/server/tools/camera.ts",
