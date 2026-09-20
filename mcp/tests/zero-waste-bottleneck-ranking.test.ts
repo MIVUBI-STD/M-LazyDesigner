@@ -34,9 +34,12 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(
       report.totals.removed_calls - report.totals.added_calls
     ).toBe(baselineCalls - optimizedCalls);
-    expect(report.totals.saved_bytes).toBe(
+    expect(report.totals.net_saved_bytes).toBe(
       Math.max(0, baselineBytes - optimizedBytes)
     );
+    expect(
+      report.totals.removed_bytes - report.totals.added_bytes
+    ).toBe(baselineBytes - optimizedBytes);
   });
 
   test("only evidence-backed waste categories appear in the actionable ranking", () => {
@@ -45,7 +48,7 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(report.ranking.length).toBeGreaterThan(0);
     for (const row of report.ranking) {
       expect(
-        row.saved_bytes > 0 ||
+        row.removed_bytes > 0 ||
           row.removed_calls > 0 ||
           row.redundant_baseline_calls > 0,
         row.kind
@@ -85,6 +88,11 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(
       report.totals.removed_calls - report.totals.added_calls
     ).toBe(report.totals.net_saved_calls);
+    expect(mutate.removed_bytes).toBeGreaterThan(0);
+    expect(recovery.added_bytes).toBeGreaterThan(0);
+    expect(
+      report.totals.removed_bytes - report.totals.added_bytes
+    ).toBe(report.totals.net_saved_bytes);
   });
 
   test("ranking percentages are descriptive metrics, not acceptance targets", () => {

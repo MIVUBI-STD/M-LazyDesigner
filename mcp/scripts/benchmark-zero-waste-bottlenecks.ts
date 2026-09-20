@@ -18,9 +18,11 @@ export type BottleneckRow = {
   net_call_delta: number;
   baseline_bytes: number;
   optimized_bytes: number;
-  saved_bytes: number;
+  removed_bytes: number;
+  added_bytes: number;
+  net_byte_delta: number;
   byte_share_percent: number;
-  saved_byte_share_percent: number;
+  removed_byte_share_percent: number;
   redundant_baseline_calls: number;
 };
 
@@ -35,7 +37,9 @@ export type BottleneckReport = {
     net_saved_calls: number;
     baseline_bytes: number;
     optimized_bytes: number;
-    saved_bytes: number;
+    removed_bytes: number;
+    added_bytes: number;
+    net_saved_bytes: number;
     redundant_baseline_calls: number;
   };
 };
@@ -67,7 +71,9 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
       net_call_delta: 0,
       baseline_bytes: 0,
       optimized_bytes: 0,
-      saved_bytes: 0,
+      removed_bytes: 0,
+      added_bytes: 0,
+      net_byte_delta: 0,
       redundant_baseline_calls: 0,
     });
   }
@@ -93,7 +99,9 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
       removed_calls: Math.max(0, netCallDelta),
       added_calls: Math.max(0, -netCallDelta),
       net_call_delta: netCallDelta,
-      saved_bytes: Math.max(0, row.baseline_bytes - row.optimized_bytes),
+      removed_bytes: Math.max(0, row.baseline_bytes - row.optimized_bytes),
+      added_bytes: Math.max(0, row.optimized_bytes - row.baseline_bytes),
+      net_byte_delta: row.baseline_bytes - row.optimized_bytes,
     };
   });
 
@@ -101,7 +109,7 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
     (sum, row) => sum + row.baseline_bytes,
     0
   );
-  const totalSavedBytes = raw.reduce((sum, row) => sum + row.saved_bytes, 0);
+  const totalRemovedBytes = raw.reduce((sum, row) => sum + row.removed_bytes, 0);
 
   const rows: BottleneckRow[] = raw.map((row) => ({
     ...row,
@@ -109,22 +117,22 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
       totalBaselineBytes === 0
         ? 0
         : Number(((row.baseline_bytes / totalBaselineBytes) * 100).toFixed(2)),
-    saved_byte_share_percent:
-      totalSavedBytes === 0
+    removed_byte_share_percent:
+      totalRemovedBytes === 0
         ? 0
-        : Number(((row.saved_bytes / totalSavedBytes) * 100).toFixed(2)),
+        : Number(((row.removed_bytes / totalRemovedBytes) * 100).toFixed(2)),
   }));
 
   const ranking = [...rows]
     .filter(
       (row) =>
-        row.saved_bytes > 0 ||
+        row.removed_bytes > 0 ||
         row.removed_calls > 0 ||
         row.redundant_baseline_calls > 0
     )
     .sort(
       (left, right) =>
-        right.saved_bytes - left.saved_bytes ||
+        right.removed_bytes - left.removed_bytes ||
         right.removed_calls - left.removed_calls ||
         right.redundant_baseline_calls - left.redundant_baseline_calls ||
         left.kind.localeCompare(right.kind)
@@ -145,7 +153,13 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
       ),
       baseline_bytes: rows.reduce((sum, row) => sum + row.baseline_bytes, 0),
       optimized_bytes: rows.reduce((sum, row) => sum + row.optimized_bytes, 0),
-      saved_bytes: rows.reduce((sum, row) => sum + row.saved_bytes, 0),
+      removed_bytes: rows.reduce((sum, row) => sum + row.removed_bytes, 0),
+      added_bytes: rows.reduce((sum, row) => sum + row.added_bytes, 0),
+      net_saved_bytes: Math.max(
+        0,
+        rows.reduce((sum, row) => sum + row.baseline_bytes, 0) -
+          rows.reduce((sum, row) => sum + row.optimized_bytes, 0)
+      ),
       redundant_baseline_calls: rows.reduce(
         (sum, row) => sum + row.redundant_baseline_calls,
         0
