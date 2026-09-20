@@ -40,11 +40,14 @@ describe("texture visual convergence contract", () => {
       source("server/tools/paint-texture-transaction.ts"),
       source("lib/textureBitmapRuntime.ts"),
     ]);
-    expect(transaction).toContain("rgbaRectToPngDataUrl");
+    expect(transaction).toContain("const dirtyRegion = cropRgbaRect(");
+    expect(transaction).toContain("env.ctx.putImageData(imageData, localX, localY)");
+    expect(transaction).toContain("rgbaToPngDataUrl(");
+    expect(transaction).toContain("dirtyRegion.pixels");
     expect(transaction).toContain('kind: "affected_region_png"');
-    expect(transaction).toContain("affectedRegionImage");
     expect(transaction).toContain("revision: plannedReceipt.revision.after");
-    expect(bitmap).toContain("export function rgbaRectToPngDataUrl");
+    expect((transaction.match(/fullTextureRgba\(texture\)/g) ?? []).length).toBe(2);
+    expect(bitmap).toContain("export function cropRgbaRect");
     expect(bitmap).toContain("pixels.subarray(sourceStart, sourceEnd)");
   });
 
