@@ -459,6 +459,62 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.verification_class).toBe("receipt_only");
   });
 
+  test("verified particle write receipt avoids redundant focused reread", () => {
+    const delta = buildControlDelta({
+      capability: "manage_particle",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        valid: true,
+        artifact_ready: true,
+        wrote_to_path: "/rp/particles/mivubi_dust.particle.json",
+        preview_path: null,
+        preview_error: null,
+        writes: [
+          {
+            kind: "particle",
+            path: "/rp/particles/mivubi_dust.particle.json",
+            byte_length: 512,
+            replaced_existing: true,
+          },
+        ],
+        summary: {
+          identifier: "mivubi:dust",
+          component_count: 4,
+          diagnostics: [],
+        },
+      },
+    });
+
+    expect(delta.freshness.stale).toEqual(["PARTICLE_SYSTEM"]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("incomplete particle write receipt remains focused-read", () => {
+    const delta = buildControlDelta({
+      capability: "manage_particle",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        valid: true,
+        artifact_ready: true,
+        wrote_to_path: "/rp/particles/mivubi_dust.particle.json",
+        writes: [],
+        summary: {
+          identifier: "mivubi:dust",
+          component_count: 4,
+          diagnostics: [],
+        },
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("complete animation-effects receipt is sufficient for continuation without reread", () => {
     const delta = buildControlDelta({
       capability: "manage_animation_effects",
