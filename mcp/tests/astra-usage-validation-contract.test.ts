@@ -209,6 +209,102 @@ describe("Astra usage validation contract", () => {
     expect(summary.comparisons[0].token_claim_available).toBe(false);
   });
 
+  test("reports cache efficiency and cost-to-accepted-result dimensions without inventing a score", () => {
+    const common = {
+      task_id: "D_texture_material_correction",
+      quality_verdict: "PASS",
+      task_success: true,
+      user_corrections: 0,
+      calls: { total: 3, search: 0, describe: 0, inspect: 0, mutate: 2, verify: 1, recovery: 0 },
+    };
+    const doc = {
+      schema: "lazydesigner-astra-usage-v1",
+      proof_scope: "LIVE_BLOCKBENCH",
+      source_sha: "abc",
+      model: "Codex Astra",
+      telemetry_source: "captured-client-telemetry",
+      runs: [
+        {
+          ...common,
+          variant: "baseline",
+          usage: { total_tokens: 1000, input_tokens: 800, cached_input_tokens: 200, output_tokens: 200, reasoning_tokens: null },
+          performance: {
+            wall_time_ms: 4200,
+            accepted_result_ms: 4200,
+            model_latency_ms: 1800,
+            tool_latency_ms: 2000,
+            image_inputs: 3,
+            tool_result_bytes: 12000,
+          },
+        },
+        {
+          ...common,
+          variant: "zero_waste",
+          usage: { total_tokens: 760, input_tokens: 600, cached_input_tokens: 300, output_tokens: 160, reasoning_tokens: null },
+          performance: {
+            wall_time_ms: 3000,
+            accepted_result_ms: 3000,
+            model_latency_ms: 1300,
+            tool_latency_ms: 1400,
+            image_inputs: 2,
+            tool_result_bytes: 7000,
+          },
+        },
+      ],
+    } as any;
+
+    const summary = summarizeAstraUsage(doc);
+    expect(summary.comparisons[0]).toMatchObject({
+      comparison_state: "MEASURED",
+      performance: {
+        baseline: {
+          accepted_result_ms: 4200,
+          image_inputs: 3,
+          tool_result_bytes: 12000,
+          cache_efficiency_percent: 25,
+        },
+        zero_waste: {
+          accepted_result_ms: 3000,
+          image_inputs: 2,
+          tool_result_bytes: 7000,
+          cache_efficiency_percent: 50,
+        },
+      },
+    });
+    expect(summary).not.toHaveProperty("aggregate_score");
+  });
+
+  test("rejects malformed performance telemetry instead of silently coercing it", () => {
+    expect(() =>
+      validateAstraUsageDocument({
+        schema: "lazydesigner-astra-usage-v1",
+        proof_scope: "LIVE_BLOCKBENCH",
+        source_sha: null,
+        model: null,
+        telemetry_source: null,
+        runs: [
+          {
+            task_id: "A",
+            variant: "baseline",
+            quality_verdict: "UNVERIFIED",
+            task_success: null,
+            user_corrections: null,
+            usage: { total_tokens: null, input_tokens: null, cached_input_tokens: null, output_tokens: null, reasoning_tokens: null },
+            calls: { total: null, search: null, describe: null, inspect: null, mutate: null, verify: null, recovery: null },
+            performance: {
+              wall_time_ms: -1,
+              accepted_result_ms: null,
+              model_latency_ms: null,
+              tool_latency_ms: null,
+              image_inputs: null,
+              tool_result_bytes: null,
+            },
+          },
+        ],
+      } as any)
+    ).toThrow(/performance\.wall_time_ms.*non-negative/);
+  });
+
   test("live Golden manifest covers A-F and keeps quality before efficiency", async () => {
     const manifest = await Bun.file(
       "tests/fixtures/astra-live-golden-tasks.json"
