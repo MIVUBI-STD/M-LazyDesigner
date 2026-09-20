@@ -24,7 +24,15 @@ describe("optional diagnostic execution", () => {
       defs.inspect_animation={execute:async()=>({content:[],structuredContent:{authored_space:"blockbench_animation",animation:{uuid:"target"}}})};
       wireAuthoringQualityIntelligence();
       const out=[];
-      for(const args of [{},{diagnostics:false},{diagnostics:true}]) {
+      for(const args of [
+        {},
+        {diagnostics:false},
+        {diagnostics:true, diagnostic_scope:"uv"},
+        {diagnostics:true, diagnostic_scope:"coverage"},
+        {diagnostics:true, diagnostic_scope:"seam"},
+        {diagnostics:true, diagnostic_scope:"pbr"},
+        {diagnostics:true},
+      ]) {
         const before=reads; const result=await defs.inspect_animation.execute(args);
         out.push({reads:reads-before,bytes:Buffer.byteLength(JSON.stringify(result)),state:result.structuredContent});
       }
@@ -68,16 +76,45 @@ describe("optional diagnostic execution", () => {
       }
       console.log(JSON.stringify(out));
     `);
-    expect(results[0].reads).toBeGreaterThan(0);
-    expect(results[0].state.optimization_opportunities.coverage.states.solid_color).toBe(1);
+    expect(results[0].reads).toBe(0);
+    expect(results[0].state.textures).toEqual([{ uuid: "atlas" }]);
+    expect(results[0].state).not.toHaveProperty("uv_audit");
+    expect(results[0].state).not.toHaveProperty("optimization_opportunities");
+    expect(results[0].state).not.toHaveProperty("seam_continuity");
+    expect(results[0].state.production_alignment?.pbr_content).toBeUndefined();
+
     expect(results[1].reads).toBe(0);
-    expect(results[1].state.textures).toEqual([{ uuid: "atlas" }]);
-    expect(results[1].state).not.toHaveProperty("optimization_opportunities");
-    expect(results[1].state).not.toHaveProperty("seam_continuity");
-    expect(results[1].state.production_alignment?.pbr_content).toBeUndefined();
-    expect(results[2].reads).toBeGreaterThan(0);
-    expect(results[2].state.optimization_opportunities.coverage.states.transparent).toBe(1);
-    expect(results[1].bytes).toBeLessThan(results[0].bytes);
+    expect(results[1].state).not.toHaveProperty("uv_audit");
+
+    expect(results[2].reads).toBe(0);
+    expect(results[2].state).toHaveProperty("uv_audit");
+    expect(results[2].state).not.toHaveProperty("optimization_opportunities");
+    expect(results[2].state).not.toHaveProperty("seam_continuity");
+    expect(results[2].state.production_alignment?.pbr_content).toBeUndefined();
+
+    expect(results[3].reads).toBeGreaterThan(0);
+    expect(results[3].state).toHaveProperty("uv_audit");
+    expect(results[3].state.optimization_opportunities.coverage.states.transparent).toBe(1);
+    expect(results[3].state).not.toHaveProperty("seam_continuity");
+    expect(results[3].state.production_alignment?.pbr_content).toBeUndefined();
+
+    expect(results[4].state).toHaveProperty("uv_audit");
+    expect(results[4].state).toHaveProperty("seam_continuity");
+    expect(results[4].state).not.toHaveProperty("optimization_opportunities");
+    expect(results[4].state.production_alignment?.pbr_content).toBeUndefined();
+
+    expect(results[5].state).not.toHaveProperty("uv_audit");
+    expect(results[5].state).not.toHaveProperty("optimization_opportunities");
+    expect(results[5].state).not.toHaveProperty("seam_continuity");
+    expect(results[5].state.production_alignment?.pbr_content).toBeDefined();
+
+    expect(results[6].reads).toBeGreaterThan(0);
+    expect(results[6].state).toHaveProperty("uv_audit");
+    expect(results[6].state).toHaveProperty("optimization_opportunities");
+    expect(results[6].state).toHaveProperty("seam_continuity");
+    expect(results[6].state.production_alignment?.pbr_content).toBeDefined();
+
+    expect(results[0].bytes).toBeLessThan(results[6].bytes);
     console.log("texture diagnostic cost", JSON.stringify(results.map(({reads, bytes}: {reads:number;bytes:number}) => ({reads,bytes}))));
   });
 
