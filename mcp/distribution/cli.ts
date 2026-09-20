@@ -12,6 +12,7 @@ import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } f
 import { atomicWrite, activeGateways, installedState, installPackage, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
+const RELEASE_MANIFEST_ASSET = "blockit-package.json";
 const raw = process.argv.slice(2).filter(a => a !== "--");
 const command = raw.shift() ?? "help";
 const flags = new Map<string, string>();
@@ -119,36 +120,152 @@ try {
 } finally { $zip.Dispose() }
 `;
 
-async function fetchRelease(): Promise<string> {
+async function fetchPublishedRelease(): Promise<any> {
   const tag = flags.get("--tag");
-  if (tag && !/^blockit-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(tag)) throw new Error("Use a versioned blockit-vX.Y.Z release tag.");
+  if (tag && !/^blockit-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(tag)) {
+    throw new Error("Use a versioned blockit-vX.Y.Z release tag.");
+  }
   const preview = flags.has("--preview");
   const endpoint = tag ? `tags/${tag}` : preview ? "?per_page=30" : "latest";
   const api = `https://api.github.com/repos/${REPOSITORY}/releases${endpoint.startsWith("?") ? endpoint : "/" + endpoint}`;
-  const response = await fetch(api, { redirect: "error", signal: AbortSignal.timeout(15_000), headers: { Accept: "application/vnd.github+json", "User-Agent": "BlockIT-Managed-Install" } });
-  if (!response.ok) throw new Error(`No installable release (${response.status}); the current installation is unchanged.`);
+  const response = await fetch(api, {
+    redirect: "error",
+    signal: AbortSignal.timeout(8_000),
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "BlockIT-Managed-Install",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`No installable release (${response.status}); the current installation is unchanged.`);
+  }
   let release: any = await response.json();
-  if (Array.isArray(release)) release = release.filter(r => !r.draft && r.prerelease && /^blockit-v/.test(r.tag_name)).sort((a, b) => String(b.published_at).localeCompare(String(a.published_at)))[0];
-  if (!release || release.draft || release.prerelease && !preview || !/^blockit-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(release.tag_name)) throw new Error("Release is not published on the selected channel.");
-  const asset = release.assets?.find((a: any) => a.name === RELEASE_ASSET);
-  if (!asset || !/^sha256:[a-f0-9]{64}$/.test(asset.digest) || asset.size > 250_000_000) throw new Error("Release has no digest-verified Windows package.");
+  if (Array.isArray(release)) {
+    release = release
+      .filter((entry) => !entry.draft && entry.prerelease && /^blockit-v/.test(entry.tag_name))
+      .sort((a, b) => String(b.published_at).localeCompare(String(a.published_at)))[0];
+  }
+  if (
+    !release ||
+    release.draft ||
+    (release.prerelease && !preview) ||
+    !/^blockit-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(release.tag_name)
+  ) {
+    throw new Error("Release is not published on the selected channel.");
+  }
+  return release;
+}
+
+function trustedReleaseAsset(release: any, name: string, maxSize: number): any {
+  const asset = release.assets?.find((candidate: any) => candidate.name === name);
+  if (
+    !asset ||
+    !/^sha256:[a-f0-9]{64}$/.test(asset.digest) ||
+    !Number.isSafeInteger(asset.size) ||
+    asset.size < 1 ||
+    asset.size > maxSize
+  ) {
+    throw new Error(`Release has no digest-verified ${name} asset.`);
+  }
   const url = new URL(asset.browser_download_url);
-  if (url.origin !== "https://github.com" || url.pathname !== `/${REPOSITORY}/releases/download/${release.tag_name}/${RELEASE_ASSET}` || url.search || url.hash) throw new Error("Release asset URL does not match the trusted repository/tag.");
+  if (
+    url.origin !== "https://github.com" ||
+    url.pathname !== `/${REPOSITORY}/releases/download/${release.tag_name}/${name}` ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error("Release asset URL does not match the trusted repository/tag.");
+  }
+  return { asset, url };
+}
+
+async function fetchUpdateManifest(release: any): Promise<Manifest> {
+  const { asset, url } = trustedReleaseAsset(release, RELEASE_MANIFEST_ASSET, 1_000_000);
+  const bytes = await download(url.href, 1_000_000);
+  if (bytes.length !== asset.size || `sha256:${sha256(bytes)}` !== asset.digest) {
+    throw new Error("Release manifest digest mismatch.");
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(bytes.toString("utf8"));
+  } catch {
+    throw new Error("Release manifest is not valid JSON.");
+  }
+  return parseManifest(parsed);
+}
+
+async function checkUpdate(): Promise<unknown> {
+  const installed = await installedState(root);
+  if (!installed) {
+    return { status: "NOT_INSTALLED" };
+  }
+
+  const pending = await readOptional(pendingPath);
+  if (pending) {
+    try {
+      const parsed = JSON.parse(pending.toString()) as { directory?: string };
+      if (typeof parsed.directory === "string") {
+        const manifest = await verifyPackage(parsed.directory);
+        return {
+          status: "UPDATE_STAGED",
+          installed_source_sha: installed.source_sha,
+          available_source_sha: manifest.source_sha,
+        };
+      }
+    } catch {
+      // Status remains read-only; a malformed pending state is handled by the
+      // normal recovery/update path rather than mutated during startup check.
+    }
+    return {
+      status: "UPDATE_STAGED",
+      installed_source_sha: installed.source_sha,
+      available_source_sha: null,
+    };
+  }
+
+  const release = await fetchPublishedRelease();
+  const manifest = await fetchUpdateManifest(release);
+  return {
+    status: manifest.source_sha === installed.source_sha ? "UP_TO_DATE" : "UPDATE_AVAILABLE",
+    installed_source_sha: installed.source_sha,
+    available_source_sha: manifest.source_sha,
+    tag: release.tag_name,
+    published_at: typeof release.published_at === "string" ? release.published_at : null,
+  };
+}
+
+async function fetchRelease(): Promise<string> {
+  const release = await fetchPublishedRelease();
+  const { asset, url } = trustedReleaseAsset(release, RELEASE_ASSET, 250_000_000);
   const bytes = await download(url.href, 250_000_000);
-  if (bytes.length !== asset.size || `sha256:${sha256(bytes)}` !== asset.digest) throw new Error("Release archive digest mismatch.");
-  const staging = join(root, "downloads", randomUUID()), directory = join(staging, "package"), archive = join(staging, "release.zip");
-  await requirePlainPath(staging); await mkdir(directory, { recursive: true }); await writeFile(archive, bytes, { flag: "wx" });
-  const code = await child("powershell.exe", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", EXTRACT], { ...process.env, BLOCKIT_ARCHIVE: archive, BLOCKIT_EXTRACT: directory });
-  if (code !== 0) throw new Error("Safe release extraction failed; the current installation is unchanged.");
-  await verifyPackage(directory); await rm(archive);
+  if (bytes.length !== asset.size || `sha256:${sha256(bytes)}` !== asset.digest) {
+    throw new Error("Release archive digest mismatch.");
+  }
+  const staging = join(root, "downloads", randomUUID());
+  const directory = join(staging, "package");
+  const archive = join(staging, "release.zip");
+  await requirePlainPath(staging);
+  await mkdir(directory, { recursive: true });
+  await writeFile(archive, bytes, { flag: "wx" });
+  const code = await child(
+    "powershell.exe",
+    ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", EXTRACT],
+    { ...process.env, BLOCKIT_ARCHIVE: archive, BLOCKIT_EXTRACT: directory }
+  );
+  if (code !== 0) {
+    throw new Error("Safe release extraction failed; the current installation is unchanged.");
+  }
+  await verifyPackage(directory);
+  await rm(archive);
   return directory;
 }
 
 async function main(): Promise<void> {
-  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | setup-tls | status | mcp. No app, user build, or manual file replacement."); return; }
+  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | check-update [--tag blockit-vX.Y.Z] [--preview] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | setup-tls | status | mcp. No app, user build, or manual file replacement."); return; }
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
   if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeStatus, runtimeTlsStatus)); return; }
+  if (command === "check-update") { receipt(await checkUpdate()); return; }
   if (command === "setup-tls") {
     progress("setup-tls", "preflight");
     const installed = await installedState(root);
