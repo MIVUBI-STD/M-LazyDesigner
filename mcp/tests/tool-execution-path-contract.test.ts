@@ -100,7 +100,7 @@ describe("tool execution path contract", () => {
     expect(skill).toContain("sample an already-authored pixel whose value is unknown");
     expect(skill).toContain("→ color_picker_tool");
     expect(skill).toMatch(/do not call `color_picker_tool` just to put a known value/i);
-    expect(skill).toMatch(/one coherent `paint_texture_transaction` over many one-pixel Painter calls/i);
+    expect(skill).toMatch(/paint_texture_transaction.*deterministic pixel cohorts/i);
     expect(skill).toMatch(/trigger_action.*emulate_clicks.*fill_dialog.*normal texturing/is);
     expect(skill).toMatch(/do not call `activate_texture` immediately before a tool that already accepts explicit `texture_id`/i);
   });
