@@ -4,7 +4,6 @@ import { join } from "node:path";
 import {
   buildControlDelta,
   buildControlPacket,
-  projectControlPacketForGateway,
   projectControlPacketForGatewayWithDiagnostics,
   type ControlPacket,
 } from "../gateway/control";
