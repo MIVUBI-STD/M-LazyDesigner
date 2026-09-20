@@ -880,7 +880,7 @@ fn navigation_paths() -> (
     (projects, models, folders)
 }
 
-fn continue_model_id_for_pathfn continue_model_id_for_path(raw: Option<&str>) -> Option<String> {
+fn continue_model_id_for_path(raw: Option<&str>) -> Option<String> {
     let path = PathBuf::from(raw?);
     if !is_bbmodel_path(&path) || !path.is_file() {
         return None;
