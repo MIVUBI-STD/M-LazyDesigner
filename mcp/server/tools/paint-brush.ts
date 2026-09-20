@@ -165,18 +165,6 @@ export function registerPaintEraserTool(): void {
               ...(shape === undefined ? {} : {brush_shape:shape}),
             });
     
-            // Native Painter setup is required only for non-deterministic brush semantics.
-            // @ts-ignore - official Blockbench Painter tool ID
-            BarItems.brush_tool.select();
-            setBarItemValues({
-              slider_brush_size: size,
-              slider_brush_opacity: opacity,
-              slider_brush_softness: softness,
-              brush_shape: shape,
-              blend_mode: blendMode,
-            });
-            ColorPanel.set(colorHex, false, false);
-
             const first = coordinates[0];
             runPaintStroke(() => {
               getRuntimePainter().startPaintTool(
@@ -332,6 +320,18 @@ export function registerPaintBrushTools(): void {
                 structuredContent: result,
               };
             }
+
+            // Native Painter setup is required only for non-deterministic brush semantics.
+            // @ts-ignore - official Blockbench Painter tool ID
+            BarItems.brush_tool.select();
+            setBarItemValues({
+              slider_brush_size: size,
+              slider_brush_opacity: opacity,
+              slider_brush_softness: softness,
+              brush_shape: shape,
+              blend_mode: blendMode,
+            });
+            ColorPanel.set(colorHex, false, false);
     
             const first = coordinates[0];
             runPaintStroke(() => {
