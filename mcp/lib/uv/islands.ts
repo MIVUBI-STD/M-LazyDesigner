@@ -15,6 +15,7 @@ import { boxUvFootprint } from "@/lib/boxUvLayout";
 export type UvCubeFaceSnapshot = {
   face: UvFaceKey;
   uv: readonly number[];
+  rotation?: number;
   enabled?: boolean;
 };
 
@@ -200,6 +201,7 @@ export function extractUvIslands(
           box_uv: false,
           mirror_uv: cube.mirror_uv,
           autouv: cube.autouv,
+          face_rotation: face.rotation ?? 0,
         },
         rect,
         physical: {

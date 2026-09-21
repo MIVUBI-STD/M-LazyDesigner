@@ -63,6 +63,7 @@ export type UvIslandSource = {
   box_uv: boolean;
   mirror_uv: boolean;
   autouv: number;
+  face_rotation?: number;
 };
 
 export type UvIslandPhysical = {

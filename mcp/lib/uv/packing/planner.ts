@@ -149,6 +149,7 @@ export function planUvPacking(
       padding_x: paddingPixels / pixelScale[0],
       padding_y: paddingPixels / pixelScale[1],
       allow_rotate_90:
+        !island.source.box_uv &&
         island.constraints.rotation.allowed &&
         island.constraints.rotation.step === 90,
       priority: island.constraints.priority,
