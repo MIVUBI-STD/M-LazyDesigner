@@ -104,11 +104,13 @@ Planner may choose only already-supported deterministic execution paths. No wall
 Parallel AI-context work is now limited to:
 
 ```text
-rank remaining large structured results with real evidence
+keep generic Gateway result projection regression-safe
 rank remaining unprojected describe schemas with measure:describe-payloads
 add branch projection only for clean canonical discriminators
-provider/client telemetry preparation
+keep source-provided usage telemetry/preflight contracts synchronized
 ```
+
+Remote-only development is approaching its proof ceiling. Do not invent additional compaction or compute layers merely to keep changing source; remaining performance claims require LOCAL_CODE benchmark evidence, and native/visual/token claims remain LIVE_BLOCKBENCH/client-telemetry residue.
 
 Serialized bytes remain proxies, not actual provider token counts.
 

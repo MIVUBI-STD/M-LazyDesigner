@@ -1050,27 +1050,50 @@ Do not call Texture Compute + AI usage “final form” until all of these are t
 
 # 12. Immediate Next Work
 
-The next implementation should be:
+Source implementation status on `Local`:
 
 ```text
-Texture Compute Planner v2
-Phase C1: ROI + dirty-scope propagation
+C1 ROI + dirty-scope propagation          IMPLEMENTED
+C2 pointwise fusion                       IMPLEMENTED + HARDENED
+C3 streaming Sobel/directional shading    IMPLEMENTED
+C4 adaptive caches + palette-result cache IMPLEMENTED + ENTROPY-AWARE
+C5 measured planner cost model            IMPLEMENTED
+P1.4 hot-path allocation cleanup          IMPLEMENTED
 ```
 
-Then:
+Do not restart C1–C5 without a reproduced regression or new benchmark evidence.
+
+Remaining **REMOTE_GITHUB** work is deliberately narrow:
 
 ```text
-C2 pointwise fusion
-C3 streaming Sobel/directional shade
-C4 adaptive caches + palette-result cache
+keep Gateway result projection semantic rather than capability-name driven
+measure describe payloads and guard large unprojected schema growth
+add branch projections only for clean canonical discriminators
+maintain source-provided usage telemetry contracts
+keep continuation/docs synchronized with exact verified SHAs
 ```
 
-AI/context work should continue in parallel only where it is low-risk:
+Current remote context work already includes:
 
 ```text
-generic result projection audit
-describe-payload hotspot measurement
-actual telemetry preparation
+generic receipt-only structured projection
+generic receipt-only prose projection
+generic read-only prose projection with warning/path preservation
+describe-payload measurement + regression budget
+branch projection for manage_cubes and manage_render_profile
+task-class / accepted-result / event-identity telemetry preparation
 ```
 
-Do not add more texture filters until C1–C4 are complete or evidence shows a specific missing algorithm blocks quality.
+Remaining proof ceiling:
+
+```text
+LOCAL_CODE
+→ representative wall-clock + memory/GC benchmark for compute planner/hot paths
+→ measured tuning only after benchmark
+
+LIVE_BLOCKBENCH
+→ native Runtime/Undo/save/reopen/visual responsiveness and accepted-result quality
+→ provider/client usage capture for actual token claims
+```
+
+Do not add GPU/WASM/workers, persistent compute caches, search trees, or more texture filters unless measured evidence shows the current CPU path is insufficient.
