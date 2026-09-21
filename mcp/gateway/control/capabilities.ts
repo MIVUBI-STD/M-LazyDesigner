@@ -2,7 +2,7 @@ import type { CapabilitySummary } from "../contract";
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
-} from "./registry";
+} from "./sourceOwners";
 import type {
   ControlAuthoringDomain,
   ControlCapabilitySummary,
