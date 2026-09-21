@@ -80,6 +80,9 @@ jobs:
       - name: Guard total-context Zero-Waste regression
         run: bun run benchmark:zero-waste-total
 
+      - name: Guard parametric authoring efficiency regression
+        run: bun run benchmark:parametric-authoring
+
       - name: Report Zero-Waste bottlenecks
         run: bun run benchmark:zero-waste-bottlenecks
 
