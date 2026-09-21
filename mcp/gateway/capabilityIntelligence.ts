@@ -334,6 +334,71 @@ function genericCapabilityScore(
   return score;
 }
 
+
+function bm25Tokens(text: string): string[] {
+  return normalize(text).filter((token) => token.length > 1);
+}
+
+export function bm25CapabilityScores(
+  tools: readonly BackendTool[],
+  query: string
+): ReadonlyMap<string, number> {
+  const documents = tools.map((tool) => {
+    const metadata = getCapabilityMetadata(tool.name);
+    return bm25Tokens([
+      tool.name,
+      tool.name,
+      tool.description ?? "",
+      metadata.searchAliases.join(" "),
+    ].join(" "));
+  });
+  const queryTokens = [...expandedTokens(query)];
+  if (queryTokens.length === 0 || documents.length === 0) return new Map();
+
+  const documentFrequencies = new Map<string, number>();
+  for (const tokens of documents) {
+    for (const token of new Set(tokens)) {
+      documentFrequencies.set(token, (documentFrequencies.get(token) ?? 0) + 1);
+    }
+  }
+
+  const averageLength =
+    documents.reduce((sum, tokens) => sum + tokens.length, 0) /
+    Math.max(documents.length, 1);
+  const k1 = 1.2;
+  const b = 0.75;
+  const scores = new Map<string, number>();
+
+  tools.forEach((tool, index) => {
+    const tokens = documents[index] ?? [];
+    const frequencies = new Map<string, number>();
+    for (const token of tokens) {
+      frequencies.set(token, (frequencies.get(token) ?? 0) + 1);
+    }
+
+    let score = 0;
+    for (const token of queryTokens) {
+      const frequency = frequencies.get(token) ?? 0;
+      if (frequency === 0) continue;
+      const documentFrequency = documentFrequencies.get(token) ?? 0;
+      const idf = Math.log(
+        1 +
+          (tools.length - documentFrequency + 0.5) /
+            (documentFrequency + 0.5)
+      );
+      const normalization =
+        1 - b + b * (tokens.length / Math.max(averageLength, 1));
+      score +=
+        idf *
+        ((frequency * (k1 + 1)) /
+          (frequency + k1 * normalization));
+    }
+    scores.set(tool.name, score);
+  });
+
+  return scores;
+}
+
 export function semanticMatchesForTool(
   tool: BackendTool,
   query: string,
