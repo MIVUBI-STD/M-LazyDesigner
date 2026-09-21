@@ -1,4 +1,4 @@
-import type { JsonRecord } from "../contract";
+import type { JsonRecord } from "../protocol";
 
 export type GatewayRecoveryCategory =
   | "AVAILABILITY"
