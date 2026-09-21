@@ -106,4 +106,13 @@ describe("Gateway structural ownership", () => {
     expect(deltaEngine).toContain('from "../sourceOwners"');
   });
 
+  test("Control source-owner composition stays modular", async () => {
+    const sourceOwners = await Bun.file("gateway/control/sourceOwners.ts").text();
+    expect(sourceOwners).toContain('from "./sourceOwners/geometry"');
+    expect(sourceOwners).toContain('from "./sourceOwners/texturing"');
+    expect(sourceOwners).toContain('from "./sourceOwners/animation"');
+    expect(sourceOwners).toContain('from "./sourceOwners/core"');
+    expect(sourceOwners.split("\n").length).toBeLessThan(90);
+  });
+
 });
