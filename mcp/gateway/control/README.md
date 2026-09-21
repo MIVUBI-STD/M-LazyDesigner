@@ -42,7 +42,9 @@ types.ts              compact Control contracts
 referencePackage.ts   REFERENCE.json projection
 workspace.ts          Active Workspace projection
 contextProjection.ts  stage-specific authoring context
-registry.ts           canonical context/source-owner resolution
+contexts.ts           Skill/profile paths + content-addressed context handles
+sourceOwners.ts        capability domain/source/specialist/test ownership
+registry.ts           compatibility facade
 snapshot.ts           live Gateway/Runtime orientation
 packet.ts             task packet assembly
 capabilities.ts       capability decoration
