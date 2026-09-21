@@ -2,7 +2,7 @@ import { open, readdir, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { inflateRawSync } from "node:zlib";
-import type { BackendTool, JsonRecord } from "../contract";
+import type { BackendTool, JsonRecord } from "../protocol";
 
 export const VANILLA_ENTITY_REFERENCE_CAPABILITY =
   "get_vanilla_entity_reference";
