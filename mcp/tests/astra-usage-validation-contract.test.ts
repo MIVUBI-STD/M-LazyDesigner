@@ -184,6 +184,101 @@ describe("Astra usage validation contract", () => {
     });
   });
 
+  test("accepted-result telemetry gates claims when explicitly available", () => {
+    const baseRun = {
+      task_id: "A_known_transform",
+      task_class: "DIRECT",
+      quality_verdict: "PASS",
+      task_success: true,
+      user_corrections: 0,
+      usage: {
+        total_tokens: 100,
+        input_tokens: 80,
+        cached_input_tokens: 20,
+        output_tokens: 20,
+        reasoning_tokens: null,
+      },
+      calls: {
+        total: 1,
+        search: 0,
+        describe: 0,
+        inspect: 0,
+        mutate: 1,
+        verify: 0,
+        recovery: 0,
+      },
+    };
+    const doc = {
+      schema: "lazydesigner-astra-usage-v1",
+      proof_scope: "LIVE_BLOCKBENCH",
+      source_sha: "abc",
+      model: "Codex Astra",
+      telemetry_source: "captured-client-telemetry",
+      runs: [
+        { ...baseRun, variant: "baseline", accepted_result: true },
+        {
+          ...baseRun,
+          variant: "zero_waste",
+          accepted_result: false,
+          usage: { ...baseRun.usage, total_tokens: 70 },
+        },
+      ],
+    } as any;
+
+    const summary = summarizeAstraUsage(doc);
+    expect(summary.comparisons[0].token_claim_available).toBe(false);
+  });
+
+  test("duplicate model event IDs are rejected before token aggregation", () => {
+    const event = {
+      event_id: "resp-1",
+      source: "client",
+      kind: "response",
+      total_tokens: 100,
+      input_tokens: 80,
+      cached_input_tokens: 20,
+      output_tokens: 20,
+      reasoning_tokens: null,
+    };
+    expect(() =>
+      validateAstraUsageDocument({
+        schema: "lazydesigner-astra-usage-v1",
+        proof_scope: "LIVE_BLOCKBENCH",
+        source_sha: "abc",
+        model: "Codex Astra",
+        telemetry_source: "captured-client-telemetry",
+        runs: [
+          {
+            task_id: "A",
+            task_class: "DIRECT",
+            variant: "baseline",
+            quality_verdict: "PASS",
+            task_success: true,
+            accepted_result: true,
+            user_corrections: 0,
+            usage: {
+              total_tokens: 200,
+              input_tokens: null,
+              cached_input_tokens: null,
+              output_tokens: null,
+              reasoning_tokens: null,
+            },
+            model_events: [event, { ...event }],
+            calls: {
+              total: 1,
+              search: 0,
+              describe: 0,
+              inspect: 0,
+              mutate: 1,
+              verify: 0,
+              recovery: 0,
+            },
+          },
+        ],
+      } as any)
+    ).toThrow(/duplicate event_id/);
+  });
+
   test("missing event total prevents a token-saving claim", () => {
     const common = {
       task_id: "A_known_transform",

@@ -1,5 +1,12 @@
 type Verdict = "PASS" | "FAIL" | "UNVERIFIED";
 type Variant = "baseline" | "zero_waste";
+type TaskClass =
+  | "DIRECT"
+  | "SCOPED_DISCOVERY"
+  | "CONSTRUCTIVE_COMPONENT"
+  | "TEXTURE_MATERIAL"
+  | "ANIMATION"
+  | "FULL_REFERENCE_DRIVEN";
 
 type NullableNumber = number | null;
 
@@ -13,6 +20,8 @@ type Usage = {
 
 type ModelUsageEvent = Usage & {
   kind: "response" | "compaction";
+  event_id?: string;
+  source?: string;
   cache_missed_tokens?: NullableNumber;
   comparison_reusable_tokens?: NullableNumber;
 };
@@ -38,9 +47,11 @@ type Performance = {
 
 type UsageRun = {
   task_id: string;
+  task_class?: TaskClass;
   variant: Variant;
   quality_verdict: Verdict;
   task_success: boolean | null;
+  accepted_result?: boolean | null;
   user_corrections: NullableNumber;
   usage: Usage;
   model_events?: ModelUsageEvent[];
@@ -60,6 +71,14 @@ type UsageDocument = {
 
 const VERDICTS = new Set<Verdict>(["PASS", "FAIL", "UNVERIFIED"]);
 const VARIANTS = new Set<Variant>(["baseline", "zero_waste"]);
+const TASK_CLASSES = new Set<TaskClass>([
+  "DIRECT",
+  "SCOPED_DISCOVERY",
+  "CONSTRUCTIVE_COMPONENT",
+  "TEXTURE_MATERIAL",
+  "ANIMATION",
+  "FULL_REFERENCE_DRIVEN",
+]);
 const EVENT_KINDS = new Set<ModelUsageEvent["kind"]>(["response", "compaction"]);
 const USAGE_FIELDS: (keyof Usage)[] = [
   "total_tokens",
@@ -115,6 +134,18 @@ function validateEvent(
   if (!EVENT_KINDS.has(event.kind)) {
     throw new Error(`${prefix}.kind is invalid.`);
   }
+  if (
+    event.event_id !== undefined &&
+    (typeof event.event_id !== "string" || event.event_id.length === 0)
+  ) {
+    throw new Error(`${prefix}.event_id must be a non-empty string when provided.`);
+  }
+  if (
+    event.source !== undefined &&
+    (typeof event.source !== "string" || event.source.length === 0)
+  ) {
+    throw new Error(`${prefix}.source must be a non-empty string when provided.`);
+  }
   validateUsage(event, prefix);
   for (const field of ["cache_missed_tokens", "comparison_reusable_tokens"] as const) {
     if (event[field] !== undefined) {
@@ -159,6 +190,11 @@ function eventDiagnostics(run: UsageRun) {
     event_count: events.length,
     response_events: events.filter((event) => event.kind === "response").length,
     compaction_events: events.filter((event) => event.kind === "compaction").length,
+    event_sources: [...new Set(
+      events
+        .map((event) => event.source)
+        .filter((source): source is string => source !== undefined)
+    )],
     cached_input_tokens:
       events.length > 0 && events.every((event) => event.cached_input_tokens !== null)
         ? events.reduce((sum, event) => sum + (event.cached_input_tokens as number), 0)
@@ -179,10 +215,22 @@ function validateRun(run: UsageRun, index: number): void {
   if (typeof run.task_id !== "string" || run.task_id.length === 0) {
     throw new Error(`runs[${index}].task_id must be non-empty.`);
   }
+  if (run.task_class !== undefined && !TASK_CLASSES.has(run.task_class)) {
+    throw new Error(`runs[${index}].task_class is invalid.`);
+  }
   if (!VARIANTS.has(run.variant)) throw new Error(`runs[${index}].variant is invalid.`);
   if (!VERDICTS.has(run.quality_verdict)) throw new Error(`runs[${index}].quality_verdict is invalid.`);
   if (run.task_success !== null && typeof run.task_success !== "boolean") {
     throw new Error(`runs[${index}].task_success must be boolean or null.`);
+  }
+  if (
+    run.accepted_result !== undefined &&
+    run.accepted_result !== null &&
+    typeof run.accepted_result !== "boolean"
+  ) {
+    throw new Error(
+      `runs[${index}].accepted_result must be boolean, null, or omitted.`
+    );
   }
   requireNullableNonNegativeNumber(run.user_corrections, `runs[${index}].user_corrections`);
   validateUsage(run.usage, `runs[${index}].usage`);
@@ -193,6 +241,14 @@ function validateRun(run: UsageRun, index: number): void {
     run.model_events.forEach((event, eventIndex) =>
       validateEvent(event, index, eventIndex)
     );
+    const eventIds = run.model_events
+      .map((event) => event.event_id)
+      .filter((eventId): eventId is string => eventId !== undefined);
+    if (new Set(eventIds).size !== eventIds.length) {
+      throw new Error(
+        `runs[${index}].model_events contains duplicate event_id values.`
+      );
+    }
     const eventTotal = effectiveTotalTokens(run);
     if (
       run.model_events.length > 0 &&
@@ -236,12 +292,20 @@ function pairKey(run: UsageRun): string {
   return run.task_id;
 }
 
+function acceptedResultPass(run: UsageRun): boolean {
+  return run.accepted_result === undefined || run.accepted_result === null
+    ? run.task_success === true
+    : run.accepted_result === true;
+}
+
 function canClaimUsageComparison(baseline: UsageRun, optimized: UsageRun): boolean {
   return (
     baseline.quality_verdict === "PASS" &&
     optimized.quality_verdict === "PASS" &&
     baseline.task_success === true &&
     optimized.task_success === true &&
+    acceptedResultPass(baseline) &&
+    acceptedResultPass(optimized) &&
     effectiveTotalTokens(baseline) !== null &&
     effectiveTotalTokens(optimized) !== null
   );
@@ -281,7 +345,7 @@ export function summarizeAstraUsage(document: UsageDocument) {
         comparison_state: "UNAVAILABLE" as const,
         token_claim_available: false,
         reason:
-          "Token comparison requires PASS quality, successful tasks, and source-provided total_tokens on both runs.",
+          "Token comparison requires PASS quality, successful and accepted results when acceptance telemetry is available, plus source-provided total_tokens on both runs.",
         quality: {
           baseline: baseline.quality_verdict,
           zero_waste: optimized.quality_verdict,
@@ -306,6 +370,14 @@ export function summarizeAstraUsage(document: UsageDocument) {
     const saved = before - after;
     return {
       task_id: taskId,
+      task_class:
+        baseline.task_class === optimized.task_class
+          ? baseline.task_class ?? null
+          : null,
+      accepted_result: {
+        baseline: baseline.accepted_result ?? null,
+        zero_waste: optimized.accepted_result ?? null,
+      },
       comparison_state: "MEASURED" as const,
       token_claim_available: true,
       total_tokens: {

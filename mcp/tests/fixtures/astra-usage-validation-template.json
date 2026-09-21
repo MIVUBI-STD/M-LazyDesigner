@@ -4,7 +4,7 @@
   "source_sha": null,
   "model": null,
   "telemetry_source": null,
-  "notes": "Populate only source-provided Codex/Astra telemetry. For long tasks, record every response/compaction event so compaction cost is included. Performance fields are descriptive dimensions (latency, image inputs, tool payload), never an invented aggregate score. Leave unavailable fields null.",
+  "notes": "Populate only source-provided Codex/Astra telemetry. For long tasks, record every response/compaction event so compaction cost is included. Performance fields are descriptive dimensions (latency, image inputs, tool payload), never an invented aggregate score. Leave unavailable fields null. Optional model_events.event_id should be unique when the client exposes stable response/compaction identity; source may identify the provider/client telemetry stream.",
   "runs": [
     {
       "task_id": "A_known_transform",
@@ -36,7 +36,9 @@
         "tool_latency_ms": null,
         "image_inputs": null,
         "tool_result_bytes": null
-      }
+      },
+      "task_class": "DIRECT",
+      "accepted_result": null
     },
     {
       "task_id": "A_known_transform",
@@ -68,7 +70,9 @@
         "tool_latency_ms": null,
         "image_inputs": null,
         "tool_result_bytes": null
-      }
+      },
+      "task_class": "DIRECT",
+      "accepted_result": null
     }
   ]
 }
