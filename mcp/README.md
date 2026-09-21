@@ -102,6 +102,10 @@ MAINTENANCE  legacy/debug fallback; de-prioritized
 
 Tiering affects discovery priority only. Known capabilities are invoked directly; bounded search is fallback-only.
 
+Gateway fallback discovery is local and deterministic: BM25 lexical scoring is combined with branch-level semantic metadata and the active authoring phase as a ranking prior. Search may return a compact branch hint (for example `manage_cubes operation=update`); clients should pass that branch to `describe_capability` so unrelated schema branches remain deferred. No embedding model, vector database, external API or extra LLM routing call is required.
+
+Routing quality is guarded separately from static schema-size budgets by `bun run eval:capability-intelligence`, which exercises the actual Gateway search path for Top-1/Top-3 discovery, branch accuracy and bounded projected search payload size.
+
 ## Tool / Quality Contract
 
 Tool consolidation is routing-only. Original executors, schemas, validation, native handling and authoring intelligence remain retained.
