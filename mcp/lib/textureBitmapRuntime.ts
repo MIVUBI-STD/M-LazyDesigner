@@ -19,7 +19,10 @@ export function fullTextureRgba(texture: Texture): {
   }
   const data = texture.ctx.getImageData(0, 0, width, height).data;
   return {
-    pixels: new Uint8ClampedArray(data),
+    // getImageData already returns an invocation-owned Uint8ClampedArray.
+    // Callers treat this snapshot as immutable; mutation planners clone only
+    // when they need a writable candidate.
+    pixels: data,
     width,
     height,
   };
