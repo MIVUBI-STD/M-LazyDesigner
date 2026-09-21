@@ -310,7 +310,8 @@ export function parseTextureComputeRequest(
         `compute[0] target_rect is invalid: ${reason}`
       );
     }
-    const { target_rect: _targetRect, ...operationArgs } = args;
+    const operationArgs = { ...args };
+    delete operationArgs.target_rect;
     return {
       ...step,
       args: operationArgs,
