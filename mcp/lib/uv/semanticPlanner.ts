@@ -60,7 +60,31 @@ function validateShareGraph(islands: readonly SemanticUvIsland[]): Map<string, S
 }
 
 function placementMap(values: readonly AtlasPlacement[] | undefined): Map<string, AtlasPlacement> {
-  return new Map((values ?? []).map((placement) => [placement.id, placement]));
+  const map = new Map<string, AtlasPlacement>();
+  for (const placement of values ?? []) {
+    if (!placement.id || map.has(placement.id)) {
+      throw new Error("Previous UV placements require unique non-empty IDs.");
+    }
+    map.set(placement.id, placement);
+  }
+  return map;
+}
+
+function resolvedDensity(island: SemanticUvIsland, options: SemanticUvPlanOptions): number {
+  return island.texel_density ??
+    options.cohort_texel_density?.[island.cohort] ??
+    options.default_texel_density;
+}
+
+function islandPixelSize(
+  island: SemanticUvIsland,
+  options: SemanticUvPlanOptions
+): [number, number] {
+  const density = resolvedDensity(island, options);
+  return [
+    pixelExtent(island.world_size[0], density),
+    pixelExtent(island.world_size[1], density),
+  ];
 }
 
 function retainedReservation(
@@ -90,6 +114,22 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
   if (!Number.isInteger(padding) || padding < 0) throw new Error("Semantic UV padding must be a non-negative integer.");
   if (affected) for (const id of affected) if (!byId.has(id)) throw new Error("Affected UV island does not exist: " + id + ".");
 
+  for (const island of islands) {
+    if (!island.share_with) continue;
+    const source = byId.get(island.share_with)!;
+    const sourceSize = islandPixelSize(source, options);
+    const targetSize = islandPixelSize(island, options);
+    if (sourceSize[0] !== targetSize[0] || sourceSize[1] !== targetSize[1]) {
+      throw new Error(
+        "Shared UV islands must resolve to identical pixel extents: " +
+          island.id +
+          " cannot share " +
+          source.id +
+          "."
+      );
+    }
+  }
+
   const reserved: ReservedAtlasRect[] = [];
   const lockedPlacementById = new Map<string, AtlasPlacement>();
 
@@ -118,11 +158,11 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
   }
 
   const inputs = islands.filter((island) => !island.share_with && !lockedPlacementById.has(island.id)).map((island) => {
-    const density = island.texel_density ?? options.cohort_texel_density?.[island.cohort] ?? options.default_texel_density;
+    const size = islandPixelSize(island, options);
     return {
       id: island.id,
-      width: pixelExtent(island.world_size[0], density),
-      height: pixelExtent(island.world_size[1], density),
+      width: size[0],
+      height: size[1],
       allow_rotation: island.allow_rotation,
       cohort: island.cohort,
     };

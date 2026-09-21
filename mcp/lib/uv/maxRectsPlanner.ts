@@ -118,6 +118,7 @@ export function packAtlasRects(inputs: readonly AtlasRectInput[], options: Atlas
 
   const placements: AtlasPlacement[] = [];
   const unplaced: string[] = [];
+  let placedFootprintArea = 0;
 
   for (const input of normalized) {
     const orientations = [{ width: input.width, height: input.height, rotated: false }];
@@ -152,6 +153,7 @@ export function packAtlasRects(inputs: readonly AtlasRectInput[], options: Atlas
       continue;
     }
     freeRects = prune(freeRects.flatMap((free) => splitFreeRect(free, best!.used)));
+    placedFootprintArea += best.used.width * best.used.height;
     placements.push({
       id: input.id,
       x: best.used.x + padding,
@@ -172,7 +174,8 @@ export function packAtlasRects(inputs: readonly AtlasRectInput[], options: Atlas
     placements,
     reserved,
     unplaced,
-    utilization: (contentArea + reservedArea) / (width * height),
+    utilization: (placedFootprintArea + reservedArea) / (width * height),
+    content_utilization: contentArea / (width * height),
     complete: unplaced.length === 0,
   };
 }
