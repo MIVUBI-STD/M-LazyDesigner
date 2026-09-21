@@ -116,6 +116,24 @@ export function compileGeometryAwareTextureToPaintTransaction(input:{
   };
 }
 
+
+export function compileGeometryAwareTextureFromCompiledEvidence(input:{
+  rgba:Uint8Array;
+  geometry:GeometrySignalCompileInput;
+  intent:GeometryAwareMaterialIntent;
+  expected_revision:string;
+  max_operations?:number;
+}){
+  const evidence=compileGeometrySignalEvidence(input.geometry);
+  return compileGeometryAwareTextureToPaintTransaction({
+    rgba:input.rgba,
+    evidence,
+    intent:input.intent,
+    expected_revision:input.expected_revision,
+    ...(input.max_operations!==undefined?{max_operations:input.max_operations}:{}),
+  });
+}
+
 export function summarizeNewTextureChange(
   before:Uint8Array,
   plan:NewTextureNativePlan
