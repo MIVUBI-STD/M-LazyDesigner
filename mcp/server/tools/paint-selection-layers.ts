@@ -75,29 +75,27 @@ export const textureLayerManagementParameters = z.object({
       "flatten_layers",
       "batch_metadata",
     ])
-    .describe("Layer management action."),
+    .describe("Layer action."),
   texture_id: textureIdOptionalSchema,
   layer_id: z
     .string()
     .min(1)
     .optional()
-    .describe(
-      "Required for layer-targeted actions: exact layer UUID or unique exact layer name inside the resolved texture."
-    ),
-  layer_name: z.string().min(1).optional().describe("Layer name for create/rename."),
+    .describe("Target layer UUID or unique exact name."),
+  layer_name: z.string().min(1).optional(),
   opacity: z
     .number()
     .min(0)
     .max(100)
     .optional()
-    .describe("Layer opacity percentage."),
-  blend_mode: textureLayerBlendModeEnum.optional().describe("Layer blend mode."),
+    .describe("Opacity percent."),
+  blend_mode: textureLayerBlendModeEnum.optional(),
   target_index: z
     .number()
     .int()
     .nonnegative()
     .optional()
-    .describe("0-based final layer index."),
+    .describe("Final layer index."),
   updates: z
     .array(
       z
@@ -121,9 +119,7 @@ export const textureLayerManagementParameters = z.object({
     .min(1)
     .max(64)
     .optional()
-    .describe(
-      "batch_metadata only: coherent explicit layer metadata updates applied in one Undo/recompose/refresh."
-    ),
+    .describe("batch_metadata updates applied atomically."),
 }).superRefine((value, ctx) => {
   const needsLayer =
     value.action !== "create_layer" &&
@@ -354,7 +350,7 @@ export const paintSelectionLayerToolDocs: ToolSpec[] = [
       },
   {
         name: "texture_layer_management",
-        description: "Creates and mutates texture layers by explicit texture/layer identity with action-scoped Undo and compact continuation receipts.",
+        description: "Mutates texture layers by explicit identity with scoped Undo and receipts.",
         annotations: {
           title: "Texture Layer Management",
           destructiveHint: true,
