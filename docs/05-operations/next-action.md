@@ -131,6 +131,41 @@ lib/uv/nativeApplyPlan.ts       data-only native UV operation plan
 Remote source now reaches the native boundary without mutating Blockbench. Next UV work is bounded to existing UV/Texturing ownership: derive targets from live Cube faces/Box-UV state, apply one atomic affected-only Undo transaction, preserve exact pixel-grid/rotation semantics, then benchmark against explicit UV editing. Do not add a second UV capability family.
 
 
+## Remote-Only Authoring Automation Status
+
+Semantic UV remote source is now bounded-complete up to the live Blockbench proof boundary:
+
+```text
+semantic planning            IMPLEMENTED
+cohort/per-island density    IMPLEMENTED
+symmetry face mapping        IMPLEMENTED
+locked/reserved regions      IMPLEMENTED
+affected-only replanning     IMPLEMENTED
+native target snapshot       IMPLEMENTED
+stale-plan fingerprint       IMPLEMENTED
+Box-UV fail-closed policy    IMPLEMENTED
+atomic apply source adapter  IMPLEMENTED / LIVE PROOF PENDING
+static efficiency benchmark  IMPLEMENTED / LOCAL RUN PENDING
+```
+
+Semantic Rig remote source foundation now includes:
+
+```text
+geometry-derived pivots      IMPLEMENTED
+JOINT / CHAIN intent         IMPLEMENTED
+FABRIK target solve          IMPLEMENTED
+recipe symmetry mirroring    IMPLEMENTED
+HINGE / ROTATOR / SLIDER     IMPLEMENTED
+affected-only rig scope      IMPLEMENTED
+IK-controller intent compile IMPLEMENTED
+existing add_group batch     REUSED
+static efficiency benchmark  IMPLEMENTED / LOCAL RUN PENDING
+```
+
+No new public MCP capability family was introduced. UV continues through existing UV/Texturing ownership; rig continues through existing `add_group` / `bone_rigging` ownership.
+
+Do not extend either subsystem with more speculative templates before evidence. Remaining work is proof-oriented: Bun/typecheck/benchmark locally, then live Undo/Redo, save/reopen, Box-UV explicit-conversion behavior, native IK behavior, viewport responsiveness, and accepted-result/correction-round evidence.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
