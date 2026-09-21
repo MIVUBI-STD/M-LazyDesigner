@@ -2,6 +2,8 @@
 
 export const RECIPE_ID_PROPERTY = "lazydesigner_recipe_id";
 export const RECIPE_INSTANCE_ID_PROPERTY = "lazydesigner_recipe_instance_id";
+export const PROJECT_RECIPE_STORE_PROPERTY =
+  "lazydesigner_authoring_recipe_store";
 
 export type AuthoringRecipeCubeOwnership = {
   recipe_id: string;
@@ -12,6 +14,7 @@ type DeletableProperty = { delete(): void };
 
 let recipeIdProperty: DeletableProperty | null = null;
 let recipeInstanceProperty: DeletableProperty | null = null;
+let projectRecipeStoreProperty: DeletableProperty | null = null;
 
 function validateIdentity(value: unknown, label: string, maxLength: number): string {
   if (typeof value !== "string") throw new Error(label + " must be a string.");
@@ -22,31 +25,63 @@ function validateIdentity(value: unknown, label: string, maxLength: number): str
   return normalized;
 }
 
-function staleCubeProperty(name: string): DeletableProperty | null {
-  const ctor = Cube as typeof Cube & { properties?: Record<string, DeletableProperty> };
-  return ctor.properties?.[name] ?? null;
+function staleProperty(
+  target: { properties?: Record<string, DeletableProperty> },
+  name: string
+): DeletableProperty | null {
+  return target.properties?.[name] ?? null;
 }
 
 export function registerAuthoringRecipeOwnershipProperties(): void {
-  if (recipeIdProperty || recipeInstanceProperty) return;
+  if (
+    recipeIdProperty ||
+    recipeInstanceProperty ||
+    projectRecipeStoreProperty
+  ) return;
   // A previous hot-reload generation may have registered the same private
   // property before this module state existed. Remove only our namespaced
   // owners, then recreate them under the current plugin generation.
-  staleCubeProperty(RECIPE_ID_PROPERTY)?.delete();
-  staleCubeProperty(RECIPE_INSTANCE_ID_PROPERTY)?.delete();
+  const cubeTarget = Cube as typeof Cube & {
+    properties?: Record<string, DeletableProperty>;
+  };
+  const projectTarget = ModelProject as typeof ModelProject & {
+    properties?: Record<string, DeletableProperty>;
+  };
+  staleProperty(cubeTarget, RECIPE_ID_PROPERTY)?.delete();
+  staleProperty(cubeTarget, RECIPE_INSTANCE_ID_PROPERTY)?.delete();
+  staleProperty(
+    projectTarget,
+    PROJECT_RECIPE_STORE_PROPERTY
+  )?.delete();
   recipeIdProperty = new Property(Cube, "string", RECIPE_ID_PROPERTY, {
     default: "",
     export: false,
   }) as unknown as DeletableProperty;
-  recipeInstanceProperty = new Property(Cube, "string", RECIPE_INSTANCE_ID_PROPERTY, {
-    default: "",
-    export: false,
-  }) as unknown as DeletableProperty;
+  recipeInstanceProperty = new Property(
+    Cube,
+    "string",
+    RECIPE_INSTANCE_ID_PROPERTY,
+    {
+      default: "",
+      export: false,
+    }
+  ) as unknown as DeletableProperty;
+  projectRecipeStoreProperty = new Property(
+    ModelProject,
+    "string",
+    PROJECT_RECIPE_STORE_PROPERTY,
+    {
+      default: "",
+      export: false,
+    }
+  ) as unknown as DeletableProperty;
 }
 
 export function unregisterAuthoringRecipeOwnershipProperties(): void {
+  projectRecipeStoreProperty?.delete();
   recipeInstanceProperty?.delete();
   recipeIdProperty?.delete();
+  projectRecipeStoreProperty = null;
   recipeInstanceProperty = null;
   recipeIdProperty = null;
 }
@@ -78,5 +113,27 @@ export function authoringRecipeOwnershipPatch(
   return {
     [RECIPE_ID_PROPERTY]: validateIdentity(ownership.recipe_id, "Recipe ownership recipe_id", 128),
     [RECIPE_INSTANCE_ID_PROPERTY]: validateIdentity(ownership.instance_id, "Recipe ownership instance_id", 256),
+  };
+}
+
+export function readAuthoringRecipeStoreProperty(
+  project: unknown
+): unknown {
+  if (!project || typeof project !== "object" || Array.isArray(project)) {
+    throw new Error("Recipe store requires a Project-like object.");
+  }
+  return (project as Record<string, unknown>)[
+    PROJECT_RECIPE_STORE_PROPERTY
+  ];
+}
+
+export function authoringRecipeStorePropertyPatch(
+  serializedStore: string
+): Record<string, string> {
+  if (typeof serializedStore !== "string") {
+    throw new Error("Recipe store property must be serialized text.");
+  }
+  return {
+    [PROJECT_RECIPE_STORE_PROPERTY]: serializedStore,
   };
 }
