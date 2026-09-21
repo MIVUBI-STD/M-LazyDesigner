@@ -512,7 +512,8 @@ describe("BlockIT Gateway contract", () => {
           capability,
           structured,
           summary,
-          "not_applicable"
+          "not_applicable",
+          true
         ),
         capability
       ).toEqual([{ type: "text", text: "Read complete." }]);
@@ -524,7 +525,8 @@ describe("BlockIT Gateway contract", () => {
         "get_texture",
         structured,
         image,
-        "not_applicable"
+        "not_applicable",
+        true
       )
     ).toBe(image);
 
@@ -533,9 +535,66 @@ describe("BlockIT Gateway contract", () => {
         "get_project_info",
         undefined,
         summary,
-        "not_applicable"
+        "not_applicable",
+        true
       )
     ).toBe(summary);
+  });
+
+  test("Gateway read-only prose compaction is annotation-driven and preserves decision signals", () => {
+    const structured = {
+      item: { uuid: "fixture-a", name: "fixture" },
+      count: 1,
+    };
+    const summary = [{ type: "text", text: "Found one fixture item." }];
+
+    expect(
+      compactGatewayCapabilityContent(
+        "future_read_capability",
+        structured,
+        summary,
+        "not_applicable",
+        true
+      )
+    ).toEqual([{ type: "text", text: "Read complete." }]);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "future_read_capability",
+        structured,
+        summary,
+        "not_applicable",
+        false
+      )
+    ).toBe(summary);
+
+    const warning = [{
+      type: "text",
+      text: "Warning: texture state is stale; refresh before mutation.",
+    }];
+    expect(
+      compactGatewayCapabilityContent(
+        "future_read_capability",
+        structured,
+        warning,
+        "not_applicable",
+        true
+      )
+    ).toBe(warning);
+
+    const path = [{
+      type: "text",
+      text: "Read model from C:\\workspace\\asset.bbmodel.",
+    }];
+    expect(
+      compactGatewayCapabilityContent(
+        "future_read_capability",
+        structured,
+        path,
+        "not_applicable",
+        true
+      )
+    ).toBe(path);
   });
 
   test("successful read-only capabilities omit redundant Control continuation but failures remain fail-closed", () => {

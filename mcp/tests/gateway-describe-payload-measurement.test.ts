@@ -32,5 +32,28 @@ describe("Gateway describe payload measurement", () => {
           row.full_input_schema_bytes >= 2_000
       )
     ).toBe(true);
+
+    // This is a serialized-byte regression guard, not a token target.
+    // New >6 KB unprojected schemas must either justify the payload or gain a
+    // clean canonical branch projection before they enter the normal describe path.
+    expect(
+      Math.max(
+        0,
+        ...report.large_unprojected.map(
+          (row) => row.full_input_schema_bytes
+        )
+      )
+    ).toBeLessThan(6_000);
+
+    for (const capability of [
+      "manage_cubes",
+      "manage_render_profile",
+    ]) {
+      const row = report.rows.find(
+        (candidate) => candidate.capability === capability
+      );
+      expect(row?.projection_status, capability).toBe("projected");
+      expect(row?.best_reduction_bytes ?? 0, capability).toBeGreaterThan(0);
+    }
   });
 });

@@ -181,23 +181,6 @@ function compactManageCubesStructuredContent(value: unknown): unknown {
 }
 
 
-const READ_ONLY_SUMMARY_COMPACTION_CAPABILITIES = new Set([
-  "get_project_info",
-  "list_textures",
-  "inspect_animation",
-  "inspect_particle",
-]);
-
-function readOnlySummaryTextIsRedundant(
-  capability: string,
-  structuredContent: unknown
-): boolean {
-  return (
-    READ_ONLY_SUMMARY_COMPACTION_CAPABILITIES.has(capability) &&
-    isRecord(structuredContent)
-  );
-}
-
 function singleTextContent(content: unknown): string | null {
   if (
     !Array.isArray(content) ||
@@ -218,6 +201,26 @@ function textCarriesExternalLocator(text: string): boolean {
     /(?:^|\s)\/(?:[^\s/]+\/)+[^\s]+/.test(text)
   );
 }
+function textCarriesDecisionSignal(text: string): boolean {
+  return /\b(warn(?:ing)?|error|failed?|blocked|unavailable|missing|stale|conflict|unsafe|unsupported|deprecated)\b/i.test(
+    text
+  );
+}
+
+function readOnlyTextIsRedundant(
+  structuredContent: unknown,
+  content: unknown
+): boolean {
+  const text = singleTextContent(content);
+  return (
+    text !== null &&
+    isRecord(structuredContent) &&
+    Object.keys(structuredContent).length > 0 &&
+    !textCarriesExternalLocator(text) &&
+    !textCarriesDecisionSignal(text)
+  );
+}
+
 
 function hasAuthoritativeReceiptState(structuredContent: unknown): boolean {
   if (!isRecord(structuredContent)) return false;
@@ -274,15 +277,10 @@ export function compactGatewayCapabilityContent(
   capability: string,
   structuredContent: unknown,
   content: unknown,
-  verificationClass?: CapabilityVerificationClass
+  verificationClass?: CapabilityVerificationClass,
+  readOnly = false
 ): unknown {
-  if (
-    readOnlySummaryTextIsRedundant(capability, structuredContent) &&
-    Array.isArray(content) &&
-    content.length === 1 &&
-    isRecord(content[0]) &&
-    content[0].type === "text"
-  ) {
+  if (readOnly && readOnlyTextIsRedundant(structuredContent, content)) {
     return [{ type: "text", text: "Read complete." }];
   }
 
