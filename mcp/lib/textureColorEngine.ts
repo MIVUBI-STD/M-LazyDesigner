@@ -1175,6 +1175,51 @@ export function sobelHeightGradient(
   return { dx, dy };
 }
 
+function fillHeightRow(
+  pixels: Uint8ClampedArray,
+  width: number,
+  y: number,
+  options: HeightFieldOptions,
+  target: Float32Array,
+  context?: TextureColorComputeContext
+): void {
+  const source = options.source ?? "lightness";
+  const invert = options.invert === true;
+  for (let x = 0; x < width; x += 1) {
+    const offset = (y * width + x) * 4;
+    let value =
+      source === "alpha"
+        ? pixels[offset + 3] / 255
+        : oklabFor(copyPixel(pixels, offset), context).L;
+    if (invert) value = 1 - value;
+    target[x] = clamp01(value);
+  }
+}
+
+function sobelFromRows(
+  previous: Float32Array,
+  current: Float32Array,
+  next: Float32Array,
+  x: number
+): { dx: number; dy: number } {
+  const left = Math.max(0, x - 1);
+  const right = Math.min(current.length - 1, x + 1);
+
+  const tl = previous[left];
+  const tc = previous[x];
+  const tr = previous[right];
+  const ml = current[left];
+  const mr = current[right];
+  const bl = next[left];
+  const bc = next[x];
+  const br = next[right];
+
+  return {
+    dx: (tr + 2 * mr + br - tl - 2 * ml - bl) / 8,
+    dy: (bl + 2 * bc + br - tl - 2 * tc - tr) / 8,
+  };
+}
+
 export function directionalShadeRgba(
   pixels: Uint8ClampedArray,
   width: number,
@@ -1183,8 +1228,6 @@ export function directionalShadeRgba(
   context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   requireBitmap(pixels, width, height, "Directional shade");
-  const field = heightFieldFromRgba(pixels, width, height, options, context);
-  const gradient = sobelHeightGradient(field, width, height);
   const azimuth = ((options.azimuthDegrees ?? 315) * Math.PI) / 180;
   const elevation = ((options.elevationDegrees ?? 45) * Math.PI) / 180;
   const depth = Math.max(0, options.depth ?? 2);
@@ -1195,33 +1238,63 @@ export function directionalShadeRgba(
   const ly = Math.cos(elevation) * Math.sin(azimuth);
   const lz = Math.sin(elevation);
 
+  // Sobel needs only three height rows. Stream them instead of materializing
+  // full height/dx/dy Float32 images.
+  let previous = new Float32Array(width);
+  let current = new Float32Array(width);
+  let next = new Float32Array(width);
+  fillHeightRow(pixels, width, 0, options, previous, context);
+  fillHeightRow(pixels, width, 0, options, current, context);
+  fillHeightRow(
+    pixels,
+    width,
+    Math.min(1, height - 1),
+    options,
+    next,
+    context
+  );
+
   const output = new Uint8ClampedArray(pixels);
-  for (let index = 0; index < field.length; index += 1) {
-    const offset = index * 4;
-    const source = copyPixel(pixels, offset);
-    if (source[3] === 0) continue;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      const source = copyPixel(pixels, offset);
+      if (source[3] === 0) continue;
 
-    let nx = -gradient.dx[index] * depth;
-    let ny = -gradient.dy[index] * depth;
-    let nz = 1;
-    const nLength = Math.hypot(nx, ny, nz) || 1;
-    nx /= nLength;
-    ny /= nLength;
-    nz /= nLength;
+      const gradient = sobelFromRows(previous, current, next, x);
+      let nx = -gradient.dx * depth;
+      let ny = -gradient.dy * depth;
+      let nz = 1;
+      const nLength = Math.hypot(nx, ny, nz) || 1;
+      nx /= nLength;
+      ny /= nLength;
+      nz /= nLength;
 
-    const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
-    const lab = oklabFor(source, context);
-    // Center Lambert response around the unmodified albedo so directional
-    // shading can create both highlights and shadows instead of only darkening.
-    const shadeDelta = (diffuse - 0.5) * (1 - ambient) * 0.5;
-    const targetL = clamp01(lab.L + shadeDelta);
-    const mapped = oklabToRgba(
-      { ...lab, L: lab.L + (targetL - lab.L) * strength },
-      source[3]
+      const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
+      const lab = oklabFor(source, context);
+      const shadeDelta = (diffuse - 0.5) * (1 - ambient) * 0.5;
+      const targetL = clamp01(lab.L + shadeDelta);
+      const mapped = oklabToRgba(
+        { ...lab, L: lab.L + (targetL - lab.L) * strength },
+        source[3]
+      );
+      output[offset] = mapped[0];
+      output[offset + 1] = mapped[1];
+      output[offset + 2] = mapped[2];
+    }
+
+    const recycled = previous;
+    previous = current;
+    current = next;
+    next = recycled;
+    fillHeightRow(
+      pixels,
+      width,
+      Math.min(height - 1, y + 2),
+      options,
+      next,
+      context
     );
-    output[offset] = mapped[0];
-    output[offset + 1] = mapped[1];
-    output[offset + 2] = mapped[2];
   }
   return output;
 }
