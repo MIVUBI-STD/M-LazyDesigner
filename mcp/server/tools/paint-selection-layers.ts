@@ -37,7 +37,7 @@ export const textureSelectionParameters = z.object({
       "expand_selection",
       "contract_selection",
     ])
-    .describe("Selection action to perform."),
+    .describe("Selection action."),
   texture_id: textureIdOptionalSchema,
   coordinates: z
     .object({
@@ -46,19 +46,16 @@ export const textureSelectionParameters = z.object({
       x2: z.number().describe("End X coordinate."),
       y2: z.number().describe("End Y coordinate."),
     })
-    .optional()
-    .describe("Selection area coordinates."),
+    .optional(),
   radius: z
     .number()
     .int()
     .nonnegative()
-    .optional()
-    .describe("Non-negative integer pixel radius for expand/contract operations."),
+    .optional(),
   mode: z
     .enum(["create", "add", "subtract", "intersect"])
     .optional()
-    .default("create")
-    .describe("Selection mode."),
+    .default("create"),
 });
 
 export const textureLayerManagementParameters = z.object({
@@ -323,8 +320,7 @@ function preflightLayerMetadataBatch(
 export const paintSelectionLayerToolDocs: ToolSpec[] = [
   {
         name: "texture_selection",
-        description:
-          "Creates, modifies, or manipulates texture selections for painting.",
+        description: "Mutates texture selections for painting.",
         annotations: {
           title: "Texture Selection",
           destructiveHint: true,
