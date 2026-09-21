@@ -18,6 +18,11 @@ function longestAxis(placement: CompiledCubePlacement): "X" | "Y" | "Z" {
   return (["X", "Y", "Z"] as const)[sizes.indexOf(max)];
 }
 
+function explicitAxis(name: string): "X" | "Y" | "Z" | undefined {
+  const match = name.toLowerCase().match(/(?:^|[_:\-])(x|y|z)(?:$|[_:\-])/);
+  return match ? (match[1].toUpperCase() as "X" | "Y" | "Z") : undefined;
+}
+
 function classifyName(name: string): { kind: FunctionalPartKind; evidence: string } | null {
   const lower = name.toLowerCase();
   if (/(door|lid|flap|lever|hinge)/.test(lower)) return { kind: "HINGE", evidence: "name:hinged-part" };
@@ -29,21 +34,36 @@ function classifyName(name: string): { kind: FunctionalPartKind; evidence: strin
 export function inferFunctionalRigHints(compiled: CompiledAuthoringRecipe): FunctionalRigHint[] {
   return compiled.placements.map((placement) => {
     const named = classifyName(placement.name);
-    if (!named) return { instance_id: placement.id, kind: "STATIC", confidence: 0.35, evidence: ["no-functional-name-evidence"] };
+    if (!named) {
+      return { instance_id: placement.id, kind: "STATIC", confidence: 0.2, evidence: ["no-functional-evidence"] };
+    }
+
+    const axis = explicitAxis(placement.name);
+    if (!axis) {
+      return {
+        instance_id: placement.id,
+        kind: named.kind,
+        axis: longestAxis(placement),
+        ...(named.kind === "HINGE" ? { hinge_side: "MIN" as const } : {}),
+        confidence: 0.55,
+        evidence: [named.evidence, "axis:heuristic-only", "review-required"],
+      };
+    }
+
     return {
       instance_id: placement.id,
       kind: named.kind,
-      axis: longestAxis(placement),
+      axis,
       ...(named.kind === "HINGE" ? { hinge_side: "MIN" as const } : {}),
-      confidence: 0.72,
-      evidence: [named.evidence, "axis:longest-local-dimension"],
+      confidence: 0.82,
+      evidence: [named.evidence, "axis:explicit-name-token"],
     };
   });
 }
 
 export function compileHighConfidenceFunctionalRig(
   hints: readonly FunctionalRigHint[],
-  minimumConfidence = 0.7
+  minimumConfidence = 0.8
 ): MechanicalRigIntent[] {
   if (!Number.isFinite(minimumConfidence) || minimumConfidence < 0 || minimumConfidence > 1) {
     throw new Error("Functional rig confidence threshold must be within 0..1.");

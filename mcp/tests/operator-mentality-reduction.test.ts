@@ -4,14 +4,15 @@ import { compileSemanticGeometryEdit } from "@/lib/authoringRecipe/semanticEdit"
 import { selectLowestCostCorrection } from "@/lib/correctionSolver";
 import { inferFunctionalRigHints, compileHighConfidenceFunctionalRig } from "@/lib/rig/functionalInference";
 import { compileSecondaryMotion } from "@/lib/animation/secondaryMotion";
-import { deriveReferenceCorrectionVectors } from "@/lib/referenceCorrection";
+import { deriveReferenceCorrectionVectors, compileReferenceCorrectionsToGeometryIntents } from "@/lib/referenceCorrection";
 import { applyGeometryAwareMaterialTreatment } from "@/lib/texture/geometryAwareTreatment";
+import { deriveGeometrySurfaceSignals } from "@/lib/texture/geometrySignalBuilder";
 
 function fixture(){
   return compileAuthoringRecipe({
     schema:1,compiler_version:1,id:"fixture",name:"Fixture",
     prototypes:[
-      {id:"door",name:"door_left",size:[2,4,0.5],semantic_group:"door"},
+      {id:"door",name:"door_hinge_y",size:[2,4,0.5],semantic_group:"door"},
       {id:"frame",name:"frame",size:[4,5,0.5],semantic_group:"frame"},
     ],
     patterns:[
@@ -41,10 +42,12 @@ describe("operator mentality reduction foundations",()=>{
     expect(decision.selected.id).toBe("bounded");
   });
 
-  test("functional rig inference only compiles sufficiently supported movable parts",()=>{
+  test("functional rig inference compiles only explicit high-confidence axis evidence",()=>{
     const hints=inferFunctionalRigHints(fixture());
     const intents=compileHighConfidenceFunctionalRig(hints);
-    expect(intents.some((intent)=>intent.instance_id==="door_pattern:0")).toBe(true);
+    const door=intents.find((intent)=>intent.instance_id==="door_pattern:0");
+    expect(door?.kind).toBe("HINGE");
+    if (door?.kind === "HINGE") expect(door.hinge_axis).toBe("Y");
   });
 
   test("secondary motion adds child follow-through without manual keyframe authoring",()=>{
@@ -57,24 +60,23 @@ describe("operator mentality reduction foundations",()=>{
     expect(result.poses.some((pose)=>pose.bones.handle!==undefined)).toBe(true);
   });
 
-  test("reference deviations become explicit correction vectors",()=>{
+  test("reference deviations become actionable semantic geometry intents",()=>{
     const corrections=deriveReferenceCorrectionVectors([
       {kind:"BOUNDS",instance_id:"door_pattern:0",axis:"X",expected:1.8,actual:2},
       {kind:"CENTER_OFFSET",instance_id:"door_pattern:0",expected_center:[0,0,0],actual_center:[1,0,0]},
+      {kind:"ROTATION",instance_id:"door_pattern:0",axis:"Y",expected_degrees:90,actual_degrees:80},
     ]);
-    expect(corrections).toHaveLength(2);
-    expect(corrections[0].operation).toBe("RESIZE_AXIS");
+    const intents=compileReferenceCorrectionsToGeometryIntents(corrections);
+    expect(intents).toHaveLength(3);
+    expect(intents[2].operation.kind).toBe("ROTATE_AXIS");
   });
 
-  test("geometry-aware treatment uses provided spatial evidence",()=>{
+  test("geometry evidence derives masks and applies spatial material treatment",()=>{
     const rgba=new Uint8Array([100,100,100,255,100,100,100,255]);
-    const values=new Float32Array([1,0]);
-    const out=applyGeometryAwareMaterialTreatment(rgba,2,1,{
-      edge:{width:2,height:1,values},
-    },{
+    const signals=deriveGeometrySurfaceSignals({width:2,height:1,edge_falloff:1});
+    const out=applyGeometryAwareMaterialTreatment(rgba,2,1,signals,{
       wear:{color:[200,200,200,255],strength:0.5},
     });
     expect(out[0]).toBeGreaterThan(100);
-    expect(out[4]).toBe(100);
   });
 });

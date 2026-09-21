@@ -16,6 +16,11 @@ export type SemanticGeometryOperation =
       anchor?: "MIN" | "CENTER" | "MAX";
     }
   | {
+      kind: "ROTATE_AXIS";
+      axis: "X" | "Y" | "Z";
+      delta_degrees: number;
+    }
+  | {
       kind: "INFLATE";
       mode: "SET" | "ADD" | "MULTIPLY";
       value: number;
@@ -90,6 +95,15 @@ function transformPlacement(
       value[2] + delta[2],
     ];
     return { ...placement, from: add(placement.from), to: add(placement.to), origin: add(placement.origin) };
+  }
+
+  if (operation.kind === "ROTATE_AXIS") {
+    if (!Number.isFinite(operation.delta_degrees)) {
+      throw new Error("Semantic geometry rotation delta must be finite.");
+    }
+    const rotation = [...placement.rotation] as RecipeVec3;
+    rotation[AXIS_INDEX[operation.axis]] += operation.delta_degrees;
+    return { ...placement, rotation };
   }
 
   if (operation.kind === "INFLATE") {

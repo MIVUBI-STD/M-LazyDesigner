@@ -1,4 +1,5 @@
 import type { RecipeVec3 } from "@/lib/authoringRecipe/contracts";
+import type { SemanticGeometryEditIntent } from "@/lib/authoringRecipe/semanticEdit";
 
 export type ReferenceDeviation =
   | {
@@ -35,6 +36,12 @@ function finite(value: number, label: string): number {
   return value;
 }
 
+function nonNegativeTolerance(value: number | undefined, label: string): number {
+  const resolved = value ?? 0;
+  if (!Number.isFinite(resolved) || resolved < 0) throw new Error(label + " must be finite and non-negative.");
+  return resolved;
+}
+
 export function deriveReferenceCorrectionVectors(
   deviations: readonly ReferenceDeviation[]
 ): ReferenceCorrectionVector[] {
@@ -42,13 +49,13 @@ export function deriveReferenceCorrectionVectors(
     if (!deviation.instance_id) throw new Error("Reference deviation requires an instance identity.");
     if (deviation.kind === "BOUNDS") {
       const delta = finite(deviation.expected, "Expected bound") - finite(deviation.actual, "Actual bound");
-      const tolerance = deviation.tolerance ?? 0;
+      const tolerance = nonNegativeTolerance(deviation.tolerance, "Bounds tolerance");
       if (Math.abs(delta) <= tolerance) return [];
       return [{ instance_id: deviation.instance_id, operation: "RESIZE_AXIS" as const, axis: deviation.axis, delta }];
     }
     if (deviation.kind === "ROTATION") {
       const delta = finite(deviation.expected_degrees, "Expected rotation") - finite(deviation.actual_degrees, "Actual rotation");
-      const tolerance = deviation.tolerance_degrees ?? 0;
+      const tolerance = nonNegativeTolerance(deviation.tolerance_degrees, "Rotation tolerance");
       if (Math.abs(delta) <= tolerance) return [];
       return [{ instance_id: deviation.instance_id, operation: "ROTATE_AXIS" as const, axis: deviation.axis, delta_degrees: delta }];
     }
@@ -57,8 +64,39 @@ export function deriveReferenceCorrectionVectors(
       finite(deviation.expected_center[1], "Expected center Y") - finite(deviation.actual_center[1], "Actual center Y"),
       finite(deviation.expected_center[2], "Expected center Z") - finite(deviation.actual_center[2], "Actual center Z"),
     ];
-    const tolerance = deviation.tolerance ?? 0;
+    const tolerance = nonNegativeTolerance(deviation.tolerance, "Center tolerance");
     if (Math.hypot(...delta) <= tolerance) return [];
     return [{ instance_id: deviation.instance_id, operation: "TRANSLATE" as const, delta }];
+  });
+}
+
+export function compileReferenceCorrectionsToGeometryIntents(
+  corrections: readonly ReferenceCorrectionVector[]
+): SemanticGeometryEditIntent[] {
+  return corrections.map((correction) => {
+    const target = { instance_ids: [correction.instance_id] };
+    if (correction.operation === "TRANSLATE") {
+      return { target, operation: { kind: "TRANSLATE" as const, delta: correction.delta } };
+    }
+    if (correction.operation === "ROTATE_AXIS") {
+      return {
+        target,
+        operation: {
+          kind: "ROTATE_AXIS" as const,
+          axis: correction.axis,
+          delta_degrees: correction.delta_degrees,
+        },
+      };
+    }
+    return {
+      target,
+      operation: {
+        kind: "RESIZE_AXIS" as const,
+        axis: correction.axis,
+        mode: "ADD" as const,
+        value: correction.delta,
+        anchor: "CENTER" as const,
+      },
+    };
   });
 }
