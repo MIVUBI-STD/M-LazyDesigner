@@ -1,5 +1,8 @@
 import {
   autoLevelsRgba,
+  createGradientMapColorTransform,
+  createPalettizeColorTransform,
+  createPosterizeColorTransform,
   createTextureColorComputeContext,
   directionalShadeRgba,
   generateShadeRamp,
@@ -14,8 +17,10 @@ import {
   type PalettizeOptions,
   type PosterizeOptions,
   type ShadeRampOptions,
+  type Rgba,
   type TextureColorComputeContext,
   type TextureColorComputeMetrics,
+  type TexturePointwiseColorTransform,
 } from "@/lib/textureColorEngine";
 
 export type TextureComputeStep =
@@ -66,6 +71,9 @@ export type TextureComputeReceipt = {
     fused_groups: number;
     fused_steps: number;
     unique_color_transforms: number;
+    scalar_transform_calls: number;
+    prepared_generated_ramps: number;
+    transient_sample_buffers: number;
     region: {
       bounded: boolean;
       target_rect: [number, number, number, number];
@@ -436,6 +444,66 @@ function rgbaPackedKey(
   ) >>> 0;
 }
 
+function compileFusedPointwiseTransforms(
+  steps: readonly TextureComputeStep[],
+  context: TextureColorComputeContext
+): {
+  transforms: TexturePointwiseColorTransform[];
+  prepared_generated_ramps: number;
+} {
+  const transforms: TexturePointwiseColorTransform[] = [];
+  let preparedGeneratedRamps = 0;
+
+  for (const step of steps) {
+    if (step.operation === "posterize") {
+      transforms.push(
+        createPosterizeColorTransform(step.options, context)
+      );
+      continue;
+    }
+    if (step.operation === "gradient_map") {
+      transforms.push(
+        createGradientMapColorTransform(
+          step.ramp,
+          step.options,
+          context
+        )
+      );
+      continue;
+    }
+    if (step.operation === "generated_gradient_map") {
+      const ramp = generateShadeRamp(step.base_color, step.ramp);
+      preparedGeneratedRamps += 1;
+      transforms.push(
+        createGradientMapColorTransform(
+          ramp,
+          step.options,
+          context
+        )
+      );
+      continue;
+    }
+    if (step.operation === "palettize") {
+      transforms.push(
+        createPalettizeColorTransform(
+          step.palette,
+          step.options,
+          context
+        )
+      );
+      continue;
+    }
+    throw new Error(
+      `Texture compute fusion received non-pointwise operation ${step.operation}.`
+    );
+  }
+
+  return {
+    transforms,
+    prepared_generated_ramps: preparedGeneratedRamps,
+  };
+}
+
 function applyFusedPointwiseSteps(
   pixels: Uint8ClampedArray,
   steps: readonly TextureComputeStep[],
@@ -443,26 +511,29 @@ function applyFusedPointwiseSteps(
 ): {
   pixels: Uint8ClampedArray;
   unique_color_transforms: number;
+  scalar_transform_calls: number;
+  prepared_generated_ramps: number;
 } {
   const output = new Uint8ClampedArray(pixels);
-  const transformed = new Map<number, [number, number, number, number]>();
+  const transformed = new Map<number, Rgba>();
+  const compiled = compileFusedPointwiseTransforms(steps, context);
+  let scalarTransformCalls = 0;
 
   for (let offset = 0; offset < pixels.length; offset += 4) {
     if (pixels[offset + 3] === 0) continue;
     const key = rgbaPackedKey(pixels, offset);
     let mapped = transformed.get(key);
     if (!mapped) {
-      let sample: Uint8ClampedArray<ArrayBufferLike> =
-        new Uint8ClampedArray([
+      mapped = [
         pixels[offset],
         pixels[offset + 1],
         pixels[offset + 2],
         pixels[offset + 3],
-      ]);
-      for (const step of steps) {
-        sample = applyStep(sample, 1, 1, step, context);
+      ];
+      for (const transform of compiled.transforms) {
+        mapped = transform(mapped);
+        scalarTransformCalls += 1;
       }
-      mapped = [sample[0], sample[1], sample[2], sample[3]];
       transformed.set(key, mapped);
     }
     output[offset] = mapped[0];
@@ -474,6 +545,8 @@ function applyFusedPointwiseSteps(
   return {
     pixels: output,
     unique_color_transforms: transformed.size,
+    scalar_transform_calls: scalarTransformCalls,
+    prepared_generated_ramps: compiled.prepared_generated_ramps,
   };
 }
 
@@ -591,6 +664,8 @@ export function applyTextureComputePipeline(
   let fusedGroups = 0;
   let fusedSteps = 0;
   let uniqueColorTransforms = 0;
+  let scalarTransformCalls = 0;
+  let preparedGeneratedRamps = 0;
 
   for (let index = 0; index < plan.steps.length; ) {
     const step = plan.steps[index];
@@ -627,6 +702,8 @@ export function applyTextureComputePipeline(
         fusedGroups += 1;
         fusedSteps += group.length;
         uniqueColorTransforms += fused.unique_color_transforms;
+        scalarTransformCalls += fused.scalar_transform_calls;
+        preparedGeneratedRamps += fused.prepared_generated_ramps;
         index = cursor;
         continue;
       }
@@ -677,6 +754,9 @@ export function applyTextureComputePipeline(
         fused_groups: fusedGroups,
         fused_steps: fusedSteps,
         unique_color_transforms: uniqueColorTransforms,
+        scalar_transform_calls: scalarTransformCalls,
+        prepared_generated_ramps: preparedGeneratedRamps,
+        transient_sample_buffers: 0,
         region: {
           bounded: targetRect !== undefined,
           target_rect: [

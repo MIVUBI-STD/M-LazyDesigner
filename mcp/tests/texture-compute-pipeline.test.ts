@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { applyTextureComputePipeline } from "@/lib/textureComputePipeline";
 import {
+  generateShadeRamp,
   gradientMapRgba,
   palettizeRgba,
   posterizeLightnessRgba,
@@ -250,6 +251,53 @@ describe("texture compute request and pipeline", () => {
     expect(fused.receipt.execution.fused_groups).toBe(1);
     expect(fused.receipt.execution.fused_steps).toBe(3);
     expect(fused.receipt.execution.unique_color_transforms).toBeLessThan(64);
+    expect(fused.receipt.execution.transient_sample_buffers).toBe(0);
+    expect(fused.receipt.execution.scalar_transform_calls).toBe(
+      fused.receipt.execution.unique_color_transforms * 3
+    );
+  });
+
+  test("fused generated ramps are prepared once per group and remain sequentially equivalent", () => {
+    const source = new Uint8ClampedArray(
+      Array.from({ length: 32 }, (_, index) => {
+        const value = index % 4 === 0 ? 60 : index % 4 === 1 ? 100 : index % 4 === 2 ? 160 : 220;
+        return [value, value - 10, value - 20, 255];
+      }).flat()
+    );
+    const generatedStep = {
+      operation: "generated_gradient_map" as const,
+      base_color: "#845442",
+      ramp: { steps: 5 },
+      options: { mode: "nearest" as const },
+    };
+    const palette = ["#201510", "#845442", "#D8A070"];
+    const generatedRamp = generateShadeRamp("#845442", { steps: 5 });
+    const sequentialGradient = gradientMapRgba(
+      source,
+      8,
+      4,
+      generatedRamp,
+      { mode: "nearest" }
+    );
+    const sequential = palettizeRgba(
+      sequentialGradient,
+      8,
+      4,
+      palette,
+      { dither: "none" }
+    );
+    const fused = applyTextureComputePipeline(source, 8, 4, [
+      generatedStep,
+      {
+        operation: "palettize",
+        palette,
+        options: { dither: "none" },
+      },
+    ]);
+
+    expect(Array.from(fused.pixels)).toEqual(Array.from(sequential));
+    expect(fused.receipt.execution.prepared_generated_ramps).toBe(1);
+    expect(fused.receipt.execution.transient_sample_buffers).toBe(0);
   });
 
   test("bounded ROI computes and diffs only the requested target", () => {

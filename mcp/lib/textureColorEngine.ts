@@ -1046,6 +1046,89 @@ export function autoLevelsRgba(
   return output;
 }
 
+export type TexturePointwiseColorTransform = (rgba: Rgba) => Rgba;
+
+export function createPosterizeColorTransform(
+  options: PosterizeOptions,
+  context?: TextureColorComputeContext
+): TexturePointwiseColorTransform {
+  const levels = options.levels;
+  if (!Number.isInteger(levels) || levels < 2 || levels > 32) {
+    throw new Error("Posterize levels must be an integer from 2 to 32.");
+  }
+  const strength = clamp01(options.strength ?? 1);
+  return (source: Rgba): Rgba => {
+    if (source[3] === 0) return source;
+    const lab = oklabFor(source, context);
+    const quantized = Math.round(lab.L * (levels - 1)) / (levels - 1);
+    return oklabToRgba(
+      { ...lab, L: lab.L + (quantized - lab.L) * strength },
+      source[3]
+    );
+  };
+}
+
+export function createGradientMapColorTransform(
+  ramp: readonly string[],
+  options: GradientMapOptions = {},
+  context?: TextureColorComputeContext
+): TexturePointwiseColorTransform {
+  if (ramp.length < 2 || ramp.length > 16) {
+    throw new Error("Gradient map ramp must contain 2 to 16 colors.");
+  }
+  const mode = options.mode ?? "nearest";
+  if (mode === "ordered") {
+    throw new Error(
+      "Prepared pointwise gradient transform does not support coordinate-dependent ordered mode."
+    );
+  }
+  const prepared = preparePalette(ramp, context);
+  return (source: Rgba): Rgba => {
+    if (source[3] === 0) return source;
+    const sourceL = oklabFor(source, context).L;
+    const position = rampPosition(sourceL, prepared.colors.length);
+    if (mode === "nearest") {
+      const mapped =
+        prepared.colors[
+          position.localT < 0.5
+            ? position.leftIndex
+            : position.rightIndex
+        ];
+      return [mapped[0], mapped[1], mapped[2], source[3]];
+    }
+    return oklabToRgba(
+      interpolateOklab(
+        prepared.labs[position.leftIndex],
+        prepared.labs[position.rightIndex],
+        position.localT
+      ),
+      source[3]
+    );
+  };
+}
+
+export function createPalettizeColorTransform(
+  palette: readonly string[],
+  options: PalettizeOptions = {},
+  context?: TextureColorComputeContext
+): TexturePointwiseColorTransform {
+  if (palette.length < 1 || palette.length > 64) {
+    throw new Error("Palette must contain 1 to 64 colors.");
+  }
+  if ((options.dither ?? "none") !== "none") {
+    throw new Error(
+      "Prepared pointwise palettize transform does not support coordinate-dependent ordered dithering."
+    );
+  }
+  const prepared = preparePalette(palette, context);
+  return (source: Rgba): Rgba => {
+    if (source[3] === 0) return source;
+    const index = nearestPaletteIndexPrepared(source, prepared, context);
+    const mapped = prepared.colors[index];
+    return [mapped[0], mapped[1], mapped[2], source[3]];
+  };
+}
+
 export function posterizeLightnessRgba(
   pixels: Uint8ClampedArray,
   width: number,
