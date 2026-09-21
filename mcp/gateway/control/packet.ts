@@ -9,14 +9,8 @@ import {
   buildControlStageContext,
   type ControlStageContext,
 } from "./contextProjection";
-import {
-  readReferencePackageProjection,
-  type ControlReferenceProjection,
-} from "./referencePackage";
-import {
-  readWorkspaceProjection,
-  type ControlWorkspaceProjection,
-} from "./workspace";
+import { readReferencePackageProjection } from "./referencePackage";
+import { readWorkspaceProjection } from "./workspace";
 import type {
   ControlReadiness,
   ControlSnapshot,
