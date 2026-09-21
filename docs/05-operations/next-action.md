@@ -103,8 +103,7 @@ A changed source head must not inherit earlier wording such as Runtime/Gateway
 typecheck PASS, Runtime regression PASS, or build PASS unless matching current
 CI actually completed successfully.
 
-There is **no claim of Bun/typecheck/CI/local/live PASS until that proof actually
-ran**.
+There is no claim of Bun/typecheck/CI/local/live PASS until that proof actually ran.
 
 Read exact current proof from GitHub Actions and
 `docs/05-operations/current-validation.md`.
