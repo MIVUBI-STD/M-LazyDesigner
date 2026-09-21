@@ -1,6 +1,6 @@
 import { classifyMcpToolPhaseByName } from "../../lib/authoringPhase";
 import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
-import type { BackendTool } from "../contract";
+import type { BackendTool } from "../protocol";
 import {
   CAPABILITY_BRANCH_MANIFEST,
   type CapabilityBranchHint,
