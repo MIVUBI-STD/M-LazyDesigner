@@ -47,8 +47,8 @@ U2 physical-pixel / density planning     SOURCE IMPLEMENTED
 U3 declarative constraint rules          SOURCE IMPLEMENTED
 U4 deterministic MaxRects planner        SOURCE IMPLEMENTED
 U5 stable incremental packing modes      SOURCE IMPLEMENTED
-U6 stack / symmetry proposals            NEXT
-U7 Blockbench adapter + atomic apply      AFTER U6
+U6 evidence-driven stack proposals        SOURCE IMPLEMENTED
+U7 Blockbench adapter + atomic apply      NEXT
 U8 native compatibility / invalidation   AFTER U7
 U9 optional xatlas mesh backend           DEFERRED
 ```
@@ -57,9 +57,9 @@ U0-U5 are planning-only and do not replace existing production UV mutation.
 
 Immediate order:
 
-1. verify exact current SHA gates;
-2. implement U6 as proposal/evidence logic only;
-3. design U7 around native Undo/rollback and existing UV audit ownership;
+1. design U7 around native Undo/rollback and existing UV audit ownership;
+2. build the Blockbench adapter as a narrow translation boundary, not planner logic;
+3. add stale-source/fingerprint protection before apply;
 4. do not route current `manage_cubes` or `create_texture(template)` through UV Core until U7 rollback/receipt contracts pass;
 5. keep Blockbench native template generation as compatibility fallback/reference.
 

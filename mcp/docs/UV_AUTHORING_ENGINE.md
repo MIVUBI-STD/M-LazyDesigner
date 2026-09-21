@@ -248,8 +248,8 @@ U2 physical-pixel / density planner           SOURCE IMPLEMENTED
 U3 declarative constraints + conflict guard  SOURCE IMPLEMENTED
 U4 deterministic MaxRects planner/scorer     SOURCE IMPLEMENTED
 U5 stable incremental packing modes           SOURCE IMPLEMENTED
-U6 stack / symmetry planner                   NEXT
-U7 Blockbench adapter + atomic apply/receipt  AFTER U6
+U6 evidence-driven stack proposals             SOURCE IMPLEMENTED
+U7 Blockbench adapter + atomic apply/receipt  NEXT
 U8 native compatibility / invalidation proof AFTER U7
 U9 optional mesh/xatlas investigation         DEFERRED
 ```
@@ -258,7 +258,7 @@ Current U0-U5 code is read-only planning infrastructure. It does not replace nat
 
 ## U6 — Stack / Symmetry
 
-Implement candidate discovery separately from application.
+SOURCE IMPLEMENTED as proposal/evidence logic only. Candidate discovery remains separate from application.
 
 Evidence may include:
 
