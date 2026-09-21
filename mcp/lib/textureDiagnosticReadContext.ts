@@ -9,12 +9,25 @@ type DiagnosticRegionRead = {
   cache_hit: boolean;
 };
 
+export const TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET = 65_536;
+
+export class TextureDiagnosticBudgetExceededError extends Error {
+  constructor(requestedPixels: number, consumedPixels: number) {
+    super(
+      `Texture diagnostic native-pixel budget exceeded: requested ${requestedPixels}, consumed ${consumedPixels}, limit ${TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET}.`
+    );
+    this.name = "TextureDiagnosticBudgetExceededError";
+  }
+}
+
 type DiagnosticMetrics = {
   read_calls: number;
   cache_hits: number;
   pixels_read: number;
   bytes_read: number;
   cached_regions: number;
+  cached_samples: number;
+  pixel_budget: number;
 };
 
 type CachedRegion = {
@@ -28,7 +41,11 @@ type CachedRegion = {
 
 type DiagnosticReadState = {
   regions: Map<string, CachedRegion>;
-  metrics: Omit<DiagnosticMetrics, "cached_regions">;
+  samples: Map<string, Uint8ClampedArray>;
+  metrics: Omit<
+    DiagnosticMetrics,
+    "cached_regions" | "cached_samples" | "pixel_budget"
+  >;
 };
 
 const contexts = new WeakMap<object, DiagnosticReadState>();
@@ -44,6 +61,7 @@ function stateFor(context: object): DiagnosticReadState {
   if (!state) {
     state = {
       regions: new Map(),
+      samples: new Map(),
       metrics: {
         read_calls: 0,
         cache_hits: 0,
@@ -54,6 +72,28 @@ function stateFor(context: object): DiagnosticReadState {
     contexts.set(context, state);
   }
   return state;
+}
+
+
+function requireDiagnosticPixelBudget(
+  state: DiagnosticReadState,
+  requestedPixels: number
+): void {
+  if (
+    state.metrics.pixels_read + requestedPixels >
+    TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET
+  ) {
+    throw new TextureDiagnosticBudgetExceededError(
+      requestedPixels,
+      state.metrics.pixels_read
+    );
+  }
+}
+
+export function isTextureDiagnosticBudgetExceeded(
+  error: unknown
+): error is TextureDiagnosticBudgetExceededError {
+  return error instanceof TextureDiagnosticBudgetExceededError;
 }
 
 function cropCachedRegion(
@@ -182,6 +222,7 @@ export function readTextureDiagnosticRegion(
     };
   }
 
+  requireDiagnosticPixelBudget(state, width * height);
   const pixels = new Uint8ClampedArray(
     texture.ctx.getImageData(x, y, width, height).data
   );
@@ -199,6 +240,40 @@ export function readTextureDiagnosticRegion(
   return { pixels, cache_hit: false };
 }
 
+export function readTextureDiagnosticSample(
+  context: unknown,
+  texture: Texture,
+  width: number,
+  height: number,
+  producer: () => Uint8ClampedArray
+): DiagnosticRegionRead {
+  const keyContext = contextObject(context);
+  if (!keyContext) {
+    return { pixels: producer(), cache_hit: false };
+  }
+
+  const state = stateFor(keyContext);
+  const key = [texture.uuid, "sample", width, height].join(":");
+  const cached = state.samples.get(key);
+  if (cached) {
+    state.metrics.cache_hits += 1;
+    return { pixels: cached, cache_hit: true };
+  }
+
+  requireDiagnosticPixelBudget(state, width * height);
+  const pixels = producer();
+  if (pixels.byteLength !== width * height * 4) {
+    throw new Error(
+      `Texture diagnostic sample length mismatch for "${texture.name}".`
+    );
+  }
+  state.samples.set(key, pixels);
+  state.metrics.read_calls += 1;
+  state.metrics.pixels_read += width * height;
+  state.metrics.bytes_read += pixels.byteLength;
+  return { pixels, cache_hit: false };
+}
+
 export function textureDiagnosticReadMetrics(
   context: unknown
 ): DiagnosticMetrics | null {
@@ -208,5 +283,7 @@ export function textureDiagnosticReadMetrics(
   return {
     ...state.metrics,
     cached_regions: state.regions.size,
+    cached_samples: state.samples.size,
+    pixel_budget: TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET,
   };
 }
