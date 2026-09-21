@@ -10,6 +10,7 @@ describe("MCP efficiency scorecard", () => {
       "geometry_coherent_cube_batch",
       "animation_coherent_keyframe_batch",
       "texture_inventory_default",
+      "texture_layer_metadata_batch",
       "texture_atomic_region_transaction",
       "receipt_only_hierarchy_continuation",
       "particle_verified_write_receipt",
@@ -47,6 +48,17 @@ describe("MCP efficiency scorecard", () => {
     expect(score.quality_preserved).toBe(true);
   });
 
+  test("layer metadata cohorts collapse repeated editor recomposition", () => {
+    const score = runMcpEfficiencyScorecard().scores.find(
+      (item) => item.id === "texture_layer_metadata_batch"
+    )!;
+
+    expect(score.baseline_mutation_calls).toBe(4);
+    expect(score.optimized_mutation_calls).toBe(1);
+    expect(score.saved_calls).toBe(3);
+    expect(score.quality_preserved).toBe(true);
+  });
+
   test("batch-capable domains collapse micro-mutations without deleting verification", () => {
     const byId = new Map(
       runMcpEfficiencyScorecard().scores.map((item) => [item.id, item] as const)
@@ -56,6 +68,7 @@ describe("MCP efficiency scorecard", () => {
       "geometry_coherent_cube_batch",
       "animation_coherent_keyframe_batch",
       "texture_atomic_region_transaction",
+      "texture_layer_metadata_batch",
     ]) {
       const score = byId.get(id)!;
       expect(score.optimized_mutation_calls, id).toBe(1);
@@ -138,7 +151,7 @@ describe("MCP efficiency scorecard", () => {
     const report = runMcpEfficiencyScorecard();
 
     expect(report.static_surface.runtime_tool_count).toBe(54);
-    expect(report.static_surface.reused_primitive_count).toBe(11);
+    expect(report.static_surface.reused_primitive_count).toBe(12);
     expect(report.static_surface.new_public_capabilities_required).toBe(0);
     expect(report.static_surface.reused_primitive_static_bytes).toBeGreaterThan(0);
 
@@ -157,6 +170,7 @@ describe("MCP efficiency scorecard", () => {
     expect(byId.get("geometry_coherent_cube_batch")?.status).toBe("implemented");
     expect(byId.get("animation_coherent_keyframe_batch")?.status).toBe("implemented");
     expect(byId.get("texture_atomic_region_transaction")?.status).toBe("implemented");
+    expect(byId.get("texture_layer_metadata_batch")?.status).toBe("implemented");
     expect(byId.get("rig_locator_cohort_mutation")?.status).toBe("evidence_required");
     expect(byId.get("render_target_native_adapter")?.status).toBe("blocked_by_stable_api");
   });
