@@ -48,6 +48,14 @@ export type UvIslandConstraints = {
   priority: number;
 };
 
+export type UvIslandConstraintPatch = Omit<
+  Partial<UvIslandConstraints>,
+  "rotation" | "density"
+> & {
+  rotation?: Partial<UvIslandConstraints["rotation"]>;
+  density?: Partial<UvIslandConstraints["density"]>;
+};
+
 export type UvIslandSource = {
   cube_uuid: string;
   cube_name: string;

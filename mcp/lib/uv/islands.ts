@@ -4,6 +4,7 @@ import {
   UV_PLANNER_VERSION,
   type UvFaceKey,
   type UvIsland,
+  type UvIslandConstraintPatch,
   type UvIslandConstraints,
   type UvLayoutMetrics,
   type UvLayoutSnapshot,
@@ -31,7 +32,7 @@ export type UvCubeSnapshot = {
 
 export type UvIslandConstraintResolver = (
   island: Omit<UvIsland, "constraints">
-) => Partial<UvIslandConstraints> | undefined;
+) => UvIslandConstraintPatch | undefined;
 
 const FACE_KEYS: readonly UvFaceKey[] = [
   "north",
@@ -103,8 +104,8 @@ function requireBoxUvOffset(value: readonly number[] | undefined): [number, numb
   return [value[0], value[1]];
 }
 
-function mergeConstraints(
-  overrides?: Partial<UvIslandConstraints>
+export function mergeUvIslandConstraints(
+  overrides?: UvIslandConstraintPatch
 ): UvIslandConstraints {
   return {
     ...DEFAULT_UV_ISLAND_CONSTRAINTS,
@@ -126,7 +127,7 @@ function createIsland(
 ): UvIsland {
   return {
     ...base,
-    constraints: mergeConstraints(resolveConstraints?.(base)),
+    constraints: mergeUvIslandConstraints(resolveConstraints?.(base)),
   };
 }
 
