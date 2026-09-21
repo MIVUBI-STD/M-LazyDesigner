@@ -26,7 +26,6 @@ export function compileTextureRefinementNativePlan(
     kind:"PAINT_TEXTURE_COMPUTE" as const,
     expected_revision,
     compute:compiled.compute,
-    target_rect:compiled.target_rect ?? null,
   };
 }
 
