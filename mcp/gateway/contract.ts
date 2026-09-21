@@ -12,6 +12,7 @@ export const GATEWAY_VERSION = version;
 import { DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
 import {
   bestSemanticMatchForTool,
+  bm25CapabilityScores,
   type CapabilityBranchHint,
   type CapabilityRoutingContext,
 } from "./capabilityIntelligence";
@@ -457,24 +458,28 @@ export function searchCapabilityCatalog(
 
   const boundedLimit = Math.max(1, Math.min(50, Math.trunc(limit)));
   const hasQuery = normalizeCapabilityQuery(query).length > 0;
+  const bm25Scores = bm25CapabilityScores(tools, query);
 
   return tools
     .map((tool) => {
       const metadata = getCapabilityMetadata(tool.name);
       const tier = metadata.tier;
       const semantic = bestSemanticMatchForTool(tool, query, context);
+      const bm25 = bm25Scores.get(tool.name) ?? 0;
       return {
         tool,
         tier,
         semantic,
+        bm25,
         score:
           semantic.score +
+          bm25 * 12 +
           CAPABILITY_TIER_BOOST[tier] +
           CAPABILITY_LIFECYCLE_SEARCH_PENALTY[metadata.lifecycle.stage],
       };
     })
-    .filter(({ tier, semantic }) =>
-      hasQuery ? semantic.matched : tier !== "maintenance"
+    .filter(({ tier, semantic, bm25 }) =>
+      hasQuery ? semantic.matched || bm25 > 0 : tier !== "maintenance"
     )
     .sort(
       (left, right) =>
