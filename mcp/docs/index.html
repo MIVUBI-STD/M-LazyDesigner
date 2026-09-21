@@ -1780,7 +1780,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Texture Layer Management</p>
-      <p class="card-desc">Creates and mutates texture layers by explicit texture/layer identity with action-scoped Undo and compact continuation receipts.</p>
+      <p class="card-desc">Mutates texture layers by explicit identity with scoped Undo and receipts.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -1795,7 +1795,7 @@ bun run docs:check
       <td class="col-name">action</td>
       <td class="col-type">&quot;create_layer&quot; | &quot;delete_layer&quot; | &quot;duplicate_layer&quot; | &quot;merge_down&quot; | &quot;set_opacity&quot; | &quot;set_blend_mode&quot; | &quot;move_layer&quot; | &quot;rename_layer&quot; | &quot;flatten_layers&quot; | &quot;batch_metadata&quot;</td>
       <td><span class="param-required">required</span></td>
-      <td class="col-desc">Layer management action.</td>
+      <td class="col-desc">Layer action.</td>
     </tr><tr>
       <td class="col-name">texture_id</td>
       <td class="col-type">string</td>
@@ -1805,32 +1805,32 @@ bun run docs:check
       <td class="col-name">layer_id</td>
       <td class="col-type">string</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Required for layer-targeted actions: exact layer UUID or unique exact layer name inside the resolved texture. <span class="param-meta">[minLength: 1]</span></td>
+      <td class="col-desc">Target layer UUID or unique exact name. <span class="param-meta">[minLength: 1]</span></td>
     </tr><tr>
       <td class="col-name">layer_name</td>
       <td class="col-type">string</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Layer name for create/rename. <span class="param-meta">[minLength: 1]</span></td>
+      <td class="col-desc"> <span class="param-meta">[minLength: 1]</span></td>
     </tr><tr>
       <td class="col-name">opacity</td>
       <td class="col-type">number</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Layer opacity percentage. <span class="param-meta">[min: 0, max: 100]</span></td>
+      <td class="col-desc">Opacity percent. <span class="param-meta">[min: 0, max: 100]</span></td>
     </tr><tr>
       <td class="col-name">blend_mode</td>
       <td class="col-type">&quot;default&quot; | &quot;set_opacity&quot; | &quot;color&quot; | &quot;multiply&quot; | &quot;add&quot; | &quot;darken&quot; | &quot;lighten&quot; | &quot;screen&quot; | &quot;overlay&quot; | &quot;difference&quot; | &quot;alpha_mask&quot;</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Layer blend mode.</td>
+      <td class="col-desc"></td>
     </tr><tr>
       <td class="col-name">target_index</td>
       <td class="col-type">integer</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">0-based final layer index. <span class="param-meta">[min: 0, max: 9007199254740991]</span></td>
+      <td class="col-desc">Final layer index. <span class="param-meta">[min: 0, max: 9007199254740991]</span></td>
     </tr><tr>
       <td class="col-name">updates</td>
       <td class="col-type">object[]</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">batch_metadata only: coherent explicit layer metadata updates applied in one Undo/recompose/refresh. <span class="param-meta">[minItems: 1, maxItems: 64]</span></td>
+      <td class="col-desc">batch_metadata updates applied atomically. <span class="param-meta">[minItems: 1, maxItems: 64]</span></td>
     </tr></tbody>
     </table>
       </div>
@@ -2545,7 +2545,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-21T03:02:51.124Z from Zod schemas
+        Generated 2026-09-21T03:10:40.946Z from Zod schemas
       </footer>
     </main>
   </div>
