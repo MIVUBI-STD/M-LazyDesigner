@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-21T03:16:30.113Z",
+  "generatedAt": "2026-09-21T03:48:14.506Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5749,7 +5749,7 @@
     {
       "name": "paint_texture_transaction",
       "title": "Paint Texture Transaction",
-      "description": "Applies bounded exact-pixel operations or Cube AO to one non-layered texture with revision protection and one Undo. Optional output atomically saves a verified PNG.",
+      "description": "Applies bounded pixel operations, texture compute, or Cube AO with revision protection and one Undo.",
       "status": "stable",
       "category": "Paint Tools",
       "annotations": {
@@ -6087,6 +6087,39 @@
                   "additionalProperties": false
                 }
               ]
+            }
+          },
+          "compute": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "type": "string",
+                  "enum": [
+                    "auto_levels",
+                    "directional_shade",
+                    "posterize",
+                    "gradient_map",
+                    "generated_gradient_map",
+                    "palettize",
+                    "palette_diffusion"
+                  ]
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "operation"
+              ],
+              "additionalProperties": false
             }
           },
           "ambient_occlusion": {

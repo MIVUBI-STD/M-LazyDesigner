@@ -1844,7 +1844,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Paint Texture Transaction</p>
-      <p class="card-desc">Applies bounded exact-pixel operations or Cube AO to one non-layered texture with revision protection and one Undo. Optional output atomically saves a verified PNG.</p>
+      <p class="card-desc">Applies bounded pixel operations, texture compute, or Cube AO with revision protection and one Undo.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -1870,6 +1870,11 @@ bun run docs:check
       <td class="col-type">object | object | object | object | object[]</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc"> <span class="param-meta">[minItems: 1, maxItems: 64]</span></td>
+    </tr><tr>
+      <td class="col-name">compute</td>
+      <td class="col-type">object[]</td>
+      <td><span class="param-optional">optional</span></td>
+      <td class="col-desc"> <span class="param-meta">[minItems: 1, maxItems: 12]</span></td>
     </tr><tr>
       <td class="col-name">ambient_occlusion</td>
       <td class="col-type">object</td>
@@ -2545,7 +2550,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-21T03:16:30.113Z from Zod schemas
+        Generated 2026-09-21T03:48:14.506Z from Zod schemas
       </footer>
     </main>
   </div>
