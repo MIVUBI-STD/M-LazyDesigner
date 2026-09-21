@@ -146,7 +146,21 @@ export type UvLayoutReceipt = {
   planner_version: number;
   backend: UvPackingBackendId;
   backend_version: number;
+  mode: UvPackingMode;
+  source_fingerprint_before: string;
+  source_fingerprint_after: string;
   changed_island_ids: string[];
+  changed_cube_ids: string[];
+  changed_faces: Array<{
+    cube_uuid: string;
+    face: UvFaceKey | null;
+  }>;
+  moved: Array<{
+    island_id: string;
+    before: UvRect;
+    after: UvRect;
+    rotated_90: boolean;
+  }>;
   before_metrics: UvLayoutMetrics;
   after_metrics: UvLayoutMetrics;
 };

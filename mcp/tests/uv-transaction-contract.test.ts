@@ -1,0 +1,196 @@
+import { describe, expect, test } from "bun:test";
+import { buildUvLayoutSnapshot } from "@/lib/uv/islands";
+import { planUvPacking } from "@/lib/uv/packing/planner";
+import {
+  buildUvNativeSourceSnapshot,
+  fingerprintUvNativeSource,
+  type UvNativeMutationInstruction,
+} from "@/lib/uv/adapters/blockbenchCubeUv";
+import { applyUvLayoutPlanAtomic } from "@/lib/uv/transaction";
+import { invalidationForUvReceipt } from "@/lib/uv/invalidation";
+
+function sourceCubes() {
+  return [
+    {
+      uuid: "fixed",
+      name: "fixed",
+      from: [0,0,0],
+      to: [4,4,4],
+      box_uv: false,
+      autouv: 0,
+      mirror_uv: false,
+      faces: [{
+        face: "north" as const,
+        uv: [0,0,4,4],
+        rotation: 0,
+      }],
+    },
+    {
+      uuid: "move",
+      name: "move",
+      from: [0,0,0],
+      to: [2,4,1],
+      box_uv: false,
+      autouv: 0,
+      mirror_uv: false,
+      faces: [{
+        face: "north" as const,
+        uv: [10,0,12,4],
+        rotation: 0,
+      }],
+    },
+  ];
+}
+
+function planned() {
+  const cubes = sourceCubes();
+  const snapshot = buildUvLayoutSnapshot(
+    cubes,
+    32,
+    32,
+    (island) =>
+      island.source.cube_name === "fixed"
+        ? { locked: true, padding_pixels: 0 }
+        : { padding_pixels: 0 }
+  );
+  return {
+    cubes,
+    plan: planUvPacking(snapshot, {
+      bitmap_width: 32,
+      bitmap_height: 32,
+      mode: "REPACK_SELECTED",
+      island_ids: ["face:move:north"],
+    }),
+  };
+}
+
+describe("UV atomic transaction contracts", () => {
+  test("successful apply produces continuation-ready receipt and precise invalidation", async () => {
+    const { cubes, plan } = planned();
+    let native = buildUvNativeSourceSnapshot(cubes, 32, 32);
+    const beforeFingerprint = fingerprintUvNativeSource(native);
+    let committed = false;
+
+    const receipt = await applyUvLayoutPlanAtomic(
+      plan,
+      beforeFingerprint,
+      {
+        readSource: () => native,
+        apply: (instructions) => {
+          for (const instruction of instructions) {
+            if (instruction.kind !== "FACE_UV") continue;
+            native = structuredClone(native);
+            const cube = native.cubes.find(
+              (entry) => entry.uuid === instruction.cube_uuid
+            )!;
+            const face = cube.faces.find(
+              (entry) => entry.face === instruction.face
+            )!;
+            face.uv = [...instruction.uv];
+            face.rotation = instruction.rotation;
+          }
+        },
+        restore: (snapshot) => {
+          native = structuredClone(snapshot);
+        },
+        commitUndo: () => {
+          committed = true;
+        },
+      }
+    );
+
+    expect(committed).toBe(true);
+    expect(receipt.changed_island_ids).toEqual([
+      "face:move:north",
+    ]);
+    expect(receipt.changed_cube_ids).toEqual(["move"]);
+    expect(receipt.changed_faces).toEqual([
+      { cube_uuid: "move", face: "north" },
+    ]);
+    expect(receipt.source_fingerprint_after).not.toBe(
+      receipt.source_fingerprint_before
+    );
+
+    const invalidation = invalidationForUvReceipt(receipt);
+    expect(invalidation.uv_mapping.stale).toBe(true);
+    expect(invalidation.texture_appearance).toMatchObject({
+      stale: true,
+      cube_ids: ["move"],
+    });
+    expect(invalidation.geometry_structure.stale).toBe(false);
+    expect(invalidation.animation_motion.stale).toBe(false);
+  });
+
+  test("failed apply restores exact pre-apply snapshot and cancels undo", async () => {
+    const { cubes, plan } = planned();
+    let native = buildUvNativeSourceSnapshot(cubes, 32, 32);
+    const original = structuredClone(native);
+    const beforeFingerprint = fingerprintUvNativeSource(native);
+    let cancelled = false;
+
+    await expect(
+      applyUvLayoutPlanAtomic(plan, beforeFingerprint, {
+        readSource: () => native,
+        apply: (_instructions: readonly UvNativeMutationInstruction[]) => {
+          native = structuredClone(native);
+          native.cubes[1].faces[0].uv = [1,1,2,2];
+          throw new Error("fixture failure");
+        },
+        restore: (snapshot) => {
+          native = structuredClone(snapshot);
+        },
+        cancelUndo: () => {
+          cancelled = true;
+        },
+      })
+    ).rejects.toThrow("fixture failure");
+
+    expect(cancelled).toBe(true);
+    expect(native).toEqual(original);
+  });
+
+  test("stale source rejects before beginUndo/apply", async () => {
+    const { cubes, plan } = planned();
+    let native = buildUvNativeSourceSnapshot(cubes, 32, 32);
+    const expected = fingerprintUvNativeSource(native);
+    native = structuredClone(native);
+    native.cubes[1].faces[0].rotation = 90;
+    let began = false;
+    let applied = false;
+
+    await expect(
+      applyUvLayoutPlanAtomic(plan, expected, {
+        readSource: () => native,
+        beginUndo: () => {
+          began = true;
+        },
+        apply: () => {
+          applied = true;
+        },
+        restore: () => {},
+      })
+    ).rejects.toThrow(/STALE_UV_PLAN/);
+
+    expect(began).toBe(false);
+    expect(applied).toBe(false);
+  });
+
+  test("postcondition failure rolls back when adapter reports unchanged state", async () => {
+    const { cubes, plan } = planned();
+    let native = buildUvNativeSourceSnapshot(cubes, 32, 32);
+    const original = structuredClone(native);
+    const expected = fingerprintUvNativeSource(native);
+
+    await expect(
+      applyUvLayoutPlanAtomic(plan, expected, {
+        readSource: () => native,
+        apply: () => {},
+        restore: (snapshot) => {
+          native = structuredClone(snapshot);
+        },
+      })
+    ).rejects.toThrow(/POSTCONDITION_FAILED/);
+
+    expect(native).toEqual(original);
+  });
+});
