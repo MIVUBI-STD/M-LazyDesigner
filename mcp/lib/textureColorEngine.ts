@@ -46,28 +46,54 @@ export type TextureColorComputeMetrics = {
   oklab_cache_misses: number;
   palette_cache_hits: number;
   palette_cache_misses: number;
+  nearest_cache_hits: number;
+  nearest_cache_misses: number;
+  pair_cache_hits: number;
+  pair_cache_misses: number;
+  cache_bypasses: number;
 };
 
 type PreparedPalette = {
+  key: string;
   colors: Rgba[];
   labs: Oklab[];
+};
+
+type TwoNearestResult = {
+  first: number;
+  second: number;
+  firstDistance: number;
+  secondDistance: number;
 };
 
 export type TextureColorComputeContext = {
   labs: Map<number, Oklab>;
   palettes: Map<string, PreparedPalette>;
+  nearest: Map<string, Map<number, number>>;
+  pairs: Map<string, Map<number, TwoNearestResult>>;
   metrics: TextureColorComputeMetrics;
 };
+
+const MAX_OKLAB_CACHE_ENTRIES = 4096;
+const MAX_PALETTE_CACHE_ENTRIES = 32;
+const MAX_PALETTE_LOOKUP_ENTRIES = 4096;
 
 export function createTextureColorComputeContext(): TextureColorComputeContext {
   return {
     labs: new Map(),
     palettes: new Map(),
+    nearest: new Map(),
+    pairs: new Map(),
     metrics: {
       oklab_cache_hits: 0,
       oklab_cache_misses: 0,
       palette_cache_hits: 0,
       palette_cache_misses: 0,
+      nearest_cache_hits: 0,
+      nearest_cache_misses: 0,
+      pair_cache_hits: 0,
+      pair_cache_misses: 0,
+      cache_bypasses: 0,
     },
   };
 }
@@ -93,8 +119,12 @@ function oklabFor(
     return cached;
   }
   const lab = rgbaToOklab(rgba);
-  context.labs.set(key, lab);
   context.metrics.oklab_cache_misses += 1;
+  if (context.labs.size < MAX_OKLAB_CACHE_ENTRIES) {
+    context.labs.set(key, lab);
+  } else {
+    context.metrics.cache_bypasses += 1;
+  }
   return lab;
 }
 
@@ -113,12 +143,17 @@ function preparePalette(
 
   const colors = palette.map(parseHexRgba);
   const prepared = {
+    key,
     colors,
     labs: colors.map((color) => oklabFor(color, context)),
   };
   if (context) {
-    context.palettes.set(key, prepared);
     context.metrics.palette_cache_misses += 1;
+    if (context.palettes.size < MAX_PALETTE_CACHE_ENTRIES) {
+      context.palettes.set(key, prepared);
+    } else {
+      context.metrics.cache_bypasses += 1;
+    }
   }
   return prepared;
 }
@@ -375,6 +410,68 @@ function twoNearestPaletteIndicesFromLabs(
   return { first, second, firstDistance, secondDistance };
 }
 
+function nearestPaletteIndexPrepared(
+  rgba: Rgba,
+  palette: PreparedPalette,
+  context?: TextureColorComputeContext
+): number {
+  if (!context) {
+    return nearestPaletteIndexFromLabs(rgba, palette.labs);
+  }
+  const colorKey = rgbaKey(rgba);
+  let lookup = context.nearest.get(palette.key);
+  const cached = lookup?.get(colorKey);
+  if (cached !== undefined) {
+    context.metrics.nearest_cache_hits += 1;
+    return cached;
+  }
+  const result = nearestPaletteIndexFromLabs(rgba, palette.labs, context);
+  context.metrics.nearest_cache_misses += 1;
+  if (!lookup) {
+    lookup = new Map();
+    context.nearest.set(palette.key, lookup);
+  }
+  if (lookup.size < MAX_PALETTE_LOOKUP_ENTRIES) {
+    lookup.set(colorKey, result);
+  } else {
+    context.metrics.cache_bypasses += 1;
+  }
+  return result;
+}
+
+function twoNearestPaletteIndicesPrepared(
+  rgba: Rgba,
+  palette: PreparedPalette,
+  context?: TextureColorComputeContext
+): TwoNearestResult {
+  if (!context) {
+    return twoNearestPaletteIndicesFromLabs(rgba, palette.labs);
+  }
+  const colorKey = rgbaKey(rgba);
+  let lookup = context.pairs.get(palette.key);
+  const cached = lookup?.get(colorKey);
+  if (cached) {
+    context.metrics.pair_cache_hits += 1;
+    return cached;
+  }
+  const result = twoNearestPaletteIndicesFromLabs(
+    rgba,
+    palette.labs,
+    context
+  );
+  context.metrics.pair_cache_misses += 1;
+  if (!lookup) {
+    lookup = new Map();
+    context.pairs.set(palette.key, lookup);
+  }
+  if (lookup.size < MAX_PALETTE_LOOKUP_ENTRIES) {
+    lookup.set(colorKey, result);
+  } else {
+    context.metrics.cache_bypasses += 1;
+  }
+  return result;
+}
+
 const BAYER_2 = [[0, 2], [3, 1]] as const;
 
 function expandBayer(matrix: readonly (readonly number[])[]): number[][] {
@@ -546,7 +643,6 @@ export function palettizeRgba(
 
   const prepared = preparePalette(palette, context);
   const parsed = prepared.colors;
-  const labs = prepared.labs;
   const output = new Uint8ClampedArray(pixels);
   const dither = options.dither ?? "none";
   const matrix = options.matrix ?? "bayer4";
@@ -566,9 +662,9 @@ export function palettizeRgba(
 
       let index: number;
       if (dither === "none" || palette.length === 1) {
-        index = nearestPaletteIndexFromLabs(source, labs, context);
+        index = nearestPaletteIndexPrepared(source, prepared, context);
       } else {
-        const nearest = twoNearestPaletteIndicesFromLabs(source, labs, context);
+        const nearest = twoNearestPaletteIndicesPrepared(source, prepared, context);
         if (
           nearest.first === nearest.second ||
           nearest.firstDistance === 0
@@ -1173,7 +1269,7 @@ export function palettizeErrorDiffusionRgba(
         b: sourceLab.b + current[errorIndex + 2] * strength,
       };
       const adjusted = oklabToRgba(adjustedLab, alpha);
-      const paletteIndex = nearestPaletteIndexFromLabs(adjusted, labs, context);
+      const paletteIndex = nearestPaletteIndexPrepared(adjusted, prepared, context);
       const mapped = parsed[paletteIndex];
       const mappedLab = labs[paletteIndex];
 
