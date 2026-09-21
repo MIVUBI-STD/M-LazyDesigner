@@ -36,10 +36,31 @@ import {
   deriveControlReceipt,
 } from "./controlReceipt";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
+import {
+  applyCapabilityGraphOutcome,
+  seedCapabilityFacts,
+  type CapabilityFactState,
+} from "./capabilityGraph";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
 let executionState: ControlExecutionState | null = null;
+let capabilityFacts: CapabilityFactState = seedCapabilityFacts({});
+let capabilityFactsProjectUuid: string | null = null;
+
+function synchronizeCapabilityFacts(projectUuid: string | null): void {
+  if (projectUuid !== capabilityFactsProjectUuid) {
+    capabilityFactsProjectUuid = projectUuid;
+    capabilityFacts = seedCapabilityFacts({
+      projectBound: projectUuid !== null,
+    });
+    return;
+  }
+  capabilityFacts = {
+    ...capabilityFacts,
+    ...seedCapabilityFacts({ projectBound: projectUuid !== null }),
+  };
+}
 
 // Runtime resources and prompts are not proxied; the Gateway intentionally exposes only its four stable tools.
 const GATEWAY_INSTRUCTIONS =
@@ -261,6 +282,7 @@ function buildGatewayServer(): McpServer {
       const status = adopt_active_project
         ? await backend.adoptActiveProject()
         : await backend.getStatus();
+      synchronizeCapabilityFacts(status.affinity.project_uuid);
       const control = await buildControlPacket(status, {
         knownContextIds: known_context_ids,
         workspacePath: workspace_path,
@@ -310,7 +332,9 @@ registerGatewayTool(
   async (rawArgs) => {
     try {
       const { query, limit } = searchInput.parse(rawArgs);
-      const runtimeCapabilities = await backend.searchCapabilities(query, limit);
+      const runtimeCapabilities = await backend.searchCapabilities(query, limit, {
+        facts: capabilityFacts,
+      });
       const rawCapabilities = await localCapabilities.search(
         query,
         runtimeCapabilities,
@@ -424,6 +448,12 @@ registerGatewayTool(
           ? localCapabilities.readOnlyHint(capability) === true
           : runtimeInvocation!.readOnly;
       const succeeded = result.isError !== true;
+      capabilityFacts = applyCapabilityGraphOutcome(
+        capabilityFacts,
+        capability,
+        args,
+        succeeded
+      );
       const receipt = deriveControlReceipt(
         capability,
         result.structuredContent,
