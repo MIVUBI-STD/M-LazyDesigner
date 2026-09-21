@@ -82,12 +82,15 @@ export function searchCapabilityCatalog(
         semantic.branch,
         context?.facts
       );
+      // Readiness is a secondary decision signal, not an intent override.
+      // A blocked exact branch must remain ahead of a semantically weaker
+      // predecessor so the client can see BLOCKED + predecessor explicitly.
       const eligibilityAdjustment =
         preconditions.eligibility === "READY"
-          ? 10
+          ? 4
           : preconditions.eligibility === "BLOCKED"
-            ? -80
-            : -4;
+            ? -6
+            : -2;
 
       return {
         tool,
