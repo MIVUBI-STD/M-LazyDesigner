@@ -77,6 +77,9 @@ jobs:
       - name: Run Authoring contract suite
         run: bun run verify:authoring
 
+      - name: Guard canonical capability manifest
+        run: bun run test:capability-manifest
+
       - name: Guard capability intelligence routing
         run: bun run eval:capability-intelligence
 
