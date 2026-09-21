@@ -23,6 +23,7 @@ type DecisionCase = {
   knownCapability?: string;
   expectedCapability: string;
   expectedBranch?: { field: string; value: string };
+  forbiddenTop?: readonly string[];
   facts: CapabilityFactState;
   expectedRoute:
     | "DIRECT_INVOKE"
@@ -120,6 +121,125 @@ const CASES: readonly DecisionCase[] = [
     expectedCapability: "get_texture",
     facts: { project_bound: true, texture_available: true },
     expectedRoute: "DIRECT_INVOKE",
+  },
+
+  // High-confusion boundaries: semantic intent must beat nearby capabilities.
+  {
+    id: "confusion-move-cube-not-reparent",
+    query: "move this cube slightly forward without changing its parent",
+    expectedCapability: "manage_cubes",
+    expectedBranch: { field: "operation", value: "update" },
+    forbiddenTop: ["reparent_element", "modify_group"],
+    facts: { project_bound: true, geometry_available: true },
+    expectedRoute: "SEARCH_THEN_DESCRIBE_THEN_INVOKE",
+  },
+  {
+    id: "confusion-reparent-not-transform",
+    query: "reparent the arm element under the torso bone",
+    expectedCapability: "reparent_element",
+    forbiddenTop: ["manage_cubes", "modify_group"],
+    facts: { project_bound: true, geometry_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-pivot-not-cube-transform",
+    query: "adjust the arm bone pivot",
+    expectedCapability: "modify_group",
+    forbiddenTop: ["manage_cubes", "reparent_element"],
+    facts: { project_bound: true, geometry_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-gradient-not-create-texture",
+    query: "paint a smooth gradient across the existing texture",
+    expectedCapability: "gradient_tool",
+    forbiddenTop: ["create_texture", "paint_with_brush"],
+    facts: { project_bound: true, texture_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-create-blank-not-paint",
+    query: "create a new blank texture atlas",
+    expectedCapability: "create_texture",
+    expectedBranch: { field: "type", value: "blank" },
+    forbiddenTop: ["gradient_tool", "paint_with_brush"],
+    facts: { project_bound: true },
+    expectedRoute: "SEARCH_THEN_DESCRIBE_THEN_INVOKE",
+  },
+  {
+    id: "confusion-material-configure-not-render-profile",
+    query: "configure the PBR material normal and MER channels",
+    expectedCapability: "manage_material",
+    expectedBranch: { field: "operation", value: "configure" },
+    forbiddenTop: ["manage_render_profile"],
+    facts: { project_bound: true, material_available: true },
+    expectedRoute: "SEARCH_THEN_DESCRIBE_THEN_INVOKE",
+  },
+  {
+    id: "confusion-render-profile-not-material",
+    query: "bind an alpha cutout render profile",
+    expectedCapability: "manage_render_profile",
+    expectedBranch: { field: "operation", value: "bind" },
+    forbiddenTop: ["manage_material"],
+    facts: { project_bound: true, material_available: true },
+    expectedRoute: "SEARCH_THEN_DESCRIBE_THEN_INVOKE",
+  },
+  {
+    id: "confusion-timeline-not-controller",
+    query: "edit the animation keyframe easing",
+    expectedCapability: "manage_animation_timeline",
+    forbiddenTop: ["manage_animation_controller", "manage_animation_effects"],
+    facts: { project_bound: true, animation_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-controller-not-timeline",
+    query: "edit the animation controller state transition",
+    expectedCapability: "manage_animation_controller",
+    forbiddenTop: ["manage_animation_timeline", "manage_animation_effects"],
+    facts: { project_bound: true, animation_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-effects-not-particle-authoring",
+    query: "add a sound event to the animation timeline",
+    expectedCapability: "manage_animation_effects",
+    forbiddenTop: ["manage_particle", "manage_animation_timeline"],
+    facts: { project_bound: true, animation_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-particle-authoring-not-animation-effect",
+    query: "edit the particle emitter configuration",
+    expectedCapability: "manage_particle",
+    forbiddenTop: ["inspect_particle", "manage_animation_effects"],
+    facts: { project_bound: true, particle_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-particle-inspect-not-mutate",
+    query: "inspect the particle emitter",
+    expectedCapability: "inspect_particle",
+    forbiddenTop: ["manage_particle", "manage_animation_effects"],
+    facts: { project_bound: true, particle_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
+  },
+  {
+    id: "confusion-element-detail-not-model-bounds",
+    query: "inspect the exact cube element dimensions",
+    expectedCapability: "inspect_elements",
+    expectedBranch: { field: "mode", value: "detail" },
+    forbiddenTop: ["inspect_model_bounds"],
+    facts: { project_bound: true, geometry_available: true },
+    expectedRoute: "SEARCH_THEN_DESCRIBE_THEN_INVOKE",
+  },
+  {
+    id: "confusion-model-bounds-not-element-detail",
+    query: "measure the total model bounds",
+    expectedCapability: "inspect_model_bounds",
+    forbiddenTop: ["inspect_elements"],
+    facts: { project_bound: true, geometry_available: true },
+    expectedRoute: "SEARCH_THEN_INVOKE",
   },
 ];
 
@@ -231,6 +351,8 @@ let unnecessarySearch = 0;
 let unnecessaryDescribe = 0;
 let blockedAvoided = 0;
 let expectedBlocked = 0;
+let confusionCases = 0;
+let confusionEscaped = 0;
 let totalSearchBytes = 0;
 let totalPreInvokeCalls = 0;
 
@@ -267,6 +389,15 @@ const cases = CASES.map((testCase) => {
     if (decision.blocked_call_avoided) blockedAvoided += 1;
   }
 
+  const forbiddenTop = testCase.forbiddenTop ?? [];
+  const confusionEscapedForCase =
+    forbiddenTop.length === 0 ||
+    !forbiddenTop.includes(decision.selected?.capability_id ?? "");
+  if (forbiddenTop.length > 0) {
+    confusionCases += 1;
+    if (confusionEscapedForCase) confusionEscaped += 1;
+  }
+
   totalSearchBytes += decision.search_bytes;
   totalPreInvokeCalls += decision.calls_before_invoke;
 
@@ -290,6 +421,8 @@ const cases = CASES.map((testCase) => {
     search_payload_bytes: decision.search_bytes,
     calls_before_invoke: decision.calls_before_invoke,
     blocked_call_avoided: decision.blocked_call_avoided,
+    forbidden_top: testCase.forbiddenTop ?? [],
+    confusion_escaped: confusionEscapedForCase,
   };
 });
 
@@ -317,6 +450,9 @@ const report = {
     ),
     blocked_call_avoidance: Number(
       (blockedAvoided / Math.max(expectedBlocked, 1)).toFixed(4)
+    ),
+    confusion_escape_rate: Number(
+      (confusionEscaped / Math.max(confusionCases, 1)).toFixed(4)
     ),
     average_search_payload_bytes: Math.round(
       totalSearchBytes / Math.max(count, 1)
@@ -357,6 +493,11 @@ if (report.metrics.unnecessary_describe_rate !== 0) {
 if (report.metrics.blocked_call_avoidance < 1) {
   throw new Error(
     "Precondition routing failed to avoid a known-blocked invocation."
+  );
+}
+if (report.metrics.confusion_escape_rate < 1) {
+  throw new Error(
+    `Confusion routing regression: escape=${report.metrics.confusion_escape_rate}`
   );
 }
 if (report.metrics.average_search_payload_bytes > 1400) {
