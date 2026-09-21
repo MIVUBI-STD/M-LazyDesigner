@@ -46,7 +46,7 @@ invoke_capability
 ```
 
 The persistent Gateway survives Runtime/plugin reload. Runtime owns Blockbench
-execution. Canonical Control source is `mcp/gateway/control/`; former `mcp/gateway/navigator/` source is removed and remains retired. Control owns bounded routing/context projection, not authored truth.
+execution. Canonical Control source is `mcp/gateway/control/`; former `mcp/gateway/navigator/` source is removed with no alias and remains retired. Control owns bounded routing/context projection, not authored truth.
 
 ## Remote Work Boundary
 
