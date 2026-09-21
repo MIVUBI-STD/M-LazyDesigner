@@ -2,8 +2,10 @@
 
 This folder owns AI-facing capability discovery and routing.
 
+- `types.ts` — shared branch/routing/readiness fact contract types.
 - `manifest.ts` — canonical branch identity, semantic hints, deferred schema fields and dependency graph metadata.
 - `intelligence.ts` — deterministic BM25 + semantic ranking engine.
+- `catalog.ts` — capability summarization + state-aware ranked catalog search.
 - `graph.ts` — READY / UNKNOWN / BLOCKED precondition evaluation and ephemeral fact transitions.
 - `schemaProjection.ts` — deferred branch-schema projection from the canonical manifest.
 - `effects.ts` — Gateway affinity/catalog effect receipt resolution.
