@@ -1,6 +1,6 @@
 import type { CapabilitySummary, JsonRecord } from "../contract";
 import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
-import type { BlockitAuthoringPhaseAffinity } from "../projectAffinity";
+import type { BlockitAuthoringPhaseAffinity } from "../runtime/projectAffinity";
 
 export type ControlAuthoringDomain = "GEOMETRY" | "TEXTURING" | "ANIMATION" | "CORE";
 
