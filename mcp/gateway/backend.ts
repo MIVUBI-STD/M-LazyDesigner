@@ -7,6 +7,10 @@ import {
   type BlockitAuthoringPhaseAffinity,
 } from "./runtime/projectAffinity";
 import {
+  resolveAuthoringPhaseAffinity,
+  resolveProjectAffinity,
+} from "./runtime/affinityPolicy";
+import {
   DEFAULT_RUNTIME_URL,
   GATEWAY_VERSION,
   classifyInterruptedCall,
@@ -172,33 +176,12 @@ export class BlockitRuntimeBackend {
   }
 
   private syncAuthoringPhaseFromHealth(health: JsonRecord): boolean {
-    const runtimePhase = readRuntimeAuthoringPhase(health);
-    if (!runtimePhase) {
-      throw new GatewayBackendError(
-        "BACKEND_UNAVAILABLE",
-        "The connected LazyDesigner Runtime does not expose a valid authoring phase. Deploy/reload the matching LazyDesigner build before authoring.",
-        false
-      );
-    }
-
-    if (!this.authoringPhase) {
-      this.authoringPhase = runtimePhase;
-      return true;
-    }
-
-    if (runtimePhase !== this.authoringPhase) {
-      throw new GatewayBackendError(
-        "BACKEND_UNAVAILABLE",
-        `LazyDesigner Runtime did not honor this Gateway's ${this.authoringPhase} authoring phase affinity (reported ${runtimePhase}). Deploy/reload the matching LazyDesigner build before continuing.`,
-        false,
-        {
-          requested_authoring_phase: this.authoringPhase,
-          runtime_authoring_phase: runtimePhase,
-        }
-      );
-    }
-
-    return false;
+    const resolution = resolveAuthoringPhaseAffinity(
+      this.authoringPhase,
+      health
+    );
+    this.authoringPhase = resolution.value;
+    return resolution.changed;
   }
 
   private syncProjectAffinityFromHealth(
@@ -206,64 +189,14 @@ export class BlockitRuntimeBackend {
     bindIfUnset: boolean,
     allowMissingBoundProject: boolean = false
   ): boolean {
-    const projectHealth = readRuntimeProjectHealth(health);
-    if (!projectHealth) {
-      if (bindIfUnset || this.projectUuid) {
-        throw new GatewayBackendError(
-          "PROJECT_CONTEXT_LOST",
-          "The connected LazyDesigner Runtime does not expose project-affinity health. Deploy/reload the matching LazyDesigner build before authoring mutations.",
-          false
-        );
-      }
-      return false;
-    }
-
-    if (this.projectUuid) {
-      if (
-        projectHealth.requested_project_uuid !== this.projectUuid ||
-        projectHealth.requested_project_available !== true
-      ) {
-        if (allowMissingBoundProject) {
-          this.projectUuid = null;
-          return true;
-        }
-        throw new GatewayBackendError(
-          "PROJECT_CONTEXT_LOST",
-          `Gateway-bound Blockbench project ${this.projectUuid} is no longer available. Select the intended open tab and explicitly rebind this Gateway before continuing.`,
-          false,
-          {
-            project_uuid: this.projectUuid,
-            active_project_uuid: projectHealth.active_project_uuid,
-            action: "select intended Blockbench tab, then call status with adopt_active_project=true",
-          }
-        );
-      }
-      return false;
-    }
-
-    if (!bindIfUnset) return false;
-
-    if (
-      projectHealth.open_project_count !== 1 ||
-      !projectHealth.active_project_uuid
-    ) {
-      const message = projectHealth.open_project_count > 1
-        ? `LazyDesigner Gateway is not bound and ${projectHealth.open_project_count} Blockbench projects are open. Select the intended tab and explicitly bind this chat before authoring.`
-        : "LazyDesigner Gateway is not bound and there is no single active Blockbench project to bind safely.";
-      throw new GatewayBackendError(
-        "PROJECT_CONTEXT_LOST",
-        message,
-        false,
-        {
-          active_project_uuid: projectHealth.active_project_uuid,
-          open_project_count: projectHealth.open_project_count,
-          action: "select intended Blockbench tab, then call status with adopt_active_project=true",
-        }
-      );
-    }
-
-    this.projectUuid = projectHealth.active_project_uuid;
-    return true;
+    const resolution = resolveProjectAffinity(
+      this.projectUuid,
+      health,
+      bindIfUnset,
+      allowMissingBoundProject
+    );
+    this.projectUuid = resolution.value;
+    return resolution.changed;
   }
 
   private async closeClientBestEffort(client: Client): Promise<void> {
