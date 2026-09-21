@@ -22,7 +22,7 @@ export type AuthoringRecipeApplyAdapter = {
 
 export type AuthoringRecipeApplyReceipt = {
   schema: 1;
-  execution: "applied" | "unchanged";
+  execution: "applied" | "metadata_only" | "unchanged";
   recipe_id: string;
   previous_recipe_fingerprint: string;
   next_recipe_fingerprint: string;
@@ -32,7 +32,10 @@ export type AuthoringRecipeApplyReceipt = {
   updated_instance_ids: string[];
   removed_instance_ids: string[];
   preserved_instance_ids: string[];
+  metadata_only_instance_ids: string[];
+  symmetry_changed_relation_ids: string[];
   affected_count: number;
+  recipe_affected_count: number;
   invalidates: {
     geometry_structure: boolean;
     uv_mapping: boolean;
@@ -55,16 +58,32 @@ export async function applyAuthoringRecipeIncrementalAtomic(
   }
   assertAuthoringRecipeNativeMatchesCompiled(before,previousRecipe);
 
-  if (rebuild.metrics.affected_count === 0) {
+  if (rebuild.metrics.native_affected_count === 0) {
+    const semanticChanged =
+      rebuild.metadata_only_instance_ids.length > 0 ||
+      rebuild.symmetry_changed_relation_ids.length > 0;
     return {
-      schema: 1, execution: "unchanged", recipe_id: nextRecipe.id,
+      schema: 1,
+      execution: semanticChanged ? "metadata_only" : "unchanged",
+      recipe_id: nextRecipe.id,
       previous_recipe_fingerprint: rebuild.previous_recipe_fingerprint,
       next_recipe_fingerprint: rebuild.next_recipe_fingerprint,
       native_source_fingerprint_before: actualBeforeFingerprint,
       native_source_fingerprint_after: actualBeforeFingerprint,
       created_instance_ids: [], updated_instance_ids: [], removed_instance_ids: [],
-      preserved_instance_ids: [...rebuild.preserved_instance_ids], affected_count: 0,
-      invalidates: { geometry_structure: false, uv_mapping: false, texture_appearance: false, animation_motion: false },
+      preserved_instance_ids: [...rebuild.preserved_instance_ids],
+      metadata_only_instance_ids: [...rebuild.metadata_only_instance_ids],
+      symmetry_changed_relation_ids: [...rebuild.symmetry_changed_relation_ids],
+      affected_count: 0,
+      recipe_affected_count: rebuild.metrics.affected_count,
+      invalidates: {
+        geometry_structure: false,
+        uv_mapping: rebuild.semantic_invalidation.uv_mapping,
+        texture_appearance:
+          rebuild.semantic_invalidation.texture_appearance,
+        animation_motion:
+          rebuild.semantic_invalidation.animation_motion,
+      },
     };
   }
 
@@ -105,8 +124,16 @@ export async function applyAuthoringRecipeIncrementalAtomic(
       updated_instance_ids: updated.sort(),
       removed_instance_ids: [...rebuild.remove_instance_ids],
       preserved_instance_ids: [...rebuild.preserved_instance_ids],
-      affected_count: rebuild.metrics.affected_count,
-      invalidates: { geometry_structure: true, uv_mapping: true, texture_appearance: true, animation_motion: true },
+      metadata_only_instance_ids: [...rebuild.metadata_only_instance_ids],
+      symmetry_changed_relation_ids: [...rebuild.symmetry_changed_relation_ids],
+      affected_count: rebuild.metrics.native_affected_count,
+      recipe_affected_count: rebuild.metrics.affected_count,
+      invalidates: {
+        geometry_structure: true,
+        uv_mapping: true,
+        texture_appearance: true,
+        animation_motion: true,
+      },
     };
   } catch (error) {
     try { await adapter.restore(before); } finally { await adapter.cancelUndo?.(); }

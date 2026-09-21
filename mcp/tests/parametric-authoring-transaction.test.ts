@@ -99,6 +99,54 @@ describe("Parametric authoring atomic affected-only transaction", () => {
     expect(native).toEqual(initial);
   });
 
+  test("semantic-only recipe change avoids Undo while invalidating dependent intelligence", async () => {
+    const previous: AuthoringRecipe = {
+      schema: 1,
+      compiler_version: 1,
+      id: "semantic",
+      name: "Semantic",
+      prototypes: [{
+        id: "part",
+        name: "part",
+        size: [1,1,1],
+        semantic_group: "BODY",
+      }],
+      patterns: [{
+        kind: "LINEAR",
+        id: "part",
+        prototype_id: "part",
+        count: 1,
+        axis: "X",
+        spacing: 0,
+      }],
+    };
+    const next = structuredClone(previous);
+    next.prototypes[0].semantic_group = "IDENTITY";
+    const initial = snapshotFromRecipe(previous);
+    let began = false;
+    const fake = fakeAdapter(initial);
+    const receipt = await applyAuthoringRecipeIncrementalAtomic(
+      previous,
+      next,
+      fingerprintAuthoringRecipeNativeSnapshot(initial),
+      {
+        ...fake.adapter,
+        beginUndo: () => { began = true; },
+      }
+    );
+    expect(receipt.execution).toBe("metadata_only");
+    expect(receipt.affected_count).toBe(0);
+    expect(receipt.recipe_affected_count).toBe(1);
+    expect(receipt.metadata_only_instance_ids).toEqual(["part:0"]);
+    expect(receipt.invalidates).toEqual({
+      geometry_structure: false,
+      uv_mapping: true,
+      texture_appearance: true,
+      animation_motion: true,
+    });
+    expect(began).toBe(false);
+  });
+
   test("no-op recipe update avoids Undo and all invalidation", async () => {
     const same = recipe();
     const initial = snapshotFromRecipe(same);
@@ -107,6 +155,7 @@ describe("Parametric authoring atomic affected-only transaction", () => {
     const receipt = await applyAuthoringRecipeIncrementalAtomic(same,structuredClone(same),fingerprintAuthoringRecipeNativeSnapshot(initial),{ ...fake.adapter, beginUndo: () => { began = true; } });
     expect(receipt.execution).toBe("unchanged");
     expect(receipt.affected_count).toBe(0);
+    expect(receipt.recipe_affected_count).toBe(0);
     expect(Object.values(receipt.invalidates).every((value) => value === false)).toBe(true);
     expect(began).toBe(false);
   });

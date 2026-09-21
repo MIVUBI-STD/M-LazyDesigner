@@ -78,6 +78,82 @@ describe("Parametric Authoring G5 compiled-diff incremental rebuild", () => {
     expect(plan.preserved_instance_ids).toEqual(["line:0","line:1","line:2"]);
   });
 
+  test("metadata-only placement changes do not become native Cube upserts", () => {
+    const previous: AuthoringRecipe = {
+      schema: 1,
+      compiler_version: 1,
+      id: "meta",
+      name: "Meta",
+      prototypes: [{
+        id: "part",
+        name: "part",
+        size: [2,2,2],
+        semantic_group: "LEFT",
+      }],
+      patterns: [{
+        kind: "LINEAR",
+        id: "part",
+        prototype_id: "part",
+        count: 1,
+        axis: "X",
+        spacing: 0,
+      }],
+    };
+    const next = structuredClone(previous);
+    next.prototypes[0].semantic_group = "IDENTITY";
+    const plan = planIncrementalRecipeRebuild(previous, next);
+    expect(plan.upserts).toEqual([]);
+    expect(plan.metadata_only_instance_ids).toEqual(["part:0"]);
+    expect(plan.metadata_fields_changed).toEqual([
+      { instance_id: "part:0", fields: ["semantic_group"] },
+    ]);
+    expect(plan.semantic_invalidation).toEqual({
+      uv_mapping: true,
+      texture_appearance: true,
+      animation_motion: true,
+    });
+    expect(plan.metrics.native_affected_count).toBe(0);
+  });
+
+  test("symmetry policy changes invalidate only downstream semantics, not Cube geometry", () => {
+    const previous: AuthoringRecipe = {
+      schema: 1,
+      compiler_version: 1,
+      id: "symmetry",
+      name: "Symmetry",
+      prototypes: [{ id: "arm", name: "arm", size: [2,4,2] }],
+      patterns: [{
+        kind: "LINEAR",
+        id: "left",
+        prototype_id: "arm",
+        count: 1,
+        axis: "X",
+        spacing: 0,
+        start: [-4,0,0],
+      }],
+      symmetry: [{
+        id: "arms",
+        source_instance_id: "left:0",
+        target_instance_id: "right:0",
+        plane: { axis: "X", position: 0 },
+        uv_policy: "SHARE",
+        texture_policy: "MIRROR",
+        rig_policy: "MIRROR",
+      }],
+    };
+    const next = structuredClone(previous);
+    next.symmetry![0].uv_policy = "UNIQUE";
+    const plan = planIncrementalRecipeRebuild(previous, next);
+    expect(plan.upserts).toEqual([]);
+    expect(plan.symmetry_changed_relation_ids).toEqual(["arms"]);
+    expect(plan.semantic_invalidation).toEqual({
+      uv_mapping: true,
+      texture_appearance: true,
+      animation_motion: false,
+    });
+    expect(plan.metrics.native_affected_count).toBe(0);
+  });
+
   test("recipe identity change refuses incremental reconciliation", () => {
     const base: AuthoringRecipe = { schema: 1, compiler_version: 1, id: "a", name: "A", prototypes: [], patterns: [] };
     expect(() => planIncrementalRecipeRebuild(base, { ...base, id: "b" })).toThrow(/stable recipe identity/);
