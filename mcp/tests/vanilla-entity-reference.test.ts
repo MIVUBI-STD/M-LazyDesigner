@@ -3,14 +3,14 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { deflateRawSync } from "node:zlib";
-import { classifyCapabilityTier } from "@/gateway/contract";
+import { classifyCapabilityTier } from "@/gateway/capabilities/catalog";
 import {
   VANILLA_ENTITY_REFERENCE_CAPABILITY,
   VANILLA_ENTITY_REFERENCE_TOOL,
   VanillaEntityReferenceError,
   VanillaEntityReferenceProvider,
   shouldProbeVanillaEntityReference,
-} from "@/gateway/vanillaEntityReference";
+} from "@/gateway/providers/vanillaEntityReference";
 
 const cleanupPaths: string[] = [];
 afterEach(async () => {
@@ -219,7 +219,7 @@ describe("lazy vanilla Bedrock entity reference", () => {
   });
 
   test("Gateway wiring keeps the rare reference behind existing four-tool discovery", async () => {
-    const source = await Bun.file("gateway/localCapabilities.ts").text();
+    const source = await Bun.file("gateway/providers/registry.ts").text();
     expect(source).toContain("LocalCapabilityRegistry");
     expect(source).toContain("VANILLA_ENTITY_REFERENCE_TOOL");
     expect(source).toContain("shouldProbe: shouldProbeVanillaEntityReference");
