@@ -25,6 +25,8 @@ const WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./providers/registry";\n',
   "gateway/vanillaEntityReference.ts":
     'export * from "./providers/vanillaEntityReference";\n',
+  "gateway/control/delta.ts":
+    'export * from "./delta/engine";\nexport * from "./delta/projection";\n',
 };
 
 describe("Gateway structural ownership", () => {
@@ -47,9 +49,14 @@ describe("Gateway structural ownership", () => {
     expect(backend).toContain('"./runtime/projectAffinity"');
     expect(backend).toContain('"./runtime/connectionManager"');
     expect(backend).toContain('"./capabilities/effects"');
+    expect(backend).toContain('"./runtime/backendContract"');
 
     expect(contract).toContain('"./capabilities/intelligence"');
     expect(contract).toContain('"./capabilities/graph"');
+
+    const controlIndex = await Bun.file("gateway/control/index.ts").text();
+    expect(controlIndex).toContain('"./delta/engine"');
+    expect(controlIndex).toContain('"./delta/projection"');
   });
 
   test("core named phase ownership is manifest-backed", async () => {
