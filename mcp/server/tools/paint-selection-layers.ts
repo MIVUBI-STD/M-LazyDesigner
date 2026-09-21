@@ -73,6 +73,7 @@ export const textureLayerManagementParameters = z.object({
       "move_layer",
       "rename_layer",
       "flatten_layers",
+      "batch_metadata",
     ])
     .describe("Layer management action."),
   texture_id: textureIdOptionalSchema,
@@ -97,8 +98,37 @@ export const textureLayerManagementParameters = z.object({
     .nonnegative()
     .optional()
     .describe("0-based final layer index."),
+  updates: z
+    .array(
+      z
+        .object({
+          layer_id: z.string().min(1),
+          name: z.string().min(1).optional(),
+          opacity: z.number().min(0).max(100).optional(),
+          blend_mode: textureLayerBlendModeEnum.optional(),
+          target_index: z.number().int().nonnegative().optional(),
+        })
+        .strict()
+        .refine(
+          (value) =>
+            value.name !== undefined ||
+            value.opacity !== undefined ||
+            value.blend_mode !== undefined ||
+            value.target_index !== undefined,
+          "Each batch_metadata update must change name, opacity, blend_mode, or target_index."
+        )
+    )
+    .min(1)
+    .max(64)
+    .optional()
+    .describe(
+      "batch_metadata only: coherent explicit layer metadata updates applied in one Undo/recompose/refresh."
+    ),
 }).superRefine((value, ctx) => {
-  const needsLayer = value.action !== "create_layer" && value.action !== "flatten_layers";
+  const needsLayer =
+    value.action !== "create_layer" &&
+    value.action !== "flatten_layers" &&
+    value.action !== "batch_metadata";
   if (needsLayer && !value.layer_id) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -132,6 +162,13 @@ export const textureLayerManagementParameters = z.object({
       code: z.ZodIssueCode.custom,
       path: ["target_index"],
       message: "target_index is required for move_layer.",
+    });
+  }
+  if (value.action === "batch_metadata" && !value.updates) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["updates"],
+      message: "updates is required for batch_metadata.",
     });
   }
 });
@@ -193,6 +230,99 @@ function textureLayerContinuationState(texture: Texture) {
 function refreshLayerInterface(updateConditions = false): void {
   updateInterfacePanels();
   if (updateConditions) BARS.updateConditions();
+}
+
+
+type LayerMetadataBatchUpdate = {
+  layer_id: string;
+  name?: string;
+  opacity?: number;
+  blend_mode?: z.infer<typeof textureLayerBlendModeEnum>;
+  target_index?: number;
+};
+
+function requireDistinctBatchLayerTargets(
+  updates: readonly LayerMetadataBatchUpdate[]
+): void {
+  const seen = new Set<string>();
+  for (const update of updates) {
+    if (seen.has(update.layer_id)) {
+      throw new Error(
+        `batch_metadata contains duplicate layer target "${update.layer_id}". Combine metadata for one layer into one update.`
+      );
+    }
+    seen.add(update.layer_id);
+  }
+}
+
+function preflightLayerMetadataBatch(
+  texture: Texture,
+  updates: readonly LayerMetadataBatchUpdate[]
+) {
+  requireDistinctBatchLayerTargets(updates);
+  const resolved = updates.map((update) => ({
+    update,
+    layer: resolveManagedTextureLayer(texture, update.layer_id),
+  }));
+
+  for (const { update, layer } of resolved) {
+    if (
+      update.target_index !== undefined &&
+      update.target_index >= texture.layers.length
+    ) {
+      throw new Error(
+        `Target index ${update.target_index} is out of range for ${texture.layers.length} layers.`
+      );
+    }
+    if (
+      update.name === layer.name &&
+      update.opacity === undefined &&
+      update.blend_mode === undefined &&
+      update.target_index === undefined
+    ) {
+      throw new Error(
+        `Layer "${layer.name}" already has the requested name and no other metadata change was supplied.`
+      );
+    }
+  }
+
+  const finalNames = new Map(
+    texture.layers.map((layer) => [layer.uuid, layer.name] as const)
+  );
+  for (const { update, layer } of resolved) {
+    if (update.name !== undefined) finalNames.set(layer.uuid, update.name);
+  }
+  const nameOwners = new Map<string, string>();
+  for (const [uuid, name] of finalNames) {
+    const key = name.toLowerCase();
+    const previous = nameOwners.get(key);
+    if (previous && previous !== uuid) {
+      throw new Error(
+        `batch_metadata would create duplicate layer name "${name}" (case-insensitive).`
+      );
+    }
+    nameOwners.set(key, uuid);
+  }
+
+  const previous = resolved.map(({ layer }) => ({
+    layer_uuid: layer.uuid,
+    state: layerContinuationState(texture, layer),
+  }));
+  const visualChange = resolved.some(
+    ({ update, layer }) =>
+      (update.opacity !== undefined && update.opacity !== layer.opacity) ||
+      (update.blend_mode !== undefined &&
+        update.blend_mode !== layer.blend_mode) ||
+      (update.target_index !== undefined &&
+        update.target_index !== texture.layers.indexOf(layer))
+  );
+  const orderChange = resolved.some(
+    ({ update, layer }) =>
+      update.target_index !== undefined &&
+      update.target_index !== texture.layers.indexOf(layer)
+  );
+
+  return { resolved, previous, visualChange, orderChange };
 }
 
 export const paintSelectionLayerToolDocs: ToolSpec[] = [
@@ -421,6 +551,7 @@ export function registerPaintSelectionLayerTools(): void {
               opacity,
               blend_mode,
               target_index,
+              updates,
             }) {
               const requiresEditorLayerSelection =
                 action === "create_layer" || action === "duplicate_layer";
@@ -428,9 +559,80 @@ export function registerPaintSelectionLayerTools(): void {
                 ? getAndActivateTexture(texture_id)
                 : resolvePaintTexture(texture_id);
               const layer =
-                action === "create_layer" || action === "flatten_layers"
+                action === "create_layer" ||
+                action === "flatten_layers" ||
+                action === "batch_metadata"
                   ? null
                   : resolveManagedTextureLayer(texture, layer_id!);
+
+              if (action === "batch_metadata") {
+                const plan = preflightLayerMetadataBatch(
+                  texture,
+                  updates as LayerMetadataBatchUpdate[]
+                );
+                const undoAspects: UndoAspects = plan.orderChange
+                  ? { textures: [texture] }
+                  : { layers: plan.resolved.map(({ layer }) => layer) };
+                Undo.initEdit(undoAspects);
+                try {
+                  for (const { update, layer } of plan.resolved) {
+                    if (update.name !== undefined) layer.name = update.name;
+                    if (update.opacity !== undefined) layer.opacity = update.opacity;
+                    if (update.blend_mode !== undefined) {
+                      layer.blend_mode = update.blend_mode;
+                    }
+                  }
+                  for (const { update, layer } of plan.resolved) {
+                    if (update.target_index === undefined) continue;
+                    const currentIndex = texture.layers.indexOf(layer);
+                    if (currentIndex === update.target_index) continue;
+                    texture.layers.remove(layer);
+                    texture.layers.splice(update.target_index, 0, layer);
+                  }
+
+                  if (plan.visualChange) {
+                    texture.updateChangesAfterEdit();
+                  } else {
+                    const syncTexture = texture as Texture & {
+                      sync_to_project?: string;
+                      syncToOtherProject?: () => unknown;
+                    };
+                    if (
+                      syncTexture.sync_to_project &&
+                      typeof syncTexture.syncToOtherProject === "function"
+                    ) {
+                      syncTexture.syncToOtherProject();
+                    }
+                  }
+
+                  Undo.finishEdit("Layer management: batch_metadata");
+                  refreshLayerInterface(plan.orderChange);
+                  return {
+                    content: [
+                      {
+                        type: "text" as const,
+                        text: `Applied ${plan.resolved.length} layer metadata update(s) in one transaction.`,
+                      },
+                    ],
+                    structuredContent: {
+                      operation: action,
+                      update_count: plan.resolved.length,
+                      recomposed: plan.visualChange,
+                      texture: textureLayerContinuationState(texture),
+                      changes: plan.resolved.map(({ layer }, index) => ({
+                        layer_uuid: layer.uuid,
+                        before: plan.previous[index].state,
+                        after: layerContinuationState(texture, layer),
+                      })),
+                    },
+                  };
+                } catch (error) {
+                  Undo.cancelEdit(true);
+                  Canvas.updateAll();
+                  refreshLayerInterface(plan.orderChange);
+                  throw error;
+                }
+              }
 
               if (action === "create_layer") {
                 Undo.initEdit({ textures: [texture], bitmap: true });
