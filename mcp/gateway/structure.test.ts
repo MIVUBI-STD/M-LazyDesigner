@@ -137,4 +137,16 @@ describe("Gateway structural ownership", () => {
     expect(parser).not.toContain("stat(");
   });
 
+  test("backend delegates queue and affinity policy to runtime modules", async () => {
+    const backend = await Bun.file("gateway/backend.ts").text();
+    expect(backend).toContain('from "./runtime/operationQueue"');
+    expect(backend).toContain('from "./runtime/affinityPolicy"');
+    expect(backend).not.toContain("private pendingOperations");
+    expect(backend).not.toContain("private completedOperations");
+    expect(backend).not.toContain(
+      "Runtime did not honor this Gateway"
+    );
+    expect(backend.split("\n").length).toBeLessThan(760);
+  });
+
 });
