@@ -71,6 +71,15 @@ export function projectCapabilitiesForSearch(
       ...(hint ? { hint } : {}),
       ...(capability.branch ? { branch: capability.branch } : {}),
       ...(capability.why ? { why: capability.why } : {}),
+      ...(capability.eligibility && capability.eligibility !== "READY"
+        ? { eligibility: capability.eligibility }
+        : {}),
+      ...(capability.requires && capability.requires.length > 0
+        ? { requires: capability.requires }
+        : {}),
+      ...(capability.predecessor
+        ? { predecessor: capability.predecessor }
+        : {}),
       tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
       ...(flags.length > 0 ? { flags } : {}),
