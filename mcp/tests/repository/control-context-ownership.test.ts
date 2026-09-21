@@ -8,34 +8,34 @@ describe("Control context ownership", () => {
   test("content-addressed context reuse is owned by registry + packet only", async () => {
     expect(await Bun.file("gateway/control/contextCache.ts").exists()).toBe(false);
 
-    const [barrel, registry, packet] = await Promise.all([
+    const [barrel, contexts, packet] = await Promise.all([
       source("gateway/control/index.ts"),
-      source("gateway/control/registry.ts"),
+      source("gateway/control/contexts.ts"),
       source("gateway/control/packet.ts"),
     ]);
 
     expect(barrel).not.toContain("contextCache");
     expect(barrel).not.toContain("contextSetChanged");
-    expect(registry).toContain("contextHandleCache");
-    expect(registry).toContain("sha256");
+    expect(contexts).toContain("contextHandleCache");
+    expect(contexts).toContain("sha256");
     expect(packet).toContain("knownContextIds");
     expect(packet).toContain("cached_ids");
     expect(packet).toContain("invalidated_ids");
   });
 
   test("Control keeps research-derived modelling intelligence out of stage-context payloads", async () => {
-    const [registry, projection, packet, controlReadme] = await Promise.all([
-      source("gateway/control/registry.ts"),
+    const [contexts, projection, packet, controlReadme] = await Promise.all([
+      source("gateway/control/contexts.ts"),
       source("gateway/control/contextProjection.ts"),
       source("gateway/control/packet.ts"),
       source("gateway/control/README.md"),
     ]);
 
-    expect(registry).toContain("MODELLING_PATH");
-    expect(registry).toContain("PROFILE_PATHS");
-    expect(registry).toContain("if (domain === \"GEOMETRY\")");
-    expect(registry).toContain("if (selectedProfile) required.push");
-    expect(registry).toContain("else if (domain === \"ANIMATION\")");
+    expect(contexts).toContain("MODELLING_PATH");
+    expect(contexts).toContain("PROFILE_PATHS");
+    expect(contexts).toContain("if (domain === \"GEOMETRY\")");
+    expect(contexts).toContain("if (selectedProfile) required.push");
+    expect(contexts).toContain("else if (domain === \"ANIMATION\")");
 
     for (const forbidden of [
       "smallest_changed_branch",
@@ -56,35 +56,35 @@ describe("Control context ownership", () => {
   });
 
   test("selected modelling profile originates in REFERENCE.json and Control only transports it", async () => {
-    const [referenceSource, registry, modelling, projectionDoc] = await Promise.all([
-      source("gateway/control/referencePackage.ts"),
-      source("gateway/control/registry.ts"),
+    const [referenceParser, contexts, modelling, projectionDoc] = await Promise.all([
+      source("gateway/control/referenceParser.ts"),
+      source("gateway/control/contexts.ts"),
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("../docs/04-system/control/context-projection.md"),
     ]);
 
-    expect(referenceSource).toContain("profileValue(asset?.profile)");
-    expect(referenceSource).toContain("selected_profile: selectedProfile");
-    expect(registry).toContain("contextForAuthoringDomain(");
-    expect(registry).toContain("PROFILE_PATHS[selectedProfile]");
+    expect(referenceParser).toContain("profileValue(asset?.profile)");
+    expect(referenceParser).toContain("selected_profile: selectedProfile");
+    expect(contexts).toContain("contextForAuthoringDomain(");
+    expect(contexts).toContain("PROFILE_PATHS[selectedProfile]");
     expect(modelling).toContain("accept `selected_profile` from Control");
     expect(modelling).toContain("current Reference Package");
     expect(projectionDoc).toContain("Control does not independently classify the asset");
   });
   test("fallback source ownership points to the canonical Runtime surface owner", async () => {
-    const registry = await source("gateway/control/registry.ts");
+    const sourceOwners = await source("gateway/control/sourceOwners.ts");
 
-    expect(registry).toContain('source: "mcp/server/runtime/registration.ts"');
-    expect(registry).not.toContain('source: "mcp/server/tools.ts"');
+    expect(sourceOwners).toContain('source: "mcp/server/runtime/registration.ts"');
+    expect(sourceOwners).not.toContain('source: "mcp/server/tools.ts"');
   });
 
   test("Control does not add a second persistent context state store", async () => {
     const packet = await source("gateway/control/packet.ts");
-    const registry = await source("gateway/control/registry.ts");
+    const contexts = await source("gateway/control/contexts.ts");
 
     expect(packet).not.toContain("writeFile");
     expect(packet).not.toContain("mkdir");
-    expect(registry).not.toContain("writeFile");
-    expect(registry).not.toContain("mkdir");
+    expect(contexts).not.toContain("writeFile");
+    expect(contexts).not.toContain("mkdir");
   });
 });

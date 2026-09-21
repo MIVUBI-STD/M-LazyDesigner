@@ -75,11 +75,11 @@ describe("canonical LazyDesigner Skill identity", () => {
   });
 
   test("canonical LazyDesigner routing identities remain authoritative", async () => {
-    const [agents, taxonomy, control, registry] = await Promise.all([
+    const [agents, taxonomy, control, contexts] = await Promise.all([
       Bun.file("../AGENTS.md").text(),
       Bun.file("../docs/04-system/skill-taxonomy.md").text(),
       Bun.file("gateway/control/packet.ts").text(),
-      Bun.file("gateway/control/registry.ts").text(),
+      Bun.file("gateway/control/contexts.ts").text(),
     ]);
 
     expect(agents).toContain(CANONICAL_REFERENCE_PATH);
@@ -89,6 +89,6 @@ describe("canonical LazyDesigner Skill identity", () => {
     expect(taxonomy).toContain("lazydesigner-mcp-development");
     expect(taxonomy).toContain("lazydesigner-blockbench-development");
     expect(control).toContain("contextForAuthoringDomain");
-    for (const canonical of CANONICAL_SPECIALIST_PATHS) expect(registry).toContain(canonical);
+    for (const canonical of CANONICAL_SPECIALIST_PATHS) expect(contexts).toContain(canonical);
   });
 });

@@ -6,11 +6,11 @@ async function source(path: string): Promise<string> {
 
 describe("LazyDesigner compatibility identifier boundary", () => {
   test("install, protocol and persisted identifiers remain stable during presentation rename", async () => {
-    const [pkgText, contract, backend, affinity, settings, authoringPhase, profile, plugin, statusBar] = await Promise.all([
+    const [pkgText, protocol, backend, affinity, settings, authoringPhase, profile, plugin, statusBar] = await Promise.all([
       source("package.json"),
-      source("gateway/contract.ts"),
+      source("gateway/protocol.ts"),
       source("gateway/backend.ts"),
-      source("gateway/projectAffinity.ts"),
+      source("gateway/runtime/projectAffinity.ts"),
       source("ui/settings.ts"),
       source("lib/authoringPhase.ts"),
       source("lib/registrationProfile.ts"),
@@ -21,7 +21,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
 
     expect(pkg.name).toBe("blockit-bedrock-entity-mcp");
     expect(pkg.main).toBe("dist/blockit_mcp.js");
-    expect(contract).toContain('GATEWAY_NAME = "blockit-gateway"');
+    expect(protocol).toContain('GATEWAY_NAME = "blockit-gateway"');
     expect(backend).toContain("process.env.BLOCKIT_RUNTIME_URL");
     expect(backend).toContain("process.env.BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH");
     expect(backend).toContain('name: "blockit-gateway-runtime-client"');
@@ -36,9 +36,10 @@ describe("LazyDesigner compatibility identifier boundary", () => {
   });
 
   test("human-facing Runtime, Gateway and UI language uses LazyDesigner or neutral compatibility language", async () => {
-    const [backend, affinity, settings, plugin, server, ui, panel, statusBar, readme] = await Promise.all([
+    const [backend, queue, affinity, settings, plugin, server, ui, panel, statusBar, readme] = await Promise.all([
       source("gateway/backend.ts"),
-      source("gateway/projectAffinity.ts"),
+      source("gateway/runtime/operationQueue.ts"),
+      source("gateway/runtime/projectAffinity.ts"),
       source("ui/settings.ts"),
       source("index.ts"),
       source("server/server.ts"),
@@ -48,7 +49,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
       source("README.md"),
     ]);
 
-    expect(backend).toContain("LazyDesigner Gateway queue is full");
+    expect(queue).toContain("LazyDesigner Gateway queue is full");
     expect(backend).toContain("The connected LazyDesigner Runtime");
     expect(backend).toContain("current LazyDesigner surface");
     expect(affinity).toContain("LazyDesigner project affinity");
@@ -69,7 +70,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     expect(statusBar).toContain("Click to open LazyDesigner");
     expect(readme).toContain("LazyDesigner");
 
-    expect(backend).not.toContain("BlockIT Gateway queue is full");
+    expect(queue).not.toContain("BlockIT Gateway queue is full");
     expect(backend).not.toContain("connected BlockIT Runtime");
     expect(backend).not.toContain("current BlockIT surface");
     expect(affinity).not.toContain('throw new Error("BlockIT');

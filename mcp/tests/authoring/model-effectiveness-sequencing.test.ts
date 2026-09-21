@@ -6,11 +6,11 @@ async function source(path: string): Promise<string> {
 
 describe("model creation effectiveness — texture/animation sequencing", () => {
   test("Authoring keeps Geometry approval → UV PASS → Texturing while Animation uses Gateway handoff", async () => {
-    const [agents, flow, workspace, control, texturing, animation] = await Promise.all([
+    const [agents, flow, workspace, readiness, texturing, animation] = await Promise.all([
       source("../AGENTS.md"),
       source("../docs/01-product/flow.md"),
       source("../workspace/README.md"),
-      source("gateway/control/packet.ts"),
+      source("gateway/control/readiness.ts"),
       source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
     ]);
@@ -23,9 +23,9 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
     expect(flow).toContain("PRODUCTION UV LAYOUT");
     expect(flow).toContain("TEXTURING");
     expect(workspace).toContain("Texturing cannot enter `IN_PROGRESS` until `UV Layout: PASS`");
-    expect(control).toContain("GEOMETRY_APPROVAL_REQUIRED");
-    expect(control).toContain("UV_LAYOUT_PASS_REQUIRED");
-    expect(control).toContain("TEXTURE_APPROVAL_REQUIRED");
+    expect(readiness).toContain("GEOMETRY_APPROVAL_REQUIRED");
+    expect(readiness).toContain("UV_LAYOUT_PASS_REQUIRED");
+    expect(readiness).toContain("TEXTURE_APPROVAL_REQUIRED");
 
     expect(agents).toContain("AUTHORING↔Animation handoff through Gateway");
     for (const text of [texturing, animation]) {

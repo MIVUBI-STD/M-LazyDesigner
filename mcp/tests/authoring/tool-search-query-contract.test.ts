@@ -2,10 +2,11 @@ import { describe, expect, test } from "bun:test";
 
 describe("Gateway capability discovery contract", () => {
   test("routing invokes known capabilities directly and defers discovery only for unknown/stale capability", async () => {
-    const [policy, routedEval, gateway] = await Promise.all([
+    const [policy, routedEval, catalog, protocol] = await Promise.all([
       Bun.file("gateway/control/routingPolicy.ts").text(),
       Bun.file("scripts/evaluate-routed-tool-loading.ts").text(),
-      Bun.file("gateway/contract.ts").text(),
+      Bun.file("gateway/capabilities/catalog.ts").text(),
+      Bun.file("gateway/protocol.ts").text(),
     ]);
 
     expect(policy).toContain('strategy: "DIRECT_FIRST"');
@@ -16,8 +17,8 @@ describe("Gateway capability discovery contract", () => {
     expect(policy).toContain("search_limit: 4");
     expect(policy).not.toContain("tool_search");
 
-    expect(gateway).toContain("searchCapabilityCatalog");
-    expect(gateway).toContain("CapabilityTier");
+    expect(catalog).toContain("searchCapabilityCatalog");
+    expect(protocol).toContain("CapabilityTier");
 
     // Native phase-scoped evaluator remains a lower-level discovery benchmark.
     expect(routedEval).toContain("query: testCase.expected");

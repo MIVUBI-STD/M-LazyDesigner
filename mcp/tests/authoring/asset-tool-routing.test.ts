@@ -33,15 +33,15 @@ describe("LazyDesigner asset routing", () => {
   });
 
   test("authoring context loads only the active specialist and one Geometry profile", async () => {
-    const [registry, root] = await Promise.all([
-      source("gateway/control/registry.ts"),
+    const [contexts, root] = await Promise.all([
+      source("gateway/control/contexts.ts"),
       source("../AGENTS.md"),
     ]);
 
-    expect(registry).toContain('.agents/skills/lazydesigner-modelling/SKILL.md');
-    expect(registry).toContain('.agents/skills/lazydesigner-texturing/SKILL.md');
-    expect(registry).toContain('.agents/skills/lazydesigner-animation/SKILL.md');
-    expect(registry).toContain("PROFILE_PATHS[selectedProfile]");
+    expect(contexts).toContain('.agents/skills/lazydesigner-modelling/SKILL.md');
+    expect(contexts).toContain('.agents/skills/lazydesigner-texturing/SKILL.md');
+    expect(contexts).toContain('.agents/skills/lazydesigner-animation/SKILL.md');
+    expect(contexts).toContain("PROFILE_PATHS[selectedProfile]");
     expect(root).toContain("exactly one selected modelling profile");
     expect(root).toContain("Do not preload sibling specialists or all profiles");
   });
@@ -61,12 +61,12 @@ describe("LazyDesigner asset routing", () => {
   });
 
   test("Workspace lifecycle prevents illegal late-stage entry", async () => {
-    const packet = await source("gateway/control/packet.ts");
+    const readiness = await source("gateway/control/readiness.ts");
 
-    expect(packet).toContain("GEOMETRY_APPROVAL_REQUIRED");
-    expect(packet).toContain("UV_LAYOUT_PASS_REQUIRED");
-    expect(packet).toContain("TEXTURE_APPROVAL_REQUIRED");
-    expect(packet).toContain("WORKSPACE_LIFECYCLE_UNAVAILABLE");
+    expect(readiness).toContain("GEOMETRY_APPROVAL_REQUIRED");
+    expect(readiness).toContain("UV_LAYOUT_PASS_REQUIRED");
+    expect(readiness).toContain("TEXTURE_APPROVAL_REQUIRED");
+    expect(readiness).toContain("WORKSPACE_LIFECYCLE_UNAVAILABLE");
   });
 
   test("Control separates reference intent from current correction delta", async () => {
