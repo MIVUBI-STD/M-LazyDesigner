@@ -1,5 +1,5 @@
 import type { GatewayRuntimeStatus } from "./backend";
-import type { JsonRecord } from "./contract";
+import type { JsonRecord } from "./protocol";
 
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
