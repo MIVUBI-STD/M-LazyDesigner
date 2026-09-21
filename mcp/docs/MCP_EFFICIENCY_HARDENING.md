@@ -190,6 +190,22 @@ Full texture diagnostics now share one request-local read context across coverag
 
 Texture efficiency changes must remain net-positive at the MCP boundary. The layer metadata batch reuses `texture_layer_management`; self-evident field prose stays out of the static schema so repeated tools/list context does not absorb the saved calls. Runtime validation and action-specific errors remain authoritative, and the normal surface budget remains the release gate.
 
+## Texture Compute Engine
+
+Texture automation now separates color/surface computation from pixel mutation. `paint_texture_transaction` remains the single deterministic mutation owner and can run a compact compute pipeline before its existing revision, Undo, dirty-region, postcondition, evidence, and PNG-output stages.
+
+Current compute primitives include:
+
+- perceptual Oklab/OKLCh shade ramps and palette mapping;
+- auto-levels and lightness posterization;
+- nearest/blended/ordered gradient maps;
+- linear, reflected, radial, diamond, and conical spatial gradients;
+- deterministic Bayer dithering and Floyd–Steinberg palette diffusion;
+- height extraction, Sobel slope estimation, and directional shading;
+- palette extraction and palettization.
+
+The public MCP surface exposes only compact operation names plus bounded args; detailed validation stays Runtime-owned so color intelligence does not require a new tool or a large duplicated schema.
+
 ## Acceptance Rules
 
 An efficiency change is acceptable only when:
