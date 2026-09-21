@@ -133,6 +133,20 @@ describe("texture layer management hardening", () => {
     expect(preflight).not.toContain("Undo.initEdit");
   });
 
+  test("batch metadata rejects an all-no-op cohort before Undo", async () => {
+    const paint = await source("server/tools/paint-selection-layers.ts");
+    const preflight = paint.slice(
+      paint.indexOf("function preflightLayerMetadataBatch"),
+      paint.indexOf("export const paintSelectionLayerToolDocs")
+    );
+
+    expect(preflight).toContain("const anyChange = resolved.some");
+    expect(preflight).toContain("already matches the requested final layer metadata");
+    expect(preflight.indexOf("already matches")).toBeLessThan(
+      paint.indexOf("Undo.initEdit(undoAspects)")
+    );
+  });
+
   test("flatten is native-only and fails closed when native semantics are unavailable", async () => {
     const paint = await source("server/tools/paint-selection-layers.ts");
     const start = paint.indexOf('if (action === "flatten_layers")');
