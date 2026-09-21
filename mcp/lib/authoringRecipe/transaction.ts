@@ -1,5 +1,4 @@
 import type { AuthoringRecipe, CompiledCubePlacement } from "@/lib/authoringRecipe/contracts";
-import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
 import { planIncrementalRecipeRebuild } from "@/lib/authoringRecipe/incremental";
 import {
   assertAuthoringRecipeNativeMatchesCompiled,
