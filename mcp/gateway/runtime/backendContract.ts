@@ -5,7 +5,7 @@ import {
 } from "@modelcontextprotocol/client";
 import type { GatewayConnectionManager } from "./connectionManager";
 import type { BlockitAuthoringPhaseAffinity } from "./projectAffinity";
-import type { JsonRecord } from "../contract";
+import type { JsonRecord } from "../protocol";
 
 export type GatewayBackendErrorCode =
   | "BACKEND_UNAVAILABLE"
