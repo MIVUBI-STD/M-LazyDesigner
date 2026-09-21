@@ -5,6 +5,9 @@ import { compileDesiredGeometryState } from "@/lib/authoringIntent/desiredState"
 import { planAuthoringImpact } from "@/lib/orchestration/authoringImpact";
 import { selectAuthoringExecutionStrategy } from "@/lib/orchestration/executionStrategy";
 import { compileDeltaVerificationPlan } from "@/lib/orchestration/deltaVerification";
+import { resolveSemanticIdentity } from "@/lib/authoringRecipe/semanticIdentity";
+import { selectRecipeRebuildExecutionStrategy } from "@/lib/orchestration/executionStrategy";
+import { planIncrementalRecipeRebuild } from "@/lib/authoringRecipe/incremental";
 
 function recipe(width: number, count = 2): AuthoringRecipe {
   return {
@@ -82,5 +85,34 @@ describe("zero-waste authoring execution", () => {
     expect(verification.risk).toBe("HIGH");
     expect(verification.required_task_count).toBe(verification.tasks.length);
     expect(verification.tasks.some((task) => task.domain === "UV")).toBe(true);
+  });
+  test("resolves semantic identity to stable native ownership without rediscovery", () => {
+    const r = recipe(4);
+    const compiled = compileAuthoringRecipe(r);
+    const native = {
+      schema: 1 as const,
+      recipe_id: r.id,
+      cubes: compiled.placements.map((placement, index) => ({
+        uuid: "uuid-" + index,
+        recipe_id: r.id,
+        instance_id: placement.id,
+        name: placement.name,
+        from: placement.from,
+        to: placement.to,
+        origin: placement.origin,
+        rotation: placement.rotation,
+        inflate: placement.inflate,
+      })),
+    };
+    const resolution = resolveSemanticIdentity(r, native, { semantic_group: "upper_arm" });
+    expect(resolution.count).toBe(2);
+    expect(resolution.identities.map((entry) => entry.native_uuid)).toEqual(["uuid-0", "uuid-1"]);
+  });
+
+  test("recipe rebuild cost selection reuses recipe ownership for any native delta", () => {
+    const rebuild = planIncrementalRecipeRebuild(recipe(4), recipe(5));
+    const decision = selectRecipeRebuildExecutionStrategy(rebuild);
+    expect(decision.strategy).toBe("RECIPE");
+    expect(decision.reason).toBe("RECIPE_OWNED_INCREMENTAL");
   });
 });

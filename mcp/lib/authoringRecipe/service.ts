@@ -35,6 +35,9 @@ import {
   type AuthoringRecipeApplyAdapter,
 } from "@/lib/authoringRecipe/transaction";
 import { AuthoringRecipePlanRegistry } from "@/lib/authoringRecipe/planRegistry";
+import { resolveSemanticIdentity } from "@/lib/authoringRecipe/semanticIdentity";
+import type { SemanticGeometryTarget } from "@/lib/authoringRecipe/semanticEdit";
+import { selectRecipeRebuildExecutionStrategy } from "@/lib/orchestration/executionStrategy";
 
 const EXAMPLE_LIMIT = 12;
 function bounded(values: readonly string[]) {
@@ -100,7 +103,12 @@ export function createAuthoringRecipeService(
     const nativeFingerprint = fingerprintAuthoringRecipeNativeSnapshot(native);
     const rebuild = planIncrementalRecipeRebuild(previousRecipe, nextRecipe);
     const stored = registry.put({ native_source_fingerprint: nativeFingerprint, previous_recipe: previousRecipe, next_recipe: nextRecipe, rebuild });
-    return { plan_id: stored.plan_id, native_source_fingerprint: nativeFingerprint, summary: summarizeAuthoringRecipeRebuild(rebuild) };
+    return {
+      plan_id: stored.plan_id,
+      native_source_fingerprint: nativeFingerprint,
+      execution_strategy: selectRecipeRebuildExecutionStrategy(rebuild),
+      summary: summarizeAuthoringRecipeRebuild(rebuild),
+    };
   };
   return {
     plan: planPair,
@@ -109,6 +117,17 @@ export function createAuthoringRecipeService(
       const previousRecipe = await dependencies.readStoredRecipe(nextRecipe.id);
       if (!previousRecipe) throw new Error("RECIPE_NOT_STORED: no previous recipe source exists for " + nextRecipe.id + "; use explicit previous/next planning for first adoption.");
       return planPair(previousRecipe, nextRecipe);
+    },
+    async resolveIdentity(input: { recipe_id: string; target: SemanticGeometryTarget }) {
+      if (!dependencies.readStoredRecipe) {
+        throw new Error("RECIPE_STORE_UNAVAILABLE: Runtime did not provide project recipe persistence.");
+      }
+      const recipe = await dependencies.readStoredRecipe(input.recipe_id);
+      if (!recipe) {
+        throw new Error("RECIPE_NOT_STORED: no recipe source exists for " + input.recipe_id + ".");
+      }
+      const native = await dependencies.readOwned(input.recipe_id);
+      return resolveSemanticIdentity(recipe, native, input.target);
     },
     async apply(input: { plan_id: string; expected_native_source_fingerprint: string }) {
       const stored = registry.get(input.plan_id);

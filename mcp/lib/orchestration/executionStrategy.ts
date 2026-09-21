@@ -1,10 +1,13 @@
+import type { IncrementalRecipeRebuildPlan } from "@/lib/authoringRecipe/incremental";
 import type { AuthoringImpactPlan } from "@/lib/orchestration/authoringImpact";
 
 export type AuthoringExecutionStrategy =
   | "DIRECT"
   | "BATCH"
   | "RECIPE"
-  | "PROCEDURAL";
+  | "PROCEDURAL"
+  | "METADATA_ONLY"
+  | "UNCHANGED";
 
 export type ExecutionStrategySignals = {
   total_scene_instances: number;
@@ -23,7 +26,9 @@ export type ExecutionStrategyDecision = {
     | "BOUNDED_BATCH"
     | "RECIPE_OWNED_INCREMENTAL"
     | "LARGE_REPEATED_STRUCTURE"
-    | "STRUCTURED_TEXTURE_ESCALATION";
+    | "STRUCTURED_TEXTURE_ESCALATION"
+    | "SEMANTIC_METADATA_ONLY"
+    | "NO_CHANGE";
 };
 
 const DIRECT_LIMIT = 8;
@@ -62,7 +67,7 @@ export function selectAuthoringExecutionStrategy(
     };
   }
 
-  if (signals.has_recipe_source && affected > 0 && affected <= BATCH_LIMIT) {
+  if (signals.has_recipe_source && affected > 0) {
     return {
       strategy: "RECIPE",
       affected_native_instances: affected,
@@ -94,5 +99,41 @@ export function selectAuthoringExecutionStrategy(
     affected_native_instances: affected,
     affected_ratio: ratio,
     reason: "BOUNDED_BATCH",
+  };
+}
+
+export function selectRecipeRebuildExecutionStrategy(
+  rebuild: IncrementalRecipeRebuildPlan
+): ExecutionStrategyDecision {
+  const affected = rebuild.metrics.native_affected_count;
+  const nextCount = rebuild.metrics.next_cube_count;
+  const ratio = rebuild.metrics.native_affected_ratio_of_next;
+
+  if (affected > 0) {
+    return {
+      strategy: "RECIPE",
+      affected_native_instances: affected,
+      affected_ratio: ratio,
+      reason: "RECIPE_OWNED_INCREMENTAL",
+    };
+  }
+
+  if (
+    rebuild.metrics.metadata_only_count > 0 ||
+    rebuild.metrics.symmetry_change_count > 0
+  ) {
+    return {
+      strategy: "METADATA_ONLY",
+      affected_native_instances: 0,
+      affected_ratio: nextCount === 0 ? 0 : 0,
+      reason: "SEMANTIC_METADATA_ONLY",
+    };
+  }
+
+  return {
+    strategy: "UNCHANGED",
+    affected_native_instances: 0,
+    affected_ratio: 0,
+    reason: "NO_CHANGE",
   };
 }
