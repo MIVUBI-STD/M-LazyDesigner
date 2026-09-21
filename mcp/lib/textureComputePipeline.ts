@@ -58,6 +58,34 @@ export type TextureComputeStep =
       options?: ErrorDiffusionOptions;
     };
 
+export type TextureComputeExecutionPath =
+  | "full_atlas"
+  | "bounded_roi"
+  | "direct"
+  | "fused_pointwise"
+  | "streaming_spatial"
+  | "nearest_palette"
+  | "ordered_palette"
+  | "ordered_gradient"
+  | "error_diffusion"
+  | "sample_first_palette_check";
+
+export type TextureComputeCostPlan = {
+  optimized_step_count: number;
+  selected_paths: TextureComputeExecutionPath[];
+  estimated_full_pixel_passes: number;
+  estimated_pixel_visits_baseline: number;
+  estimated_pixel_visits_upper_bound: number;
+  estimated_peak_temporary_bytes: number;
+  palette_preflight_checks: number;
+  palette_preflight_sample_visits: number;
+  unique_color_sample: {
+    sampled_pixels: number;
+    unique_colors: number;
+    unique_ratio: number;
+  };
+};
+
 export type TextureComputeReceipt = {
   operation_count: number;
   requested_operation_count: number;
@@ -74,6 +102,8 @@ export type TextureComputeReceipt = {
     scalar_transform_calls: number;
     prepared_generated_ramps: number;
     transient_sample_buffers: number;
+    actual_palette_comparisons: number;
+    planner: TextureComputeCostPlan;
     region: {
       bounded: boolean;
       target_rect: [number, number, number, number];
@@ -432,6 +462,133 @@ function isFusiblePointwiseStep(step: TextureComputeStep): boolean {
   return false;
 }
 
+function estimateUniqueColorSample(
+  pixels: Uint8ClampedArray,
+  maxSamples = 256
+): TextureComputeCostPlan["unique_color_sample"] {
+  const pixelCount = pixels.length / 4;
+  const sampledPixels = Math.min(maxSamples, pixelCount);
+  if (sampledPixels === 0) {
+    return { sampled_pixels: 0, unique_colors: 0, unique_ratio: 0 };
+  }
+  const stride = Math.max(1, Math.floor(pixelCount / sampledPixels));
+  const unique = new Set<number>();
+  let visited = 0;
+  for (
+    let index = 0;
+    index < pixelCount && visited < sampledPixels;
+    index += stride
+  ) {
+    unique.add(rgbaPackedKey(pixels, index * 4));
+    visited += 1;
+  }
+  return {
+    sampled_pixels: visited,
+    unique_colors: unique.size,
+    unique_ratio: visited === 0 ? 0 : unique.size / visited,
+  };
+}
+
+function buildTextureComputeCostPlan(
+  steps: readonly TextureComputeStep[],
+  pixels: Uint8ClampedArray,
+  atlasPixels: number,
+  computeWidth: number,
+  computeHeight: number,
+  targetPixels: number,
+  bounded: boolean
+): TextureComputeCostPlan {
+  const computePixels = computeWidth * computeHeight;
+  const selected = new Set<TextureComputeExecutionPath>();
+  selected.add(bounded ? "bounded_roi" : "full_atlas");
+
+  let executionPasses = 0;
+  let palettePreflightChecks = 0;
+
+  for (let index = 0; index < steps.length; ) {
+    const step = steps[index];
+    if (isFusiblePointwiseStep(step)) {
+      let cursor = index + 1;
+      while (
+        cursor < steps.length &&
+        isFusiblePointwiseStep(steps[cursor])
+      ) {
+        cursor += 1;
+      }
+      if (cursor - index >= 2) {
+        executionPasses += 1;
+        selected.add("fused_pointwise");
+        for (let groupIndex = index; groupIndex < cursor; groupIndex += 1) {
+          const item = steps[groupIndex];
+          if (item.operation === "palettize") {
+            selected.add("nearest_palette");
+            palettePreflightChecks += 1;
+            selected.add("sample_first_palette_check");
+          }
+        }
+        index = cursor;
+        continue;
+      }
+    }
+
+    executionPasses += 1;
+    if (step.operation === "directional_shade") {
+      selected.add("streaming_spatial");
+    } else if (step.operation === "palettize") {
+      const dither = step.options?.dither ?? "none";
+      selected.add(dither === "ordered" ? "ordered_palette" : "nearest_palette");
+      palettePreflightChecks += 1;
+      selected.add("sample_first_palette_check");
+    } else if (step.operation === "palette_diffusion") {
+      selected.add("error_diffusion");
+      palettePreflightChecks += 1;
+      selected.add("sample_first_palette_check");
+    } else if (
+      (step.operation === "gradient_map" ||
+        step.operation === "generated_gradient_map") &&
+      step.options?.mode === "ordered"
+    ) {
+      selected.add("ordered_gradient");
+    } else {
+      selected.add("direct");
+    }
+    index += 1;
+  }
+
+  const sampleVisits =
+    palettePreflightChecks * Math.min(64, computePixels);
+  const baselineVisits =
+    executionPasses * computePixels + sampleVisits;
+  const upperBoundVisits =
+    baselineVisits + palettePreflightChecks * computePixels;
+
+  const hasStreamingSpatial = steps.some(
+    (step) => step.operation === "directional_shade"
+  );
+  const spatialRowsBytes = hasStreamingSpatial
+    ? computeWidth * 3 * Float32Array.BYTES_PER_ELEMENT
+    : 0;
+  const operationPeak =
+    (bounded ? computePixels * 4 : 0) +
+    computePixels * 4 +
+    spatialRowsBytes;
+  const assemblyPeak = bounded
+    ? computePixels * 4 + targetPixels * 4 + atlasPixels * 4
+    : computePixels * 4;
+
+  return {
+    optimized_step_count: steps.length,
+    selected_paths: [...selected],
+    estimated_full_pixel_passes: executionPasses,
+    estimated_pixel_visits_baseline: baselineVisits,
+    estimated_pixel_visits_upper_bound: upperBoundVisits,
+    estimated_peak_temporary_bytes: Math.max(operationPeak, assemblyPeak),
+    palette_preflight_checks: palettePreflightChecks,
+    palette_preflight_sample_visits: sampleVisits,
+    unique_color_sample: estimateUniqueColorSample(pixels),
+  };
+}
+
 function rgbaPackedKey(
   pixels: Uint8ClampedArray,
   offset: number
@@ -659,6 +816,15 @@ export function applyTextureComputePipeline(
   let pixels: Uint8ClampedArray<ArrayBufferLike> = targetRect
     ? extractTextureComputeRect(source, width, computeRect)
     : source;
+  const costPlan = buildTextureComputeCostPlan(
+    plan.steps,
+    pixels,
+    width * height,
+    computeWidth,
+    computeHeight,
+    target.width * target.height,
+    targetRect !== undefined
+  );
   const executed: TextureComputeStep["operation"][] = [];
   const skipped = [...plan.skipped];
   let fusedGroups = 0;
@@ -757,6 +923,9 @@ export function applyTextureComputePipeline(
         scalar_transform_calls: scalarTransformCalls,
         prepared_generated_ramps: preparedGeneratedRamps,
         transient_sample_buffers: 0,
+        actual_palette_comparisons:
+          context.metrics.palette_comparisons,
+        planner: costPlan,
         region: {
           bounded: targetRect !== undefined,
           target_rect: [

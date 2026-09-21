@@ -175,6 +175,13 @@ describe("texture compute request and pipeline", () => {
     expect(result.receipt.execution.fused_groups).toBe(1);
     expect(result.receipt.execution.fused_steps).toBe(2);
     expect(result.receipt.execution.unique_color_transforms).toBeLessThanOrEqual(3);
+    expect(result.receipt.execution.planner.selected_paths).toContain("fused_pointwise");
+    expect(result.receipt.execution.planner.estimated_full_pixel_passes).toBe(1);
+    expect(
+      result.receipt.execution.planner.estimated_pixel_visits_upper_bound
+    ).toBeGreaterThanOrEqual(
+      result.receipt.execution.planner.estimated_pixel_visits_baseline
+    );
   });
 
   test("request-local color cache reuses repeated pixel conversions", () => {
@@ -298,6 +305,8 @@ describe("texture compute request and pipeline", () => {
     expect(Array.from(fused.pixels)).toEqual(Array.from(sequential));
     expect(fused.receipt.execution.prepared_generated_ramps).toBe(1);
     expect(fused.receipt.execution.transient_sample_buffers).toBe(0);
+    expect(fused.receipt.execution.planner.unique_color_sample.sampled_pixels).toBe(32);
+    expect(fused.receipt.execution.actual_palette_comparisons).toBeGreaterThan(0);
   });
 
   test("bounded ROI computes and diffs only the requested target", () => {
@@ -368,6 +377,11 @@ describe("texture compute request and pipeline", () => {
     expect(result.receipt.execution.region.halo).toBe(1);
     expect(result.receipt.execution.region.compute_rect).toEqual([1, 1, 4, 4]);
     expect(result.receipt.execution.region.compute_pixels).toBe(9);
+    expect(result.receipt.execution.planner.selected_paths).toContain("bounded_roi");
+    expect(result.receipt.execution.planner.selected_paths).toContain("streaming_spatial");
+    expect(
+      result.receipt.execution.planner.estimated_peak_temporary_bytes
+    ).toBeGreaterThan(9 * 4);
   });
 
   test("bounded ROI fails closed for coordinate-phase or propagation-sensitive operations", () => {

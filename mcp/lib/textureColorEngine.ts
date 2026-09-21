@@ -50,6 +50,7 @@ export type TextureColorComputeMetrics = {
   nearest_cache_misses: number;
   pair_cache_hits: number;
   pair_cache_misses: number;
+  palette_comparisons: number;
   cache_bypasses: number;
   oklab_peak_entries: number;
   oklab_admission_disabled: boolean;
@@ -133,6 +134,7 @@ export function createTextureColorComputeContext(): TextureColorComputeContext {
       nearest_cache_misses: 0,
       pair_cache_hits: 0,
       pair_cache_misses: 0,
+      palette_comparisons: 0,
       cache_bypasses: 0,
       oklab_peak_entries: 0,
       oklab_admission_disabled: false,
@@ -398,6 +400,7 @@ function nearestPaletteIndexFromLabs(
     throw new Error("Palette must contain at least one color.");
   }
   const target = oklabFor(rgba, context);
+  if (context) context.metrics.palette_comparisons += labs.length;
   let bestIndex = 0;
   let bestDistance = Number.POSITIVE_INFINITY;
   for (let index = 0; index < labs.length; index += 1) {
@@ -437,6 +440,7 @@ function twoNearestPaletteIndicesFromLabs(
     throw new Error("Palette must contain at least one color.");
   }
   const target = oklabFor(rgba, context);
+  if (context) context.metrics.palette_comparisons += labs.length;
   let first = 0;
   let second = 0;
   let firstDistance = Number.POSITIVE_INFINITY;
