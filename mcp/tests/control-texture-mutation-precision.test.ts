@@ -442,6 +442,71 @@ describe("Control Texture mutation precision", () => {
     expect(delta.verification_class).toBe("receipt_only");
   });
 
+  test("rename-only layer metadata batch preserves visual freshness", () => {
+    const delta = buildControlDelta({
+      capability: "texture_layer_management",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "batch_metadata",
+        update_count: 2,
+        recomposed: false,
+        texture: {
+          uuid: "texture-a",
+          name: "atlas",
+          layers_enabled: true,
+          layer_count: 2,
+          selected_layer_uuid: null,
+        },
+        changes: [
+          {
+            layer_uuid: "layer-a",
+            before: { uuid: "layer-a", name: "A" },
+            after: { uuid: "layer-a", name: "A2" },
+          },
+          {
+            layer_uuid: "layer-b",
+            before: { uuid: "layer-b", name: "B" },
+            after: { uuid: "layer-b", name: "B2" },
+          },
+        ],
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual([]);
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("visual layer metadata batch remains Texture-scoped", () => {
+    const delta = buildControlDelta({
+      capability: "texture_layer_management",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "batch_metadata",
+        update_count: 1,
+        recomposed: true,
+        texture: {
+          uuid: "texture-a",
+          name: "atlas",
+          layers_enabled: true,
+          layer_count: 1,
+          selected_layer_uuid: "layer-a",
+        },
+        changes: [],
+      },
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(delta.freshness.stale).toContain("TEXTURE_APPEARANCE");
+    expect(delta.verification_class).toBe("visual");
+  });
+
   test("paint transaction visual verification scopes to the changed atlas region", () => {
     const delta = buildControlDelta({
       capability: "paint_texture_transaction",
