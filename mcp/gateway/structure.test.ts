@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 const WRAPPERS: Readonly<Record<string, string>> = {
   "gateway/contract.ts":
     'export * from "./protocol";\nexport * from "./resultCompaction";\nexport * from "./capabilities/catalog";\nexport * from "./runtime/identity";\nexport * from "./runtime/interruptionPolicy";\n',
+  "gateway/controlReceipt.ts":
+    'export * from "./control/receipt";\n',
   "gateway/capabilityManifest.ts":
     'export * from "./capabilities/manifest";\n',
   "gateway/capabilityIntelligence.ts":
@@ -167,6 +169,15 @@ describe("Gateway structural ownership", () => {
     expect(contract.split("\n").length).toBeLessThan(10);
     expect(contract).not.toContain("function ");
     expect(contract).not.toContain("const GATEWAY_TOOLS");
+  });
+
+  test("Control receipt stays Control-owned", async () => {
+    const index = await Bun.file("gateway/index.ts").text();
+    const receipt = await Bun.file("gateway/control/receipt.ts").text();
+    expect(index).toContain('from "./control/receipt"');
+    expect(index).not.toContain('from "./controlReceipt"');
+    expect(receipt).toContain('from "../capabilities/effects"');
+    expect(receipt).toContain('from "../runtime/projectAffinity"');
   });
 
 });
