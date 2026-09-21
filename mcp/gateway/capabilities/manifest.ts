@@ -277,10 +277,6 @@ export const CAPABILITY_BRANCH_MANIFEST: readonly CapabilityBranchManifestEntry[
       requires: ["project_bound", "texture_available"],
       produces: ["texture_available"],
       invalidates: ["visual_evidence_current"],
-      predecessor: {
-        capability: "create_texture",
-        branch: { field: "type", value: "blank" },
-      },
     },
   },
 
