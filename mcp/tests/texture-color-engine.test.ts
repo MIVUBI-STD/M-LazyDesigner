@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   autoLevelsRgba,
+  createTextureColorComputeContext,
   directionalShadeRgba,
   extractPaletteMedianCut,
   generateShadeRamp,
@@ -322,6 +323,32 @@ describe("texture color intelligence core", () => {
         ])
       );
     }
+  });
+
+  test("per-invocation color caches stay bounded on high-entropy input", () => {
+    const width = 65;
+    const height = 65;
+    const pixels = new Uint8ClampedArray(width * height * 4);
+    for (let index = 0; index < width * height; index += 1) {
+      const offset = index * 4;
+      pixels[offset] = index & 0xff;
+      pixels[offset + 1] = (index >>> 4) & 0xff;
+      pixels[offset + 2] = (index >>> 8) & 0xff;
+      pixels[offset + 3] = 255;
+    }
+    const context = createTextureColorComputeContext();
+    palettizeRgba(
+      pixels,
+      width,
+      height,
+      ["#000000", "#555555", "#AAAAAA", "#FFFFFF"],
+      { dither: "none" },
+      context
+    );
+
+    expect(context.labs.size).toBeLessThanOrEqual(4096);
+    expect(context.nearest.values().next().value?.size ?? 0).toBeLessThanOrEqual(4096);
+    expect(context.metrics.cache_bypasses).toBeGreaterThan(0);
   });
 
   test("color engine rejects unbounded requests before pixel work", () => {
