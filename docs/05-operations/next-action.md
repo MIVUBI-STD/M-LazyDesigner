@@ -248,6 +248,32 @@ This is deliberately pure/stateless. It does not own project state, Runtime stat
 
 Do not turn this into an orchestrator daemon/service or persistent dependency database. Further expansion requires evidence that an existing ownership relationship cannot express a concrete downstream impact.
 
+## Authoring Automation Hardening Audit
+
+Canonical hardening note:
+
+```text
+mcp/docs/AUTHORING_AUTOMATION_HARDENING_AUDIT.md
+```
+
+Remote hardening pass is complete for the current source foundations. Material fixes include:
+
+- UV recipe/native identity bridge + ownership guard;
+- affected-only UV fingerprint scoping;
+- retained padded UV footprint + share-size validation;
+- rotated-source rig anchors fail closed;
+- explicit Euler mirror policy for motion;
+- exact contact boundary keyframes;
+- no silent interpolation loss through create_animation;
+- painted-metal dielectric default;
+- ROI-safe texture refinement contract;
+- procedural RGBA → existing create_texture data-URL adapter;
+- removal of unused speculative curve/rig-diff helpers;
+- orchestration ownership fallback instead of false affected-only precision;
+- benchmark-theater cleanup.
+
+Do not add more remote authoring abstraction before LOCAL_CODE/LIVE_BLOCKBENCH evidence exposes a concrete gap.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
