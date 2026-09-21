@@ -10,6 +10,11 @@ import {
 export const GATEWAY_NAME = "blockit-gateway";
 export const GATEWAY_VERSION = version;
 import { DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
+import {
+  bestSemanticMatchForTool,
+  type CapabilityBranchHint,
+  type CapabilityRoutingContext,
+} from "./capabilityIntelligence";
 export { DEFAULT_RUNTIME_URL };
 
 export const GATEWAY_TOOLS = {
@@ -50,6 +55,8 @@ export type CapabilitySummary = {
   read_only: boolean;
   destructive: boolean;
   idempotent: boolean;
+  branch?: CapabilityBranchHint;
+  why?: string;
 };
 
 const CUBE_UV_CONTINUATION_FIELDS = new Set([
@@ -434,67 +441,51 @@ function exactCapabilityMatch(
   return tools.find((tool) => tool.name.toLowerCase() === normalized) ?? null;
 }
 
-function lexicalCapabilityScore(tool: BackendTool, tokens: string[]): number {
-  if (tokens.length === 0) return 1;
-
-  const name = tool.name.toLowerCase();
-  const searchableName = name.replace(/[_.\/-]+/g, " ");
-  const description = (tool.description ?? "").toLowerCase();
-  const aliases = getCapabilityMetadata(tool.name).searchAliases
-    .join(" ")
-    .toLowerCase();
-  let score = 0;
-
-  for (const token of tokens) {
-    if (name === token) score += 100;
-    else if (name.startsWith(token)) score += 60;
-    else if (name.includes(token)) score += 40;
-    else if (searchableName.includes(token)) score += 30;
-
-    if (aliases.includes(token)) score += 24;
-    if (description.includes(token)) score += 10;
-  }
-
-  return score;
-}
-
+/**
+ * Capability discovery is intentionally branch-aware and state-aware while
+ * remaining local/deterministic. The AI client receives only the best compact
+ * branch hint; full schemas stay deferred behind describe_capability.
+ */
 export function searchCapabilityCatalog(
   tools: readonly BackendTool[],
   query: string,
-  limit: number
+  limit: number,
+  context?: CapabilityRoutingContext
 ): CapabilitySummary[] {
   const exact = exactCapabilityMatch(tools, query);
   if (exact) return [summarizeCapability(exact)];
 
   const boundedLimit = Math.max(1, Math.min(50, Math.trunc(limit)));
-  const tokens = normalizeCapabilityQuery(query)
-    .split(/\s+/)
-    .filter(Boolean);
+  const hasQuery = normalizeCapabilityQuery(query).length > 0;
 
   return tools
     .map((tool) => {
       const metadata = getCapabilityMetadata(tool.name);
       const tier = metadata.tier;
-      const lexicalScore = lexicalCapabilityScore(tool, tokens);
+      const semantic = bestSemanticMatchForTool(tool, query, context);
       return {
         tool,
         tier,
-        lexicalScore,
+        semantic,
         score:
-          lexicalScore +
+          semantic.score +
           CAPABILITY_TIER_BOOST[tier] +
           CAPABILITY_LIFECYCLE_SEARCH_PENALTY[metadata.lifecycle.stage],
       };
     })
-    .filter(({ tier, lexicalScore }) =>
-      tokens.length === 0 ? tier !== "maintenance" : lexicalScore > 0
+    .filter(({ tier, semantic }) =>
+      hasQuery ? semantic.score > 0 : tier !== "maintenance"
     )
     .sort(
       (left, right) =>
         right.score - left.score || left.tool.name.localeCompare(right.tool.name)
     )
     .slice(0, boundedLimit)
-    .map(({ tool }) => summarizeCapability(tool));
+    .map(({ tool, semantic }) => ({
+      ...summarizeCapability(tool),
+      ...(semantic.branch ? { branch: semantic.branch } : {}),
+      ...(hasQuery && semantic.reason ? { why: semantic.reason } : {}),
+    }));
 }
 
 export type InterruptedCallClassification = {
