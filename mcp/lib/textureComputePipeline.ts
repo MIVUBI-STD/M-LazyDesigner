@@ -267,8 +267,6 @@ function rgbaPackedKey(
 
 function applyFusedPointwiseSteps(
   pixels: Uint8ClampedArray,
-  width: number,
-  height: number,
   steps: readonly TextureComputeStep[],
   context: TextureColorComputeContext
 ): {
@@ -430,8 +428,6 @@ export function applyTextureComputePipeline(
       if (group.length >= 2) {
         const fused = applyFusedPointwiseSteps(
           pixels,
-          width,
-          height,
           group,
           context
         );
