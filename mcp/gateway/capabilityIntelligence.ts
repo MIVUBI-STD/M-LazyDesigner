@@ -27,6 +27,7 @@ export type CapabilitySemanticMatch = {
   capability: string;
   branch?: CapabilityBranchHint;
   score: number;
+  matched: boolean;
   reason: string;
 };
 
@@ -327,7 +328,6 @@ function genericCapabilityScore(
   let score = overlap(tokens, name, 14);
   score += overlap(tokens, aliases, 10);
   score += overlap(tokens, description, 4);
-  score += phaseBoost(tool.name, context);
   return score;
 }
 
@@ -340,27 +340,37 @@ export function semanticMatchesForTool(
   const entries = SEMANTICS.filter((entry) => entry.capability === tool.name);
 
   if (entries.length === 0) {
+    const evidence = genericCapabilityScore(tool, queryTokens, context);
     return [{
       capability: tool.name,
-      score: genericCapabilityScore(tool, queryTokens, context),
-      reason: "capability metadata match",
+      score: evidence + phaseBoost(tool.name, context),
+      matched: evidence > 0,
+      reason: evidence > 0 ? "capability metadata match" : "no semantic match",
     }];
   }
 
   return entries.map((entry) => {
     const text = entryText(entry);
-    let score = genericCapabilityScore(tool, queryTokens, context);
-    score += overlap(queryTokens, text.intent, 12);
-    score += overlap(queryTokens, text.verb, 9);
-    score += overlap(queryTokens, text.noun, 7);
-    score += overlap(queryTokens, text.example, 5);
+    const genericEvidence = genericCapabilityScore(tool, queryTokens, context);
+    const intentEvidence = overlap(queryTokens, text.intent, 12);
+    const verbEvidence = overlap(queryTokens, text.verb, 9);
+    const nounEvidence = overlap(queryTokens, text.noun, 7);
+    const exampleEvidence = overlap(queryTokens, text.example, 5);
+    const positiveEvidence =
+      genericEvidence + intentEvidence + verbEvidence + nounEvidence + exampleEvidence;
+    let score = positiveEvidence;
     score -= overlap(queryTokens, text.exclude, 12);
+    if (positiveEvidence > 0) score += phaseBoost(tool.name, context);
 
     const reasonParts: string[] = [];
     if (overlap(queryTokens, text.intent, 1) > 0) reasonParts.push("intent");
     if (overlap(queryTokens, text.verb, 1) > 0) reasonParts.push("action");
     if (overlap(queryTokens, text.noun, 1) > 0) reasonParts.push("object");
-    if (context?.authoringPhase && phaseBoost(tool.name, context) > 0) {
+    if (
+      positiveEvidence > 0 &&
+      context?.authoringPhase &&
+      phaseBoost(tool.name, context) > 0
+    ) {
       reasonParts.push("active phase");
     }
 
@@ -368,7 +378,8 @@ export function semanticMatchesForTool(
       capability: entry.capability,
       ...(entry.branch ? { branch: entry.branch } : {}),
       score,
-      reason: reasonParts.length > 0 ? reasonParts.join("+") : "semantic metadata",
+      matched: positiveEvidence > 0,
+      reason: reasonParts.length > 0 ? reasonParts.join("+") : "no semantic match",
     };
   });
 }
