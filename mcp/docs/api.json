@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-20T20:58:09.142Z",
+  "generatedAt": "2026-09-21T03:00:17.168Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5652,7 +5652,8 @@
               "set_blend_mode",
               "move_layer",
               "rename_layer",
-              "flatten_layers"
+              "flatten_layers",
+              "batch_metadata"
             ],
             "description": "Layer management action."
           },
@@ -5699,6 +5700,55 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 9007199254740991
+          },
+          "updates": {
+            "description": "batch_metadata only: coherent explicit layer metadata updates applied in one Undo/recompose/refresh.",
+            "minItems": 1,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "layer_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "opacity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "blend_mode": {
+                  "type": "string",
+                  "enum": [
+                    "default",
+                    "set_opacity",
+                    "color",
+                    "multiply",
+                    "add",
+                    "darken",
+                    "lighten",
+                    "screen",
+                    "overlay",
+                    "difference",
+                    "alpha_mask"
+                  ]
+                },
+                "target_index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "layer_id"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [

@@ -1793,7 +1793,7 @@ bun run docs:check
       </thead>
       <tbody><tr>
       <td class="col-name">action</td>
-      <td class="col-type">&quot;create_layer&quot; | &quot;delete_layer&quot; | &quot;duplicate_layer&quot; | &quot;merge_down&quot; | &quot;set_opacity&quot; | &quot;set_blend_mode&quot; | &quot;move_layer&quot; | &quot;rename_layer&quot; | &quot;flatten_layers&quot;</td>
+      <td class="col-type">&quot;create_layer&quot; | &quot;delete_layer&quot; | &quot;duplicate_layer&quot; | &quot;merge_down&quot; | &quot;set_opacity&quot; | &quot;set_blend_mode&quot; | &quot;move_layer&quot; | &quot;rename_layer&quot; | &quot;flatten_layers&quot; | &quot;batch_metadata&quot;</td>
       <td><span class="param-required">required</span></td>
       <td class="col-desc">Layer management action.</td>
     </tr><tr>
@@ -1826,6 +1826,11 @@ bun run docs:check
       <td class="col-type">integer</td>
       <td><span class="param-optional">optional</span></td>
       <td class="col-desc">0-based final layer index. <span class="param-meta">[min: 0, max: 9007199254740991]</span></td>
+    </tr><tr>
+      <td class="col-name">updates</td>
+      <td class="col-type">object[]</td>
+      <td><span class="param-optional">optional</span></td>
+      <td class="col-desc">batch_metadata only: coherent explicit layer metadata updates applied in one Undo/recompose/refresh. <span class="param-meta">[minItems: 1, maxItems: 64]</span></td>
     </tr></tbody>
     </table>
       </div>
@@ -2540,7 +2545,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-20T20:58:09.142Z from Zod schemas
+        Generated 2026-09-21T03:00:17.168Z from Zod schemas
       </footer>
     </main>
   </div>
