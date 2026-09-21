@@ -19,4 +19,44 @@ export function runParametricEfficiencyBenchmark() {
   });
 }
 
-if (import.meta.main) console.log(JSON.stringify(runParametricEfficiencyBenchmark(), null, 2));
+export function assertParametricEfficiencyGuard() {
+  const results = runParametricEfficiencyBenchmark();
+  for (const result of results) {
+    if (!result.quality_contract.deterministic) {
+      throw new Error(result.fixture + ": compilation is not deterministic.");
+    }
+    if (!result.quality_contract.finite_geometry) {
+      throw new Error(result.fixture + ": compiled geometry is not finite.");
+    }
+    if (
+      result.quality_contract.compiled_cube_count !==
+      result.quality_contract.expected_cube_count
+    ) {
+      throw new Error(result.fixture + ": compiled Cube count changed.");
+    }
+    if (result.savings.payload_ratio <= 0.25) {
+      throw new Error(
+        result.fixture +
+          ": recipe payload savings fell to " +
+          (result.savings.payload_ratio * 100).toFixed(2) +
+          "%; expected >25%."
+      );
+    }
+    if (
+      result.quality_contract.compiled_cube_count > 32 &&
+      result.savings.manage_cubes_calls <= 0
+    ) {
+      throw new Error(
+        result.fixture +
+          ": large repeated output no longer reduces the static mutation-batch proxy."
+      );
+    }
+  }
+  return results;
+}
+
+if (import.meta.main) {
+  console.log(
+    JSON.stringify(assertParametricEfficiencyGuard(), null, 2)
+  );
+}
