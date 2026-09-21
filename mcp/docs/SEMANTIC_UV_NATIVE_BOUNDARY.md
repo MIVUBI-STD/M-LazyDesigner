@@ -1,0 +1,45 @@
+# Semantic UV Native Boundary
+
+Status: SOURCE IMPLEMENTED / LIVE PROOF PENDING
+Updated: 2026-09-21
+Branch: Local
+
+## Ownership
+
+Semantic UV remains internal intelligence below the existing UV/Texturing owners. No second public UV capability family is registered.
+
+## Native policy
+
+### Per-face UV
+Eligible for semantic planning and affected-only native realization.
+
+### Box UV
+Fail-closed. Box UV is treated as a native net with its own layout semantics. Semantic per-face automation must not silently switch `box_uv=false`. Explicit conversion is a separate user-authorized workflow and is not implemented by this source foundation.
+
+## Source flow
+
+```text
+Authoring Recipe
+→ semantic face islands
+→ density/cohort/share/lock planning
+→ affected-only MaxRects plan
+→ semantic diff
+→ exact native targets + fingerprint
+→ native transaction plan
+→ one affected-only Undo transaction
+```
+
+The transaction rejects stale source fingerprints, duplicate face targets, non-finite UVs, out-of-bounds logical UVs, non-integer logical UV coordinates, Box-UV targets, and concurrent Blockbench edits.
+
+## Proof boundary
+
+REMOTE_GITHUB establishes contracts/source ownership only. It does not establish that Blockbench Undo restores every mutated face/rotation exactly, that save/reopen preserves the semantic result, or that visual seams/reference fidelity are accepted. Those remain LIVE_BLOCKBENCH evidence.
+
+## Explicit conversion residue
+
+A future Box-UV→per-face conversion, if required, must:
+- be an explicit user-authorized mutation;
+- preserve or document texture appearance changes;
+- run in one native Undo transaction;
+- produce a fresh face-UV state before semantic planning;
+- never occur implicitly as a side effect of packing.
