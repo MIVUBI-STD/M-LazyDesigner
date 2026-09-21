@@ -1,8 +1,8 @@
-import {
-  summarizeCapability,
-  type BackendTool,
-  type CapabilitySummary,
-  type JsonRecord,
+import { summarizeCapability } from "../capabilities/catalog";
+import type {
+  BackendTool,
+  CapabilitySummary,
+  JsonRecord,
 } from "../protocol";
 import {
   VANILLA_ENTITY_REFERENCE_TOOL,
