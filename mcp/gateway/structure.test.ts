@@ -29,6 +29,8 @@ const WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./delta/engine";\nexport * from "./delta/projection";\n',
   "gateway/control/capabilityManifest.ts":
     'export * from "./capabilityProjection";\n',
+  "gateway/control/registry.ts":
+    'export { contextForAuthoringDomain } from "./contexts";\nexport { authoringDomainForCapability, sourceOwnerForCapability } from "./sourceOwners";\n',
 };
 
 describe("Gateway structural ownership", () => {
@@ -90,6 +92,18 @@ describe("Gateway structural ownership", () => {
     expect(registry).toContain('from "./capabilityProjection"');
     expect(projection).toContain("getCapabilityMetadata");
     expect(projection).not.toContain("PRIMARY_CAPABILITIES");
+  });
+
+  test("Control registry stays a facade over context and source ownership", async () => {
+    const registry = await Bun.file("gateway/control/registry.ts").text();
+    const packet = await Bun.file("gateway/control/packet.ts").text();
+    const capabilities = await Bun.file("gateway/control/capabilities.ts").text();
+    const deltaEngine = await Bun.file("gateway/control/delta/engine.ts").text();
+
+    expect(registry.split("\n").length).toBeLessThan(5);
+    expect(packet).toContain('from "./contexts"');
+    expect(capabilities).toContain('from "./sourceOwners"');
+    expect(deltaEngine).toContain('from "../sourceOwners"');
   });
 
 });
