@@ -152,6 +152,19 @@ Deliberately deferred until evidence justifies the added complexity:
 - global cross-subsystem diagnostic budgets beyond request-local read reuse — add only if measured full diagnostics still exceed the accepted cost envelope.
 - selection morphology replacement — conditional path only; optimize if real use justifies replacing the current radius-based scan.
 
+## Texture Layer Metadata Batching
+
+`texture_layer_management(action=batch_metadata)` batches coherent rename/opacity/blend/order updates by explicit `layer_id`:
+
+- all targets and final names are preflighted before Undo;
+- duplicate layer targets and all-no-op cohorts are rejected;
+- metadata-only rename batches preserve visual freshness;
+- opacity/blend/order batches perform at most one recomposition;
+- one Undo and one interface refresh cover the cohort;
+- bitmap-structural actions (create/delete/duplicate/merge/flatten) remain separate because their rollback and image semantics differ.
+
+This branch reuses the existing capability; no public tool was added.
+
 ## Acceptance Rules
 
 An efficiency change is acceptable only when:
