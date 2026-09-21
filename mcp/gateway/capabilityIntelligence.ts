@@ -321,8 +321,7 @@ function phaseBoost(capability: string, context?: CapabilityRoutingContext): num
 
 function genericCapabilityScore(
   tool: BackendTool,
-  tokens: Set<string>,
-  context?: CapabilityRoutingContext
+  tokens: Set<string>
 ): number {
   const metadata = getCapabilityMetadata(tool.name);
   const name = new Set(normalize(tool.name.replace(/[_.\/-]+/g, " ")));
@@ -344,7 +343,7 @@ export function semanticMatchesForTool(
   const entries = SEMANTICS.filter((entry) => entry.capability === tool.name);
 
   if (entries.length === 0) {
-    const evidence = genericCapabilityScore(tool, queryTokens, context);
+    const evidence = genericCapabilityScore(tool, queryTokens);
     return [{
       capability: tool.name,
       score: evidence + phaseBoost(tool.name, context),
@@ -355,7 +354,7 @@ export function semanticMatchesForTool(
 
   return entries.map((entry) => {
     const text = entryText(entry);
-    const genericEvidence = genericCapabilityScore(tool, queryTokens, context);
+    const genericEvidence = genericCapabilityScore(tool, queryTokens);
     const intentEvidence = overlap(queryTokens, text.intent, 12);
     const verbEvidence = overlap(queryTokens, text.verb, 9);
     const nounEvidence = overlap(queryTokens, text.noun, 7);
