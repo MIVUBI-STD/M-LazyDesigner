@@ -1022,9 +1022,11 @@ export function directionalShadeRgba(
     nz /= nLength;
 
     const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
-    const light = ambient + (1 - ambient) * diffuse;
     const lab = rgbaToOklab(source);
-    const targetL = clamp01(lab.L * light);
+    // Center Lambert response around the unmodified albedo so directional
+    // shading can create both highlights and shadows instead of only darkening.
+    const shadeDelta = (diffuse - 0.5) * (1 - ambient) * 0.5;
+    const targetL = clamp01(lab.L + shadeDelta);
     const mapped = oklabToRgba(
       { ...lab, L: lab.L + (targetL - lab.L) * strength },
       source[3]
