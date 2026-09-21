@@ -718,14 +718,18 @@ export class BlockitRuntimeBackend {
     limit: number = 4
   ): Promise<CapabilitySummary[]> {
     if (this.hasFreshCatalog()) {
-      return searchCapabilityCatalog([...this.catalog.values()], query, limit);
+      return searchCapabilityCatalog([...this.catalog.values()], query, limit, {
+        authoringPhase: this.authoringPhase,
+      });
     }
 
     return this.runExclusive(async () => {
       if (!this.hasFreshCatalog()) {
         await this.ensureCatalogUnsafe();
       }
-      return searchCapabilityCatalog([...this.catalog.values()], query, limit);
+      return searchCapabilityCatalog([...this.catalog.values()], query, limit, {
+        authoringPhase: this.authoringPhase,
+      });
     });
   }
 
