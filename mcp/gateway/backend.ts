@@ -19,6 +19,7 @@ import {
   type JsonRecord,
 } from "./contract";
 import { GatewayConnectionManager } from "./runtime/connectionManager";
+import { GatewayOperationQueue } from "./runtime/operationQueue";
 import {
   resolveGatewayCapabilityEffects,
   validateGatewayCapabilityEffectReceipt,
@@ -58,9 +59,9 @@ export class BlockitRuntimeBackend {
   private readonly connectTimeoutMs: number;
   private readonly callTimeoutMs: number;
   private readonly closeTimeoutMs: number;
-  private readonly maxQueueDepth: number;
   private readonly catalogLeaseMs: number;
   private readonly connection = new GatewayConnectionManager();
+  private readonly operationQueue: GatewayOperationQueue;
   private client: Client | null = null;
   private connectedProtocolEra: "modern" | "legacy" | null = null;
   private connectedSignature: string | null = null;
@@ -68,17 +69,6 @@ export class BlockitRuntimeBackend {
   private catalogValidatedAt = 0;
   private projectUuid: string | null = null;
   private authoringPhase: BlockitAuthoringPhaseAffinity | null = null;
-  private operationTail: Promise<void> = Promise.resolve();
-  private pendingOperations = 0;
-  private activeOperations = 0;
-  private completedOperations = 0;
-  private failedOperations = 0;
-  private timedOutOperations = 0;
-  private rejectedBusyOperations = 0;
-  private lastQueueWaitMs: number | null = null;
-  private maxQueueWaitMs = 0;
-  private lastOperationDurationMs: number | null = null;
-  private maxOperationDurationMs = 0;
   private lastError: string | null = null;
 
   constructor(
@@ -106,10 +96,12 @@ export class BlockitRuntimeBackend {
       2000,
       100
     );
-    this.maxQueueDepth = normalizeNonNegativeInteger(
-      options.maxQueueDepth ??
-        Number(process.env.BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH ?? 8),
-      8
+    this.operationQueue = new GatewayOperationQueue(
+      normalizeNonNegativeInteger(
+        options.maxQueueDepth ??
+          Number(process.env.BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH ?? 8),
+        8
+      )
     );
     this.catalogLeaseMs = normalizePositiveInteger(
       options.catalogLeaseMs ??
@@ -119,75 +111,8 @@ export class BlockitRuntimeBackend {
     );
   }
 
-  private operationStatus(): GatewayRuntimeStatus["operations"] {
-    return {
-      active: this.activeOperations,
-      queued: Math.max(0, this.pendingOperations - this.activeOperations),
-      max_queue_depth: this.maxQueueDepth,
-      completed: this.completedOperations,
-      failed: this.failedOperations,
-      timed_out: this.timedOutOperations,
-      rejected_busy: this.rejectedBusyOperations,
-      last_queue_wait_ms: this.lastQueueWaitMs,
-      max_queue_wait_ms: this.maxQueueWaitMs,
-      last_duration_ms: this.lastOperationDurationMs,
-      max_duration_ms: this.maxOperationDurationMs,
-    };
-  }
-
   private runExclusive<T>(operation: () => Promise<T>): Promise<T> {
-    if (this.pendingOperations >= this.maxQueueDepth + 1) {
-      this.rejectedBusyOperations += 1;
-      return Promise.reject(
-        new GatewayBackendError(
-          "GATEWAY_BUSY",
-          `LazyDesigner Gateway queue is full (${this.maxQueueDepth} waiting operations maximum). Retry after the current authoring operation completes.`,
-          true,
-          { max_queue_depth: this.maxQueueDepth }
-        )
-      );
-    }
-
-    const enqueuedAt = Date.now();
-    this.pendingOperations += 1;
-
-    const execute = async (): Promise<T> => {
-      const startedAt = Date.now();
-      const queueWaitMs = Math.max(0, startedAt - enqueuedAt);
-      this.lastQueueWaitMs = queueWaitMs;
-      this.maxQueueWaitMs = Math.max(this.maxQueueWaitMs, queueWaitMs);
-      this.activeOperations = 1;
-      try {
-        const result = await operation();
-        this.completedOperations += 1;
-        return result;
-      } catch (error) {
-        this.failedOperations += 1;
-        if (
-          error instanceof GatewayBackendError &&
-          typeof error.details.timeout_ms === "number"
-        ) {
-          this.timedOutOperations += 1;
-        }
-        throw error;
-      } finally {
-        const durationMs = Math.max(0, Date.now() - startedAt);
-        this.lastOperationDurationMs = durationMs;
-        this.maxOperationDurationMs = Math.max(
-          this.maxOperationDurationMs,
-          durationMs
-        );
-        this.activeOperations = 0;
-        this.pendingOperations = Math.max(0, this.pendingOperations - 1);
-      }
-    };
-
-    const run = this.operationTail.then(execute, execute);
-    this.operationTail = run.then(
-      () => undefined,
-      () => undefined
-    );
-    return run;
+    return this.operationQueue.run(operation);
   }
 
   private hasFreshCatalog(now: number = Date.now()): boolean {
@@ -516,7 +441,7 @@ export class BlockitRuntimeBackend {
           health: null,
         },
         connection: this.connection.snapshot(),
-        operations: this.operationStatus(),
+        operations: this.operationQueue.snapshot(),
         last_error: probe.error,
       };
     }
@@ -547,7 +472,7 @@ export class BlockitRuntimeBackend {
         health: probe.health,
       },
       connection: this.connection.snapshot(),
-      operations: this.operationStatus(),
+      operations: this.operationQueue.snapshot(),
       last_error: this.lastError,
     };
   }
