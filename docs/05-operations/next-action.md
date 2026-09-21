@@ -48,20 +48,23 @@ U3 declarative constraint rules          SOURCE IMPLEMENTED
 U4 deterministic MaxRects planner        SOURCE IMPLEMENTED
 U5 stable incremental packing modes      SOURCE IMPLEMENTED
 U6 evidence-driven stack proposals        SOURCE IMPLEMENTED
-U7 Blockbench adapter + atomic apply      NEXT
-U8 native compatibility / invalidation   AFTER U7
-U9 optional xatlas mesh backend           DEFERRED
+U7 native adapter/atomic service           SOURCE IMPLEMENTED
+U7 capability registration                LOCAL_CODE GENERATOR PENDING
+U8 native compatibility/save-reopen       LIVE_BLOCKBENCH PENDING
+U9 optional xatlas mesh backend            DEFERRED
 ```
 
 U0-U5 are planning-only and do not replace existing production UV mutation.
 
 Immediate order:
 
-1. design U7 around native Undo/rollback and existing UV audit ownership;
-2. build the Blockbench adapter as a narrow translation boundary, not planner logic;
-3. add stale-source/fingerprint protection before apply;
-4. do not route current `manage_cubes` or `create_texture(template)` through UV Core until U7 rollback/receipt contracts pass;
-5. keep Blockbench native template generation as compatibility fallback/reference.
+1. keep current production `manage_cubes` and `create_texture(template)` paths unchanged until generator-backed capability registration;
+2. in LOCAL_CODE, register one Texturing Runtime capability `manage_uv_layout` using the already-tested plan/apply request contract;
+3. run the canonical docs generator instead of hand-editing generated API output;
+4. rerun full source gates on the generated-doc SHA;
+5. then use LIVE_BLOCKBENCH to prove Undo/Redo, save/reopen, native audit and visual mapping behavior.
+
+Remote source work below registration is complete enough to stop adding architecture layers without new evidence.
 
 Key invariant:
 

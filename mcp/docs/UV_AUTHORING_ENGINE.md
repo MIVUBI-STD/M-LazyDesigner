@@ -249,8 +249,9 @@ U3 declarative constraints + conflict guard  SOURCE IMPLEMENTED
 U4 deterministic MaxRects planner/scorer     SOURCE IMPLEMENTED
 U5 stable incremental packing modes           SOURCE IMPLEMENTED
 U6 evidence-driven stack proposals             SOURCE IMPLEMENTED
-U7 Blockbench adapter + atomic apply/receipt  NEXT
-U8 native compatibility / invalidation proof AFTER U7
+U7 native adapter / stale guard / atomic apply SOURCE IMPLEMENTED
+U7 Runtime capability registration             LOCAL_CODE GENERATOR PENDING
+U8 native compatibility / save-reopen proof   LIVE_BLOCKBENCH AFTER U7 REGISTRATION
 U9 optional mesh/xatlas investigation         DEFERRED
 ```
 
@@ -278,22 +279,42 @@ Output must be proposals with evidence, not automatic hidden overlap.
 
 ## U7 — Native Apply
 
-Required before production integration:
+SOURCE IMPLEMENTED below the Runtime registration boundary.
 
-1. snapshot exact source UV state;
-2. verify plan still targets the same source state;
-3. translate island placement/orientation into native Box/per-face UV;
-4. one scoped Undo transaction;
-5. rollback on any partial failure;
-6. emit changed island/face receipt;
-7. rerun existing global UV audit;
-8. invalidate downstream texture/seam/variant/PBR evidence only for affected mapping scope.
+Implemented source contracts now include:
 
-No second public Gateway surface is required merely for UV.
+1. exact native UV source snapshot;
+2. content-addressed source fingerprint including geometry bounds relevant to UV density/footprint;
+3. stale-plan rejection before Undo/apply;
+4. plan validation for identity, bounds, fixed islands, overlap and representable rotation;
+5. Box-UV 90-degree rotation rejection because uv_offset cannot represent it;
+6. exact native instruction postconditions;
+7. atomic apply harness with rollback;
+8. scoped UV receipt;
+9. precise downstream mapping/seam/texture/PBR invalidation model;
+10. bounded content-addressed plan registry;
+11. compact dry-run report;
+12. Blockbench read/apply/restore/Undo adapter;
+13. plan/apply request schemas for future manage_uv_layout registration.
+
+The source-ready integration intentionally does NOT register a new Runtime capability yet. Registration changes generated MCP API documentation, and repository policy forbids hand-editing generated outputs. LOCAL_CODE must run the canonical docs generator when the capability is wired into the Texturing family.
+
+Planned runtime surface after that generator-backed integration:
+
+```text
+manage_uv_layout(operation=plan)
+→ returns compact plan_id + source_fingerprint + dry-run report
+
+manage_uv_layout(operation=apply)
+→ requires plan_id + expected_source_fingerprint
+→ atomic native apply + receipt/invalidation
+```
+
+This remains one Runtime capability behind the existing four stable Gateway meta-tools; no fifth Gateway tool is introduced.
 
 ## U8 — Compatibility
 
-Prove:
+Requires LIVE_BLOCKBENCH after generator-backed registration. Prove:
 
 - Box UV state survives save/reopen;
 - per-face mapping survives save/reopen;
