@@ -1,6 +1,6 @@
 # Motion Recipe Engine
 
-Status: SOURCE FOUNDATION
+Status: REMOTE SOURCE BOUNDED / LIVE PROOF PENDING
 Updated: 2026-09-21
 Branch: Local
 
@@ -11,30 +11,34 @@ Replace frame-by-frame animation authoring with:
 ```text
 motion/sequence intent
 → semantic poses + timing
-→ deterministic motion compile
-→ optional curve sampling / mirroring
+→ cyclic phase/contact constraints when explicitly required
 → affected-bone diff
-→ existing create_animation or manage_keyframes contracts
+→ existing create_animation / manage_keyframes / controller contracts
 ```
 
-## Source foundation
+## Current source foundation
 
 - semantic pose recipe;
 - sequence/step timing with optional holds;
 - deterministic duration/loop handling;
-- curve sampling helpers;
-- explicit bone mirroring;
+- cyclic normalized-phase authoring;
+- contact-position constraints with explicit boundary keyframes;
+- motion mirroring with explicit Euler rotation policy instead of guessed handedness;
 - affected-bone diff;
-- compilation to existing `create_animation` for new clips;
-- compilation to existing `manage_keyframes` requests for bounded corrections;
+- compilation to existing `create_animation` for clips without unsupported interpolation metadata;
+- create-plan split that routes interpolation metadata through bounded post-create `manage_keyframes edit` calls;
+- compilation to existing `manage_keyframes create` replacement semantics for bounded keyframe upserts;
+- motion-set to existing controller-recipe linkage;
 - no new public capability.
 
-## Limits
+## Hardening rules
 
-The engine does not infer motion meaning from asset names. It does not claim physically correct gait/contact, reference fidelity, root motion, or accepted animation quality.
+- do not guess mirrored Euler rotation signs;
+- do not claim a contact hold without exact start/end boundary keyframes;
+- do not silently drop interpolation that `create_animation` cannot author;
+- do not add standalone curve-sampling helpers without a concrete execution consumer;
+- do not add a generic animation graph language.
 
-Native keyframe creation, Bezier behavior, playback, Undo/Redo and save/reopen remain LIVE_BLOCKBENCH proof.
+## Proof boundary
 
-## Next source work
-
-Only evidence-driven additions are allowed: pose constraints/contact preservation, phase relationships for cyclic motion, and recipe-to-controller linkage where a concrete workload demonstrates reduced mechanical authoring. Avoid adding a generic animation graph language.
+REMOTE_GITHUB establishes source contracts only. Native keyframe replacement, interpolation/Bezier behavior, playback, Undo/Redo, save/reopen, visual fidelity, correction rounds and timing cost remain LOCAL_CODE/LIVE_BLOCKBENCH proof.
