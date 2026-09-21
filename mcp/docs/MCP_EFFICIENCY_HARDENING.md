@@ -165,6 +165,27 @@ Deliberately deferred until evidence justifies the added complexity:
 
 This branch reuses the existing capability; no public tool was added.
 
+## Texture Diagnostic I/O Hardening
+
+Full texture diagnostics now share one request-local read context across coverage, seam, and PBR analysis.
+
+- cached parent regions serve contained seam/coverage reads without another native `getImageData`;
+- large PBR downsample reads are cached and included in the same diagnostic I/O metrics;
+- one invocation-wide native-pixel ceiling bounds aggregate diagnostic work across subsystems;
+- budget exhaustion is reported as budget evidence, not misclassified as UV/pixel-mapping failure;
+- no diagnostic cache survives the invocation, so external edits cannot reuse stale pixels.
+
+## Texture Layer Transaction Hardening
+
+`texture_layer_management(action=batch_metadata)` batches coherent layer rename/opacity/blend/order updates while keeping bitmap-structural actions separate.
+
+- all layer identities and final names are preflighted before Undo;
+- all-no-op cohorts fail before mutation;
+- rename-only batches preserve visual freshness;
+- opacity/blend/order batches perform at most one recomposition;
+- one Undo and one interface refresh cover the metadata cohort;
+- the branch reuses the existing capability and stays within the normal MCP surface budget.
+
 ## Acceptance Rules
 
 An efficiency change is acceptable only when:
