@@ -221,7 +221,7 @@ describe("BlockIT Gateway contract", () => {
     );
     expect(manageCubes).toBeDefined();
     if (!manageCubes) throw new Error("manage_cubes tool docs missing.");
-    const schema = z.toJSONSchema(manageCubes.parameterSchema, {
+    const schema = z.toJSONSchema(manageCubes.parameters, {
       io: "input",
       target: "draft-2020-12",
       unrepresentable: "any",
