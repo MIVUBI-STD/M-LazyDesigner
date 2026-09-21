@@ -46,7 +46,8 @@ invoke_capability
 ```
 
 The persistent Gateway survives Runtime/plugin reload. Runtime owns Blockbench
-execution. Control owns bounded routing/context projection, not authored truth.
+execution. Canonical Control source is `mcp/gateway/control/`; Navigator remains
+retired. Control owns bounded routing/context projection, not authored truth.
 
 ## Remote Work Boundary
 
@@ -139,7 +140,7 @@ Use `docs/05-operations/local-acceptance-runbook.md` for that residue.
 - no duplicate Desktop project database;
 - no capability reduction solely for context savings;
 - no mutation auto-retry after unknown outcome;
-- no hand-edited generated API/prompt output;
+- No hand-editing generated docs/output; generated API/prompt artifacts remain generator-owned;
 - no speculative abstraction after the current owner can express the need;
 - no claim above the current execution-context proof ceiling.
 
