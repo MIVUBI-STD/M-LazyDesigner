@@ -448,17 +448,23 @@ registerGatewayTool(
           ? localCapabilities.readOnlyHint(capability) === true
           : runtimeInvocation!.readOnly;
       const succeeded = result.isError !== true;
-      capabilityFacts = applyCapabilityGraphOutcome(
-        capabilityFacts,
-        capability,
-        args,
-        succeeded
-      );
       const receipt = deriveControlReceipt(
         capability,
         result.structuredContent,
         succeeded,
         phaseBefore
+      );
+      if (
+        receipt.projectUuid !== null &&
+        receipt.projectUuid !== capabilityFactsProjectUuid
+      ) {
+        synchronizeCapabilityFacts(receipt.projectUuid);
+      }
+      capabilityFacts = applyCapabilityGraphOutcome(
+        capabilityFacts,
+        capability,
+        args,
+        succeeded
       );
       const controlDelta = buildControlDelta({
         capability,
