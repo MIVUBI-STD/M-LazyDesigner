@@ -146,28 +146,64 @@ export function createTextureColorComputeContext(): TextureColorComputeContext {
   };
 }
 
-function rgbaKey(rgba: Rgba): number {
+function rgbaKeyChannels(
+  red: number,
+  green: number,
+  blue: number,
+  alpha: number
+): number {
   return (
-    ((rgba[0] & 0xff) << 24) |
-    ((rgba[1] & 0xff) << 16) |
-    ((rgba[2] & 0xff) << 8) |
-    (rgba[3] & 0xff)
+    ((red & 0xff) << 24) |
+    ((green & 0xff) << 16) |
+    ((blue & 0xff) << 8) |
+    (alpha & 0xff)
   ) >>> 0;
 }
 
-function oklabFor(
-  rgba: Rgba,
+function rgbaKey(rgba: Rgba): number {
+  return rgbaKeyChannels(rgba[0], rgba[1], rgba[2], rgba[3]);
+}
+
+function rgbaChannelsToOklab(
+  red: number,
+  green: number,
+  blue: number
+): Oklab {
+  const r = srgbChannelToLinear(red / 255);
+  const g = srgbChannelToLinear(green / 255);
+  const b = srgbChannelToLinear(blue / 255);
+
+  const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+  const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+  const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+  const lRoot = Math.cbrt(l);
+  const mRoot = Math.cbrt(m);
+  const sRoot = Math.cbrt(s);
+
+  return {
+    L: 0.2104542553 * lRoot + 0.793617785 * mRoot - 0.0040720468 * sRoot,
+    a: 1.9779984951 * lRoot - 2.428592205 * mRoot + 0.4505937099 * sRoot,
+    b: 0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.808675766 * sRoot,
+  };
+}
+
+function oklabForChannels(
+  red: number,
+  green: number,
+  blue: number,
+  alpha: number,
   context?: TextureColorComputeContext
 ): Oklab {
-  if (!context) return rgbaToOklab(rgba);
-  const key = rgbaKey(rgba);
+  if (!context) return rgbaChannelsToOklab(red, green, blue);
+  const key = rgbaKeyChannels(red, green, blue, alpha);
   const cached = context.labs.get(key);
   if (cached) {
     context.metrics.oklab_cache_hits += 1;
     refreshOklabCacheMetrics(context);
     return cached;
   }
-  const lab = rgbaToOklab(rgba);
+  const lab = rgbaChannelsToOklab(red, green, blue);
   context.metrics.oklab_cache_misses += 1;
   maybeDisableOklabAdmission(context);
   if (
@@ -180,6 +216,19 @@ function oklabFor(
     context.metrics.cache_bypasses += 1;
   }
   return lab;
+}
+
+function oklabFor(
+  rgba: Rgba,
+  context?: TextureColorComputeContext
+): Oklab {
+  return oklabForChannels(
+    rgba[0],
+    rgba[1],
+    rgba[2],
+    rgba[3],
+    context
+  );
 }
 
 function preparePalette(
@@ -258,23 +307,7 @@ export function rgbaToHex(
 }
 
 export function rgbaToOklab(rgba: Rgba): Oklab {
-  const r = srgbChannelToLinear(rgba[0] / 255);
-  const g = srgbChannelToLinear(rgba[1] / 255);
-  const b = srgbChannelToLinear(rgba[2] / 255);
-
-  const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
-  const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
-  const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
-
-  const lRoot = Math.cbrt(l);
-  const mRoot = Math.cbrt(m);
-  const sRoot = Math.cbrt(s);
-
-  return {
-    L: 0.2104542553 * lRoot + 0.793617785 * mRoot - 0.0040720468 * sRoot,
-    a: 1.9779984951 * lRoot - 2.428592205 * mRoot + 0.4505937099 * sRoot,
-    b: 0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.808675766 * sRoot,
-  };
+  return rgbaChannelsToOklab(rgba[0], rgba[1], rgba[2]);
 }
 
 export function oklabToRgba(lab: Oklab, alpha = 255): Rgba {
@@ -937,18 +970,6 @@ function requireBitmap(
   }
 }
 
-function copyPixel(
-  pixels: Uint8ClampedArray,
-  offset: number
-): Rgba {
-  return [
-    pixels[offset],
-    pixels[offset + 1],
-    pixels[offset + 2],
-    pixels[offset + 3],
-  ];
-}
-
 function selectKth(values: number[], k: number): number {
   let left = 0;
   let right = values.length - 1;
@@ -1028,7 +1049,13 @@ export function autoLevelsRgba(
   const values: number[] = [];
   for (let offset = 0; offset < pixels.length; offset += 4) {
     if (pixels[offset + 3] === 0) continue;
-    values.push(oklabFor(copyPixel(pixels, offset), context).L);
+    values.push(oklabForChannels(
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+          pixels[offset + 3],
+          context
+        ).L);
   }
   if (values.length === 0) return new Uint8ClampedArray(pixels);
   const low = percentile(values, lowClip / 100);
@@ -1037,12 +1064,18 @@ export function autoLevelsRgba(
 
   const output = new Uint8ClampedArray(pixels);
   for (let offset = 0; offset < pixels.length; offset += 4) {
-    const source = copyPixel(pixels, offset);
-    if (source[3] === 0) continue;
-    const lab = oklabFor(source, context);
+    const alpha = pixels[offset + 3];
+    if (alpha === 0) continue;
+    const lab = oklabForChannels(
+      pixels[offset],
+      pixels[offset + 1],
+      pixels[offset + 2],
+      alpha,
+      context
+    );
     const normalized = clamp01((lab.L - low) / (high - low));
     const adjusted = lab.L + (normalized - lab.L) * strength;
-    const mapped = oklabToRgba({ ...lab, L: adjusted }, source[3]);
+    const mapped = oklabToRgba({ ...lab, L: adjusted }, alpha);
     output[offset] = mapped[0];
     output[offset + 1] = mapped[1];
     output[offset + 2] = mapped[2];
@@ -1149,13 +1182,19 @@ export function posterizeLightnessRgba(
   const output = new Uint8ClampedArray(pixels);
 
   for (let offset = 0; offset < pixels.length; offset += 4) {
-    const source = copyPixel(pixels, offset);
-    if (source[3] === 0) continue;
-    const lab = oklabFor(source, context);
+    const alpha = pixels[offset + 3];
+    if (alpha === 0) continue;
+    const lab = oklabForChannels(
+      pixels[offset],
+      pixels[offset + 1],
+      pixels[offset + 2],
+      alpha,
+      context
+    );
     const quantized = Math.round(lab.L * (levels - 1)) / (levels - 1);
     const mapped = oklabToRgba(
       { ...lab, L: lab.L + (quantized - lab.L) * strength },
-      source[3]
+      alpha
     );
     output[offset] = mapped[0];
     output[offset + 1] = mapped[1];
@@ -1302,7 +1341,13 @@ export function heightFieldFromRgba(
     let value =
       source === "alpha"
         ? pixels[offset + 3] / 255
-        : oklabFor(copyPixel(pixels, offset), context).L;
+        : oklabForChannels(
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+          pixels[offset + 3],
+          context
+        ).L;
     if (invert) value = 1 - value;
     field[index] = clamp01(value);
   }
@@ -1373,7 +1418,13 @@ function fillHeightRow(
     let value =
       source === "alpha"
         ? pixels[offset + 3] / 255
-        : oklabFor(copyPixel(pixels, offset), context).L;
+        : oklabForChannels(
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+          pixels[offset + 3],
+          context
+        ).L;
     if (invert) value = 1 - value;
     target[x] = clamp01(value);
   }
@@ -1441,8 +1492,8 @@ export function directionalShadeRgba(
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const offset = (y * width + x) * 4;
-      const source = copyPixel(pixels, offset);
-      if (source[3] === 0) continue;
+      const alpha = pixels[offset + 3];
+      if (alpha === 0) continue;
 
       const gradient = sobelFromRows(previous, current, next, x);
       let nx = -gradient.dx * depth;
@@ -1454,12 +1505,18 @@ export function directionalShadeRgba(
       nz /= nLength;
 
       const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
-      const lab = oklabFor(source, context);
+      const lab = oklabForChannels(
+        pixels[offset],
+        pixels[offset + 1],
+        pixels[offset + 2],
+        alpha,
+        context
+      );
       const shadeDelta = (diffuse - 0.5) * (1 - ambient) * 0.5;
       const targetL = clamp01(lab.L + shadeDelta);
       const mapped = oklabToRgba(
         { ...lab, L: lab.L + (targetL - lab.L) * strength },
-        source[3]
+        alpha
       );
       output[offset] = mapped[0];
       output[offset + 1] = mapped[1];
@@ -1518,7 +1575,13 @@ export function palettizeErrorDiffusionRgba(
       if (alpha === 0) continue;
 
       const errorIndex = (x + 1) * 3;
-      const sourceLab = oklabFor(copyPixel(pixels, offset), context);
+      const sourceLab = oklabForChannels(
+        pixels[offset],
+        pixels[offset + 1],
+        pixels[offset + 2],
+        alpha,
+        context
+      );
       const adjustedLab: Oklab = {
         L: clamp01(sourceLab.L + current[errorIndex] * strength),
         a: sourceLab.a + current[errorIndex + 1] * strength,

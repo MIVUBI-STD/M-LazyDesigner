@@ -24,6 +24,33 @@ function lightness(hex: string): number {
 }
 
 describe("texture color intelligence core", () => {
+  test("channel-based hot paths preserve cached Oklab output semantics", () => {
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: 32 }, (_, index) => {
+        const value = index % 2 === 0 ? 72 : 184;
+        return [value, value - 12, value - 24, 255];
+      }).flat()
+    );
+    const context = createTextureColorComputeContext();
+    const first = posterizeLightnessRgba(
+      pixels,
+      8,
+      4,
+      { levels: 4, strength: 0.8 },
+      context
+    );
+    const second = posterizeLightnessRgba(
+      pixels,
+      8,
+      4,
+      { levels: 4, strength: 0.8 },
+      context
+    );
+
+    expect(Array.from(second)).toEqual(Array.from(first));
+    expect(context.metrics.oklab_cache_hits).toBeGreaterThan(0);
+  });
+
   test("Oklab conversion round-trips representative sRGB colors", () => {
     for (const color of [
       "#000000",
