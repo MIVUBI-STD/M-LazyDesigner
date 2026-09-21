@@ -206,12 +206,13 @@ const searchInput = z.object({
     .number()
     .int()
     .min(1)
-    .max(50)
+    .max(8)
     .default(CONTROL_ROUTING_POLICY.search_limit),
 });
 
 const describeInput = z.object({
   capability: z.string().min(1),
+  detail: z.enum(["input", "full"]).default("input"),
   branch: z
     .object({
       field: z.string().min(1),
@@ -351,7 +352,7 @@ registerGatewayTool(
   {
     title: "Describe LazyDesigner Capability",
     description:
-      "Returns one capability's exact schema, annotations, lifecycle and domain without a status reread.",
+      "Returns one capability schema; detail=full adds metadata only when needed.",
     inputSchema: describeInput.shape,
     annotations: {
       readOnlyHint: true,
@@ -362,7 +363,7 @@ registerGatewayTool(
   },
   async (rawArgs) => {
     try {
-      const { capability, branch } = describeInput.parse(rawArgs);
+      const { capability, detail, branch } = describeInput.parse(rawArgs);
       const tool =
         (await localCapabilities.describe(capability)) ??
         (await backend.describeCapability(capability));
@@ -380,19 +381,31 @@ registerGatewayTool(
           },
         ],
         structuredContent: {
-          capability: {
-            description: tool.description ?? "",
-            inputSchema: projection.inputSchema,
-            outputSchema: tool.outputSchema ?? null,
-            annotations: tool.annotations ?? {},
-            lifecycle: metadata.lifecycle,
-            execution_class: metadata.executionClass,
-            verification_class: metadata.verificationClass,
-            control: {
-              authoring_domain: authoringDomainForCapability(capability),
-              source_owner: sourceOwnerForCapability(capability),
-            },
-          },
+          capability:
+            detail === "full"
+              ? {
+                  description: tool.description ?? "",
+                  inputSchema: projection.inputSchema,
+                  ...(tool.outputSchema !== undefined
+                    ? { outputSchema: tool.outputSchema }
+                    : {}),
+                  ...(tool.annotations &&
+                  Object.keys(tool.annotations).length > 0
+                    ? { annotations: tool.annotations }
+                    : {}),
+                  lifecycle: metadata.lifecycle,
+                  execution_class: metadata.executionClass,
+                  verification_class: metadata.verificationClass,
+                  control: {
+                    authoring_domain:
+                      authoringDomainForCapability(capability),
+                    source_owner:
+                      sourceOwnerForCapability(capability),
+                  },
+                }
+              : {
+                  inputSchema: projection.inputSchema,
+                },
         },
       };
     } catch (error) {
