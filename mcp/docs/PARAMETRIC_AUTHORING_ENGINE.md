@@ -81,25 +81,27 @@ Serialized bytes are a context/payload proxy, not model token telemetry.
 
 ## G1 — Anchors / Constraints
 
-Next:
+SOURCE IMPLEMENTED with one composable ANCHOR primitive.
+
+ANCHOR expresses source/target anchors per axis plus optional offset. This covers the common high-value cases:
 
 ```text
-ANCHOR
 ALIGN
 CENTER
 FLUSH
 OFFSET
-FIT_BETWEEN
-MATCH_SIZE
-KEEP_DISTANCE
 ATTACH
 ```
+
+The solver is dependency-aware, deterministic, detects cycles, and rejects conflicting axis claims.
+
+FIT_BETWEEN, MATCH_SIZE and explicit KEEP_DISTANCE remain future extensions only when a concrete component workload requires them.
 
 Constraints express relationships. AI should not solve absolute coordinates when the relationship is the durable fact.
 
 ## G2 — Pattern Engine
 
-Source implemented: LINEAR, GRID, RADIAL. Patterns remain lightweight until compile.
+SOURCE IMPLEMENTED: LINEAR, GRID, RADIAL. Patterns remain lightweight until compile.
 
 Mirror is intentionally deferred because symmetry needs explicit semantic counterpart/handedness ownership rather than a naive negative-coordinate copy.
 
@@ -124,3 +126,28 @@ These prove structure/context efficiency only. Wall-clock superiority remains un
 ## Stop Rules
 
 Do not build a generic Houdini clone, add a visual node UI before recipe semantics are stable, duplicate Builder Engine ownership, realize every instance during intermediate planning, make hidden global rebuild the default, use AI to generate hundreds of explicit coordinates when a pattern/constraint describes the same intent, or claim token/wall-clock savings from byte proxies alone.
+
+## Current Remote Benchmark Evidence
+
+Exact-SHA CI fixtures currently show:
+
+```text
+shelf_24_boards
+explicit payload 2603 B → recipe 264 B
+payload proxy reduction ≈ 89.9%
+static mutation batches 1 → 1
+
+panel_grid_10x10
+explicit payload 10227 B → recipe 272 B
+payload proxy reduction ≈ 97.3%
+static mutation batches 4 → 1
+
+radial_64_spokes
+explicit payload 12688 B → recipe 282 B
+payload proxy reduction ≈ 97.8%
+static mutation batches 2 → 1
+```
+
+These are repository-owned serialized-byte and static operation proxies. They do not prove wall-clock, memory, provider token, or accepted-result superiority.
+
+The benchmark is now a permanent MCP Verify gate and fails if representative repeated fixtures lose >25% payload reduction, determinism, finite geometry, exact output count, or large-output batch reduction.

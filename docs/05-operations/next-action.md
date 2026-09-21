@@ -28,53 +28,40 @@ Core invariants:
 - mutation uncertainty is fail-closed; no unsafe auto-retry.
 - no capability reduction solely for context savings.
 
-## Active Development — UV Authoring Engine
+## Active Development — Parametric Authoring Engine
 
 Architecture owner:
 
 ```text
-mcp/docs/UV_AUTHORING_ENGINE.md
+mcp/docs/PARAMETRIC_AUTHORING_ENGINE.md
 ```
 
-The previous Texture Compute C1-C5 / AI-efficiency source hardening remains retained and must not be restarted without new evidence.
+UV U0-U7 source foundation remains retained. Its remaining registration/native proof stays LOCAL_CODE/LIVE_BLOCKBENCH and must not block independent parametric-source work.
 
-Current UV source status:
+Current parametric status:
 
 ```text
-U0 core contracts                        SOURCE IMPLEMENTED
-U1 deterministic island extraction       SOURCE IMPLEMENTED
-U2 physical-pixel / density planning     SOURCE IMPLEMENTED
-U3 declarative constraint rules          SOURCE IMPLEMENTED
-U4 deterministic MaxRects planner        SOURCE IMPLEMENTED
-U5 stable incremental packing modes      SOURCE IMPLEMENTED
-U6 evidence-driven stack proposals        SOURCE IMPLEMENTED
-U7 native adapter/atomic service           SOURCE IMPLEMENTED
-U7 capability registration                LOCAL_CODE GENERATOR PENDING
-U8 native compatibility/save-reopen       LIVE_BLOCKBENCH PENDING
-U9 optional xatlas mesh backend            DEFERRED
+G0 recipe contracts + proof metrics          SOURCE IMPLEMENTED
+G1 relational anchor constraint solver       SOURCE IMPLEMENTED
+G2 LINEAR / GRID / RADIAL patterns           SOURCE IMPLEMENTED
+G3 symmetry relationships                    NEXT
+G4 parametric components                     AFTER G3
+G5 dependency-aware incremental rebuild      AFTER G4
+native recipe apply                          AFTER G3-G5 contracts stabilize
 ```
 
-U0-U5 are planning-only and do not replace existing production UV mutation.
+Permanent CI proof now guards repeated-structure payload/call efficiency. Current exact fixtures show ~89.9–97.8% serialized payload-proxy reduction; >32-Cube fixtures reduce static mutation batches by 50–75%. These are not wall-clock or token claims.
 
 Immediate order:
 
-1. keep current production `manage_cubes` and `create_texture(template)` paths unchanged until generator-backed capability registration;
-2. in LOCAL_CODE, register one Texturing Runtime capability `manage_uv_layout` using the already-tested plan/apply request contract;
-3. run the canonical docs generator instead of hand-editing generated API output;
-4. rerun full source gates on the generated-doc SHA;
-5. then use LIVE_BLOCKBENCH to prove Undo/Redo, save/reopen, native audit and visual mapping behavior.
+1. build G3 symmetry as explicit semantic counterpart relationships, not naive coordinate mirroring;
+2. build G4 components from prototypes + anchors + constraints + patterns;
+3. add dependency graph and affected-only recompilation before any native recipe mutation surface;
+4. preserve lightweight recipe instances until final realization;
+5. require LOCAL_CODE wall-clock/memory benchmarks before claiming runtime speed;
+6. require LIVE_BLOCKBENCH accepted-result/correction evidence before claiming end-to-end quality superiority.
 
-Remote source work below registration is complete enough to stop adding architecture layers without new evidence.
-
-Key invariant:
-
-```text
-AI/UI declares UV intent
-→ UV Core computes deterministic coordinates
-→ native adapter applies only an explicit plan
-```
-
-Do not create another public Gateway tool only for UV. Do not put packing policy inside `manage_cubes`. Do not integrate xatlas/GPU/WASM before Cube-centric planning and native apply are proven.
+Do not replace Builder Engine, do not add a visual node editor, and do not make AI emit explicit Cube coordinates when a pattern/constraint expresses the same intent.
 
 ## Project/Desktop State — Do Not Redo
 
