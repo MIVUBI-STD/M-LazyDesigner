@@ -253,6 +253,10 @@ const SEMANTICS: readonly CapabilitySemanticEntry[] = [
 const SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   proportions: ["size", "dimensions", "scale", "length", "width", "height", "thickness"],
   resize: ["scale", "dimensions", "proportions", "bigger", "smaller", "taller", "shorter", "wider", "narrower"],
+  taller: ["resize", "lengthen", "height", "proportions"],
+  shorter: ["resize", "shorten", "height", "proportions"],
+  wider: ["resize", "width", "proportions"],
+  narrower: ["resize", "width", "proportions"],
   move: ["position", "translate", "shift", "geser"],
   rotate: ["rotation", "turn"],
   texture: ["paint", "color", "colour", "pixel", "material"],
