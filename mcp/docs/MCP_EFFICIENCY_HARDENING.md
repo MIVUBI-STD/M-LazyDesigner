@@ -206,6 +206,18 @@ Current compute primitives include:
 
 The public MCP surface exposes only compact operation names plus bounded args; detailed validation stays Runtime-owned. Compute runs inside `paint_texture_transaction`, so revision protection, one Undo, dirty-region write, postcondition proof, evidence, and optional PNG output remain owned by the existing transaction instead of a second mutation path.
 
+## Gateway AI-Context Progressive Disclosure
+
+The four-tool Gateway is the model-facing boundary. Token/context efficiency is therefore measured at the routed Gateway path, not inferred only from the internal Runtime catalog.
+
+- `search_capabilities` defaults to four results and caps one search at eight; results expose capability identity, domain/tier, safety flags, and a bounded hint rather than repeating full tool descriptions.
+- `describe_capability` defaults to input-schema-only because schema uncertainty is its normal routing purpose; `detail=full` is explicit when lifecycle, annotations, output schema, or ownership metadata is actually decision-changing.
+- Gateway status/tool prose stays concise; Control structured projections remain authoritative.
+- Repo-owned common-prefix and specialist bytes remain separate from dynamic search/describe/invoke payloads. Byte measurements are regression proxies, never claims about provider token billing.
+- Instruction slimming must preserve canonical safety/ownership invariants; repeated prose may be removed only when another loaded owner remains authoritative.
+
+This follows progressive disclosure: known capability → invoke directly; unknown capability → bounded search; real schema uncertainty → focused describe.
+
 ## Acceptance Rules
 
 An efficiency change is acceptable only when:
