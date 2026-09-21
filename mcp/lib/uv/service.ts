@@ -25,8 +25,8 @@ import type { UvApplyAdapter } from "@/lib/uv/transaction";
 import { UvPlanRegistry } from "@/lib/uv/planRegistry";
 
 export type UvLayoutPlanningInput = {
-  bitmap_width: number;
-  bitmap_height: number;
+  bitmap_width?: number;
+  bitmap_height?: number;
   mode?: UvPackingMode;
   island_ids?: readonly string[];
   default_target_pixels_per_model_unit?: number;
@@ -59,6 +59,10 @@ function nativeCubesForCore(
 
 export type UvLayoutServiceDependencies = {
   readSource(): Promise<UvNativeSourceSnapshot> | UvNativeSourceSnapshot;
+  readBitmapDimensions?():
+    | Promise<{ width: number; height: number } | null>
+    | { width: number; height: number }
+    | null;
   createApplyAdapter(): UvApplyAdapter;
 };
 
@@ -70,6 +74,29 @@ export function createUvLayoutService(
     async plan(input: UvLayoutPlanningInput) {
       const native = await dependencies.readSource();
       const sourceFingerprint = fingerprintUvNativeSource(native);
+
+      const automaticBitmap =
+        await dependencies.readBitmapDimensions?.();
+      const bitmapWidth =
+        input.bitmap_width ?? automaticBitmap?.width;
+      const bitmapHeight =
+        input.bitmap_height ?? automaticBitmap?.height;
+      if (
+        bitmapWidth === undefined ||
+        bitmapHeight === undefined
+      ) {
+        throw new Error(
+          "UV_BITMAP_SCALE_REQUIRED: no established base-color atlas was found. Provide bitmap_width and bitmap_height for this pre-atlas plan, or create/resolve the base atlas first."
+        );
+      }
+      if (
+        (input.bitmap_width === undefined) !==
+        (input.bitmap_height === undefined)
+      ) {
+        throw new Error(
+          "UV bitmap override requires bitmap_width and bitmap_height together."
+        );
+      }
 
       const coreCubes = nativeCubesForCore(native);
       const base = buildUvLayoutSnapshot(
@@ -88,8 +115,8 @@ export function createUvLayoutService(
         constraintResolverFromAssignments(assignments)
       );
       const density = planUvDensity(constrained, {
-        bitmap_width: input.bitmap_width,
-        bitmap_height: input.bitmap_height,
+        bitmap_width: bitmapWidth,
+        bitmap_height: bitmapHeight,
         default_target_pixels_per_model_unit:
           input.default_target_pixels_per_model_unit ?? 1,
       });
@@ -102,8 +129,8 @@ export function createUvLayoutService(
           ])
       );
       const plan = planUvPacking(constrained, {
-        bitmap_width: input.bitmap_width,
-        bitmap_height: input.bitmap_height,
+        bitmap_width: bitmapWidth,
+        bitmap_height: bitmapHeight,
         mode: input.mode,
         island_ids: input.island_ids,
         size_overrides: sizeOverrides,

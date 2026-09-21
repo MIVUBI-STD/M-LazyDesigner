@@ -135,6 +135,67 @@ describe("UV plan registry and service", () => {
     expect(applied.invalidation.geometry_structure.stale).toBe(false);
   });
 
+  test("service automatically derives bitmap dimensions when the runtime provides one base atlas", async () => {
+    let native = nativeFixture();
+    const service = createUvLayoutService({
+      readSource: () => native,
+      readBitmapDimensions: () => ({
+        width: 64,
+        height: 64,
+      }),
+      createApplyAdapter: () => ({
+        readSource: () => native,
+        apply: (instructions) => {
+          native = structuredClone(native);
+          for (const instruction of instructions) {
+            if (instruction.kind !== "FACE_UV") continue;
+            const cube = native.cubes.find(
+              (entry) => entry.uuid === instruction.cube_uuid
+            )!;
+            const face = cube.faces.find(
+              (entry) => entry.face === instruction.face
+            )!;
+            face.uv = [...instruction.uv];
+            face.rotation = instruction.rotation;
+          }
+        },
+        restore: (snapshot) => {
+          native = structuredClone(snapshot);
+        },
+      }),
+    });
+
+    const planned = await service.plan({
+      mode: "REPACK_SELECTED",
+      island_ids: ["face:b:north"],
+      constraints: [{
+        id: "no-padding",
+        selector: { cube_uuids: ["b"] },
+        constraints: { padding_pixels: 0 },
+      }],
+    });
+    expect(planned.report.execution).toBe("planned");
+  });
+
+  test("service fails closed when neither base-atlas dimensions nor an explicit pre-atlas scale exists", async () => {
+    const native = nativeFixture();
+    const service = createUvLayoutService({
+      readSource: () => native,
+      readBitmapDimensions: () => null,
+      createApplyAdapter: () => ({
+        readSource: () => native,
+        apply: () => {},
+        restore: () => {},
+      }),
+    });
+    await expect(
+      service.plan({
+        mode: "REPACK_SELECTED",
+        island_ids: ["face:b:north"],
+      })
+    ).rejects.toThrow(/UV_BITMAP_SCALE_REQUIRED/);
+  });
+
   test("geometry bounds participate in stale source fingerprint", async () => {
     const initial = nativeFixture();
     let native = initial;

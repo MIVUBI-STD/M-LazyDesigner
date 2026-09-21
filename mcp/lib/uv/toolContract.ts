@@ -86,8 +86,8 @@ export const uvConstraintRuleSchema = z
 export const uvLayoutPlanRequestSchema = z
   .object({
     operation: z.literal("plan"),
-    bitmap_width: z.number().int().min(1).max(4096),
-    bitmap_height: z.number().int().min(1).max(4096),
+    bitmap_width: z.number().int().min(1).max(4096).optional(),
+    bitmap_height: z.number().int().min(1).max(4096).optional(),
     mode: z
       .enum([
         "REPACK_ALL",
@@ -115,6 +115,17 @@ export const uvLayoutPlanRequestSchema = z
   })
   .strict()
   .superRefine((value, ctx) => {
+    if (
+      (value.bitmap_width === undefined) !==
+      (value.bitmap_height === undefined)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bitmap_width"],
+        message:
+          "bitmap_width and bitmap_height must be provided together when overriding automatic base-atlas dimensions.",
+      });
+    }
     if (
       value.mode !== "REPACK_ALL" &&
       (!value.island_ids || value.island_ids.length === 0)
