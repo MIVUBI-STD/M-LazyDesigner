@@ -13,6 +13,14 @@ type CapabilityProjection = Record<string, Record<string, readonly string[]>>;
  * every branch of a consolidated capability when it already knows the branch.
  */
 const CAPABILITY_BRANCH_FIELDS: Record<string, CapabilityProjection> = {
+  manage_cubes: {
+    operation: {
+      create: ["operation"],
+      update: ["operation"],
+      batch_update: ["operation"],
+      simplify: ["operation"],
+    },
+  },
   inspect_elements: {
     mode: {
       outline: ["mode", "include_cubes", "max_depth", "max_nodes"],
