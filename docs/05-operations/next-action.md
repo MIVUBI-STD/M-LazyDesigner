@@ -311,6 +311,43 @@ Safety boundaries:
 
 Do not expand these foundations further before LOCAL_CODE benchmarks/typecheck and LIVE_BLOCKBENCH evidence establish a concrete gap.
 
+## Pre-Local Operator-Automation Hardening
+
+Remote static audit after internal wiring found and fixed two material issues:
+
+```text
+dead-intelligence risk        FIXED
+recipe/native divergence risk FIXED
+```
+
+Current ownership path:
+
+```text
+semantic geometry preview
+→ authoringRecipe/service
+→ recipe rewrite when source-safe
+→ existing incremental recipe transaction
+
+geometry-aware material
+→ texture/nativePlan
+→ exact changed-pixel grouping
+→ existing paint_texture_transaction operations
+
+functional rig inference
+→ rig/toolCompiler
+→ existing add_group/bone rig ownership
+
+secondary motion
+→ animation/toolCompiler
+→ existing create_animation + manage_keyframes plan
+```
+
+Semantic geometry preview output is explicitly marked `RECIPE_REWRITE_REQUIRED`; it must never be applied directly to native Cubes because recipe source remains authoritative. The bounded source rewrite currently supports only ownership-preserving cases and fails closed otherwise.
+
+Geometry-aware texture compilation now reaches the existing paint transaction contract without adding a new public texture mutation tool. Exact color-group operations are capped at 64 and fail closed when the bounded payload budget would be exceeded.
+
+Remote source still does not prove typecheck, runtime execution, Undo/Redo, persistence, viewport behavior, or visual quality. Those remain LOCAL_CODE/LIVE_BLOCKBENCH evidence.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
