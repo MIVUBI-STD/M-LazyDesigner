@@ -81,7 +81,7 @@
     "benchmark:material-recipe": "bun run ./scripts/benchmark-material-recipe.ts",
     "benchmark:authoring-orchestration": "bun run ./scripts/benchmark-authoring-orchestration.ts",
     "eval:capability-intelligence": "bun run ./scripts/evaluate-capability-intelligence.ts",
-    "test:capability-manifest": "bun test gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts"
+    "test:capability-manifest": "bun test lib/capabilities/manifest.test.ts gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
