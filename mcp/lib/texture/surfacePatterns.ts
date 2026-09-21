@@ -35,6 +35,9 @@ export function renderSurfacePattern(width:number,height:number,pattern:SurfaceP
   requirePositiveInt(pattern.spacing_x,"Panel spacing_x");
   requirePositiveInt(pattern.spacing_y,"Panel spacing_y");
   requirePositiveInt(pattern.line_width,"Panel line_width");
+  if(pattern.line_width>Math.min(pattern.spacing_x,pattern.spacing_y)){
+    throw new Error("Panel line_width cannot exceed the smaller panel spacing.");
+  }
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const line=(x%pattern.spacing_x)<pattern.line_width||(y%pattern.spacing_y)<pattern.line_width;
     setPixel(out,width,x,y,line?pattern.line:pattern.base);

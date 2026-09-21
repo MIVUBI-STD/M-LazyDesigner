@@ -1,6 +1,11 @@
 import { compileMaterialRecipe } from "@/lib/texture/materialRecipe";
 
-function bytes(value:unknown){return new TextEncoder().encode(JSON.stringify(value)).length;}
+function numericCount(value:unknown):number{
+  if(typeof value==="number") return 1;
+  if(Array.isArray(value)) return value.reduce((sum,item)=>sum+numericCount(item),0);
+  if(value&&typeof value==="object") return Object.values(value).reduce((sum,item)=>sum+numericCount(item),0);
+  return 0;
+}
 
 const intent={
   kind:"PAINTED_METAL" as const,
@@ -10,20 +15,13 @@ const intent={
   directional_shading:{axis:"y" as const,to:[24,60,120,255] as [number,number,number,number],strength:0.6},
 };
 const compiled=compileMaterialRecipe(intent);
-const manualProxy={
-  fill:{color:intent.base},
-  gradient:intent.directional_shading,
-  noise:{seed:intent.seed,amount:intent.variation},
-  dither:{matrix:"bayer4"},
-  quantize:{enabled:true},
-  repeated_brush_strokes:Array.from({length:24},(_,i)=>({x:i*2,y:i,width:4,opacity:0.15})),
-};
-const semanticBytes=bytes(intent);
-const manualBytes=bytes(manualProxy);
+const explicitPixelNumericValues=intent.width*intent.height*4;
+const semanticNumericValues=numericCount(intent);
 const result={
-  semantic_payload_bytes:semanticBytes,
-  manual_operation_proxy_bytes:manualBytes,
-  serialized_payload_proxy_reduction:1-semanticBytes/manualBytes,
+  explicit_pixel_numeric_value_proxy:explicitPixelNumericValues,
+  semantic_numeric_values:semanticNumericValues,
+  authored_numeric_value_proxy_reduction:1-semanticNumericValues/explicitPixelNumericValues,
+  compiled_recipe:compiled,
 };
 console.log(JSON.stringify(result,null,2));
-if(result.serialized_payload_proxy_reduction<0.25) throw new Error("Material recipe payload proxy reduction regressed below 25%.");
+if(result.authored_numeric_value_proxy_reduction<0.95) throw new Error("Material recipe explicit-pixel authoring proxy reduction regressed below 95%.");

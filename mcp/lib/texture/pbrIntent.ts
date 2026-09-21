@@ -18,7 +18,9 @@ function byte(value:number,label:string):number{
 export function compilePbrIntent(intent:PbrIntent){
   if(!intent.name.trim()) throw new Error("PBR intent requires a non-empty material name.");
   const defaults:Record<PbrIntentKind,{m:number;e:number;r:number;s:number}>={
-    PAINTED_METAL:{m:0.75,e:0,r:0.45,s:0},
+    // The visible paint layer is dielectric. Chipped/exposed metal should be
+    // authored through a texture/channel mask rather than a global metalness.
+    PAINTED_METAL:{m:0,e:0,r:0.45,s:0},
     BARE_METAL:{m:1,e:0,r:0.3,s:0},
     WOOD:{m:0,e:0,r:0.65,s:0},
     FABRIC:{m:0,e:0,r:0.85,s:0.05},
