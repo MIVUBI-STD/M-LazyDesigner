@@ -27,4 +27,17 @@ describe("cross-domain authoring impact",()=>{
       "GEOMETRY","UV","RIG","ANIMATION","TEXTURE"
     ]);
   });
+
+  test("removal-only change invalidates downstream semantic layout without inventing deleted face IDs",()=>{
+    const previous=recipe(4);
+    const next:AuthoringRecipe={
+      ...previous,
+      patterns:[{kind:"LINEAR",id:"p",prototype_id:"panel",count:1,axis:"X",spacing:6,semantic_group:"metal"}],
+    };
+    const impact=planAuthoringImpact(previous,next);
+    expect(impact.geometry.remove_instance_ids).toHaveLength(1);
+    expect(impact.uv.scope).toBe("FULL_SEMANTIC_REPLAN");
+    expect(impact.uv.affected_island_ids).toEqual([]);
+    expect(impact.texture.reason).toBe("UV_CHANGED");
+  });
 });
