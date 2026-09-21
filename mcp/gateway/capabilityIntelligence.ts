@@ -259,6 +259,8 @@ const SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   uv: ["mapping", "unwrap", "island", "atlas", "texel"],
   animation: ["animate", "timeline", "keyframe", "motion"],
   hierarchy: ["parent", "reparent", "bone", "group"],
+  under: ["parent", "reparent", "hierarchy"],
+  child: ["parent", "reparent", "hierarchy"],
   inspect: ["check", "read", "measure", "find"],
   create: ["add", "make", "build", "new"],
 };
