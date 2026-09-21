@@ -15,6 +15,9 @@ describe("Astra local-measurement preflight", () => {
     expect(source).toContain("REMOTE_GITHUB_PREP_ONLY");
     expect(source).toContain("token_claim_available_now: false");
     expect(source).toContain("never synthesize total_tokens from components");
+    expect(source).toContain("record task_class and accepted_result");
+    expect(source).toContain("unique model_events.event_id");
+    expect(source).toContain("never double-count duplicated response/compaction events");
     expect(source).toContain("capture wall/accepted-result/model/tool latency");
     expect(source).toContain("never invent one aggregate efficiency score");
     expect(source).toContain("session_policy_template");
