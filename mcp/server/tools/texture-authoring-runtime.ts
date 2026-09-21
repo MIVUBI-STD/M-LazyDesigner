@@ -2,7 +2,9 @@
 /// <reference types="blockbench-types" />
 import {
   ensureTextureDiagnosticInvocationContext,
+  isTextureDiagnosticBudgetExceeded,
   readTextureDiagnosticRegion,
+  readTextureDiagnosticSample,
   textureDiagnosticReadMetrics,
 } from "@/lib/textureDiagnosticReadContext";
 
@@ -141,7 +143,8 @@ function pixelAt(
       1
     ).pixels;
     return [pixel[0], pixel[1], pixel[2], pixel[3]];
-  } catch {
+  } catch (error) {
+    if (isTextureDiagnosticBudgetExceeded(error)) throw error;
     return null;
   }
 }
@@ -280,8 +283,12 @@ function seamContinuityRuntime(context?: unknown) {
         }
         edges.push(...faceEdges);
         scannedFaces += 1;
-      } catch {
-        skippedMapping += 1;
+      } catch (error) {
+        if (isTextureDiagnosticBudgetExceeded(error)) {
+          budgetSkipped += 1;
+        } else {
+          skippedMapping += 1;
+        }
       }
     }
   }
@@ -335,25 +342,38 @@ function sampleTexture(
     const scale = Math.sqrt(PBR_SAMPLE_BUDGET / total);
     const targetWidth = Math.max(1, Math.floor(width * scale));
     const targetHeight = Math.max(1, Math.floor(height * scale));
-    const canvas = document.createElement("canvas");
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(
-      texture.canvas,
-      0,
-      0,
-      width,
-      height,
-      0,
-      0,
+    return readTextureDiagnosticSample(
+      context,
+      texture,
       targetWidth,
-      targetHeight
-    );
-    return ctx.getImageData(0, 0, targetWidth, targetHeight).data;
-  } catch {
+      targetHeight,
+      () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          throw new Error("Texture PBR diagnostic sample canvas is unavailable.");
+        }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(
+          texture.canvas,
+          0,
+          0,
+          width,
+          height,
+          0,
+          0,
+          targetWidth,
+          targetHeight
+        );
+        return new Uint8ClampedArray(
+          ctx.getImageData(0, 0, targetWidth, targetHeight).data
+        );
+      }
+    ).pixels;
+  } catch (error) {
+    if (isTextureDiagnosticBudgetExceeded(error)) throw error;
     return null;
   }
 }
@@ -368,6 +388,7 @@ function pbrContentRuntime(context?: unknown) {
 
   const inputs: PbrContentTextureInput[] = [];
   const unavailable: Array<{ uuid: string; name: string; channel: string }> = [];
+  let budgetSkipped = 0;
 
   for (const group of TextureGroup.all ?? []) {
     if (group.is_material !== true) continue;
@@ -378,7 +399,16 @@ function pbrContentRuntime(context?: unknown) {
       if (channel !== "normal" && channel !== "height" && channel !== "mer") {
         continue;
       }
-      const pixels = sampleTexture(context, texture);
+      let pixels: Uint8ClampedArray | null = null;
+      try {
+        pixels = sampleTexture(context, texture);
+      } catch (error) {
+        if (isTextureDiagnosticBudgetExceeded(error)) {
+          budgetSkipped += 1;
+          continue;
+        }
+        throw error;
+      }
       if (!pixels) {
         unavailable.push({
           uuid: texture.uuid,
@@ -405,6 +435,7 @@ function pbrContentRuntime(context?: unknown) {
       bounded: true,
       sample_budget_per_texture: PBR_SAMPLE_BUDGET,
       active_pbr_only: true,
+      budget_skipped_textures: budgetSkipped,
     },
   };
 }
