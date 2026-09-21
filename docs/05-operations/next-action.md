@@ -217,6 +217,37 @@ No procedural-material public tool, visual node editor, second Painter, or backg
 
 Further source expansion must be evidence-driven. Do not add a large material-node graph, generalized shader language, or duplicated bitmap mutation engine before local/live evidence demonstrates a concrete gap.
 
+## Cross-Domain Authoring Impact Planner — Remote Source Status
+
+Remote source now includes a stateless planning layer:
+
+```text
+Parametric compiled diff
+→ geometry affected instances
+→ UV affected islands / semantic replan
+→ rig affected instances
+→ animation affected instances
+→ texture stale reason/scope
+→ existing Control freshness vocabulary
+→ minimal verification task set
+```
+
+Implemented:
+
+```text
+cross-domain impact plan         IMPLEMENTED
+removal-only invalidation        IMPLEMENTED
+execution-order projection       IMPLEMENTED
+freshness-scope projection       IMPLEMENTED
+minimal verification plan        IMPLEMENTED
+public-surface preservation      IMPLEMENTED
+static orchestration benchmark   IMPLEMENTED / LOCAL RUN PENDING
+```
+
+This is deliberately pure/stateless. It does not own project state, Runtime state, Control state, a dependency graph database, or mutation execution. Control remains the freshness authority after real capability receipts.
+
+Do not turn this into an orchestrator daemon/service or persistent dependency database. Further expansion requires evidence that an existing ownership relationship cannot express a concrete downstream impact.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
