@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { UvPlanRegistry } from "@/lib/uv/planRegistry";
 import type { UvLayoutPlan } from "@/lib/uv/contracts";
+import type { UvDryRunReport } from "@/lib/uv/dryRun";
 import { createUvLayoutService } from "@/lib/uv/service";
 import {
   buildUvNativeSourceSnapshot,
@@ -72,7 +73,7 @@ describe("UV plan registry and service", () => {
       stack_proposals: [],
       hard_violations: [],
       apply_allowed: true,
-    } as const;
+    } as unknown as UvDryRunReport;
 
     const first = registry.put(fakePlan, "sha256:a", fakeReport);
     const same = registry.put(fakePlan, "sha256:a", fakeReport);
