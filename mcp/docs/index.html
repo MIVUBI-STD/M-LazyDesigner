@@ -1731,7 +1731,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Texture Selection</p>
-      <p class="card-desc">Creates, modifies, or manipulates texture selections for painting.</p>
+      <p class="card-desc">Mutates texture selections for painting.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -1746,7 +1746,7 @@ bun run docs:check
       <td class="col-name">action</td>
       <td class="col-type">&quot;select_rectangle&quot; | &quot;select_ellipse&quot; | &quot;select_all&quot; | &quot;clear_selection&quot; | &quot;invert_selection&quot; | &quot;expand_selection&quot; | &quot;contract_selection&quot;</td>
       <td><span class="param-required">required</span></td>
-      <td class="col-desc">Selection action to perform.</td>
+      <td class="col-desc">Selection action.</td>
     </tr><tr>
       <td class="col-name">texture_id</td>
       <td class="col-type">string</td>
@@ -1756,17 +1756,17 @@ bun run docs:check
       <td class="col-name">coordinates</td>
       <td class="col-type">object</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Selection area coordinates.</td>
+      <td class="col-desc"></td>
     </tr><tr>
       <td class="col-name">radius</td>
       <td class="col-type">integer</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Non-negative integer pixel radius for expand/contract operations. <span class="param-meta">[min: 0, max: 9007199254740991]</span></td>
+      <td class="col-desc"> <span class="param-meta">[min: 0, max: 9007199254740991]</span></td>
     </tr><tr>
       <td class="col-name">mode</td>
       <td class="col-type">&quot;create&quot; | &quot;add&quot; | &quot;subtract&quot; | &quot;intersect&quot;</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Selection mode. <span class="param-meta">(default: <code>&quot;create&quot;</code>)</span></td>
+      <td class="col-desc"> <span class="param-meta">(default: <code>&quot;create&quot;</code>)</span></td>
     </tr></tbody>
     </table>
       </div>
@@ -2545,7 +2545,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-21T03:13:43.408Z from Zod schemas
+        Generated 2026-09-21T03:16:30.113Z from Zod schemas
       </footer>
     </main>
   </div>

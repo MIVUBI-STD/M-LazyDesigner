@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-21T03:13:43.408Z",
+  "generatedAt": "2026-09-21T03:16:30.113Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5549,7 +5549,7 @@
     {
       "name": "texture_selection",
       "title": "Texture Selection",
-      "description": "Creates, modifies, or manipulates texture selections for painting.",
+      "description": "Mutates texture selections for painting.",
       "status": "experimental",
       "category": "Paint Tools",
       "annotations": {
@@ -5570,7 +5570,7 @@
               "expand_selection",
               "contract_selection"
             ],
-            "description": "Selection action to perform."
+            "description": "Selection action."
           },
           "texture_id": {
             "description": "Texture UUID/ID/name; omit for selected/default.",
@@ -5578,7 +5578,6 @@
             "minLength": 1
           },
           "coordinates": {
-            "description": "Selection area coordinates.",
             "type": "object",
             "properties": {
               "x1": {
@@ -5606,14 +5605,12 @@
             ]
           },
           "radius": {
-            "description": "Non-negative integer pixel radius for expand/contract operations.",
             "type": "integer",
             "minimum": 0,
             "maximum": 9007199254740991
           },
           "mode": {
             "default": "create",
-            "description": "Selection mode.",
             "type": "string",
             "enum": [
               "create",
