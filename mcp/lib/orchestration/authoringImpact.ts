@@ -3,6 +3,11 @@ import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
 import { planIncrementalRecipeRebuild } from "@/lib/authoringRecipe/incremental";
 import { expandAffectedUvIds } from "@/lib/uv/authoringRecipeUv";
 
+export type DownstreamAuthoringOwnership = {
+  rig_instance_ids?: readonly string[];
+  animation_instance_ids?: readonly string[];
+};
+
 export type AuthoringImpactPlan = {
   geometry: {
     upsert_instance_ids: string[];
@@ -33,9 +38,19 @@ export type AuthoringImpactPlan = {
   symmetry_changed_relation_ids: string[];
 };
 
+function exactAffected(
+  semanticAffected: readonly string[],
+  ownership: readonly string[] | undefined
+): string[] | null {
+  if (!ownership) return null;
+  const owned = new Set(ownership);
+  return semanticAffected.filter((id) => owned.has(id)).sort();
+}
+
 export function planAuthoringImpact(
   previousRecipe: AuthoringRecipe,
-  nextRecipe: AuthoringRecipe
+  nextRecipe: AuthoringRecipe,
+  ownership: DownstreamAuthoringOwnership = {}
 ): AuthoringImpactPlan {
   const diff = planIncrementalRecipeRebuild(previousRecipe, nextRecipe);
   const next = compileAuthoringRecipe(nextRecipe);
@@ -69,19 +84,36 @@ export function planAuthoringImpact(
         ? "AFFECTED_ONLY" as const
         : "UNCHANGED" as const;
 
+  const rigAffected = exactAffected(semanticAffected, ownership.rig_instance_ids);
+  const rigPotentiallyStale =
+    semanticAffected.length > 0 || diff.semantic_invalidation.animation_motion;
   const rigScope =
-    diff.semantic_invalidation.animation_motion && semanticAffected.length === 0
-      ? "FULL_SEMANTIC_REPLAN" as const
-      : semanticAffected.length > 0
-        ? "AFFECTED_ONLY" as const
-        : "UNCHANGED" as const;
+    !rigPotentiallyStale
+      ? "UNCHANGED" as const
+      : rigAffected === null
+        ? "FULL_SEMANTIC_REPLAN" as const
+        : rigAffected.length > 0
+          ? "AFFECTED_ONLY" as const
+          : diff.semantic_invalidation.animation_motion
+            ? "FULL_SEMANTIC_REPLAN" as const
+            : "UNCHANGED" as const;
 
+  const animationAffected = exactAffected(
+    semanticAffected,
+    ownership.animation_instance_ids
+  );
+  const animationPotentiallyStale =
+    semanticAffected.length > 0 || diff.semantic_invalidation.animation_motion;
   const animationScope =
-    diff.semantic_invalidation.animation_motion && semanticAffected.length === 0
-      ? "FULL_SEMANTIC_REVIEW" as const
-      : semanticAffected.length > 0
-        ? "AFFECTED_ONLY" as const
-        : "UNCHANGED" as const;
+    !animationPotentiallyStale
+      ? "UNCHANGED" as const
+      : animationAffected === null
+        ? "FULL_SEMANTIC_REVIEW" as const
+        : animationAffected.length > 0
+          ? "AFFECTED_ONLY" as const
+          : diff.semantic_invalidation.animation_motion
+            ? "FULL_SEMANTIC_REVIEW" as const
+            : "UNCHANGED" as const;
 
   const textureReason =
     semanticGroupChanged
@@ -106,12 +138,12 @@ export function planAuthoringImpact(
     },
     rig: {
       stale: rigScope !== "UNCHANGED",
-      affected_instance_ids: semanticAffected,
+      affected_instance_ids: rigAffected ?? [],
       scope: rigScope,
     },
     animation: {
       stale: animationScope !== "UNCHANGED",
-      affected_instance_ids: semanticAffected,
+      affected_instance_ids: animationAffected ?? [],
       scope: animationScope,
     },
     texture: {
