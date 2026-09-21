@@ -348,6 +348,47 @@ Geometry-aware texture compilation now reaches the existing paint transaction co
 
 Remote source still does not prove typecheck, runtime execution, Undo/Redo, persistence, viewport behavior, or visual quality. Those remain LOCAL_CODE/LIVE_BLOCKBENCH evidence.
 
+## High-End Procedural Foundations — Remote Source Status
+
+A bounded DCC-inspired hardening pass is now source-integrated without adding a visual node editor, generic geometry language, physics engine, or new public MCP capability family.
+
+```text
+typed semantic selection / fields   IMPLEMENTED
+ordered semantic operation stack    IMPLEMENTED / SOURCE-SAFE ONLY
+reusable authoring asset wrapper    IMPLEMENTED
+geometry signal compiler            IMPLEMENTED
+bounded damped-spring motion        IMPLEMENTED
+existing-owner adapters             IMPLEMENTED
+contract coverage                   IMPLEMENTED / LOCAL RUN PENDING
+```
+
+Ownership path remains:
+
+```text
+selection + operation stack
+→ authoringRecipe/service
+→ source-safe recipe rewrite
+→ existing incremental recipe transaction
+
+authoring assets
+→ existing component composition
+→ normal recipe compile
+
+geometry signals
+→ texture/nativePlan
+→ existing paint_texture_transaction
+
+spring motion
+→ animation/toolCompiler
+→ existing create_animation + manage_keyframes
+```
+
+The operation stack is intentionally ordered data, not a second node/graph language. Each enabled operation must preserve recipe source ownership or fail closed. The semantic selector is bounded to deterministic compiled-placement predicates; it does not expose arbitrary code/eval.
+
+The spring solver is bounded to deterministic sampled position/rotation follow-through, capped by sample rate and total sample budget, then baked into the existing animation path. It is not a runtime physics system.
+
+No claim of typecheck, Bun test PASS, wall-clock improvement, allocation savings, Blockbench Undo behavior, visual quality, or accepted-result efficiency transfers from this remote source work. Those remain LOCAL_CODE/LIVE_BLOCKBENCH proof items.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
