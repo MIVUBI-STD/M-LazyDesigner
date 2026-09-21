@@ -274,6 +274,43 @@ Remote hardening pass is complete for the current source foundations. Material f
 
 Do not add more remote authoring abstraction before LOCAL_CODE/LIVE_BLOCKBENCH evidence exposes a concrete gap.
 
+## Operator-Mentality Reduction — Remote Source Status
+
+The bounded source foundations requested before local testing are now implemented without adding a second public MCP capability family:
+
+```text
+semantic geometry edit plan       IMPLEMENTED
+reference deviation -> edit       IMPLEMENTED
+geometry signal builder           IMPLEMENTED
+geometry-aware material treatment IMPLEMENTED
+bounded correction candidate rank IMPLEMENTED
+functional rig inference          IMPLEMENTED / FAIL-CLOSED
+secondary motion synthesis        IMPLEMENTED
+contract coverage                 IMPLEMENTED / LOCAL RUN PENDING
+```
+
+Ownership remains additive and existing-surface only:
+
+```text
+semantic geometry edit -> existing geometry mutation owner
+reference correction    -> semantic geometry edit plan
+geometry-aware material -> existing texture/Painter owner
+functional rig inference-> existing bone_rigging / add_group owner
+secondary motion        -> existing animation/keyframe owner
+correction solver       -> planning only; no mutation authority
+```
+
+Safety boundaries:
+
+- functional rig auto-compilation requires explicit high-confidence axis evidence; heuristic-only results remain review-required;
+- semantic edits require exactly one unambiguous owned target selector;
+- reference corrections are numeric bounded vectors, not visual approval;
+- geometry-aware texture treatment consumes deterministic geometry-derived signals and does not create a second Painter;
+- correction ranking cannot mutate anything and rejects candidates outside the configured risk boundary;
+- no public Runtime registration was added from REMOTE_GITHUB.
+
+Do not expand these foundations further before LOCAL_CODE benchmarks/typecheck and LIVE_BLOCKBENCH evidence establish a concrete gap.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
