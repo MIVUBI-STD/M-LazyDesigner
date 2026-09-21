@@ -1,14 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import {
+  autoLevelsRgba,
+  directionalShadeRgba,
   extractPaletteMedianCut,
   generateShadeRamp,
+  generateSpatialGradientRgba,
   gradientMapRgba,
+  heightFieldFromRgba,
   nearestPaletteIndex,
   oklabToRgba,
+  palettizeErrorDiffusionRgba,
   palettizeRgba,
+  posterizeLightnessRgba,
   parseHexRgba,
   rgbaToHex,
   rgbaToOklab,
+  sobelHeightGradient,
 } from "@/lib/textureColorEngine";
 
 function lightness(hex: string): number {
@@ -170,6 +177,151 @@ describe("texture color intelligence core", () => {
     expect(palette).toHaveLength(2);
     expect(lightness(palette[0])).toBeLessThan(lightness(palette[1]));
     expect(extractPaletteMedianCut(pixels, 16, 1, 2)).toEqual(palette);
+  });
+
+  test("auto levels expands visible tonal range without touching transparency", () => {
+    const pixels = new Uint8ClampedArray([
+      80, 80, 80, 255,
+      100, 100, 100, 255,
+      120, 120, 120, 255,
+      0, 0, 0, 0,
+    ]);
+    const result = autoLevelsRgba(pixels, 4, 1, {
+      lowClipPercent: 0,
+      highClipPercent: 0,
+    });
+
+    expect(rgbaToOklab(Array.from(result.slice(0, 4)) as [number,number,number,number]).L)
+      .toBeLessThan(
+        rgbaToOklab(Array.from(result.slice(8, 12)) as [number,number,number,number]).L
+      );
+    expect(Array.from(result.slice(12, 16))).toEqual([0, 0, 0, 0]);
+  });
+
+  test("posterize lightness reduces tonal states while preserving alpha", () => {
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: 8 }, (_, index) => {
+        const value = index * 32;
+        return [value, value, value, index === 0 ? 0 : 255];
+      }).flat()
+    );
+    const result = posterizeLightnessRgba(pixels, 8, 1, { levels: 3 });
+    const levels = new Set<number>();
+    for (let offset = 4; offset < result.length; offset += 4) {
+      levels.add(Math.round(rgbaToOklab([
+        result[offset],
+        result[offset + 1],
+        result[offset + 2],
+        result[offset + 3],
+      ]).L * 100));
+    }
+    expect(levels.size).toBeLessThanOrEqual(3);
+    expect(result[3]).toBe(0);
+  });
+
+  test("spatial gradients support deterministic pixel-art shapes and ordered ramps", () => {
+    const ramp = ["#000000", "#808080", "#FFFFFF"];
+    for (const type of ["linear", "reflected", "radial", "diamond", "conical"] as const) {
+      const first = generateSpatialGradientRgba(8, 8, ramp, {
+        type,
+        start: { x: 1, y: 1 },
+        end: { x: 7, y: 5 },
+        mode: "ordered",
+        matrix: "bayer4",
+      });
+      const second = generateSpatialGradientRgba(8, 8, ramp, {
+        type,
+        start: { x: 1, y: 1 },
+        end: { x: 7, y: 5 },
+        mode: "ordered",
+        matrix: "bayer4",
+      });
+      expect(Array.from(second), type).toEqual(Array.from(first));
+      for (let offset = 0; offset < first.length; offset += 4) {
+        expect(ramp).toContain(
+          rgbaToHex([
+            first[offset],
+            first[offset + 1],
+            first[offset + 2],
+            first[offset + 3],
+          ])
+        );
+      }
+    }
+  });
+
+  test("flat height field has zero Sobel slope", () => {
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: 9 }, () => [128, 128, 128, 255]).flat()
+    );
+    const field = heightFieldFromRgba(pixels, 3, 3);
+    const gradient = sobelHeightGradient(field, 3, 3);
+
+    expect(Array.from(gradient.dx).every((value) => Math.abs(value) < 1e-8)).toBe(true);
+    expect(Array.from(gradient.dy).every((value) => Math.abs(value) < 1e-8)).toBe(true);
+  });
+
+  test("directional shading creates highlight and shadow around a raised feature", () => {
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: 25 }, (_, index) => {
+        const x = index % 5;
+        const y = Math.floor(index / 5);
+        const value = x === 2 && y === 2 ? 230 : 100;
+        return [value, value, value, 255];
+      }).flat()
+    );
+    const shaded = directionalShadeRgba(pixels, 5, 5, {
+      azimuthDegrees: 315,
+      elevationDegrees: 35,
+      depth: 4,
+      ambient: 0.2,
+      strength: 1,
+    });
+
+    const sourceL = rgbaToOklab([100, 100, 100, 255]).L;
+    const visible = [];
+    for (let offset = 0; offset < shaded.length; offset += 4) {
+      visible.push(
+        rgbaToOklab([
+          shaded[offset],
+          shaded[offset + 1],
+          shaded[offset + 2],
+          shaded[offset + 3],
+        ]).L
+      );
+    }
+    expect(Math.min(...visible)).toBeLessThan(sourceL);
+    expect(Math.max(...visible)).toBeGreaterThan(sourceL);
+  });
+
+  test("Floyd-Steinberg palette diffusion is deterministic and palette-bound", () => {
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: 64 }, (_, index) => {
+        const value = Math.round((index / 63) * 255);
+        return [value, value, value, 255];
+      }).flat()
+    );
+    const palette = ["#000000", "#555555", "#AAAAAA", "#FFFFFF"];
+    const first = palettizeErrorDiffusionRgba(pixels, 8, 8, palette, {
+      strength: 1,
+      serpentine: true,
+    });
+    const second = palettizeErrorDiffusionRgba(pixels, 8, 8, palette, {
+      strength: 1,
+      serpentine: true,
+    });
+
+    expect(Array.from(second)).toEqual(Array.from(first));
+    for (let offset = 0; offset < first.length; offset += 4) {
+      expect(palette).toContain(
+        rgbaToHex([
+          first[offset],
+          first[offset + 1],
+          first[offset + 2],
+          first[offset + 3],
+        ])
+      );
+    }
   });
 
   test("color engine rejects unbounded requests before pixel work", () => {
