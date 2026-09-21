@@ -25,13 +25,12 @@ Use the affected owner + direct callers first. `server/tools.ts` is a compatibil
 
 ## Execution Context / Proof Ceiling
 
-Follow root execution-context rules. MCP-specific additions:
+Inherit root context/proof rules. MCP additions only:
 
-- `REMOTE_GITHUB` may finish source/static/CI work and live-harness preparation, never native/visual proof.
-- `LOCAL_CODE` owns generators/dependencies/local toolchain proof unavailable remotely.
-- `LIVE_BLOCKBENCH` is required for installed `build_identity`, native Runtime behavior, Undo/playback/persistence/export, lifecycle and visual proof.
-- Runtime/plugin recovery stays **beneath the persistent Gateway**. A Runtime/plugin reload does not require a new task/chat; reconnect the client only if the Gateway itself is replaced/dies.
-- A higher-context residue does not transfer the entire task; finish independent lower-context work first.
+- `REMOTE_GITHUB`: source/static/CI + live-harness preparation, never native/visual proof.
+- `LOCAL_CODE`: generators, dependencies and local toolchain proof.
+- `LIVE_BLOCKBENCH`: installed build identity, native Runtime/Undo/playback/persistence/export/lifecycle/visual proof.
+- Runtime/plugin reload stays beneath the persistent Gateway; higher-context residue never transfers independent lower-context work.
 
 ## Public Boundary
 
@@ -185,4 +184,4 @@ Use narrower canonical scripts for narrower claims. Generated freshness uses its
 
 ## Completion Rule
 
-A remote change is complete when the source owner, direct dependents and regression intent align and unavailable local/live proof is stated accurately. Stop rather than inventing another cleanup layer.
+Remote completion = owner + direct dependents + regression intent aligned, with any genuine local/live residue stated accurately. Stop rather than inventing cleanup layers.
