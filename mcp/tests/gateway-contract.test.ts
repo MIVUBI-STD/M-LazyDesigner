@@ -1037,15 +1037,22 @@ describe("BlockIT Gateway contract", () => {
 
   test("phase handoff invalidates only backend state and explicitly keeps the client task alive", async () => {
     const backendSource = await Bun.file("gateway/backend.ts").text();
+    const backendContract = await Bun.file(
+      "gateway/runtime/backendContract.ts"
+    ).text();
 
     expect(backendSource).toContain("resolveGatewayCapabilityEffects");
-    expect(backendSource).toContain('application.effects.phaseAffinity === "update_from_result"');
-    expect(backendSource).toContain("application.effects.invalidateCatalog || affinityChanged");
+    expect(backendSource).toContain(
+      'application.effects.phaseAffinity === "update_from_result"'
+    );
+    expect(backendSource).toContain(
+      "application.effects.invalidateCatalog || affinityChanged"
+    );
     expect(backendSource).toContain("await this.closeConnectionUnsafe()");
-    expect(backendSource).toContain("gateway_catalog_invalidated: true");
-    expect(backendSource).toContain("client_reconnect_required: false");
-    expect(backendSource).toContain("new_chat_required: false");
-    expect(backendSource).toContain("continue same task through Gateway");
+    expect(backendContract).toContain("gateway_catalog_invalidated: true");
+    expect(backendContract).toContain("client_reconnect_required: false");
+    expect(backendContract).toContain("new_chat_required: false");
+    expect(backendContract).toContain("continue same task through Gateway");
   });
 
   test("stdio Gateway keeps discovery bounded and does not advertise unproxied Runtime surfaces", async () => {
