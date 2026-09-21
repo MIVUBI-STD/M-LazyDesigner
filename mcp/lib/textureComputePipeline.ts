@@ -283,7 +283,8 @@ function applyFusedPointwiseSteps(
     const key = rgbaPackedKey(pixels, offset);
     let mapped = transformed.get(key);
     if (!mapped) {
-      let sample = new Uint8ClampedArray([
+      let sample: Uint8ClampedArray<ArrayBufferLike> =
+        new Uint8ClampedArray([
         pixels[offset],
         pixels[offset + 1],
         pixels[offset + 2],
