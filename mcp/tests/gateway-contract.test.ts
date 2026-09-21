@@ -214,9 +214,14 @@ describe("BlockIT Gateway contract", () => {
   });
 
   test("manage_cubes describe projection selects one canonical operation branch", async () => {
-    const { manageCubesToolDocs } = await import("@/server/tools/cubes");
+    const { cubeToolDocs } = await import("@/server/tools/cubes");
     const { z } = await import("zod");
-    const schema = z.toJSONSchema(manageCubesToolDocs.parameterSchema, {
+    const manageCubes = cubeToolDocs.find(
+      (tool) => tool.name === "manage_cubes"
+    );
+    expect(manageCubes).toBeDefined();
+    if (!manageCubes) throw new Error("manage_cubes tool docs missing.");
+    const schema = z.toJSONSchema(manageCubes.parameterSchema, {
       io: "input",
       target: "draft-2020-12",
       unrepresentable: "any",
