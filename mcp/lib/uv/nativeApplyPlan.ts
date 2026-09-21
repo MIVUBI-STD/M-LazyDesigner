@@ -7,6 +7,8 @@ export type NativeUvTarget = {
   face: CubeFaceKey;
   current_uv: readonly [number, number, number, number];
   current_rotation: number;
+  expected_recipe_id?: string;
+  expected_instance_id?: string;
 };
 
 export type NativeUvApplyOperation = {
@@ -16,6 +18,8 @@ export type NativeUvApplyOperation = {
   uv: [number, number, number, number];
   rotation: 0 | 90;
   shared_with?: string;
+  expected_recipe_id?: string;
+  expected_instance_id?: string;
 };
 
 function parseRotation(rotated: boolean): 0 | 90 {
@@ -33,6 +37,12 @@ export function compileNativeUvApplyPlan(
     }
     if (![0, 90, 180, 270].includes(target.current_rotation)) {
       throw new Error("Native UV target has unsupported current face rotation: " + target.island_id + ".");
+    }
+    if (
+      (target.expected_recipe_id === undefined) !==
+      (target.expected_instance_id === undefined)
+    ) {
+      throw new Error("Native UV target ownership must provide recipe and instance identity together.");
     }
     targetByIsland.set(target.island_id, target);
   }
@@ -52,6 +62,8 @@ export function compileNativeUvApplyPlan(
       uv: [placement.x, placement.y, placement.x + placement.width, placement.y + placement.height],
       rotation: parseRotation(placement.rotated),
       shared_with: placement.shared_with,
+      expected_recipe_id: target.expected_recipe_id,
+      expected_instance_id: target.expected_instance_id,
     });
   }
 

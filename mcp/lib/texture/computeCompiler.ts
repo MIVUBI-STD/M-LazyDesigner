@@ -1,4 +1,5 @@
 import type { PaletteRgb } from "@/lib/texture/proceduralOps";
+import type { TextureComputeOperationName } from "@/lib/textureComputeRequest";
 
 function hexByte(v:number){return Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0");}
 function paletteHex(palette:readonly PaletteRgb[]):string[]{
@@ -23,7 +24,7 @@ export type TextureRefinementIntent={
 };
 
 export type TextureComputeRequestStep={
-  operation:string;
+  operation:TextureComputeOperationName;
   args?:Record<string,unknown>;
 };
 
@@ -46,6 +47,11 @@ function attachTargetRect(
 }
 
 export function compileTextureRefinementIntent(intent:TextureRefinementIntent){
+  if(intent.target_rect && intent.ordered_dither && intent.palette){
+    throw new Error(
+      "Ordered palette dithering is not ROI-safe in the existing texture compute runtime because Bayer phase is atlas-relative. Remove target_rect or use nearest palettize."
+    );
+  }
   const steps:TextureComputeRequestStep[]=[];
   if(intent.auto_levels) steps.push({operation:"auto_levels",args:{...intent.auto_levels}});
   if(intent.directional_shade) steps.push({operation:"directional_shade",args:{...intent.directional_shade}});

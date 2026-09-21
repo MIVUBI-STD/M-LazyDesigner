@@ -86,6 +86,8 @@ export function readBlockbenchAuthoringRecipeUvTargets(recipeId: string) {
         face,
         current_uv: snapshot.faces[face].uv,
         current_rotation: snapshot.faces[face].rotation,
+        expected_recipe_id: ownership.recipe_id,
+        expected_instance_id: ownership.instance_id,
       });
     }
   }
@@ -126,6 +128,25 @@ function validateLogicalUvBounds(operation: NativeUvApplyOperation): void {
   }
 }
 
+function requireExpectedOwnership(cube: Cube, operation: NativeUvApplyOperation): void {
+  if (
+    operation.expected_recipe_id === undefined &&
+    operation.expected_instance_id === undefined
+  ) return;
+  const ownership = readAuthoringRecipeCubeOwnership(cube);
+  if (
+    !ownership ||
+    ownership.recipe_id !== operation.expected_recipe_id ||
+    ownership.instance_id !== operation.expected_instance_id
+  ) {
+    throw new Error(
+      "Semantic UV target ownership changed after planning for " +
+        operation.island_id +
+        ". Refresh recipe-owned UV targets before mutation."
+    );
+  }
+}
+
 function operationChangesNativeState(cube: Cube, operation: NativeUvApplyOperation): boolean {
   const face = cube.faces[operation.face];
   return (
@@ -148,10 +169,12 @@ export function applyBlockbenchSemanticUvTransaction(
   }
 
   const cubeByUuid = new Map(cubeUuids.map((uuid) => [uuid, resolveCube(uuid)]));
-  for (const cube of cubeByUuid.values()) {
+  for (const operation of plan.operations) {
+    const cube = cubeByUuid.get(operation.cube_uuid)!;
     requireSemanticUvAutomationAllowed(cube.box_uv === true, "Cube " + cube.name + " (" + cube.uuid + ")");
+    requireExpectedOwnership(cube, operation);
+    validateLogicalUvBounds(operation);
   }
-  for (const operation of plan.operations) validateLogicalUvBounds(operation);
 
   const changedOperations = plan.operations.filter((operation) => {
     const cube = cubeByUuid.get(operation.cube_uuid)!;
