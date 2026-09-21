@@ -3,15 +3,17 @@ import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
 import type { BackendTool } from "../protocol";
 import {
   CAPABILITY_BRANCH_MANIFEST,
-  type CapabilityBranchHint,
   type CapabilitySemanticSpec,
 } from "./manifest";
+import type {
+  CapabilityBranchHint,
+  CapabilityRoutingContext,
+} from "./types";
 
-export type { CapabilityBranchHint } from "./manifest";
-
-export type CapabilityRoutingContext = {
-  authoringPhase?: "geometry" | "texturing" | "animation" | null;
-};
+export type {
+  CapabilityBranchHint,
+  CapabilityRoutingContext,
+} from "./types";
 
 export type CapabilitySemanticEntry = {
   capability: string;
