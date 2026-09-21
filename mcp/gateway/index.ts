@@ -9,11 +9,13 @@ import {
   GATEWAY_NAME,
   GATEWAY_TOOLS,
   GATEWAY_VERSION,
+  type JsonRecord,
+} from "./protocol";
+import {
   compactGatewayCapabilityStructuredContent,
   compactGatewayCapabilityContent,
   shouldAttachGatewayControlDelta,
-  type JsonRecord,
-} from "./contract";
+} from "./resultCompaction";
 import { projectCapabilityInputSchema } from "./capabilities/schemaProjection";
 import {
   authoringDomainForCapability,
