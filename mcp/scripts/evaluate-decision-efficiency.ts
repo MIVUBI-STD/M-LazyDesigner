@@ -346,6 +346,7 @@ function decide(
 const tools = runtimeTools();
 let correctCapability = 0;
 let correctBranch = 0;
+let explicitBranchCases = 0;
 let correctRoute = 0;
 let unnecessarySearch = 0;
 let unnecessaryDescribe = 0;
@@ -355,6 +356,7 @@ let confusionCases = 0;
 let confusionEscaped = 0;
 let totalSearchBytes = 0;
 let totalPreInvokeCalls = 0;
+let totalExpectedPreInvokeCalls = 0;
 
 const cases = CASES.map((testCase) => {
   const decision = decide(tools, testCase);
@@ -363,11 +365,12 @@ const cases = CASES.map((testCase) => {
   const branchCorrect =
     capabilityCorrect &&
     branchMatches(decision.selected, testCase.expectedBranch);
+  if (testCase.expectedBranch) explicitBranchCases += 1;
   const routeCorrect =
     decision.route === testCase.expectedRoute;
 
   if (capabilityCorrect) correctCapability += 1;
-  if (branchCorrect) correctBranch += 1;
+  if (testCase.expectedBranch && branchCorrect) correctBranch += 1;
   if (routeCorrect) correctRoute += 1;
 
   if (
@@ -398,8 +401,17 @@ const cases = CASES.map((testCase) => {
     if (confusionEscapedForCase) confusionEscaped += 1;
   }
 
+  const expectedCallsBeforeInvoke =
+    testCase.expectedRoute === "DIRECT_INVOKE"
+      ? 0
+      : testCase.expectedRoute ===
+          "SEARCH_THEN_DESCRIBE_THEN_INVOKE"
+        ? 2
+        : 1;
+
   totalSearchBytes += decision.search_bytes;
   totalPreInvokeCalls += decision.calls_before_invoke;
+  totalExpectedPreInvokeCalls += expectedCallsBeforeInvoke;
 
   return {
     id: testCase.id,
@@ -420,6 +432,9 @@ const cases = CASES.map((testCase) => {
     route_correct: routeCorrect,
     search_payload_bytes: decision.search_bytes,
     calls_before_invoke: decision.calls_before_invoke,
+    expected_calls_before_invoke: expectedCallsBeforeInvoke,
+    call_overhead:
+      decision.calls_before_invoke - expectedCallsBeforeInvoke,
     blocked_call_avoided: decision.blocked_call_avoided,
     forbidden_top: testCase.forbiddenTop ?? [],
     confusion_escaped: confusionEscapedForCase,
@@ -437,7 +452,10 @@ const report = {
       (correctCapability / Math.max(count, 1)).toFixed(4)
     ),
     branch_accuracy: Number(
-      (correctBranch / Math.max(count, 1)).toFixed(4)
+      (
+        correctBranch /
+        Math.max(explicitBranchCases, 1)
+      ).toFixed(4)
     ),
     route_accuracy: Number(
       (correctRoute / Math.max(count, 1)).toFixed(4)
@@ -459,6 +477,18 @@ const report = {
     ),
     average_pre_invoke_calls: Number(
       (totalPreInvokeCalls / Math.max(count, 1)).toFixed(3)
+    ),
+    average_expected_pre_invoke_calls: Number(
+      (
+        totalExpectedPreInvokeCalls /
+        Math.max(count, 1)
+      ).toFixed(3)
+    ),
+    average_call_overhead: Number(
+      (
+        (totalPreInvokeCalls - totalExpectedPreInvokeCalls) /
+        Math.max(count, 1)
+      ).toFixed(3)
     ),
   },
   cases,
@@ -505,9 +535,14 @@ if (report.metrics.average_search_payload_bytes > 1400) {
     `Decision search payload exceeded guard: ${report.metrics.average_search_payload_bytes} bytes`
   );
 }
-if (report.metrics.average_pre_invoke_calls > 1.25) {
+if (report.metrics.average_call_overhead !== 0) {
   throw new Error(
-    `Decision path call overhead regressed: ${report.metrics.average_pre_invoke_calls}`
+    `Decision path added avoidable calls: overhead=${report.metrics.average_call_overhead}`
+  );
+}
+if (confusionCases < 10) {
+  throw new Error(
+    `Decision benchmark needs at least 10 confusion cases, got ${confusionCases}`
   );
 }
 
