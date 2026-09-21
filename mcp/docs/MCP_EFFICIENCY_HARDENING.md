@@ -188,7 +188,7 @@ Full texture diagnostics now share one request-local read context across coverag
 
 ## Surface-Budget Preservation
 
-Texture efficiency changes must remain net-positive at the MCP boundary. The layer metadata batch reuses `texture_layer_management`, while redundant field prose is intentionally kept out of the static schema so tools/list does not grow merely to describe self-evident metadata. Runtime validation and action-specific errors remain authoritative.
+Texture efficiency changes must remain net-positive at the MCP boundary. The layer metadata batch reuses `texture_layer_management`; self-evident field prose stays out of the static schema so repeated tools/list context does not absorb the saved calls. Runtime validation and action-specific errors remain authoritative, and the normal surface budget remains the release gate.
 
 ## Acceptance Rules
 
