@@ -1,11 +1,10 @@
 /// <reference types="blockbench-types" />
 
 import type { CubeFaceKey } from "@/lib/uv/authoringRecipeUv";
-import type { NativeUvApplyOperation } from "@/lib/uv/nativeApplyPlan";
+import type { NativeUvApplyOperation, NativeUvTarget } from "@/lib/uv/nativeApplyPlan";
 import { requireSemanticUvAutomationAllowed } from "@/lib/uv/boxUvPolicy";
 import {
   nativeUvSnapshotFingerprint,
-  snapshotToNativeUvTargets,
   type NativeUvCubeSnapshot,
 } from "@/lib/uv/nativeState";
 import {
@@ -13,6 +12,7 @@ import {
   type NativeUvTransactionPlan,
   type NativeUvTransactionReceipt,
 } from "@/lib/uv/nativeTransaction";
+import { readAuthoringRecipeCubeOwnership } from "@/server/runtime/authoringRecipeOwnership";
 
 const FACE_KEYS: readonly CubeFaceKey[] = ["north", "south", "east", "west", "up", "down"];
 
@@ -58,16 +58,45 @@ export function readBlockbenchSemanticUvSnapshot(cubeUuids?: readonly string[]):
   })).sort((a, b) => a.cube_uuid.localeCompare(b.cube_uuid));
 }
 
-export function readBlockbenchSemanticUvTargets(cubeUuids?: readonly string[]) {
-  const snapshots = readBlockbenchSemanticUvSnapshot(cubeUuids);
-  const blocked_box_uv = snapshots
-    .filter((snapshot) => snapshot.box_uv)
-    .map((snapshot) => snapshot.cube_uuid);
-  const perFace = snapshots.filter((snapshot) => !snapshot.box_uv);
+export function readBlockbenchAuthoringRecipeUvTargets(recipeId: string) {
+  requireProject();
+  if (!recipeId.trim()) throw new Error("Authoring Recipe UV target read requires recipe identity.");
+  const targets: NativeUvTarget[] = [];
+  const snapshots: NativeUvCubeSnapshot[] = [];
+  const blocked_box_uv: string[] = [];
+  const seenInstances = new Set<string>();
+
+  for (const cube of Cube.all ?? []) {
+    const ownership = readAuthoringRecipeCubeOwnership(cube);
+    if (!ownership || ownership.recipe_id !== recipeId) continue;
+    if (seenInstances.has(ownership.instance_id)) {
+      throw new Error("Duplicate native Cube ownership for recipe instance " + ownership.instance_id + ".");
+    }
+    seenInstances.add(ownership.instance_id);
+    const snapshot = readBlockbenchSemanticUvSnapshot([cube.uuid])[0];
+    snapshots.push(snapshot);
+    if (snapshot.box_uv) {
+      blocked_box_uv.push(cube.uuid);
+      continue;
+    }
+    for (const face of FACE_KEYS) {
+      targets.push({
+        island_id: ownership.instance_id + ":" + face,
+        cube_uuid: cube.uuid,
+        face,
+        current_uv: snapshot.faces[face].uv,
+        current_rotation: snapshot.faces[face].rotation,
+      });
+    }
+  }
+
+  snapshots.sort((a, b) => a.cube_uuid.localeCompare(b.cube_uuid));
+  targets.sort((a, b) => a.island_id.localeCompare(b.island_id));
+  blocked_box_uv.sort();
   return {
     snapshots,
     fingerprint: nativeUvSnapshotFingerprint(snapshots),
-    targets: perFace.flatMap(snapshotToNativeUvTargets),
+    targets,
     blocked_box_uv,
   };
 }

@@ -41,8 +41,21 @@ export function compileAuthoringRecipeSemanticUvWorkflow(
   });
 
   const nativePlan = compileNativeUvApplyPlan(semantic.placements, nativeTargets);
+  if (!nativePlan.complete) {
+    throw new Error(
+      "Semantic UV native target mapping is incomplete. Missing targets: " +
+        nativePlan.unresolved.join(", ")
+    );
+  }
+  const affectedCubeUuids = new Set(nativePlan.operations.map((operation) => operation.cube_uuid));
+  const fingerprintSnapshots = nativeSnapshots.filter((snapshot) =>
+    affectedCubeUuids.has(snapshot.cube_uuid)
+  );
+  if (fingerprintSnapshots.length !== affectedCubeUuids.size) {
+    throw new Error("Semantic UV workflow is missing native snapshots for one or more affected Cubes.");
+  }
   const transaction: NativeUvTransactionPlan = {
-    expected_fingerprint: nativeUvSnapshotFingerprint(nativeSnapshots),
+    expected_fingerprint: nativeUvSnapshotFingerprint(fingerprintSnapshots),
     operations: nativePlan.operations,
   };
 

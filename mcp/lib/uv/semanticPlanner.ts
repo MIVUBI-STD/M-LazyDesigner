@@ -63,10 +63,31 @@ function placementMap(values: readonly AtlasPlacement[] | undefined): Map<string
   return new Map((values ?? []).map((placement) => [placement.id, placement]));
 }
 
+function retainedReservation(
+  placement: AtlasPlacement,
+  padding: number,
+  atlasWidth: number,
+  atlasHeight: number
+): ReservedAtlasRect {
+  const left = Math.max(0, placement.x - padding);
+  const top = Math.max(0, placement.y - padding);
+  const right = Math.min(atlasWidth, placement.x + placement.width + padding);
+  const bottom = Math.min(atlasHeight, placement.y + placement.height + padding);
+  return {
+    id: placement.id,
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top,
+  };
+}
+
 export function planSemanticUv(islands: readonly SemanticUvIsland[], options: SemanticUvPlanOptions) {
   const byId = validateShareGraph(islands);
   const previous = placementMap(options.previous_placements);
   const affected = options.affected_ids ? new Set(options.affected_ids) : null;
+  const padding = options.padding ?? 0;
+  if (!Number.isInteger(padding) || padding < 0) throw new Error("Semantic UV padding must be a non-negative integer.");
   if (affected) for (const id of affected) if (!byId.has(id)) throw new Error("Affected UV island does not exist: " + id + ".");
 
   const reserved: ReservedAtlasRect[] = [];
@@ -91,7 +112,7 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
     if (affected && !affected.has(island.id)) {
       const retained = previous.get(island.id);
       if (!retained) throw new Error("Affected-only UV planning requires a previous placement for unchanged island " + island.id + ".");
-      reserved.push({ id: island.id, x: retained.x, y: retained.y, width: retained.width, height: retained.height });
+      reserved.push(retainedReservation(retained, padding, options.atlas_width, options.atlas_height));
       lockedPlacementById.set(island.id, retained);
     }
   }
@@ -110,7 +131,7 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
   const packed = packAtlasRects(inputs, {
     width: options.atlas_width,
     height: options.atlas_height,
-    padding: options.padding,
+    padding,
     allow_rotation: options.allow_rotation,
     reserved_rects: reserved,
   });
@@ -147,7 +168,7 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
   for (const island of islands) if (island.share_with && unresolved.has(island.share_with)) unresolved.add(island.id);
 
   return {
-    atlas: { width: options.atlas_width, height: options.atlas_height, padding: options.padding ?? 0 },
+    atlas: { width: options.atlas_width, height: options.atlas_height, padding },
     placements,
     owner_placements: [...ownerPlacement.values()].sort((a, b) => a.id.localeCompare(b.id)),
     unplaced: [...unresolved].sort(),

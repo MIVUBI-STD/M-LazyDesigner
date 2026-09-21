@@ -45,6 +45,20 @@ function placementById(compiled: CompiledAuthoringRecipe): Map<string, CompiledC
   return new Map(compiled.placements.map((placement) => [placement.id, placement]));
 }
 
+function hasRotation(placement: CompiledCubePlacement): boolean {
+  return placement.rotation.some((value) => Math.abs(value) > 1e-9);
+}
+
+function requireUnrotatedAnchorSource(placement: CompiledCubePlacement): void {
+  if (hasRotation(placement)) {
+    throw new Error(
+      "Semantic rig geometry-derived pivots currently require unrotated source geometry. Instance " +
+        placement.id +
+        " is rotated; transformed-anchor semantics must be explicit before deriving a joint."
+    );
+  }
+}
+
 function anchorValue(min: number, max: number, anchor: RigAnchor): number {
   if (anchor === "MIN") return min;
   if (anchor === "MAX") return max;
@@ -55,6 +69,7 @@ export function placementAnchor(
   placement: CompiledCubePlacement,
   anchor: readonly [RigAnchor, RigAnchor, RigAnchor]
 ): RecipeVec3 {
+  requireUnrotatedAnchorSource(placement);
   return [
     anchorValue(placement.from[0], placement.to[0], anchor[0]),
     anchorValue(placement.from[1], placement.to[1], anchor[1]),

@@ -8,14 +8,12 @@ export type AddGroupBatchEntry = {
 };
 
 export function compileSemanticRigToAddGroupBatch(plan: SemanticRigPlan) {
-  const available = new Set<string>();
+  const names = new Set<string>();
   const entries: AddGroupBatchEntry[] = [];
 
   for (const bone of plan.bones) {
-    if (bone.parent !== "root" && !available.has(bone.parent)) {
-      throw new Error(
-        "Semantic rig parent " + bone.parent + " must be root or an earlier bone in the same batch."
-      );
+    if (names.has(bone.name.toLowerCase())) {
+      throw new Error("Semantic rig batch contains a duplicate case-insensitive bone name: " + bone.name + ".");
     }
     entries.push({
       name: bone.name,
@@ -23,7 +21,7 @@ export function compileSemanticRigToAddGroupBatch(plan: SemanticRigPlan) {
       rotation: [...bone.rotation],
       parent: bone.parent,
     });
-    available.add(bone.name);
+    names.add(bone.name.toLowerCase());
   }
 
   return { groups: entries };
