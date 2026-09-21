@@ -3,6 +3,10 @@ import {
   compileMinimalVerificationPlan,
   type VerificationTask,
 } from "@/lib/orchestration/verificationPlan";
+import {
+  compileVerificationEvidenceRequests,
+  type VerificationEvidenceRequest,
+} from "@/lib/orchestration/evidencePlan";
 
 export type VerificationRisk = "LOW" | "MEDIUM" | "HIGH";
 
@@ -12,6 +16,7 @@ export type DeltaVerificationPlan = {
   required_task_count: number;
   advisory_budget: number;
   budget_state: "WITHIN_BUDGET" | "REQUIRED_OVER_BUDGET";
+  evidence_requests: VerificationEvidenceRequest[];
 };
 
 function deriveRisk(impact: AuthoringImpactPlan): VerificationRisk {
@@ -54,5 +59,6 @@ export function compileDeltaVerificationPlan(
     advisory_budget: budget,
     budget_state:
       tasks.length <= budget ? "WITHIN_BUDGET" : "REQUIRED_OVER_BUDGET",
+    evidence_requests: compileVerificationEvidenceRequests(tasks, risk),
   };
 }

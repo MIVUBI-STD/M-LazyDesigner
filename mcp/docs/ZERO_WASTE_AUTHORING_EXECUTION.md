@@ -108,3 +108,28 @@ evidence handle
 ```
 
 The existing full `apply()` and full identity resolver remain intact for compatibility. Zero-waste consumers may use `applyCompact()` / `resolveIdentityCompact()` instead. Evidence handles are Runtime-generation-local, bounded and non-persistent; they are not a second history database.
+
+## Verification evidence compaction
+
+Delta verification now compiles required domain checks into the smallest existing evidence surface instead of requesting broad re-inspection.
+
+```text
+GEOMETRY LOW    → capture_model_views front @ 256
+GEOMETRY MEDIUM → front + left @ 256
+GEOMETRY HIGH   → front + left + front_left_3q @ 512
+TEXTURE affected surfaces → get_texture region evidence
+TEXTURE semantic review   → full-atlas evidence
+UV                       → existing UV layout evidence
+RIG                      → focused element inspection
+ANIMATION                → focused animation inspection
+```
+
+These are deterministic request projections over existing capabilities, not new public tools.
+
+Full evidence may be retained behind a bounded Runtime-local:
+
+```text
+verificationevidence:<sha256>
+```
+
+Model-facing verification output is limited to state, domain/source, discrepancy count and at most six discrepancy summaries. Raw image/inspection payload remains local unless the actual visual judgement requires image delivery. A verification budget never removes a required domain check.
