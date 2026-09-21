@@ -12,6 +12,10 @@ import {
   deriveGeometrySurfaceSignals,
   type GeometrySignalEvidence,
 } from "@/lib/texture/geometrySignalBuilder";
+import {
+  compileGeometrySignalEvidence,
+  type GeometrySignalCompileInput,
+} from "@/lib/texture/geometrySignalCompiler";
 
 export type NewTextureNativePlan={
   kind:"CREATE_TEXTURE_SOURCE";
@@ -29,7 +33,9 @@ export type GeometryAwareTextureBufferPlan={
   changed_region:ReturnType<typeof diffTextureRegion>;
 };
 
-function byteHex(value:number){return Math.max(0,Math.min(255,Math.round(value))).toString(16).padStart(2,"0");}
+function byteHex(value:number){
+  return Math.max(0,Math.min(255,Math.round(value))).toString(16).padStart(2,"0");
+}
 function rgbaHex(r:number,g:number,b:number,a:number){
   return "#"+byteHex(r)+byteHex(g)+byteHex(b)+byteHex(a);
 }
@@ -79,13 +85,19 @@ export function compileGeometryAwareTextureToPaintTransaction(input:{
   intent:GeometryAwareMaterialIntent;
   expected_revision:string;
   max_operations?:number;
+  max_coordinates?:number;
 }){
   const plan=compileGeometryAwareTextureBufferPlan(input);
   const maxOperations=input.max_operations ?? 64;
+  const maxCoordinates=input.max_coordinates ?? 4096;
   if(!Number.isInteger(maxOperations)||maxOperations<1||maxOperations>64){
     throw new Error("Geometry-aware texture max_operations must be an integer within 1..64.");
   }
+  if(!Number.isInteger(maxCoordinates)||maxCoordinates<1||maxCoordinates>65536){
+    throw new Error("Geometry-aware texture max_coordinates must be an integer within 1..65536.");
+  }
   const groups=new Map<string,Array<{x:number;y:number}>>();
+  let changedCoordinates=0;
   for(let y=0;y<plan.height;y+=1){
     for(let x=0;x<plan.width;x+=1){
       const offset=(y*plan.width+x)*4;
@@ -95,6 +107,12 @@ export function compileGeometryAwareTextureToPaintTransaction(input:{
         input.rgba[offset+2]===plan.rgba[offset+2] &&
         input.rgba[offset+3]===plan.rgba[offset+3]
       ) continue;
+      changedCoordinates+=1;
+      if(changedCoordinates>maxCoordinates){
+        throw new Error(
+          "GEOMETRY_AWARE_TEXTURE_COORDINATE_BUDGET_EXCEEDED: changed pixel count exceeds bounded coordinate budget "+maxCoordinates+"."
+        );
+      }
       const color=rgbaHex(plan.rgba[offset],plan.rgba[offset+1],plan.rgba[offset+2],plan.rgba[offset+3]);
       const coordinates=groups.get(color) ?? [];
       coordinates.push({x,y});
@@ -103,7 +121,10 @@ export function compileGeometryAwareTextureToPaintTransaction(input:{
   }
   if(groups.size===0) throw new Error("Geometry-aware texture treatment produced no pixel changes.");
   if(groups.size>maxOperations){
-    throw new Error("GEOMETRY_AWARE_TEXTURE_OPERATION_BUDGET_EXCEEDED: exact color groups "+groups.size+" exceed bounded paint operation budget "+maxOperations+".");
+    throw new Error(
+      "GEOMETRY_AWARE_TEXTURE_OPERATION_BUDGET_EXCEEDED: exact color groups "+groups.size+
+      " exceed bounded paint operation budget "+maxOperations+"."
+    );
   }
   const operations:PaintTransactionOperation[]=[...groups.entries()]
     .sort(([a],[b])=>a.localeCompare(b))
@@ -116,13 +137,13 @@ export function compileGeometryAwareTextureToPaintTransaction(input:{
   };
 }
 
-
 export function compileGeometryAwareTextureFromCompiledEvidence(input:{
   rgba:Uint8Array;
   geometry:GeometrySignalCompileInput;
   intent:GeometryAwareMaterialIntent;
   expected_revision:string;
   max_operations?:number;
+  max_coordinates?:number;
 }){
   const evidence=compileGeometrySignalEvidence(input.geometry);
   return compileGeometryAwareTextureToPaintTransaction({
@@ -131,6 +152,7 @@ export function compileGeometryAwareTextureFromCompiledEvidence(input:{
     intent:input.intent,
     expected_revision:input.expected_revision,
     ...(input.max_operations!==undefined?{max_operations:input.max_operations}:{}),
+    ...(input.max_coordinates!==undefined?{max_coordinates:input.max_coordinates}:{}),
   });
 }
 

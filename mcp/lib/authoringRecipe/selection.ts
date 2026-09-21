@@ -17,6 +17,7 @@ export type SemanticSelection={
 };
 
 const AXIS_INDEX={X:0,Y:1,Z:2} as const;
+const MAX_SELECTION_PREDICATES=64;
 
 function compare(value:number,op:"LT"|"LTE"|"GT"|"GTE",target:number){
   if(!Number.isFinite(target)) throw new Error("Selection numeric target must be finite.");
@@ -25,18 +26,17 @@ function compare(value:number,op:"LT"|"LTE"|"GT"|"GTE",target:number){
   if(op==="GT") return value>target;
   return value>=target;
 }
-
 function center(p:CompiledCubePlacement):[number,number,number]{
   return [(p.from[0]+p.to[0])/2,(p.from[1]+p.to[1])/2,(p.from[2]+p.to[2])/2];
 }
-
+function requireText(value:string,label:string){
+  if(!value.trim()) throw new Error(label+" requires non-empty text.");
+  return value;
+}
 function matches(p:CompiledCubePlacement,predicate:PlacementPredicate):boolean{
-  if(predicate.kind==="SEMANTIC_GROUP") return p.semantic_group===predicate.equals;
-  if(predicate.kind==="PROTOTYPE") return p.prototype_id===predicate.equals;
-  if(predicate.kind==="NAME_CONTAINS"){
-    if(!predicate.value) throw new Error("NAME_CONTAINS predicate requires non-empty value.");
-    return p.name.toLowerCase().includes(predicate.value.toLowerCase());
-  }
+  if(predicate.kind==="SEMANTIC_GROUP") return p.semantic_group===requireText(predicate.equals,"SEMANTIC_GROUP predicate");
+  if(predicate.kind==="PROTOTYPE") return p.prototype_id===requireText(predicate.equals,"PROTOTYPE predicate");
+  if(predicate.kind==="NAME_CONTAINS") return p.name.toLowerCase().includes(requireText(predicate.value,"NAME_CONTAINS predicate").toLowerCase());
   if(predicate.kind==="AXIS_CENTER") return compare(center(p)[AXIS_INDEX[predicate.axis]],predicate.op,predicate.value);
   if(predicate.kind==="AXIS_SIZE"){
     const axis=AXIS_INDEX[predicate.axis];
@@ -59,7 +59,9 @@ export function selectCompiledPlacements(compiled:CompiledAuthoringRecipe,select
   const all=selection.all??[];
   const any=selection.any??[];
   const exclude=selection.exclude??[];
+  const total=all.length+any.length+exclude.length;
   if(all.length===0&&any.length===0) throw new Error("Semantic selection requires at least one all/any predicate.");
+  if(total>MAX_SELECTION_PREDICATES) throw new Error("SEMANTIC_SELECTION_BUDGET_EXCEEDED: selection exceeds "+MAX_SELECTION_PREDICATES+" predicates.");
   return compiled.placements.filter((placement)=>{
     if(all.some((predicate)=>!matches(placement,predicate))) return false;
     if(any.length>0&&!any.some((predicate)=>matches(placement,predicate))) return false;

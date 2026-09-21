@@ -73,7 +73,7 @@ describe("high-end bounded authoring foundations",()=>{
         {id:"a",time:0,bones:{door:{rotation:[0,0,0]}}},
         {id:"b",time:1,bones:{door:{rotation:[0,60,0]}}},
       ],
-    },[{parent_bone:"door",child_bone:"handle",channel:"rotation",sample_rate:8}]);
+    },[{parent_bone:"door",child_bone:"handle",channel:"rotation",sample_rate:16}]);
     expect(plan.create_animation.bones.handle.length).toBeGreaterThan(2);
   });
 
@@ -92,6 +92,15 @@ describe("high-end bounded authoring foundations",()=>{
     });
     expect(plan.kind).toBe("PAINT_TEXTURE_TRANSACTION");
     expect(plan.operations.length).toBeGreaterThan(0);
+  });
+
+  test("spring stability guard rejects undersampled stiff motion",()=>{
+    expect(()=>compileMotionWithSpringToCreateAnimationPlan({
+      name:"door",duration:1,poses:[
+        {id:"a",time:0,bones:{door:{rotation:[0,0,0]}}},
+        {id:"b",time:1,bones:{door:{rotation:[0,60,0]}}},
+      ],
+    },[{parent_bone:"door",child_bone:"handle",channel:"rotation",stiffness:100,sample_rate:8}])).toThrow("SPRING_STABILITY_GUARD");
   });
 
   test("new foundations do not register public MCP capabilities",()=>{

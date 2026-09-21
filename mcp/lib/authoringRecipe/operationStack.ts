@@ -12,17 +12,12 @@ export type SemanticOperationStackEntry={
   selection:SemanticSelection;
   operation:SemanticGeometryOperation;
 };
+export type SemanticOperationStack={id:string;operations:readonly SemanticOperationStackEntry[]};
+const MAX_STACK_OPERATIONS=32;
 
-export type SemanticOperationStack={
-  id:string;
-  operations:readonly SemanticOperationStackEntry[];
-};
-
-export function evaluateSemanticOperationStack(
-  base:AuthoringRecipe,
-  stack:SemanticOperationStack
-){
+export function evaluateSemanticOperationStack(base:AuthoringRecipe,stack:SemanticOperationStack){
   if(!stack.id.trim()) throw new Error("Semantic operation stack requires non-empty id.");
+  if(stack.operations.length>MAX_STACK_OPERATIONS) throw new Error("SEMANTIC_STACK_BUDGET_EXCEEDED: stack exceeds "+MAX_STACK_OPERATIONS+" operations.");
   const seen=new Set<string>();
   let current=structuredClone(base);
   const receipts:Array<{id:string;affected_instance_ids:string[];skipped:boolean}>=[];
@@ -34,15 +29,8 @@ export function evaluateSemanticOperationStack(
     const selected=selectCompiledPlacements(compiled,entry.selection);
     if(selected.length===0) throw new Error("SEMANTIC_STACK_SELECTION_EMPTY: operation "+entry.id+" matched no instances.");
     const ids=selected.map((placement)=>placement.id).sort();
-    current=rewriteAuthoringRecipeForSemanticEdit(current,{
-      target:{instance_ids:ids},
-      operation:entry.operation,
-    });
+    current=rewriteAuthoringRecipeForSemanticEdit(current,{target:{instance_ids:ids},operation:entry.operation});
     receipts.push({id:entry.id,affected_instance_ids:ids,skipped:false});
   }
-  return {
-    recipe:current,
-    receipts,
-    rebuild:planIncrementalRecipeRebuild(base,current),
-  };
+  return {recipe:current,receipts,rebuild:planIncrementalRecipeRebuild(base,current)};
 }
