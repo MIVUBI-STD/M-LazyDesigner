@@ -186,6 +186,10 @@ Full texture diagnostics now share one request-local read context across coverag
 - one Undo and one interface refresh cover the metadata cohort;
 - the branch reuses the existing capability and stays within the normal MCP surface budget.
 
+## Surface-Budget Preservation
+
+Texture efficiency changes must remain net-positive at the MCP boundary. The layer metadata batch reuses `texture_layer_management`, while redundant field prose is intentionally kept out of the static schema so tools/list does not grow merely to describe self-evident metadata. Runtime validation and action-specific errors remain authoritative.
+
 ## Acceptance Rules
 
 An efficiency change is acceptable only when:
