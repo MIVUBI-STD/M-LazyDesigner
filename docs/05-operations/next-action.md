@@ -55,16 +55,27 @@ Immediate order:
 3. reserve wall-clock/GC tuning for LOCAL_CODE benchmark evidence;
 4. continue low-risk AI-context progressive disclosure only where measured payload waste remains.
 
-Latest compute code gate:
+Completed after C5:
+- P1.4 hot-path input tuple removal + scalar Oklab output paths;
+- generic receipt-only structured projection drops redundant before snapshots only when authoritative after state exists;
+- generic receipt-only prose compaction is verification-class driven and preserves path/URL-bearing text;
+- describe-payload byte scorecard added;
+- branch-focused describe projection added for manage_cubes and manage_render_profile.
+
+Latest verified source gates:
 
 ```text
 d7ff5eb6a4400f8cea25006d5df664d04cc1eb21
-MCP Verify PASS
-Runtime regression PASS
-authoring contracts PASS
-Zero-Waste guard PASS
-efficiency/surface/phase measurements PASS
-compatibility build PASS
+Texture Compute C1-C5: MCP Verify PASS
+
+f43829158271e777cee246a4a26d43d7ed7e71ec
+P1.4 allocation cleanup: MCP Verify PASS
+
+473bc2ca23f83fe15e05475d800fd8a4632fe4b7
+manage_cubes branch describe projection: MCP Verify PASS
+
+da1c8d01429e30faac2404bdcb57c745080e0df5
+generic receipt-only Gateway prose projection: substantive MCP gate PASS
 ```
 
 C2 acceptance:
@@ -90,11 +101,12 @@ bounded unique-color estimate
 
 Planner may choose only already-supported deterministic execution paths. No wall-clock superiority claim until LOCAL_CODE benchmark evidence exists.
 
-Parallel AI-context work is limited to:
+Parallel AI-context work is now limited to:
 
 ```text
-generic continuation/result projection audit
-branch-focused describe hotspots
+rank remaining large structured results with real evidence
+rank remaining unprojected describe schemas with measure:describe-payloads
+add branch projection only for clean canonical discriminators
 provider/client telemetry preparation
 ```
 
