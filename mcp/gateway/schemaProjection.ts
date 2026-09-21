@@ -194,3 +194,18 @@ export function getCapabilityBranchFields(
 ): readonly string[] | null {
   return CAPABILITY_BRANCH_FIELDS[capability]?.[branch.field]?.[branch.value] ?? null;
 }
+
+
+export function listCapabilitySchemaBranches(
+  capability: string
+): CapabilitySchemaBranch[] {
+  const projection = CAPABILITY_BRANCH_FIELDS[capability];
+  if (!projection) return [];
+  const branches: CapabilitySchemaBranch[] = [];
+  for (const [field, values] of Object.entries(projection)) {
+    for (const value of Object.keys(values)) {
+      branches.push({ field, value });
+    }
+  }
+  return branches;
+}

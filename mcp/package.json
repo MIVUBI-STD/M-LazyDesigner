@@ -72,7 +72,8 @@
     "audit:unused:gateway": "tsc -p gateway/tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters",
     "verify:texture-runtime-live": "bun run ./scripts/verify-texture-runtime-live.ts",
     "conformance:serve": "bun run ./scripts/serve-conformance-runtime.ts",
-    "measure:mcp-efficiency": "bun run ./scripts/measure-mcp-efficiency.ts"
+    "measure:mcp-efficiency": "bun run ./scripts/measure-mcp-efficiency.ts",
+    "measure:describe-payloads": "bun run ./scripts/measure-describe-payloads.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
