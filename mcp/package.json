@@ -85,7 +85,8 @@
     "test:gateway-structure": "bun test gateway/structure.test.ts gateway/dependencyDirection.test.ts gateway/control/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts gateway/runtime/operationQueue.test.ts gateway/runtime/affinityPolicy.test.ts",
     "eval:decision-efficiency": "bun run ./scripts/evaluate-decision-efficiency.ts",
     "analyze:semantic-impact": "bun run ./scripts/analyze-semantic-impact.ts",
-    "map:knowledge": "bun run ./scripts/build-knowledge-index.ts"
+    "map:knowledge": "bun run ./scripts/build-knowledge-index.ts",
+    "plan:development-context": "bun run ./scripts/plan-development-context.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
