@@ -27,6 +27,8 @@ const WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./providers/vanillaEntityReference";\n',
   "gateway/control/delta.ts":
     'export * from "./delta/engine";\nexport * from "./delta/projection";\n',
+  "gateway/control/capabilityManifest.ts":
+    'export * from "./capabilityProjection";\n',
 };
 
 describe("Gateway structural ownership", () => {
@@ -80,6 +82,14 @@ describe("Gateway structural ownership", () => {
     expect(engine).not.toContain("function mutationFreshness");
     expect(engine).not.toContain("function verificationClassForResult");
     expect(engine.split("\n").length).toBeLessThan(140);
+  });
+
+  test("Control capability metadata is projection-owned, not a second manifest", async () => {
+    const registry = await Bun.file("gateway/control/registry.ts").text();
+    const projection = await Bun.file("gateway/control/capabilityProjection.ts").text();
+    expect(registry).toContain('from "./capabilityProjection"');
+    expect(projection).toContain("getCapabilityMetadata");
+    expect(projection).not.toContain("PRIMARY_CAPABILITIES");
   });
 
 });
