@@ -75,7 +75,8 @@
     "measure:mcp-efficiency": "bun run ./scripts/measure-mcp-efficiency.ts",
     "measure:describe-payloads": "bun run ./scripts/measure-describe-payloads.ts",
     "benchmark:parametric-authoring": "bun run ./scripts/benchmark-parametric-authoring.ts",
-    "benchmark:semantic-uv": "bun run ./scripts/benchmark-semantic-uv.ts"
+    "benchmark:semantic-uv": "bun run ./scripts/benchmark-semantic-uv.ts",
+    "benchmark:semantic-rig": "bun run ./scripts/benchmark-semantic-rig.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
