@@ -104,7 +104,7 @@ describe("texture compute request and pipeline", () => {
     expect(result.receipt.operations).toEqual(["palettize"]);
   });
 
-  test("palette-compliant bitmap skips redundant perceptual remap", () => {
+  test("pointwise fusion avoids a second full compliance/remap pass", () => {
     const source = new Uint8ClampedArray([
       0, 0, 0, 255,
       255, 255, 255, 255,
@@ -122,8 +122,10 @@ describe("texture compute request and pipeline", () => {
       },
     ]);
 
-    expect(result.receipt.operations).toContain("posterize");
-    expect(result.receipt.skipped_operations).toContain("palettize");
+    expect(result.receipt.operations).toEqual(["posterize", "palettize"]);
+    expect(result.receipt.execution.fused_groups).toBe(1);
+    expect(result.receipt.execution.fused_steps).toBe(2);
+    expect(result.receipt.execution.unique_color_transforms).toBeLessThanOrEqual(3);
   });
 
   test("request-local color cache reuses repeated pixel conversions", () => {
