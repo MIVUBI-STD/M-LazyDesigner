@@ -58,6 +58,29 @@ export type RadialPattern = {
 
 export type RecipePattern = LinearPattern | GridPattern | RadialPattern;
 
+export type RecipeAnchorPosition = "MIN" | "CENTER" | "MAX";
+
+export type RecipeAnchorConstraint = {
+  kind: "ANCHOR";
+  id: string;
+  source_instance_id: string;
+  target_instance_id: string;
+  axes: Array<"X" | "Y" | "Z">;
+  source_anchor: [
+    RecipeAnchorPosition,
+    RecipeAnchorPosition,
+    RecipeAnchorPosition
+  ];
+  target_anchor: [
+    RecipeAnchorPosition,
+    RecipeAnchorPosition,
+    RecipeAnchorPosition
+  ];
+  offset?: RecipeVec3;
+};
+
+export type RecipeConstraint = RecipeAnchorConstraint;
+
 export type AuthoringRecipe = {
   schema: typeof AUTHORING_RECIPE_SCHEMA_VERSION;
   compiler_version: typeof AUTHORING_RECIPE_COMPILER_VERSION;
@@ -65,6 +88,7 @@ export type AuthoringRecipe = {
   name: string;
   prototypes: RecipeCubePrototype[];
   patterns: RecipePattern[];
+  constraints?: RecipeConstraint[];
 };
 
 export type CompiledCubePlacement = {

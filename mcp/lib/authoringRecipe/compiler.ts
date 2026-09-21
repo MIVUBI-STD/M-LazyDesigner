@@ -1,5 +1,6 @@
 import type { AuthoringRecipe, CompiledAuthoringRecipe, CompiledCubePlacement, RecipeCubePrototype, RecipeInstance, RecipeVec3 } from "@/lib/authoringRecipe/contracts";
 import { expandRecipePattern } from "@/lib/authoringRecipe/patterns";
+import { solveRecipeConstraints } from "@/lib/authoringRecipe/constraints";
 
 function requireVec3(value: readonly number[], label: string): RecipeVec3 {
   if (value.length !== 3 || value.some((entry) => !Number.isFinite(entry))) throw new Error(label + " must contain three finite values.");
@@ -45,13 +46,33 @@ export function compileAuthoringRecipe(recipe: AuthoringRecipe): CompiledAuthori
   const prototypeById = new Map(recipe.prototypes.map((prototype) => [prototype.id, prototype]));
   const patternIds = recipe.patterns.map((pattern) => pattern.id);
   if (new Set(patternIds).size !== patternIds.length) throw new Error("Authoring Recipe pattern IDs must be unique.");
-  const placements: CompiledCubePlacement[] = [];
-  for (const pattern of recipe.patterns) {
+  const expanded = recipe.patterns.flatMap((pattern) => {
     const prototype = prototypeById.get(pattern.prototype_id);
     if (!prototype) throw new Error("Pattern " + pattern.id + " references unknown prototype " + pattern.prototype_id + ".");
-    const instances = expandRecipePattern(pattern);
-    instances.forEach((instance, index) => placements.push(realizeCube(prototype, instance, pattern.id, index)));
-  }
+    return expandRecipePattern(pattern).map((instance, index) => ({
+      instance,
+      pattern_id: pattern.id,
+      local_index: index,
+    }));
+  });
+  const solvedInstances = solveRecipeConstraints(
+    expanded.map((entry) => entry.instance),
+    prototypeById,
+    recipe.constraints ?? []
+  );
+  const solvedById = new Map(
+    solvedInstances.map((instance) => [instance.id, instance])
+  );
+  const placements: CompiledCubePlacement[] = expanded.map((entry) => {
+    const prototype = prototypeById.get(entry.instance.prototype_id)!;
+    const solved = solvedById.get(entry.instance.id)!;
+    return realizeCube(
+      prototype,
+      solved,
+      entry.pattern_id,
+      entry.local_index
+    );
+  });
   const placementIds = placements.map((placement) => placement.id);
   if (new Set(placementIds).size !== placementIds.length) throw new Error("Compiled Authoring Recipe produced duplicate instance IDs.");
   const uniqueGeometryCount = new Set(placements.map((placement) => placement.prototype_id)).size;
