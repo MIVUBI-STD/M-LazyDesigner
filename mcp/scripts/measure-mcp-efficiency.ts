@@ -24,6 +24,7 @@ const SCORECARD_RUNTIME_PRIMITIVES = [
   "bone_rigging",
   "list_textures",
   "paint_with_brush",
+  "texture_layer_management",
 ] as const;
 
 function runtimePrimitiveStaticCost() {
@@ -206,6 +207,38 @@ export function runMcpEfficiencyScorecard() {
       atlas_state_kept: true,
       logical_uv_kept: true,
       diagnostics_remain_opt_in: true,
+    }
+  );
+
+  const textureLayerMetadataBatch = workflow(
+    "texture_layer_metadata_batch",
+    "TEXTURING",
+    [
+      step("mutate", { tool: "texture_layer_management", action: "rename_layer" }, true),
+      step("mutate", { tool: "texture_layer_management", action: "set_opacity" }, true),
+      step("mutate", { tool: "texture_layer_management", action: "set_blend_mode" }, true),
+      step("mutate", { tool: "texture_layer_management", action: "move_layer" }, true),
+    ],
+    [
+      step(
+        "mutate",
+        {
+          tool: "texture_layer_management",
+          action: "batch_metadata",
+          update_count: 4,
+          one_undo: true,
+          one_recompose_max: true,
+          one_refresh: true,
+        },
+        true
+      ),
+    ],
+    {
+      same_layer_targets: true,
+      same_final_metadata: true,
+      one_undo_unit: true,
+      one_recompose_max: true,
+      explicit_identity_kept: true,
     }
   );
 
@@ -469,6 +502,7 @@ export function runMcpEfficiencyScorecard() {
     geometryBatch,
     animationBatch,
     textureInventoryDefault,
+    textureLayerMetadataBatch,
     textureTransaction,
     receiptContinuation,
     particleReceipt,
@@ -504,6 +538,12 @@ export function runMcpEfficiencyScorecard() {
         status: "implemented",
         primitive: "list_textures",
         next_gate: "retain cheap default; request scoped diagnostics only when decision-changing",
+      },
+      {
+        id: "texture_layer_metadata_batch",
+        status: "implemented",
+        primitive: "texture_layer_management(batch_metadata)",
+        next_gate: "retain metadata-only batching; keep structural/bitmap layer actions separate",
       },
       {
         id: "texture_atomic_region_transaction",
