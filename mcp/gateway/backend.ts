@@ -15,6 +15,7 @@ import {
   searchCapabilityCatalog,
   type BackendTool,
   type CapabilitySummary,
+  type CapabilitySearchContext,
   type JsonRecord,
 } from "./contract";
 import { GatewayConnectionManager } from "./connectionManager";
@@ -715,10 +716,12 @@ export class BlockitRuntimeBackend {
 
   async searchCapabilities(
     query: string,
-    limit: number = 4
+    limit: number = 4,
+    context: CapabilitySearchContext = {}
   ): Promise<CapabilitySummary[]> {
     if (this.hasFreshCatalog()) {
       return searchCapabilityCatalog([...this.catalog.values()], query, limit, {
+        ...context,
         authoringPhase: this.authoringPhase,
       });
     }
@@ -728,6 +731,7 @@ export class BlockitRuntimeBackend {
         await this.ensureCatalogUnsafe();
       }
       return searchCapabilityCatalog([...this.catalog.values()], query, limit, {
+        ...context,
         authoringPhase: this.authoringPhase,
       });
     });
