@@ -489,7 +489,9 @@ export function searchCapabilityCatalog(
     .map(({ tool, semantic }) => ({
       ...summarizeCapability(tool),
       ...(semantic.branch ? { branch: semantic.branch } : {}),
-      ...(hasQuery && semantic.reason ? { why: semantic.reason } : {}),
+      ...(hasQuery && semantic.matched && semantic.reason
+        ? { why: semantic.reason }
+        : {}),
     }));
 }
 
