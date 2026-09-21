@@ -31,6 +31,10 @@ import {
 } from "@/plugin/devSync";
 import { RuntimeHost } from "@/plugin/runtimeHost";
 import { BlockbenchIntegration } from "@/plugin/blockbenchIntegration";
+import {
+  registerAuthoringRecipeOwnershipProperties,
+  unregisterAuthoringRecipeOwnershipProperties,
+} from "@/server/runtime/authoringRecipeOwnership";
 
 const runtimeHost = new RuntimeHost();
 const blockbenchIntegration = new BlockbenchIntegration();
@@ -59,6 +63,7 @@ function beginBlockItRuntimeTeardown(
   // synchronously, then let RuntimeHost + the lifecycle coordinator drain native
   // work and listener shutdown before a new generation binds.
   stopLocalDevAutoReload();
+  unregisterAuthoringRecipeOwnershipProperties();
   setMcpPhaseSwitchHandler(() => undefined);
   blockbenchIntegration.teardown();
   runtimeHost.teardown(generation);
@@ -188,6 +193,8 @@ BBPlugin.register("blockit_mcp", {
       console.info("[MCP] Blockbench version is allowed but not exact-live-validated", compatibility);
     }
 
+    registerAuthoringRecipeOwnershipProperties();
+
     const claim = claimRuntimeGeneration(currentBuildIdentity());
     runtimeGeneration = claim.generation;
     const initialization = initializeBlockItRuntime(claim);
@@ -219,6 +226,7 @@ BBPlugin.register("blockit_mcp", {
 
   onuninstall() {
     Blockbench.showQuickMessage("LazyDesigner removed", 2000);
+    unregisterAuthoringRecipeOwnershipProperties();
     blockbenchIntegration.teardown();
   },
 });
