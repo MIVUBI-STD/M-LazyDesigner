@@ -3,11 +3,9 @@ import type { CapabilityTier } from "../lib/capabilityMetadata";
 import type {
   CapabilityBranchHint,
   CapabilityRoutingContext,
-} from "./capabilities/intelligence";
-import type {
   CapabilityEligibility,
   CapabilityFactState,
-} from "./capabilities/graph";
+} from "./capabilities/types";
 
 export const GATEWAY_NAME = "blockit-gateway";
 export const GATEWAY_VERSION = version;
