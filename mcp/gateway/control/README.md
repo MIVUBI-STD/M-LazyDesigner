@@ -12,6 +12,7 @@ user task
 → Runtime
 → Blockbench
 → control_delta
+→ deterministic continuation action
 ```
 
 ## Ownership
@@ -47,7 +48,8 @@ packet.ts             task packet assembly
 capabilities.ts       capability decoration
 routingPolicy.ts      direct-first route policy
 developmentIntent.ts  bounded SYSTEM_DEVELOPMENT routing
-delta.ts              post-operation invalidation/continuation
+delta.ts              post-operation invalidation/freshness receipt
+orchestration.ts       ephemeral execution reducer + deterministic next action
 index.ts              public module exports
 ```
 
@@ -82,6 +84,25 @@ A stage is blocked by its own readiness, not by unrelated future-stage unknowns.
 ## Delta boundary
 
 `control_delta` invalidates only evidence that can be affected by the mutation when Runtime evidence is sufficient. Ambiguous structural mutation evidence fails conservatively. Ordinary mutation does not force a full `status` reread; project/phase authority changes may require one.
+
+## Orchestration boundary
+
+The Gateway keeps one **ephemeral** execution reducer. It does not persist asset
+truth or chat history. After an attached mutation delta, the reducer derives one
+bounded continuation action:
+
+```text
+CONTINUE | STATUS | RECOVER | HANDOFF
+VERIFY_FOCUSED | VERIFY_VISUAL | REVIEW_RETURNED_EVIDENCE
+```
+
+This converts verification class, phase/project changes, particle-texture
+handoff, and unknown outcomes into deterministic flow policy without another
+LLM/planner call. Unknown mutation outcomes never become automatic retries.
+
+Capability semantics used by routing/search/effects now originate in
+`mcp/lib/capabilityManifest.ts`; `capabilityMetadata.ts` remains only a
+compatibility facade for existing imports.
 
 ## Gateway boundary
 

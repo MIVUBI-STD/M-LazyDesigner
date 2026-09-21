@@ -25,6 +25,16 @@ export type {
 } from "./contextHeadroom";
 export { decorateCapabilities, projectCapabilitiesForSearch } from "./capabilities";
 export { buildControlDelta, projectControlDeltaForGateway } from "./delta";
+export {
+  nextActionForControlDelta,
+  reduceControlExecutionState,
+} from "./orchestration";
+export type {
+  ControlContinuation,
+  ControlExecutionState,
+  ControlNextAction,
+  ControlNextActionKind,
+} from "./orchestration";
 export { resolveDevelopmentIntent } from "./developmentIntent";
 export type {
   ControlDevelopmentDomain,

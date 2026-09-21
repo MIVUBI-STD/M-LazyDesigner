@@ -25,6 +25,8 @@ import {
   CONTROL_ROUTING_POLICY,
   decorateCapabilities,
   projectCapabilitiesForSearch,
+  reduceControlExecutionState,
+  type ControlExecutionState,
 } from "./control";
 import { LocalCapabilityRegistry } from "./localCapabilities";
 import { recoveryForGatewayError } from "./recovery";
@@ -37,6 +39,7 @@ import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
+let executionState: ControlExecutionState | null = null;
 
 // Runtime resources and prompts are not proxied; the Gateway intentionally exposes only its four stable tools.
 const GATEWAY_INSTRUCTIONS =
@@ -435,11 +438,20 @@ registerGatewayTool(
         succeeded,
         result: result.structuredContent,
       });
-      const gatewayControlDelta = projectControlDeltaForGateway(controlDelta);
       const attachControlDelta = shouldAttachGatewayControlDelta(
         succeeded,
         readOnly
       );
+      const orchestration = attachControlDelta
+        ? reduceControlExecutionState(executionState, controlDelta)
+        : null;
+      if (orchestration) executionState = orchestration.state;
+      const gatewayControlDelta = {
+        ...projectControlDeltaForGateway(controlDelta),
+        ...(orchestration
+          ? { continuation: orchestration.continuation }
+          : {}),
+      };
       if (result.structuredContent === undefined) {
         return {
           ...result,

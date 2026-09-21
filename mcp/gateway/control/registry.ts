@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
-import { classifyMcpToolPhaseByName } from "../../lib/authoringPhase";
+import { getCapabilityManifestEntry } from "../../lib/capabilityManifest";
 import type {
   ControlAuthoringDomain,
   ControlContextHandle,
@@ -75,11 +75,7 @@ export async function contextForAuthoringDomain(
 }
 
 export function authoringDomainForCapability(capability: string): ControlAuthoringDomain {
-  const phase = classifyMcpToolPhaseByName(capability);
-  if (phase === "geometry") return "GEOMETRY";
-  if (phase === "texturing") return "TEXTURING";
-  if (phase === "animation") return "ANIMATION";
-  return "CORE";
+  return getCapabilityManifestEntry(capability).authoringDomain;
 }
 
 const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
