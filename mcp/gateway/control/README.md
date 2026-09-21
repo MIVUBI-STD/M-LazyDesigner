@@ -43,7 +43,7 @@ referencePackage.ts   REFERENCE.json projection
 workspace.ts          Active Workspace projection
 contextProjection.ts  stage-specific authoring context
 contexts.ts           Skill/profile paths + content-addressed context handles
-sourceOwners.ts        capability domain/source/specialist/test ownership
+sourceOwners/         domain-scoped capability source-owner maps\nsourceOwners.ts        source-owner composition + fallback
 registry.ts           compatibility facade
 snapshot.ts           live Gateway/Runtime orientation
 packet.ts             task packet assembly
