@@ -1,45 +1,43 @@
 # Semantic Rig / Pivot Engine
 
-Status: SOURCE FOUNDATION
+Status: REMOTE SOURCE BOUNDED / LIVE PROOF PENDING
 Updated: 2026-09-21
 Branch: Local
 
 ## Goal
 
-Move rig planning from manually authored pivots/bones toward semantic geometry relationships:
+Move rig planning from manually authored pivots/bones toward explicit semantic geometry relationships:
 
 ```text
 geometry instances
-+ explicit joint/chain intent
++ explicit joint/chain/mechanical intent
 + anchor semantics
-+ optional end target
++ optional FABRIK target
 + recipe symmetry
 → deterministic bone plan
-→ optional FABRIK solve
-→ existing add_group batch
+→ existing add_group / bone_rigging ownership
 ```
 
 ## Current source foundation
 
-- geometry-derived MIN/CENTER/MAX pivots;
-- explicit JOINT intent;
-- multi-part CHAIN intent;
+- geometry-derived MIN/CENTER/MAX pivots for unrotated source geometry;
+- explicit JOINT and CHAIN intents;
 - optional FABRIK target solve while preserving segment lengths;
+- explicit HINGE / ROTATOR / SLIDER templates;
 - recipe-owned rig symmetry mirroring;
-- deterministic rig diff;
-- compilation into the existing `add_group(groups=[...])` batch contract.
+- affected rig scope derived from source-instance ownership;
+- native IK-controller intent compilation through existing `bone_rigging`;
+- compilation into the existing `add_group(groups=[...])` batch contract;
+- existing/external parent identities are delegated to the canonical `add_group` preflight rather than reimplemented;
+- no new public tool.
 
-No new public tool is registered.
+## Hardening rules
 
-## Boundaries
+- rotated source geometry fails closed for geometry-derived pivots until transformed-anchor semantics are explicitly defined;
+- no semantic type is guessed from Group/instance names;
+- no second rig executor or persistent rig database;
+- do not keep standalone diff/planning helpers without an execution consumer.
 
-The engine never guesses that a semantic group is an arm, leg, door or hinge merely from its name. Joint/chain intent must be explicit or come from a future approved reference/authoring recipe field.
+## Proof boundary
 
-Native Group creation, transferOrigin, IK controller behavior, animation compatibility and visual acceptance remain owned by the existing Blockbench runtime/tool surfaces.
-
-## Next source work
-
-- add explicit HINGE/SLIDER/ROTATOR templates only where they reduce repeated mechanical calculations;
-- compile optional native IK-controller plans through the existing `bone_rigging` owner;
-- add affected-only rig planning tied to Parametric compiled diff;
-- benchmark intent payload and correction scope against explicit bone-by-bone authoring.
+Native Group creation, transferOrigin, IK controller behavior, animation compatibility, Undo/Redo, save/reopen and visual acceptance remain LOCAL_CODE/LIVE_BLOCKBENCH proof.
