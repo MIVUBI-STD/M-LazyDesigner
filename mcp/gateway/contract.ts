@@ -15,12 +15,12 @@ import {
   bm25CapabilityScores,
   type CapabilityBranchHint,
   type CapabilityRoutingContext,
-} from "./capabilityIntelligence";
+} from "./capabilities/intelligence";
 import {
   evaluateCapabilityPreconditions,
   type CapabilityFactState,
   type CapabilityEligibility,
-} from "./capabilityGraph";
+} from "./capabilities/graph";
 export { DEFAULT_RUNTIME_URL };
 
 export const GATEWAY_TOOLS = {
