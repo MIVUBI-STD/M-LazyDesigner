@@ -69,6 +69,8 @@ export function projectCapabilitiesForSearch(
     return {
       capability_id: capability.capability_id,
       ...(hint ? { hint } : {}),
+      ...(capability.branch ? { branch: capability.branch } : {}),
+      ...(capability.why ? { why: capability.why } : {}),
       tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
       ...(flags.length > 0 ? { flags } : {}),
