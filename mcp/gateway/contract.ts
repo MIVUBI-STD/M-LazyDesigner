@@ -16,6 +16,11 @@ import {
   type CapabilityBranchHint,
   type CapabilityRoutingContext,
 } from "./capabilityIntelligence";
+import {
+  evaluateCapabilityPreconditions,
+  type CapabilityFactState,
+  type CapabilityEligibility,
+} from "./capabilityGraph";
 export { DEFAULT_RUNTIME_URL };
 
 export const GATEWAY_TOOLS = {
@@ -58,6 +63,13 @@ export type CapabilitySummary = {
   idempotent: boolean;
   branch?: CapabilityBranchHint;
   why?: string;
+  eligibility?: CapabilityEligibility;
+  requires?: string[];
+  predecessor?: { capability: string; branch?: CapabilityBranchHint };
+};
+
+export type CapabilitySearchContext = CapabilityRoutingContext & {
+  facts?: CapabilityFactState;
 };
 
 const CUBE_UV_CONTINUATION_FIELDS = new Set([
@@ -451,7 +463,7 @@ export function searchCapabilityCatalog(
   tools: readonly BackendTool[],
   query: string,
   limit: number,
-  context?: CapabilityRoutingContext
+  context?: CapabilitySearchContext
 ): CapabilitySummary[] {
   const exact = exactCapabilityMatch(tools, query);
   if (exact) return [summarizeCapability(exact)];
@@ -466,14 +478,27 @@ export function searchCapabilityCatalog(
       const tier = metadata.tier;
       const semantic = bestSemanticMatchForTool(tool, query, context);
       const bm25 = bm25Scores.get(tool.name) ?? 0;
+      const preconditions = evaluateCapabilityPreconditions(
+        tool.name,
+        semantic.branch,
+        context?.facts
+      );
+      const eligibilityAdjustment =
+        preconditions.eligibility === "READY"
+          ? 10
+          : preconditions.eligibility === "BLOCKED"
+            ? -80
+            : -4;
       return {
         tool,
         tier,
         semantic,
         bm25,
+        preconditions,
         score:
           semantic.score +
           bm25 * 12 +
+          eligibilityAdjustment +
           CAPABILITY_TIER_BOOST[tier] +
           CAPABILITY_LIFECYCLE_SEARCH_PENALTY[metadata.lifecycle.stage],
       };
@@ -486,11 +511,24 @@ export function searchCapabilityCatalog(
         right.score - left.score || left.tool.name.localeCompare(right.tool.name)
     )
     .slice(0, boundedLimit)
-    .map(({ tool, semantic }) => ({
+    .map(({ tool, semantic, preconditions }) => ({
       ...summarizeCapability(tool),
       ...(semantic.branch ? { branch: semantic.branch } : {}),
       ...(hasQuery && semantic.matched && semantic.reason
         ? { why: semantic.reason }
+        : {}),
+      ...(preconditions.eligibility !== "READY"
+        ? {
+            eligibility: preconditions.eligibility,
+            ...(preconditions.missing.length > 0
+              ? { requires: preconditions.missing }
+              : preconditions.unknown.length > 0
+                ? { requires: preconditions.unknown }
+                : {}),
+            ...(preconditions.predecessor
+              ? { predecessor: preconditions.predecessor }
+              : {}),
+          }
         : {}),
     }));
 }
