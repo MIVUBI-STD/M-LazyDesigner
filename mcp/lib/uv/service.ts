@@ -27,7 +27,7 @@ import { UvPlanRegistry } from "@/lib/uv/planRegistry";
 export type UvLayoutPlanningInput = {
   bitmap_width?: number;
   bitmap_height?: number;
-  mode?: UvPackingMode;
+  mode: UvPackingMode;
   island_ids?: readonly string[];
   default_target_pixels_per_model_unit?: number;
   constraints?: readonly UvConstraintRule[];

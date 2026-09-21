@@ -43,7 +43,15 @@ describe("UV management request contract", () => {
     expect(JSON.stringify(parsed)).not.toContain('"uv_offset":');
   });
 
-  test("targeted packing modes require explicit island IDs", () => {
+  test("packing mode is explicit and targeted modes require island IDs", () => {
+    expect(() =>
+      uvLayoutPlanRequestSchema.parse({
+        operation: "plan",
+        bitmap_width: 128,
+        bitmap_height: 128,
+      })
+    ).toThrow();
+
     expect(() =>
       uvLayoutPlanRequestSchema.parse({
         operation: "plan",

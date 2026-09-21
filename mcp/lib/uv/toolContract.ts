@@ -88,14 +88,12 @@ export const uvLayoutPlanRequestSchema = z
     operation: z.literal("plan"),
     bitmap_width: z.number().int().min(1).max(4096).optional(),
     bitmap_height: z.number().int().min(1).max(4096).optional(),
-    mode: z
-      .enum([
-        "REPACK_ALL",
-        "ADD_ONLY",
-        "AFFECTED_ONLY",
-        "REPACK_SELECTED",
-      ])
-      .default("REPACK_ALL"),
+    mode: z.enum([
+      "REPACK_ALL",
+      "ADD_ONLY",
+      "AFFECTED_ONLY",
+      "REPACK_SELECTED",
+    ]),
     island_ids: z
       .array(z.string().min(1))
       .max(512)
