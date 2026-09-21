@@ -1,121 +1,10 @@
+import { manifestEntriesForCapability } from "./capabilityManifest";
 export type CapabilitySchemaBranch = {
   field: string;
   value: string;
 };
 
 type JsonRecord = Record<string, unknown>;
-type CapabilityProjection = Record<string, Record<string, readonly string[]>>;
-
-/**
- * Branch metadata is declarative and kept at the stable Gateway boundary.
- * Runtime validation remains authoritative; this map only removes unrelated
- * fields from describe_capability responses so the AI client does not pay for
- * every branch of a consolidated capability when it already knows the branch.
- */
-const CAPABILITY_BRANCH_FIELDS: Record<string, CapabilityProjection> = {
-  manage_uv_layout: {
-    operation: {
-      plan: [
-        "operation",
-        "bitmap_width",
-        "bitmap_height",
-        "mode",
-        "island_ids",
-        "default_target_pixels_per_model_unit",
-        "constraints",
-        "include_implicit_stack_candidates",
-      ],
-      apply: [
-        "operation",
-        "plan_id",
-        "expected_source_fingerprint",
-      ],
-    },
-  },
-  manage_cubes: {
-    operation: {
-      create: ["operation"],
-      update: ["operation"],
-      batch_update: ["operation"],
-      simplify: ["operation"],
-    },
-  },
-  manage_render_profile: {
-    operation: {
-      inspect: ["operation"],
-      bind: ["operation"],
-      set_slot: ["operation"],
-      assign: ["operation"],
-      unassign: ["operation"],
-    },
-  },
-  inspect_elements: {
-    mode: {
-      outline: ["mode", "include_cubes", "max_depth", "max_nodes"],
-      search: [
-        "mode",
-        "name_pattern",
-        "name_contains",
-        "type",
-        "parent_group",
-        "min_size",
-        "max_size",
-        "selected_only",
-        "limit",
-      ],
-      detail: ["mode", "id", "detail"],
-    },
-  },
-  create_texture: {
-    type: {
-      blank: [
-        "type", "name", "width", "height", "data", "group", "fill_color",
-        "layer_name", "pbr_channel", "render_mode", "render_sides",
-      ],
-      template: [
-        "type", "name", "texture_id", "width", "height", "pixel_density",
-        "rearrange_uv", "power_of_two", "keep_multi_texture_occupancy",
-        "padding", "group", "fill_color", "layer_name", "pbr_channel",
-        "render_mode", "render_sides",
-      ],
-      variant: ["type", "name", "source_texture_id", "group"],
-    },
-  },
-  manage_material: {
-    operation: {
-      create: ["operation", "name", "color_texture", "normal_texture", "height_texture", "mer_texture", "color_value", "mer_value", "subsurface_value"],
-      configure: ["operation", "material", "color_texture", "normal_texture", "height_texture", "mer_texture", "color_value", "mer_value", "subsurface_value"],
-      assign_channel: ["operation", "material", "texture", "channel"],
-      save: ["operation", "material"],
-    },
-  },
-  manage_material_instances: {
-    operation: {
-      list: ["operation", "include_usages", "usage_limit_per_instance"],
-      get: ["operation", "cube_id", "faces"],
-      set: ["operation", "cube_id", "material_name", "faces"],
-      bulk_set: ["operation", "assignments"],
-      clear: ["operation", "cube_id", "faces", "all_cubes"],
-    },
-  },
-  manage_animation_timeline: {
-    operation: {
-      keyframes: ["operation", "animation_id", "action", "bone_name", "channel", "keyframes"],
-      graph: ["operation", "animation_id", "bone_name", "channel", "axis", "action", "keyframe_range", "custom_curve"],
-      timeline: ["operation", "animation_id", "action", "time", "length", "fps", "loop_mode", "range", "molang", "easing", "bone_ids"],
-      batch: ["operation", "animation_id", "batch_operation", "selection", "range", "pattern", "parameters"],
-      copy_paste: ["operation", "action", "source", "target"],
-      properties: ["operation", "animation_id", "length", "fps", "loop_mode", "anim_time_update", "blend_weight", "start_delay", "loop_delay", "override_previous_animation", "rotation_spaces"],
-    },
-  },
-  manage_animation_controller: {
-    resource_kind: {
-      client_entity: ["resource_kind", "resource_source", "resource_output", "resource_operations", "max_content_length"],
-      animation_controller: ["resource_kind", "resource_source", "resource_output", "resource_controller", "resource_operations", "max_content_length"],
-    },
-  },
-};
-
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -196,8 +85,11 @@ export function projectCapabilityInputSchema(
   branch: CapabilitySchemaBranch | null;
 } {
   if (!branch) return { inputSchema, projected: false, branch: null };
-  const capabilityProjection = CAPABILITY_BRANCH_FIELDS[capability];
-  const branchProjection = capabilityProjection?.[branch.field]?.[branch.value];
+  const branchProjection = manifestEntriesForCapability(capability).find(
+    (entry) =>
+      entry.branch?.field === branch.field &&
+      entry.branch.value === branch.value
+  )?.schemaFields;
   if (!branchProjection) {
     throw new Error(
       `Capability "${capability}" does not expose a describe projection for ${branch.field}=${branch.value}. Describe the full capability or use a supported branch.`
@@ -228,20 +120,21 @@ export function getCapabilityBranchFields(
   capability: string,
   branch: CapabilitySchemaBranch
 ): readonly string[] | null {
-  return CAPABILITY_BRANCH_FIELDS[capability]?.[branch.field]?.[branch.value] ?? null;
+  return manifestEntriesForCapability(capability).find(
+    (entry) =>
+      entry.branch?.field === branch.field &&
+      entry.branch.value === branch.value
+  )?.schemaFields ?? null;
 }
 
 
 export function listCapabilitySchemaBranches(
   capability: string
 ): CapabilitySchemaBranch[] {
-  const projection = CAPABILITY_BRANCH_FIELDS[capability];
-  if (!projection) return [];
-  const branches: CapabilitySchemaBranch[] = [];
-  for (const [field, values] of Object.entries(projection)) {
-    for (const value of Object.keys(values)) {
-      branches.push({ field, value });
-    }
-  }
-  return branches;
+  return manifestEntriesForCapability(capability)
+    .filter((entry) => entry.branch && entry.schemaFields)
+    .map((entry) => ({
+      field: entry.branch!.field,
+      value: entry.branch!.value,
+    }));
 }
