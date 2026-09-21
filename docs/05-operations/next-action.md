@@ -93,6 +93,31 @@ nearest bounded .lazydesigner-project.json marker
 
 Quick Command, thumbnails, crawler, tags, cloud DB, and arbitrary hierarchy remain out of scope.
 
+## Authoring Automation Research Foundation
+
+Source-only research intake is now committed under `mcp/docs/AUTHORING_AUTOMATION_RESEARCH.md`.
+
+Current internal foundations:
+
+```text
+lib/uv/maxRectsPlanner.ts          deterministic bounded atlas placement
+lib/rig/fabrik.ts                 deterministic chain target solver
+lib/texture/proceduralOps.ts      gradient/noise/palette/dither buffer primitives
+lib/animation/controllerRecipe.ts intent-to-existing-controller-operation compiler
+```
+
+These are deliberately data-only and do not register new public Runtime capabilities. They are inspired by established algorithm families (MaxRects, FABRIK, procedural material pipelines, Animator/FSM state machines) while retaining LazyDesigner ownership and existing mutation surfaces.
+
+Next integration rule:
+
+1. benchmark each foundation against current explicit workflows before native wiring;
+2. wire only through the existing semantic owner (UV/Texture/Rig/Controller), never as a second public tool family;
+3. preserve affected-only/freshness/transaction semantics;
+4. require generator-backed public registration only if an existing capability schema genuinely cannot express the higher-level intent;
+5. remove any foundation that fails to reduce mechanical authoring work or improve accepted-result efficiency.
+
+Current commit foundation has source review only; CI/local/native PASS must not be claimed until those proofs run.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
