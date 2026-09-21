@@ -451,14 +451,14 @@ registerGatewayTool(
       const compacted = compactGatewayCapabilityStructuredContent(
         capability,
         result.structuredContent,
-        controlDelta.verification_class,
-        readOnly
+        controlDelta.verification_class
       );
       const compactedContent = compactGatewayCapabilityContent(
         capability,
         result.structuredContent,
         result.content,
-        controlDelta.verification_class
+        controlDelta.verification_class,
+        readOnly
       );
       return {
         ...result,
