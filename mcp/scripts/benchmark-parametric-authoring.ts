@@ -1,6 +1,7 @@
 import type { AuthoringRecipe } from "@/lib/authoringRecipe/contracts";
 import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
 import { compareParametricEfficiency } from "@/lib/authoringRecipe/efficiency";
+import { planIncrementalRecipeRebuild } from "@/lib/authoringRecipe/incremental";
 
 export function parametricBenchmarkFixtures(): Array<{ name: string; recipe: AuthoringRecipe }> {
   return [
@@ -17,6 +18,31 @@ export function runParametricEfficiencyBenchmark() {
     if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error("Parametric fixture " + fixture.name + " is non-deterministic.");
     return { fixture: fixture.name, ...compareParametricEfficiency(fixture.recipe, first) };
   });
+}
+
+export function runIncrementalRebuildBenchmark() {
+  const previous: AuthoringRecipe = {
+    schema: 1,
+    compiler_version: 1,
+    id: "fixture:incremental-grid",
+    name: "Incremental Grid",
+    prototypes: [{ id: "panel", name: "panel", size: [2,2,1] }],
+    patterns: [
+      { kind: "GRID", id: "left", prototype_id: "panel", counts: [10,10], axes: ["X","Y"], spacing: [3,3], start: [0,0,0] },
+      { kind: "GRID", id: "right", prototype_id: "panel", counts: [10,10], axes: ["X","Y"], spacing: [3,3], start: [40,0,0] },
+    ],
+  };
+  const next = structuredClone(previous);
+  const left = next.patterns.find((pattern) => pattern.id === "left");
+  if (!left || left.kind !== "GRID") throw new Error("incremental fixture corrupted");
+  left.spacing = [3.25, 3];
+  const plan = planIncrementalRecipeRebuild(previous, next);
+  return {
+    total_next_cubes: plan.metrics.next_cube_count,
+    affected_cubes: plan.metrics.affected_count,
+    preserved_cubes: plan.metrics.preserved_count,
+    affected_ratio: plan.metrics.affected_ratio_of_next,
+  };
 }
 
 export function assertParametricEfficiencyGuard() {
@@ -52,7 +78,18 @@ export function assertParametricEfficiencyGuard() {
       );
     }
   }
-  return results;
+  const incremental = runIncrementalRebuildBenchmark();
+  if (incremental.total_next_cubes !== 200) {
+    throw new Error("Incremental fixture Cube count changed.");
+  }
+  if (incremental.affected_ratio >= 0.5) {
+    throw new Error(
+      "Incremental isolated change touches " +
+        (incremental.affected_ratio * 100).toFixed(2) +
+        "% of output; expected less than 50%."
+    );
+  }
+  return { repeated: results, incremental };
 }
 
 if (import.meta.main) {
