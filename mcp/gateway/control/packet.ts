@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { GatewayRuntimeStatus } from "../backend";
 import { resolveDevelopmentIntent, type ControlDevelopmentResolution } from "./developmentIntent";
-import { contextForAuthoringDomain } from "./registry";
+import { contextForAuthoringDomain } from "./contexts";
 import { buildControlSnapshot } from "./snapshot";
 import {
   buildControlStageContext,
