@@ -45,19 +45,24 @@ function nonNegativeTolerance(value: number | undefined, label: string): number 
 export function deriveReferenceCorrectionVectors(
   deviations: readonly ReferenceDeviation[]
 ): ReferenceCorrectionVector[] {
-  return deviations.flatMap((deviation) => {
+  const corrections: ReferenceCorrectionVector[] = [];
+  for (const deviation of deviations) {
     if (!deviation.instance_id) throw new Error("Reference deviation requires an instance identity.");
     if (deviation.kind === "BOUNDS") {
       const delta = finite(deviation.expected, "Expected bound") - finite(deviation.actual, "Actual bound");
       const tolerance = nonNegativeTolerance(deviation.tolerance, "Bounds tolerance");
-      if (Math.abs(delta) <= tolerance) return [];
-      return [{ instance_id: deviation.instance_id, operation: "RESIZE_AXIS" as const, axis: deviation.axis, delta }];
+      if (Math.abs(delta) > tolerance) {
+        corrections.push({ instance_id: deviation.instance_id, operation: "RESIZE_AXIS", axis: deviation.axis, delta });
+      }
+      continue;
     }
     if (deviation.kind === "ROTATION") {
       const delta = finite(deviation.expected_degrees, "Expected rotation") - finite(deviation.actual_degrees, "Actual rotation");
       const tolerance = nonNegativeTolerance(deviation.tolerance_degrees, "Rotation tolerance");
-      if (Math.abs(delta) <= tolerance) return [];
-      return [{ instance_id: deviation.instance_id, operation: "ROTATE_AXIS" as const, axis: deviation.axis, delta_degrees: delta }];
+      if (Math.abs(delta) > tolerance) {
+        corrections.push({ instance_id: deviation.instance_id, operation: "ROTATE_AXIS", axis: deviation.axis, delta_degrees: delta });
+      }
+      continue;
     }
     const delta: RecipeVec3 = [
       finite(deviation.expected_center[0], "Expected center X") - finite(deviation.actual_center[0], "Actual center X"),
@@ -65,9 +70,11 @@ export function deriveReferenceCorrectionVectors(
       finite(deviation.expected_center[2], "Expected center Z") - finite(deviation.actual_center[2], "Actual center Z"),
     ];
     const tolerance = nonNegativeTolerance(deviation.tolerance, "Center tolerance");
-    if (Math.hypot(...delta) <= tolerance) return [];
-    return [{ instance_id: deviation.instance_id, operation: "TRANSLATE" as const, delta }];
-  });
+    if (Math.hypot(...delta) > tolerance) {
+      corrections.push({ instance_id: deviation.instance_id, operation: "TRANSLATE", delta });
+    }
+  }
+  return corrections;
 }
 
 export function compileReferenceCorrectionsToGeometryIntents(

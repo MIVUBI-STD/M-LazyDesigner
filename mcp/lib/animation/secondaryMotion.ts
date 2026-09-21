@@ -36,7 +36,7 @@ export function compileSecondaryMotion(
     for (const pose of recipe.poses) {
       const parent = pose.bones[link.parent_bone];
       if (!parent) continue;
-      const bones: MotionPose["bones"] = {};
+      const bones: Record<string, NonNullable<MotionPose["bones"][string]>> = {};
       const child: NonNullable<MotionPose["bones"][string]> = {};
       if (parent.rotation) child.rotation = scaleVec(parent.rotation, rotationGain);
       if (parent.position) child.position = scaleVec(parent.position, positionGain);

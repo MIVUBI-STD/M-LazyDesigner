@@ -68,8 +68,9 @@ export function compileHighConfidenceFunctionalRig(
   if (!Number.isFinite(minimumConfidence) || minimumConfidence < 0 || minimumConfidence > 1) {
     throw new Error("Functional rig confidence threshold must be within 0..1.");
   }
-  return hints.flatMap((hint) => {
-    if (hint.kind === "STATIC" || hint.confidence < minimumConfidence) return [];
+  const intents: MechanicalRigIntent[] = [];
+  for (const hint of hints) {
+    if (hint.kind === "STATIC" || hint.confidence < minimumConfidence) continue;
     if (!hint.axis) throw new Error("Functional rig hint " + hint.instance_id + " requires an axis.");
     const base = {
       id: "auto:" + hint.instance_id,
@@ -77,11 +78,12 @@ export function compileHighConfidenceFunctionalRig(
       instance_id: hint.instance_id,
     };
     if (hint.kind === "HINGE") {
-      return [{ ...base, kind: "HINGE" as const, hinge_axis: hint.axis, hinge_side: hint.hinge_side ?? "MIN" }];
+      intents.push({ ...base, kind: "HINGE", hinge_axis: hint.axis, hinge_side: hint.hinge_side ?? "MIN" });
+    } else if (hint.kind === "SLIDER") {
+      intents.push({ ...base, kind: "SLIDER", axis: hint.axis });
+    } else {
+      intents.push({ ...base, kind: "ROTATOR", axis: hint.axis });
     }
-    if (hint.kind === "SLIDER") {
-      return [{ ...base, kind: "SLIDER" as const, axis: hint.axis }];
-    }
-    return [{ ...base, kind: "ROTATOR" as const, axis: hint.axis }];
-  });
+  }
+  return intents;
 }

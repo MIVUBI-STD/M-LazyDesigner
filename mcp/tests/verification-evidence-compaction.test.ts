@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { compileVerificationEvidenceRequests } from "@/lib/orchestration/evidencePlan";
+import { compileVerificationEvidenceRequests, type VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import { VerificationEvidenceRegistry } from "@/lib/orchestration/evidenceRegistry";
 import { compactVerificationEvidence } from "@/lib/orchestration/compactEvidence";
 import type { VerificationTask } from "@/lib/orchestration/verificationPlan";
@@ -36,11 +36,11 @@ describe("verification evidence compaction", () => {
 
   test("full evidence remains local while model-facing discrepancy output stays bounded", () => {
     const registry = new VerificationEvidenceRegistry();
-    const request = {
-      domain: "GEOMETRY" as const,
-      source: "capture_model_views" as const,
-      views: ["front"] as const,
-      size: 256 as const,
+    const request: VerificationEvidenceRequest = {
+      domain: "GEOMETRY",
+      source: "capture_model_views",
+      views: ["front"],
+      size: 256,
       scope_instance_ids: ["arm:0"],
     };
     const result = { png_data_url: "data:image/png;base64," + "x".repeat(5000) };

@@ -46,7 +46,7 @@ export function applyGeometryAwareMaterialTreatment(
     assertMask(mask, width, height, name);
   }
 
-  let out = new Uint8Array(rgba);
+  let out: Uint8Array = new Uint8Array(rgba);
   const steps: Array<[ScalarMask | undefined, { color: Rgba; strength: number } | undefined, string]> = [
     [signals.edge, intent.wear, "wear"],
     [signals.cavity, intent.cavity_dirt, "cavity dirt"],

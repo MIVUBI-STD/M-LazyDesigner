@@ -108,7 +108,7 @@ export class CorrectionLoopRegistry {
     const record = this.entries.get(handle);
     if (!record) throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
     record.verification_evidence_handle = evidenceHandle;
-    record.discrepancies = structuredClone(discrepancies);
+    record.discrepancies = [...structuredClone(discrepancies)];
     record.evidence_fingerprint = fingerprintEvidence(evidenceHandle, discrepancies);
   }
 

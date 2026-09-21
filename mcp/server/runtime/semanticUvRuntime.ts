@@ -46,15 +46,14 @@ export function readBlockbenchSemanticUvSnapshot(cubeUuids?: readonly string[]):
     cube_uuid: cube.uuid,
     box_uv: cube.box_uv === true,
     autouv: cube.autouv,
-    faces: Object.fromEntries(
-      FACE_KEYS.map((face) => [
-        face,
-        {
-          uv: faceUv(cube.faces[face], cube.uuid + ":" + face),
-          rotation: cube.faces[face].rotation,
-        },
-      ])
-    ) as NativeUvCubeSnapshot["faces"],
+    faces: {
+      north: { uv: faceUv(cube.faces.north, cube.uuid + ":north"), rotation: cube.faces.north.rotation },
+      south: { uv: faceUv(cube.faces.south, cube.uuid + ":south"), rotation: cube.faces.south.rotation },
+      east: { uv: faceUv(cube.faces.east, cube.uuid + ":east"), rotation: cube.faces.east.rotation },
+      west: { uv: faceUv(cube.faces.west, cube.uuid + ":west"), rotation: cube.faces.west.rotation },
+      up: { uv: faceUv(cube.faces.up, cube.uuid + ":up"), rotation: cube.faces.up.rotation },
+      down: { uv: faceUv(cube.faces.down, cube.uuid + ":down"), rotation: cube.faces.down.rotation },
+    },
   })).sort((a, b) => a.cube_uuid.localeCompare(b.cube_uuid));
 }
 
