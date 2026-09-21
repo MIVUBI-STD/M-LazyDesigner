@@ -82,7 +82,7 @@
     "benchmark:authoring-orchestration": "bun run ./scripts/benchmark-authoring-orchestration.ts",
     "eval:capability-intelligence": "bun run ./scripts/evaluate-capability-intelligence.ts",
     "test:capability-manifest": "bun test lib/capabilities/manifest.test.ts gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts",
-    "test:gateway-structure": "bun test gateway/structure.test.ts gateway/control/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts"
+    "test:gateway-structure": "bun test gateway/structure.test.ts gateway/control/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts gateway/runtime/operationQueue.test.ts gateway/runtime/affinityPolicy.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
