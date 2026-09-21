@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { applyTextureComputePipeline } from "@/lib/textureComputePipeline";
+import {
+  gradientMapRgba,
+  palettizeRgba,
+  posterizeLightnessRgba,
+} from "@/lib/textureColorEngine";
 import { parseTextureComputeSteps } from "@/lib/textureComputeRequest";
 
 describe("texture compute request and pipeline", () => {
@@ -141,6 +146,60 @@ describe("texture compute request and pipeline", () => {
     expect(result.receipt.color_cache.oklab_cache_hits).toBeGreaterThan(
       result.receipt.color_cache.oklab_cache_misses
     );
+  });
+
+  test("fused pointwise pipeline is byte-identical to sequential execution", () => {
+    const source = new Uint8ClampedArray(
+      Array.from({ length: 64 }, (_, index) => {
+        const value = index % 2 === 0 ? 90 : 170;
+        return [value, value - 20, value - 40, 255];
+      }).flat()
+    );
+    const ramp = ["#201510", "#845442", "#D8A070"];
+    const palette = ["#201510", "#845442", "#D8A070"];
+
+    const sequentialPosterize = posterizeLightnessRgba(
+      source,
+      8,
+      8,
+      { levels: 4, strength: 1 }
+    );
+    const sequentialGradient = gradientMapRgba(
+      sequentialPosterize,
+      8,
+      8,
+      ramp,
+      { mode: "nearest" }
+    );
+    const sequential = palettizeRgba(
+      sequentialGradient,
+      8,
+      8,
+      palette,
+      { dither: "none" }
+    );
+
+    const fused = applyTextureComputePipeline(source, 8, 8, [
+      {
+        operation: "posterize",
+        options: { levels: 4, strength: 1 },
+      },
+      {
+        operation: "gradient_map",
+        ramp,
+        options: { mode: "nearest" },
+      },
+      {
+        operation: "palettize",
+        palette,
+        options: { dither: "none" },
+      },
+    ]);
+
+    expect(Array.from(fused.pixels)).toEqual(Array.from(sequential));
+    expect(fused.receipt.execution.fused_groups).toBe(1);
+    expect(fused.receipt.execution.fused_steps).toBe(3);
+    expect(fused.receipt.execution.unique_color_transforms).toBeLessThan(64);
   });
 
   test("pipeline rejects no-op compute results", () => {
