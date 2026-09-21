@@ -44,6 +44,18 @@ export function decorateCapabilities(
  * decoration for policy/tests, but omit those constant fields at the AI-client
  * search boundary.
  */
+function compactCapabilityHint(description: string): string | undefined {
+  const normalized = description.replace(/\s+/g, " ").trim();
+  if (!normalized) return undefined;
+  const sentenceEnd = normalized.search(/[.!?](?:\s|$)/);
+  const firstSentence =
+    sentenceEnd >= 0 ? normalized.slice(0, sentenceEnd + 1) : normalized;
+  const maxChars = 96;
+  return firstSentence.length <= maxChars
+    ? firstSentence
+    : `${firstSentence.slice(0, maxChars - 1).trimEnd()}…`;
+}
+
 export function projectCapabilitiesForSearch(
   capabilities: readonly ControlCapabilitySummary[]
 ) {
@@ -53,9 +65,10 @@ export function projectCapabilitiesForSearch(
       ...(capability.destructive ? ["destructive" as const] : []),
       ...(capability.idempotent ? ["idempotent" as const] : []),
     ];
+    const hint = compactCapabilityHint(capability.description);
     return {
       capability_id: capability.capability_id,
-      description: capability.description,
+      ...(hint ? { hint } : {}),
       tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
       ...(flags.length > 0 ? { flags } : {}),
