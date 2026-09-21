@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import {
   ensureTextureDiagnosticInvocationContext,
   readTextureDiagnosticRegion,
+  readTextureDiagnosticSample,
   textureDiagnosticReadMetrics,
+  TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET,
 } from "@/lib/textureDiagnosticReadContext";
 
 describe("request-local texture diagnostic read context", () => {
@@ -55,7 +57,82 @@ describe("request-local texture diagnostic read context", () => {
       pixels_read: 16,
       bytes_read: 64,
       cached_regions: 1,
+      cached_samples: 0,
+      pixel_budget: TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET,
     });
+  });
+
+  test("derived diagnostic samples are cached and counted in the shared budget", () => {
+    let produced = 0;
+    const texture = { uuid: "pbr", name: "pbr" } as unknown as Texture;
+    const context = ensureTextureDiagnosticInvocationContext(undefined);
+
+    const first = readTextureDiagnosticSample(
+      context,
+      texture,
+      4,
+      4,
+      () => {
+        produced += 1;
+        return new Uint8ClampedArray(4 * 4 * 4);
+      }
+    );
+    const second = readTextureDiagnosticSample(
+      context,
+      texture,
+      4,
+      4,
+      () => {
+        produced += 1;
+        return new Uint8ClampedArray(4 * 4 * 4);
+      }
+    );
+
+    expect(first.cache_hit).toBe(false);
+    expect(second.cache_hit).toBe(true);
+    expect(produced).toBe(1);
+    expect(textureDiagnosticReadMetrics(context)).toMatchObject({
+      read_calls: 1,
+      cache_hits: 1,
+      pixels_read: 16,
+      bytes_read: 64,
+      cached_samples: 1,
+      pixel_budget: TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET,
+    });
+  });
+
+  test("global native-pixel budget fails closed before another native read", () => {
+    let reads = 0;
+    const texture = {
+      uuid: "large",
+      name: "large",
+      ctx: {
+        getImageData(_x: number, _y: number, width: number, height: number) {
+          reads += 1;
+          return { data: new Uint8ClampedArray(width * height * 4) };
+        },
+      },
+    } as unknown as Texture;
+    const context = ensureTextureDiagnosticInvocationContext(undefined);
+
+    const firstWidth = 256;
+    const firstHeight = 256;
+    expect(firstWidth * firstHeight).toBe(
+      TEXTURE_DIAGNOSTIC_NATIVE_PIXEL_BUDGET
+    );
+    readTextureDiagnosticRegion(
+      context,
+      texture,
+      0,
+      0,
+      firstWidth,
+      firstHeight
+    );
+
+    expect(() =>
+      readTextureDiagnosticRegion(context, texture, 256, 0, 1, 1)
+    ).toThrow("native-pixel budget exceeded");
+    expect(reads).toBe(1);
   });
 
   test("cache state is isolated by invocation context", () => {
