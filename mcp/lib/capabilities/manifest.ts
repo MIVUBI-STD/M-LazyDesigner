@@ -192,9 +192,11 @@ patch(TEXTURING_PHASE, { phase: "texturing" });
 patch(ANIMATION_PHASE, { phase: "animation" });
 patch(FAST, { executionClass: "fast" });
 patch(HEAVY, { executionClass: "heavy" });
-patch(RECEIPT_ONLY, { verificationClass: "receipt_only" });
-patch(FOCUSED_READ, { verificationClass: "focused_read" });
+// Preserve the legacy verification precedence:
+ // receipt_only > focused_read > visual > not_applicable.
 patch(VISUAL, { verificationClass: "visual" });
+patch(FOCUSED_READ, { verificationClass: "focused_read" });
+patch(RECEIPT_ONLY, { verificationClass: "receipt_only" });
 
 for (const [name, aliases] of Object.entries(ALIASES)) {
   map.set(name, { ...(map.get(name) ?? {}), aliases });
