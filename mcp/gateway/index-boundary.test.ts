@@ -15,6 +15,13 @@ describe("Gateway index boundary", () => {
     expect(source).toContain("LocalCapabilityRegistry");
   });
 
+  test("keeps capability discovery progressive and bounded", () => {
+    expect(source).toContain('.max(8)');
+    expect(source).toContain('z.enum(["input", "full"]).default("input")');
+    expect(source).toContain('detail === "full"');
+    expect(source).toContain('inputSchema: projection.inputSchema');
+  });
+
   test("projects status instead of spreading raw backend status", () => {
     expect(source).toContain("projectGatewayStatus(status)");
     expect(source).not.toContain("...status,\n          control");
