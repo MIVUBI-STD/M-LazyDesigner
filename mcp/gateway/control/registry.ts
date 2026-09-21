@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
-import { getControlCapabilityManifestEntry } from "./capabilityManifest";
+import { getControlCapabilityProjection } from "./capabilityProjection";
 import type {
   ControlAuthoringDomain,
   ControlContextHandle,
@@ -75,7 +75,7 @@ export async function contextForAuthoringDomain(
 }
 
 export function authoringDomainForCapability(capability: string): ControlAuthoringDomain {
-  return getControlCapabilityManifestEntry(capability).authoringDomain;
+  return getControlCapabilityProjection(capability).authoringDomain;
 }
 
 const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
