@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-21T03:48:14.506Z",
+  "generatedAt": "2026-09-21T03:51:50.349Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5980,8 +5980,7 @@
                     "source",
                     "target"
                   ],
-                  "additionalProperties": false,
-                  "description": "Copy/mirror one explicit same-atlas RGBA region."
+                  "additionalProperties": false
                 },
                 {
                   "type": "object",
@@ -6030,8 +6029,7 @@
                     "amplitude": {
                       "type": "integer",
                       "minimum": 1,
-                      "maximum": 255,
-                      "description": "Maximum signed channel adjustment."
+                      "maximum": 255
                     },
                     "channels": {
                       "minItems": 1,
@@ -6048,7 +6046,6 @@
                       }
                     },
                     "mask": {
-                      "description": "Optional explicit pixels within rect.",
                       "minItems": 1,
                       "type": "array",
                       "items": {
@@ -6073,7 +6070,6 @@
                       }
                     },
                     "preserve_transparent": {
-                      "description": "Default true; preserves fully transparent pixels.",
                       "type": "boolean"
                     }
                   },
@@ -6123,7 +6119,6 @@
             }
           },
           "ambient_occlusion": {
-            "description": "Bedrock Cube AO for explicit targets at the current pose. Preserves alpha; exclusive with operations.",
             "type": "object",
             "properties": {
               "cube_ids": {
@@ -6164,7 +6159,6 @@
             "additionalProperties": false
           },
           "output": {
-            "description": "Optional verified PNG output for the final bitmap.",
             "type": "object",
             "properties": {
               "path": {
