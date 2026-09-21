@@ -893,13 +893,59 @@ function copyPixel(
   ];
 }
 
-function percentile(sorted: readonly number[], t: number): number {
-  if (sorted.length === 0) return 0;
-  const position = clamp01(t) * (sorted.length - 1);
+function selectKth(values: number[], k: number): number {
+  let left = 0;
+  let right = values.length - 1;
+
+  while (left < right) {
+    const middle = (left + right) >>> 1;
+    const a = values[left];
+    const b = values[middle];
+    const c = values[right];
+    const pivot =
+      a < b
+        ? b < c
+          ? b
+          : a < c
+            ? c
+            : a
+        : a < c
+          ? a
+          : b < c
+            ? c
+            : b;
+
+    let i = left;
+    let j = right;
+    while (i <= j) {
+      while (values[i] < pivot) i += 1;
+      while (values[j] > pivot) j -= 1;
+      if (i <= j) {
+        const temp = values[i];
+        values[i] = values[j];
+        values[j] = temp;
+        i += 1;
+        j -= 1;
+      }
+    }
+
+    if (k <= j) right = j;
+    else if (k >= i) left = i;
+    else return values[k];
+  }
+
+  return values[k];
+}
+
+function percentile(values: number[], t: number): number {
+  if (values.length === 0) return 0;
+  const position = clamp01(t) * (values.length - 1);
   const low = Math.floor(position);
-  const high = Math.min(sorted.length - 1, low + 1);
+  const high = Math.min(values.length - 1, low + 1);
   const local = position - low;
-  return sorted[low] + (sorted[high] - sorted[low]) * local;
+  const lowValue = selectKth(values, low);
+  const highValue = high === low ? lowValue : selectKth(values, high);
+  return lowValue + (highValue - lowValue) * local;
 }
 
 export function autoLevelsRgba(
@@ -929,8 +975,6 @@ export function autoLevelsRgba(
     values.push(oklabFor(copyPixel(pixels, offset), context).L);
   }
   if (values.length === 0) return new Uint8ClampedArray(pixels);
-  values.sort((a, b) => a - b);
-
   const low = percentile(values, lowClip / 100);
   const high = percentile(values, 1 - highClip / 100);
   if (!(high > low + 1e-9)) return new Uint8ClampedArray(pixels);
