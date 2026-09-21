@@ -26,6 +26,10 @@ const CONTROL_COMPATIBILITY_WRAPPERS = new Set([
   "delta",
 ]);
 
+const ROOT_COMPATIBILITY_FILES = new Set(
+  [...COMPATIBILITY_WRAPPERS].map((name) => `${name}.ts`)
+);
+
 async function sourceFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const out: string[] = [];
@@ -83,7 +87,15 @@ describe("Gateway dependency direction", () => {
 
     for (const file of files) {
       const rel = relative(ROOT, file).replace(/\\/g, "/");
-      if (!rel.includes("/")) continue;
+      if (ROOT_COMPATIBILITY_FILES.has(rel)) continue;
+      if (
+        rel.startsWith("control/") &&
+        CONTROL_COMPATIBILITY_WRAPPERS.has(
+          rel.slice("control/".length).replace(/\.ts$/, "")
+        )
+      ) {
+        continue;
+      }
 
       const source = await Bun.file(file).text();
       for (const request of importsOf(source)) {
