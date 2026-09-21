@@ -83,7 +83,8 @@
     "eval:capability-intelligence": "bun run ./scripts/evaluate-capability-intelligence.ts",
     "test:capability-manifest": "bun test lib/capabilities/manifest.test.ts gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts",
     "test:gateway-structure": "bun test gateway/structure.test.ts gateway/dependencyDirection.test.ts gateway/control/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts gateway/runtime/operationQueue.test.ts gateway/runtime/affinityPolicy.test.ts",
-    "eval:decision-efficiency": "bun run ./scripts/evaluate-decision-efficiency.ts"
+    "eval:decision-efficiency": "bun run ./scripts/evaluate-decision-efficiency.ts",
+    "analyze:semantic-impact": "bun run ./scripts/analyze-semantic-impact.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
