@@ -560,7 +560,16 @@ export const CAPABILITY_BRANCH_MANIFEST: readonly CapabilityBranchManifestEntry[
       intents: ["change hierarchy parent", "move element to bone", "reparent bone"],
       nouns: ["parent", "bone", "group", "hierarchy", "element"],
       verbs: ["reparent", "parent", "unparent", "move"],
-      excludes: ["resize", "texture"],
+      excludes: [
+        "resize",
+        "texture",
+        "position",
+        "translate",
+        "shift",
+        "rotation",
+        "scale",
+        "pivot",
+      ],
     },
   },
   {
@@ -569,6 +578,7 @@ export const CAPABILITY_BRANCH_MANIFEST: readonly CapabilityBranchManifestEntry[
       intents: ["adjust bone pivot", "move group", "edit group transform"],
       nouns: ["group", "bone", "pivot"],
       verbs: ["pivot", "move", "adjust", "modify"],
+      excludes: ["cube", "cuboid", "texture", "reparent", "parent"],
     },
   },
 ];
