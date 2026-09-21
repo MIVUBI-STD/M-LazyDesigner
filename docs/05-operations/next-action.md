@@ -452,3 +452,44 @@ REMOTE_GITHUB proves source/static/CI contracts only on the exact SHA. LOCAL_COD
 ## Zero-Waste Usage — LIVE RESIDUE
 
 Remote/source hardening remains bounded. Do not resume speculative payload trimming. Use `verify:astra-usage-ready`, Golden A–F, and `eval:astra-usage -- <file>`; only source-provided response/compaction telemetry plus quality PASS can prove actual Codex/Astra usage improvement.
+
+## Zero-Waste Authoring Execution — Source Foundation
+
+Remote source now includes a bounded deterministic execution layer documented at:
+
+```text
+mcp/docs/ZERO_WASTE_AUTHORING_EXECUTION.md
+```
+
+Implemented without changing the four-tool Gateway or adding a second public capability family:
+
+```text
+compact authoring intent contract        SOURCE IMPLEMENTED
+local desired-state geometry compile     SOURCE IMPLEMENTED
+deterministic execution strategy         SOURCE IMPLEMENTED
+representation escalation for texture    SOURCE IMPLEMENTED
+delta-verification risk/budget projection SOURCE IMPLEMENTED
+contract tests                           SOURCE ADDED / LOCAL RUN PENDING
+```
+
+Ownership remains additive:
+
+```text
+authoringIntent
+→ existing authoringRecipe/semanticEdit
+→ existing authoringImpact
+→ deterministic strategy selection
+→ existing native/domain owners
+→ existing minimal verification planner
+```
+
+Safety/efficiency boundaries:
+
+- recipe-owned changes prefer recipe/incremental realization rather than explicit native-coordinate authoring;
+- oversized structured texture edits escalate to procedural representation instead of large exact-pixel payloads;
+- verification budgets are advisory and never truncate required checks;
+- preserve requests are carried as requirements and remain deferred to their owning domain until proven;
+- no token-savings claim is valid until Golden A–F provider/client telemetry exists;
+- do not wire a new public capability from REMOTE_GITHUB.
+
+Next proof remains LOCAL_CODE first: typecheck, Bun contracts and benchmark comparison. LIVE_BLOCKBENCH then owns Undo/Redo, persistence, viewport behavior and accepted-result/correction-round evidence.

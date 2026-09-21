@@ -1,0 +1,78 @@
+# Zero-Waste Authoring Execution
+
+Status: SOURCE FOUNDATION
+Updated: 2026-09-22
+Branch: `Local`
+
+## Goal
+
+Reduce model work per accepted result by moving deterministic mechanics behind existing semantic owners.
+
+```text
+compact semantic intent
+→ local desired-state compile
+→ existing cross-domain impact plan
+→ deterministic execution strategy
+→ existing affected-only native owners
+→ delta-driven verification
+```
+
+This does not add a public MCP capability, second planner service, persistent dependency database, scene database, AI router, or background process.
+
+## Source owners
+
+```text
+lib/authoringIntent/contracts.ts
+  compact bounded intent + preserve requests
+
+lib/authoringIntent/desiredState.ts
+  sequential semantic geometry operations
+  compiled locally through authoringRecipe/semanticEdit
+
+lib/orchestration/executionStrategy.ts
+  deterministic DIRECT / BATCH / RECIPE / PROCEDURAL choice
+
+lib/orchestration/deltaVerification.ts
+  risk projection over the existing minimal verification planner
+```
+
+Existing owners remain authoritative:
+
+```text
+authoringRecipe/semanticEdit.ts     semantic geometry mechanics
+orchestration/authoringImpact.ts   cross-domain affected scope
+orchestration/verificationPlan.ts  required verification tasks
+native domain adapters             mutation execution
+```
+
+## Zero-Waste rules
+
+1. AI states meaning and durable constraints; deterministic coordinate/math work stays local.
+2. Existing recipe ownership wins over explicit native-coordinate mutation.
+3. Oversized structured texture work escalates representation instead of emitting large exact-pixel payloads.
+4. Verification budgets are advisory only. Required checks are never truncated to save context.
+5. Preserve requests are carried as requirements and remain `DEFER_TO_DOMAIN_OWNERS` until the owning UV/Rig/Texture/Animation layer proves them.
+6. Unknown or ambiguous ownership remains fail-closed.
+7. No token-savings claim is valid without client/provider usage telemetry.
+
+## Current strategy policy
+
+```text
+structured texture > exact-coordinate budget → PROCEDURAL
+recipe-owned geometry change              → RECIPE
+large repeated structure                  → RECIPE
+small unowned edit                         → DIRECT
+remaining bounded mutation                 → BATCH
+```
+
+Thresholds are deterministic implementation policy, not model reasoning. They may be tuned only after local benchmarks show a better accepted-result cost.
+
+## Proof boundary
+
+REMOTE_GITHUB can prove contracts, deterministic selection, bounded payload policy, and test coverage.
+
+LOCAL_CODE must prove typecheck/tests and benchmark wall-clock/allocation behavior.
+
+LIVE_BLOCKBENCH must prove Undo/Redo, save/reopen, viewport responsiveness, native fidelity and correction-round behavior.
+
+Provider/client telemetry is required before claiming real usage savings.
