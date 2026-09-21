@@ -43,11 +43,11 @@ export type {
 } from "./developmentIntent";
 export { CONTROL_ROUTING_POLICY } from "./routingPolicy";
 export type { ControlRoutingPolicy } from "./routingPolicy";
+export { contextForAuthoringDomain } from "./contexts";
 export {
   authoringDomainForCapability,
-  contextForAuthoringDomain,
   sourceOwnerForCapability,
-} from "./registry";
+} from "./sourceOwners";
 export type { ControlPacket, ControlContextDelivery, ControlTaskMode } from "./packet";
 export type { ControlWorkspaceProjection } from "./workspace";
 export type { ControlReferenceProjection, ControlProfile, ControlReferenceStage } from "./referencePackage";
