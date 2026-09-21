@@ -17,4 +17,14 @@ describe("UV MaxRects planner", () => {
       expect(x.x + x.width <= y.x || y.x + y.width <= x.x || x.y + x.height <= y.y || y.y + y.height <= x.y).toBe(true);
     }
   });
+
+  test("respects reserved regions for incremental planning", () => {
+    const result = packAtlasRects(
+      [{ id: "changed", width: 4, height: 4 }],
+      { width: 16, height: 16, reserved_rects: [{ id: "locked", x: 0, y: 0, width: 8, height: 8 }] }
+    );
+    expect(result.complete).toBe(true);
+    const changed = result.placements[0];
+    expect(changed.x >= 8 || changed.y >= 8).toBe(true);
+  });
 });

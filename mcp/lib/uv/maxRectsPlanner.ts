@@ -16,17 +16,31 @@ export type AtlasPlacement = {
   cohort?: string;
 };
 
+export type ReservedAtlasRect = {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type AtlasPackOptions = {
   width: number;
   height: number;
   padding?: number;
   allow_rotation?: boolean;
+  reserved_rects?: readonly ReservedAtlasRect[];
 };
 
 type Rect = { x: number; y: number; width: number; height: number };
 
 function positiveInteger(value: number, label: string): number {
   if (!Number.isInteger(value) || value <= 0) throw new Error(label + " must be a positive integer.");
+  return value;
+}
+
+function nonNegativeInteger(value: number, label: string): number {
+  if (!Number.isInteger(value) || value < 0) throw new Error(label + " must be a non-negative integer.");
   return value;
 }
 
@@ -52,6 +66,14 @@ function prune(rects: Rect[]): Rect[] {
   return rects.filter((rect, index) => !rects.some((other, otherIndex) => index !== otherIndex && contains(other, rect)));
 }
 
+function scoreLess(a: readonly number[], b: readonly number[]): boolean {
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] < b[i]) return true;
+    if (a[i] > b[i]) return false;
+  }
+  return false;
+}
+
 export function packAtlasRects(inputs: readonly AtlasRectInput[], options: AtlasPackOptions) {
   const width = positiveInteger(options.width, "Atlas width");
   const height = positiveInteger(options.height, "Atlas height");
@@ -73,6 +95,27 @@ export function packAtlasRects(inputs: readonly AtlasRectInput[], options: Atlas
   );
 
   let freeRects: Rect[] = [{ x: 0, y: 0, width, height }];
+  const reserved = (options.reserved_rects ?? []).map((rect) => {
+    if (!rect.id) throw new Error("Reserved atlas rectangles require non-empty IDs.");
+    const normalizedRect = {
+      id: rect.id,
+      x: nonNegativeInteger(rect.x, "Reserved " + rect.id + " x"),
+      y: nonNegativeInteger(rect.y, "Reserved " + rect.id + " y"),
+      width: positiveInteger(rect.width, "Reserved " + rect.id + " width"),
+      height: positiveInteger(rect.height, "Reserved " + rect.id + " height"),
+    };
+    if (normalizedRect.x + normalizedRect.width > width || normalizedRect.y + normalizedRect.height > height) {
+      throw new Error("Reserved atlas rectangle " + rect.id + " exceeds the atlas bounds.");
+    }
+    return normalizedRect;
+  });
+  for (let i = 0; i < reserved.length; i += 1) {
+    for (let j = i + 1; j < reserved.length; j += 1) {
+      if (intersects(reserved[i], reserved[j])) throw new Error("Reserved atlas rectangles overlap: " + reserved[i].id + " and " + reserved[j].id + ".");
+    }
+    freeRects = prune(freeRects.flatMap((free) => splitFreeRect(free, reserved[i])));
+  }
+
   const placements: AtlasPlacement[] = [];
   const unplaced: string[] = [];
 
@@ -81,19 +124,20 @@ export function packAtlasRects(inputs: readonly AtlasRectInput[], options: Atlas
     if ((options.allow_rotation ?? false) && input.allow_rotation !== false && input.width !== input.height) {
       orientations.push({ width: input.height, height: input.width, rotated: true });
     }
-    let best: { freeIndex: number; used: Rect; contentWidth: number; contentHeight: number; rotated: boolean; score: [number, number, number, number] } | null = null;
-    for (let freeIndex = 0; freeIndex < freeRects.length; freeIndex += 1) {
-      const free = freeRects[freeIndex];
+    let best: { used: Rect; contentWidth: number; contentHeight: number; rotated: boolean; score: [number, number, number, number] } | null = null;
+    for (const free of freeRects) {
       for (const orientation of orientations) {
         const packedWidth = orientation.width + padding * 2;
         const packedHeight = orientation.height + padding * 2;
         if (packedWidth > free.width || packedHeight > free.height) continue;
-        const shortSide = Math.min(free.width - packedWidth, free.height - packedHeight);
-        const longSide = Math.max(free.width - packedWidth, free.height - packedHeight);
-        const score: [number, number, number, number] = [shortSide, longSide, free.y, free.x];
-        if (!best || score.some((value, i) => value < best!.score[i] && score.slice(0, i).every((prior, j) => prior === best!.score[j]))) {
+        const score: [number, number, number, number] = [
+          Math.min(free.width - packedWidth, free.height - packedHeight),
+          Math.max(free.width - packedWidth, free.height - packedHeight),
+          free.y,
+          free.x,
+        ];
+        if (!best || scoreLess(score, best.score)) {
           best = {
-            freeIndex,
             used: { x: free.x, y: free.y, width: packedWidth, height: packedHeight },
             contentWidth: orientation.width,
             contentHeight: orientation.height,
@@ -120,13 +164,15 @@ export function packAtlasRects(inputs: readonly AtlasRectInput[], options: Atlas
   }
 
   const contentArea = placements.reduce((sum, placement) => sum + placement.width * placement.height, 0);
+  const reservedArea = reserved.reduce((sum, rect) => sum + rect.width * rect.height, 0);
   return {
     width,
     height,
     padding,
     placements,
+    reserved,
     unplaced,
-    utilization: contentArea / (width * height),
+    utilization: (contentArea + reservedArea) / (width * height),
     complete: unplaced.length === 0,
   };
 }
