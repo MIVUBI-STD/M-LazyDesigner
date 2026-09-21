@@ -5,6 +5,7 @@ import {
 } from "@/lib/zodObjects";
 import { textureRevisionSchema } from "@/lib/textureEvidence";
 import { isAbsoluteFilesystemPath } from "@/lib/util";
+import { textureComputeOperationNames } from "@/lib/textureComputeRequest";
 
 export const paintTransactionCoordinateSchema = z
   .object({
@@ -67,6 +68,13 @@ export const paintTransactionOperationSchema = z.union([
   }).strict(),
 ]);
 
+export const paintTransactionComputeStepSchema = z
+  .object({
+    operation: z.enum(textureComputeOperationNames),
+    args: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
+
 export const paintTransactionOutputSchema = z
   .object({
     path: z
@@ -87,6 +95,7 @@ export const paintTransactionParameters = z
     texture_id: textureIdOptionalSchema,
     expected_revision: textureRevisionSchema,
     operations: z.array(paintTransactionOperationSchema).min(1).max(64).optional(),
+    compute: z.array(paintTransactionComputeStepSchema).min(1).max(12).optional(),
     ambient_occlusion: z.object({
       cube_ids:z.array(z.string().min(1)).min(1).max(64),
       radius:z.number().finite().positive(),
@@ -99,7 +108,16 @@ export const paintTransactionParameters = z
       .optional()
       .describe("Optional verified PNG output for the final bitmap."),
   })
-  .strict().refine(v=>(v.operations!==undefined)!==(v.ambient_occlusion!==undefined),"Provide operations or ambient_occlusion, exclusively.");
+  .strict()
+  .refine(
+    (value) =>
+      [
+        value.operations !== undefined,
+        value.compute !== undefined,
+        value.ambient_occlusion !== undefined,
+      ].filter(Boolean).length === 1,
+    "Provide exactly one of operations, compute, or ambient_occlusion."
+  );
 
 export type PaintTransactionOperation = z.infer<
   typeof paintTransactionOperationSchema
