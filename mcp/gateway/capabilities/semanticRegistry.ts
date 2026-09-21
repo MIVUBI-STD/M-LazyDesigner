@@ -54,3 +54,16 @@ export function semanticRecordForCapabilityBranch(
   const entry = manifestEntryForBranch(capability, branch);
   return entry ? semanticRecordById(entry.id) : null;
 }
+
+
+export function capabilityDescriptionRevision(input: {
+  semanticFingerprint?: string | null;
+  inputSchema: unknown;
+  outputSchema?: unknown;
+}): string {
+  return semanticFingerprint({
+    semantic: input.semanticFingerprint ?? null,
+    inputSchema: input.inputSchema,
+    outputSchema: input.outputSchema ?? null,
+  });
+}
