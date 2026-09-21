@@ -39,6 +39,9 @@ export function summarizeAuthoringRecipeRebuild(rebuild: ReturnType<typeof planI
 
 export type AuthoringRecipeServiceDependencies = {
   readOwned(recipeId: string): Promise<AuthoringRecipeNativeSnapshot> | AuthoringRecipeNativeSnapshot;
+  readStoredRecipe?(
+    recipeId: string
+  ): Promise<AuthoringRecipe | null> | AuthoringRecipe | null;
   createApplyAdapter(recipeId: string): AuthoringRecipeApplyAdapter;
 };
 
@@ -46,8 +49,10 @@ export function createAuthoringRecipeService(
   dependencies: AuthoringRecipeServiceDependencies,
   registry = new AuthoringRecipePlanRegistry()
 ) {
-  return {
-    async plan(previousRecipe: AuthoringRecipe, nextRecipe: AuthoringRecipe) {
+  const planPair = async (
+    previousRecipe: AuthoringRecipe,
+    nextRecipe: AuthoringRecipe
+  ) => {
       if (previousRecipe.id !== nextRecipe.id) {
         throw new Error("Parametric authoring plan requires stable recipe identity.");
       }
@@ -66,6 +71,28 @@ export function createAuthoringRecipeService(
         native_source_fingerprint: nativeFingerprint,
         summary: summarizeAuthoringRecipeRebuild(rebuild),
       };
+  };
+
+  return {
+    plan: planPair,
+
+    async planStored(nextRecipe: AuthoringRecipe) {
+      if (!dependencies.readStoredRecipe) {
+        throw new Error(
+          "RECIPE_STORE_UNAVAILABLE: Runtime did not provide project recipe persistence."
+        );
+      }
+      const previousRecipe = await dependencies.readStoredRecipe(
+        nextRecipe.id
+      );
+      if (!previousRecipe) {
+        throw new Error(
+          "RECIPE_NOT_STORED: no previous recipe source exists for " +
+            nextRecipe.id +
+            "; use explicit previous/next planning for first adoption."
+        );
+      }
+      return planPair(previousRecipe, nextRecipe);
     },
 
     async apply(input: { plan_id: string; expected_native_source_fingerprint: string }) {

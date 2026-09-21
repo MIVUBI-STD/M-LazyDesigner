@@ -3,6 +3,11 @@ import type { AuthoringRecipe, CompiledCubePlacement } from "@/lib/authoringReci
 import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
 import { createAuthoringRecipeService } from "@/lib/authoringRecipe/service";
 import { AuthoringRecipePlanRegistry } from "@/lib/authoringRecipe/planRegistry";
+import {
+  emptyAuthoringRecipeStore,
+  findAuthoringRecipeInStore,
+  upsertAuthoringRecipeStore,
+} from "@/lib/authoringRecipe/store";
 import type { AuthoringRecipeNativeSnapshot } from "@/lib/authoringRecipe/nativeState";
 
 function recipe(spacing = 2, count = 40): AuthoringRecipe {
@@ -41,6 +46,57 @@ describe("Parametric authoring plan-handle service", () => {
     const responseBytes = new TextEncoder().encode(JSON.stringify(planned)).length;
     const explicitBytes = new TextEncoder().encode(JSON.stringify(compileAuthoringRecipe(next).placements)).length;
     expect(responseBytes).toBeLessThan(explicitBytes * 0.2);
+  });
+
+  test("stored-source planning needs only the next recipe after save/reopen", async () => {
+    const previous = recipe(2,40);
+    const next = recipe(3,40);
+    const native = snapshot(previous);
+    const store = upsertAuthoringRecipeStore(
+      emptyAuthoringRecipeStore(),
+      previous
+    );
+    const service = createAuthoringRecipeService({
+      readOwned: () => native,
+      readStoredRecipe: (recipeId) =>
+        findAuthoringRecipeInStore(store, recipeId),
+      createApplyAdapter: () => ({
+        readOwned: () => native,
+        upsert: () => {
+          throw new Error("not used");
+        },
+        remove: () => {
+          throw new Error("not used");
+        },
+      }),
+    });
+
+    const planned = await service.planStored(next);
+    expect(planned.plan_id).toMatch(/^recipeplan:[0-9a-f]{64}$/);
+    const nextOnlyBytes = new TextEncoder().encode(
+      JSON.stringify(next)
+    ).length;
+    const pairBytes = new TextEncoder().encode(
+      JSON.stringify({ previous, next })
+    ).length;
+    expect(nextOnlyBytes).toBeLessThan(pairBytes);
+    expect(planned.summary.native_affected_count).toBe(39);
+  });
+
+  test("stored-source planning fails closed when recipe source is absent", async () => {
+    const next = recipe(3,4);
+    const service = createAuthoringRecipeService({
+      readOwned: () => snapshot(recipe(2,4)),
+      readStoredRecipe: () => null,
+      createApplyAdapter: () => ({
+        readOwned: () => snapshot(recipe(2,4)),
+        upsert: () => "unused",
+        remove: () => {},
+      }),
+    });
+    await expect(service.planStored(next)).rejects.toThrow(
+      /RECIPE_NOT_STORED/
+    );
   });
 
   test("apply reuses stored plan and only requires handle plus fingerprint", async () => {
