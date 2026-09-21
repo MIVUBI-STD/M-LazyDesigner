@@ -198,29 +198,65 @@ function readOnlySummaryTextIsRedundant(
   );
 }
 
-function receiptOnlyTextIsRedundant(
-  capability: string,
-  structuredContent: unknown
-): boolean {
-  if (!isRecord(structuredContent)) return false;
+function singleTextContent(content: unknown): string | null {
+  if (
+    !Array.isArray(content) ||
+    content.length !== 1 ||
+    !isRecord(content[0]) ||
+    content[0].type !== "text" ||
+    typeof content[0].text !== "string"
+  ) {
+    return null;
+  }
+  return content[0].text;
+}
 
-  if (["add_group", "modify_group", "reparent_element", "manage_locator", "manage_null_object", "add_texture_group", "manage_animation_effects", "manage_animation_controller"].includes(capability)) {
+function textCarriesExternalLocator(text: string): boolean {
+  return (
+    /\b[a-z][a-z0-9+.-]*:\/\//i.test(text) ||
+    /\b[A-Za-z]:[\\/][^\s]+/.test(text) ||
+    /(?:^|\s)\/(?:[^\s/]+\/)+[^\s]+/.test(text)
+  );
+}
+
+function hasAuthoritativeReceiptState(structuredContent: unknown): boolean {
+  if (!isRecord(structuredContent)) return false;
+  if (structuredContent.after !== undefined) return true;
+  if (structuredContent.state !== undefined) return true;
+  if (structuredContent.project !== undefined) return true;
+  if (structuredContent.phase !== undefined) return true;
+  if (
+    Array.isArray(structuredContent.effects) &&
+    structuredContent.effects.length > 0 &&
+    structuredContent.effects.every(
+      (effect) => isRecord(effect) && effect.after !== undefined
+    )
+  ) {
     return true;
   }
-
-  if (capability === "manage_material") {
-    return ["create", "configure", "assign_channel", "import_texture_set"].includes(
-      String(structuredContent.operation)
-    );
+  if (
+    structuredContent.execution === "applied" &&
+    (
+      Array.isArray(structuredContent.changed_fields) ||
+      typeof structuredContent.modified === "number" ||
+      typeof structuredContent.affected_count === "number"
+    )
+  ) {
+    return true;
   }
-
-  if (capability === "manage_material_instances") {
-    return ["set", "bulk_set", "clear"].includes(
-      String(structuredContent.operation)
-    );
-  }
-
   return false;
+}
+
+function receiptOnlyTextIsRedundant(
+  structuredContent: unknown,
+  content: unknown
+): boolean {
+  const text = singleTextContent(content);
+  return (
+    text !== null &&
+    !textCarriesExternalLocator(text) &&
+    hasAuthoritativeReceiptState(structuredContent)
+  );
 }
 
 export function shouldAttachGatewayControlDelta(
@@ -275,11 +311,7 @@ export function compactGatewayCapabilityContent(
 
   if (
     verificationClass === "receipt_only" &&
-    receiptOnlyTextIsRedundant(capability, structuredContent) &&
-    Array.isArray(content) &&
-    content.length === 1 &&
-    isRecord(content[0]) &&
-    content[0].type === "text"
+    receiptOnlyTextIsRedundant(structuredContent, content)
   ) {
     return [{ type: "text", text: "Receipt complete." }];
   }

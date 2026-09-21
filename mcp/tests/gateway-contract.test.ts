@@ -618,6 +618,65 @@ describe("BlockIT Gateway contract", () => {
     ).toBe(saved);
   });
 
+  test("Gateway receipt-only text compaction is semantic rather than capability-name based", () => {
+    const authoritative = {
+      execution: "applied",
+      after: {
+        uuid: "fixture-a",
+        name: "updated",
+      },
+      changed_fields: ["name"],
+    };
+    const verbose = [{
+      type: "text",
+      text: "Updated fixture-a from old to updated.",
+    }];
+
+    expect(
+      compactGatewayCapabilityContent(
+        "future_mutation_capability",
+        authoritative,
+        verbose,
+        "receipt_only"
+      )
+    ).toEqual([{ type: "text", text: "Receipt complete." }]);
+
+    expect(
+      compactGatewayCapabilityContent(
+        "future_mutation_capability",
+        { execution: "applied" },
+        verbose,
+        "receipt_only"
+      )
+    ).toBe(verbose);
+
+    const pathBearing = [{
+      type: "text",
+      text: "Saved result to C:\\asset\\output\\fixture.json.",
+    }];
+    expect(
+      compactGatewayCapabilityContent(
+        "future_mutation_capability",
+        authoritative,
+        pathBearing,
+        "receipt_only"
+      )
+    ).toBe(pathBearing);
+
+    const urlBearing = [{
+      type: "text",
+      text: "Published receipt at https://example.invalid/receipt/1.",
+    }];
+    expect(
+      compactGatewayCapabilityContent(
+        "future_mutation_capability",
+        authoritative,
+        urlBearing,
+        "receipt_only"
+      )
+    ).toBe(urlBearing);
+  });
+
   test("Gateway compacts applied cube mutation prose only when structured receipt is authoritative", () => {
     const verbose = [{
       type: "text",
