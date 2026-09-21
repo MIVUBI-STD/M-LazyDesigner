@@ -1,4 +1,10 @@
+import { readFile } from "node:fs/promises";
 import { analyzeSemanticImpact } from "../lib/semantic/impact";
+import {
+  indexMarkdownKnowledge,
+  selectKnowledgeSections,
+  type KnowledgeSelection,
+} from "../lib/semantic/knowledge";
 import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
 import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
 import { resolveDevelopmentIntent } from "../gateway/control/developmentIntent";
@@ -20,6 +26,7 @@ export type DevelopmentContextPlan = {
   };
   symbol_map: Awaited<ReturnType<typeof buildDevelopmentSymbolMap>>;
   semantic_impact: ReturnType<typeof analyzeSemanticImpact> | null;
+  knowledge_sections: KnowledgeSelection[];
   read_targets: {
     source: string[];
     tests: string[];
@@ -35,6 +42,7 @@ export async function buildDevelopmentContextPlan(input: {
   intent: string;
   changedPaths?: readonly string[];
   symbolMapMaxBytes?: number;
+  knowledgeTokenBudget?: number;
 }): Promise<DevelopmentContextPlan> {
   const routing = resolveDevelopmentIntent(input.intent);
   const symbolMap = await buildDevelopmentSymbolMap(
@@ -58,6 +66,34 @@ export async function buildDevelopmentContextPlan(input: {
     owner.specialist ? [owner.specialist] : []
   );
 
+
+  const knowledgePaths = uniqueSorted([
+    ...routing.required_context_paths,
+    ...routingSpecialists,
+    ...(semanticImpact?.affected_specialists ?? []),
+  ]).filter((path) => /\.md$/i.test(path));
+
+  const knowledgeSections = (
+    await Promise.all(
+      knowledgePaths.map(async (path) => {
+        const localPath = path.startsWith("mcp/")
+          ? path.slice(4)
+          : `../${path}`;
+        try {
+          return indexMarkdownKnowledge(path, await readFile(localPath, "utf8"));
+        } catch {
+          return [];
+        }
+      })
+    )
+  ).flat();
+
+  const selectedKnowledge = selectKnowledgeSections({
+    sections: knowledgeSections,
+    query: routing.intent,
+    maxTokenProxy: input.knowledgeTokenBudget ?? 1200,
+  });
+
   return {
     schema: 1,
     intent: routing.intent,
@@ -71,6 +107,7 @@ export async function buildDevelopmentContextPlan(input: {
     },
     symbol_map: symbolMap,
     semantic_impact: semanticImpact,
+    knowledge_sections: selectedKnowledge,
     read_targets: {
       source: uniqueSorted([
         ...routingSources,

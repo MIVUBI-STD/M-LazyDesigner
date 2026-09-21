@@ -10,7 +10,12 @@ export type KnowledgeSection = {
   end_line: number;
   bytes: number;
   token_proxy: number;
+  search_terms: string[];
   sha256: string;
+};
+
+export type KnowledgeSelection = KnowledgeSection & {
+  score: number;
 };
 
 function slug(value: string): string {
@@ -41,6 +46,42 @@ function sha256(value: string): string {
 
 function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
+}
+
+const STOP_WORDS = new Set([
+  "the", "and", "for", "with", "from", "that", "this", "into", "when",
+  "only", "then", "use", "using", "one", "not", "are", "but", "can",
+  "current", "authoring", "lazydesigner",
+]);
+
+function tokens(value: string): string[] {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9_\-]+/g, " ")
+    .split(/\s+/)
+    .filter(
+      (token) =>
+        token.length > 2 &&
+        !STOP_WORDS.has(token)
+    );
+}
+
+function searchTerms(
+  headingPath: readonly string[],
+  body: string,
+  limit = 24
+): string[] {
+  const counts = new Map<string, number>();
+  for (const token of tokens(headingPath.join(" "))) {
+    counts.set(token, (counts.get(token) ?? 0) + 4);
+  }
+  for (const token of tokens(body)) {
+    counts.set(token, (counts.get(token) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, limit)
+    .map(([token]) => token);
 }
 
 /**
@@ -85,6 +126,7 @@ export function indexMarkdownKnowledge(
       end_line: Math.max(active.start_line, endLineExclusive - 1),
       bytes: byteLength(body),
       token_proxy: Math.ceil(body.length / 4),
+      search_terms: searchTerms(active.heading_path, body),
       sha256: sha256(body),
     });
   }
@@ -152,4 +194,44 @@ export function knowledgeIndexFingerprint(
     }))
     .sort((a, b) => a.id.localeCompare(b.id));
   return sha256(JSON.stringify(stable));
+}
+
+
+export function selectKnowledgeSections(input: {
+  sections: readonly KnowledgeSection[];
+  query: string;
+  limit?: number;
+  maxTokenProxy?: number;
+}): KnowledgeSelection[] {
+  const queryTerms = new Set(tokens(input.query));
+  const boundedLimit = Math.max(1, Math.trunc(input.limit ?? 8));
+  const budget = Math.max(1, Math.trunc(input.maxTokenProxy ?? 1200));
+
+  const ranked = input.sections
+    .map((section) => {
+      const headingTerms = new Set(tokens(section.heading_path.join(" ")));
+      let score = 0;
+      for (const term of queryTerms) {
+        if (headingTerms.has(term)) score += 12;
+        if (section.search_terms.includes(term)) score += 3;
+      }
+      return { ...section, score };
+    })
+    .filter((section) => section.score > 0)
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        left.token_proxy - right.token_proxy ||
+        left.id.localeCompare(right.id)
+    );
+
+  const selected: KnowledgeSelection[] = [];
+  let used = 0;
+  for (const section of ranked) {
+    if (selected.length >= boundedLimit) break;
+    if (used + section.token_proxy > budget && selected.length > 0) continue;
+    selected.push(section);
+    used += section.token_proxy;
+  }
+  return selected;
 }

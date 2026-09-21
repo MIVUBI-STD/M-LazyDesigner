@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   indexMarkdownKnowledge,
   knowledgeIndexFingerprint,
+  selectKnowledgeSections,
 } from "../lib/semantic/knowledge";
 
 describe("knowledge section compiler", () => {
@@ -50,6 +51,31 @@ describe("knowledge section compiler", () => {
     expect(before[1]?.sha256).toBe(after[1]?.sha256);
     expect(knowledgeIndexFingerprint(before)).not.toBe(
       knowledgeIndexFingerprint(after)
+    );
+  });
+
+  test("selects relevant sections under a token budget", () => {
+    const sections = indexMarkdownKnowledge(
+      "workflow.md",
+      [
+        "# Workflow",
+        "general orientation",
+        "## UV Layout",
+        "stable packing texel density island padding",
+        "## Texture Styling",
+        "palette shading material paint pixels",
+      ].join("\n")
+    );
+
+    const selected = selectKnowledgeSections({
+      sections,
+      query: "fix uv stable packing islands",
+      maxTokenProxy: 200,
+    });
+
+    expect(selected[0]?.heading).toBe("UV Layout");
+    expect(selected.some((section) => section.heading === "Texture Styling")).toBe(
+      false
     );
   });
 

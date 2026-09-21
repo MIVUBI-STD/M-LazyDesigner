@@ -7,6 +7,7 @@ describe("development context planner", () => {
       intent: "adjust cube geometry proportions",
       changedPaths: ["mcp/server/tools/cubes.ts"],
       symbolMapMaxBytes: 3000,
+      knowledgeTokenBudget: 600,
     });
 
     expect(plan.routing.domain).toBe("GEOMETRY");
@@ -16,6 +17,12 @@ describe("development context planner", () => {
       "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
     );
     expect(plan.semantic_impact?.direct_capabilities).toContain("manage_cubes");
+    expect(
+      plan.knowledge_sections.reduce(
+        (sum, section) => sum + section.token_proxy,
+        0
+      )
+    ).toBeLessThanOrEqual(600);
   });
 
   test("omits semantic impact when there is no change set", async () => {
