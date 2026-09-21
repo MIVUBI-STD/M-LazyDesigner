@@ -15,7 +15,7 @@ export type AuthoringRecipeApplyAdapter = {
     recipeId: string
   ): Promise<string> | string;
   remove(instanceId: string, uuid: string, recipeId: string): Promise<void> | void;
-  restore(snapshot: AuthoringRecipeNativeSnapshot): Promise<void> | void;
+  restore?(snapshot: AuthoringRecipeNativeSnapshot): Promise<void> | void;
   commitUndo?(): Promise<void> | void;
   cancelUndo?(): Promise<void> | void;
 };
@@ -136,7 +136,7 @@ export async function applyAuthoringRecipeIncrementalAtomic(
       },
     };
   } catch (error) {
-    try { await adapter.restore(before); } finally { await adapter.cancelUndo?.(); }
+    try { await adapter.restore?.(before); } finally { await adapter.cancelUndo?.(); }
     throw error;
   }
 }
