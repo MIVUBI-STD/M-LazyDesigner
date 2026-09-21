@@ -5,7 +5,7 @@ import {
   readRuntimeAuthoringPhase,
   readRuntimeProjectHealth,
   type BlockitAuthoringPhaseAffinity,
-} from "./projectAffinity";
+} from "./runtime/projectAffinity";
 import {
   DEFAULT_RUNTIME_URL,
   GATEWAY_VERSION,
@@ -18,11 +18,11 @@ import {
   type CapabilitySearchContext,
   type JsonRecord,
 } from "./contract";
-import { GatewayConnectionManager } from "./connectionManager";
+import { GatewayConnectionManager } from "./runtime/connectionManager";
 import {
   resolveGatewayCapabilityEffects,
   validateGatewayCapabilityEffectReceipt,
-} from "./capabilityEffects";
+} from "./capabilities/effects";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 import { runtimeFetch } from "../lib/runtimeFetch";
 
