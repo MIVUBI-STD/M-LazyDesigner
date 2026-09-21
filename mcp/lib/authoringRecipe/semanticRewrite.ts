@@ -40,7 +40,8 @@ export function rewriteAuthoringRecipeForSemanticEdit(
       }
       const pattern=next.patterns.find((entry)=>entry.id===patternId);
       if(!pattern) throw new Error("SEMANTIC_REWRITE_PRECONDITION_FAILED: source pattern "+patternId+" is missing.");
-      if(pattern.kind==="RADIAL") pattern.center=addVec3(pattern.center ?? [0,0,0],intent.operation.delta);\n      else pattern.start=addVec3(pattern.start ?? [0,0,0],intent.operation.delta);
+      if(pattern.kind==="RADIAL") pattern.center=addVec3(pattern.center ?? [0,0,0],intent.operation.delta);
+      else pattern.start=addVec3(pattern.start ?? [0,0,0],intent.operation.delta);
     }
     return next;
   }
