@@ -220,21 +220,18 @@ function oklabDistanceSquared(left: Oklab, right: Oklab): number {
   return dL * dL + da * da + db * db;
 }
 
-export function nearestPaletteIndex(
+function nearestPaletteIndexFromLabs(
   rgba: Rgba,
-  palette: readonly string[]
+  labs: readonly Oklab[]
 ): number {
-  if (palette.length === 0) {
+  if (labs.length === 0) {
     throw new Error("Palette must contain at least one color.");
   }
   const target = rgbaToOklab(rgba);
   let bestIndex = 0;
   let bestDistance = Number.POSITIVE_INFINITY;
-  for (let index = 0; index < palette.length; index += 1) {
-    const distance = oklabDistanceSquared(
-      target,
-      rgbaToOklab(parseHexRgba(palette[index]))
-    );
+  for (let index = 0; index < labs.length; index += 1) {
+    const distance = oklabDistanceSquared(target, labs[index]);
     if (distance < bestDistance) {
       bestDistance = distance;
       bestIndex = index;
@@ -243,16 +240,29 @@ export function nearestPaletteIndex(
   return bestIndex;
 }
 
-function twoNearestPaletteIndices(
+export function nearestPaletteIndex(
   rgba: Rgba,
   palette: readonly string[]
+): number {
+  if (palette.length === 0) {
+    throw new Error("Palette must contain at least one color.");
+  }
+  return nearestPaletteIndexFromLabs(
+    rgba,
+    palette.map((color) => rgbaToOklab(parseHexRgba(color)))
+  );
+}
+
+function twoNearestPaletteIndicesFromLabs(
+  rgba: Rgba,
+  labs: readonly Oklab[]
 ): {
   first: number;
   second: number;
   firstDistance: number;
   secondDistance: number;
 } {
-  if (palette.length === 0) {
+  if (labs.length === 0) {
     throw new Error("Palette must contain at least one color.");
   }
   const target = rgbaToOklab(rgba);
@@ -261,11 +271,8 @@ function twoNearestPaletteIndices(
   let firstDistance = Number.POSITIVE_INFINITY;
   let secondDistance = Number.POSITIVE_INFINITY;
 
-  for (let index = 0; index < palette.length; index += 1) {
-    const distance = oklabDistanceSquared(
-      target,
-      rgbaToOklab(parseHexRgba(palette[index]))
-    );
+  for (let index = 0; index < labs.length; index += 1) {
+    const distance = oklabDistanceSquared(target, labs[index]);
     if (distance < firstDistance) {
       second = first;
       secondDistance = firstDistance;
@@ -277,48 +284,51 @@ function twoNearestPaletteIndices(
     }
   }
 
-  if (palette.length === 1) {
+  if (labs.length === 1) {
     second = first;
     secondDistance = firstDistance;
   }
   return { first, second, firstDistance, secondDistance };
 }
 
-function bayerMatrix(size: 2 | 4 | 8): number[][] {
-  let matrix = [[0, 2], [3, 1]];
-  let currentSize = 2;
-  while (currentSize < size) {
-    const nextSize = currentSize * 2;
-    const next = Array.from({ length: nextSize }, () =>
-      Array<number>(nextSize).fill(0)
-    );
-    for (let y = 0; y < currentSize; y += 1) {
-      for (let x = 0; x < currentSize; x += 1) {
-        const value = matrix[y][x] * 4;
-        next[y][x] = value;
-        next[y][x + currentSize] = value + 2;
-        next[y + currentSize][x] = value + 3;
-        next[y + currentSize][x + currentSize] = value + 1;
-      }
+const BAYER_2 = [[0, 2], [3, 1]] as const;
+
+function expandBayer(matrix: readonly (readonly number[])[]): number[][] {
+  const size = matrix.length;
+  const nextSize = size * 2;
+  const next = Array.from({ length: nextSize }, () =>
+    Array<number>(nextSize).fill(0)
+  );
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const value = matrix[y][x] * 4;
+      next[y][x] = value;
+      next[y][x + size] = value + 2;
+      next[y + size][x] = value + 3;
+      next[y + size][x + size] = value + 1;
     }
-    matrix = next;
-    currentSize = nextSize;
   }
-  return matrix;
+  return next;
 }
+
+const BAYER_4 = expandBayer(BAYER_2);
+const BAYER_8 = expandBayer(BAYER_4);
 
 function matrixInfo(matrix: OrderedDitherMatrix) {
-  const size = matrix === "bayer2" ? 2 : matrix === "bayer4" ? 4 : 8;
-  const values = bayerMatrix(size);
-  return { size, values, max: size * size };
+  if (matrix === "bayer2") {
+    return { size: 2, values: BAYER_2, max: 4 };
+  }
+  if (matrix === "bayer4") {
+    return { size: 4, values: BAYER_4, max: 16 };
+  }
+  return { size: 8, values: BAYER_8, max: 64 };
 }
 
-function orderedThreshold(
-  matrix: OrderedDitherMatrix,
+function orderedThresholdFromInfo(
+  info: ReturnType<typeof matrixInfo>,
   x: number,
   y: number
 ): number {
-  const info = matrixInfo(matrix);
   return (info.values[y % info.size][x % info.size] + 0.5) / info.max;
 }
 
@@ -375,6 +385,7 @@ export function gradientMapRgba(
   const labs = colors.map(rgbaToOklab);
   const mode = options.mode ?? "nearest";
   const matrix = options.matrix ?? "bayer4";
+  const ditherMatrix = mode === "ordered" ? matrixInfo(matrix) : null;
   const output = new Uint8ClampedArray(pixels);
 
   for (let y = 0; y < height; y += 1) {
@@ -409,7 +420,7 @@ export function gradientMapRgba(
           alpha
         );
       } else {
-        const threshold = orderedThreshold(matrix, x, y);
+        const threshold = orderedThresholdFromInfo(ditherMatrix!, x, y);
         mapped = colors[
           position.localT > threshold
             ? position.rightIndex
@@ -447,9 +458,11 @@ export function palettizeRgba(
   }
 
   const parsed = palette.map(parseHexRgba);
+  const labs = parsed.map(rgbaToOklab);
   const output = new Uint8ClampedArray(pixels);
   const dither = options.dither ?? "none";
   const matrix = options.matrix ?? "bayer4";
+  const ditherMatrix = dither === "ordered" ? matrixInfo(matrix) : null;
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -465,9 +478,9 @@ export function palettizeRgba(
 
       let index: number;
       if (dither === "none" || palette.length === 1) {
-        index = nearestPaletteIndex(source, palette);
+        index = nearestPaletteIndexFromLabs(source, labs);
       } else {
-        const nearest = twoNearestPaletteIndices(source, palette);
+        const nearest = twoNearestPaletteIndicesFromLabs(source, labs);
         if (
           nearest.first === nearest.second ||
           nearest.firstDistance === 0
@@ -479,7 +492,7 @@ export function palettizeRgba(
           const secondWeight =
             total === 0 ? 0 : nearest.firstDistance / total;
           index =
-            secondWeight > orderedThreshold(matrix, x, y)
+            secondWeight > orderedThresholdFromInfo(ditherMatrix!, x, y)
               ? nearest.second
               : nearest.first;
         }
