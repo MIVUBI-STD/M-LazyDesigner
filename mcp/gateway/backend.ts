@@ -11,17 +11,19 @@ import {
   resolveProjectAffinity,
 } from "./runtime/affinityPolicy";
 import {
-  DEFAULT_RUNTIME_URL,
   GATEWAY_VERSION,
-  classifyInterruptedCall,
-  createRuntimeSignature,
-  normalizeRuntimeUrl,
-  searchCapabilityCatalog,
   type BackendTool,
   type CapabilitySummary,
   type CapabilitySearchContext,
   type JsonRecord,
-} from "./contract";
+} from "./protocol";
+import {
+  DEFAULT_RUNTIME_URL,
+  createRuntimeSignature,
+  normalizeRuntimeUrl,
+} from "./runtime/identity";
+import { classifyInterruptedCall } from "./runtime/interruptionPolicy";
+import { searchCapabilityCatalog } from "./capabilities/catalog";
 import { GatewayConnectionManager } from "./runtime/connectionManager";
 import { GatewayOperationQueue } from "./runtime/operationQueue";
 import {
