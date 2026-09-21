@@ -1,51 +1,63 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import ts from "typescript";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
-  buildDevelopmentSymbolMap,
+  mapTypeScriptProgramFile,
   mapTypeScriptSource,
-} from "@/scripts/build-development-symbol-map";
+} from "../scripts/build-development-symbol-map";
 
-describe("bounded development symbol map", () => {
-  test("maps signatures/imports without leaking implementation bodies", () => {
-    const source = `
-      import { helper } from "./helper";
-      export type Mode = "a" | "b";
-      export interface Config { value: string }
-      export const LIMIT: number = 4;
-      export function route(input: string): number {
-        const body_secret = "do-not-include";
-        return body_secret.length + input.length;
-      }
-      class Internal {
-        execute(value: number) { return value * 2; }
-      }
-    `;
-    const mapped = mapTypeScriptSource(source, "fixture.ts");
-    const serialized = JSON.stringify(mapped);
+const tempDirs: string[] = [];
 
-    expect(mapped.imports).toEqual(["./helper"]);
-    expect(mapped.symbols.map((symbol) => symbol.name)).toEqual(
-      expect.arrayContaining(["Mode", "Config", "LIMIT", "route", "Internal"])
+afterEach(async () => {
+  await Promise.all(
+    tempDirs.splice(0).map((dir) =>
+      rm(dir, { recursive: true, force: true })
+    )
+  );
+});
+
+describe("development symbol map", () => {
+  test("keeps syntax-only mapping available as the zero-setup fallback", () => {
+    const mapped = mapTypeScriptSource(
+      "export const value = 42; export function label(input) { return String(input); }"
     );
-    expect(serialized).not.toContain("do-not-include");
-    expect(serialized).not.toContain("body_secret");
-    expect(serialized).not.toContain("return value * 2");
     expect(
-      mapped.symbols.find((symbol) => symbol.name === "route")?.signature
-    ).toContain("route(input: string): number");
+      mapped.symbols.find((symbol) => symbol.name === "value")?.signature
+    ).toContain("unknown");
   });
 
-  test("real cross-owner map remains bounded and source-owner scoped", async () => {
-    const report = await buildDevelopmentSymbolMap(
-      "gateway control routing continuation runtime",
-      4000
+  test("uses TypeScript compiler inference without expanding the output shape", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lazydesigner-symbol-map-"));
+    tempDirs.push(dir);
+    const file = join(dir, "fixture.ts");
+    await writeFile(
+      file,
+      [
+        "export const value = 42;",
+        "export function label(input = value) {",
+        "  return String(input);",
+        "}",
+      ].join("\n"),
+      "utf8"
     );
 
-    expect(report.proof_scope).toBe("SYSTEM_DEVELOPMENT_LOCAL_CONTEXT");
-    expect(report.bytes).toBeLessThanOrEqual(4000);
-    expect(report.files.length).toBeGreaterThan(0);
-    for (const file of report.files) {
-      expect(file.path).toMatch(/^mcp\//);
-      expect(file.symbols.length).toBeLessThanOrEqual(24);
-    }
+    const program = ts.createProgram({
+      rootNames: [file],
+      options: {
+        strict: true,
+        target: ts.ScriptTarget.ESNext,
+        module: ts.ModuleKind.ESNext,
+      },
+    });
+
+    const mapped = mapTypeScriptProgramFile(program, file, "fixture.ts");
+    const value = mapped.symbols.find((symbol) => symbol.name === "value");
+    const label = mapped.symbols.find((symbol) => symbol.name === "label");
+
+    expect(value?.signature).not.toContain("unknown");
+    expect(label?.signature).toContain("): string");
+    expect(Object.keys(mapped).sort()).toEqual(["imports", "path", "symbols"]);
   });
 });

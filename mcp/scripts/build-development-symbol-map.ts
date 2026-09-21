@@ -1,10 +1,12 @@
 import ts from "typescript";
 import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { resolveDevelopmentIntent } from "../gateway/control/developmentIntent";
 
 export const DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES = 6000;
 const MAX_SYMBOLS_PER_FILE = 24;
 const MAX_IMPORTS_PER_FILE = 12;
+const MAX_TYPE_TEXT_CHARS = 220;
 
 export type DevelopmentSymbol = {
   kind: string;
@@ -32,6 +34,11 @@ export type DevelopmentSymbolMap = {
   files: DevelopmentFileMap[];
 };
 
+type DevelopmentPrograms = {
+  runtime: ts.Program | null;
+  gateway: ts.Program | null;
+};
+
 function utf8Bytes(value: unknown): number {
   return new TextEncoder().encode(JSON.stringify(value)).byteLength;
 }
@@ -45,28 +52,90 @@ function exported(node: ts.Node): boolean {
   );
 }
 
-function typeText(type: ts.TypeNode | undefined, source: ts.SourceFile): string {
-  return type ? type.getText(source) : "unknown";
+function compactTypeText(value: string): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+  return compact.length <= MAX_TYPE_TEXT_CHARS
+    ? compact
+    : `${compact.slice(0, MAX_TYPE_TEXT_CHARS - 1)}…`;
 }
 
-function paramText(parameter: ts.ParameterDeclaration, source: ts.SourceFile): string {
+function inferredTypeText(
+  checker: ts.TypeChecker | undefined,
+  node: ts.Node
+): string | null {
+  if (!checker) return null;
+  try {
+    return compactTypeText(
+      checker.typeToString(
+        checker.getTypeAtLocation(node),
+        node,
+        ts.TypeFormatFlags.NoTruncation
+      )
+    );
+  } catch {
+    return null;
+  }
+}
+
+function typeText(
+  type: ts.TypeNode | undefined,
+  source: ts.SourceFile,
+  checker?: ts.TypeChecker,
+  inferenceNode?: ts.Node
+): string {
+  if (type) return compactTypeText(type.getText(source));
+  return inferenceNode
+    ? inferredTypeText(checker, inferenceNode) ?? "unknown"
+    : "unknown";
+}
+
+function returnTypeText(
+  node: ts.FunctionDeclaration,
+  source: ts.SourceFile,
+  checker?: ts.TypeChecker
+): string {
+  if (node.type) return compactTypeText(node.type.getText(source));
+  if (!checker) return "unknown";
+  try {
+    const signature = checker.getSignatureFromDeclaration(node);
+    return signature
+      ? compactTypeText(
+          checker.typeToString(checker.getReturnTypeOfSignature(signature))
+        )
+      : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+function paramText(
+  parameter: ts.ParameterDeclaration,
+  source: ts.SourceFile,
+  checker?: ts.TypeChecker
+): string {
   const name = parameter.name.getText(source);
   const optional = parameter.questionToken ? "?" : "";
   const rest = parameter.dotDotDotToken ? "..." : "";
-  return `${rest}${name}${optional}: ${typeText(parameter.type, source)}`;
+  return `${rest}${name}${optional}: ${typeText(
+    parameter.type,
+    source,
+    checker,
+    parameter.name
+  )}`;
 }
 
 function functionSymbol(
   node: ts.FunctionDeclaration,
-  source: ts.SourceFile
+  source: ts.SourceFile,
+  checker?: ts.TypeChecker
 ): DevelopmentSymbol | null {
   if (!node.name) return null;
   return {
     kind: "function",
     name: node.name.text,
     signature: `function ${node.name.text}(${node.parameters
-      .map((parameter) => paramText(parameter, source))
-      .join(", ")}): ${typeText(node.type, source)}`,
+      .map((parameter) => paramText(parameter, source, checker))
+      .join(", ")}): ${returnTypeText(node, source, checker)}`,
     exported: exported(node),
   };
 }
@@ -112,7 +181,7 @@ function declarationSymbol(
       : "enum";
   let signature = `${kind} ${node.name.text}`;
   if (ts.isTypeAliasDeclaration(node)) {
-    const alias = node.type.getText(source);
+    const alias = compactTypeText(node.type.getText(source));
     signature += alias.length <= 180 ? ` = ${alias}` : "";
   }
   return {
@@ -125,7 +194,8 @@ function declarationSymbol(
 
 function variableSymbols(
   node: ts.VariableStatement,
-  source: ts.SourceFile
+  source: ts.SourceFile,
+  checker?: ts.TypeChecker
 ): DevelopmentSymbol[] {
   return node.declarationList.declarations.flatMap((declaration) => {
     if (!ts.isIdentifier(declaration.name)) return [];
@@ -140,24 +210,20 @@ function variableSymbols(
       name: declaration.name.text,
       signature: `${keyword} ${declaration.name.text}: ${typeText(
         declaration.type,
-        source
+        source,
+        checker,
+        declaration.name
       )}`,
       exported: exported(node),
     }];
   });
 }
 
-export function mapTypeScriptSource(
-  sourceText: string,
-  path = "fixture.ts"
+function mapSourceFile(
+  source: ts.SourceFile,
+  path: string,
+  checker?: ts.TypeChecker
 ): Omit<DevelopmentFileMap, "test_owner"> {
-  const source = ts.createSourceFile(
-    path,
-    sourceText,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TS
-  );
   const imports: string[] = [];
   const symbols: DevelopmentSymbol[] = [];
 
@@ -174,7 +240,7 @@ export function mapTypeScriptSource(
     if (symbols.length >= MAX_SYMBOLS_PER_FILE) continue;
 
     if (ts.isFunctionDeclaration(statement)) {
-      const symbol = functionSymbol(statement, source);
+      const symbol = functionSymbol(statement, source, checker);
       if (symbol) symbols.push(symbol);
     } else if (ts.isClassDeclaration(statement)) {
       const symbol = classSymbol(statement, source);
@@ -187,7 +253,7 @@ export function mapTypeScriptSource(
       symbols.push(declarationSymbol(statement, source));
     } else if (ts.isVariableStatement(statement)) {
       symbols.push(
-        ...variableSymbols(statement, source).slice(
+        ...variableSymbols(statement, source, checker).slice(
           0,
           MAX_SYMBOLS_PER_FILE - symbols.length
         )
@@ -198,8 +264,74 @@ export function mapTypeScriptSource(
   return { path, imports, symbols };
 }
 
+export function mapTypeScriptSource(
+  sourceText: string,
+  path = "fixture.ts"
+): Omit<DevelopmentFileMap, "test_owner"> {
+  const source = ts.createSourceFile(
+    path,
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  );
+  return mapSourceFile(source, path);
+}
+
+export function mapTypeScriptProgramFile(
+  program: ts.Program,
+  fileName: string,
+  path = fileName
+): Omit<DevelopmentFileMap, "test_owner"> {
+  const absolute = resolve(fileName);
+  const source =
+    program.getSourceFile(absolute) ??
+    program
+      .getSourceFiles()
+      .find((candidate) => resolve(candidate.fileName) === absolute);
+  if (!source) {
+    throw new Error(`TypeScript program does not contain ${fileName}`);
+  }
+  return mapSourceFile(source, path, program.getTypeChecker());
+}
+
+function createConfiguredProgram(configPath: string): ts.Program | null {
+  if (!ts.sys.fileExists(configPath)) return null;
+  const loaded = ts.readConfigFile(configPath, ts.sys.readFile);
+  if (loaded.error) return null;
+  const parsed = ts.parseJsonConfigFileContent(
+    loaded.config,
+    ts.sys,
+    dirname(configPath),
+    undefined,
+    configPath
+  );
+  if (parsed.errors.length > 0) return null;
+  return ts.createProgram({
+    rootNames: parsed.fileNames,
+    options: parsed.options,
+    projectReferences: parsed.projectReferences,
+  });
+}
+
+function createDevelopmentPrograms(): DevelopmentPrograms {
+  return {
+    runtime: createConfiguredProgram(resolve(process.cwd(), "tsconfig.json")),
+    gateway: createConfiguredProgram(
+      resolve(process.cwd(), "gateway", "tsconfig.json")
+    ),
+  };
+}
+
 function localPath(ownerPath: string): string {
   return ownerPath.startsWith("mcp/") ? ownerPath.slice(4) : `../${ownerPath}`;
+}
+
+function programForPath(
+  programs: DevelopmentPrograms,
+  path: string
+): ts.Program | null {
+  return path.startsWith("gateway/") ? programs.gateway : programs.runtime;
 }
 
 export async function buildDevelopmentSymbolMap(
@@ -210,6 +342,7 @@ export async function buildDevelopmentSymbolMap(
   const normalizedMax = Number.isFinite(maxBytes)
     ? Math.max(1200, Math.trunc(maxBytes))
     : DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES;
+  const programs = createDevelopmentPrograms();
 
   const base: DevelopmentSymbolMap = {
     schema: 1,
@@ -224,14 +357,32 @@ export async function buildDevelopmentSymbolMap(
   };
 
   for (const owner of resolution.source_owners) {
-    let sourceText: string;
-    try {
-      sourceText = await readFile(localPath(owner.source), "utf8");
-    } catch {
-      continue;
+    const local = localPath(owner.source);
+    let mapped: Omit<DevelopmentFileMap, "test_owner"> | null = null;
+    const program = programForPath(programs, local);
+
+    if (program) {
+      try {
+        mapped = mapTypeScriptProgramFile(
+          program,
+          resolve(process.cwd(), local),
+          owner.source
+        );
+      } catch {
+        mapped = null;
+      }
     }
 
-    const mapped = mapTypeScriptSource(sourceText, owner.source);
+    if (!mapped) {
+      let sourceText: string;
+      try {
+        sourceText = await readFile(local, "utf8");
+      } catch {
+        continue;
+      }
+      mapped = mapTypeScriptSource(sourceText, owner.source);
+    }
+
     const file: DevelopmentFileMap = {
       ...mapped,
       test_owner: owner.test_owner,
