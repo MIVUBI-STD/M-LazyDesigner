@@ -49,7 +49,8 @@ capabilities.ts       capability decoration
 routingPolicy.ts      direct-first route policy
 developmentIntent.ts  bounded SYSTEM_DEVELOPMENT routing
 capabilityManifest.ts unified Runtime metadata + Control domain projection
-delta.ts              post-operation invalidation/freshness receipt
+delta/                post-operation freshness/invalidation engine + Gateway projection
+delta.ts              compatibility facade
 orchestration.ts       ephemeral execution reducer + deterministic next action
 index.ts              public module exports
 ```
@@ -101,10 +102,7 @@ This converts verification class, phase/project changes, particle-texture
 handoff, and unknown outcomes into deterministic flow policy without another
 LLM/planner call. Unknown mutation outcomes never become automatic retries.
 
-Control now consumes a unified capability manifest projection from
-`capabilityManifest.ts`. Runtime-owned execution/search/effect metadata remains
-canonical in `mcp/lib/capabilityMetadata.ts`; Control adds semantic domain
-ownership without duplicating those metadata tables.
+Control consumes canonical capability metadata from `mcp/lib/capabilities/manifest.ts` through its Control projection. Branch-level AI routing metadata remains owned by `gateway/capabilities/`; Control adds context/freshness/orchestration semantics without rebuilding those tables.
 
 ## Gateway boundary
 
