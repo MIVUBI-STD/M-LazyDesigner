@@ -3,7 +3,7 @@
 Updated: 2026-09-21
 Branch: `Local` only.
 
-Owns current implementation continuation only. Stable product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control is `mcp/gateway/control/`; former `mcp/gateway/navigator/` source is removed; no second Control/router/profile/state system.
+Owns current implementation continuation only. Stable product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control is `mcp/gateway/control/`; former `mcp/gateway/navigator/` source is removed with no alias; no second Control/router/profile/state system.
 
 ## Current State
 
