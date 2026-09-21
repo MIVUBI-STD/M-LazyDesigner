@@ -60,8 +60,10 @@ export function planAuthoringImpact(
     entry.fields.includes("semantic_group")
   );
 
+  const removalRequiresUvReplan = diff.remove_instance_ids.length > 0;
   const uvScope =
-    diff.semantic_invalidation.uv_mapping && uvAffected.length === 0
+    (diff.semantic_invalidation.uv_mapping || removalRequiresUvReplan) &&
+    uvAffected.length === 0
       ? "FULL_SEMANTIC_REPLAN" as const
       : uvAffected.length > 0
         ? "AFFECTED_ONLY" as const
