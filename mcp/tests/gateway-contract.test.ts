@@ -34,7 +34,7 @@ describe("BlockIT Gateway contract", () => {
     expect(describeBlock).not.toContain("schema_projection:");
     expect(describeBlock).toContain("inputSchema: projection.inputSchema");
     expect(describeBlock).toContain("verification_class: metadata.verificationClass");
-    expect(describeBlock).toContain("source_owner: sourceOwnerForCapability(capability)");
+    expect(describeBlock).toMatch(/source_owner:\s*sourceOwnerForCapability\(capability\)/);
   });
 
   test("timeline discovery retains AI-callable easing and bone visibility arguments",()=>{
@@ -197,10 +197,11 @@ describe("BlockIT Gateway contract", () => {
     const source = await Bun.file("gateway/index.ts").text();
 
     expect(source).toContain("const metadata = getCapabilityMetadata(capability)");
+    expect(source).toContain('detail === "full"');
     expect(source).toContain("lifecycle: metadata.lifecycle");
     expect(source).toContain("execution_class: metadata.executionClass");
     expect(source).toContain("verification_class: metadata.verificationClass");
-    expect(source).toContain("source_owner: sourceOwnerForCapability(capability)");
+    expect(source).toMatch(/source_owner:\s*sourceOwnerForCapability\(capability\)/);
 
     const searchBlock = source.slice(
       source.indexOf("GATEWAY_TOOLS.searchCapabilities"),
@@ -789,7 +790,8 @@ describe("BlockIT Gateway contract", () => {
     expect(source).toContain("compactGatewayCapabilityStructuredContent");
     expect(source).toContain("projectCapabilityInputSchema");
     expect(source).toContain("inputSchema: projection.inputSchema");
-    expect(source).toContain("outputSchema: tool.outputSchema ?? null");
+    expect(source).toContain("tool.outputSchema !== undefined");
+    expect(source).toContain("{ outputSchema: tool.outputSchema }");
     expect(source).toContain(".default(CONTROL_ROUTING_POLICY.search_limit)");
     expect(backendSource).toMatch(/searchCapabilities\(\s*query: string,\s*limit: number = 4/);
     expect(source).toContain("Runtime resources and prompts are not proxied");
