@@ -23,11 +23,17 @@ describe("LazyDesigner Control canonical phase classification", () => {
     }
   });
 
-  test("Control registry no longer carries duplicate Geometry/Texturing/Animation capability sets", async () => {
-    const source = await Bun.file("gateway/control/registry.ts").text();
-    expect(source).toContain("classifyMcpToolPhaseByName");
-    expect(source).not.toContain("GEOMETRY_CAPABILITIES");
-    expect(source).not.toContain("TEXTURING_CAPABILITIES");
-    expect(source).not.toContain("ANIMATION_CAPABILITIES");
+  test("Control manifest owns phase projection without duplicate capability sets", async () => {
+    const [registry, manifest] = await Promise.all([
+      Bun.file("gateway/control/registry.ts").text(),
+      Bun.file("gateway/control/capabilityManifest.ts").text(),
+    ]);
+    expect(manifest).toContain("classifyMcpToolPhaseByName");
+    expect(registry).toContain("getControlCapabilityManifestEntry");
+    for (const source of [registry, manifest]) {
+      expect(source).not.toContain("GEOMETRY_CAPABILITIES");
+      expect(source).not.toContain("TEXTURING_CAPABILITIES");
+      expect(source).not.toContain("ANIMATION_CAPABILITIES");
+    }
   });
 });

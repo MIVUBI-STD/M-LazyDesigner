@@ -8,7 +8,6 @@ describe("texture refinement compiler",()=>{
       directional_shade:{strength:0.4,azimuth_degrees:45},
       posterize_levels:6,
       palette:[[0,0,0],[255,255,255]],
-      ordered_dither:true,
       target_rect:{x:4,y:4,width:16,height:16},
     });
     expect(result.compute.map(step=>step.operation)).toEqual([
@@ -16,5 +15,6 @@ describe("texture refinement compiler",()=>{
     ]);
     expect(result.compute[0].args?.target_rect).toEqual({x:4,y:4,width:16,height:16});
     expect(result.compute.slice(1).every(step=>step.args?.target_rect===undefined)).toBe(true);
+    expect(result.compute[3].args?.dither).toBe("none");
   });
 });

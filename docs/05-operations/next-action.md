@@ -1,495 +1,148 @@
 # LazyDesigner Next Action
 
-Updated: 2026-09-21
+Updated: 2026-09-22
 Branch: `Local` only.
 
-Owns current implementation continuation only. Stable product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control is `mcp/gateway/control/`; former `mcp/gateway/navigator/` source is removed with no alias; no second Control/router/profile/state system.
+This file owns **current continuation only**. Stable architecture belongs in
+`docs/01-product/` and `docs/04-system/`; exact proof interpretation belongs in
+`docs/05-operations/current-validation.md`. Do not turn this file into a history
+log, research archive, or duplicate roadmap.
 
-## Current State
+## Current Direction
 
-REMOTE_GITHUB is current source authority. Historical reusable baseline:
+`REMOTE_GITHUB` remains the source-development authority until the current
+source head has matching repository/MCP CI proof.
+
+Historical reusable baseline includes:
 
 ```text
 generated freshness PASS
-Runtime/Gateway typecheck PASS
-Runtime regression PASS
-authoring contracts PASS
 modern MCP 2026 negotiation/list/call PASS
 legacy 2025 JSON initialize/list/call PASS
 ```
 
-Historical proof does not transfer to changed SHAs. No hand-editing generated docs/output; generated API/prompt output remains generator-owned.
+Historical proof does not automatically transfer to changed SHAs.
 
-Core invariants:
-
-- Gateway public surface stays `status`, `search_capabilities`, `describe_capability`, `invoke_capability`.
-- persistent Gateway survives Runtime/plugin reload; Runtime owns Blockbench execution.
-- Desktop is workstation control, not a second editor/project database.
-- mutation uncertainty is fail-closed; no unsafe auto-retry.
-- no capability reduction solely for context savings.
-
-## Active Development — Parametric Authoring Engine
-
-Architecture owner:
+Current architecture remains:
 
 ```text
-mcp/docs/PARAMETRIC_AUTHORING_ENGINE.md
+user intent / approved reference
+→ LazyDesigner Control
+→ four-tool Gateway
+→ Runtime
+→ Blockbench
+→ structured receipt
+→ control_delta
+→ deterministic continuation action
 ```
 
-UV U0-U7 source foundation remains retained. Its remaining registration/native proof stays LOCAL_CODE/LIVE_BLOCKBENCH and must not block independent parametric-source work.
-
-Current parametric status:
+Public Gateway surface stays:
 
 ```text
-G0 recipe contracts + proof metrics          SOURCE IMPLEMENTED
-G1 relational anchor constraint solver       SOURCE IMPLEMENTED
-G2 LINEAR / GRID / RADIAL patterns           SOURCE IMPLEMENTED
-G3 cross-domain symmetry relationships       SOURCE IMPLEMENTED
-G4 reusable parametric components             SOURCE IMPLEMENTED
-G5 compiled-diff incremental rebuild          SOURCE IMPLEMENTED
-stable Cube recipe ownership                 SOURCE IMPLEMENTED
-atomic affected-only transaction contract    SOURCE IMPLEMENTED
-Blockbench affected-only adapter             SOURCE IMPLEMENTED
-bounded recipe plan-handle service           SOURCE IMPLEMENTED
-project recipe-source store                  SOURCE IMPLEMENTED / WRITE PROOF PENDING
-public recipe capability registration        DEFERRED UNTIL GENERATOR + NATIVE PROOF
+status
+search_capabilities
+describe_capability
+invoke_capability
 ```
 
-Permanent CI proof now guards repeated-structure payload/call efficiency. Current exact fixtures show ~89.9–97.8% serialized payload-proxy reduction; >32-Cube fixtures reduce static mutation batches by 50–75%. These are not wall-clock or token claims.
+The persistent Gateway survives Runtime/plugin reload. Runtime owns Blockbench
+execution. Control owns bounded routing/context projection, not authored truth.
 
-Immediate order:
+## Remote Work Boundary
 
-1. keep recipe instances lightweight and use compiled-diff for native affected-only realization; do not add a second dependency database;
-2. keep existing MCP primitives intact; parametric automation remains additive intelligence;
-3. do not register a public parametric Runtime capability from REMOTE_GITHUB because generated API output is generator-owned;
-4. in LOCAL_CODE, benchmark recipe compile / explicit generation / affected-only rebuild for wall-clock, allocations and memory;
-5. prove how the private ModelProject recipe-store Property participates in Undo before wiring store writes into native apply;
-6. only after generator-backed registration, use LIVE_BLOCKBENCH for mixed create/update/remove Undo, save/reopen ownership, viewport responsiveness, and accepted-result/correction-round evidence.
+Remote work may finish:
 
-Current remote source architecture has reached the point where speculative layers are more likely to add maintenance cost than improve accepted-result efficiency.
+- source/type correctness;
+- deterministic routing/orchestration contracts;
+- repository/runtime regression tests;
+- generated-freshness checks;
+- static Zero-Waste guards and benchmarks;
+- build/provenance preparation that CI can prove.
 
-Do not replace Builder Engine, do not add a visual node editor, and do not make AI emit explicit Cube coordinates when a pattern/constraint expresses the same intent.
-
-## Project/Desktop State — Do Not Redo
-
-Already source-hardened unless new evidence reproduces a defect:
-
-- persistent Recent is separated from Active/Open/Dirty;
-- stale Plugin sessions cannot retain live Switch/Modified;
-- navigation snapshot is generation/session/profile aware;
-- stable project identity uses minimal `.lazydesigner-project.json`;
-- Continue resolves one exact last-active saved `.bbmodel`;
-- Desktop single-instance uses the Windows session-local owner;
-- oversized Desktop owners were split where evidence justified it;
-- Project Navigator has bounded repository behavioral coverage.
-
-Current grouping fallback:
+Current authoring automation must continue through existing owners rather than
+new public capability families:
 
 ```text
-nearest bounded .lazydesigner-project.json marker
-→ parent of Models/Model
-→ direct .bbmodel parent folder
+Geometry / parametric recipe → existing Geometry owners
+UV                        → existing UV/Texturing owners
+Texture/material          → existing Painter/Texture owners
+Rig                       → add_group / bone_rigging owners
+Animation                 → existing animation owners
+Control continuation      → Gateway Control reducer
 ```
 
-Quick Command, thumbnails, crawler, tags, cloud DB, and arbitrary hierarchy remain out of scope.
+Keep the system additive and deterministic. No second
+Control/router/profile/state system.
 
-## Authoring Automation Research Foundation
+## Zero-Waste Rules
 
-Source-only research intake is now committed under `mcp/docs/AUTHORING_AUTOMATION_RESEARCH.md`.
+Optimize **cost to accepted result**, not tool count in isolation.
 
-Current internal foundations:
+Hot-path rules:
 
-```text
-lib/uv/maxRectsPlanner.ts          deterministic bounded atlas placement
-lib/rig/fabrik.ts                 deterministic chain target solver
-lib/texture/proceduralOps.ts      gradient/noise/palette/dither buffer primitives
-lib/animation/controllerRecipe.ts intent-to-existing-controller-operation compiler
-```
-
-These are deliberately data-only and do not register new public Runtime capabilities. They are inspired by established algorithm families (MaxRects, FABRIK, procedural material pipelines, Animator/FSM state machines) while retaining LazyDesigner ownership and existing mutation surfaces.
+- known capability → invoke directly;
+- search only for unknown/stale capability identity;
+- describe only for real schema uncertainty;
+- status only for orientation, authority change, or recovery;
+- reuse content-addressed specialist/profile context;
+- invalidate only materially affected evidence;
+- authoritative mutation receipts replace reassurance reads;
+- visual verification must be decision-changing and scope-bounded;
+- batch mechanical operations when existing capability semantics allow it;
+- unknown mutation outcome never auto-retries.
 
-Next integration rule:
-
-1. benchmark each foundation against current explicit workflows before native wiring;
-2. wire only through the existing semantic owner (UV/Texture/Rig/Controller), never as a second public tool family;
-3. preserve affected-only/freshness/transaction semantics;
-4. require generator-backed public registration only if an existing capability schema genuinely cannot express the higher-level intent;
-5. remove any foundation that fails to reduce mechanical authoring work or improve accepted-result efficiency.
+Do not add an AI planner, vector store, background heartbeat, persistent
+dependency database, duplicate authoring engine, or new tool family merely to
+reduce prompt size.
 
-Current commit foundation has source review only; CI/local/native PASS must not be claimed until those proofs run.
+## Proof Discipline
 
-Current UV automation continuation:
+Source/static/CI claims are exact-SHA claims.
 
-```text
-lib/uv/maxRectsPlanner.ts       reserved/locked-aware deterministic packing
-lib/uv/semanticPlanner.ts       cohort density + sharing + affected-only replanning
-lib/uv/semanticDiff.ts          bounded upsert/remove/unchanged diff
-lib/uv/authoringRecipeUv.ts     Parametric symmetry → explicit mirrored face ownership
-lib/uv/nativeApplyPlan.ts       data-only native UV operation plan
-```
+A changed source head must not inherit earlier wording such as Runtime/Gateway
+typecheck PASS, Runtime regression PASS, or build PASS unless matching current
+CI actually completed successfully.
 
-Remote source now reaches the native boundary without mutating Blockbench. Next UV work is bounded to existing UV/Texturing ownership: derive targets from live Cube faces/Box-UV state, apply one atomic affected-only Undo transaction, preserve exact pixel-grid/rotation semantics, then benchmark against explicit UV editing. Do not add a second UV capability family.
-
-
-## Remote-Only Authoring Automation Status
-
-Semantic UV remote source is now bounded-complete up to the live Blockbench proof boundary:
+There is **no claim of Bun/typecheck/CI/local/live PASS until that proof actually
+ran**.
 
-```text
-semantic planning            IMPLEMENTED
-cohort/per-island density    IMPLEMENTED
-symmetry face mapping        IMPLEMENTED
-locked/reserved regions      IMPLEMENTED
-affected-only replanning     IMPLEMENTED
-native target snapshot       IMPLEMENTED
-stale-plan fingerprint       IMPLEMENTED
-Box-UV fail-closed policy    IMPLEMENTED
-atomic apply source adapter  IMPLEMENTED / LIVE PROOF PENDING
-static efficiency benchmark  IMPLEMENTED / LOCAL RUN PENDING
-```
-
-Semantic Rig remote source foundation now includes:
-
-```text
-geometry-derived pivots      IMPLEMENTED
-JOINT / CHAIN intent         IMPLEMENTED
-FABRIK target solve          IMPLEMENTED
-recipe symmetry mirroring    IMPLEMENTED
-HINGE / ROTATOR / SLIDER     IMPLEMENTED
-affected-only rig scope      IMPLEMENTED
-IK-controller intent compile IMPLEMENTED
-existing add_group batch     REUSED
-static efficiency benchmark  IMPLEMENTED / LOCAL RUN PENDING
-```
+Read exact current proof from GitHub Actions and
+`docs/05-operations/current-validation.md`.
 
-No new public MCP capability family was introduced. UV continues through existing UV/Texturing ownership; rig continues through existing `add_group` / `bone_rigging` ownership.
+## LOCAL_CODE
 
-Do not extend either subsystem with more speculative templates before evidence. Remaining work is proof-oriented: Bun/typecheck/benchmark locally, then live Undo/Redo, save/reopen, Box-UV explicit-conversion behavior, native IK behavior, viewport responsiveness, and accepted-result/correction-round evidence.
-
-## Motion Recipe Engine — Remote Source Status
-
-Remote source now includes:
-
-```text
-semantic pose recipe             IMPLEMENTED
-sequence/step timing             IMPLEMENTED
-cyclic normalized phase          IMPLEMENTED
-curve sampling helpers           IMPLEMENTED
-explicit motion mirroring        IMPLEMENTED
-contact-position constraints     IMPLEMENTED
-affected-bone diff               IMPLEMENTED
-new clip → create_animation      IMPLEMENTED
-bounded correction → keyframes   IMPLEMENTED
-motion set → controller recipe   IMPLEMENTED
-static efficiency benchmark      IMPLEMENTED / LOCAL RUN PENDING
-```
-
-No `generate_animation` or second animation tool family was registered. Native mutation remains owned by `create_animation`, `manage_keyframes`, existing batch/graph tools, and `manage_animation_controller`.
-
-Further source expansion must be evidence-driven. Do not add a generic animation graph language, physics engine, or large motion-template library before benchmark/live evidence demonstrates a concrete need.
-
-## Procedural Texture / Material Recipe Engine — Remote Source Status
-
-Remote source now includes:
-
-```text
-material intent presets              IMPLEMENTED
-gradient/noise/palette/dither        IMPLEMENTED
-edge/cavity/wear masks               IMPLEMENTED
-surface patterns                     IMPLEMENTED
-source composition                   IMPLEMENTED
-affected-region diff                 IMPLEMENTED
-existing texture refinement compile  IMPLEMENTED
-semantic PBR intent compile          IMPLEMENTED
-new-source native plan               IMPLEMENTED
-static efficiency benchmark          IMPLEMENTED / LOCAL RUN PENDING
-```
-
-The implementation deliberately reuses existing native owners:
-
-```text
-new texture source      → create_texture
-existing texture refine → paint_texture_transaction.compute
-PBR material            → create_pbr_material / configure_material
-```
-
-No procedural-material public tool, visual node editor, second Painter, or background renderer was introduced.
-
-Further source expansion must be evidence-driven. Do not add a large material-node graph, generalized shader language, or duplicated bitmap mutation engine before local/live evidence demonstrates a concrete gap.
-
-## Cross-Domain Authoring Impact Planner — Remote Source Status
-
-Remote source now includes a stateless planning layer:
-
-```text
-Parametric compiled diff
-→ geometry affected instances
-→ UV affected islands / semantic replan
-→ rig affected instances
-→ animation affected instances
-→ texture stale reason/scope
-→ existing Control freshness vocabulary
-→ minimal verification task set
-```
-
-Implemented:
-
-```text
-cross-domain impact plan         IMPLEMENTED
-removal-only invalidation        IMPLEMENTED
-execution-order projection       IMPLEMENTED
-freshness-scope projection       IMPLEMENTED
-minimal verification plan        IMPLEMENTED
-public-surface preservation      IMPLEMENTED
-static orchestration benchmark   IMPLEMENTED / LOCAL RUN PENDING
-```
-
-This is deliberately pure/stateless. It does not own project state, Runtime state, Control state, a dependency graph database, or mutation execution. Control remains the freshness authority after real capability receipts.
-
-Do not turn this into an orchestrator daemon/service or persistent dependency database. Further expansion requires evidence that an existing ownership relationship cannot express a concrete downstream impact.
-
-## Authoring Automation Hardening Audit
-
-Canonical hardening note:
-
-```text
-mcp/docs/AUTHORING_AUTOMATION_HARDENING_AUDIT.md
-```
-
-Remote hardening pass is complete for the current source foundations. Material fixes include:
-
-- UV recipe/native identity bridge + ownership guard;
-- affected-only UV fingerprint scoping;
-- retained padded UV footprint + share-size validation;
-- rotated-source rig anchors fail closed;
-- explicit Euler mirror policy for motion;
-- exact contact boundary keyframes;
-- no silent interpolation loss through create_animation;
-- painted-metal dielectric default;
-- ROI-safe texture refinement contract;
-- procedural RGBA → existing create_texture data-URL adapter;
-- removal of unused speculative curve/rig-diff helpers;
-- orchestration ownership fallback instead of false affected-only precision;
-- benchmark-theater cleanup.
-
-Do not add more remote authoring abstraction before LOCAL_CODE/LIVE_BLOCKBENCH evidence exposes a concrete gap.
-
-## Operator-Mentality Reduction — Remote Source Status
-
-The bounded source foundations requested before local testing are now implemented without adding a second public MCP capability family:
-
-```text
-semantic geometry edit plan       IMPLEMENTED
-reference deviation -> edit       IMPLEMENTED
-geometry signal builder           IMPLEMENTED
-geometry-aware material treatment IMPLEMENTED
-bounded correction candidate rank IMPLEMENTED
-functional rig inference          IMPLEMENTED / FAIL-CLOSED
-secondary motion synthesis        IMPLEMENTED
-contract coverage                 IMPLEMENTED / LOCAL RUN PENDING
-```
-
-Ownership remains additive and existing-surface only:
-
-```text
-semantic geometry edit -> existing geometry mutation owner
-reference correction    -> semantic geometry edit plan
-geometry-aware material -> existing texture/Painter owner
-functional rig inference-> existing bone_rigging / add_group owner
-secondary motion        -> existing animation/keyframe owner
-correction solver       -> planning only; no mutation authority
-```
-
-Safety boundaries:
-
-- functional rig auto-compilation requires explicit high-confidence axis evidence; heuristic-only results remain review-required;
-- semantic edits require exactly one unambiguous owned target selector;
-- reference corrections are numeric bounded vectors, not visual approval;
-- geometry-aware texture treatment consumes deterministic geometry-derived signals and does not create a second Painter;
-- correction ranking cannot mutate anything and rejects candidates outside the configured risk boundary;
-- no public Runtime registration was added from REMOTE_GITHUB.
-
-Do not expand these foundations further before LOCAL_CODE benchmarks/typecheck and LIVE_BLOCKBENCH evidence establish a concrete gap.
-
-## Pre-Local Operator-Automation Hardening
-
-Remote static audit after internal wiring found and fixed two material issues:
+After REMOTE_GITHUB source gates are clean, `LOCAL_CODE` owns only residue that
+requires an executable checkout/toolchain, including:
 
-```text
-dead-intelligence risk        FIXED
-recipe/native divergence risk FIXED
-```
+- canonical generator/filesystem work unavailable remotely;
+- local benchmark telemetry not produced by CI;
+- prepared harness execution whose result depends on the local environment.
 
-Current ownership path:
+Do not redo repository audits already proven by matching CI.
 
-```text
-semantic geometry preview
-→ authoringRecipe/service
-→ recipe rewrite when source-safe
-→ existing incremental recipe transaction
+## LIVE_BLOCKBENCH
 
-geometry-aware material
-→ texture/nativePlan
-→ exact changed-pixel grouping
-→ existing paint_texture_transaction operations
+`LIVE_BLOCKBENCH` owns native/session/visual evidence:
 
-functional rig inference
-→ rig/toolCompiler
-→ existing add_group/bone rig ownership
+- installed Runtime identity and reconnect behavior;
+- real Blockbench Undo/Redo and persistence;
+- project/tab Save and Save As behavior;
+- native UV/Painter/animation/particle execution;
+- plugin reload and app close/open recovery;
+- visual/reference acceptance;
+- accepted-result correction rounds and real usage telemetry.
 
-secondary motion
-→ animation/toolCompiler
-→ existing create_animation + manage_keyframes plan
-```
-
-Semantic geometry preview output is explicitly marked `RECIPE_REWRITE_REQUIRED`; it must never be applied directly to native Cubes because recipe source remains authoritative. The bounded source rewrite currently supports only ownership-preserving cases and fails closed otherwise.
-
-Geometry-aware texture compilation now reaches the existing paint transaction contract without adding a new public texture mutation tool. Exact color-group operations are capped at 64 and fail closed when the bounded payload budget would be exceeded.
-
-Remote source still does not prove typecheck, runtime execution, Undo/Redo, persistence, viewport behavior, or visual quality. Those remain LOCAL_CODE/LIVE_BLOCKBENCH evidence.
-
-## High-End Procedural Foundations — Remote Source Status
-
-A bounded DCC-inspired hardening pass is now source-integrated without adding a visual node editor, generic geometry language, physics engine, or new public MCP capability family.
-
-```text
-typed semantic selection / fields   IMPLEMENTED
-ordered semantic operation stack    IMPLEMENTED / SOURCE-SAFE ONLY
-reusable authoring asset wrapper    IMPLEMENTED
-geometry signal compiler            IMPLEMENTED
-bounded damped-spring motion        IMPLEMENTED
-existing-owner adapters             IMPLEMENTED
-contract coverage                   IMPLEMENTED / LOCAL RUN PENDING
-```
-
-Ownership path remains:
-
-```text
-selection + operation stack
-→ authoringRecipe/service
-→ source-safe recipe rewrite
-→ existing incremental recipe transaction
-
-authoring assets
-→ existing component composition
-→ normal recipe compile
-
-geometry signals
-→ texture/nativePlan
-→ existing paint_texture_transaction
-
-spring motion
-→ animation/toolCompiler
-→ existing create_animation + manage_keyframes
-```
-
-The operation stack is intentionally ordered data, not a second node/graph language. Each enabled operation must preserve recipe source ownership or fail closed. The semantic selector is bounded to deterministic compiled-placement predicates; it does not expose arbitrary code/eval.
-
-The spring solver is bounded to deterministic sampled position/rotation follow-through, capped by sample rate and total sample budget, then baked into the existing animation path. It is not a runtime physics system.
-
-No claim of typecheck, Bun test PASS, wall-clock improvement, allocation savings, Blockbench Undo behavior, visual quality, or accepted-result efficiency transfers from this remote source work. Those remain LOCAL_CODE/LIVE_BLOCKBENCH proof items.
-
-## Final Pre-Local Hardening Audit
-
-The final remote audit before local testing found and fixed concrete efficiency/correctness issues rather than adding more features:
-
-```text
-missing geometry-signal imports        FIXED
-authoring-impact O(n²) membership      FIXED
-spring parent-track rescan per sample  FIXED
-spring numeric stability guard         ADDED
-selection predicate budget             ADDED
-operation-stack budget                 ADDED
-texture coordinate payload budget      ADDED
-multi-face upward exposure averaging   FIXED
-atlas binding bounds validation         ADDED
-```
-
-The geometry signal compiler no longer collapses multiple face normals into one atlas-wide average. Upward exposure is now emitted as weighted per-face atlas regions, preserving directional treatment across multi-face textures.
-
-Spring motion now precomputes/sorts the parent track once, uses bounded binary lookup during sampling, rejects undersampled stiffness/damping combinations, rejects self-parent links, and fails on non-finite integration state.
-
-Semantic selection is capped at 64 predicates and operation stacks at 32 operations. Geometry-aware exact-pixel output is capped independently by operation count and changed-coordinate count; oversized exact-pixel plans fail closed rather than producing large MCP payloads.
-
-The cross-domain impact planner now uses a compiled instance-id Set for membership instead of repeated placement scans.
-
-No public capability surface was added. Local typecheck/tests/benchmarks are still required before these source changes can be called proven.
-
-## LOCAL_CODE / LIVE_BLOCKBENCH Residue
-
-LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
-
-LIVE_BLOCKBENCH owns native/session/visual proof:
-
-- real tab/Save/Save As navigation behavior;
-- installed Runtime identity and recovery;
-- Gateway reload survival and rebind;
-- Undo/playback/persistence/export;
-- native paint/texture lifecycle;
-- visual fidelity and accepted-result quality.
-
-Use `docs/05-operations/local-acceptance-runbook.md`. CI never proves native PASS.
-
-## Blockbench 5.2
-
-Native IK controller support remains source-integrated under `bone_rigging`. Live residue stays in `docs/05-operations/blockbench-5.2-native-adoption.md`.
+Use `docs/05-operations/local-acceptance-runbook.md` for that residue.
 
 ## Stop Rules
 
 - no second Control/router/profile/state system;
 - no duplicate Desktop project database;
-- no dependency graph/persistent revision DB without demonstrated need;
-- no hybrid Gateway before Golden Task evidence;
-- no capability reduction for context savings;
+- no capability reduction solely for context savings;
 - no mutation auto-retry after unknown outcome;
 - no hand-edited generated API/prompt output;
-- no claim of Bun/typecheck/CI/local/live PASS until that proof actually ran.
+- no speculative abstraction after the current owner can express the need;
+- no claim above the current execution-context proof ceiling.
 
-## Proof Boundary
-
-REMOTE_GITHUB proves source/static/CI contracts only on the exact SHA. LOCAL_CODE and LIVE_BLOCKBENCH claims require their corresponding evidence.
-
-## Zero-Waste Usage — LIVE RESIDUE
-
-Remote/source hardening remains bounded. Do not resume speculative payload trimming. Use `verify:astra-usage-ready`, Golden A–F, and `eval:astra-usage -- <file>`; only source-provided response/compaction telemetry plus quality PASS can prove actual Codex/Astra usage improvement.
-
-## Zero-Waste Authoring Execution — Source Foundation
-
-Remote source now includes a bounded deterministic execution layer documented at:
-
-```text
-mcp/docs/ZERO_WASTE_AUTHORING_EXECUTION.md
-```
-
-Implemented without changing the four-tool Gateway or adding a second public capability family:
-
-```text
-compact authoring intent contract        SOURCE IMPLEMENTED
-local desired-state geometry compile     SOURCE IMPLEMENTED
-deterministic execution strategy         SOURCE IMPLEMENTED
-representation escalation for texture    SOURCE IMPLEMENTED
-delta-verification risk/budget projection SOURCE IMPLEMENTED
-contract tests                           SOURCE ADDED / LOCAL RUN PENDING
-```
-
-Ownership remains additive:
-
-```text
-authoringIntent
-→ existing authoringRecipe/semanticEdit
-→ existing authoringImpact
-→ deterministic strategy selection
-→ existing native/domain owners
-→ existing minimal verification planner
-```
-
-Safety/efficiency boundaries:
-
-- recipe-owned changes prefer recipe/incremental realization rather than explicit native-coordinate authoring;
-- oversized structured texture edits escalate to procedural representation instead of large exact-pixel payloads;
-- verification budgets are advisory and never truncate required checks;
-- preserve requests are carried as requirements and remain deferred to their owning domain until proven;
-- no token-savings claim is valid until Golden A–F provider/client telemetry exists;
-- do not wire a new public capability from REMOTE_GITHUB.
-
-Next proof remains LOCAL_CODE first: typecheck, Bun contracts and benchmark comparison. LIVE_BLOCKBENCH then owns Undo/Redo, persistence, viewport behavior and accepted-result/correction-round evidence.
+When REMOTE_GITHUB checks are green, stop remote feature expansion and hand off
+only the remaining LOCAL_CODE / LIVE_BLOCKBENCH proof.
