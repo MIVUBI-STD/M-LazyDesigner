@@ -41,6 +41,88 @@ export type PaletteExtractionOptions = {
   alphaThreshold?: number;
 };
 
+export type TextureColorComputeMetrics = {
+  oklab_cache_hits: number;
+  oklab_cache_misses: number;
+  palette_cache_hits: number;
+  palette_cache_misses: number;
+};
+
+type PreparedPalette = {
+  colors: Rgba[];
+  labs: Oklab[];
+};
+
+export type TextureColorComputeContext = {
+  labs: Map<number, Oklab>;
+  palettes: Map<string, PreparedPalette>;
+  metrics: TextureColorComputeMetrics;
+};
+
+export function createTextureColorComputeContext(): TextureColorComputeContext {
+  return {
+    labs: new Map(),
+    palettes: new Map(),
+    metrics: {
+      oklab_cache_hits: 0,
+      oklab_cache_misses: 0,
+      palette_cache_hits: 0,
+      palette_cache_misses: 0,
+    },
+  };
+}
+
+function rgbaKey(rgba: Rgba): number {
+  return (
+    ((rgba[0] & 0xff) << 24) |
+    ((rgba[1] & 0xff) << 16) |
+    ((rgba[2] & 0xff) << 8) |
+    (rgba[3] & 0xff)
+  ) >>> 0;
+}
+
+function oklabFor(
+  rgba: Rgba,
+  context?: TextureColorComputeContext
+): Oklab {
+  if (!context) return rgbaToOklab(rgba);
+  const key = rgbaKey(rgba);
+  const cached = context.labs.get(key);
+  if (cached) {
+    context.metrics.oklab_cache_hits += 1;
+    return cached;
+  }
+  const lab = rgbaToOklab(rgba);
+  context.labs.set(key, lab);
+  context.metrics.oklab_cache_misses += 1;
+  return lab;
+}
+
+function preparePalette(
+  palette: readonly string[],
+  context?: TextureColorComputeContext
+): PreparedPalette {
+  const key = palette.join("|").toUpperCase();
+  if (context) {
+    const cached = context.palettes.get(key);
+    if (cached) {
+      context.metrics.palette_cache_hits += 1;
+      return cached;
+    }
+  }
+
+  const colors = palette.map(parseHexRgba);
+  const prepared = {
+    colors,
+    labs: colors.map((color) => oklabFor(color, context)),
+  };
+  if (context) {
+    context.palettes.set(key, prepared);
+    context.metrics.palette_cache_misses += 1;
+  }
+  return prepared;
+}
+
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 function srgbChannelToLinear(value: number): number {
@@ -222,12 +304,13 @@ function oklabDistanceSquared(left: Oklab, right: Oklab): number {
 
 function nearestPaletteIndexFromLabs(
   rgba: Rgba,
-  labs: readonly Oklab[]
+  labs: readonly Oklab[],
+  context?: TextureColorComputeContext
 ): number {
   if (labs.length === 0) {
     throw new Error("Palette must contain at least one color.");
   }
-  const target = rgbaToOklab(rgba);
+  const target = oklabFor(rgba, context);
   let bestIndex = 0;
   let bestDistance = Number.POSITIVE_INFINITY;
   for (let index = 0; index < labs.length; index += 1) {
@@ -255,7 +338,8 @@ export function nearestPaletteIndex(
 
 function twoNearestPaletteIndicesFromLabs(
   rgba: Rgba,
-  labs: readonly Oklab[]
+  labs: readonly Oklab[],
+  context?: TextureColorComputeContext
 ): {
   first: number;
   second: number;
@@ -265,7 +349,7 @@ function twoNearestPaletteIndicesFromLabs(
   if (labs.length === 0) {
     throw new Error("Palette must contain at least one color.");
   }
-  const target = rgbaToOklab(rgba);
+  const target = oklabFor(rgba, context);
   let first = 0;
   let second = 0;
   let firstDistance = Number.POSITIVE_INFINITY;
@@ -366,7 +450,8 @@ export function gradientMapRgba(
   width: number,
   height: number,
   ramp: readonly string[],
-  options: GradientMapOptions = {}
+  options: GradientMapOptions = {},
+  context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   if (
     !Number.isSafeInteger(width) ||
@@ -381,8 +466,9 @@ export function gradientMapRgba(
     throw new Error("Gradient map ramp must contain 2 to 16 colors.");
   }
 
-  const colors = ramp.map(parseHexRgba);
-  const labs = colors.map(rgbaToOklab);
+  const prepared = preparePalette(ramp, context);
+  const colors = prepared.colors;
+  const labs = prepared.labs;
   const mode = options.mode ?? "nearest";
   const matrix = options.matrix ?? "bayer4";
   const ditherMatrix = mode === "ordered" ? matrixInfo(matrix) : null;
@@ -400,7 +486,7 @@ export function gradientMapRgba(
         pixels[offset + 2],
         alpha,
       ];
-      const sourceL = rgbaToOklab(source).L;
+      const sourceL = oklabFor(source, context).L;
       const position = rampPosition(sourceL, ramp.length);
       let mapped: Rgba;
 
@@ -442,7 +528,8 @@ export function palettizeRgba(
   width: number,
   height: number,
   palette: readonly string[],
-  options: PalettizeOptions = {}
+  options: PalettizeOptions = {},
+  context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   if (
     !Number.isSafeInteger(width) ||
@@ -457,8 +544,9 @@ export function palettizeRgba(
     throw new Error("Palette must contain 1 to 64 colors.");
   }
 
-  const parsed = palette.map(parseHexRgba);
-  const labs = parsed.map(rgbaToOklab);
+  const prepared = preparePalette(palette, context);
+  const parsed = prepared.colors;
+  const labs = prepared.labs;
   const output = new Uint8ClampedArray(pixels);
   const dither = options.dither ?? "none";
   const matrix = options.matrix ?? "bayer4";
@@ -478,9 +566,9 @@ export function palettizeRgba(
 
       let index: number;
       if (dither === "none" || palette.length === 1) {
-        index = nearestPaletteIndexFromLabs(source, labs);
+        index = nearestPaletteIndexFromLabs(source, labs, context);
       } else {
-        const nearest = twoNearestPaletteIndicesFromLabs(source, labs);
+        const nearest = twoNearestPaletteIndicesFromLabs(source, labs, context);
         if (
           nearest.first === nearest.second ||
           nearest.firstDistance === 0
@@ -722,7 +810,8 @@ export function autoLevelsRgba(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
-  options: AutoLevelsOptions = {}
+  options: AutoLevelsOptions = {},
+  context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   requireBitmap(pixels, width, height, "Auto levels");
   const lowClip = options.lowClipPercent ?? 0.5;
@@ -741,7 +830,7 @@ export function autoLevelsRgba(
   const values: number[] = [];
   for (let offset = 0; offset < pixels.length; offset += 4) {
     if (pixels[offset + 3] === 0) continue;
-    values.push(rgbaToOklab(copyPixel(pixels, offset)).L);
+    values.push(oklabFor(copyPixel(pixels, offset), context).L);
   }
   if (values.length === 0) return new Uint8ClampedArray(pixels);
   values.sort((a, b) => a - b);
@@ -754,7 +843,7 @@ export function autoLevelsRgba(
   for (let offset = 0; offset < pixels.length; offset += 4) {
     const source = copyPixel(pixels, offset);
     if (source[3] === 0) continue;
-    const lab = rgbaToOklab(source);
+    const lab = oklabFor(source, context);
     const normalized = clamp01((lab.L - low) / (high - low));
     const adjusted = lab.L + (normalized - lab.L) * strength;
     const mapped = oklabToRgba({ ...lab, L: adjusted }, source[3]);
@@ -769,7 +858,8 @@ export function posterizeLightnessRgba(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
-  options: PosterizeOptions
+  options: PosterizeOptions,
+  context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   requireBitmap(pixels, width, height, "Posterize");
   const levels = options.levels;
@@ -782,7 +872,7 @@ export function posterizeLightnessRgba(
   for (let offset = 0; offset < pixels.length; offset += 4) {
     const source = copyPixel(pixels, offset);
     if (source[3] === 0) continue;
-    const lab = rgbaToOklab(source);
+    const lab = oklabFor(source, context);
     const quantized = Math.round(lab.L * (levels - 1)) / (levels - 1);
     const mapped = oklabToRgba(
       { ...lab, L: lab.L + (quantized - lab.L) * strength },
@@ -920,7 +1010,8 @@ export function heightFieldFromRgba(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
-  options: HeightFieldOptions = {}
+  options: HeightFieldOptions = {},
+  context?: TextureColorComputeContext
 ): Float32Array {
   requireBitmap(pixels, width, height, "Height field");
   const source = options.source ?? "lightness";
@@ -932,7 +1023,7 @@ export function heightFieldFromRgba(
     let value =
       source === "alpha"
         ? pixels[offset + 3] / 255
-        : rgbaToOklab(copyPixel(pixels, offset)).L;
+        : oklabFor(copyPixel(pixels, offset), context).L;
     if (invert) value = 1 - value;
     field[index] = clamp01(value);
   }
@@ -992,10 +1083,11 @@ export function directionalShadeRgba(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
-  options: DirectionalShadeOptions = {}
+  options: DirectionalShadeOptions = {},
+  context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   requireBitmap(pixels, width, height, "Directional shade");
-  const field = heightFieldFromRgba(pixels, width, height, options);
+  const field = heightFieldFromRgba(pixels, width, height, options, context);
   const gradient = sobelHeightGradient(field, width, height);
   const azimuth = ((options.azimuthDegrees ?? 315) * Math.PI) / 180;
   const elevation = ((options.elevationDegrees ?? 45) * Math.PI) / 180;
@@ -1022,7 +1114,7 @@ export function directionalShadeRgba(
     nz /= nLength;
 
     const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
-    const lab = rgbaToOklab(source);
+    const lab = oklabFor(source, context);
     // Center Lambert response around the unmodified albedo so directional
     // shading can create both highlights and shadows instead of only darkening.
     const shadeDelta = (diffuse - 0.5) * (1 - ambient) * 0.5;
@@ -1043,7 +1135,8 @@ export function palettizeErrorDiffusionRgba(
   width: number,
   height: number,
   palette: readonly string[],
-  options: ErrorDiffusionOptions = {}
+  options: ErrorDiffusionOptions = {},
+  context?: TextureColorComputeContext
 ): Uint8ClampedArray {
   requireBitmap(pixels, width, height, "Error diffusion");
   if (palette.length < 1 || palette.length > 64) {
@@ -1051,8 +1144,9 @@ export function palettizeErrorDiffusionRgba(
   }
   const strength = clamp01(options.strength ?? 1);
   const serpentine = options.serpentine !== false;
-  const parsed = palette.map(parseHexRgba);
-  const labs = parsed.map(rgbaToOklab);
+  const prepared = preparePalette(palette, context);
+  const parsed = prepared.colors;
+  const labs = prepared.labs;
   const output = new Uint8ClampedArray(pixels);
   const errorRows = [
     new Float32Array((width + 2) * 3),
@@ -1072,14 +1166,14 @@ export function palettizeErrorDiffusionRgba(
       if (alpha === 0) continue;
 
       const errorIndex = (x + 1) * 3;
-      const sourceLab = rgbaToOklab(copyPixel(pixels, offset));
+      const sourceLab = oklabFor(copyPixel(pixels, offset), context);
       const adjustedLab: Oklab = {
         L: clamp01(sourceLab.L + current[errorIndex] * strength),
         a: sourceLab.a + current[errorIndex + 1] * strength,
         b: sourceLab.b + current[errorIndex + 2] * strength,
       };
       const adjusted = oklabToRgba(adjustedLab, alpha);
-      const paletteIndex = nearestPaletteIndexFromLabs(adjusted, labs);
+      const paletteIndex = nearestPaletteIndexFromLabs(adjusted, labs, context);
       const mapped = parsed[paletteIndex];
       const mappedLab = labs[paletteIndex];
 
