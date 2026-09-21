@@ -213,6 +213,39 @@ describe("BlockIT Gateway contract", () => {
     expect(searchBlock).not.toContain("source_owner: sourceOwnerForCapability");
   });
 
+  test("manage_render_profile describe projection selects one canonical operation branch", async () => {
+    const { manageRenderProfileParameters } = await import(
+      "@/server/tools/render-profile"
+    );
+    const { z } = await import("zod");
+    const schema = z.toJSONSchema(manageRenderProfileParameters, {
+      io: "input",
+      target: "draft-2020-12",
+      unrepresentable: "any",
+      reused: "inline",
+    }) as any;
+
+    const fullBytes = JSON.stringify(schema).length;
+    for (const operation of [
+      "inspect",
+      "bind",
+      "set_slot",
+      "assign",
+      "unassign",
+    ]) {
+      const projected = projectCapabilityInputSchema(
+        "manage_render_profile",
+        schema,
+        { field: "operation", value: operation }
+      );
+      expect(projected.projected).toBe(true);
+      const branch = projected.inputSchema as any;
+      expect(branch.properties.operation.const).toBe(operation);
+      expect(branch.required).toContain("operation");
+      expect(JSON.stringify(branch).length).toBeLessThan(fullBytes);
+    }
+  });
+
   test("manage_cubes describe projection selects one canonical operation branch", async () => {
     const { cubeToolDocs } = await import("@/server/tools/cubes");
     const { z } = await import("zod");

@@ -21,6 +21,15 @@ const CAPABILITY_BRANCH_FIELDS: Record<string, CapabilityProjection> = {
       simplify: ["operation"],
     },
   },
+  manage_render_profile: {
+    operation: {
+      inspect: ["operation"],
+      bind: ["operation"],
+      set_slot: ["operation"],
+      assign: ["operation"],
+      unassign: ["operation"],
+    },
+  },
   inspect_elements: {
     mode: {
       outline: ["mode", "include_cubes", "max_depth", "max_nodes"],
