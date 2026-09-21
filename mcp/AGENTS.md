@@ -30,7 +30,7 @@ Inherit root context/proof rules. MCP additions only:
 - `REMOTE_GITHUB`: source/static/CI + live-harness preparation, never native/visual proof.
 - `LOCAL_CODE`: generators, dependencies and local toolchain proof.
 - `LIVE_BLOCKBENCH`: installed build identity, native Runtime/Undo/playback/persistence/export/lifecycle/visual proof.
-- Runtime/plugin reload stays beneath the persistent Gateway; higher-context residue never transfers independent lower-context work.
+- Runtime/plugin reload stays beneath the persistent Gateway. A higher-context residue does not transfer the entire task; finish independent lower-context work first.
 
 ## Public Boundary
 
