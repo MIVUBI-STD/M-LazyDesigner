@@ -175,6 +175,8 @@ Normal authoring includes Cube/Group authoring, hierarchy/rig/pivots, Locator/Nu
 ```text
 lib/capabilities/         canonical capability-level metadata (tier/phase/lifecycle/effects)
 gateway/capabilities/     canonical AI routing metadata + search/dependency engines
+gateway/runtime/          Gateway↔Runtime connection/affinity/recovery
+gateway/providers/        lazy Gateway-local capability providers
 gateway/control/          canonical LazyDesigner Control
 gateway/                  stable client boundary + Runtime adapter/recovery
 index.ts                  thin Blockbench plugin orchestration
