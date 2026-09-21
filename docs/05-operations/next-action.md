@@ -389,6 +389,32 @@ The spring solver is bounded to deterministic sampled position/rotation follow-t
 
 No claim of typecheck, Bun test PASS, wall-clock improvement, allocation savings, Blockbench Undo behavior, visual quality, or accepted-result efficiency transfers from this remote source work. Those remain LOCAL_CODE/LIVE_BLOCKBENCH proof items.
 
+## Final Pre-Local Hardening Audit
+
+The final remote audit before local testing found and fixed concrete efficiency/correctness issues rather than adding more features:
+
+```text
+missing geometry-signal imports        FIXED
+authoring-impact O(n²) membership      FIXED
+spring parent-track rescan per sample  FIXED
+spring numeric stability guard         ADDED
+selection predicate budget             ADDED
+operation-stack budget                 ADDED
+texture coordinate payload budget      ADDED
+multi-face upward exposure averaging   FIXED
+atlas binding bounds validation         ADDED
+```
+
+The geometry signal compiler no longer collapses multiple face normals into one atlas-wide average. Upward exposure is now emitted as weighted per-face atlas regions, preserving directional treatment across multi-face textures.
+
+Spring motion now precomputes/sorts the parent track once, uses bounded binary lookup during sampling, rejects undersampled stiffness/damping combinations, rejects self-parent links, and fails on non-finite integration state.
+
+Semantic selection is capped at 64 predicates and operation stacks at 32 operations. Geometry-aware exact-pixel output is capped independently by operation count and changed-coordinate count; oversized exact-pixel plans fail closed rather than producing large MCP payloads.
+
+The cross-domain impact planner now uses a compiled instance-id Set for membership instead of repeated placement scans.
+
+No public capability surface was added. Local typecheck/tests/benchmarks are still required before these source changes can be called proven.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
