@@ -1,4 +1,5 @@
 import type { McpRegistrationFamily } from "@/lib/registrationProfile";
+import { capabilityPhaseByName } from "@/lib/capabilities/manifest";
 
 export const MCP_AUTHORING_PHASE_SETTING_ID = "mcp_authoring_phase";
 export const MCP_HANDOFF_REQUIRED = "HANDOFF_REQUIRED";
@@ -52,94 +53,10 @@ const AUTHORING_SELECTION_TOOLS = new Set([
 const CORE_TEXTURE_TOOLS = new Set(["list_textures"]);
 const ANIMATION_EXCLUDED_CORE_TOOLS = new Set(["create_project"]);
 
-/**
- * Import-safe canonical phase hints for public and retained capability names.
- * Runtime family classification below remains the fallback for catalog tools,
- * while Gateway/Control can classify by name without owning a second domain
- * table. Keep semantic phase ownership here only.
- */
-const CORE_NAMED_CAPABILITIES = new Set([
-  "create_project",
-  "get_project_info",
-  "inspect_elements",
-  "capture_model_views",
-  "inspect_model_bounds",
-  "export_model",
-  "undo",
-  "redo",
-  "get_undo_stack",
-  "switch_authoring_phase",
-  "list_textures",
-]);
-
-const GEOMETRY_NAMED_CAPABILITIES = new Set([
-  ...GEOMETRY_MAINTENANCE_TOOLS,
-  ...GEOMETRY_ELEMENT_TOOLS,
-  ...AUTHORING_SELECTION_TOOLS,
-  "bone_rigging",
-]);
-
-const TEXTURING_NAMED_CAPABILITIES = new Set([
-  "create_texture",
-  "get_texture",
-  "activate_texture",
-  "apply_texture",
-  "add_texture_group",
-  "create_pbr_material",
-  "configure_material",
-  "list_materials",
-  "get_material_info",
-  "import_texture_set",
-  "assign_texture_channel",
-  "save_material_config",
-  "paint_fill_tool",
-  "draw_shape_tool",
-  "gradient_tool",
-  "color_picker_tool",
-  "copy_brush_tool",
-  "eraser_tool",
-  "paint_settings",
-  "paint_with_brush",
-  "create_brush_preset",
-  "load_brush_preset",
-  "texture_selection",
-  "texture_layer_management",
-  "paint_texture_transaction",
-  "manage_material",
-  "get_face_material_instances",
-  "set_face_material_instance",
-  "list_material_instances",
-  "bulk_set_material_instances",
-  "clear_material_instances",
-  "manage_material_instances",
-  "manage_render_profile",
-  "manage_uv_layout",
-  "filter_by_material",
-]);
-
-const ANIMATION_NAMED_CAPABILITIES = new Set([
-  "create_animation",
-  "manage_keyframes",
-  "animation_graph_editor",
-  "animation_timeline",
-  "batch_keyframe_operations",
-  "animation_copy_paste",
-  "inspect_animation",
-  "manage_animation_timeline",
-  "manage_animation_effects",
-  "manage_animation_controller",
-  "inspect_particle",
-  "manage_particle",
-]);
-
 export function classifyMcpToolPhaseByName(
   toolName: string
 ): McpToolPhaseCategory | null {
-  if (CORE_NAMED_CAPABILITIES.has(toolName)) return "core";
-  if (GEOMETRY_NAMED_CAPABILITIES.has(toolName)) return "geometry";
-  if (TEXTURING_NAMED_CAPABILITIES.has(toolName)) return "texturing";
-  if (ANIMATION_NAMED_CAPABILITIES.has(toolName)) return "animation";
-  return null;
+  return capabilityPhaseByName(toolName);
 }
 
 export function getMcpRuntimeSurface(
