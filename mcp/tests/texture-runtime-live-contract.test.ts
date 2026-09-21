@@ -102,6 +102,37 @@ describe("texture runtime live acceptance contract", () => {
       paintTransaction.parameterSchema.safeParse({
         texture_id: "base-texture",
         expected_revision: revision,
+        compute: [
+          {
+            operation: "generated_gradient_map",
+            args: {
+              base_color: "#845442",
+              steps: 5,
+              mode: "nearest",
+            },
+          },
+        ],
+      }).success
+    ).toBe(true);
+    expect(
+      paintTransaction.parameterSchema.safeParse({
+        texture_id: "base-texture",
+        expected_revision: revision,
+        compute: [{ operation: "posterize", args: { levels: 4 } }],
+        operations: [
+          {
+            operation: "fill_rect",
+            color: "#112233FF",
+            rect: { x: 0, y: 0, width: 4, height: 4 },
+          },
+        ],
+      }).success
+    ).toBe(false);
+
+    expect(
+      paintTransaction.parameterSchema.safeParse({
+        texture_id: "base-texture",
+        expected_revision: revision,
         mutations: [
           {
             operation: "paint_pixels",
