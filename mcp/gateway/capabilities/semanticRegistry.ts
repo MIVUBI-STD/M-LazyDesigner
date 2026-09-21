@@ -92,16 +92,10 @@ export function semanticRecordForCapabilityBranch(
 }
 
 
-export function capabilityDescriptionRevision(input: {
-  semanticFingerprint?: string | null;
-  inputSchema: unknown;
-  outputSchema?: unknown;
-}): string {
-  return semanticFingerprint({
-    semantic: input.semanticFingerprint ?? null,
-    inputSchema: input.inputSchema,
-    outputSchema: input.outputSchema ?? null,
-  });
+export function capabilityDescriptionRevision(
+  payload: unknown
+): string {
+  return semanticFingerprint(payload);
 }
 
 

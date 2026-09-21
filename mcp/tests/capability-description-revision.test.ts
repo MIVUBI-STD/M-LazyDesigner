@@ -4,14 +4,14 @@ import { capabilityDescriptionRevision } from "../gateway/capabilities/semanticR
 describe("capability describe semantic revision", () => {
   test("changes when the projected input contract changes", () => {
     const base = capabilityDescriptionRevision({
-      semanticFingerprint: "semantic-v1",
+      semantic_id: "branch:manage_cubes/operation=update",
       inputSchema: {
         type: "object",
         properties: { operation: { const: "update" } },
       },
     });
     const changed = capabilityDescriptionRevision({
-      semanticFingerprint: "semantic-v1",
+      semantic_id: "branch:manage_cubes/operation=update",
       inputSchema: {
         type: "object",
         properties: {
@@ -26,7 +26,7 @@ describe("capability describe semantic revision", () => {
 
   test("is stable across object-key insertion order", () => {
     const left = capabilityDescriptionRevision({
-      semanticFingerprint: "semantic-v1",
+      semantic_id: "branch:manage_cubes/operation=update",
       inputSchema: {
         type: "object",
         properties: {
@@ -36,7 +36,7 @@ describe("capability describe semantic revision", () => {
       },
     });
     const right = capabilityDescriptionRevision({
-      semanticFingerprint: "semantic-v1",
+      semantic_id: "branch:manage_cubes/operation=update",
       inputSchema: {
         properties: {
           operation: { const: "update" },
@@ -49,14 +49,26 @@ describe("capability describe semantic revision", () => {
     expect(left).toBe(right);
   });
 
+  test("routing-only metadata does not affect the describe revision unless emitted", () => {
+    const base = capabilityDescriptionRevision({
+      semantic_id: "cap:inspect_elements",
+      inputSchema: { type: "object" },
+    });
+    const samePayload = capabilityDescriptionRevision({
+      inputSchema: { type: "object" },
+      semantic_id: "cap:inspect_elements",
+    });
+    expect(base).toBe(samePayload);
+  });
+
   test("includes output schema changes in the revision", () => {
     const left = capabilityDescriptionRevision({
-      semanticFingerprint: "semantic-v1",
+      semantic_id: "branch:manage_cubes/operation=update",
       inputSchema: { type: "object" },
       outputSchema: { type: "object", properties: { changed: { type: "boolean" } } },
     });
     const right = capabilityDescriptionRevision({
-      semanticFingerprint: "semantic-v1",
+      semantic_id: "branch:manage_cubes/operation=update",
       inputSchema: { type: "object" },
       outputSchema: { type: "object", properties: { changed: { type: "number" } } },
     });

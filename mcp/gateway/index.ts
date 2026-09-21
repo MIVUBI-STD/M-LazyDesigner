@@ -47,6 +47,7 @@ import {
   capabilityDescriptionRevision,
   semanticRecordForCapabilityBranch,
 } from "./capabilities/semanticRegistry";
+import { capabilitySemanticId } from "../lib/semantic/identity";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
@@ -392,10 +393,37 @@ registerGatewayTool(
         capability,
         branch
       );
+      const semanticId =
+        semanticRecord?.id ?? capabilitySemanticId(capability, branch);
+      const capabilityPayload =
+        detail === "full"
+          ? {
+              description: tool.description ?? "",
+              inputSchema: projection.inputSchema,
+              ...(tool.outputSchema !== undefined
+                ? { outputSchema: tool.outputSchema }
+                : {}),
+              ...(tool.annotations &&
+              Object.keys(tool.annotations).length > 0
+                ? { annotations: tool.annotations }
+                : {}),
+              lifecycle: metadata.lifecycle,
+              execution_class: metadata.executionClass,
+              verification_class: metadata.verificationClass,
+              control: {
+                authoring_domain:
+                  authoringDomainForCapability(capability),
+                source_owner:
+                  sourceOwnerForCapability(capability),
+              },
+            }
+          : {
+              inputSchema: projection.inputSchema,
+            };
       const semanticRevision = capabilityDescriptionRevision({
-        semanticFingerprint: semanticRecord?.semanticFingerprint ?? null,
-        inputSchema: projection.inputSchema,
-        outputSchema: tool.outputSchema,
+        semantic_id: semanticId,
+        detail,
+        ...capabilityPayload,
       });
       return {
         content: [
@@ -405,43 +433,11 @@ registerGatewayTool(
           },
         ],
         structuredContent: {
-          capability:
-            detail === "full"
-              ? {
-                  ...(semanticRecord
-                    ? {
-                        semantic_id: semanticRecord.id,
-                        semantic_revision: semanticRevision,
-                      }
-                    : {}),
-                  description: tool.description ?? "",
-                  inputSchema: projection.inputSchema,
-                  ...(tool.outputSchema !== undefined
-                    ? { outputSchema: tool.outputSchema }
-                    : {}),
-                  ...(tool.annotations &&
-                  Object.keys(tool.annotations).length > 0
-                    ? { annotations: tool.annotations }
-                    : {}),
-                  lifecycle: metadata.lifecycle,
-                  execution_class: metadata.executionClass,
-                  verification_class: metadata.verificationClass,
-                  control: {
-                    authoring_domain:
-                      authoringDomainForCapability(capability),
-                    source_owner:
-                      sourceOwnerForCapability(capability),
-                  },
-                }
-              : {
-                  ...(semanticRecord
-                    ? {
-                        semantic_id: semanticRecord.id,
-                        semantic_revision: semanticRevision,
-                      }
-                    : {}),
-                  inputSchema: projection.inputSchema,
-                },
+          capability: {
+            semantic_id: semanticId,
+            semantic_revision: semanticRevision,
+            ...capabilityPayload,
+          },
         },
       };
     } catch (error) {
