@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 import { searchCapabilityCatalog } from "./contract";
+import {
+  decorateCapabilities,
+  projectCapabilitiesForSearch,
+} from "./control";
 
 const tool = (name: string, description = "") => ({
   name,
@@ -27,6 +31,27 @@ describe("canonical capability metadata", () => {
     );
 
     expect(results[0]?.capability_id).toBe("manage_animation_controller");
+  });
+
+  test("AI search projection keeps capability hints bounded", () => {
+    const projected = projectCapabilitiesForSearch(
+      decorateCapabilities([
+        {
+          capability_id: "manage_cubes",
+          description:
+            "Create or update Bedrock cubes with explicit identity and many implementation details that should not all be repeated during capability discovery.",
+          tier: "primary",
+          read_only: false,
+          destructive: true,
+          idempotent: false,
+        },
+      ])
+    );
+
+    expect(projected).toHaveLength(1);
+    expect(projected[0].capability_id).toBe("manage_cubes");
+    expect(projected[0].hint?.length ?? 0).toBeLessThanOrEqual(96);
+    expect(projected[0]).not.toHaveProperty("description");
   });
 
   test("declares affinity changes while transport refresh remains conservative", () => {
