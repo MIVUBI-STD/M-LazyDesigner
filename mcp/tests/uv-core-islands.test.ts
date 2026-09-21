@@ -39,6 +39,10 @@ describe("UV Core island extraction", () => {
         width: 8,
         height: 12,
         area: 2 * (8 * 12 + 8 * 4 + 12 * 4),
+        density_basis: {
+          u_model_units: 24,
+          v_model_units: 16,
+        },
       },
     });
     expect(islands[0].constraints.rotation.step).toBe(90);
@@ -77,6 +81,10 @@ describe("UV Core island extraction", () => {
       width: 8,
       height: 4,
       area: 32,
+      density_basis: {
+        u_model_units: 8,
+        v_model_units: 4,
+      },
     });
     expect(islands[1].rect).toEqual({
       x: 2,
@@ -88,6 +96,10 @@ describe("UV Core island extraction", () => {
       width: 8,
       height: 2,
       area: 16,
+      density_basis: {
+        u_model_units: 8,
+        v_model_units: 2,
+      },
     });
   });
 

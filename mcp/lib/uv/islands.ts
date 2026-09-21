@@ -166,6 +166,10 @@ export function extractUvIslands(
             (physicalWidth * physicalHeight +
               physicalWidth * physicalDepth +
               physicalHeight * physicalDepth),
+          density_basis: {
+            u_model_units: width,
+            v_model_units: height,
+          },
         },
       };
       islands.push(createIsland(base, resolveConstraints));
@@ -201,6 +205,10 @@ export function extractUvIslands(
           width: physicalWidth,
           height: physicalHeight,
           area: physicalWidth * physicalHeight,
+          density_basis: {
+            u_model_units: physicalWidth,
+            v_model_units: physicalHeight,
+          },
         },
       };
       islands.push(createIsland(base, resolveConstraints));

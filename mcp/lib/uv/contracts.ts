@@ -61,6 +61,10 @@ export type UvIslandPhysical = {
   width: number;
   height: number;
   area: number;
+  density_basis: {
+    u_model_units: number;
+    v_model_units: number;
+  };
 };
 
 export type UvIsland = {
