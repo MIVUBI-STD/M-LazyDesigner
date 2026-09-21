@@ -1,6 +1,6 @@
 # LazyDesigner Next Action
 
-Updated: 2026-09-20
+Updated: 2026-09-21
 Branch: `Local` only.
 
 Owns current implementation continuation only. Product/system/proof owners remain `docs/01-product/`, `docs/04-system/`, and `docs/05-operations/current-validation.md`. Canonical Control: `mcp/gateway/control/`. Former `mcp/gateway/navigator/` source is removed with no alias.
@@ -50,6 +50,34 @@ nearest bounded .lazydesigner-project.json marker
 → parent of Models/Model
 → direct .bbmodel parent folder
 ```
+
+## Texture Compute + AI Efficiency — ACTIVE NEXT
+
+Deep audit owner:
+
+```text
+mcp/docs/TEXTURE_COMPUTE_AI_EFFICIENCY_AUDIT.md
+```
+
+Current priority is **not more texture filters**. Continue the executor/context hardening in this order:
+
+```text
+C1 ROI + dirty-scope propagation
+→ C2 pointwise pass fusion
+→ C3 streaming Sobel/directional shading
+→ C4 bounded color cache + palette-result cache
+→ C5 measured planner cost model
+```
+
+Parallel AI-context work is limited to low-risk progressive disclosure:
+
+```text
+generic continuation/result projection audit
+branch-focused describe hotspots
+provider/client telemetry preparation
+```
+
+Do not add GPU/WASM/workers/persistent compute caches/search trees before the C1–C4 foundations are measured. Do not report serialized-byte proxies as actual token savings. Full revision correctness and decision-changing verification remain intact.
 
 ## High-End Audit Remediation — NEXT TO DO
 
