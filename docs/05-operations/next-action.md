@@ -166,6 +166,28 @@ No new public MCP capability family was introduced. UV continues through existin
 
 Do not extend either subsystem with more speculative templates before evidence. Remaining work is proof-oriented: Bun/typecheck/benchmark locally, then live Undo/Redo, save/reopen, Box-UV explicit-conversion behavior, native IK behavior, viewport responsiveness, and accepted-result/correction-round evidence.
 
+## Motion Recipe Engine — Remote Source Status
+
+Remote source now includes:
+
+```text
+semantic pose recipe             IMPLEMENTED
+sequence/step timing             IMPLEMENTED
+cyclic normalized phase          IMPLEMENTED
+curve sampling helpers           IMPLEMENTED
+explicit motion mirroring        IMPLEMENTED
+contact-position constraints     IMPLEMENTED
+affected-bone diff               IMPLEMENTED
+new clip → create_animation      IMPLEMENTED
+bounded correction → keyframes   IMPLEMENTED
+motion set → controller recipe   IMPLEMENTED
+static efficiency benchmark      IMPLEMENTED / LOCAL RUN PENDING
+```
+
+No `generate_animation` or second animation tool family was registered. Native mutation remains owned by `create_animation`, `manage_keyframes`, existing batch/graph tools, and `manage_animation_controller`.
+
+Further source expansion must be evidence-driven. Do not add a generic animation graph language, physics engine, or large motion-template library before benchmark/live evidence demonstrates a concrete need.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
