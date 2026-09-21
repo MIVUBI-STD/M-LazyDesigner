@@ -28,91 +28,50 @@ Core invariants:
 - mutation uncertainty is fail-closed; no unsafe auto-retry.
 - no capability reduction solely for context savings.
 
-## Active Development — Texture Compute + AI Efficiency
+## Active Development — UV Authoring Engine
 
-Deep audit owner:
-
-```text
-mcp/docs/TEXTURE_COMPUTE_AI_EFFICIENCY_AUDIT.md
-```
-
-Current implementation state:
+Architecture owner:
 
 ```text
-C1 ROI + dirty-scope propagation          SOURCE IMPLEMENTED
-C2 pointwise pass fusion                  SOURCE IMPLEMENTED + HARDENED
-C3 streaming Sobel/directional shading    SOURCE IMPLEMENTED
-C4 adaptive color/palette caches          SOURCE IMPLEMENTED + ENTROPY-AWARE
-C5 measured planner cost model            SOURCE IMPLEMENTED
+mcp/docs/UV_AUTHORING_ENGINE.md
 ```
 
-Do not add more texture filters. Do not add GPU/WASM/workers/persistent compute caches/search trees before C1–C4 are measured.
+The previous Texture Compute C1-C5 / AI-efficiency source hardening remains retained and must not be restarted without new evidence.
+
+Current UV source status:
+
+```text
+U0 core contracts                        SOURCE IMPLEMENTED
+U1 deterministic island extraction       SOURCE IMPLEMENTED
+U2 physical-pixel / density planning     SOURCE IMPLEMENTED
+U3 declarative constraint rules          SOURCE IMPLEMENTED
+U4 deterministic MaxRects planner        SOURCE IMPLEMENTED
+U5 stable incremental packing modes      SOURCE IMPLEMENTED
+U6 stack / symmetry proposals            NEXT
+U7 Blockbench adapter + atomic apply      AFTER U6
+U8 native compatibility / invalidation   AFTER U7
+U9 optional xatlas mesh backend           DEFERRED
+```
+
+U0-U5 are planning-only and do not replace existing production UV mutation.
 
 Immediate order:
 
-1. do not add another texture-compute architecture layer without new evidence;
-2. use the C5 planner metrics to rank remaining hot paths;
-3. reserve wall-clock/GC tuning for LOCAL_CODE benchmark evidence;
-4. continue low-risk AI-context progressive disclosure only where measured payload waste remains.
+1. verify exact current SHA gates;
+2. implement U6 as proposal/evidence logic only;
+3. design U7 around native Undo/rollback and existing UV audit ownership;
+4. do not route current `manage_cubes` or `create_texture(template)` through UV Core until U7 rollback/receipt contracts pass;
+5. keep Blockbench native template generation as compatibility fallback/reference.
 
-Completed after C5:
-- P1.4 hot-path input tuple removal + scalar Oklab output paths;
-- generic receipt-only structured projection drops redundant before snapshots only when authoritative after state exists;
-- generic receipt-only prose compaction is verification-class driven and preserves path/URL-bearing text;
-- describe-payload byte scorecard added;
-- branch-focused describe projection added for manage_cubes and manage_render_profile.
-
-Latest verified source gates:
+Key invariant:
 
 ```text
-d7ff5eb6a4400f8cea25006d5df664d04cc1eb21
-Texture Compute C1-C5: MCP Verify PASS
-
-f43829158271e777cee246a4a26d43d7ed7e71ec
-P1.4 allocation cleanup: MCP Verify PASS
-
-473bc2ca23f83fe15e05475d800fd8a4632fe4b7
-manage_cubes branch describe projection: MCP Verify PASS
-
-da1c8d01429e30faac2404bdcb57c745080e0df5
-generic receipt-only Gateway prose projection: substantive MCP gate PASS
+AI/UI declares UV intent
+→ UV Core computes deterministic coordinates
+→ native adapter applies only an explicit plan
 ```
 
-C2 acceptance:
-
-- byte-equivalent to sequential execution;
-- no per-unique-color transient typed-array churn when avoidable;
-- generated/static operation state prepared once per fused group;
-- fewer pixel passes and temporary allocations are reported as source metrics, not invented wall-clock claims.
-
-C5 initial measured inputs:
-
-```text
-atlas pixels
-ROI/compute pixels
-requested/optimized/fused steps
-pixel visits / pass count
-palette comparisons
-temporary-byte estimate
-cache hit/miss/peak/admission
-palette size
-bounded unique-color estimate
-```
-
-Planner may choose only already-supported deterministic execution paths. No wall-clock superiority claim until LOCAL_CODE benchmark evidence exists.
-
-Parallel AI-context work is now limited to:
-
-```text
-keep generic Gateway result projection regression-safe
-rank remaining unprojected describe schemas with measure:describe-payloads
-add branch projection only for clean canonical discriminators
-keep source-provided usage telemetry/preflight contracts synchronized
-```
-
-Remote-only development is approaching its proof ceiling. Do not invent additional compaction or compute layers merely to keep changing source; remaining performance claims require LOCAL_CODE benchmark evidence, and native/visual/token claims remain LIVE_BLOCKBENCH/client-telemetry residue.
-
-Serialized bytes remain proxies, not actual provider token counts.
+Do not create another public Gateway tool only for UV. Do not put packing policy inside `manage_cubes`. Do not integrate xatlas/GPU/WASM before Cube-centric planning and native apply are proven.
 
 ## Project/Desktop State — Do Not Redo
 
