@@ -308,6 +308,21 @@ function preflightLayerMetadataBatch(
     layer_uuid: layer.uuid,
     state: layerContinuationState(texture, layer),
   }));
+  const anyChange = resolved.some(
+    ({ update, layer }) =>
+      (update.name !== undefined && update.name !== layer.name) ||
+      (update.opacity !== undefined && update.opacity !== layer.opacity) ||
+      (update.blend_mode !== undefined &&
+        update.blend_mode !== layer.blend_mode) ||
+      (update.target_index !== undefined &&
+        update.target_index !== texture.layers.indexOf(layer))
+  );
+  if (!anyChange) {
+    throw new Error(
+      "batch_metadata already matches the requested final layer metadata; no authored change is required."
+    );
+  }
+
   const visualChange = resolved.some(
     ({ update, layer }) =>
       (update.opacity !== undefined && update.opacity !== layer.opacity) ||
