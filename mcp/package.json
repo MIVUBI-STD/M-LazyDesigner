@@ -74,7 +74,8 @@
     "conformance:serve": "bun run ./scripts/serve-conformance-runtime.ts",
     "measure:mcp-efficiency": "bun run ./scripts/measure-mcp-efficiency.ts",
     "measure:describe-payloads": "bun run ./scripts/measure-describe-payloads.ts",
-    "benchmark:parametric-authoring": "bun run ./scripts/benchmark-parametric-authoring.ts"
+    "benchmark:parametric-authoring": "bun run ./scripts/benchmark-parametric-authoring.ts",
+    "benchmark:semantic-uv": "bun run ./scripts/benchmark-semantic-uv.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
