@@ -1,43 +1,51 @@
 # Procedural Texture / Material Recipe Engine
 
-Status: SOURCE FOUNDATION
+Status: REMOTE SOURCE BOUNDED / LIVE PROOF PENDING
 Updated: 2026-09-21
 Branch: Local
 
 ## Goal
 
-Replace stroke-oriented texture authoring with deterministic material intent:
+Replace stroke-oriented texture authoring with deterministic, bounded material intent:
 
 ```text
-material intent
-→ base/gradient/seeded variation
-→ masks
-→ edge/cavity/wear treatment
-→ palette/dither
-→ affected-region diff
+material/surface intent
+→ base + seeded variation + optional directional shading
+→ optional surface pattern
+→ edge treatment / directional wear
+→ palette/dither where compatible
+→ affected-region planning
 → existing texture/paint/material ownership
 ```
 
-## Implemented source foundation
+## Current source foundation
 
-- semantic material recipe presets;
-- deterministic gradient/noise/palette/dither compilation;
-- edge and alpha-cavity masks;
-- composable mask operations;
-- masked color and directional wear operations;
+- deterministic material surface profiles with explicit base color and bounded variation defaults;
+- gradient/noise/palette/dither source generation;
+- deterministic checker/stripe/panel surface patterns;
+- edge-mask based treatment and directional wear;
 - smallest changed-region detection;
 - semantic PBR intent → existing Bedrock MER/color/subsurface values;
-- static efficiency benchmark;
+- painted-metal default uses dielectric metalness; exposed metal requires explicit authored channel/mask treatment;
+- existing texture refinement compilation to `paint_texture_transaction.compute`;
+- ROI metadata is emitted only through `compute[0].args.target_rect`;
+- ordered palette dithering is rejected for bounded ROI because the existing runtime requires atlas-relative Bayer phase;
 - no new public capability.
 
-## Boundaries
+## Native ownership
 
-This layer is buffer-first computation only. It does not create a visual node editor, background renderer, second material database, or second Painter.
+```text
+new texture source      → create_texture-compatible source path
+existing texture refine → paint_texture_transaction.compute
+PBR material            → create_pbr_material / configure_material
+```
 
-Native texture mutation must continue through existing paint/texture transaction owners. PBR creation/configuration continues through `create_pbr_material` and `configure_material`.
+This layer does not create a visual node editor, second Painter, second bitmap transaction engine, background renderer, or material database.
 
-REMOTE_GITHUB does not prove native canvas color-space behavior, layer persistence, Undo/Redo, save/reopen, seam quality, or accepted visual fidelity.
+## Benchmark rule
 
-## Next source work
+The source benchmark now measures an explicit-pixel authored-numeric-value proxy rather than invented brush-stroke payloads. It is not a wall-clock, token, compression, or visual-quality claim.
 
-Only add deterministic surface patterns or texture-set channel generation when a concrete workload demonstrates value. Native wiring should use affected-region writes and existing transaction receipts rather than whole-atlas rewrites.
+## Proof boundary
+
+Native canvas/color-space behavior, PNG/source encoding, layer persistence, Undo/Redo, save/reopen, seam quality and accepted visual fidelity remain LOCAL_CODE/LIVE_BLOCKBENCH proof.
