@@ -735,14 +735,14 @@ describe("BlockIT Gateway contract", () => {
 
     expect(projected[0]).toEqual({
       capability_id: "manage_cubes",
-      description: "Create or update Bedrock cubes.",
+      hint: "Create or update Bedrock cubes.",
       tier: "primary",
       authoring_domain: "GEOMETRY",
       flags: ["destructive"],
     });
     expect(projected[1]).toEqual({
       capability_id: "inspect_elements",
-      description: "Inspect model elements.",
+      hint: "Inspect model elements.",
       tier: "primary",
       authoring_domain: "CORE",
       flags: ["read_only", "idempotent"],
