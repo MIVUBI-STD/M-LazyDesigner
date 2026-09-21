@@ -1,16 +1,20 @@
 import {
   CAPABILITY_BRANCH_MANIFEST,
   manifestEntryForBranch,
-  type CapabilityBranchHint,
-  type CapabilityFact,
   type CapabilityGraphSpec,
 } from "./manifest";
+import type {
+  CapabilityBranchHint,
+  CapabilityFact,
+  CapabilityFactState,
+  CapabilityEligibility,
+} from "./types";
 
-export type { CapabilityFact } from "./manifest";
-
-export type CapabilityFactValue = true | false | "unknown";
-export type CapabilityFactState = Partial<Record<CapabilityFact, CapabilityFactValue>>;
-export type CapabilityEligibility = "READY" | "UNKNOWN" | "BLOCKED";
+export type {
+  CapabilityFact,
+  CapabilityFactState,
+  CapabilityEligibility,
+} from "./types";
 
 export type CapabilityGraphEntry = {
   capability: string;
