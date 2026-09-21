@@ -1,4 +1,4 @@
-import type { CapabilitySummary, JsonRecord } from "../contract";
+import type { CapabilitySummary, JsonRecord } from "../protocol";
 import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
 import type { BlockitAuthoringPhaseAffinity } from "../runtime/projectAffinity";
 
