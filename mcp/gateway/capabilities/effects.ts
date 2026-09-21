@@ -6,7 +6,7 @@ import {
   normalizeAuthoringPhaseAffinity,
   type BlockitAuthoringPhaseAffinity,
 } from "../runtime/projectAffinity";
-import type { JsonRecord } from "../contract";
+import type { JsonRecord } from "../protocol";
 
 export type GatewayEffectApplication = {
   effects: CapabilityEffects;
