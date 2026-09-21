@@ -819,7 +819,10 @@ function renderProfileStateNeutral(value: unknown): boolean {
 
 function textureLayerMetadataOnly(value: unknown): boolean {
   return resultCandidates(value).some(
-    (candidate) => candidate.operation === "rename_layer"
+    (candidate) =>
+      candidate.operation === "rename_layer" ||
+      (candidate.operation === "batch_metadata" &&
+        candidate.recomposed === false)
   );
 }
 
