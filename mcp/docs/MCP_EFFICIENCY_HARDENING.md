@@ -204,7 +204,7 @@ Current compute primitives include:
 - height extraction, Sobel slope estimation, and directional shading;
 - palette extraction and palettization.
 
-The public MCP surface exposes only compact operation names plus bounded args; detailed validation stays Runtime-owned so color intelligence does not require a new tool or a large duplicated schema.
+The public MCP surface exposes only compact operation names plus bounded args; detailed validation stays Runtime-owned. Compute runs inside `paint_texture_transaction`, so revision protection, one Undo, dirty-region write, postcondition proof, evidence, and optional PNG output remain owned by the existing transaction instead of a second mutation path.
 
 ## Acceptance Rules
 
