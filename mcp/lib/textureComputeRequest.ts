@@ -1,9 +1,9 @@
 import { z } from "zod";
 import {
-  type TextureComputeStep,
   type GradientMapMode,
   type OrderedDitherMatrix,
 } from "@/lib/textureColorEngine";
+import type { TextureComputeStep } from "@/lib/textureComputePipeline";
 import { requiredHexColorSchema } from "@/lib/zodObjects";
 
 const matrixSchema = z.enum(["bayer2", "bayer4", "bayer8"]);
