@@ -45,6 +45,31 @@ describe("texture layer management hardening", () => {
     ).toBe(true);
   });
 
+  test("batch_metadata accepts explicit coherent metadata updates only", () => {
+    expect(
+      textureLayerManagementParameters.safeParse({
+        action: "batch_metadata",
+        updates: [
+          { layer_id: "shadow", opacity: 60, blend_mode: "multiply" },
+          { layer_id: "highlight", name: "highlights", target_index: 2 },
+        ],
+      }).success
+    ).toBe(true);
+
+    expect(
+      textureLayerManagementParameters.safeParse({
+        action: "batch_metadata",
+        updates: [{ layer_id: "shadow" }],
+      }).success
+    ).toBe(false);
+
+    expect(
+      textureLayerManagementParameters.safeParse({
+        action: "batch_metadata",
+      }).success
+    ).toBe(false);
+  });
+
   test("runtime resolves layers inside the requested texture instead of global selection", async () => {
     const paint = await source("server/tools/paint-selection-layers.ts");
 
@@ -78,6 +103,34 @@ describe("texture layer management hardening", () => {
     const move = paint.slice(moveStart, moveEnd);
     expect(move).toContain("Undo.initEdit({ textures: [texture] })");
     expect(move).not.toContain("bitmap: true");
+  });
+
+  test("batch metadata preflights once and recomposes at most once", async () => {
+    const paint = await source("server/tools/paint-selection-layers.ts");
+    const start = paint.indexOf('if (action === "batch_metadata")');
+    const end = paint.indexOf('if (action === "create_layer")', start);
+    const block = paint.slice(start, end);
+
+    expect(block).toContain("preflightLayerMetadataBatch(");
+    expect(block).toContain("Undo.initEdit(undoAspects)");
+    expect(block.match(/texture\.updateChangesAfterEdit\(\)/g)?.length ?? 0).toBe(1);
+    expect(block.match(/refreshLayerInterface\(/g)?.length ?? 0).toBe(2);
+    expect(block).toContain("update_count:");
+    expect(block).toContain("recomposed:");
+    expect(block).toContain("changes:");
+  });
+
+  test("batch metadata rejects duplicate targets and final name collisions before Undo", async () => {
+    const paint = await source("server/tools/paint-selection-layers.ts");
+
+    expect(paint).toContain("requireDistinctBatchLayerTargets");
+    expect(paint).toContain("contains duplicate layer target");
+    expect(paint).toContain("would create duplicate layer name");
+    const preflight = paint.slice(
+      paint.indexOf("function preflightLayerMetadataBatch"),
+      paint.indexOf("export const paintSelectionLayerToolDocs")
+    );
+    expect(preflight).not.toContain("Undo.initEdit");
   });
 
   test("flatten is native-only and fails closed when native semantics are unavailable", async () => {
