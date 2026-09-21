@@ -24,6 +24,30 @@ function lightness(hex: string): number {
 }
 
 describe("texture color intelligence core", () => {
+  test("scalar Oklab hot paths preserve blended gradient determinism", () => {
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: 16 }, (_, index) => {
+        const value = 32 + index * 12;
+        return [value, value, value, 255];
+      }).flat()
+    );
+    const first = gradientMapRgba(
+      pixels,
+      4,
+      4,
+      ["#201510", "#845442", "#D8A070"],
+      { mode: "blend" }
+    );
+    const second = gradientMapRgba(
+      pixels,
+      4,
+      4,
+      ["#201510", "#845442", "#D8A070"],
+      { mode: "blend" }
+    );
+    expect(Array.from(second)).toEqual(Array.from(first));
+  });
+
   test("channel-based hot paths preserve cached Oklab output semantics", () => {
     const pixels = new Uint8ClampedArray(
       Array.from({ length: 32 }, (_, index) => {

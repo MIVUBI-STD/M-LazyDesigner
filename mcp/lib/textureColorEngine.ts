@@ -310,10 +310,15 @@ export function rgbaToOklab(rgba: Rgba): Oklab {
   return rgbaChannelsToOklab(rgba[0], rgba[1], rgba[2]);
 }
 
-export function oklabToRgba(lab: Oklab, alpha = 255): Rgba {
-  const lRoot = lab.L + 0.3963377774 * lab.a + 0.2158037573 * lab.b;
-  const mRoot = lab.L - 0.1055613458 * lab.a - 0.0638541728 * lab.b;
-  const sRoot = lab.L - 0.0894841775 * lab.a - 1.291485548 * lab.b;
+function oklabChannelsToRgba(
+  lightness: number,
+  a: number,
+  b: number,
+  alpha = 255
+): Rgba {
+  const lRoot = lightness + 0.3963377774 * a + 0.2158037573 * b;
+  const mRoot = lightness - 0.1055613458 * a - 0.0638541728 * b;
+  const sRoot = lightness - 0.0894841775 * a - 1.291485548 * b;
 
   const l = lRoot * lRoot * lRoot;
   const m = mRoot * mRoot * mRoot;
@@ -323,15 +328,19 @@ export function oklabToRgba(lab: Oklab, alpha = 255): Rgba {
     +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
   const g =
     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
-  const b =
+  const blue =
     -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s;
 
   return [
     byte(linearChannelToSrgb(r)),
     byte(linearChannelToSrgb(g)),
-    byte(linearChannelToSrgb(b)),
+    byte(linearChannelToSrgb(blue)),
     Math.min(255, Math.max(0, Math.round(alpha))),
   ];
+}
+
+export function oklabToRgba(lab: Oklab, alpha = 255): Rgba {
+  return oklabChannelsToRgba(lab.L, lab.a, lab.b, alpha);
 }
 
 export function oklabToOklch(lab: Oklab): Oklch {
@@ -683,12 +692,12 @@ export function gradientMapRgba(
             : position.rightIndex
         ];
       } else if (mode === "blend") {
-        mapped = oklabToRgba(
-          interpolateOklab(
-            labs[position.leftIndex],
-            labs[position.rightIndex],
-            position.localT
-          ),
+        const left = labs[position.leftIndex];
+        const right = labs[position.rightIndex];
+        mapped = oklabChannelsToRgba(
+          left.L + (right.L - left.L) * position.localT,
+          left.a + (right.a - left.a) * position.localT,
+          left.b + (right.b - left.b) * position.localT,
           alpha
         );
       } else {
@@ -1075,7 +1084,12 @@ export function autoLevelsRgba(
     );
     const normalized = clamp01((lab.L - low) / (high - low));
     const adjusted = lab.L + (normalized - lab.L) * strength;
-    const mapped = oklabToRgba({ ...lab, L: adjusted }, alpha);
+    const mapped = oklabChannelsToRgba(
+      adjusted,
+      lab.a,
+      lab.b,
+      alpha
+    );
     output[offset] = mapped[0];
     output[offset + 1] = mapped[1];
     output[offset + 2] = mapped[2];
@@ -1098,8 +1112,10 @@ export function createPosterizeColorTransform(
     if (source[3] === 0) return source;
     const lab = oklabFor(source, context);
     const quantized = Math.round(lab.L * (levels - 1)) / (levels - 1);
-    return oklabToRgba(
-      { ...lab, L: lab.L + (quantized - lab.L) * strength },
+    return oklabChannelsToRgba(
+      lab.L + (quantized - lab.L) * strength,
+      lab.a,
+      lab.b,
       source[3]
     );
   };
@@ -1133,12 +1149,12 @@ export function createGradientMapColorTransform(
         ];
       return [mapped[0], mapped[1], mapped[2], source[3]];
     }
-    return oklabToRgba(
-      interpolateOklab(
-        prepared.labs[position.leftIndex],
-        prepared.labs[position.rightIndex],
-        position.localT
-      ),
+    const left = prepared.labs[position.leftIndex];
+    const right = prepared.labs[position.rightIndex];
+    return oklabChannelsToRgba(
+      left.L + (right.L - left.L) * position.localT,
+      left.a + (right.a - left.a) * position.localT,
+      left.b + (right.b - left.b) * position.localT,
       source[3]
     );
   };
@@ -1192,8 +1208,10 @@ export function posterizeLightnessRgba(
       context
     );
     const quantized = Math.round(lab.L * (levels - 1)) / (levels - 1);
-    const mapped = oklabToRgba(
-      { ...lab, L: lab.L + (quantized - lab.L) * strength },
+    const mapped = oklabChannelsToRgba(
+      lab.L + (quantized - lab.L) * strength,
+      lab.a,
+      lab.b,
       alpha
     );
     output[offset] = mapped[0];
@@ -1514,8 +1532,10 @@ export function directionalShadeRgba(
       );
       const shadeDelta = (diffuse - 0.5) * (1 - ambient) * 0.5;
       const targetL = clamp01(lab.L + shadeDelta);
-      const mapped = oklabToRgba(
-        { ...lab, L: lab.L + (targetL - lab.L) * strength },
+      const mapped = oklabChannelsToRgba(
+        lab.L + (targetL - lab.L) * strength,
+        lab.a,
+        lab.b,
         alpha
       );
       output[offset] = mapped[0];
@@ -1582,12 +1602,19 @@ export function palettizeErrorDiffusionRgba(
         alpha,
         context
       );
-      const adjustedLab: Oklab = {
-        L: clamp01(sourceLab.L + current[errorIndex] * strength),
-        a: sourceLab.a + current[errorIndex + 1] * strength,
-        b: sourceLab.b + current[errorIndex + 2] * strength,
-      };
-      const adjusted = oklabToRgba(adjustedLab, alpha);
+      const adjustedL = clamp01(
+        sourceLab.L + current[errorIndex] * strength
+      );
+      const adjustedA =
+        sourceLab.a + current[errorIndex + 1] * strength;
+      const adjustedB =
+        sourceLab.b + current[errorIndex + 2] * strength;
+      const adjusted = oklabChannelsToRgba(
+        adjustedL,
+        adjustedA,
+        adjustedB,
+        alpha
+      );
       const paletteIndex = nearestPaletteIndexPrepared(adjusted, prepared, context);
       const mapped = parsed[paletteIndex];
       const mappedLab = labs[paletteIndex];
@@ -1597,9 +1624,9 @@ export function palettizeErrorDiffusionRgba(
       output[offset + 2] = mapped[2];
       output[offset + 3] = alpha;
 
-      const eL = adjustedLab.L - mappedLab.L;
-      const ea = adjustedLab.a - mappedLab.a;
-      const eb = adjustedLab.b - mappedLab.b;
+      const eL = adjustedL - mappedLab.L;
+      const ea = adjustedA - mappedLab.a;
+      const eb = adjustedB - mappedLab.b;
       const sign = forward ? 1 : -1;
 
       const addError = (
