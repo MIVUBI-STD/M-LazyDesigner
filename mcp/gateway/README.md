@@ -96,7 +96,7 @@ index.ts               stable four-tool stdio composition root
 contract.ts            client-facing Gateway result/search contracts
 ```
 
-Same-named files retained at the `gateway/` root for migrated modules are compatibility re-exports only.
+Same-named files retained at the `gateway/` root for migrated modules are compatibility re-exports only. See `COMPATIBILITY.md` for the wrapper ledger and removal criteria.
 
 ## Project / Tab Affinity
 
