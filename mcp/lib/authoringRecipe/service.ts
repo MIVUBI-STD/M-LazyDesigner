@@ -38,6 +38,8 @@ import { AuthoringRecipePlanRegistry } from "@/lib/authoringRecipe/planRegistry"
 import { resolveSemanticIdentity } from "@/lib/authoringRecipe/semanticIdentity";
 import type { SemanticGeometryTarget } from "@/lib/authoringRecipe/semanticEdit";
 import { selectRecipeRebuildExecutionStrategy } from "@/lib/orchestration/executionStrategy";
+import { AuthoringEvidenceRegistry, type AuthoringEvidenceHandle } from "@/lib/authoringRecipe/evidenceRegistry";
+import { compactAuthoringApplyReceipt, compactSemanticIdentityResolution } from "@/lib/authoringRecipe/compactReceipt";
 
 const EXAMPLE_LIMIT = 12;
 function bounded(values: readonly string[]) {
@@ -94,7 +96,8 @@ export type AuthoringRecipeServiceDependencies = {
 };
 export function createAuthoringRecipeService(
   dependencies: AuthoringRecipeServiceDependencies,
-  registry = new AuthoringRecipePlanRegistry()
+  registry = new AuthoringRecipePlanRegistry(),
+  evidenceRegistry = new AuthoringEvidenceRegistry()
 ) {
   const planPair = async (previousRecipe: AuthoringRecipe, nextRecipe: AuthoringRecipe) => {
     if (previousRecipe.id !== nextRecipe.id) throw new Error("Parametric authoring plan requires stable recipe identity.");
@@ -129,11 +132,42 @@ export function createAuthoringRecipeService(
       const native = await dependencies.readOwned(input.recipe_id);
       return resolveSemanticIdentity(recipe, native, input.target);
     },
+    async resolveIdentityCompact(input: { recipe_id: string; target: SemanticGeometryTarget }) {
+      if (!dependencies.readStoredRecipe) {
+        throw new Error("RECIPE_STORE_UNAVAILABLE: Runtime did not provide project recipe persistence.");
+      }
+      const recipe = await dependencies.readStoredRecipe(input.recipe_id);
+      if (!recipe) {
+        throw new Error("RECIPE_NOT_STORED: no recipe source exists for " + input.recipe_id + ".");
+      }
+      const native = await dependencies.readOwned(input.recipe_id);
+      const resolution = resolveSemanticIdentity(recipe, native, input.target);
+      const handle = evidenceRegistry.put({ kind: "SEMANTIC_IDENTITY", value: resolution });
+      return compactSemanticIdentityResolution(resolution, handle);
+    },
+    readEvidence(handle: AuthoringEvidenceHandle) {
+      return evidenceRegistry.get(handle);
+    },
     async apply(input: { plan_id: string; expected_native_source_fingerprint: string }) {
       const stored = registry.get(input.plan_id);
       if (stored.native_source_fingerprint !== input.expected_native_source_fingerprint) throw new Error("STALE_RECIPE_PLAN: supplied native fingerprint does not match the stored plan.");
       return applyAuthoringRecipeIncrementalAtomic(stored.previous_recipe, stored.next_recipe, stored.native_source_fingerprint, dependencies.createApplyAdapter(stored.next_recipe.id));
     },
+    async applyCompact(input: { plan_id: string; expected_native_source_fingerprint: string }) {
+      const stored = registry.get(input.plan_id);
+      if (stored.native_source_fingerprint !== input.expected_native_source_fingerprint) {
+        throw new Error("STALE_RECIPE_PLAN: supplied native fingerprint does not match the stored plan.");
+      }
+      const receipt = await applyAuthoringRecipeIncrementalAtomic(
+        stored.previous_recipe,
+        stored.next_recipe,
+        stored.native_source_fingerprint,
+        dependencies.createApplyAdapter(stored.next_recipe.id)
+      );
+      const handle = evidenceRegistry.put({ kind: "APPLY_RECEIPT", value: receipt });
+      return compactAuthoringApplyReceipt(receipt, handle);
+    },
     registrySize() { return registry.size(); },
+    evidenceRegistrySize() { return evidenceRegistry.size(); },
   };
 }

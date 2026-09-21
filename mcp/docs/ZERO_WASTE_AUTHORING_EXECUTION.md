@@ -76,3 +76,35 @@ LOCAL_CODE must prove typecheck/tests and benchmark wall-clock/allocation behavi
 LIVE_BLOCKBENCH must prove Undo/Redo, save/reopen, viewport responsiveness, native fidelity and correction-round behavior.
 
 Provider/client telemetry is required before claiming real usage savings.
+
+## Compact evidence handles
+
+Zero-waste recipe execution now keeps verbose native evidence in one bounded in-memory registry:
+
+```text
+semantic/native identity resolution
+→ authoringevidence:<sha256>
+→ compact model-facing identity summary
+
+full incremental apply receipt
+→ authoringevidence:<sha256>
+→ compact model-facing mutation summary
+```
+
+The compact identity projection deliberately omits native UUIDs. It carries semantic instance IDs and counts only; UUID detail remains retrievable through the evidence handle when recovery/debugging genuinely requires it.
+
+The compact apply projection retains only decision-relevant mutation information:
+
+```text
+execution
+recipe_id
+affected counts
+bounded created/updated/removed examples
+metadata-only examples
+preserved count
+invalidation scope
+post-apply native fingerprint
+evidence handle
+```
+
+The existing full `apply()` and full identity resolver remain intact for compatibility. Zero-waste consumers may use `applyCompact()` / `resolveIdentityCompact()` instead. Evidence handles are Runtime-generation-local, bounded and non-persistent; they are not a second history database.
