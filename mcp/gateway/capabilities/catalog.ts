@@ -131,6 +131,7 @@ export function searchCapabilityCatalog(
         tier,
         semantic,
         bm25,
+        nearName,
         preconditions,
         score:
           semantic.score +
