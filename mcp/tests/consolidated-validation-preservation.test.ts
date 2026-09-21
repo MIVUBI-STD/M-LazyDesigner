@@ -5,6 +5,19 @@ const source = await Bun.file(
 ).text();
 
 describe("Consolidated capability validation preservation", () => {
+  test("consolidated branches are first-class addressable schema registries", () => {
+    for (const registry of [
+      "consolidatedInspectionBranches",
+      "consolidatedMaterialBranches",
+      "consolidatedAnimationTimelineBranches",
+      "consolidatedMaterialInstanceBranches",
+    ]) {
+      expect(source).toContain(`export const ${registry}`);
+    }
+    expect(source).toContain('discriminator: "mode"');
+    expect(source).toContain('discriminator: "operation"');
+  });
+
   test("inspection branches reuse canonical executor schemas", () => {
     for (const signature of [
       'withToolBranch(listOutlineParameters, "mode", "outline")',

@@ -7,11 +7,17 @@ import type { McpServer, GetPromptResult, PromptArgument, ToolAnnotations } from
  * Declarative tool spec for documentation and registration.
  * Contains everything except the `execute` implementation.
  */
+export type ToolBranchSchemas = {
+  discriminator: string;
+  schemas: Readonly<Record<string, z.ZodType<any, any>>>;
+};
+
 export interface ToolSpec {
   name: string;
   description: string;
   annotations?: ToolAnnotations;
   parameters: z.ZodType<any, any>;
+  branches?: ToolBranchSchemas;
   status: StatusType;
 }
 
@@ -75,6 +81,7 @@ interface ToolDefinition {
   description: string;
   inputSchema: Record<string, z.ZodType<any, any>>;
   parameterSchema: z.ZodType<any, any>;
+  branchSchemas?: ToolBranchSchemas;
   outputSchema?: z.ZodType<any, any>;
   execute: (args: any, context?: ToolContext) => Promise<ToolResult>;
   annotations?: ToolAnnotations;
@@ -356,6 +363,7 @@ export function createTool<TOutput>(
     annotations?: ToolAnnotations;
     parameters: z.ZodType<TOutput, any>;
     inputSchema?: Record<string, z.ZodType<any, any>>;
+    branches?: ToolBranchSchemas;
     outputSchema?: z.ZodType<any, any>;
     execute: (args: TOutput, context?: ToolContext) => Promise<ToolResult>;
   },
@@ -373,6 +381,7 @@ export function createTool<TOutput>(
     description: tool.description,
     inputSchema,
     parameterSchema: tool.parameters,
+    branchSchemas: tool.branches,
     outputSchema: tool.outputSchema,
     execute: tool.execute,
     annotations: tool.annotations,
@@ -394,6 +403,12 @@ export function createTool<TOutput>(
 
 export function getAllToolDefinitions() {
   return toolDefinitions;
+}
+
+export function getToolBranchSchemas(
+  name: string
+): ToolBranchSchemas | null {
+  return toolDefinitions[name]?.branchSchemas ?? null;
 }
 
 export function getEnabledToolDefinitions() {

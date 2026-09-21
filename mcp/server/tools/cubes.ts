@@ -397,6 +397,16 @@ function withCubeOperation<T extends z.ZodType>(
   );
 }
 
+export const cubeToolBranches = {
+  create: withCubeOperation(placeCubeParameters, "create"),
+  update: withCubeOperation(modifyCubeParameters, "update"),
+  batch_update: withCubeOperation(
+    modifyCubesBatchParameters,
+    "batch_update"
+  ),
+  simplify: withCubeOperation(simplifyCubesParameters, "simplify"),
+} as const;
+
 export const cubeToolDocs: ToolSpec[] = [
   {
     name: "manage_cubes",
@@ -407,11 +417,15 @@ export const cubeToolDocs: ToolSpec[] = [
       destructiveHint: true,
     },
     parameters: z.union([
-      withCubeOperation(placeCubeParameters, "create"),
-      withCubeOperation(modifyCubeParameters, "update"),
-      withCubeOperation(modifyCubesBatchParameters, "batch_update"),
-      withCubeOperation(simplifyCubesParameters, "simplify"),
+      cubeToolBranches.create,
+      cubeToolBranches.update,
+      cubeToolBranches.batch_update,
+      cubeToolBranches.simplify,
     ]),
+    branches: {
+      discriminator: "operation",
+      schemas: cubeToolBranches,
+    },
     status: STATUS_STABLE,
   },
 ];

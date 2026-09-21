@@ -39,10 +39,16 @@ export type ConsolidatedCatalogUpdate = (
   enabled: boolean
 ) => void;
 
+export const consolidatedInspectionBranches = {
+  outline: withToolBranch(listOutlineParameters, "mode", "outline"),
+  search: withToolBranch(findElementsByCriteriaParameters, "mode", "search"),
+  detail: withToolBranch(inspectElementParameters, "mode", "detail"),
+} as const;
+
 const consolidatedInspectionParameters = z.union([
-  withToolBranch(listOutlineParameters, "mode", "outline"),
-  withToolBranch(findElementsByCriteriaParameters, "mode", "search"),
-  withToolBranch(inspectElementParameters, "mode", "detail"),
+  consolidatedInspectionBranches.outline,
+  consolidatedInspectionBranches.search,
+  consolidatedInspectionBranches.detail,
 ]);
 
 export const consolidatedInspectionToolDocs = {
@@ -51,14 +57,29 @@ export const consolidatedInspectionToolDocs = {
     "Inspects Bedrock elements through one focused boundary. Use mode=outline for hierarchy, search for bounded criteria discovery, or detail for one authored element with optional UV data.",
   annotations: { title: "Inspect Elements", readOnlyHint: true },
   parameters: consolidatedInspectionParameters,
+  branches: {
+    discriminator: "mode",
+    schemas: consolidatedInspectionBranches,
+  },
   status: "stable" as const,
 };
 
+export const consolidatedMaterialBranches = {
+  create: withToolBranch(createPbrMaterialParameters, "operation", "create"),
+  configure: withToolBranch(configureMaterialParameters, "operation", "configure"),
+  assign_channel: withToolBranch(
+    assignTextureChannelParameters,
+    "operation",
+    "assign_channel"
+  ),
+  save: withToolBranch(saveMaterialConfigParameters, "operation", "save"),
+} as const;
+
 const consolidatedMaterialParameters = z.union([
-  withToolBranch(createPbrMaterialParameters, "operation", "create"),
-  withToolBranch(configureMaterialParameters, "operation", "configure"),
-  withToolBranch(assignTextureChannelParameters, "operation", "assign_channel"),
-  withToolBranch(saveMaterialConfigParameters, "operation", "save"),
+  consolidatedMaterialBranches.create,
+  consolidatedMaterialBranches.configure,
+  consolidatedMaterialBranches.assign_channel,
+  consolidatedMaterialBranches.save,
 ]);
 
 export const consolidatedMaterialToolDocs = {
@@ -67,15 +88,31 @@ export const consolidatedMaterialToolDocs = {
     "Creates, configures, assigns channels, or saves one Bedrock PBR material through one focused boundary.",
   annotations: { title: "Manage Material", destructiveHint: true },
   parameters: consolidatedMaterialParameters,
+  branches: {
+    discriminator: "operation",
+    schemas: consolidatedMaterialBranches,
+  },
   status: "stable" as const,
 };
 
+export const consolidatedAnimationTimelineBranches = {
+  keyframes: withToolBranch(manageKeyframesParameters, "operation", "keyframes"),
+  graph: withToolBranch(animationGraphEditorParameters, "operation", "graph"),
+  timeline: withToolBranch(animationTimelineParameters, "operation", "timeline"),
+  batch: withToolBranch(batchKeyframeOperationsParameters, "operation", "batch"),
+  copy_paste: withToolBranch(
+    animationCopyPasteParameters,
+    "operation",
+    "copy_paste"
+  ),
+} as const;
+
 const consolidatedAnimationTimelineParameters = z.union([
-  withToolBranch(manageKeyframesParameters, "operation", "keyframes"),
-  withToolBranch(animationGraphEditorParameters, "operation", "graph"),
-  withToolBranch(animationTimelineParameters, "operation", "timeline"),
-  withToolBranch(batchKeyframeOperationsParameters, "operation", "batch"),
-  withToolBranch(animationCopyPasteParameters, "operation", "copy_paste"),
+  consolidatedAnimationTimelineBranches.keyframes,
+  consolidatedAnimationTimelineBranches.graph,
+  consolidatedAnimationTimelineBranches.timeline,
+  consolidatedAnimationTimelineBranches.batch,
+  consolidatedAnimationTimelineBranches.copy_paste,
 ]);
 
 export const consolidatedAnimationTimelineToolDocs = {
@@ -84,15 +121,35 @@ export const consolidatedAnimationTimelineToolDocs = {
     "Authors one Bedrock Animation through keyframes, graph/easing, timeline, coherent batch/copy operations, or a one-call native property cohort.",
   annotations: { title: "Manage Bedrock Animation Timeline", destructiveHint: true },
   parameters: consolidatedAnimationTimelineParameters,
+  branches: {
+    discriminator: "operation",
+    schemas: consolidatedAnimationTimelineBranches,
+  },
   status: "stable" as const,
 };
 
+export const consolidatedMaterialInstanceBranches = {
+  list: withToolBranch(listMaterialInstancesParametersSchema, "operation", "list"),
+  get: withToolBranch(getFaceMaterialInstancesParametersSchema, "operation", "get"),
+  set: withToolBranch(setFaceMaterialInstanceParametersSchema, "operation", "set"),
+  bulk_set: withToolBranch(
+    bulkSetMaterialInstancesParametersSchema,
+    "operation",
+    "bulk_set"
+  ),
+  clear: withToolBranch(
+    clearMaterialInstancesParametersSchema,
+    "operation",
+    "clear"
+  ),
+} as const;
+
 const consolidatedMaterialInstancesParameters = z.union([
-  withToolBranch(listMaterialInstancesParametersSchema, "operation", "list"),
-  withToolBranch(getFaceMaterialInstancesParametersSchema, "operation", "get"),
-  withToolBranch(setFaceMaterialInstanceParametersSchema, "operation", "set"),
-  withToolBranch(bulkSetMaterialInstancesParametersSchema, "operation", "bulk_set"),
-  withToolBranch(clearMaterialInstancesParametersSchema, "operation", "clear"),
+  consolidatedMaterialInstanceBranches.list,
+  consolidatedMaterialInstanceBranches.get,
+  consolidatedMaterialInstanceBranches.set,
+  consolidatedMaterialInstanceBranches.bulk_set,
+  consolidatedMaterialInstanceBranches.clear,
 ]);
 
 export const consolidatedMaterialInstancesToolDocs = {
@@ -101,6 +158,10 @@ export const consolidatedMaterialInstancesToolDocs = {
     "Lists, reads, assigns, bulk-assigns, or clears Bedrock face material instances through one focused boundary.",
   annotations: { title: "Manage Material Instances", destructiveHint: true },
   parameters: consolidatedMaterialInstancesParameters,
+  branches: {
+    discriminator: "operation",
+    schemas: consolidatedMaterialInstanceBranches,
+  },
   status: "stable" as const,
 };
 
