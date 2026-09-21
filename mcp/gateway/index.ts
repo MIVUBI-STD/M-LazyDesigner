@@ -43,6 +43,7 @@ import {
   seedCapabilityFacts,
   type CapabilityFactState,
 } from "./capabilities/graph";
+import { semanticRecordForCapabilityBranch } from "./capabilities/semanticRegistry";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
@@ -384,6 +385,10 @@ registerGatewayTool(
         branch
       );
       const metadata = getCapabilityMetadata(capability);
+      const semanticRecord = semanticRecordForCapabilityBranch(
+        capability,
+        branch
+      );
       return {
         content: [
           {
@@ -395,6 +400,12 @@ registerGatewayTool(
           capability:
             detail === "full"
               ? {
+                  ...(semanticRecord
+                    ? {
+                        semantic_id: semanticRecord.id,
+                        semantic_revision: semanticRecord.semanticFingerprint,
+                      }
+                    : {}),
                   description: tool.description ?? "",
                   inputSchema: projection.inputSchema,
                   ...(tool.outputSchema !== undefined
@@ -415,6 +426,12 @@ registerGatewayTool(
                   },
                 }
               : {
+                  ...(semanticRecord
+                    ? {
+                        semantic_id: semanticRecord.id,
+                        semantic_revision: semanticRecord.semanticFingerprint,
+                      }
+                    : {}),
                   inputSchema: projection.inputSchema,
                 },
         },

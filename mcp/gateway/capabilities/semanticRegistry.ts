@@ -2,8 +2,10 @@ import { createHash } from "node:crypto";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import {
   CAPABILITY_BRANCH_MANIFEST,
+  manifestEntryForBranch,
   type CapabilityBranchManifestEntry,
 } from "./manifest";
+import type { CapabilityBranchHint } from "./types";
 
 export type CapabilitySemanticRecord = CapabilityBranchManifestEntry & {
   semanticFingerprint: string;
@@ -42,4 +44,13 @@ export function semanticRecordById(
   id: CapabilityBranchManifestEntry["id"]
 ): CapabilitySemanticRecord | null {
   return BY_ID.get(id) ?? null;
+}
+
+
+export function semanticRecordForCapabilityBranch(
+  capability: string,
+  branch?: CapabilityBranchHint
+): CapabilitySemanticRecord | null {
+  const entry = manifestEntryForBranch(capability, branch);
+  return entry ? semanticRecordById(entry.id) : null;
 }

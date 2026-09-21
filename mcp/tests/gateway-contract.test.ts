@@ -33,6 +33,8 @@ describe("BlockIT Gateway contract", () => {
     expect(describeBlock).not.toContain("name: tool.name");
     expect(describeBlock).not.toContain("schema_projection:");
     expect(describeBlock).toContain("inputSchema: projection.inputSchema");
+    expect(describeBlock).toContain("semantic_revision:");
+    expect(describeBlock).toContain("semantic_id:");
     expect(describeBlock).toContain("verification_class: metadata.verificationClass");
     expect(describeBlock).toMatch(/source_owner:\s*sourceOwnerForCapability\(capability\)/);
   });
