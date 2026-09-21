@@ -156,7 +156,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
   const searchBefore = decorateCapabilities([
     {
       capability_id: "manage_cubes",
-      description: "Create or update Bedrock cubes.",
+      description: "Create or update Bedrock cubes in coherent geometry cohorts with explicit identity, bounded mutation receipts, UV-safe fields, and one native Undo boundary.",
       tier: "primary",
       read_only: false,
       destructive: true,
@@ -164,7 +164,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
     },
     {
       capability_id: "inspect_elements",
-      description: "Inspect Bedrock hierarchy or one element.",
+      description: "Inspect Bedrock hierarchy or one exact element with outline, focused search, or detailed geometry and UV state when current target evidence is actually required.",
       tier: "primary",
       read_only: true,
       destructive: false,
