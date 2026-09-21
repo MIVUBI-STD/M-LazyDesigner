@@ -81,9 +81,9 @@ export function scoreUvPacking(
     hard_violations: violations,
     occupancy_ratio:
       canvasArea <= 0 ? 0 : (packedArea + occupiedArea) / canvasArea,
-    density_error: 0,
+    density_error: null,
     movement_cost: movementCost,
     fragmentation: candidate.free_rectangles.length,
-    semantic_spread: 0,
+    semantic_spread: null,
   };
 }

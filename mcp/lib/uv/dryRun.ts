@@ -43,16 +43,7 @@ export function buildUvDryRunReport(
   const stacks = [...(options.stack_proposals ?? [])];
   const densityChanged =
     options.density_plan?.changed_island_ids ?? [];
-  const hardViolations = [
-    ...plan.score.hard_violations,
-    ...stacks
-      .filter((proposal) => proposal.state === "BLOCKED")
-      .flatMap((proposal) =>
-        proposal.blockers.map(
-          (blocker) => `STACK:${proposal.id}:${blocker}`
-        )
-      ),
-  ];
+  const hardViolations = [...plan.score.hard_violations];
 
   return {
     schema: 1,

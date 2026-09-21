@@ -80,6 +80,54 @@ describe("UV dry-run and legacy bridge", () => {
     expect(snapshot).toEqual(original);
   });
 
+  test("blocked stack proposals stay advisory and do not block an otherwise valid packing plan", () => {
+    const snapshot = buildUvLayoutSnapshot(
+      [
+        {
+          uuid: "a",
+          name: "a",
+          from: [0,0,0],
+          to: [2,2,1],
+          box_uv: false,
+          autouv: 0,
+          mirror_uv: false,
+          faces: [{ face: "north", uv: [0,0,2,2] }],
+        },
+        {
+          uuid: "b",
+          name: "b",
+          from: [0,0,0],
+          to: [2,2,1],
+          box_uv: false,
+          autouv: 0,
+          mirror_uv: false,
+          faces: [{ face: "north", uv: [4,0,6,2] }],
+        },
+      ],
+      16,
+      16,
+      (island) => ({
+        padding_pixels: 0,
+        stack_group: "identity",
+        ...(island.source.cube_name === "a"
+          ? { unique_detail: true }
+          : {}),
+      })
+    );
+    const plan = planUvPacking(snapshot, {
+      bitmap_width: 16,
+      bitmap_height: 16,
+    });
+    const stacks = discoverUvStackProposals(snapshot.islands);
+    const report = buildUvDryRunReport(plan, {
+      stack_proposals: stacks,
+    });
+    expect(stacks[0].state).toBe("BLOCKED");
+    expect(report.summary.blocked_stack_proposals).toBe(1);
+    expect(report.apply_allowed).toBe(true);
+    expect(report.hard_violations).toEqual([]);
+  });
+
   test("legacy Box-UV bridge retains old first-fit owner explicitly", () => {
     const result = planLegacyBoxUvOffsets({
       occupied_regions: [

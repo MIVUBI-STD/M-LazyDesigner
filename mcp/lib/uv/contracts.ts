@@ -110,10 +110,10 @@ export type UvPackingScore = {
   valid: boolean;
   hard_violations: string[];
   occupancy_ratio: number;
-  density_error: number;
+  density_error: number | null;
   movement_cost: number;
   fragmentation: number;
-  semantic_spread: number;
+  semantic_spread: number | null;
 };
 
 export type UvPackingMode =

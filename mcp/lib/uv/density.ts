@@ -94,9 +94,10 @@ export function measureUvIslandDensity(
     basisV;
   const minimum = Math.min(u, v);
   const maximum = Math.max(u, v);
-  const target = island.source.box_uv
-    ? null
-    : targetForIsland(island, defaultTarget);
+  const target =
+    island.source.box_uv || island.constraints.locked
+      ? null
+      : targetForIsland(island, defaultTarget);
   const mean = (u + v) / 2;
 
   return {

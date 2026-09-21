@@ -113,6 +113,38 @@ describe("UV Core density planning", () => {
     });
   });
 
+  test("locked islands report density but never propose a resize", () => {
+    const snapshot = buildUvLayoutSnapshot(
+      [{
+        uuid: "locked",
+        name: "locked",
+        from: [0,0,0],
+        to: [4,4,1],
+        box_uv: false,
+        autouv: 0,
+        mirror_uv: false,
+        faces: [{ face: "north", uv: [0,0,4,4] }],
+      }],
+      128,
+      128,
+      () => ({
+        locked: true,
+        density: {
+          policy: "CUSTOM",
+          target_pixels_per_model_unit: 4,
+        },
+      })
+    );
+    const plan = planUvDensity(snapshot, {
+      bitmap_width: 128,
+      bitmap_height: 128,
+      default_target_pixels_per_model_unit: 1,
+    });
+    expect(plan.measurements[0].target_pixels_per_model_unit).toBeNull();
+    expect(plan.proposals[0].changed).toBe(false);
+    expect(plan.changed_island_ids).toEqual([]);
+  });
+
   test("density planner rejects invalid scale instead of inventing fallback values", () => {
     const snapshot = buildUvLayoutSnapshot([], 128, 128);
     expect(() =>

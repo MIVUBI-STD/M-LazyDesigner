@@ -56,7 +56,7 @@ describe("UV plan registry and service", () => {
       mode: "REPACK_ALL",
       before: { schema: 1, planner_version: 1, logical_width: 1, logical_height: 1, islands: [], metrics: { island_count: 0, face_count: 0, physical_area: 0, uv_area: 0, occupied_bounds: null } },
       proposed: { schema: 1, planner_version: 1, logical_width: 1, logical_height: 1, islands: [], metrics: { island_count: 0, face_count: 0, physical_area: 0, uv_area: 0, occupied_bounds: null } },
-      score: { valid: true, hard_violations: [], occupancy_ratio: 0, density_error: 0, movement_cost: 0, fragmentation: 0, semantic_spread: 0 },
+      score: { valid: true, hard_violations: [], occupancy_ratio: 0, density_error: null, movement_cost: 0, fragmentation: 0, semantic_spread: null },
       moved_island_ids: [],
       fixed_island_ids: [],
       placement_transforms: [],
