@@ -1,7 +1,12 @@
-export type CapabilityBranchHint = {
-  field: string;
-  value: string;
-};
+import type {
+  CapabilityBranchHint,
+  CapabilityFact,
+} from "./types";
+
+export type {
+  CapabilityBranchHint,
+  CapabilityFact,
+} from "./types";
 
 export type CapabilitySemanticSpec = {
   intents: readonly string[];
@@ -10,18 +15,6 @@ export type CapabilitySemanticSpec = {
   excludes?: readonly string[];
   examples?: readonly string[];
 };
-
-export type CapabilityFact =
-  | "project_bound"
-  | "geometry_available"
-  | "uv_plan_available"
-  | "uv_layout_current"
-  | "texture_available"
-  | "material_available"
-  | "animation_available"
-  | "particle_available"
-  | "visual_evidence_current"
-  | "texture_alignment_current";
 
 export type CapabilityGraphSpec = {
   requires?: readonly CapabilityFact[];
