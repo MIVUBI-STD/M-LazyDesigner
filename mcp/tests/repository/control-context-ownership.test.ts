@@ -8,10 +8,11 @@ describe("Control context ownership", () => {
   test("content-addressed context reuse is owned by registry + packet only", async () => {
     expect(await Bun.file("gateway/control/contextCache.ts").exists()).toBe(false);
 
-    const [barrel, contexts, packet] = await Promise.all([
+    const [barrel, contexts, packet, packetContext] = await Promise.all([
       source("gateway/control/index.ts"),
       source("gateway/control/contexts.ts"),
       source("gateway/control/packet.ts"),
+      source("gateway/control/packetContext.ts"),
     ]);
 
     expect(barrel).not.toContain("contextCache");
@@ -19,8 +20,8 @@ describe("Control context ownership", () => {
     expect(contexts).toContain("contextHandleCache");
     expect(contexts).toContain("sha256");
     expect(packet).toContain("knownContextIds");
-    expect(packet).toContain("cached_ids");
-    expect(packet).toContain("invalidated_ids");
+    expect(packetContext).toContain("cached_ids");
+    expect(packetContext).toContain("invalidated_ids");
   });
 
   test("Control keeps research-derived modelling intelligence out of stage-context payloads", async () => {
