@@ -22,17 +22,40 @@ export type TextureRefinementIntent={
   ordered_dither?:boolean;
 };
 
+export type TextureComputeRequestStep={
+  operation:string;
+  args?:Record<string,unknown>;
+};
+
+function attachTargetRect(
+  steps:TextureComputeRequestStep[],
+  targetRect:TextureRefinementIntent["target_rect"]
+):TextureComputeRequestStep[]{
+  if(!targetRect) return steps;
+  const first=steps[0];
+  return [
+    {
+      ...first,
+      args:{
+        ...(first.args ?? {}),
+        target_rect:targetRect,
+      },
+    },
+    ...steps.slice(1),
+  ];
+}
+
 export function compileTextureRefinementIntent(intent:TextureRefinementIntent){
-  const compute:Array<{operation:string;args?:Record<string,unknown>}>= [];
-  if(intent.auto_levels) compute.push({operation:"auto_levels",args:{...intent.auto_levels}});
-  if(intent.directional_shade) compute.push({operation:"directional_shade",args:{...intent.directional_shade}});
+  const steps:TextureComputeRequestStep[]=[];
+  if(intent.auto_levels) steps.push({operation:"auto_levels",args:{...intent.auto_levels}});
+  if(intent.directional_shade) steps.push({operation:"directional_shade",args:{...intent.directional_shade}});
   if(intent.posterize_levels!==undefined){
     if(!Number.isInteger(intent.posterize_levels)||intent.posterize_levels<2||intent.posterize_levels>32) throw new Error("Posterize levels must be within 2..32.");
-    compute.push({operation:"posterize",args:{levels:intent.posterize_levels}});
+    steps.push({operation:"posterize",args:{levels:intent.posterize_levels}});
   }
   if(intent.palette){
     if(intent.palette.length===0||intent.palette.length>64) throw new Error("Texture refinement palette must contain 1..64 colors.");
-    compute.push({
+    steps.push({
       operation:"palettize",
       args:{
         palette:paletteHex(intent.palette),
@@ -41,9 +64,8 @@ export function compileTextureRefinementIntent(intent:TextureRefinementIntent){
       },
     });
   }
-  if(compute.length===0) throw new Error("Texture refinement intent contains no authored compute step.");
+  if(steps.length===0) throw new Error("Texture refinement intent contains no authored compute step.");
   return {
-    compute,
-    ...(intent.target_rect?{target_rect:intent.target_rect}:{}),
+    compute:attachTargetRect(steps,intent.target_rect),
   };
 }
