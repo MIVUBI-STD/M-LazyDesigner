@@ -1,5 +1,20 @@
 import type { AuthoringRecipe } from "@/lib/authoringRecipe/contracts";
+import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
 import { planIncrementalRecipeRebuild } from "@/lib/authoringRecipe/incremental";
+import {
+  compileSemanticGeometryEdit,
+  type SemanticGeometryEditIntent,
+} from "@/lib/authoringRecipe/semanticEdit";
+import {
+  compileReferenceCorrectionsToGeometryIntents,
+  deriveReferenceCorrectionVectors,
+  type ReferenceDeviation,
+} from "@/lib/referenceCorrection";
+import {
+  selectLowestCostCorrection,
+  type CorrectionCandidate,
+  type CorrectionSolverOptions,
+} from "@/lib/correctionSolver";
 import {
   assertAuthoringRecipeNativeMatchesCompiled,
   fingerprintAuthoringRecipeNativeSnapshot,
@@ -35,6 +50,31 @@ export function summarizeAuthoringRecipeRebuild(rebuild: ReturnType<typeof planI
     preserved_count: rebuild.preserved_instance_ids.length,
     semantic_invalidation: { ...rebuild.semantic_invalidation },
   };
+}
+
+export function planSemanticGeometryEdit(
+  recipe: AuthoringRecipe,
+  intent: SemanticGeometryEditIntent
+) {
+  return compileSemanticGeometryEdit(compileAuthoringRecipe(recipe), intent);
+}
+
+export function planReferenceGeometryCorrections(
+  recipe: AuthoringRecipe,
+  deviations: readonly ReferenceDeviation[]
+) {
+  const compiled = compileAuthoringRecipe(recipe);
+  const corrections = deriveReferenceCorrectionVectors(deviations);
+  const intents = compileReferenceCorrectionsToGeometryIntents(corrections);
+  const plans = intents.map((intent) => compileSemanticGeometryEdit(compiled, intent));
+  return { corrections, intents, plans };
+}
+
+export function chooseBoundedGeometryCorrection<T>(
+  candidates: readonly CorrectionCandidate<T>[],
+  options?: CorrectionSolverOptions
+) {
+  return selectLowestCostCorrection(candidates, options);
 }
 
 export type AuthoringRecipeServiceDependencies = {

@@ -1,4 +1,13 @@
-import type { CompiledMotionRecipe, MotionChannel } from "@/lib/animation/motionRecipe";
+import {
+  compileMotionRecipe,
+  type CompiledMotionRecipe,
+  type MotionChannel,
+  type MotionRecipe,
+} from "@/lib/animation/motionRecipe";
+import {
+  compileSecondaryMotion,
+  type SecondaryMotionLink,
+} from "@/lib/animation/secondaryMotion";
 
 function createAnimationPayload(recipe:CompiledMotionRecipe){
   return {
@@ -87,4 +96,13 @@ export function compileMotionToCreateAnimationPlan(recipe:CompiledMotionRecipe){
     create_animation:createAnimationPayload(recipe),
     post_create_keyframe_edits:postCreateEdits,
   };
+}
+
+export function compileMotionWithSecondaryToCreateAnimationPlan(
+  recipe:MotionRecipe,
+  links:readonly SecondaryMotionLink[]
+){
+  return compileMotionToCreateAnimationPlan(
+    compileMotionRecipe(compileSecondaryMotion(recipe,links))
+  );
 }
