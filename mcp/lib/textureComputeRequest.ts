@@ -3,13 +3,24 @@ import {
   type GradientMapMode,
   type OrderedDitherMatrix,
 } from "@/lib/textureColorEngine";
-import type { TextureComputeStep } from "@/lib/textureComputePipeline";
+import type {
+  TextureComputeRect,
+  TextureComputeStep,
+} from "@/lib/textureComputePipeline";
 import { requiredHexColorSchema } from "@/lib/zodObjects";
 
 const matrixSchema = z.enum(["bayer2", "bayer4", "bayer8"]);
 const gradientModeSchema = z.enum(["nearest", "blend", "ordered"]);
 const paletteSchema = z.array(requiredHexColorSchema).min(1).max(64);
 const rampSchema = z.array(requiredHexColorSchema).min(2).max(16);
+const targetRectSchema = z
+  .object({
+    x: z.number().int().nonnegative(),
+    y: z.number().int().nonnegative(),
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+  })
+  .strict();
 
 const autoLevelsArgs = z.object({
   low_clip_percent: z.number().min(0).max(49).optional(),
@@ -262,4 +273,52 @@ export function parseTextureComputeSteps(
       throw new Error(`${prefix} is invalid: ${reason}`);
     }
   });
+}
+
+
+export type ParsedTextureComputeRequest = {
+  steps: TextureComputeStep[];
+  target_rect: TextureComputeRect | null;
+};
+
+/**
+ * target_rect is pipeline metadata carried inside compute[0].args so the
+ * stable public paint transaction schema does not grow a second compute
+ * envelope solely for executor scoping. It is stripped before operation
+ * parsing and applies to the complete compute pipeline.
+ */
+export function parseTextureComputeRequest(
+  raw: readonly RawStep[]
+): ParsedTextureComputeRequest {
+  let targetRect: TextureComputeRect | null = null;
+  const normalized = raw.map((step, index): RawStep => {
+    const args = step.args ?? {};
+    if (!Object.prototype.hasOwnProperty.call(args, "target_rect")) {
+      return step;
+    }
+    if (index !== 0) {
+      throw new Error(
+        "Texture compute target_rect must be declared only on compute[0].args."
+      );
+    }
+    try {
+      targetRect = targetRectSchema.parse(args.target_rect);
+    } catch (error) {
+      const reason =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `compute[0] target_rect is invalid: ${reason}`
+      );
+    }
+    const { target_rect: _targetRect, ...operationArgs } = args;
+    return {
+      ...step,
+      args: operationArgs,
+    };
+  });
+
+  return {
+    steps: parseTextureComputeSteps(normalized),
+    target_rect: targetRect,
+  };
 }

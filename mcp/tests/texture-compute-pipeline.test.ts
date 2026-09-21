@@ -5,7 +5,10 @@ import {
   palettizeRgba,
   posterizeLightnessRgba,
 } from "@/lib/textureColorEngine";
-import { parseTextureComputeSteps } from "@/lib/textureComputeRequest";
+import {
+  parseTextureComputeRequest,
+  parseTextureComputeSteps,
+} from "@/lib/textureComputeRequest";
 
 describe("texture compute request and pipeline", () => {
   test("parses compact compute steps into strict internal operations", () => {
@@ -33,6 +36,51 @@ describe("texture compute request and pipeline", () => {
       "generated_gradient_map",
       "palette_diffusion",
     ]);
+  });
+
+  test("extracts one bounded pipeline target from compute[0] without changing public envelope", () => {
+    const request = parseTextureComputeRequest([
+      {
+        operation: "posterize",
+        args: {
+          levels: 3,
+          target_rect: { x: 1, y: 2, width: 4, height: 5 },
+        },
+      },
+      {
+        operation: "gradient_map",
+        args: {
+          ramp: ["#000000", "#FFFFFF"],
+          mode: "nearest",
+        },
+      },
+    ]);
+
+    expect(request.target_rect).toEqual({
+      x: 1,
+      y: 2,
+      width: 4,
+      height: 5,
+    });
+    expect(request.steps[0]).toEqual({
+      operation: "posterize",
+      options: { levels: 3 },
+    });
+    expect(() =>
+      parseTextureComputeRequest([
+        {
+          operation: "posterize",
+          args: { levels: 3 },
+        },
+        {
+          operation: "gradient_map",
+          args: {
+            ramp: ["#000000", "#FFFFFF"],
+            target_rect: { x: 0, y: 0, width: 1, height: 1 },
+          },
+        },
+      ])
+    ).toThrow("must be declared only on compute[0].args");
   });
 
   test("invalid compute args fail closed with step context", () => {
@@ -202,6 +250,114 @@ describe("texture compute request and pipeline", () => {
     expect(fused.receipt.execution.fused_groups).toBe(1);
     expect(fused.receipt.execution.fused_steps).toBe(3);
     expect(fused.receipt.execution.unique_color_transforms).toBeLessThan(64);
+  });
+
+  test("bounded ROI computes and diffs only the requested target", () => {
+    const source = new Uint8ClampedArray(
+      Array.from({ length: 16 }, (_, index) => {
+        const value = 40 + index * 10;
+        return [value, value, value, 255];
+      }).flat()
+    );
+    const result = applyTextureComputePipeline(
+      source,
+      4,
+      4,
+      [
+        {
+          operation: "posterize",
+          options: { levels: 2, strength: 1 },
+        },
+      ],
+      { x: 1, y: 1, width: 2, height: 2 }
+    );
+
+    expect(result.receipt.execution.region).toEqual({
+      bounded: true,
+      target_rect: [1, 1, 3, 3],
+      compute_rect: [1, 1, 3, 3],
+      halo: 0,
+      atlas_pixels: 16,
+      target_pixels: 4,
+      compute_pixels: 4,
+    });
+    expect(result.receipt.changed_rect?.[0]).toBeGreaterThanOrEqual(1);
+    expect(result.receipt.changed_rect?.[1]).toBeGreaterThanOrEqual(1);
+    expect(result.receipt.changed_rect?.[2]).toBeLessThanOrEqual(3);
+    expect(result.receipt.changed_rect?.[3]).toBeLessThanOrEqual(3);
+
+    for (let y = 0; y < 4; y += 1) {
+      for (let x = 0; x < 4; x += 1) {
+        if (x >= 1 && x < 3 && y >= 1 && y < 3) continue;
+        const offset = (y * 4 + x) * 4;
+        expect(Array.from(result.pixels.slice(offset, offset + 4))).toEqual(
+          Array.from(source.slice(offset, offset + 4))
+        );
+      }
+    }
+  });
+
+  test("bounded directional shading derives a one-pixel halo", () => {
+    const source = new Uint8ClampedArray(
+      Array.from({ length: 25 }, (_, index) => {
+        const value = 40 + index * 5;
+        return [value, value, value, 255];
+      }).flat()
+    );
+    const result = applyTextureComputePipeline(
+      source,
+      5,
+      5,
+      [
+        {
+          operation: "directional_shade",
+          options: { depth: 1, strength: 0.7 },
+        },
+      ],
+      { x: 2, y: 2, width: 1, height: 1 }
+    );
+
+    expect(result.receipt.execution.region.halo).toBe(1);
+    expect(result.receipt.execution.region.compute_rect).toEqual([1, 1, 4, 4]);
+    expect(result.receipt.execution.region.compute_pixels).toBe(9);
+  });
+
+  test("bounded ROI fails closed for coordinate-phase or propagation-sensitive operations", () => {
+    const source = new Uint8ClampedArray([
+      80, 80, 80, 255,
+      160, 160, 160, 255,
+    ]);
+
+    expect(() =>
+      applyTextureComputePipeline(
+        source,
+        2,
+        1,
+        [
+          {
+            operation: "palettize",
+            palette: ["#000000", "#FFFFFF"],
+            options: { dither: "ordered" },
+          },
+        ],
+        { x: 0, y: 0, width: 1, height: 1 }
+      )
+    ).toThrow("Bayer phase");
+
+    expect(() =>
+      applyTextureComputePipeline(
+        source,
+        2,
+        1,
+        [
+          {
+            operation: "palette_diffusion",
+            palette: ["#000000", "#FFFFFF"],
+          },
+        ],
+        { x: 0, y: 0, width: 1, height: 1 }
+      )
+    ).toThrow("error propagation");
   });
 
   test("pipeline rejects no-op compute results", () => {

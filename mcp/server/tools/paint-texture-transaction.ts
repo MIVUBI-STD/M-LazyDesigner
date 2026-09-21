@@ -14,7 +14,7 @@ import {
 } from "@/lib/paintTransactionPolicy";
 import { computeTextureRevision } from "@/lib/textureRevision";
 import { applyTextureComputePipeline } from "@/lib/textureComputePipeline";
-import { parseTextureComputeSteps } from "@/lib/textureComputeRequest";
+import { parseTextureComputeRequest } from "@/lib/textureComputeRequest";
 import {
   cropRgbaRect,
   fullTextureRgba,
@@ -185,12 +185,16 @@ export function registerPaintTextureTransactionTool(): void {
           );
         }
 
-        const computeResult = compute
+        const computeRequest = compute
+          ? parseTextureComputeRequest(compute)
+          : null;
+        const computeResult = computeRequest
           ? applyTextureComputePipeline(
               before.pixels,
               before.width,
               before.height,
-              parseTextureComputeSteps(compute)
+              computeRequest.steps,
+              computeRequest.target_rect ?? undefined
             )
           : null;
         const applied = computeResult
@@ -362,6 +366,7 @@ export function registerPaintTextureTransactionTool(): void {
                   operations: computeResult.receipt.operations,
                   changed_pixels:
                     computeResult.receipt.changed_pixels,
+                  execution: computeResult.receipt.execution,
                 }
               : null,
             visual_evidence: affectedRegionImage

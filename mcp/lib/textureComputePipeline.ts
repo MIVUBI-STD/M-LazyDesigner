@@ -66,6 +66,15 @@ export type TextureComputeReceipt = {
     fused_groups: number;
     fused_steps: number;
     unique_color_transforms: number;
+    region: {
+      bounded: boolean;
+      target_rect: [number, number, number, number];
+      compute_rect: [number, number, number, number];
+      halo: number;
+      atlas_pixels: number;
+      target_pixels: number;
+      compute_pixels: number;
+    };
   };
 };
 
@@ -73,6 +82,168 @@ export type TextureComputeResult = {
   pixels: Uint8ClampedArray;
   receipt: TextureComputeReceipt;
 };
+
+export type TextureComputeRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+function requireTextureComputeRect(
+  rect: TextureComputeRect,
+  width: number,
+  height: number
+): TextureComputeRect {
+  const right = rect.x + rect.width;
+  const bottom = rect.y + rect.height;
+  if (
+    !Number.isSafeInteger(rect.x) ||
+    !Number.isSafeInteger(rect.y) ||
+    !Number.isSafeInteger(rect.width) ||
+    !Number.isSafeInteger(rect.height) ||
+    rect.x < 0 ||
+    rect.y < 0 ||
+    rect.width <= 0 ||
+    rect.height <= 0 ||
+    !Number.isSafeInteger(right) ||
+    !Number.isSafeInteger(bottom) ||
+    right > width ||
+    bottom > height
+  ) {
+    throw new Error(
+      `Texture compute target_rect [${rect.x},${rect.y},${rect.width},${rect.height}] is outside bitmap bounds ${width}x${height}.`
+    );
+  }
+  return rect;
+}
+
+function textureComputeStepHalo(step: TextureComputeStep): number {
+  return step.operation === "directional_shade" ? 1 : 0;
+}
+
+function requireRoiSafeStep(step: TextureComputeStep): void {
+  if (step.operation === "palette_diffusion") {
+    throw new Error(
+      "Texture compute target_rect does not yet support palette_diffusion because error propagation crosses the bounded ROI."
+    );
+  }
+  if (
+    (step.operation === "gradient_map" ||
+      step.operation === "generated_gradient_map") &&
+    step.options?.mode === "ordered"
+  ) {
+    throw new Error(
+      "Texture compute target_rect does not yet support ordered gradient mapping because Bayer phase must remain atlas-relative."
+    );
+  }
+  if (
+    step.operation === "palettize" &&
+    step.options?.dither === "ordered"
+  ) {
+    throw new Error(
+      "Texture compute target_rect does not yet support ordered palettize because Bayer phase must remain atlas-relative."
+    );
+  }
+}
+
+function expandTextureComputeRect(
+  rect: TextureComputeRect,
+  halo: number,
+  width: number,
+  height: number
+): TextureComputeRect {
+  const left = Math.max(0, rect.x - halo);
+  const top = Math.max(0, rect.y - halo);
+  const right = Math.min(width, rect.x + rect.width + halo);
+  const bottom = Math.min(height, rect.y + rect.height + halo);
+  return {
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top,
+  };
+}
+
+function extractTextureComputeRect(
+  pixels: Uint8ClampedArray,
+  sourceWidth: number,
+  rect: TextureComputeRect
+): Uint8ClampedArray {
+  const output = new Uint8ClampedArray(rect.width * rect.height * 4);
+  const rowBytes = rect.width * 4;
+  for (let row = 0; row < rect.height; row += 1) {
+    const sourceOffset = ((rect.y + row) * sourceWidth + rect.x) * 4;
+    output.set(
+      pixels.subarray(sourceOffset, sourceOffset + rowBytes),
+      row * rowBytes
+    );
+  }
+  return output;
+}
+
+function writeTextureComputeRect(
+  target: Uint8ClampedArray,
+  targetWidth: number,
+  rect: TextureComputeRect,
+  patch: Uint8ClampedArray
+): void {
+  const rowBytes = rect.width * 4;
+  for (let row = 0; row < rect.height; row += 1) {
+    const targetOffset = ((rect.y + row) * targetWidth + rect.x) * 4;
+    target.set(
+      patch.subarray(row * rowBytes, (row + 1) * rowBytes),
+      targetOffset
+    );
+  }
+}
+
+function changedRectForPatch(
+  before: Uint8ClampedArray,
+  patch: Uint8ClampedArray,
+  sourceWidth: number,
+  rect: TextureComputeRect
+): {
+  count: number;
+  rect: [number, number, number, number] | null;
+} {
+  let count = 0;
+  let left = rect.x + rect.width;
+  let top = rect.y + rect.height;
+  let right = -1;
+  let bottom = -1;
+
+  for (let y = 0; y < rect.height; y += 1) {
+    for (let x = 0; x < rect.width; x += 1) {
+      const sourceOffset = ((rect.y + y) * sourceWidth + rect.x + x) * 4;
+      const patchOffset = (y * rect.width + x) * 4;
+      if (
+        before[sourceOffset] === patch[patchOffset] &&
+        before[sourceOffset + 1] === patch[patchOffset + 1] &&
+        before[sourceOffset + 2] === patch[patchOffset + 2] &&
+        before[sourceOffset + 3] === patch[patchOffset + 3]
+      ) {
+        continue;
+      }
+
+      count += 1;
+      const globalX = rect.x + x;
+      const globalY = rect.y + y;
+      left = Math.min(left, globalX);
+      top = Math.min(top, globalY);
+      right = Math.max(right, globalX);
+      bottom = Math.max(bottom, globalY);
+    }
+  }
+
+  return {
+    count,
+    rect:
+      count === 0
+        ? null
+        : [left, top, right + 1, bottom + 1],
+  };
+}
 
 function changedRect(
   before: Uint8ClampedArray,
@@ -377,7 +548,8 @@ export function applyTextureComputePipeline(
   source: Uint8ClampedArray,
   width: number,
   height: number,
-  steps: readonly TextureComputeStep[]
+  steps: readonly TextureComputeStep[],
+  targetRect?: TextureComputeRect
 ): TextureComputeResult {
   if (
     !Number.isSafeInteger(width) ||
@@ -393,8 +565,27 @@ export function applyTextureComputePipeline(
   }
 
   const plan = optimizeTextureComputeSteps(steps);
+  const target = targetRect
+    ? requireTextureComputeRect(targetRect, width, height)
+    : { x: 0, y: 0, width, height };
+  if (targetRect) {
+    for (const step of plan.steps) requireRoiSafeStep(step);
+  }
+  const halo = targetRect
+    ? plan.steps.reduce(
+        (total, step) => total + textureComputeStepHalo(step),
+        0
+      )
+    : 0;
+  const computeRect = targetRect
+    ? expandTextureComputeRect(target, halo, width, height)
+    : target;
+  const computeWidth = computeRect.width;
+  const computeHeight = computeRect.height;
   const context = createTextureColorComputeContext();
-  let pixels: Uint8ClampedArray<ArrayBufferLike> = source;
+  let pixels: Uint8ClampedArray<ArrayBufferLike> = targetRect
+    ? extractTextureComputeRect(source, width, computeRect)
+    : source;
   const executed: TextureComputeStep["operation"][] = [];
   const skipped = [...plan.skipped];
   let fusedGroups = 0;
@@ -441,12 +632,30 @@ export function applyTextureComputePipeline(
       }
     }
 
-    pixels = applyStep(pixels, width, height, step, context);
+    pixels = applyStep(pixels, computeWidth, computeHeight, step, context);
     executed.push(step.operation);
     index += 1;
   }
 
-  const changed = changedRect(source, pixels, width, height);
+  let outputPixels: Uint8ClampedArray<ArrayBufferLike> = pixels;
+  let changed: ReturnType<typeof changedRect>;
+  if (targetRect) {
+    const targetPatch = extractTextureComputeRect(
+      pixels,
+      computeWidth,
+      {
+        x: target.x - computeRect.x,
+        y: target.y - computeRect.y,
+        width: target.width,
+        height: target.height,
+      }
+    );
+    changed = changedRectForPatch(source, targetPatch, width, target);
+    outputPixels = new Uint8ClampedArray(source);
+    writeTextureComputeRect(outputPixels, width, target, targetPatch);
+  } else {
+    changed = changedRect(source, pixels, width, height);
+  }
   if (changed.count === 0) {
     throw new Error(
       "Texture compute pipeline produced no authored pixel change."
@@ -454,7 +663,7 @@ export function applyTextureComputePipeline(
   }
 
   return {
-    pixels,
+    pixels: outputPixels,
     receipt: {
       operation_count: executed.length,
       requested_operation_count: steps.length,
@@ -468,6 +677,25 @@ export function applyTextureComputePipeline(
         fused_groups: fusedGroups,
         fused_steps: fusedSteps,
         unique_color_transforms: uniqueColorTransforms,
+        region: {
+          bounded: targetRect !== undefined,
+          target_rect: [
+            target.x,
+            target.y,
+            target.x + target.width,
+            target.y + target.height,
+          ],
+          compute_rect: [
+            computeRect.x,
+            computeRect.y,
+            computeRect.x + computeRect.width,
+            computeRect.y + computeRect.height,
+          ],
+          halo,
+          atlas_pixels: width * height,
+          target_pixels: target.width * target.height,
+          compute_pixels: computeRect.width * computeRect.height,
+        },
       },
     },
   };
