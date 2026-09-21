@@ -3,6 +3,7 @@ import { compileTextureRefinementIntent } from "@/lib/texture/computeCompiler";
 import type { TextureSourceRecipe } from "@/lib/texture/sourceComposer";
 import { renderTextureSourceRecipe } from "@/lib/texture/sourceComposer";
 import { diffTextureRegion } from "@/lib/texture/regionDiff";
+import type { PaintTransactionOperation } from "@/lib/paintTransaction";
 import {
   applyGeometryAwareMaterialTreatment,
   type GeometryAwareMaterialIntent,
@@ -27,6 +28,11 @@ export type GeometryAwareTextureBufferPlan={
   rgba:Uint8Array;
   changed_region:ReturnType<typeof diffTextureRegion>;
 };
+
+function byteHex(value:number){return Math.max(0,Math.min(255,Math.round(value))).toString(16).padStart(2,"0");}
+function rgbaHex(r:number,g:number,b:number,a:number){
+  return "#"+byteHex(r)+byteHex(g)+byteHex(b)+byteHex(a);
+}
 
 export function compileNewTextureNativePlan(recipe:TextureSourceRecipe):NewTextureNativePlan{
   const rgba=renderTextureSourceRecipe(recipe);
@@ -64,6 +70,49 @@ export function compileGeometryAwareTextureBufferPlan(input:{
     height,
     rgba,
     changed_region:diffTextureRegion(input.rgba,rgba,width,height),
+  };
+}
+
+export function compileGeometryAwareTextureToPaintTransaction(input:{
+  rgba:Uint8Array;
+  evidence:GeometrySignalEvidence;
+  intent:GeometryAwareMaterialIntent;
+  expected_revision:string;
+  max_operations?:number;
+}){
+  const plan=compileGeometryAwareTextureBufferPlan(input);
+  const maxOperations=input.max_operations ?? 64;
+  if(!Number.isInteger(maxOperations)||maxOperations<1||maxOperations>64){
+    throw new Error("Geometry-aware texture max_operations must be an integer within 1..64.");
+  }
+  const groups=new Map<string,Array<{x:number;y:number}>>();
+  for(let y=0;y<plan.height;y+=1){
+    for(let x=0;x<plan.width;x+=1){
+      const offset=(y*plan.width+x)*4;
+      if(
+        input.rgba[offset]===plan.rgba[offset] &&
+        input.rgba[offset+1]===plan.rgba[offset+1] &&
+        input.rgba[offset+2]===plan.rgba[offset+2] &&
+        input.rgba[offset+3]===plan.rgba[offset+3]
+      ) continue;
+      const color=rgbaHex(plan.rgba[offset],plan.rgba[offset+1],plan.rgba[offset+2],plan.rgba[offset+3]);
+      const coordinates=groups.get(color) ?? [];
+      coordinates.push({x,y});
+      groups.set(color,coordinates);
+    }
+  }
+  if(groups.size===0) throw new Error("Geometry-aware texture treatment produced no pixel changes.");
+  if(groups.size>maxOperations){
+    throw new Error("GEOMETRY_AWARE_TEXTURE_OPERATION_BUDGET_EXCEEDED: exact color groups "+groups.size+" exceed bounded paint operation budget "+maxOperations+".");
+  }
+  const operations:PaintTransactionOperation[]=[...groups.entries()]
+    .sort(([a],[b])=>a.localeCompare(b))
+    .map(([color,coordinates])=>({operation:"set_pixels" as const,color,coordinates}));
+  return {
+    kind:"PAINT_TEXTURE_TRANSACTION" as const,
+    expected_revision:plan.expected_revision,
+    operations,
+    changed_region:plan.changed_region,
   };
 }
 

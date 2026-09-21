@@ -35,6 +35,7 @@ export type SemanticGeometryEditPlan = {
   upserts: CompiledCubePlacement[];
   affected_instance_ids: string[];
   preserved_instance_ids: string[];
+  application_boundary: "RECIPE_REWRITE_REQUIRED";
   diagnostics: {
     selected_by: "INSTANCE_IDS" | "PROTOTYPE_ID" | "SEMANTIC_GROUP";
     affected_count: number;
@@ -156,6 +157,7 @@ export function compileSemanticGeometryEdit(
       .filter((placement) => !affectedIds.has(placement.id))
       .map((placement) => placement.id)
       .sort(),
+    application_boundary: "RECIPE_REWRITE_REQUIRED",
     diagnostics: { selected_by: selectedBy, affected_count: upserts.length },
   };
 }

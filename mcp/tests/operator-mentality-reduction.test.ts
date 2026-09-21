@@ -4,10 +4,11 @@ import {
   chooseBoundedGeometryCorrection,
   planReferenceGeometryCorrections,
   planSemanticGeometryEdit,
+  rewriteSemanticGeometryRecipe,
 } from "@/lib/authoringRecipe/service";
 import { compileFunctionalRigToAddGroupBatch } from "@/lib/rig/toolCompiler";
 import { compileMotionWithSecondaryToCreateAnimationPlan } from "@/lib/animation/toolCompiler";
-import { compileGeometryAwareTextureBufferPlan } from "@/lib/texture/nativePlan";
+import { compileGeometryAwareTextureToPaintTransaction } from "@/lib/texture/nativePlan";
 
 function recipeFixture(){
   return {
@@ -24,14 +25,22 @@ function recipeFixture(){
 }
 
 describe("operator mentality reduction foundations",()=>{
-  test("semantic geometry edit is owned through authoring recipe service",()=>{
+  test("semantic geometry preview cannot bypass recipe ownership",()=>{
     const plan=planSemanticGeometryEdit(recipeFixture(),{
       target:{semantic_group:"door"},
       operation:{kind:"RESIZE_AXIS",axis:"X",mode:"MULTIPLY",value:0.8,anchor:"CENTER"},
     });
+    expect(plan.application_boundary).toBe("RECIPE_REWRITE_REQUIRED");
     expect(plan.affected_instance_ids).toHaveLength(1);
-    expect(plan.preserved_instance_ids).toHaveLength(1);
-    expect(plan.upserts[0].to[0]-plan.upserts[0].from[0]).toBeCloseTo(1.6);
+  });
+
+  test("source-safe semantic edits rewrite recipe before incremental apply",()=>{
+    const rewritten=rewriteSemanticGeometryRecipe(recipeFixture(),{
+      target:{prototype_id:"door"},
+      operation:{kind:"RESIZE_AXIS",axis:"X",mode:"MULTIPLY",value:0.8,anchor:"MIN"},
+    });
+    expect(rewritten.next_recipe.prototypes[0].size[0]).toBeCloseTo(1.6);
+    expect(rewritten.rebuild.upserts).toHaveLength(1);
   });
 
   test("correction solver remains planning-only under geometry owner",()=>{
@@ -60,25 +69,26 @@ describe("operator mentality reduction foundations",()=>{
     expect(plan.post_create_keyframe_edits.length).toBeGreaterThan(0);
   });
 
-  test("reference deviations compile through geometry owner",()=>{
+  test("reference deviations remain preview-only until recipe-safe rewrite is possible",()=>{
     const planned=planReferenceGeometryCorrections(recipeFixture(),[
       {kind:"BOUNDS",instance_id:"door_pattern:0",axis:"X",expected:1.8,actual:2},
       {kind:"CENTER_OFFSET",instance_id:"door_pattern:0",expected_center:[0,0,0],actual_center:[1,0,0]},
       {kind:"ROTATION",instance_id:"door_pattern:0",axis:"Y",expected_degrees:90,actual_degrees:80},
     ]);
     expect(planned.plans).toHaveLength(3);
-    expect(planned.plans.every((plan)=>plan.affected_instance_ids.length===1)).toBe(true);
+    expect(planned.plans.every((plan)=>plan.application_boundary==="RECIPE_REWRITE_REQUIRED")).toBe(true);
   });
 
-  test("geometry-aware material compiles through texture native planning owner",()=>{
+  test("geometry-aware material compiles into existing paint transaction operations",()=>{
     const rgba=new Uint8Array([100,100,100,255,100,100,100,255]);
-    const plan=compileGeometryAwareTextureBufferPlan({
+    const plan=compileGeometryAwareTextureToPaintTransaction({
       rgba,
       evidence:{width:2,height:1,edge_falloff:1},
       intent:{wear:{color:[200,200,200,255],strength:0.5}},
       expected_revision:"rev-1",
     });
-    expect(plan.rgba[0]).toBeGreaterThan(100);
+    expect(plan.kind).toBe("PAINT_TEXTURE_TRANSACTION");
+    expect(plan.operations.length).toBeGreaterThan(0);
     expect(plan.expected_revision).toBe("rev-1");
   });
 });

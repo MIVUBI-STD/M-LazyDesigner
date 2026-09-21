@@ -5,6 +5,7 @@ import {
   compileSemanticGeometryEdit,
   type SemanticGeometryEditIntent,
 } from "@/lib/authoringRecipe/semanticEdit";
+import { rewriteAuthoringRecipeForSemanticEdit } from "@/lib/authoringRecipe/semanticRewrite";
 import {
   compileReferenceCorrectionsToGeometryIntents,
   deriveReferenceCorrectionVectors,
@@ -57,6 +58,17 @@ export function planSemanticGeometryEdit(
   intent: SemanticGeometryEditIntent
 ) {
   return compileSemanticGeometryEdit(compileAuthoringRecipe(recipe), intent);
+}
+
+export function rewriteSemanticGeometryRecipe(
+  recipe: AuthoringRecipe,
+  intent: SemanticGeometryEditIntent
+) {
+  const nextRecipe = rewriteAuthoringRecipeForSemanticEdit(recipe, intent);
+  return {
+    next_recipe: nextRecipe,
+    rebuild: planIncrementalRecipeRebuild(recipe, nextRecipe),
+  };
 }
 
 export function planReferenceGeometryCorrections(
