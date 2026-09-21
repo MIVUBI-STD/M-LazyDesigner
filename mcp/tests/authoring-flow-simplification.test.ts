@@ -34,10 +34,14 @@ describe("single-owner authoring flow", () => {
 
   test("Control computes lifecycle and stage readiness once per packet", async () => {
     const packet = await text("../gateway/control/packet.ts");
-    const lifecycleCalls = packet.match(/lifecycleForDomain\(/g) ?? [];
+    const readiness = await text("../gateway/control/readiness.ts");
+    const packetCalls = packet.match(/lifecycleForDomain\(/g) ?? [];
+    const readinessDeclarations =
+      readiness.match(/export function lifecycleForDomain\(/g) ?? [];
 
-    // One function declaration + one packet evaluation. buildReadiness reuses it.
-    expect(lifecycleCalls.length).toBe(2);
+    // Policy is declared once in readiness.ts and evaluated once per packet.
+    expect(readinessDeclarations.length).toBe(1);
+    expect(packetCalls.length).toBe(1);
     expect(packet).not.toContain("readinessForAuthoringDomain(");
     expect(packet).toContain("stageContext?.stage_readiness ?? null");
   });
