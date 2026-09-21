@@ -39,14 +39,19 @@ Control does not own:
 
 ```text
 types.ts              compact Control contracts
-referencePackage.ts   REFERENCE.json projection
+referenceTypes.ts     REFERENCE.json projection contracts
+referenceParser.ts    pure REFERENCE.json normalization
+referencePackage.ts   REFERENCE.json filesystem/cache boundary
 workspace.ts          Active Workspace projection
 contextProjection.ts  stage-specific authoring context
 contexts.ts           Skill/profile paths + content-addressed context handles
 sourceOwners/         domain-scoped capability source-owner maps\nsourceOwners.ts        source-owner composition + fallback
 registry.ts           compatibility facade
 snapshot.ts           live Gateway/Runtime orientation
-packet.ts             task packet assembly
+packetContext.ts      task identity + context delivery/cache semantics
+readiness.ts          lifecycle/readiness policy
+packetData.ts         empty workspace + packet summaries
+packet.ts             task packet orchestration
 capabilities.ts       capability decoration
 routingPolicy.ts      direct-first route policy
 developmentIntent.ts  bounded SYSTEM_DEVELOPMENT routing
