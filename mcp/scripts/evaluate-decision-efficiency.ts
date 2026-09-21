@@ -29,7 +29,7 @@ type DecisionCase = {
     | "DIRECT_INVOKE"
     | "SEARCH_THEN_INVOKE"
     | "SEARCH_THEN_DESCRIBE_THEN_INVOKE"
-    | "RESOLVE_PREDECESSOR";
+    | "RESOLVE_PREREQUISITE";
 };
 
 function runtimeTools(): BackendTool[] {
@@ -90,7 +90,7 @@ const CASES: readonly DecisionCase[] = [
       geometry_available: true,
       uv_plan_available: false,
     },
-    expectedRoute: "RESOLVE_PREDECESSOR",
+    expectedRoute: "RESOLVE_PREREQUISITE",
   },
   {
     id: "texture-variant-blocked",
@@ -101,7 +101,7 @@ const CASES: readonly DecisionCase[] = [
       project_bound: true,
       texture_available: false,
     },
-    expectedRoute: "RESOLVE_PREDECESSOR",
+    expectedRoute: "RESOLVE_PREREQUISITE",
   },
   {
     id: "texture-variant-ready",
@@ -313,7 +313,7 @@ function decide(
 
   if (readiness.eligibility === "BLOCKED") {
     return {
-      route: "RESOLVE_PREDECESSOR" as const,
+      route: "RESOLVE_PREREQUISITE" as const,
       search_results: results,
       selected,
       search_bytes: searchBytes,
@@ -384,7 +384,7 @@ const cases = CASES.map((testCase) => {
     unnecessaryDescribe += 1;
   }
 
-  if (testCase.expectedRoute === "RESOLVE_PREDECESSOR") {
+  if (testCase.expectedRoute === "RESOLVE_PREREQUISITE") {
     expectedBlocked += 1;
     if (decision.blocked_call_avoided) blockedAvoided += 1;
   }
