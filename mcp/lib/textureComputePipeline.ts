@@ -62,6 +62,11 @@ export type TextureComputeReceipt = {
   changed_pixels: number;
   changed_rect: [number, number, number, number] | null;
   color_cache: TextureColorComputeMetrics;
+  execution: {
+    fused_groups: number;
+    fused_steps: number;
+    unique_color_transforms: number;
+  };
 };
 
 export type TextureComputeResult = {
@@ -234,6 +239,74 @@ function bitmapAlreadyInPalette(
   return true;
 }
 
+function isFusiblePointwiseStep(step: TextureComputeStep): boolean {
+  if (step.operation === "posterize") return true;
+  if (step.operation === "gradient_map") {
+    return (step.options?.mode ?? "nearest") !== "ordered";
+  }
+  if (step.operation === "generated_gradient_map") {
+    return (step.options?.mode ?? "nearest") !== "ordered";
+  }
+  if (step.operation === "palettize") {
+    return (step.options?.dither ?? "none") === "none";
+  }
+  return false;
+}
+
+function rgbaPackedKey(
+  pixels: Uint8ClampedArray,
+  offset: number
+): number {
+  return (
+    ((pixels[offset] & 0xff) << 24) |
+    ((pixels[offset + 1] & 0xff) << 16) |
+    ((pixels[offset + 2] & 0xff) << 8) |
+    (pixels[offset + 3] & 0xff)
+  ) >>> 0;
+}
+
+function applyFusedPointwiseSteps(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  steps: readonly TextureComputeStep[],
+  context: TextureColorComputeContext
+): {
+  pixels: Uint8ClampedArray;
+  unique_color_transforms: number;
+} {
+  const output = new Uint8ClampedArray(pixels);
+  const transformed = new Map<number, [number, number, number, number]>();
+
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    if (pixels[offset + 3] === 0) continue;
+    const key = rgbaPackedKey(pixels, offset);
+    let mapped = transformed.get(key);
+    if (!mapped) {
+      let sample = new Uint8ClampedArray([
+        pixels[offset],
+        pixels[offset + 1],
+        pixels[offset + 2],
+        pixels[offset + 3],
+      ]);
+      for (const step of steps) {
+        sample = applyStep(sample, 1, 1, step, context);
+      }
+      mapped = [sample[0], sample[1], sample[2], sample[3]];
+      transformed.set(key, mapped);
+    }
+    output[offset] = mapped[0];
+    output[offset + 1] = mapped[1];
+    output[offset + 2] = mapped[2];
+    output[offset + 3] = mapped[3];
+  }
+
+  return {
+    pixels: output,
+    unique_color_transforms: transformed.size,
+  };
+}
+
 function applyStep(
   pixels: Uint8ClampedArray,
   width: number,
@@ -325,18 +398,55 @@ export function applyTextureComputePipeline(
   let pixels: Uint8ClampedArray<ArrayBufferLike> = source;
   const executed: TextureComputeStep["operation"][] = [];
   const skipped = [...plan.skipped];
+  let fusedGroups = 0;
+  let fusedSteps = 0;
+  let uniqueColorTransforms = 0;
 
-  for (const step of plan.steps) {
+  for (let index = 0; index < plan.steps.length; ) {
+    const step = plan.steps[index];
+
     if (
       (step.operation === "palettize" ||
         step.operation === "palette_diffusion") &&
       bitmapAlreadyInPalette(pixels, step.palette)
     ) {
       skipped.push(step.operation);
+      index += 1;
       continue;
     }
+
+    if (isFusiblePointwiseStep(step)) {
+      const group: TextureComputeStep[] = [step];
+      let cursor = index + 1;
+      while (
+        cursor < plan.steps.length &&
+        isFusiblePointwiseStep(plan.steps[cursor])
+      ) {
+        group.push(plan.steps[cursor]);
+        cursor += 1;
+      }
+
+      if (group.length >= 2) {
+        const fused = applyFusedPointwiseSteps(
+          pixels,
+          width,
+          height,
+          group,
+          context
+        );
+        pixels = fused.pixels;
+        executed.push(...group.map((item) => item.operation));
+        fusedGroups += 1;
+        fusedSteps += group.length;
+        uniqueColorTransforms += fused.unique_color_transforms;
+        index = cursor;
+        continue;
+      }
+    }
+
     pixels = applyStep(pixels, width, height, step, context);
     executed.push(step.operation);
+    index += 1;
   }
 
   const changed = changedRect(source, pixels, width, height);
@@ -357,6 +467,11 @@ export function applyTextureComputePipeline(
       changed_pixels: changed.count,
       changed_rect: changed.rect,
       color_cache: { ...context.metrics },
+      execution: {
+        fused_groups: fusedGroups,
+        fused_steps: fusedSteps,
+        unique_color_transforms: uniqueColorTransforms,
+      },
     },
   };
 }
