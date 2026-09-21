@@ -71,4 +71,15 @@ describe("Gateway structural ownership", () => {
     expect(metadata).toContain('from "./capabilities/manifest"');
     expect(metadata).not.toContain("PRIMARY_CAPABILITIES");
   });
+  test("Control delta engine stays assembly-only", async () => {
+    const engine = await Bun.file("gateway/control/delta/engine.ts").text();
+    expect(engine).toContain('from "./freshness"');
+    expect(engine).toContain('from "./verification"');
+    expect(engine).toContain('from "./receipts"');
+    expect(engine).not.toContain("function locatorReceiptComplete");
+    expect(engine).not.toContain("function mutationFreshness");
+    expect(engine).not.toContain("function verificationClassForResult");
+    expect(engine.split("\n").length).toBeLessThan(140);
+  });
+
 });
