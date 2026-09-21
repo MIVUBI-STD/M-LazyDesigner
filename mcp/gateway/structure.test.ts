@@ -115,4 +115,26 @@ describe("Gateway structural ownership", () => {
     expect(sourceOwners.split("\n").length).toBeLessThan(90);
   });
 
+  test("Control packet stays orchestration-only", async () => {
+    const packet = await Bun.file("gateway/control/packet.ts").text();
+    expect(packet).toContain('from "./packetContext"');
+    expect(packet).toContain('from "./readiness"');
+    expect(packet).toContain('from "./packetData"');
+    expect(packet).not.toContain("function lifecycleForDomain");
+    expect(packet).not.toContain("function contextFamily");
+    expect(packet.split("\n").length).toBeLessThan(230);
+  });
+
+  test("reference package IO stays separate from pure normalization", async () => {
+    const io = await Bun.file("gateway/control/referencePackage.ts").text();
+    const parser = await Bun.file("gateway/control/referenceParser.ts").text();
+    expect(io).toContain("parseReferencePackage");
+    expect(io).toContain("readFile");
+    expect(io).toContain("stat");
+    expect(io).not.toContain("function profileValue");
+    expect(parser).toContain("function profileValue");
+    expect(parser).not.toContain("readFile");
+    expect(parser).not.toContain("stat(");
+  });
+
 });
