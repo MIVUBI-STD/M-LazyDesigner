@@ -16,6 +16,8 @@ export type UvNativeSourceSnapshot = {
   cubes: Array<{
     uuid: string;
     name: string;
+    from: [number, number, number];
+    to: [number, number, number];
     box_uv: boolean;
     uv_offset: [number, number] | null;
     autouv: number;
@@ -92,6 +94,8 @@ export function buildUvNativeSourceSnapshot(
       .map((cube) => ({
         uuid: cube.uuid,
         name: cube.name,
+        from: [cube.from[0], cube.from[1], cube.from[2]],
+        to: [cube.to[0], cube.to[1], cube.to[2]],
         box_uv: cube.box_uv,
         uv_offset: requireVec2(cube.uv_offset),
         autouv: cube.autouv,
