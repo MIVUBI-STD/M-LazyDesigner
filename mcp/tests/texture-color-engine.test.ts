@@ -379,10 +379,10 @@ describe("texture color intelligence core", () => {
     );
 
     expect(context.metrics.oklab_admission_disabled).toBe(false);
-    expect(context.metrics.oklab_cache_hits).toBeGreaterThan(
-      context.metrics.oklab_cache_misses
+    expect(context.metrics.nearest_cache_hits).toBeGreaterThan(
+      context.metrics.nearest_cache_misses
     );
-    expect(context.metrics.oklab_hit_ratio).toBeGreaterThan(0.9);
+    expect(context.metrics.oklab_cache_misses).toBeLessThanOrEqual(8);
     expect(context.metrics.oklab_peak_entries).toBeLessThanOrEqual(8);
   });
 
