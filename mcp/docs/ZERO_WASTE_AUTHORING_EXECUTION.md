@@ -133,3 +133,27 @@ verificationevidence:<sha256>
 ```
 
 Model-facing verification output is limited to state, domain/source, discrepancy count and at most six discrepancy summaries. Raw image/inspection payload remains local unless the actual visual judgement requires image delivery. A verification budget never removes a required domain check.
+
+## Correction-loop reuse
+
+Verification failure no longer needs to restart discovery/planning from scratch. A bounded Runtime-local correction loop can retain only the evidence required for the next correction decision:
+
+```text
+recipe source
+verification request
+verification evidence handle
+bounded discrepancy list
+attempt count
+evidence fingerprint
+```
+
+The loop reuses the same semantic target and verification scope, ranks bounded correction candidates through the existing deterministic correction solver, rewrites recipe source through the existing semantic rewrite owner, and emits only the resulting incremental rebuild.
+
+Stop rules:
+
+- first correction may use the current evidence;
+- a second correction requires a new verification evidence fingerprint;
+- repeating a correction attempt without new evidence returns `REPEATED_FAILURE_WITHOUT_NEW_EVIDENCE`;
+- no more than two bounded correction attempts are retained;
+- correction loop state is ephemeral and bounded, not a project history database;
+- mutation execution remains owned by the existing recipe/native transaction path.
