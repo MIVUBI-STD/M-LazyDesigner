@@ -72,6 +72,9 @@ describe("Gateway long-running reliability hardening", () => {
 
   test("connect, catalog and capability calls use MCP-native request timeouts", async () => {
     const source = await Bun.file("gateway/backend.ts").text();
+    const backendContract = await Bun.file(
+      "gateway/runtime/backendContract.ts"
+    ).text();
 
     expect(source).toContain(
       'versionNegotiation: { mode: "auto" }'
@@ -85,7 +88,7 @@ describe("Gateway long-running reliability hardening", () => {
     expect(source).toMatch(
       /this\.client!\.callTool\([\s\S]*?\{ timeout: this\.callTimeoutMs \}[\s\S]*?\)/
     );
-    expect(source).toContain("ErrorCode.RequestTimeout");
+    expect(backendContract).toContain("SdkErrorCode.RequestTimeout");
     expect(source).toContain("timedOut ? { timeout_ms: this.callTimeoutMs } : {}");
   });
 
