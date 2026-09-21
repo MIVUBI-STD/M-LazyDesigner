@@ -186,7 +186,8 @@ export function applyTextureComputePipeline(
     throw new Error("Texture compute pipeline requires 1 to 12 steps.");
   }
 
-  let pixels = new Uint8ClampedArray(source);
+  let pixels: Uint8ClampedArray<ArrayBufferLike> =
+    new Uint8ClampedArray(source);
   for (const step of steps) {
     pixels = applyStep(pixels, width, height, step);
   }
