@@ -1,0 +1,265 @@
+import { z } from "zod";
+import {
+  type TextureComputeStep,
+  type GradientMapMode,
+  type OrderedDitherMatrix,
+} from "@/lib/textureColorEngine";
+import { requiredHexColorSchema } from "@/lib/zodObjects";
+
+const matrixSchema = z.enum(["bayer2", "bayer4", "bayer8"]);
+const gradientModeSchema = z.enum(["nearest", "blend", "ordered"]);
+const paletteSchema = z.array(requiredHexColorSchema).min(1).max(64);
+const rampSchema = z.array(requiredHexColorSchema).min(2).max(16);
+
+const autoLevelsArgs = z.object({
+  low_clip_percent: z.number().min(0).max(49).optional(),
+  high_clip_percent: z.number().min(0).max(49).optional(),
+  strength: z.number().min(0).max(1).optional(),
+}).strict().refine(
+  (value) =>
+    (value.low_clip_percent ?? 0.5) +
+      (value.high_clip_percent ?? 0.5) <
+    100,
+  "auto_levels clip percentages must sum to less than 100."
+);
+
+const directionalShadeArgs = z.object({
+  source: z.enum(["lightness", "alpha"]).optional(),
+  invert: z.boolean().optional(),
+  azimuth_degrees: z.number().finite().optional(),
+  elevation_degrees: z.number().finite().min(-89).max(89).optional(),
+  depth: z.number().finite().min(0).max(32).optional(),
+  ambient: z.number().min(0).max(1).optional(),
+  strength: z.number().min(0).max(1).optional(),
+}).strict();
+
+const posterizeArgs = z.object({
+  levels: z.number().int().min(2).max(32),
+  strength: z.number().min(0).max(1).optional(),
+}).strict();
+
+const gradientArgs = z.object({
+  ramp: rampSchema,
+  mode: gradientModeSchema.optional(),
+  matrix: matrixSchema.optional(),
+}).strict();
+
+const generatedGradientArgs = z.object({
+  base_color: requiredHexColorSchema,
+  steps: z.number().int().min(2).max(16),
+  shadow_lightness_delta: z.number().min(-1).max(0).optional(),
+  highlight_lightness_delta: z.number().min(0).max(1).optional(),
+  shadow_hue_shift: z.number().finite().min(-180).max(180).optional(),
+  highlight_hue_shift: z.number().finite().min(-180).max(180).optional(),
+  shadow_chroma_scale: z.number().finite().min(0).max(4).optional(),
+  highlight_chroma_scale: z.number().finite().min(0).max(4).optional(),
+  mode: gradientModeSchema.optional(),
+  matrix: matrixSchema.optional(),
+}).strict();
+
+const palettizeArgs = z.object({
+  palette: paletteSchema,
+  dither: z.enum(["none", "ordered"]).optional(),
+  matrix: matrixSchema.optional(),
+}).strict();
+
+const paletteDiffusionArgs = z.object({
+  palette: paletteSchema,
+  strength: z.number().min(0).max(1).optional(),
+  serpentine: z.boolean().optional(),
+}).strict();
+
+export const textureComputeOperationNames = [
+  "auto_levels",
+  "directional_shade",
+  "posterize",
+  "gradient_map",
+  "generated_gradient_map",
+  "palettize",
+  "palette_diffusion",
+] as const;
+
+export type TextureComputeOperationName =
+  (typeof textureComputeOperationNames)[number];
+
+type RawStep = {
+  operation: TextureComputeOperationName;
+  args?: Record<string, unknown>;
+};
+
+function gradientOptions(
+  value: {
+    mode?: GradientMapMode;
+    matrix?: OrderedDitherMatrix;
+  }
+) {
+  return {
+    ...(value.mode === undefined ? {} : { mode: value.mode }),
+    ...(value.matrix === undefined ? {} : { matrix: value.matrix }),
+  };
+}
+
+export function parseTextureComputeSteps(
+  raw: readonly RawStep[]
+): TextureComputeStep[] {
+  if (raw.length < 1 || raw.length > 12) {
+    throw new Error("Texture compute pipeline requires 1 to 12 steps.");
+  }
+
+  return raw.map((step, index): TextureComputeStep => {
+    const args = step.args ?? {};
+    const prefix = `compute[${index}] ${step.operation}`;
+
+    try {
+      switch (step.operation) {
+        case "auto_levels": {
+          const parsed = autoLevelsArgs.parse(args);
+          return {
+            operation: "auto_levels",
+            options: {
+              ...(parsed.low_clip_percent === undefined
+                ? {}
+                : { lowClipPercent: parsed.low_clip_percent }),
+              ...(parsed.high_clip_percent === undefined
+                ? {}
+                : { highClipPercent: parsed.high_clip_percent }),
+              ...(parsed.strength === undefined
+                ? {}
+                : { strength: parsed.strength }),
+            },
+          };
+        }
+
+        case "directional_shade": {
+          const parsed = directionalShadeArgs.parse(args);
+          return {
+            operation: "directional_shade",
+            options: {
+              ...(parsed.source === undefined
+                ? {}
+                : { source: parsed.source }),
+              ...(parsed.invert === undefined
+                ? {}
+                : { invert: parsed.invert }),
+              ...(parsed.azimuth_degrees === undefined
+                ? {}
+                : { azimuthDegrees: parsed.azimuth_degrees }),
+              ...(parsed.elevation_degrees === undefined
+                ? {}
+                : { elevationDegrees: parsed.elevation_degrees }),
+              ...(parsed.depth === undefined
+                ? {}
+                : { depth: parsed.depth }),
+              ...(parsed.ambient === undefined
+                ? {}
+                : { ambient: parsed.ambient }),
+              ...(parsed.strength === undefined
+                ? {}
+                : { strength: parsed.strength }),
+            },
+          };
+        }
+
+        case "posterize": {
+          const parsed = posterizeArgs.parse(args);
+          return {
+            operation: "posterize",
+            options: {
+              levels: parsed.levels,
+              ...(parsed.strength === undefined
+                ? {}
+                : { strength: parsed.strength }),
+            },
+          };
+        }
+
+        case "gradient_map": {
+          const parsed = gradientArgs.parse(args);
+          return {
+            operation: "gradient_map",
+            ramp: parsed.ramp,
+            options: gradientOptions(parsed),
+          };
+        }
+
+        case "generated_gradient_map": {
+          const parsed = generatedGradientArgs.parse(args);
+          return {
+            operation: "generated_gradient_map",
+            base_color: parsed.base_color,
+            ramp: {
+              steps: parsed.steps,
+              ...(parsed.shadow_lightness_delta === undefined
+                ? {}
+                : {
+                    shadowLightnessDelta:
+                      parsed.shadow_lightness_delta,
+                  }),
+              ...(parsed.highlight_lightness_delta === undefined
+                ? {}
+                : {
+                    highlightLightnessDelta:
+                      parsed.highlight_lightness_delta,
+                  }),
+              ...(parsed.shadow_hue_shift === undefined
+                ? {}
+                : { shadowHueShift: parsed.shadow_hue_shift }),
+              ...(parsed.highlight_hue_shift === undefined
+                ? {}
+                : { highlightHueShift: parsed.highlight_hue_shift }),
+              ...(parsed.shadow_chroma_scale === undefined
+                ? {}
+                : {
+                    shadowChromaScale:
+                      parsed.shadow_chroma_scale,
+                  }),
+              ...(parsed.highlight_chroma_scale === undefined
+                ? {}
+                : {
+                    highlightChromaScale:
+                      parsed.highlight_chroma_scale,
+                  }),
+            },
+            options: gradientOptions(parsed),
+          };
+        }
+
+        case "palettize": {
+          const parsed = palettizeArgs.parse(args);
+          return {
+            operation: "palettize",
+            palette: parsed.palette,
+            options: {
+              ...(parsed.dither === undefined
+                ? {}
+                : { dither: parsed.dither }),
+              ...(parsed.matrix === undefined
+                ? {}
+                : { matrix: parsed.matrix }),
+            },
+          };
+        }
+
+        case "palette_diffusion": {
+          const parsed = paletteDiffusionArgs.parse(args);
+          return {
+            operation: "palette_diffusion",
+            palette: parsed.palette,
+            options: {
+              ...(parsed.strength === undefined
+                ? {}
+                : { strength: parsed.strength }),
+              ...(parsed.serpentine === undefined
+                ? {}
+                : { serpentine: parsed.serpentine }),
+            },
+          };
+        }
+      }
+    } catch (error) {
+      const reason =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`${prefix} is invalid: ${reason}`);
+    }
+  });
+}
