@@ -1,5 +1,6 @@
 import {
   autoLevelsRgba,
+  createTextureColorComputeContext,
   directionalShadeRgba,
   generateShadeRamp,
   gradientMapRgba,
@@ -13,6 +14,8 @@ import {
   type PalettizeOptions,
   type PosterizeOptions,
   type ShadeRampOptions,
+  type TextureColorComputeContext,
+  type TextureColorComputeMetrics,
 } from "@/lib/textureColorEngine";
 
 export type TextureComputeStep =
@@ -52,9 +55,13 @@ export type TextureComputeStep =
 
 export type TextureComputeReceipt = {
   operation_count: number;
+  requested_operation_count: number;
   operations: TextureComputeStep["operation"][];
+  skipped_operations: TextureComputeStep["operation"][];
+  rewrites: string[];
   changed_pixels: number;
   changed_rect: [number, number, number, number] | null;
+  color_cache: TextureColorComputeMetrics;
 };
 
 export type TextureComputeResult = {
@@ -106,25 +113,128 @@ function changedRect(
   };
 }
 
+function optimizeTextureComputeSteps(
+  steps: readonly TextureComputeStep[]
+): {
+  steps: TextureComputeStep[];
+  skipped: TextureComputeStep["operation"][];
+  rewrites: string[];
+} {
+  const optimized: TextureComputeStep[] = [];
+  const skipped: TextureComputeStep["operation"][] = [];
+  const rewrites: string[] = [];
+
+  for (const step of steps) {
+    if (
+      step.operation === "auto_levels" &&
+      step.options?.strength === 0
+    ) {
+      skipped.push(step.operation);
+      continue;
+    }
+    if (
+      step.operation === "directional_shade" &&
+      step.options?.strength === 0
+    ) {
+      skipped.push(step.operation);
+      continue;
+    }
+    if (
+      step.operation === "posterize" &&
+      step.options.strength === 0
+    ) {
+      skipped.push(step.operation);
+      continue;
+    }
+    if (
+      step.operation === "palette_diffusion" &&
+      step.options?.strength === 0
+    ) {
+      optimized.push({
+        operation: "palettize",
+        palette: step.palette,
+        options: { dither: "none" },
+      });
+      rewrites.push("palette_diffusion(strength=0)->palettize(nearest)");
+      continue;
+    }
+    if (
+      step.operation === "palettize" &&
+      step.palette.length === 1 &&
+      step.options?.dither === "ordered"
+    ) {
+      optimized.push({
+        ...step,
+        options: { ...step.options, dither: "none" },
+      });
+      rewrites.push("single_color_ordered_palettize->nearest");
+      continue;
+    }
+    if (
+      step.operation === "gradient_map" &&
+      step.options?.mode === "ordered" &&
+      new Set(step.ramp.map((color) => color.toUpperCase())).size === 1
+    ) {
+      optimized.push({
+        ...step,
+        options: { ...step.options, mode: "nearest" },
+      });
+      rewrites.push("constant_ordered_gradient->nearest");
+      continue;
+    }
+    optimized.push(step);
+  }
+
+  if (optimized.length === 0) {
+    throw new Error(
+      "Texture compute pipeline contains only no-op steps; no authored change is required."
+    );
+  }
+  return { steps: optimized, skipped, rewrites };
+}
+
+function bitmapAlreadyInPalette(
+  pixels: Uint8ClampedArray,
+  palette: readonly string[]
+): boolean {
+  const allowed = new Set(
+    palette.map((color) => {
+      const normalized = color.slice(1, 7).toUpperCase();
+      return normalized;
+    })
+  );
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    if (pixels[offset + 3] === 0) continue;
+    const key =
+      pixels[offset].toString(16).padStart(2, "0") +
+      pixels[offset + 1].toString(16).padStart(2, "0") +
+      pixels[offset + 2].toString(16).padStart(2, "0");
+    if (!allowed.has(key.toUpperCase())) return false;
+  }
+  return true;
+}
+
 function applyStep(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
-  step: TextureComputeStep
+  step: TextureComputeStep,
+  context: TextureColorComputeContext
 ): Uint8ClampedArray {
   switch (step.operation) {
     case "auto_levels":
-      return autoLevelsRgba(pixels, width, height, step.options);
+      return autoLevelsRgba(pixels, width, height, step.options, context);
 
     case "directional_shade":
-      return directionalShadeRgba(pixels, width, height, step.options);
+      return directionalShadeRgba(pixels, width, height, step.options, context);
 
     case "posterize":
       return posterizeLightnessRgba(
         pixels,
         width,
         height,
-        step.options
+        step.options,
+        context
       );
 
     case "gradient_map":
@@ -133,7 +243,8 @@ function applyStep(
         width,
         height,
         step.ramp,
-        step.options
+        step.options,
+        context
       );
 
     case "generated_gradient_map": {
@@ -143,7 +254,8 @@ function applyStep(
         width,
         height,
         ramp,
-        step.options
+        step.options,
+        context
       );
     }
 
@@ -153,7 +265,8 @@ function applyStep(
         width,
         height,
         step.palette,
-        step.options
+        step.options,
+        context
       );
 
     case "palette_diffusion":
@@ -162,7 +275,8 @@ function applyStep(
         width,
         height,
         step.palette,
-        step.options
+        step.options,
+        context
       );
   }
 }
@@ -186,10 +300,23 @@ export function applyTextureComputePipeline(
     throw new Error("Texture compute pipeline requires 1 to 12 steps.");
   }
 
-  let pixels: Uint8ClampedArray<ArrayBufferLike> =
-    new Uint8ClampedArray(source);
-  for (const step of steps) {
-    pixels = applyStep(pixels, width, height, step);
+  const plan = optimizeTextureComputeSteps(steps);
+  const context = createTextureColorComputeContext();
+  let pixels: Uint8ClampedArray<ArrayBufferLike> = source;
+  const executed: TextureComputeStep["operation"][] = [];
+  const skipped = [...plan.skipped];
+
+  for (const step of plan.steps) {
+    if (
+      (step.operation === "palettize" ||
+        step.operation === "palette_diffusion") &&
+      bitmapAlreadyInPalette(pixels, step.palette)
+    ) {
+      skipped.push(step.operation);
+      continue;
+    }
+    pixels = applyStep(pixels, width, height, step, context);
+    executed.push(step.operation);
   }
 
   const changed = changedRect(source, pixels, width, height);
@@ -202,10 +329,14 @@ export function applyTextureComputePipeline(
   return {
     pixels,
     receipt: {
-      operation_count: steps.length,
-      operations: steps.map((step) => step.operation),
+      operation_count: executed.length,
+      requested_operation_count: steps.length,
+      operations: executed,
+      skipped_operations: skipped,
+      rewrites: plan.rewrites,
       changed_pixels: changed.count,
       changed_rect: changed.rect,
+      color_cache: { ...context.metrics },
     },
   };
 }
