@@ -23,7 +23,9 @@ export type UvApplyAdapter = {
   restore(
     snapshot: UvNativeSourceSnapshot
   ): Promise<void> | void;
-  beginUndo?(): Promise<void> | void;
+  beginUndo?(
+    instructions: readonly UvNativeMutationInstruction[]
+  ): Promise<void> | void;
   commitUndo?(): Promise<void> | void;
   cancelUndo?(): Promise<void> | void;
 };
@@ -38,7 +40,7 @@ export async function applyUvLayoutPlanAtomic(
   assertUvPlanSourceFresh(expectedSourceFingerprint, before);
   const instructions = translateUvPlanToNativeInstructions(plan);
 
-  await adapter.beginUndo?.();
+  await adapter.beginUndo?.(instructions);
   try {
     await adapter.apply(instructions);
     const after = await adapter.readSource();
