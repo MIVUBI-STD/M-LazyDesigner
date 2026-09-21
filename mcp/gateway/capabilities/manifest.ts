@@ -2,6 +2,10 @@ import type {
   CapabilityBranchHint,
   CapabilityFact,
 } from "./types";
+import {
+  capabilitySemanticId,
+  type CapabilitySemanticId,
+} from "../../lib/semantic/identity";
 
 export type {
   CapabilityBranchHint,
@@ -27,6 +31,7 @@ export type CapabilityGraphSpec = {
 };
 
 export type CapabilityBranchManifestEntry = {
+  id: CapabilitySemanticId;
   capability: string;
   branch?: CapabilityBranchHint;
   schemaFields?: readonly string[];
@@ -44,7 +49,10 @@ export type CapabilityBranchManifestEntry = {
  *
  * Runtime executor schemas remain authoritative for validation.
  */
-export const CAPABILITY_BRANCH_MANIFEST: readonly CapabilityBranchManifestEntry[] = [
+const CAPABILITY_BRANCH_SPECS: readonly Omit<
+  CapabilityBranchManifestEntry,
+  "id"
+>[] = [
   {
     capability: "manage_cubes",
     branch: { field: "operation", value: "create" },
@@ -578,6 +586,12 @@ export const CAPABILITY_BRANCH_MANIFEST: readonly CapabilityBranchManifestEntry[
     },
   },
 ];
+
+export const CAPABILITY_BRANCH_MANIFEST: readonly CapabilityBranchManifestEntry[] =
+  CAPABILITY_BRANCH_SPECS.map((entry) => ({
+    ...entry,
+    id: capabilitySemanticId(entry.capability, entry.branch),
+  }));
 
 export function manifestEntriesForCapability(
   capability: string
