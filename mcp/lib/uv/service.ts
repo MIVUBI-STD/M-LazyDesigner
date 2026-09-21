@@ -7,7 +7,10 @@ import {
   assignUvConstraints,
   constraintResolverFromAssignments,
 } from "@/lib/uv/constraints";
-import { buildUvLayoutSnapshot } from "@/lib/uv/islands";
+import {
+  buildUvLayoutSnapshot,
+  type UvCubeSnapshot,
+} from "@/lib/uv/islands";
 import { planUvDensity } from "@/lib/uv/density";
 import { planUvPacking } from "@/lib/uv/packing/planner";
 import { discoverUvStackProposals } from "@/lib/uv/stacking";
@@ -31,6 +34,29 @@ export type UvLayoutPlanningInput = {
   include_implicit_stack_candidates?: boolean;
 };
 
+function nativeCubesForCore(
+  native: UvNativeSourceSnapshot
+): UvCubeSnapshot[] {
+  return native.cubes.map((cube) => ({
+    uuid: cube.uuid,
+    name: cube.name,
+    from: [...cube.from],
+    to: [...cube.to],
+    box_uv: cube.box_uv,
+    ...(cube.uv_offset !== null
+      ? { uv_offset: [...cube.uv_offset] }
+      : {}),
+    autouv: cube.autouv,
+    mirror_uv: cube.mirror_uv,
+    faces: cube.faces.map((face) => ({
+      face: face.face,
+      uv: [...face.uv],
+      rotation: face.rotation,
+      enabled: face.enabled,
+    })),
+  }));
+}
+
 export type UvLayoutServiceDependencies = {
   readSource(): Promise<UvNativeSourceSnapshot> | UvNativeSourceSnapshot;
   createApplyAdapter(): UvApplyAdapter;
@@ -45,8 +71,9 @@ export function createUvLayoutService(
       const native = await dependencies.readSource();
       const sourceFingerprint = fingerprintUvNativeSource(native);
 
+      const coreCubes = nativeCubesForCore(native);
       const base = buildUvLayoutSnapshot(
-        native.cubes,
+        coreCubes,
         native.logical_width,
         native.logical_height
       );
@@ -55,7 +82,7 @@ export function createUvLayoutService(
         input.constraints ?? []
       );
       const constrained = buildUvLayoutSnapshot(
-        native.cubes,
+        coreCubes,
         native.logical_width,
         native.logical_height,
         constraintResolverFromAssignments(assignments)

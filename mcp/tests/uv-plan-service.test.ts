@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { UvPlanRegistry } from "@/lib/uv/planRegistry";
+import type { UvLayoutPlan } from "@/lib/uv/contracts";
 import { createUvLayoutService } from "@/lib/uv/service";
 import {
   buildUvNativeSourceSnapshot,
@@ -58,7 +59,7 @@ describe("UV plan registry and service", () => {
       moved_island_ids: [],
       fixed_island_ids: [],
       placement_transforms: [],
-    } as const;
+    } as unknown as UvLayoutPlan;
     const fakeReport = {
       schema: 1,
       execution: "planned",

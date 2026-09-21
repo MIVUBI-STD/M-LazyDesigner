@@ -94,8 +94,16 @@ export function buildUvNativeSourceSnapshot(
       .map((cube) => ({
         uuid: cube.uuid,
         name: cube.name,
-        from: [cube.from[0], cube.from[1], cube.from[2]],
-        to: [cube.to[0], cube.to[1], cube.to[2]],
+        from: [
+          cube.from[0],
+          cube.from[1],
+          cube.from[2],
+        ] as [number, number, number],
+        to: [
+          cube.to[0],
+          cube.to[1],
+          cube.to[2],
+        ] as [number, number, number],
         box_uv: cube.box_uv,
         uv_offset: requireVec2(cube.uv_offset),
         autouv: cube.autouv,
