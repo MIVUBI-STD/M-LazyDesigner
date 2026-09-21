@@ -13,6 +13,8 @@ import {
   requirePaintTransactionV1Target,
 } from "@/lib/paintTransactionPolicy";
 import { computeTextureRevision } from "@/lib/textureRevision";
+import { applyTextureComputePipeline } from "@/lib/textureComputePipeline";
+import { parseTextureComputeSteps } from "@/lib/textureComputeRequest";
 import {
   cropRgbaRect,
   fullTextureRgba,
@@ -22,7 +24,7 @@ import {
 export const paintTextureTransactionToolDocs: ToolSpec = {
   name: PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
   description:
-    "Applies bounded exact-pixel operations or Cube AO to one non-layered texture with revision protection and one Undo. Optional output atomically saves a verified PNG.",
+    "Applies bounded pixel operations, texture compute, or Cube AO with revision protection and one Undo.",
   annotations: {
     title: "Paint Texture Transaction",
     destructiveHint: true,
@@ -163,7 +165,7 @@ export function registerPaintTextureTransactionTool(): void {
     {
       ...paintTextureTransactionToolDocs,
       parameters: paintTransactionParameters,
-      async execute({ texture_id, expected_revision, operations, ambient_occlusion, output }) {
+      async execute({ texture_id, expected_revision, operations, compute, ambient_occlusion, output }) {
         const texture = resolvePaintTexture(texture_id);
         requirePaintTransactionV1Target({
           texture_uuid: texture.uuid,
@@ -183,12 +185,35 @@ export function registerPaintTextureTransactionTool(): void {
           );
         }
 
-        const applied = ambient_occlusion ? bakeNativeCubeAo(texture,before.pixels,before.width,before.height,ambient_occlusion) : applyPaintTransactionRgba(
-          before.pixels,
-          before.width,
-          before.height,
-          operations!
-        );
+        const computeResult = compute
+          ? applyTextureComputePipeline(
+              before.pixels,
+              before.width,
+              before.height,
+              parseTextureComputeSteps(compute)
+            )
+          : null;
+        const applied = computeResult
+          ? {
+              pixels: computeResult.pixels,
+              operation_count: computeResult.receipt.operation_count,
+              pixel_writes: computeResult.receipt.changed_pixels,
+              affected_rect: computeResult.receipt.changed_rect!,
+            }
+          : ambient_occlusion
+            ? bakeNativeCubeAo(
+                texture,
+                before.pixels,
+                before.width,
+                before.height,
+                ambient_occlusion
+              )
+            : applyPaintTransactionRgba(
+                before.pixels,
+                before.width,
+                before.height,
+                operations!
+              );
         const plannedAfterRevision = await computeTextureRevision(
           applied.pixels,
           before.width,
@@ -330,6 +355,15 @@ export function registerPaintTextureTransactionTool(): void {
           ],
           structuredContent: {
             ...plannedReceipt,
+            compute: computeResult
+              ? {
+                  operation_count:
+                    computeResult.receipt.operation_count,
+                  operations: computeResult.receipt.operations,
+                  changed_pixels:
+                    computeResult.receipt.changed_pixels,
+                }
+              : null,
             visual_evidence: affectedRegionImage
               ? {
                   kind: "affected_region_png",
