@@ -188,6 +188,35 @@ No `generate_animation` or second animation tool family was registered. Native m
 
 Further source expansion must be evidence-driven. Do not add a generic animation graph language, physics engine, or large motion-template library before benchmark/live evidence demonstrates a concrete need.
 
+## Procedural Texture / Material Recipe Engine — Remote Source Status
+
+Remote source now includes:
+
+```text
+material intent presets              IMPLEMENTED
+gradient/noise/palette/dither        IMPLEMENTED
+edge/cavity/wear masks               IMPLEMENTED
+surface patterns                     IMPLEMENTED
+source composition                   IMPLEMENTED
+affected-region diff                 IMPLEMENTED
+existing texture refinement compile  IMPLEMENTED
+semantic PBR intent compile          IMPLEMENTED
+new-source native plan               IMPLEMENTED
+static efficiency benchmark          IMPLEMENTED / LOCAL RUN PENDING
+```
+
+The implementation deliberately reuses existing native owners:
+
+```text
+new texture source      → create_texture
+existing texture refine → paint_texture_transaction.compute
+PBR material            → create_pbr_material / configure_material
+```
+
+No procedural-material public tool, visual node editor, second Painter, or background renderer was introduced.
+
+Further source expansion must be evidence-driven. Do not add a large material-node graph, generalized shader language, or duplicated bitmap mutation engine before local/live evidence demonstrates a concrete gap.
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
