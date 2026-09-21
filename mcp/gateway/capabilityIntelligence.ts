@@ -315,7 +315,7 @@ function phaseBoost(capability: string, context?: CapabilityRoutingContext): num
   const active = context?.authoringPhase;
   if (!active) return 0;
   const phase = classifyMcpToolPhaseByName(capability);
-  if (!phase) return 2;
+  if (!phase || phase === "core") return 2;
   return phase === active ? 18 : -8;
 }
 
