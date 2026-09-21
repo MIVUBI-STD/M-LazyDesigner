@@ -24,7 +24,8 @@ export type {
   ProjectedControlStageContext,
 } from "./contextHeadroom";
 export { decorateCapabilities, projectCapabilitiesForSearch } from "./capabilities";
-export { buildControlDelta, projectControlDeltaForGateway } from "./delta/engine";
+export { buildControlDelta } from "./delta/engine";
+export { projectControlDeltaForGateway } from "./delta/projection";
 export {
   nextActionForControlDelta,
   reduceControlExecutionState,
