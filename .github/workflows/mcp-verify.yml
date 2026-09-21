@@ -86,6 +86,9 @@ jobs:
       - name: Guard capability intelligence routing
         run: bun run eval:capability-intelligence
 
+      - name: Guard Gateway decision efficiency
+        run: bun run eval:decision-efficiency
+
       - name: Guard total-context Zero-Waste regression
         run: bun run benchmark:zero-waste-total
 
