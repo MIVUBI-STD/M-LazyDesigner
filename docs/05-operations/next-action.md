@@ -118,6 +118,19 @@ Next integration rule:
 
 Current commit foundation has source review only; CI/local/native PASS must not be claimed until those proofs run.
 
+Current UV automation continuation:
+
+```text
+lib/uv/maxRectsPlanner.ts       reserved/locked-aware deterministic packing
+lib/uv/semanticPlanner.ts       cohort density + sharing + affected-only replanning
+lib/uv/semanticDiff.ts          bounded upsert/remove/unchanged diff
+lib/uv/authoringRecipeUv.ts     Parametric symmetry → explicit mirrored face ownership
+lib/uv/nativeApplyPlan.ts       data-only native UV operation plan
+```
+
+Remote source now reaches the native boundary without mutating Blockbench. Next UV work is bounded to existing UV/Texturing ownership: derive targets from live Cube faces/Box-UV state, apply one atomic affected-only Undo transaction, preserve exact pixel-grid/rotation semantics, then benchmark against explicit UV editing. Do not add a second UV capability family.
+
+
 ## LOCAL_CODE / LIVE_BLOCKBENCH Residue
 
 LOCAL_CODE owns only toolchain/filesystem/generator work that cannot be completed in REMOTE_GITHUB.
