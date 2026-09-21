@@ -40,20 +40,32 @@ Current implementation state:
 
 ```text
 C1 ROI + dirty-scope propagation          SOURCE IMPLEMENTED
-C2 pointwise pass fusion                  SOURCE IMPLEMENTED; HARDEN NEXT
+C2 pointwise pass fusion                  SOURCE IMPLEMENTED + HARDENED
 C3 streaming Sobel/directional shading    SOURCE IMPLEMENTED
-C4 adaptive color/palette caches          SOURCE IMPLEMENTED; VERIFY CURRENT SHA
-C5 measured planner cost model            NEXT AFTER C2/C4 GATES
+C4 adaptive color/palette caches          SOURCE IMPLEMENTED + ENTROPY-AWARE
+C5 measured planner cost model            SOURCE IMPLEMENTED
 ```
 
 Do not add more texture filters. Do not add GPU/WASM/workers/persistent compute caches/search trees before C1–C4 are measured.
 
 Immediate order:
 
-1. make current C4 regression/source gate green;
-2. harden C2 fused execution allocation/state reuse without changing output;
-3. add C5 measured planner cost proxies and policy;
-4. continue low-risk AI-context progressive disclosure only where evidence shows payload waste.
+1. do not add another texture-compute architecture layer without new evidence;
+2. use the C5 planner metrics to rank remaining hot paths;
+3. reserve wall-clock/GC tuning for LOCAL_CODE benchmark evidence;
+4. continue low-risk AI-context progressive disclosure only where measured payload waste remains.
+
+Latest compute code gate:
+
+```text
+d7ff5eb6a4400f8cea25006d5df664d04cc1eb21
+MCP Verify PASS
+Runtime regression PASS
+authoring contracts PASS
+Zero-Waste guard PASS
+efficiency/surface/phase measurements PASS
+compatibility build PASS
+```
 
 C2 acceptance:
 
