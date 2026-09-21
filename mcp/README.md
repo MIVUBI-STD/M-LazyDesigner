@@ -104,7 +104,7 @@ Tiering affects discovery priority only. Known capabilities are invoked directly
 
 Gateway fallback discovery is local and deterministic: BM25 lexical scoring is combined with branch-level semantic metadata and the active authoring phase as a ranking prior. Search may return a compact branch hint (for example `manage_cubes operation=update`); clients should pass that branch to `describe_capability` so unrelated schema branches remain deferred. No embedding model, vector database, external API or extra LLM routing call is required.
 
-Branch-level routing metadata is canonicalized in `gateway/capabilityManifest.ts`. Semantic discovery, dependency/precondition graph and deferred branch-schema projection are derived from that manifest so those three AI-facing decisions cannot drift independently. Runtime executor schemas remain the validation authority; lifecycle/execution metadata stays separately owned until its migration is proven by contract tests.
+Branch-level routing metadata is canonicalized in `gateway/capabilities/manifest.ts`. Semantic discovery, dependency/precondition graph and deferred branch-schema projection are derived from that manifest so those three AI-facing decisions cannot drift independently. Runtime executor schemas remain the validation authority; lifecycle/execution metadata stays separately owned until its migration is proven by contract tests.
 
 Routing quality is guarded separately from static schema-size budgets by `bun run eval:capability-intelligence`, which exercises the actual Gateway search path for Top-1/Top-3 discovery, branch accuracy and bounded projected search payload size.
 
@@ -173,6 +173,8 @@ Normal authoring includes Cube/Group authoring, hierarchy/rig/pivots, Locator/Nu
 ## Source Layout
 
 ```text
+lib/capabilities/         canonical capability-level metadata (tier/phase/lifecycle/effects)
+gateway/capabilities/     canonical AI routing metadata + search/dependency engines
 gateway/control/          canonical LazyDesigner Control
 gateway/                  stable client boundary + Runtime adapter/recovery
 index.ts                  thin Blockbench plugin orchestration
