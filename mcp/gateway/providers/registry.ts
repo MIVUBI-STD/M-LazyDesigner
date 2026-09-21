@@ -3,7 +3,7 @@ import {
   type BackendTool,
   type CapabilitySummary,
   type JsonRecord,
-} from "../contract";
+} from "../protocol";
 import {
   VANILLA_ENTITY_REFERENCE_TOOL,
   VanillaEntityReferenceProvider,
