@@ -115,15 +115,29 @@ export type UvPackingScore = {
   semantic_spread: number;
 };
 
+export type UvPackingMode =
+  | "REPACK_ALL"
+  | "ADD_ONLY"
+  | "AFFECTED_ONLY"
+  | "REPACK_SELECTED";
+
+export type UvIslandPlacementTransform = {
+  island_id: string;
+  rotated_90: boolean;
+};
+
 export type UvLayoutPlan = {
   schema: 1;
   planner_version: number;
   backend: UvPackingBackendId;
   backend_version: number;
+  mode: UvPackingMode;
   before: UvLayoutSnapshot;
   proposed: UvLayoutSnapshot;
   score: UvPackingScore;
   moved_island_ids: string[];
+  fixed_island_ids: string[];
+  placement_transforms: UvIslandPlacementTransform[];
 };
 
 export type UvLayoutReceipt = {
