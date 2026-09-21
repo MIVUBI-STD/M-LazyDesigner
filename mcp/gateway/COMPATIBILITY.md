@@ -7,6 +7,7 @@ The files below exist only to preserve older internal/external import paths duri
 | Compatibility path | Canonical owner |
 | --- | --- |
 | `gateway/contract.ts` | `gateway/protocol.ts` + focused owner modules |
+| `gateway/controlReceipt.ts` | `gateway/control/receipt.ts` |
 | `gateway/capabilityManifest.ts` | `gateway/capabilities/manifest.ts` |
 | `gateway/capabilityIntelligence.ts` | `gateway/capabilities/intelligence.ts` |
 | `gateway/capabilityGraph.ts` | `gateway/capabilities/graph.ts` |
