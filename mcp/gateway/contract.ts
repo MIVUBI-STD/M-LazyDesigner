@@ -474,7 +474,7 @@ export function searchCapabilityCatalog(
       };
     })
     .filter(({ tier, semantic }) =>
-      hasQuery ? semantic.score > 0 : tier !== "maintenance"
+      hasQuery ? semantic.matched : tier !== "maintenance"
     )
     .sort(
       (left, right) =>
