@@ -1,4 +1,4 @@
-import type { CapabilitySummary } from "../contract";
+import type { CapabilitySummary } from "../protocol";
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
