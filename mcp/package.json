@@ -41,7 +41,7 @@
     "verify:authoring": "bun test tests/authoring/*.test.ts",
     "verify:fixture-static": "bun test tests/authoring/current-workspace-fixture-static.test.ts",
     "verify:closure": "bun run verify:repository && bun run verify:authoring && bun run docs:check",
-    "verify:mcp": "bun run docs:check && bun run typecheck && bun run typecheck:gateway && bun run audit:unused && bun run audit:unused:gateway && bun run test:runtime && bun run verify:authoring && bun run benchmark:zero-waste-total && bun run benchmark:parametric-authoring && bun run benchmark:semantic-uv && bun run benchmark:semantic-rig && bun run benchmark:motion-recipe && bun run measure:mcp-efficiency && bun run measure:surface && bun run measure:phases && bun run build",
+    "verify:mcp": "bun run docs:check && bun run typecheck && bun run typecheck:gateway && bun run audit:unused && bun run audit:unused:gateway && bun run test:runtime && bun run verify:authoring && bun run benchmark:zero-waste-total && bun run benchmark:parametric-authoring && bun run benchmark:semantic-uv && bun run benchmark:semantic-rig && bun run benchmark:motion-recipe && bun run benchmark:material-recipe && bun run measure:mcp-efficiency && bun run measure:surface && bun run measure:phases && bun run build",
     "verify:full": "bun run verify:repository && bun run verify:mcp",
     "verify:release": "bun run verify:full",
     "eval:tool-discovery": "bun run ./scripts/evaluate-tool-discovery.ts",
@@ -77,7 +77,8 @@
     "benchmark:parametric-authoring": "bun run ./scripts/benchmark-parametric-authoring.ts",
     "benchmark:semantic-uv": "bun run ./scripts/benchmark-semantic-uv.ts",
     "benchmark:semantic-rig": "bun run ./scripts/benchmark-semantic-rig.ts",
-    "benchmark:motion-recipe": "bun run ./scripts/benchmark-motion-recipe.ts"
+    "benchmark:motion-recipe": "bun run ./scripts/benchmark-motion-recipe.ts",
+    "benchmark:material-recipe": "bun run ./scripts/benchmark-material-recipe.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
