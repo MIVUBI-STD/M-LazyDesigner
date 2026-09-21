@@ -76,13 +76,27 @@ MAINTENANCE  legacy/debug fallback
 
 `search_capabilities` defaults to at most four results. Search results carry Control domain/source-owner metadata but not duplicate full schemas.
 
-Canonical capability phase classification is owned by:
+Canonical named capability metadata is owned by:
 
 ```text
-mcp/lib/authoringPhase.ts
+mcp/lib/capabilities/manifest.ts
 ```
 
-Control does not maintain a second Geometry/Texturing/Animation capability table.
+`authoringPhase.ts` retains registration-family fallback logic only. AI-facing branch/search/dependency metadata is owned by `gateway/capabilities/`. Control does not maintain a second Geometry/Texturing/Animation capability table.
+
+## Internal Ownership
+
+```text
+gateway/capabilities/  AI discovery, branch schemas, preconditions/effects
+gateway/runtime/       Runtime connection, affinity, recovery, session state
+gateway/providers/     optional Gateway-local capabilities
+gateway/control/       Control packets, context, freshness, orchestration
+backend.ts             Runtime adapter/orchestration boundary
+index.ts               stable four-tool stdio composition root
+contract.ts            client-facing Gateway result/search contracts
+```
+
+Same-named files retained at the `gateway/` root for migrated modules are compatibility re-exports only.
 
 ## Project / Tab Affinity
 
