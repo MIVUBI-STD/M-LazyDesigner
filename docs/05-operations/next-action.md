@@ -44,22 +44,29 @@ Current parametric status:
 G0 recipe contracts + proof metrics          SOURCE IMPLEMENTED
 G1 relational anchor constraint solver       SOURCE IMPLEMENTED
 G2 LINEAR / GRID / RADIAL patterns           SOURCE IMPLEMENTED
-G3 symmetry relationships                    NEXT
-G4 parametric components                     AFTER G3
-G5 dependency-aware incremental rebuild      AFTER G4
-native recipe apply                          AFTER G3-G5 contracts stabilize
+G3 cross-domain symmetry relationships       SOURCE IMPLEMENTED
+G4 reusable parametric components             SOURCE IMPLEMENTED
+G5 compiled-diff incremental rebuild          SOURCE IMPLEMENTED
+stable Cube recipe ownership                 SOURCE IMPLEMENTED
+atomic affected-only transaction contract    SOURCE IMPLEMENTED
+Blockbench affected-only adapter             SOURCE IMPLEMENTED
+bounded recipe plan-handle service           SOURCE IMPLEMENTED
+project recipe-source store                  SOURCE IMPLEMENTED / WRITE PROOF PENDING
+public recipe capability registration        DEFERRED UNTIL GENERATOR + NATIVE PROOF
 ```
 
 Permanent CI proof now guards repeated-structure payload/call efficiency. Current exact fixtures show ~89.9–97.8% serialized payload-proxy reduction; >32-Cube fixtures reduce static mutation batches by 50–75%. These are not wall-clock or token claims.
 
 Immediate order:
 
-1. build G3 symmetry as explicit semantic counterpart relationships, not naive coordinate mirroring;
-2. build G4 components from prototypes + anchors + constraints + patterns;
-3. add dependency graph and affected-only recompilation before any native recipe mutation surface;
-4. preserve lightweight recipe instances until final realization;
-5. require LOCAL_CODE wall-clock/memory benchmarks before claiming runtime speed;
-6. require LIVE_BLOCKBENCH accepted-result/correction evidence before claiming end-to-end quality superiority.
+1. keep recipe instances lightweight and use compiled-diff for native affected-only realization; do not add a second dependency database;
+2. keep existing MCP primitives intact; parametric automation remains additive intelligence;
+3. do not register a public parametric Runtime capability from REMOTE_GITHUB because generated API output is generator-owned;
+4. in LOCAL_CODE, benchmark recipe compile / explicit generation / affected-only rebuild for wall-clock, allocations and memory;
+5. prove how the private ModelProject recipe-store Property participates in Undo before wiring store writes into native apply;
+6. only after generator-backed registration, use LIVE_BLOCKBENCH for mixed create/update/remove Undo, save/reopen ownership, viewport responsiveness, and accepted-result/correction-round evidence.
+
+Current remote source architecture has reached the point where speculative layers are more likely to add maintenance cost than improve accepted-result efficiency.
 
 Do not replace Builder Engine, do not add a visual node editor, and do not make AI emit explicit Cube coordinates when a pattern/constraint expresses the same intent.
 
