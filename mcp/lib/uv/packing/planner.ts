@@ -133,9 +133,20 @@ export function planUvPacking(
   const fixed = snapshot.islands.filter(
     (island) => !movableIds.has(island.id)
   );
-  const occupied = fixed.map((island) =>
-    toPackingRect(island.rect)
-  );
+  const occupiedMap = new Map<string, UvPackingRect>();
+  for (const island of fixed) {
+    const rect = toPackingRect(island.rect);
+    const key = [
+      rect.x,
+      rect.y,
+      rect.width,
+      rect.height,
+    ].join(":");
+    if (!occupiedMap.has(key)) {
+      occupiedMap.set(key, rect);
+    }
+  }
+  const occupied = [...occupiedMap.values()];
 
   const items: UvPackingItem[] = movable.map((island) => {
     const override = options.size_overrides?.[island.id];

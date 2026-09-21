@@ -38,7 +38,7 @@ describe("UV Core density planning", () => {
     expect(measurement.target_pixels_per_model_unit).toBeNull();
   });
 
-  test("NORMALIZE and CUSTOM constraints produce size proposals only", () => {
+  test("NORMALIZE and CUSTOM constraints produce size proposals only where native mapping can represent them", () => {
     const snapshot = buildUvLayoutSnapshot(
       [
         {
@@ -91,9 +91,13 @@ describe("UV Core density planning", () => {
       (proposal) => proposal.island_id === "face:logo:north"
     )!;
 
-    // Body already has 2 physical px/model-unit at a 2x bitmap scale.
+    // Box UV footprint size is geometry-owned; density is diagnostic only.
     expect(body.changed).toBe(false);
     expect(body.proposed_size).toEqual([32, 16]);
+    const bodyMeasurement = plan.measurements.find(
+      (measurement) => measurement.island_id === "box:body"
+    )!;
+    expect(bodyMeasurement.target_pixels_per_model_unit).toBeNull();
 
     // Logo requests 4 * 1.5 = 6 physical px/model-unit.
     expect(logo.target_pixels_per_model_unit).toBe(6);

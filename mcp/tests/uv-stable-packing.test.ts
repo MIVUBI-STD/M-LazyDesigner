@@ -71,6 +71,60 @@ describe("UV stable packing modes", () => {
     expect(plan.moved_island_ids).toEqual(["face:new:north"]);
   });
 
+  test("ADD_ONLY tolerates exact fixed UV reuse without treating it as illegal occupied overlap", () => {
+    const snapshot = buildUvLayoutSnapshot(
+      [
+        {
+          uuid: "left",
+          name: "left",
+          from: [0,0,0],
+          to: [4,4,1],
+          box_uv: false,
+          autouv: 0,
+          mirror_uv: false,
+          faces: [{ face: "north", uv: [0,0,4,4] }],
+        },
+        {
+          uuid: "right",
+          name: "right",
+          from: [0,0,0],
+          to: [4,4,1],
+          box_uv: false,
+          autouv: 0,
+          mirror_uv: true,
+          faces: [{ face: "north", uv: [0,0,4,4] }],
+        },
+        {
+          uuid: "new",
+          name: "new",
+          from: [0,0,0],
+          to: [2,2,1],
+          box_uv: false,
+          autouv: 0,
+          mirror_uv: false,
+          faces: [{ face: "north", uv: [12,0,14,2] }],
+        },
+      ],
+      32,
+      32,
+      (island) =>
+        island.source.cube_name === "new"
+          ? { padding_pixels: 0 }
+          : { locked: true, stack_group: "arms", padding_pixels: 0 }
+    );
+    const plan = planUvPacking(snapshot, {
+      bitmap_width: 32,
+      bitmap_height: 32,
+      mode: "ADD_ONLY",
+      island_ids: ["face:new:north"],
+    });
+    expect(plan.score.valid).toBe(true);
+    expect(plan.fixed_island_ids).toEqual([
+      "face:left:north",
+      "face:right:north",
+    ]);
+  });
+
   test("AFFECTED_ONLY repacks only explicit affected islands", () => {
     const snapshot = snapshotFixture();
     const plan = planUvPacking(snapshot, {
