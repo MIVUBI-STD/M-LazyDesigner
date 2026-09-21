@@ -54,4 +54,19 @@ describe("Control source-owner registry", () => {
       specialist: null,
     });
   });
+  test("source-owner modules match canonical authoring domains", () => {
+    for (const key of Object.keys(GEOMETRY_SOURCE_OWNERS)) {
+      expect(authoringDomainForCapability(key)).toBe("GEOMETRY");
+    }
+    for (const key of Object.keys(TEXTURING_SOURCE_OWNERS)) {
+      expect(authoringDomainForCapability(key)).toBe("TEXTURING");
+    }
+    for (const key of Object.keys(ANIMATION_SOURCE_OWNERS)) {
+      expect(authoringDomainForCapability(key)).toBe("ANIMATION");
+    }
+    for (const key of Object.keys(CORE_SOURCE_OWNERS)) {
+      expect(authoringDomainForCapability(key)).toBe("CORE");
+    }
+  });
+
 });
