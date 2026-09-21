@@ -13,6 +13,25 @@ type CapabilityProjection = Record<string, Record<string, readonly string[]>>;
  * every branch of a consolidated capability when it already knows the branch.
  */
 const CAPABILITY_BRANCH_FIELDS: Record<string, CapabilityProjection> = {
+  manage_uv_layout: {
+    operation: {
+      plan: [
+        "operation",
+        "bitmap_width",
+        "bitmap_height",
+        "mode",
+        "island_ids",
+        "default_target_pixels_per_model_unit",
+        "constraints",
+        "include_implicit_stack_candidates",
+      ],
+      apply: [
+        "operation",
+        "plan_id",
+        "expected_source_fingerprint",
+      ],
+    },
+  },
   manage_cubes: {
     operation: {
       create: ["operation"],

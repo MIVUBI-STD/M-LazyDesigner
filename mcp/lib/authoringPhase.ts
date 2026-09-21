@@ -113,6 +113,7 @@ const TEXTURING_NAMED_CAPABILITIES = new Set([
   "clear_material_instances",
   "manage_material_instances",
   "manage_render_profile",
+  "manage_uv_layout",
   "filter_by_material",
 ]);
 

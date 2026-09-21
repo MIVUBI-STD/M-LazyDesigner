@@ -283,6 +283,11 @@ const SOURCE_BY_CAPABILITY: Record<string, ControlSourceOwner> = {
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/render-profile-binding.test.ts",
   },
+  manage_uv_layout: {
+    source: "mcp/server/runtime/uvLayoutService.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/uv-registration-readiness.test.ts",
+  },
   create_animation: {
     source: "mcp/server/tools/animation-create.ts",
     specialist: ANIMATION_PATH,
