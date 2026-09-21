@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
 const WRAPPERS: Readonly<Record<string, string>> = {
+  "gateway/contract.ts":
+    'export * from "./protocol";\nexport * from "./resultCompaction";\nexport * from "./capabilities/catalog";\nexport * from "./runtime/identity";\nexport * from "./runtime/interruptionPolicy";\n',
   "gateway/capabilityManifest.ts":
     'export * from "./capabilities/manifest";\n',
   "gateway/capabilityIntelligence.ts":
@@ -55,8 +57,11 @@ describe("Gateway structural ownership", () => {
     expect(backend).toContain('"./capabilities/effects"');
     expect(backend).toContain('"./runtime/backendContract"');
 
-    expect(contract).toContain('"./capabilities/intelligence"');
-    expect(contract).toContain('"./capabilities/graph"');
+    expect(contract).toContain('"./protocol"');
+    expect(contract).toContain('"./resultCompaction"');
+    expect(contract).toContain('"./capabilities/catalog"');
+    expect(contract).toContain('"./runtime/identity"');
+    expect(contract).toContain('"./runtime/interruptionPolicy"');
 
     const controlIndex = await Bun.file("gateway/control/index.ts").text();
     expect(controlIndex).toContain('"./delta/engine"');
@@ -147,6 +152,21 @@ describe("Gateway structural ownership", () => {
       "Runtime did not honor this Gateway"
     );
     expect(backend.split("\n").length).toBeLessThan(760);
+  });
+
+  test("Gateway protocol stays lower-level than capability engines", async () => {
+    const protocol = await Bun.file("gateway/protocol.ts").text();
+    expect(protocol).toContain('from "./capabilities/types"');
+    expect(protocol).not.toContain('from "./capabilities/intelligence"');
+    expect(protocol).not.toContain('from "./capabilities/graph"');
+    expect(protocol.split("\n").length).toBeLessThan(100);
+  });
+
+  test("Gateway contract stays compatibility-only", async () => {
+    const contract = await Bun.file("gateway/contract.ts").text();
+    expect(contract.split("\n").length).toBeLessThan(10);
+    expect(contract).not.toContain("function ");
+    expect(contract).not.toContain("const GATEWAY_TOOLS");
   });
 
 });
