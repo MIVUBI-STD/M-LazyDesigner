@@ -38,14 +38,6 @@ const GEOMETRY_ELEMENT_TOOLS = new Set([
   "remove_element",
   "rename_element",
 ]);
-const GEOMETRY_MAINTENANCE_TOOLS = new Set([
-  "add_group",
-  "manage_cubes",
-  "duplicate_element",
-  "reparent_element",
-  "manage_locator",
-  "manage_null_object",
-]);
 const AUTHORING_SELECTION_TOOLS = new Set([
   "select_all_of_type",
   "get_selection",
