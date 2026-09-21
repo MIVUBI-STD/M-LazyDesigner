@@ -51,6 +51,39 @@ function exactCapabilityMatch(
   );
 }
 
+function normalizedIdentifier(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function singularIdentifier(value: string): string {
+  return value
+    .split("_")
+    .map((part) =>
+      part.length > 3 && part.endsWith("s")
+        ? part.slice(0, -1)
+        : part
+    )
+    .join("_");
+}
+
+function nearCapabilityNameScore(
+  toolName: string,
+  query: string
+): number {
+  const tool = normalizedIdentifier(toolName);
+  const candidate = normalizedIdentifier(query);
+  if (!tool || !candidate) return 0;
+  if (tool === candidate) return 100;
+  if (singularIdentifier(tool) === singularIdentifier(candidate)) {
+    return 36;
+  }
+  return 0;
+}
+
 export function searchCapabilityCatalog(
   tools: readonly BackendTool[],
   query: string,
@@ -77,6 +110,7 @@ export function searchCapabilityCatalog(
         context
       );
       const bm25 = bm25Scores.get(tool.name) ?? 0;
+      const nearName = nearCapabilityNameScore(tool.name, query);
       const preconditions = evaluateCapabilityPreconditions(
         tool.name,
         semantic.branch,
@@ -101,6 +135,7 @@ export function searchCapabilityCatalog(
         score:
           semantic.score +
           bm25 * 12 +
+          nearName +
           eligibilityAdjustment +
           CAPABILITY_TIER_BOOST[tier] +
           CAPABILITY_LIFECYCLE_SEARCH_PENALTY[
@@ -108,9 +143,9 @@ export function searchCapabilityCatalog(
           ],
       };
     })
-    .filter(({ tier, semantic, bm25 }) =>
+    .filter(({ tier, semantic, bm25, nearName }) =>
       hasQuery
-        ? semantic.matched || bm25 > 0
+        ? semantic.matched || bm25 > 0 || nearName > 0
         : tier !== "maintenance"
     )
     .sort(
