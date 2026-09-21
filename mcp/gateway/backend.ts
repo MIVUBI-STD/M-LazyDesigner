@@ -121,6 +121,10 @@ export class BlockitRuntimeBackend {
     return this.operationQueue.run(operation);
   }
 
+  private operationStatus(): GatewayRuntimeStatus["operations"] {
+    return this.operationStatus();
+  }
+
   private hasFreshCatalog(now: number = Date.now()): boolean {
     return Boolean(
       this.client &&
@@ -376,7 +380,7 @@ export class BlockitRuntimeBackend {
           health: null,
         },
         connection: this.connection.snapshot(),
-        operations: this.operationQueue.snapshot(),
+        operations: this.operationStatus(),
         last_error: probe.error,
       };
     }
@@ -407,7 +411,7 @@ export class BlockitRuntimeBackend {
         health: probe.health,
       },
       connection: this.connection.snapshot(),
-      operations: this.operationQueue.snapshot(),
+      operations: this.operationStatus(),
       last_error: this.lastError,
     };
   }
