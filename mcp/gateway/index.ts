@@ -14,7 +14,7 @@ import {
   shouldAttachGatewayControlDelta,
   type JsonRecord,
 } from "./contract";
-import { projectCapabilityInputSchema } from "./schemaProjection";
+import { projectCapabilityInputSchema } from "./capabilities/schemaProjection";
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
@@ -28,8 +28,8 @@ import {
   reduceControlExecutionState,
   type ControlExecutionState,
 } from "./control";
-import { LocalCapabilityRegistry } from "./localCapabilities";
-import { recoveryForGatewayError } from "./recovery";
+import { LocalCapabilityRegistry } from "./providers/registry";
+import { recoveryForGatewayError } from "./runtime/recovery";
 import { projectGatewayStatus } from "./statusProjection";
 import {
   capabilityNeedsPhaseSnapshot,
@@ -40,7 +40,7 @@ import {
   applyCapabilityGraphOutcome,
   seedCapabilityFacts,
   type CapabilityFactState,
-} from "./capabilityGraph";
+} from "./capabilities/graph";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
