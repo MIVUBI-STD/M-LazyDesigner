@@ -56,15 +56,15 @@ export const paintTransactionOperationSchema = z.union([
     target: paintTransactionCoordinateSchema,
     flip_x: z.boolean().optional(),
     flip_y: z.boolean().optional(),
-  }).strict().describe("Copy/mirror one explicit same-atlas RGBA region."),
+  }).strict(),
   z.object({
     operation: z.literal("noise"),
     rect: paintTransactionRectSchema,
     seed: z.number().int().min(0).max(0xffffffff),
-    amplitude: z.number().int().min(1).max(255).describe("Maximum signed channel adjustment."),
+    amplitude: z.number().int().min(1).max(255),
     channels: z.array(z.enum(["r", "g", "b", "a"])).min(1).max(4).refine(channels => new Set(channels).size === channels.length, "Duplicate noise channels."),
-    mask: z.array(paintTransactionCoordinateSchema).min(1).optional().describe("Optional explicit pixels within rect."),
-    preserve_transparent: z.boolean().optional().describe("Default true; preserves fully transparent pixels."),
+    mask: z.array(paintTransactionCoordinateSchema).min(1).optional(),
+    preserve_transparent: z.boolean().optional(),
   }).strict(),
 ]);
 
@@ -102,11 +102,8 @@ export const paintTransactionParameters = z
       samples:z.number().int().min(1).max(256).default(32),
       bias:z.number().finite().positive().default(.001),
       strength:z.number().finite().positive().max(1).default(.5),
-    }).strict().refine(v=>v.bias<v.radius,"AO bias must be smaller than radius.").optional()
-      .describe("Bedrock Cube AO for explicit targets at the current pose. Preserves alpha; exclusive with operations."),
-    output: paintTransactionOutputSchema
-      .optional()
-      .describe("Optional verified PNG output for the final bitmap."),
+    }).strict().refine(v=>v.bias<v.radius,"AO bias must be smaller than radius.").optional(),
+    output: paintTransactionOutputSchema.optional(),
   })
   .strict()
   .refine(
