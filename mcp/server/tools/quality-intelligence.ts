@@ -3,6 +3,7 @@
 import {
   ensureTextureDiagnosticInvocationContext,
   hasTextureDiagnosticRegion,
+  isTextureDiagnosticBudgetExceeded,
   readTextureDiagnosticRegion,
 } from "@/lib/textureDiagnosticReadContext";
 
@@ -277,8 +278,14 @@ export function textureOptimizationRuntime(context?: unknown) {
           height,
           pixels,
         });
-      } catch {
-        omit("non_integral_pixel_mapping", cube, faceKey);
+      } catch (error) {
+        omit(
+          isTextureDiagnosticBudgetExceeded(error)
+            ? "budget"
+            : "non_integral_pixel_mapping",
+          cube,
+          faceKey
+        );
       }
     }
   }
