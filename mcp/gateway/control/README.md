@@ -52,6 +52,7 @@ packetContext.ts      task identity + context delivery/cache semantics
 readiness.ts          lifecycle/readiness policy
 packetData.ts         empty workspace + packet summaries
 packet.ts             task packet orchestration
+receipt.ts            phase/project receipt derivation
 capabilities.ts       capability decoration
 routingPolicy.ts      direct-first route policy
 developmentIntent.ts  bounded SYSTEM_DEVELOPMENT routing
