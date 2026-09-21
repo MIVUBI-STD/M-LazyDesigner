@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   nextActionForControlDelta,
   reduceControlExecutionState,
-} from "./orchestration";
-import type { ControlDelta } from "./types";
+} from "@/gateway/control/orchestration";
+import type { ControlDelta } from "@/gateway/control/types";
 
 function delta(
   patch: Partial<ControlDelta> = {}
