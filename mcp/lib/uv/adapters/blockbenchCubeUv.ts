@@ -247,3 +247,57 @@ export function assertUvPlanSnapshotCompatible(
     }
   }
 }
+
+function sameNumbers(
+  left: readonly number[],
+  right: readonly number[]
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
+export function assertUvNativeInstructionsApplied(
+  instructions: readonly UvNativeMutationInstruction[],
+  snapshot: UvNativeSourceSnapshot
+): void {
+  const cubeById = new Map(
+    snapshot.cubes.map((cube) => [cube.uuid, cube])
+  );
+
+  for (const instruction of instructions) {
+    const cube = cubeById.get(instruction.cube_uuid);
+    if (!cube) {
+      throw new Error(
+        `UV_APPLY_POSTCONDITION_FAILED: Cube ${instruction.cube_uuid} is missing after apply.`
+      );
+    }
+
+    if (instruction.kind === "BOX_UV_OFFSET") {
+      if (
+        cube.box_uv !== true ||
+        cube.uv_offset === null ||
+        !sameNumbers(cube.uv_offset, instruction.uv_offset)
+      ) {
+        throw new Error(
+          `UV_APPLY_POSTCONDITION_FAILED: Box UV instruction for ${instruction.island_id} was not applied exactly.`
+        );
+      }
+      continue;
+    }
+
+    const face = cube.faces.find(
+      (candidate) => candidate.face === instruction.face
+    );
+    if (
+      !face ||
+      !sameNumbers(face.uv, instruction.uv) ||
+      face.rotation !== instruction.rotation
+    ) {
+      throw new Error(
+        `UV_APPLY_POSTCONDITION_FAILED: Face UV instruction for ${instruction.island_id} was not applied exactly.`
+      );
+    }
+  }
+}

@@ -175,6 +175,37 @@ describe("UV atomic transaction contracts", () => {
     expect(applied).toBe(false);
   });
 
+  test("partial native application fails exact postcondition and rolls back", async () => {
+    const { cubes, plan } = planned();
+    let native = buildUvNativeSourceSnapshot(cubes, 32, 32);
+    const original = structuredClone(native);
+    const expected = fingerprintUvNativeSource(native);
+
+    await expect(
+      applyUvLayoutPlanAtomic(plan, expected, {
+        readSource: () => native,
+        apply: (instructions) => {
+          const instruction = instructions[0];
+          if (!instruction || instruction.kind !== "FACE_UV") return;
+          native = structuredClone(native);
+          const cube = native.cubes.find(
+            (entry) => entry.uuid === instruction.cube_uuid
+          )!;
+          const face = cube.faces.find(
+            (entry) => entry.face === instruction.face
+          )!;
+          // Deliberately mutate only rotation, leaving UV coordinates wrong.
+          face.rotation = instruction.rotation;
+        },
+        restore: (snapshot) => {
+          native = structuredClone(snapshot);
+        },
+      })
+    ).rejects.toThrow(/Face UV instruction.*not applied exactly/);
+
+    expect(native).toEqual(original);
+  });
+
   test("postcondition failure rolls back when adapter reports unchanged state", async () => {
     const { cubes, plan } = planned();
     let native = buildUvNativeSourceSnapshot(cubes, 32, 32);
