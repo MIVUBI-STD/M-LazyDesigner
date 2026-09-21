@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-21T03:10:40.946Z",
+  "generatedAt": "2026-09-21T03:13:43.408Z",
   "tools": [
     {
       "name": "manage_cubes",
@@ -5631,7 +5631,7 @@
     {
       "name": "texture_layer_management",
       "title": "Texture Layer Management",
-      "description": "Mutates texture layers by explicit identity with scoped Undo and receipts.",
+      "description": "Mutates texture layers with explicit identity and scoped Undo.",
       "status": "experimental",
       "category": "Paint Tools",
       "annotations": {
@@ -5654,8 +5654,7 @@
               "rename_layer",
               "flatten_layers",
               "batch_metadata"
-            ],
-            "description": "Layer action."
+            ]
           },
           "texture_id": {
             "description": "Texture UUID/ID/name; omit for selected/default.",
@@ -5663,7 +5662,6 @@
             "minLength": 1
           },
           "layer_id": {
-            "description": "Target layer UUID or unique exact name.",
             "type": "string",
             "minLength": 1
           },
@@ -5672,7 +5670,6 @@
             "minLength": 1
           },
           "opacity": {
-            "description": "Opacity percent.",
             "type": "number",
             "minimum": 0,
             "maximum": 100
@@ -5694,13 +5691,11 @@
             ]
           },
           "target_index": {
-            "description": "Final layer index.",
             "type": "integer",
             "minimum": 0,
             "maximum": 9007199254740991
           },
           "updates": {
-            "description": "batch_metadata updates applied atomically.",
             "minItems": 1,
             "maxItems": 64,
             "type": "array",
