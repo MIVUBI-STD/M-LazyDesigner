@@ -114,7 +114,10 @@ for (const testCase of TOOL_DISCOVERY_CASES) {
     tools,
     testCase.query,
     4,
-    { authoringPhase: routingPhase(testCase.expected) }
+    {
+      authoringPhase: routingPhase(testCase.expected),
+      facts: { project_bound: true },
+    }
   );
   const names = results.map((item) => item.capability_id);
   if (names[0] === testCase.expected) top1 += 1;
@@ -145,7 +148,10 @@ for (const testCase of BRANCH_CASES) {
     tools,
     testCase.query,
     4,
-    { authoringPhase: testCase.phase }
+    {
+      authoringPhase: testCase.phase,
+      facts: { project_bound: true },
+    }
   );
   const correct =
     result?.capability_id === testCase.expected &&
@@ -173,6 +179,7 @@ const report = {
     top_3_recall: round(top3 / Math.max(caseCount, 1)),
     branch_accuracy: round(branchCorrect / BRANCH_CASES.length),
     average_projected_search_chars: Math.round(resultChars / Math.max(resultCount, 1)),
+    precondition_mode: "three_state_ready_unknown_blocked",
   },
   bounded_result_limit: 4,
   misses,
