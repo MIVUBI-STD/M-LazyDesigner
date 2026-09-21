@@ -5,6 +5,7 @@ import { join, relative, dirname, normalize } from "node:path";
 const ROOT = "gateway";
 
 const COMPATIBILITY_WRAPPERS = new Set([
+  "contract",
   "capabilityManifest",
   "capabilityIntelligence",
   "capabilityGraph",
