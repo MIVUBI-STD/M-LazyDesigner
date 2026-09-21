@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalJson } from "../../lib/semantic/canonical";
 import type { ControlAuthoringDomain } from "./types";
 import type { ControlWorkspaceProjection } from "./workspace";
 import type { ControlReferenceProjection, ControlReferenceStage } from "./referencePackage";
@@ -80,7 +81,7 @@ export function buildControlStageContext(input: {
     : [];
   const relevantNonBlocking = [...input.reference.non_blocking_unknowns];
 
-  const hashPayload = JSON.stringify({
+  const hashPayload = canonicalJson({
     type,
     intent: input.reference.intent,
     delta: input.currentUserDelta ?? null,
