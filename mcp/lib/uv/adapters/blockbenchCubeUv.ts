@@ -6,7 +6,6 @@ import type {
   UvRect,
 } from "@/lib/uv/contracts";
 import type {
-  UvCubeFaceSnapshot,
   UvCubeSnapshot,
 } from "@/lib/uv/islands";
 
