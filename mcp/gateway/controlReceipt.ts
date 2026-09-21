@@ -1,6 +1,6 @@
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
-import { resolveGatewayCapabilityEffects } from "./capabilityEffects";
-import type { BlockitAuthoringPhaseAffinity } from "./projectAffinity";
+import { resolveGatewayCapabilityEffects } from "./capabilities/effects";
+import type { BlockitAuthoringPhaseAffinity } from "./runtime/projectAffinity";
 
 export function capabilityNeedsPhaseSnapshot(capability: string): boolean {
   return getCapabilityMetadata(capability).effects.phaseAffinity === "update_from_result";
