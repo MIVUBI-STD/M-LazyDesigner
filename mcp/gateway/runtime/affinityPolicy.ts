@@ -4,7 +4,7 @@ import {
   type BlockitAuthoringPhaseAffinity,
 } from "./projectAffinity";
 import { GatewayBackendError } from "./backendContract";
-import type { JsonRecord } from "../contract";
+import type { JsonRecord } from "../protocol";
 
 export type AffinityResolution<T> = {
   value: T;
