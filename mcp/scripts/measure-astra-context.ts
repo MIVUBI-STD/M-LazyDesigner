@@ -210,14 +210,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
     content: [{ type: "text", text: "Schema ready." }],
     structuredContent: {
       capability: {
-        description: describeEnvelopeBefore.structuredContent.capability.description,
         inputSchema: describeEnvelopeBefore.structuredContent.capability.inputSchema,
-        outputSchema: null,
-        annotations: describeEnvelopeBefore.structuredContent.capability.annotations,
-        lifecycle: describeEnvelopeBefore.structuredContent.capability.lifecycle,
-        execution_class: "read",
-        verification_class: "receipt_only",
-        control: describeEnvelopeBefore.structuredContent.capability.control,
       },
     },
   };
