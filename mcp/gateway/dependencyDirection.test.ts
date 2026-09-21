@@ -6,6 +6,7 @@ const ROOT = "gateway";
 
 const COMPATIBILITY_WRAPPERS = new Set([
   "contract",
+  "controlReceipt",
   "capabilityManifest",
   "capabilityIntelligence",
   "capabilityGraph",
