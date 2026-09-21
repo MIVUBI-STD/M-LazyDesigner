@@ -91,9 +91,11 @@ gateway/capabilities/  AI discovery, branch schemas, preconditions/effects
 gateway/runtime/       Runtime connection, affinity, recovery, session state
 gateway/providers/     optional Gateway-local capabilities
 gateway/control/       Control packets, context, freshness, orchestration
+protocol.ts            stable Gateway constants + base transport/search types
+resultCompaction.ts     AI-facing result/receipt compaction
 backend.ts             Runtime adapter/orchestration boundary
 index.ts               stable four-tool stdio composition root
-contract.ts            client-facing Gateway result/search contracts
+contract.ts            compatibility facade only
 ```
 
 Same-named files retained at the `gateway/` root for migrated modules are compatibility re-exports only. See `COMPATIBILITY.md` for the wrapper ledger and removal criteria.
