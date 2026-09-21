@@ -36,7 +36,7 @@ import { projectGatewayStatus } from "./statusProjection";
 import {
   capabilityNeedsPhaseSnapshot,
   deriveControlReceipt,
-} from "./controlReceipt";
+} from "./control/receipt";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 import {
   applyCapabilityGraphOutcome,
