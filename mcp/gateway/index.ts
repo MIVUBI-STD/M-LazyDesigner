@@ -154,50 +154,36 @@ const statusInput = z.object({
   adopt_active_project: z
     .boolean()
     .default(false)
-    .describe(
-      "Explicitly bind the selected Blockbench project; false for normal status reads."
-    ),
+    .describe("Bind the selected Blockbench project when true."),
   known_context_ids: z
     .array(z.string().min(1).max(160))
     .max(16)
     .default([])
-    .describe(
-      "Already-loaded Control context IDs; current matches are omitted and stale same-family IDs invalidated."
-    ),
+    .describe("Already-loaded Control context IDs."),
   workspace_path: z
     .string()
     .min(1)
     .optional()
-    .describe(
-      "Workspace directory or README.md path when not resolved from the bound project."
-    ),
+    .describe("Workspace directory or README.md path."),
   reference_package_path: z
     .string()
     .min(1)
     .optional()
-    .describe(
-      "Reference Package directory or REFERENCE.json path for active-stage projection."
-    ),
+    .describe("Reference Package directory or REFERENCE.json path."),
   current_user_delta: z
     .string()
     .max(1000)
     .optional()
-    .describe(
-      "Current asset correction/change request; included in stage-context identity."
-    ),
+    .describe("Current correction/change request."),
   task_mode: z
     .enum(["ASSET_AUTHORING", "SYSTEM_DEVELOPMENT"])
     .default("ASSET_AUTHORING")
-    .describe(
-      "ASSET_AUTHORING for asset work; SYSTEM_DEVELOPMENT for bounded source/runtime routing."
-    ),
+    .describe("Asset authoring or system-development routing."),
   task_intent: z
     .string()
     .max(500)
     .optional()
-    .describe(
-      "Concrete problem when task_mode=SYSTEM_DEVELOPMENT."
-    ),
+    .describe("Concrete system-development task intent."),
 });
 
 const searchInput = z.object({
@@ -220,9 +206,7 @@ const describeInput = z.object({
     })
     .strict()
     .optional()
-    .describe(
-      "Known consolidated branch discriminator/value for schema projection."
-    ),
+    .describe("Optional consolidated schema branch."),
 });
 
 const invokeInput = z.object({
@@ -251,7 +235,7 @@ function buildGatewayServer(): McpServer {
   {
     title: "LazyDesigner Status",
     description:
-      "Returns compact Gateway/Runtime health and Control orientation/context for asset or system-development work.",
+      "Returns compact Runtime health and Control orientation/context.",
     inputSchema: statusInput.shape,
     annotations: {
       readOnlyHint: true,
@@ -289,12 +273,10 @@ function buildGatewayServer(): McpServer {
             type: "text" as const,
             text:
               task_mode === "SYSTEM_DEVELOPMENT"
-                ? `LazyDesigner Control routed development task ${control.task_context_id} to ${control.development?.domain ?? "UNRESOLVED"}.`
+                ? "Development routing ready."
                 : status.runtime.online
-                  ? status.affinity.project_uuid
-                    ? `LazyDesigner Gateway is ready; Control task ${control.task_context_id} is bound to project ${status.affinity.project_uuid}.`
-                    : "LazyDesigner Gateway is ready and Runtime is online; Control has no project binding yet."
-                  : "LazyDesigner Gateway is ready; the Blockbench Runtime is currently offline.",
+                  ? "Control status ready."
+                  : "Control ready; Runtime offline.",
           },
         ],
         structuredContent: {
@@ -313,7 +295,7 @@ registerGatewayTool(
   {
     title: "Search LazyDesigner Capabilities",
     description:
-      "Fallback search over exposed capabilities; returns bounded domain + true safety flags (read_only/destructive/idempotent) without a status reread.",
+      "Search exposed capabilities by intent; returns bounded routing and safety hints.",
     inputSchema: searchInput.shape,
     annotations: {
       readOnlyHint: true,
@@ -419,7 +401,7 @@ registerGatewayTool(
   {
     title: "Invoke LazyDesigner Capability",
     description:
-      "Invokes one exact capability on the bound project/phase. Mutations are serialized and never auto-retried after interruption.",
+      "Invokes one exact capability; mutations are serialized and never auto-retried.",
     inputSchema: invokeInput.shape,
   },
   async (rawArgs, context) => {
