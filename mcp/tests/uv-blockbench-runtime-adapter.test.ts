@@ -37,7 +37,7 @@ describe("Blockbench UV runtime adapter ownership", () => {
     ]);
     expect(cubes).toContain("packBoxUvOffsets");
     expect(textureCreate).toContain(
-      "TextureGenerator?.generateTemplate"
+      "await generator.generateTemplate({"
     );
     expect(cubes).not.toContain("createBlockbenchUvApplyAdapter");
     expect(textureCreate).not.toContain(
