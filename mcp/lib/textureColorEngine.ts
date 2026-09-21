@@ -634,3 +634,480 @@ export function extractPaletteMedianCut(
     .sort((left, right) => left.L - right.L)
     .map((lab) => rgbaToHex(oklabToRgba(lab)));
 }
+
+
+export type AutoLevelsOptions = {
+  lowClipPercent?: number;
+  highClipPercent?: number;
+  strength?: number;
+};
+
+export type PosterizeOptions = {
+  levels: number;
+  strength?: number;
+};
+
+export type SpatialGradientType =
+  | "linear"
+  | "reflected"
+  | "radial"
+  | "diamond"
+  | "conical";
+
+export type SpatialGradientOptions = {
+  type?: SpatialGradientType;
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  mode?: GradientMapMode;
+  matrix?: OrderedDitherMatrix;
+};
+
+export type HeightFieldOptions = {
+  source?: "lightness" | "alpha";
+  invert?: boolean;
+};
+
+export type DirectionalShadeOptions = HeightFieldOptions & {
+  azimuthDegrees?: number;
+  elevationDegrees?: number;
+  depth?: number;
+  ambient?: number;
+  strength?: number;
+};
+
+export type ErrorDiffusionOptions = {
+  strength?: number;
+  serpentine?: boolean;
+};
+
+function requireBitmap(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  label: string
+): void {
+  if (
+    !Number.isSafeInteger(width) ||
+    !Number.isSafeInteger(height) ||
+    width <= 0 ||
+    height <= 0 ||
+    pixels.byteLength !== width * height * 4
+  ) {
+    throw new Error(`${label} requires a valid RGBA bitmap.`);
+  }
+}
+
+function copyPixel(
+  pixels: Uint8ClampedArray,
+  offset: number
+): Rgba {
+  return [
+    pixels[offset],
+    pixels[offset + 1],
+    pixels[offset + 2],
+    pixels[offset + 3],
+  ];
+}
+
+function percentile(sorted: readonly number[], t: number): number {
+  if (sorted.length === 0) return 0;
+  const position = clamp01(t) * (sorted.length - 1);
+  const low = Math.floor(position);
+  const high = Math.min(sorted.length - 1, low + 1);
+  const local = position - low;
+  return sorted[low] + (sorted[high] - sorted[low]) * local;
+}
+
+export function autoLevelsRgba(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: AutoLevelsOptions = {}
+): Uint8ClampedArray {
+  requireBitmap(pixels, width, height, "Auto levels");
+  const lowClip = options.lowClipPercent ?? 0.5;
+  const highClip = options.highClipPercent ?? 0.5;
+  const strength = clamp01(options.strength ?? 1);
+  if (
+    !Number.isFinite(lowClip) ||
+    !Number.isFinite(highClip) ||
+    lowClip < 0 ||
+    highClip < 0 ||
+    lowClip + highClip >= 100
+  ) {
+    throw new Error("Auto levels clip percentages must be non-negative and sum to less than 100.");
+  }
+
+  const values: number[] = [];
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    if (pixels[offset + 3] === 0) continue;
+    values.push(rgbaToOklab(copyPixel(pixels, offset)).L);
+  }
+  if (values.length === 0) return new Uint8ClampedArray(pixels);
+  values.sort((a, b) => a - b);
+
+  const low = percentile(values, lowClip / 100);
+  const high = percentile(values, 1 - highClip / 100);
+  if (!(high > low + 1e-9)) return new Uint8ClampedArray(pixels);
+
+  const output = new Uint8ClampedArray(pixels);
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    const source = copyPixel(pixels, offset);
+    if (source[3] === 0) continue;
+    const lab = rgbaToOklab(source);
+    const normalized = clamp01((lab.L - low) / (high - low));
+    const adjusted = lab.L + (normalized - lab.L) * strength;
+    const mapped = oklabToRgba({ ...lab, L: adjusted }, source[3]);
+    output[offset] = mapped[0];
+    output[offset + 1] = mapped[1];
+    output[offset + 2] = mapped[2];
+  }
+  return output;
+}
+
+export function posterizeLightnessRgba(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: PosterizeOptions
+): Uint8ClampedArray {
+  requireBitmap(pixels, width, height, "Posterize");
+  const levels = options.levels;
+  if (!Number.isInteger(levels) || levels < 2 || levels > 32) {
+    throw new Error("Posterize levels must be an integer from 2 to 32.");
+  }
+  const strength = clamp01(options.strength ?? 1);
+  const output = new Uint8ClampedArray(pixels);
+
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    const source = copyPixel(pixels, offset);
+    if (source[3] === 0) continue;
+    const lab = rgbaToOklab(source);
+    const quantized = Math.round(lab.L * (levels - 1)) / (levels - 1);
+    const mapped = oklabToRgba(
+      { ...lab, L: lab.L + (quantized - lab.L) * strength },
+      source[3]
+    );
+    output[offset] = mapped[0];
+    output[offset + 1] = mapped[1];
+    output[offset + 2] = mapped[2];
+  }
+  return output;
+}
+
+function gradientT(
+  x: number,
+  y: number,
+  options: SpatialGradientOptions
+): number {
+  const dx = options.end.x - options.start.x;
+  const dy = options.end.y - options.start.y;
+  const lengthSquared = dx * dx + dy * dy;
+  if (!(lengthSquared > 0)) {
+    throw new Error("Spatial gradient requires distinct start and end points.");
+  }
+
+  const px = x + 0.5 - options.start.x;
+  const py = y + 0.5 - options.start.y;
+  const linear = (px * dx + py * dy) / lengthSquared;
+  const type = options.type ?? "linear";
+
+  if (type === "linear") return clamp01(linear);
+  if (type === "reflected") {
+    const wrapped = Math.abs(linear);
+    const whole = Math.floor(wrapped);
+    const local = wrapped - whole;
+    return whole % 2 === 0 ? local : 1 - local;
+  }
+
+  const radius = Math.sqrt(lengthSquared);
+  if (type === "radial") {
+    return clamp01(Math.hypot(px, py) / radius);
+  }
+  if (type === "diamond") {
+    return clamp01((Math.abs(px) + Math.abs(py)) / radius);
+  }
+
+  const baseAngle = Math.atan2(dy, dx);
+  const angle = Math.atan2(py, px);
+  let normalized = (angle - baseAngle) / (Math.PI * 2);
+  normalized -= Math.floor(normalized);
+  return normalized;
+}
+
+function rampColorAt(
+  rampColors: readonly Rgba[],
+  rampLabs: readonly Oklab[],
+  t: number,
+  mode: GradientMapMode,
+  matrix: ReturnType<typeof matrixInfo> | null,
+  x: number,
+  y: number
+): Rgba {
+  const position = rampPosition(t, rampColors.length);
+  if (mode === "nearest") {
+    return rampColors[
+      position.localT < 0.5
+        ? position.leftIndex
+        : position.rightIndex
+    ];
+  }
+  if (mode === "blend") {
+    return oklabToRgba(
+      interpolateOklab(
+        rampLabs[position.leftIndex],
+        rampLabs[position.rightIndex],
+        position.localT
+      )
+    );
+  }
+  return rampColors[
+    position.localT >
+    orderedThresholdFromInfo(matrix!, x, y)
+      ? position.rightIndex
+      : position.leftIndex
+  ];
+}
+
+export function generateSpatialGradientRgba(
+  width: number,
+  height: number,
+  ramp: readonly string[],
+  options: SpatialGradientOptions
+): Uint8ClampedArray {
+  if (
+    !Number.isSafeInteger(width) ||
+    !Number.isSafeInteger(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    throw new Error("Spatial gradient requires positive integer dimensions.");
+  }
+  if (ramp.length < 2 || ramp.length > 16) {
+    throw new Error("Spatial gradient ramp must contain 2 to 16 colors.");
+  }
+  const colors = ramp.map(parseHexRgba);
+  const labs = colors.map(rgbaToOklab);
+  const mode = options.mode ?? "blend";
+  const matrix =
+    mode === "ordered"
+      ? matrixInfo(options.matrix ?? "bayer4")
+      : null;
+  const output = new Uint8ClampedArray(width * height * 4);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const mapped = rampColorAt(
+        colors,
+        labs,
+        gradientT(x, y, options),
+        mode,
+        matrix,
+        x,
+        y
+      );
+      const offset = (y * width + x) * 4;
+      output[offset] = mapped[0];
+      output[offset + 1] = mapped[1];
+      output[offset + 2] = mapped[2];
+      output[offset + 3] = mapped[3];
+    }
+  }
+  return output;
+}
+
+export function heightFieldFromRgba(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: HeightFieldOptions = {}
+): Float32Array {
+  requireBitmap(pixels, width, height, "Height field");
+  const source = options.source ?? "lightness";
+  const invert = options.invert === true;
+  const field = new Float32Array(width * height);
+
+  for (let index = 0; index < width * height; index += 1) {
+    const offset = index * 4;
+    let value =
+      source === "alpha"
+        ? pixels[offset + 3] / 255
+        : rgbaToOklab(copyPixel(pixels, offset)).L;
+    if (invert) value = 1 - value;
+    field[index] = clamp01(value);
+  }
+  return field;
+}
+
+function clampedField(
+  field: Float32Array,
+  width: number,
+  height: number,
+  x: number,
+  y: number
+): number {
+  const cx = Math.min(width - 1, Math.max(0, x));
+  const cy = Math.min(height - 1, Math.max(0, y));
+  return field[cy * width + cx];
+}
+
+export function sobelHeightGradient(
+  field: Float32Array,
+  width: number,
+  height: number
+): { dx: Float32Array; dy: Float32Array } {
+  if (
+    field.length !== width * height ||
+    !Number.isSafeInteger(width) ||
+    !Number.isSafeInteger(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    throw new Error("Sobel height gradient requires a valid scalar field.");
+  }
+
+  const dx = new Float32Array(field.length);
+  const dy = new Float32Array(field.length);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const tl = clampedField(field, width, height, x - 1, y - 1);
+      const tc = clampedField(field, width, height, x, y - 1);
+      const tr = clampedField(field, width, height, x + 1, y - 1);
+      const ml = clampedField(field, width, height, x - 1, y);
+      const mr = clampedField(field, width, height, x + 1, y);
+      const bl = clampedField(field, width, height, x - 1, y + 1);
+      const bc = clampedField(field, width, height, x, y + 1);
+      const br = clampedField(field, width, height, x + 1, y + 1);
+
+      const index = y * width + x;
+      dx[index] = (tr + 2 * mr + br - tl - 2 * ml - bl) / 8;
+      dy[index] = (bl + 2 * bc + br - tl - 2 * tc - tr) / 8;
+    }
+  }
+  return { dx, dy };
+}
+
+export function directionalShadeRgba(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: DirectionalShadeOptions = {}
+): Uint8ClampedArray {
+  requireBitmap(pixels, width, height, "Directional shade");
+  const field = heightFieldFromRgba(pixels, width, height, options);
+  const gradient = sobelHeightGradient(field, width, height);
+  const azimuth = ((options.azimuthDegrees ?? 315) * Math.PI) / 180;
+  const elevation = ((options.elevationDegrees ?? 45) * Math.PI) / 180;
+  const depth = Math.max(0, options.depth ?? 2);
+  const ambient = clamp01(options.ambient ?? 0.35);
+  const strength = clamp01(options.strength ?? 1);
+
+  const lx = Math.cos(elevation) * Math.cos(azimuth);
+  const ly = Math.cos(elevation) * Math.sin(azimuth);
+  const lz = Math.sin(elevation);
+
+  const output = new Uint8ClampedArray(pixels);
+  for (let index = 0; index < field.length; index += 1) {
+    const offset = index * 4;
+    const source = copyPixel(pixels, offset);
+    if (source[3] === 0) continue;
+
+    let nx = -gradient.dx[index] * depth;
+    let ny = -gradient.dy[index] * depth;
+    let nz = 1;
+    const nLength = Math.hypot(nx, ny, nz) || 1;
+    nx /= nLength;
+    ny /= nLength;
+    nz /= nLength;
+
+    const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
+    const light = ambient + (1 - ambient) * diffuse;
+    const lab = rgbaToOklab(source);
+    const targetL = clamp01(lab.L * light);
+    const mapped = oklabToRgba(
+      { ...lab, L: lab.L + (targetL - lab.L) * strength },
+      source[3]
+    );
+    output[offset] = mapped[0];
+    output[offset + 1] = mapped[1];
+    output[offset + 2] = mapped[2];
+  }
+  return output;
+}
+
+export function palettizeErrorDiffusionRgba(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  palette: readonly string[],
+  options: ErrorDiffusionOptions = {}
+): Uint8ClampedArray {
+  requireBitmap(pixels, width, height, "Error diffusion");
+  if (palette.length < 1 || palette.length > 64) {
+    throw new Error("Palette must contain 1 to 64 colors.");
+  }
+  const strength = clamp01(options.strength ?? 1);
+  const serpentine = options.serpentine !== false;
+  const parsed = palette.map(parseHexRgba);
+  const labs = parsed.map(rgbaToOklab);
+  const output = new Uint8ClampedArray(pixels);
+  const errorRows = [
+    new Float32Array((width + 2) * 3),
+    new Float32Array((width + 2) * 3),
+  ];
+
+  for (let y = 0; y < height; y += 1) {
+    const forward = !serpentine || y % 2 === 0;
+    const current = errorRows[y % 2];
+    const next = errorRows[(y + 1) % 2];
+    next.fill(0);
+
+    for (let step = 0; step < width; step += 1) {
+      const x = forward ? step : width - 1 - step;
+      const offset = (y * width + x) * 4;
+      const alpha = pixels[offset + 3];
+      if (alpha === 0) continue;
+
+      const errorIndex = (x + 1) * 3;
+      const sourceLab = rgbaToOklab(copyPixel(pixels, offset));
+      const adjustedLab: Oklab = {
+        L: clamp01(sourceLab.L + current[errorIndex] * strength),
+        a: sourceLab.a + current[errorIndex + 1] * strength,
+        b: sourceLab.b + current[errorIndex + 2] * strength,
+      };
+      const adjusted = oklabToRgba(adjustedLab, alpha);
+      const paletteIndex = nearestPaletteIndexFromLabs(adjusted, labs);
+      const mapped = parsed[paletteIndex];
+      const mappedLab = labs[paletteIndex];
+
+      output[offset] = mapped[0];
+      output[offset + 1] = mapped[1];
+      output[offset + 2] = mapped[2];
+      output[offset + 3] = alpha;
+
+      const eL = adjustedLab.L - mappedLab.L;
+      const ea = adjustedLab.a - mappedLab.a;
+      const eb = adjustedLab.b - mappedLab.b;
+      const sign = forward ? 1 : -1;
+
+      const addError = (
+        row: Float32Array,
+        px: number,
+        weight: number
+      ) => {
+        if (px < 0 || px >= width) return;
+        const index = (px + 1) * 3;
+        row[index] += eL * weight;
+        row[index + 1] += ea * weight;
+        row[index + 2] += eb * weight;
+      };
+
+      addError(current, x + sign, 7 / 16);
+      addError(next, x - sign, 3 / 16);
+      addError(next, x, 5 / 16);
+      addError(next, x + sign, 1 / 16);
+    }
+  }
+  return output;
+}
