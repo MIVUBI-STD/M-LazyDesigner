@@ -193,23 +193,43 @@ function optimizeTextureComputeSteps(
   return { steps: optimized, skipped, rewrites };
 }
 
+function packedRgbAt(
+  pixels: Uint8ClampedArray,
+  offset: number
+): number {
+  return (
+    (pixels[offset] << 16) |
+    (pixels[offset + 1] << 8) |
+    pixels[offset + 2]
+  ) >>> 0;
+}
+
+function paletteRgbSet(palette: readonly string[]): Set<number> {
+  return new Set(
+    palette.map((color) => Number.parseInt(color.slice(1, 7), 16))
+  );
+}
+
 function bitmapAlreadyInPalette(
   pixels: Uint8ClampedArray,
   palette: readonly string[]
 ): boolean {
-  const allowed = new Set(
-    palette.map((color) => {
-      const normalized = color.slice(1, 7).toUpperCase();
-      return normalized;
-    })
-  );
+  const allowed = paletteRgbSet(palette);
+  const pixelCount = pixels.length / 4;
+
+  // Cheaply reject likely non-compliant inputs before paying for a proof scan.
+  const sampleCount = Math.min(64, pixelCount);
+  const stride = Math.max(1, Math.floor(pixelCount / sampleCount));
+  for (let index = 0; index < pixelCount; index += stride) {
+    const offset = index * 4;
+    if (pixels[offset + 3] === 0) continue;
+    if (!allowed.has(packedRgbAt(pixels, offset))) return false;
+  }
+
+  // A skip requires proof; only compliant-looking inputs pay for the full scan.
   for (let offset = 0; offset < pixels.length; offset += 4) {
     if (pixels[offset + 3] === 0) continue;
-    const key =
-      pixels[offset].toString(16).padStart(2, "0") +
-      pixels[offset + 1].toString(16).padStart(2, "0") +
-      pixels[offset + 2].toString(16).padStart(2, "0");
-    if (!allowed.has(key.toUpperCase())) return false;
+    if (!allowed.has(packedRgbAt(pixels, offset))) return false;
   }
   return true;
 }
