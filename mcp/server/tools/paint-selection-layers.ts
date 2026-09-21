@@ -74,28 +74,13 @@ export const textureLayerManagementParameters = z.object({
       "rename_layer",
       "flatten_layers",
       "batch_metadata",
-    ])
-    .describe("Layer action."),
+    ]),
   texture_id: textureIdOptionalSchema,
-  layer_id: z
-    .string()
-    .min(1)
-    .optional()
-    .describe("Target layer UUID or unique exact name."),
+  layer_id: z.string().min(1).optional(),
   layer_name: z.string().min(1).optional(),
-  opacity: z
-    .number()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe("Opacity percent."),
+  opacity: z.number().min(0).max(100).optional(),
   blend_mode: textureLayerBlendModeEnum.optional(),
-  target_index: z
-    .number()
-    .int()
-    .nonnegative()
-    .optional()
-    .describe("Final layer index."),
+  target_index: z.number().int().nonnegative().optional(),
   updates: z
     .array(
       z
@@ -118,8 +103,7 @@ export const textureLayerManagementParameters = z.object({
     )
     .min(1)
     .max(64)
-    .optional()
-    .describe("batch_metadata updates applied atomically."),
+    .optional(),
 }).superRefine((value, ctx) => {
   const needsLayer =
     value.action !== "create_layer" &&
@@ -350,7 +334,7 @@ export const paintSelectionLayerToolDocs: ToolSpec[] = [
       },
   {
         name: "texture_layer_management",
-        description: "Mutates texture layers by explicit identity with scoped Undo and receipts.",
+        description: "Mutates texture layers with explicit identity and scoped Undo.",
         annotations: {
           title: "Texture Layer Management",
           destructiveHint: true,
