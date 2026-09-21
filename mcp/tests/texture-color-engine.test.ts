@@ -349,6 +349,41 @@ describe("texture color intelligence core", () => {
     expect(context.labs.size).toBeLessThanOrEqual(4096);
     expect(context.nearest.values().next().value?.size ?? 0).toBeLessThanOrEqual(4096);
     expect(context.metrics.cache_bypasses).toBeGreaterThan(0);
+    expect(context.metrics.oklab_admission_disabled).toBe(true);
+    expect(context.metrics.oklab_peak_entries).toBeLessThanOrEqual(512);
+    expect(context.metrics.oklab_hit_ratio).toBeLessThan(0.05);
+  });
+
+  test("low-entropy color workloads keep Oklab admission enabled and reuse entries", () => {
+    const width = 64;
+    const height = 64;
+    const colors = [
+      [32, 48, 64, 255],
+      [96, 112, 128, 255],
+      [160, 176, 192, 255],
+      [224, 232, 240, 255],
+    ] as const;
+    const pixels = new Uint8ClampedArray(
+      Array.from({ length: width * height }, (_, index) =>
+        colors[index % colors.length]
+      ).flat()
+    );
+    const context = createTextureColorComputeContext();
+    palettizeRgba(
+      pixels,
+      width,
+      height,
+      ["#000000", "#555555", "#AAAAAA", "#FFFFFF"],
+      { dither: "none" },
+      context
+    );
+
+    expect(context.metrics.oklab_admission_disabled).toBe(false);
+    expect(context.metrics.oklab_cache_hits).toBeGreaterThan(
+      context.metrics.oklab_cache_misses
+    );
+    expect(context.metrics.oklab_hit_ratio).toBeGreaterThan(0.9);
+    expect(context.metrics.oklab_peak_entries).toBeLessThanOrEqual(8);
   });
 
   test("color engine rejects unbounded requests before pixel work", () => {

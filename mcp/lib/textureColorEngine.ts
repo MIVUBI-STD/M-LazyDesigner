@@ -51,6 +51,9 @@ export type TextureColorComputeMetrics = {
   pair_cache_hits: number;
   pair_cache_misses: number;
   cache_bypasses: number;
+  oklab_peak_entries: number;
+  oklab_admission_disabled: boolean;
+  oklab_hit_ratio: number;
 };
 
 type PreparedPalette = {
@@ -72,11 +75,48 @@ export type TextureColorComputeContext = {
   nearest: Map<string, Map<number, number>>;
   pairs: Map<string, Map<number, TwoNearestResult>>;
   metrics: TextureColorComputeMetrics;
+  policy: {
+    oklab_admission_enabled: boolean;
+  };
 };
 
 const MAX_OKLAB_CACHE_ENTRIES = 4096;
 const MAX_PALETTE_CACHE_ENTRIES = 32;
 const MAX_PALETTE_LOOKUP_ENTRIES = 4096;
+const OKLAB_ENTROPY_SAMPLE_MISSES = 512;
+const OKLAB_MIN_USEFUL_HIT_RATIO = 0.05;
+
+function refreshOklabCacheMetrics(
+  context: TextureColorComputeContext
+): void {
+  const total =
+    context.metrics.oklab_cache_hits +
+    context.metrics.oklab_cache_misses;
+  context.metrics.oklab_hit_ratio =
+    total === 0 ? 0 : context.metrics.oklab_cache_hits / total;
+  context.metrics.oklab_peak_entries = Math.max(
+    context.metrics.oklab_peak_entries,
+    context.labs.size
+  );
+}
+
+function maybeDisableOklabAdmission(
+  context: TextureColorComputeContext
+): void {
+  if (!context.policy.oklab_admission_enabled) return;
+  if (
+    context.metrics.oklab_cache_misses < OKLAB_ENTROPY_SAMPLE_MISSES
+  ) {
+    return;
+  }
+  refreshOklabCacheMetrics(context);
+  if (
+    context.metrics.oklab_hit_ratio < OKLAB_MIN_USEFUL_HIT_RATIO
+  ) {
+    context.policy.oklab_admission_enabled = false;
+    context.metrics.oklab_admission_disabled = true;
+  }
+}
 
 export function createTextureColorComputeContext(): TextureColorComputeContext {
   return {
@@ -94,6 +134,12 @@ export function createTextureColorComputeContext(): TextureColorComputeContext {
       pair_cache_hits: 0,
       pair_cache_misses: 0,
       cache_bypasses: 0,
+      oklab_peak_entries: 0,
+      oklab_admission_disabled: false,
+      oklab_hit_ratio: 0,
+    },
+    policy: {
+      oklab_admission_enabled: true,
     },
   };
 }
@@ -116,12 +162,18 @@ function oklabFor(
   const cached = context.labs.get(key);
   if (cached) {
     context.metrics.oklab_cache_hits += 1;
+    refreshOklabCacheMetrics(context);
     return cached;
   }
   const lab = rgbaToOklab(rgba);
   context.metrics.oklab_cache_misses += 1;
-  if (context.labs.size < MAX_OKLAB_CACHE_ENTRIES) {
+  maybeDisableOklabAdmission(context);
+  if (
+    context.policy.oklab_admission_enabled &&
+    context.labs.size < MAX_OKLAB_CACHE_ENTRIES
+  ) {
     context.labs.set(key, lab);
+    refreshOklabCacheMetrics(context);
   } else {
     context.metrics.cache_bypasses += 1;
   }
