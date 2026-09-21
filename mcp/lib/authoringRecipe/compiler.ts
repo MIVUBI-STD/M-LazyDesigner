@@ -1,6 +1,7 @@
 import type { AuthoringRecipe, CompiledAuthoringRecipe, CompiledCubePlacement, RecipeCubePrototype, RecipeInstance, RecipeVec3 } from "@/lib/authoringRecipe/contracts";
 import { expandRecipePattern } from "@/lib/authoringRecipe/patterns";
 import { solveRecipeConstraints } from "@/lib/authoringRecipe/constraints";
+import { applyRecipeSymmetry } from "@/lib/authoringRecipe/symmetry";
 
 function requireVec3(value: readonly number[], label: string): RecipeVec3 {
   if (value.length !== 3 || value.some((entry) => !Number.isFinite(entry))) throw new Error(label + " must contain three finite values.");
@@ -60,17 +61,34 @@ export function compileAuthoringRecipe(recipe: AuthoringRecipe): CompiledAuthori
     prototypeById,
     recipe.constraints ?? []
   );
-  const solvedById = new Map(
-    solvedInstances.map((instance) => [instance.id, instance])
+  const symmetry = applyRecipeSymmetry(
+    solvedInstances,
+    prototypeById,
+    recipe.symmetry ?? []
   );
-  const placements: CompiledCubePlacement[] = expanded.map((entry) => {
-    const prototype = prototypeById.get(entry.instance.prototype_id)!;
-    const solved = solvedById.get(entry.instance.id)!;
+  const expandedOwnerById = new Map(
+    expanded.map((entry) => [
+      entry.instance.id,
+      { pattern_id: entry.pattern_id, local_index: entry.local_index },
+    ])
+  );
+  const symmetryOwnerById = new Map(
+    symmetry.relationships.map((relation, index) => [
+      relation.target_instance_id,
+      { pattern_id: "symmetry:" + relation.id, local_index: index },
+    ])
+  );
+  const placements: CompiledCubePlacement[] = symmetry.instances.map((instance) => {
+    const prototype = prototypeById.get(instance.prototype_id)!;
+    const owner =
+      expandedOwnerById.get(instance.id) ??
+      symmetryOwnerById.get(instance.id);
+    if (!owner) throw new Error("Compiled instance " + instance.id + " has no recipe owner.");
     return realizeCube(
       prototype,
-      solved,
-      entry.pattern_id,
-      entry.local_index
+      instance,
+      owner.pattern_id,
+      owner.local_index
     );
   });
   const placementIds = placements.map((placement) => placement.id);
@@ -78,11 +96,13 @@ export function compileAuthoringRecipe(recipe: AuthoringRecipe): CompiledAuthori
   const uniqueGeometryCount = new Set(placements.map((placement) => placement.prototype_id)).size;
   return {
     schema: 1, compiler_version: recipe.compiler_version, recipe_id: recipe.id, placements,
+    symmetry_relationships: symmetry.relationships,
     metrics: {
       prototype_count: recipe.prototypes.length, pattern_count: recipe.patterns.length,
       instance_count: placements.length, realized_cube_count: placements.length,
       unique_geometry_count: uniqueGeometryCount,
       repeated_instance_count: placements.length - uniqueGeometryCount,
+      symmetry_generated_count: symmetry.relationships.length,
     },
   };
 }

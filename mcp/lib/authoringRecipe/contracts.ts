@@ -81,6 +81,34 @@ export type RecipeAnchorConstraint = {
 
 export type RecipeConstraint = RecipeAnchorConstraint;
 
+export type RecipeSymmetryRelation = {
+  id: string;
+  source_instance_id: string;
+  target_instance_id: string;
+  plane: {
+    axis: "X" | "Y" | "Z";
+    position: number;
+  };
+  semantic_pair?: {
+    source: string;
+    target: string;
+  };
+  uv_policy: "SHARE" | "UNIQUE";
+  texture_policy: "MIRROR" | "UNIQUE";
+  rig_policy: "MIRROR" | "INDEPENDENT";
+};
+
+export type CompiledSymmetryRelationship = {
+  id: string;
+  source_instance_id: string;
+  target_instance_id: string;
+  plane: RecipeSymmetryRelation["plane"];
+  uv_policy: RecipeSymmetryRelation["uv_policy"];
+  texture_policy: RecipeSymmetryRelation["texture_policy"];
+  rig_policy: RecipeSymmetryRelation["rig_policy"];
+  semantic_pair?: RecipeSymmetryRelation["semantic_pair"];
+};
+
 export type AuthoringRecipe = {
   schema: typeof AUTHORING_RECIPE_SCHEMA_VERSION;
   compiler_version: typeof AUTHORING_RECIPE_COMPILER_VERSION;
@@ -89,6 +117,7 @@ export type AuthoringRecipe = {
   prototypes: RecipeCubePrototype[];
   patterns: RecipePattern[];
   constraints?: RecipeConstraint[];
+  symmetry?: RecipeSymmetryRelation[];
 };
 
 export type CompiledCubePlacement = {
@@ -112,6 +141,7 @@ export type AuthoringRecipeMetrics = {
   realized_cube_count: number;
   unique_geometry_count: number;
   repeated_instance_count: number;
+  symmetry_generated_count: number;
 };
 
 export type CompiledAuthoringRecipe = {
@@ -119,5 +149,6 @@ export type CompiledAuthoringRecipe = {
   compiler_version: number;
   recipe_id: string;
   placements: CompiledCubePlacement[];
+  symmetry_relationships: CompiledSymmetryRelationship[];
   metrics: AuthoringRecipeMetrics;
 };
