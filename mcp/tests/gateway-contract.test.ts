@@ -583,6 +583,93 @@ describe("BlockIT Gateway contract", () => {
     ).toBe(verbose);
   });
 
+  test("Gateway generically removes redundant before snapshots only for receipt-only continuation", () => {
+    const applied = {
+      execution: "applied",
+      before: {
+        uuid: "locator-a",
+        name: "old",
+        position: [0, 0, 0],
+      },
+      after: {
+        uuid: "locator-a",
+        name: "new",
+        position: [1, 2, 3],
+      },
+      changed_fields: ["name", "position"],
+      verification: {
+        revision: "fixture-revision",
+      },
+    };
+
+    expect(
+      compactGatewayCapabilityStructuredContent(
+        "manage_locator",
+        applied,
+        "receipt_only"
+      )
+    ).toEqual({
+      execution: "applied",
+      after: applied.after,
+      changed_fields: applied.changed_fields,
+      verification: applied.verification,
+    });
+
+    expect(
+      compactGatewayCapabilityStructuredContent(
+        "manage_locator",
+        applied,
+        "focused_read"
+      )
+    ).toBe(applied);
+
+    const incomplete = {
+      execution: "applied",
+      before: { uuid: "locator-a" },
+      changed_fields: ["name"],
+    };
+    expect(
+      compactGatewayCapabilityStructuredContent(
+        "manage_locator",
+        incomplete,
+        "receipt_only"
+      )
+    ).toBe(incomplete);
+
+    const batch = {
+      execution: "applied",
+      effects: [
+        {
+          before: { uuid: "a", name: "old-a" },
+          after: { uuid: "a", name: "new-a" },
+          changed_fields: ["name"],
+        },
+        {
+          after: { uuid: "b", name: "new-b" },
+          changed_fields: ["name"],
+        },
+      ],
+      recovery: { safe_to_retry: false },
+    };
+    expect(
+      compactGatewayCapabilityStructuredContent(
+        "manage_locator",
+        batch,
+        "receipt_only"
+      )
+    ).toEqual({
+      execution: "applied",
+      effects: [
+        {
+          after: { uuid: "a", name: "new-a" },
+          changed_fields: ["name"],
+        },
+        batch.effects[1],
+      ],
+      recovery: batch.recovery,
+    });
+  });
+
   test("Gateway compacts manage_cubes continuation receipts without dropping UV-changing state", () => {
     const geometryBatch = compactGatewayCapabilityStructuredContent(
       "manage_cubes",

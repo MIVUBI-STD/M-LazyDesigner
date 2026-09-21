@@ -450,7 +450,8 @@ registerGatewayTool(
       }
       const compacted = compactGatewayCapabilityStructuredContent(
         capability,
-        result.structuredContent
+        result.structuredContent,
+        controlDelta.verification_class
       );
       const compactedContent = compactGatewayCapabilityContent(
         capability,

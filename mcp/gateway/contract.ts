@@ -291,12 +291,46 @@ export function compactGatewayCapabilityContent(
  * Keep the Runtime receipt complete for direct/debug clients while presenting
  * only continuation-relevant state through the stable AI-client Gateway.
  */
+function compactReceiptOnlyStructuredContent(value: unknown): unknown {
+  if (!isRecord(value)) return value;
+
+  if (Array.isArray(value.effects)) {
+    let changed = false;
+    const effects = value.effects.map((effect) => {
+      if (
+        !isRecord(effect) ||
+        effect.before === undefined ||
+        effect.after === undefined
+      ) {
+        return effect;
+      }
+      const { before: _before, ...rest } = effect;
+      changed = true;
+      return rest;
+    });
+    return changed ? { ...value, effects } : value;
+  }
+
+  if (value.before !== undefined && value.after !== undefined) {
+    const { before: _before, ...rest } = value;
+    return rest;
+  }
+
+  return value;
+}
+
 export function compactGatewayCapabilityStructuredContent(
   capability: string,
-  value: unknown
+  value: unknown,
+  verificationClass?: CapabilityVerificationClass
 ): unknown {
-  if (capability !== "manage_cubes") return value;
-  return compactManageCubesStructuredContent(value);
+  if (capability === "manage_cubes") {
+    return compactManageCubesStructuredContent(value);
+  }
+  if (verificationClass === "receipt_only") {
+    return compactReceiptOnlyStructuredContent(value);
+  }
+  return value;
 }
 
 export function normalizeRuntimeUrl(
