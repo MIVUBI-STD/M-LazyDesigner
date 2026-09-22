@@ -3,6 +3,10 @@ import { resolve } from "node:path";
 const packageRoot = resolve(import.meta.dir, "..");
 const docsDir = resolve(packageRoot, "docs");
 const promptsDir = resolve(packageRoot, "prompts");
+const hybridSchemaPath = resolve(
+  packageRoot,
+  "gateway/experimental/generated/hybrid4Schemas.ts"
+);
 
 // Generated artifacts that must stay fresh against their source owners.
 // prompts/manifest.json bundles runtime prompt content from prompts/*.md, so a
@@ -14,12 +18,22 @@ const targets = [
     file: "../prompts/manifest.json",
     path: resolve(promptsDir, "manifest.json"),
   },
+  {
+    file: "../gateway/experimental/generated/hybrid4Schemas.ts",
+    path: hybridSchemaPath,
+  },
 ] as const;
 
 type TargetFile = (typeof targets)[number]["file"];
 const originals = new Map<string, string>();
 
 function normalizeGeneratedAt(file: TargetFile, content: string): string {
+  if (
+    file === "../gateway/experimental/generated/hybrid4Schemas.ts"
+  ) {
+    return content;
+  }
+
   if (file === "index.html") {
     return content.replace(
       /Generated [^<\n]+ from Zod schemas/g,
@@ -58,6 +72,7 @@ async function checkDocsFreshness(): Promise<number> {
 
   await runBuildScript("docs:build");
   await runBuildScript("prompts:build");
+  await runBuildScript("generate:hybrid4-schemas");
 
   const stale: string[] = [];
   for (const target of targets) {
@@ -76,12 +91,12 @@ async function checkDocsFreshness(): Promise<number> {
   }
 
   if (stale.length === 0) {
-    console.log("Generated MCP documentation is fresh.");
+    console.log("Generated MCP documentation and Hybrid-4 schemas are fresh.");
     return 0;
   }
 
   console.error(
-    `Generated MCP documentation is stale: ${stale.join(", ")}. Run \`bun run docs:build\` / \`bun run prompts:build\` and commit the generated output.`
+    `Generated MCP artifacts are stale: ${stale.join(", ")}. Run \`bun run docs:build\`, \`bun run prompts:build\`, and \`bun run generate:hybrid4-schemas\`, then commit the generated output.`
   );
   return 1;
 }
