@@ -10,7 +10,7 @@ const originals: Record<string, string> = {
   "docs/index.html": "<p>Generated before from Zod schemas</p>\n",
   "prompts/manifest.json": '{\n  "version": "fixture",\n  "prompts": ["current"]\n}\n',
   "gateway/experimental/generated/hybrid4Schemas.ts":
-    '// GENERATED fixture before\nexport const HYBRID_4_GENERATED_SCHEMAS = {} as const;\n',
+    '// GENERATED fixture after\nexport const HYBRID_4_GENERATED_SCHEMAS = {} as const;\n',
 };
 const generated: Record<string, string> = {
   "docs/api.json": '{"generatedAt":"after","tools":["fixture"]}',
