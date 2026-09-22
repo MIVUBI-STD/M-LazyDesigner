@@ -10,7 +10,9 @@
     "emitDeclarationOnly": true,
     "types": [
       "bun"
-    ]
+    ],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": [
     "lib/runtimeFetch.ts",

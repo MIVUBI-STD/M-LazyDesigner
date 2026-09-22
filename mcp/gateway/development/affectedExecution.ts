@@ -29,11 +29,22 @@ function uniqueSorted(values: Iterable<string>): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
-function isRuntimeTypeScript(path: string): boolean {
+function isProjectGraphTypeScript(path: string): boolean {
+  return (
+    path.endsWith(".ts") &&
+    (
+      path.startsWith("mcp/gateway/") ||
+      path.startsWith("mcp/server/") ||
+      path.startsWith("mcp/lib/")
+    )
+  );
+}
+
+function isRuntimeTypeScriptOutsideProjectGraph(path: string): boolean {
   return (
     path.startsWith("mcp/") &&
     path.endsWith(".ts") &&
-    !path.startsWith("mcp/gateway/")
+    !isProjectGraphTypeScript(path)
   );
 }
 
@@ -47,22 +58,7 @@ const GATEWAY_SHARED_PROJECT_FILES = new Set([
 ]);
 
 function affectsProjectGraph(path: string): boolean {
-  return (
-    (path.startsWith("mcp/gateway/") && path.endsWith(".ts")) ||
-    (path.startsWith("mcp/lib/semantic/") && path.endsWith(".ts")) ||
-    GATEWAY_SHARED_PROJECT_FILES.has(path)
-  );
-}
-
-function isGatewayTypeScript(path: string): boolean {
-  return (
-    (path.startsWith("mcp/gateway/") ||
-      path.startsWith("mcp/lib/semantic/") ||
-      path.startsWith("mcp/lib/capability") ||
-      path === "mcp/lib/authoringPhase.ts" ||
-      path === "mcp/lib/registrationProfile.ts") &&
-    path.endsWith(".ts")
-  );
+  return isProjectGraphTypeScript(path) || GATEWAY_SHARED_PROJECT_FILES.has(path);
 }
 
 function affectsDocs(path: string): boolean {
@@ -150,13 +146,9 @@ export function planAffectedExecution(input: {
   if (changedPaths.some(affectsProjectGraph)) {
     checks.add("PROJECT_GRAPH");
   }
-  if (changedPaths.some(isRuntimeTypeScript)) {
+  if (changedPaths.some(isRuntimeTypeScriptOutsideProjectGraph)) {
     checks.add("TYPECHECK_RUNTIME");
     checks.add("AUDIT_UNUSED_RUNTIME");
-  }
-  if (changedPaths.some(isGatewayTypeScript)) {
-    checks.add("TYPECHECK_GATEWAY");
-    checks.add("AUDIT_UNUSED_GATEWAY");
   }
   if (changedPaths.some(affectsDocs)) checks.add("DOCS_FRESHNESS");
   if (changedPaths.some(affectsRepositoryContracts)) {

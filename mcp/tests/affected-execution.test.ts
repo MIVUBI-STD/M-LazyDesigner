@@ -49,15 +49,35 @@ describe("affected execution planner", () => {
     expect(plan.commands).toContain("bun run verify:project-graph");
   });
 
-  test("gateway-only source avoids runtime typecheck when no shared runtime owner changed", () => {
+  test("project-owned source uses one strict composite compiler graph", () => {
+    for (const path of [
+      "mcp/gateway/capabilities/catalog.ts",
+      "mcp/server/tools/cubes.ts",
+      "mcp/lib/semantic/canonical.ts",
+    ]) {
+      const plan = planAffectedExecution({
+        changedPaths: [path],
+        semanticImpact: impact(),
+      });
+
+      expect(plan.checks).toContain("PROJECT_GRAPH");
+      expect(plan.checks).not.toContain("TYPECHECK_RUNTIME");
+      expect(plan.checks).not.toContain("TYPECHECK_GATEWAY");
+      expect(plan.checks).not.toContain("AUDIT_UNUSED_RUNTIME");
+      expect(plan.checks).not.toContain("AUDIT_UNUSED_GATEWAY");
+      expect(plan.commands).toContain("bun run verify:project-graph");
+    }
+  });
+
+  test("tooling outside the composite graph retains root compiler verification", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/gateway/capabilities/catalog.ts"],
+      changedPaths: ["mcp/scripts/measure-mcp-efficiency.ts"],
       semanticImpact: impact(),
     });
 
-    expect(plan.checks).toContain("PROJECT_GRAPH");
-    expect(plan.checks).toContain("TYPECHECK_GATEWAY");
-    expect(plan.checks).not.toContain("TYPECHECK_RUNTIME");
+    expect(plan.checks).toContain("TYPECHECK_RUNTIME");
+    expect(plan.checks).toContain("AUDIT_UNUSED_RUNTIME");
+    expect(plan.checks).not.toContain("PROJECT_GRAPH");
   });
 
   test("unmapped, infra, empty-owner, or truncated changes fail safe to the full verifier", () => {

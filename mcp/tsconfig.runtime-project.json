@@ -6,11 +6,17 @@
     "tsBuildInfoFile": ".cache/runtime-project.tsbuildinfo",
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "references": [
-    { "path": "./tsconfig.semantic-core.json" },
-    { "path": "./tsconfig.gateway-shared.json" }
+    {
+      "path": "./tsconfig.semantic-core.json"
+    },
+    {
+      "path": "./tsconfig.gateway-shared.json"
+    }
   ],
   "include": [
     "server/**/*.ts",
