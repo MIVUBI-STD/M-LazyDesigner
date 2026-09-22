@@ -19,10 +19,21 @@ export function registerExperimentalHybrid4(input: {
 }): string[] {
   if (input.profile !== "hybrid_4_experimental") return [];
 
+  const registerTool = input.server.registerTool.bind(input.server) as unknown as (
+    name: string,
+    config: {
+      title: string;
+      description: string;
+      inputSchema: ReturnType<typeof fromJsonSchema>;
+      annotations: Record<string, unknown>;
+    },
+    callback: (args: unknown, context: unknown) => Promise<unknown>
+  ) => void;
+
   const registered: string[] = [];
   for (const capability of HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES) {
     const spec = HYBRID_4_GENERATED_SCHEMAS[capability];
-    input.server.registerTool(
+    registerTool(
       capability,
       {
         title: `Experimental direct: ${capability}`,

@@ -275,7 +275,11 @@ const invokeInput = z.object({
 function directPreconditionBlockedResult(
   capability: string,
   args: JsonRecord
-): ReturnType<typeof gatewayErrorResult> | null {
+): {
+  isError: true;
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: JsonRecord;
+} | null {
   const branch = capabilityBranchFromArguments(args);
   const evaluation = evaluateCapabilityPreconditions(
     capability,

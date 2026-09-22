@@ -16,7 +16,7 @@ describe("Hybrid-4 generated schema boundary", () => {
     for (const capability of HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES) {
       const source = api.tools.find((tool) => tool.name === capability);
       expect(source).toBeDefined();
-      expect(HYBRID_4_GENERATED_SCHEMAS[capability]).toEqual({
+      expect(HYBRID_4_GENERATED_SCHEMAS[capability] as unknown).toEqual({
         description: source!.description,
         annotations: source!.annotations ?? {},
         inputSchema: source!.parameters,
