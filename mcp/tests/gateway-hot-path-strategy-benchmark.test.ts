@@ -73,11 +73,11 @@ describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
     expect(projected.registration_enabled).toBe(false);
     expect(projected.projected_client_tool_count).toBe(8);
     expect(projected.direct_capabilities).toEqual(
-      HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES
+      [...HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES]
     );
     expect(report.recommendation.strategy).toBe("HYBRID_4");
     expect(report.recommendation.direct_capabilities).toEqual(
-      HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES
+      [...HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES]
     );
   });
 
