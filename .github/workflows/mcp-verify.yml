@@ -15,7 +15,6 @@ on:
       - "!mcp/tests/authoring/**"
       - "!mcp/prompts/blockbench_code_eval_safety.md"
       - "!mcp/prompts/blockbench_native_apis.md"
-      # Executable contract tests read these non-mcp owners directly.
       - ".agents/skills/lazydesigner-modelling/**"
       - ".agents/skills/lazydesigner-texturing/**"
       - ".agents/skills/lazydesigner-animation/**"
@@ -34,7 +33,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     defaults:
       run:
         working-directory: mcp
@@ -44,6 +43,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -53,70 +53,80 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
-      # Keep the canonical verify:mcp order visible as individual CI gates so a
-      # failing owner is diagnosable without weakening or duplicating checks.
-      # Exact-SHA provenance is written only after every source/build gate passes.
-      - name: Verify generated docs freshness
-        run: bun run docs:check
+      - name: Plan verification scope
+        id: scope
+        shell: bash
+        working-directory: .
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
 
-      - name: Verify TypeScript project graph
-        run: bun run verify:project-graph
+          full_verify() {
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+            : > /tmp/mcp-changed-paths.txt
+          }
 
-      - name: Typecheck Runtime
-        run: bun run typecheck
+          if [[ "$EVENT_NAME" != "push" ]]; then
+            echo "Manual/non-push verification uses the canonical full verifier."
+            full_verify
+            exit 0
+          fi
 
-      - name: Typecheck Gateway
-        run: bun run typecheck:gateway
+          if [[ -z "${BEFORE_SHA:-}" || "$BEFORE_SHA" =~ ^0+$ ]]; then
+            echo "Push has no trustworthy before SHA; failing wide."
+            full_verify
+            exit 0
+          fi
 
-      - name: Audit unused Runtime symbols
-        run: bun run audit:unused
+          if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            echo "Before SHA is unavailable locally; failing wide."
+            full_verify
+            exit 0
+          fi
 
-      - name: Audit unused Gateway symbols
-        run: bun run audit:unused:gateway
+          git diff --name-status --find-renames "$BEFORE_SHA" "$HEAD_SHA" > /tmp/mcp-change-status.txt
 
-      - name: Run Runtime regression suite
-        run: bun run test:runtime
+          if grep -Eq '^(D|R|C)[0-9]*[[:space:]]' /tmp/mcp-change-status.txt; then
+            echo "Deletion/rename/copy detected; ownership may have disappeared, so use full verification."
+            full_verify
+            exit 0
+          fi
 
-      - name: Run Authoring contract suite
-        run: bun run verify:authoring
+          awk -F '\t' '{print $NF}' /tmp/mcp-change-status.txt | sed '/^$/d' | sort -u > /tmp/mcp-changed-paths.txt
 
-      - name: Guard Gateway structural ownership
-        run: bun run test:gateway-structure
+          if [[ ! -s /tmp/mcp-changed-paths.txt ]]; then
+            echo "No changed paths resolved; failing wide."
+            full_verify
+            exit 0
+          fi
 
-      - name: Guard canonical capability manifest
-        run: bun run test:capability-manifest
+          echo "mode=affected" >> "$GITHUB_OUTPUT"
+          echo "Affected verification paths:"
+          cat /tmp/mcp-changed-paths.txt
 
-      - name: Guard capability intelligence routing
-        run: bun run eval:capability-intelligence
+      - name: Run affected verification
+        if: steps.scope.outputs.mode == 'affected'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed_paths < /tmp/mcp-changed-paths.txt
+          bun run verify:affected -- "${changed_paths[@]}"
 
-      - name: Guard Gateway decision efficiency
-        run: bun run eval:decision-efficiency
+      - name: Run full verification
+        if: steps.scope.outputs.mode == 'full'
+        run: bun run verify:full
 
-      - name: Guard total-context Zero-Waste regression
-        run: bun run benchmark:zero-waste-total
-
-      - name: Guard parametric authoring efficiency regression
-        run: bun run benchmark:parametric-authoring
-
-      - name: Report Zero-Waste bottlenecks
-        run: bun run benchmark:zero-waste-bottlenecks
-
-      - name: Measure MCP efficiency scorecard
-        run: bun run measure:mcp-efficiency
-
-      - name: Measure MCP surface
-        run: bun run measure:surface
-
-      - name: Measure authoring phases
-        run: bun run measure:phases
-
-      - name: Build compatibility bundle
-        run: bun run build
-
+      # Keep verified build artifacts only when the canonical full verifier ran.
+      # Affected-only pushes intentionally avoid rebuilding unrelated bundles.
       - name: Record exact-SHA build provenance
+        if: steps.scope.outputs.mode == 'full'
         run: bun run ./scripts/verified-build-artifact.ts write-ci
 
       - name: Upload verified compatibility bundle
+        if: steps.scope.outputs.mode == 'full'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: blockit-mcp-verified

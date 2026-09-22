@@ -141,6 +141,10 @@ describe("affected execution planner", () => {
         semanticImpact: impact(),
       }),
       planAffectedExecution({
+        changedPaths: [".github/workflows/mcp-verify.yml"],
+        semanticImpact: impact(),
+      }),
+      planAffectedExecution({
         changedPaths: ["mcp/about.md"],
         semanticImpact: impact(),
       }),

@@ -112,7 +112,8 @@ function requiresFullVerify(path: string): boolean {
     path === "mcp/bun.lock" ||
     path === "mcp/tsconfig.json" ||
     path === "mcp/gateway/tsconfig.json" ||
-    path === ".bun-version"
+    path === ".bun-version" ||
+    path === ".github/workflows/mcp-verify.yml"
   );
 }
 
