@@ -28,6 +28,12 @@ describe("Gateway output schemas", () => {
       },
       connection: { state: "ready" },
       operations: { active: 0, queued: 0 },
+      gateway_surface: {
+        profile: "stable_four",
+        stable_gateway_tool_count: 4,
+        experimental_direct_tools: [],
+        projected_client_tool_count: 4,
+      },
       control: {
         system: "READY",
         task_context_id: "task:" + "b".repeat(20),
