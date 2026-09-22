@@ -3,7 +3,10 @@ import { describe, expect, test } from "bun:test";
 const source = await Bun.file(
   new URL("../server/runtime/consolidatedTools.ts", import.meta.url)
 ).text();
-const compactSource = source.replace(/\s+/g, " ");
+const compactSource = source.replace(/\s+/g, "");
+function containsSignature(signature: string): boolean {
+  return compactSource.includes(signature.replace(/\s+/g, ""));
+}
 
 describe("Consolidated capability validation preservation", () => {
   test("consolidated branches are first-class addressable schema registries", () => {
@@ -25,7 +28,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(findElementsByCriteriaParameters, "mode", "search")',
       'withToolBranch(inspectElementParameters, "mode", "detail")',
     ]) {
-      expect(compactSource).toContain(signature);
+      expect(containsSignature(signature)).toBe(true);
     }
   });
 
@@ -36,7 +39,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(assignTextureChannelParameters, "operation", "assign_channel")',
       'withToolBranch(saveMaterialConfigParameters, "operation", "save")',
     ]) {
-      expect(compactSource).toContain(signature);
+      expect(containsSignature(signature)).toBe(true);
     }
   });
 
@@ -53,7 +56,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(batchKeyframeOperationsParameters, "operation", "batch")',
       'withToolBranch(animationCopyPasteParameters, "operation", "copy_paste")',
     ]) {
-      expect(compactSource).toContain(signature);
+      expect(containsSignature(signature)).toBe(true);
     }
   });
 
@@ -65,7 +68,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(bulkSetMaterialInstancesParametersSchema, "operation", "bulk_set")',
       'withToolBranch(clearMaterialInstancesParametersSchema, "operation", "clear")',
     ]) {
-      expect(compactSource).toContain(signature);
+      expect(containsSignature(signature)).toBe(true);
     }
   });
 

@@ -1,6 +1,5 @@
-import "@/server/tools";
 import { z } from "zod";
-import { getAllToolDefinitions } from "@/lib/factories";
+import { toolManifest } from "@/build/docs-manifest";
 
 export type HotPathRoute =
   | "DIRECT_INVOKE"
@@ -44,9 +43,15 @@ function directEligible(route: HotPathRoute): boolean {
 }
 
 function toolStaticBytes(name: string): number {
-  const definition = getAllToolDefinitions()[name];
-  if (!definition) throw new Error(`Hot-path capability is not registered in the union catalog: ${name}`);
-  const schema = z.toJSONSchema(definition.parameterSchema, {
+  const spec = toolManifest
+    .flatMap((group) => group.tools)
+    .find((tool) => tool.name === name);
+  if (!spec) {
+    throw new Error(
+      `Hot-path capability is missing from the canonical docs/static manifest: ${name}`
+    );
+  }
+  const schema = z.toJSONSchema(spec.parameters, {
     io: "input",
     target: "draft-2020-12",
     unrepresentable: "any",
@@ -55,7 +60,7 @@ function toolStaticBytes(name: string): number {
   return new TextEncoder().encode(
     JSON.stringify({
       name,
-      description: definition.description,
+      description: spec.description,
       inputSchema: schema,
     })
   ).byteLength;
@@ -139,7 +144,7 @@ export function benchmarkGatewayHotPathStrategies() {
   return {
     measurement: "gateway-hot-path-strategy-proxy",
     proof_scope:
-      "Deterministic architecture proxy. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas from the registered union catalog exposed to the AI client. Measures static schema bytes and weighted pre-invoke routing calls; not live model tokens or Blockbench latency.",
+      "Deterministic architecture proxy. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas from the canonical static/docs manifest exposed to the AI client. Measures static schema bytes and weighted pre-invoke routing calls; not live model tokens or Blockbench latency.",
     workload_weight: CASES.reduce((sum, item) => sum + item.weight, 0),
     stable_four: {
       client_tool_count: 4,
