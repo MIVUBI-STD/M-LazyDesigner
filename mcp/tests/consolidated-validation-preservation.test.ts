@@ -44,8 +44,8 @@ describe("Consolidated capability validation preservation", () => {
   });
 
   test("material save exposes a persistence-only continuation receipt", () => {
-    expect(compactSource).toContain('operation !== "save"');
-    expect(compactSource).toContain('scope: "material_persistence_only"');
+    expect(containsSignature('operation !== "save"')).toBe(true);
+    expect(containsSignature('scope: "material_persistence_only"')).toBe(true);
   });
 
   test("animation timeline branches reuse canonical executor schemas", () => {
