@@ -9,6 +9,16 @@ function fixture(overrides: Partial<ControlStageContext> = {}): ControlStageCont
   return {
     context_type: "GEOMETRY_CONTEXT",
     context_hash: "canonical-context-hash",
+    semantic: {
+      semantic_revision_schema: 1,
+      artifact_kind: "AI_STAGE_CONTEXT",
+      revisions: {
+        routing: "fixture-routing",
+        graph: "fixture-graph",
+        schema_projection: "fixture-schema",
+        aggregate: "fixture-aggregate",
+      },
+    },
     original_user_intent: "Build the approved vehicle exactly.",
     current_user_delta: "Keep wheel spacing and correct the front bumper.",
     selected_profile: "VEHICLE",
