@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { toolManifest } from "@/build/docs-manifest";
+import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "@/gateway/experimental/hybridProfile";
 
 export type HotPathRoute =
   | "DIRECT_INVOKE"
@@ -264,6 +265,15 @@ export function assertGatewayHotPathBenchmark(): void {
   );
   if (!recommendation) {
     throw new Error("Recommended hybrid is not one of the measured variants.");
+  }
+  if (
+    report.recommendation.strategy === "HYBRID_4" &&
+    JSON.stringify(report.recommendation.direct_capabilities) !==
+      JSON.stringify(HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES)
+  ) {
+    throw new Error(
+      "Experimental Hybrid-4 profile drifted from the current Pareto recommendation."
+    );
   }
   if (!recommendation.quality_preserved) {
     throw new Error("Recommended hybrid does not preserve prerequisite routing.");

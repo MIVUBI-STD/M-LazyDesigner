@@ -3,6 +3,11 @@ import {
   assertGatewayHotPathBenchmark,
   benchmarkGatewayHotPathStrategies,
 } from "../scripts/benchmark-gateway-hot-path";
+import {
+  HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES,
+  gatewaySurfaceProjection,
+  resolveGatewaySurfaceProfile,
+} from "../gateway/experimental/hybridProfile";
 
 describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
   test("report keeps the stable four-tool strategy as an explicit baseline", () => {
@@ -55,6 +60,25 @@ describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
         )
       ).toBe(false);
     }
+  });
+
+  test("experimental Hybrid-4 projection stays opt-in and benchmark-aligned", () => {
+    const report = benchmarkGatewayHotPathStrategies();
+    const projected = gatewaySurfaceProjection("hybrid_4_experimental");
+
+    expect(resolveGatewaySurfaceProfile(undefined)).toBe("stable_four");
+    expect(resolveGatewaySurfaceProfile("hybrid_4_experimental")).toBe(
+      "hybrid_4_experimental"
+    );
+    expect(projected.registration_enabled).toBe(false);
+    expect(projected.projected_client_tool_count).toBe(8);
+    expect(projected.direct_capabilities).toEqual(
+      HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES
+    );
+    expect(report.recommendation.strategy).toBe("HYBRID_4");
+    expect(report.recommendation.direct_capabilities).toEqual(
+      HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES
+    );
   });
 
   test("blocked prerequisite cases are never converted into direct calls", () => {
