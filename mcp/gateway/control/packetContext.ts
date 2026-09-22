@@ -7,8 +7,7 @@ import type {
   ControlContextHandle,
   ControlSnapshot,
 } from "./types";
-import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../capabilities/semanticRegistry";
-import { semanticFingerprint } from "../capabilities/semanticRegistry";
+import { semanticRevisionForDependencies } from "../development/semanticDependencies";
 
 export type ControlContextDelivery = {
   required: ControlContextHandle[];
@@ -61,19 +60,6 @@ export function taskContextId(
     .slice(0, 20)}`;
 }
 
-function contextSemanticRevision(
-  handle: ControlContextHandle
-): string {
-  return semanticFingerprint(
-    Object.fromEntries(
-      handle.semantic_dependencies.map((dimension) => [
-        dimension,
-        CAPABILITY_SEMANTIC_CATALOG_REVISIONS[dimension],
-      ])
-    )
-  );
-}
-
 function contextFamily(id: string): string {
   const at = id.lastIndexOf("@");
   const versionless = at > 0 ? id.slice(0, at) : id;
@@ -103,7 +89,8 @@ export function filterContext(
     current
       .filter(
         (handle) =>
-          handle.semantic_revision === contextSemanticRevision(handle)
+          handle.semantic_revision ===
+          semanticRevisionForDependencies(handle.semantic_dependencies)
       )
       .map((handle) => handle.id)
   );

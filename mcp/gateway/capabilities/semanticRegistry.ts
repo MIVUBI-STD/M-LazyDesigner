@@ -32,6 +32,9 @@ export type CapabilitySemanticCatalogRevisions = {
   aggregate: string;
 };
 
+export type SemanticRevisionDimension =
+  Exclude<keyof CapabilitySemanticCatalogRevisions, "aggregate">;
+
 export function semanticFingerprint(value: unknown): string {
   return createHash("sha256").update(canonicalJson(value)).digest("hex");
 }

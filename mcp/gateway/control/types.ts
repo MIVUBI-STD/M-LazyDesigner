@@ -1,6 +1,7 @@
 import type { CapabilitySummary, JsonRecord } from "../protocol";
 import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
 import type { BlockitAuthoringPhaseAffinity } from "../runtime/projectAffinity";
+import type { SemanticRevisionDimension } from "../capabilities/semanticRegistry";
 
 export type ControlAuthoringDomain = "GEOMETRY" | "TEXTURING" | "ANIMATION" | "CORE";
 
@@ -43,10 +44,7 @@ export type ControlVerificationScope =
       evidence_source: "mutation_response" | "follow_up_read";
     };
 
-export type ControlContextSemanticDependency =
-  | "routing"
-  | "graph"
-  | "schema_projection";
+export type ControlContextSemanticDependency = SemanticRevisionDimension;
 
 export type ControlContextHandle = {
   id: string;

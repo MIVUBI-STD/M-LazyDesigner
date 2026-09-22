@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
-import type { ControlAuthoringDomain, ControlContextHandle, ControlContextSemanticDependency } from "./types";
-import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../capabilities/semanticRegistry";
-import { semanticFingerprint } from "../capabilities/semanticRegistry";
+import type { ControlAuthoringDomain, ControlContextHandle } from "./types";
+import {
+  semanticDependenciesForOwner,
+  semanticRevisionForDependencies,
+  type SemanticDependencyOwner,
+} from "../development/semanticDependencies";
 import type { ControlProfile } from "./referencePackage";
 
 export const MODELLING_PATH = ".agents/skills/lazydesigner-modelling/SKILL.md";
@@ -26,31 +29,18 @@ type CachedHandle = {
 
 const contextHandleCache = new Map<string, CachedHandle>();
 
-function semanticDependenciesForPath(
-  path: string
-): ControlContextSemanticDependency[] {
+function semanticOwnerForPath(path: string): SemanticDependencyOwner {
   if (
     path === MODELLING_PATH ||
     path === TEXTURING_PATH ||
-    path === ANIMATION_PATH ||
-    Object.values(PROFILE_PATHS).includes(path)
+    path === ANIMATION_PATH
   ) {
-    return ["routing", "graph"];
+    return "AUTHORING_SPECIALIST";
   }
-  return ["routing"];
-}
-
-function semanticRevisionForDependencies(
-  dependencies: readonly ControlContextSemanticDependency[]
-): string {
-  return semanticFingerprint(
-    Object.fromEntries(
-      dependencies.map((dimension) => [
-        dimension,
-        CAPABILITY_SEMANTIC_CATALOG_REVISIONS[dimension],
-      ])
-    )
-  );
+  if (Object.values(PROFILE_PATHS).includes(path)) {
+    return "MODELLING_PROFILE";
+  }
+  return "GENERIC_CONTEXT";
 }
 
 function contextLabel(path: string): string {
@@ -73,7 +63,9 @@ export async function contentHandle(path: string): Promise<ControlContextHandle>
   if (cached?.signature === signature) return cached.handle;
   const bytes = await readFile(file);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
-  const semanticDependencies = semanticDependenciesForPath(path);
+  const semanticDependencies = semanticDependenciesForOwner(
+    semanticOwnerForPath(path)
+  );
   const semanticRevision = semanticRevisionForDependencies(
     semanticDependencies
   );
