@@ -70,7 +70,7 @@ describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
     expect(resolveGatewaySurfaceProfile("hybrid_4_experimental")).toBe(
       "hybrid_4_experimental"
     );
-    expect(projected.registration_enabled).toBe(false);
+    expect(projected.registration_enabled).toBe(true);
     expect(projected.projected_client_tool_count).toBe(8);
     expect(projected.direct_capabilities).toEqual(
       [...HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES]
