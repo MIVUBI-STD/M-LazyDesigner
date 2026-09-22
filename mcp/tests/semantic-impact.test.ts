@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { analyzeSemanticImpact } from "../lib/semantic/impact";
+import { analyzeSemanticImpact } from "../gateway/development/impact";
 import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
 import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
 

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { analyzeSemanticImpact } from "../lib/semantic/impact";
+import { analyzeSemanticImpact } from "../gateway/development/impact";
 import {
   indexMarkdownKnowledge,
   selectKnowledgeSections,

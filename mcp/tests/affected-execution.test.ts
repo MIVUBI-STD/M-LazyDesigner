@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { planAffectedExecution } from "../lib/semantic/affectedExecution";
-import type { SemanticImpactReport } from "../lib/semantic/impact";
+import { planAffectedExecution } from "../gateway/development/affectedExecution";
+import type { SemanticImpactReport } from "../gateway/development/impact";
 
 function impact(overrides: Partial<SemanticImpactReport> = {}): SemanticImpactReport {
   return {

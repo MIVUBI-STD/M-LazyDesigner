@@ -1,5 +1,5 @@
-import type { ControlSourceOwner } from "../../gateway/control/types";
-import type { CapabilityBranchManifestEntry } from "../../gateway/capabilities/manifest";
+import type { ControlSourceOwner } from "../control/types";
+import type { CapabilityBranchManifestEntry } from "../capabilities/manifest";
 
 export type SemanticImpactReason =
   | "DIRECT_SOURCE"

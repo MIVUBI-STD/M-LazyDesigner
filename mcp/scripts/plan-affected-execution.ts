@@ -1,5 +1,5 @@
-import { analyzeSemanticImpact } from "../lib/semantic/impact";
-import { planAffectedExecution } from "../lib/semantic/affectedExecution";
+import { analyzeSemanticImpact } from "../gateway/development/impact";
+import { planAffectedExecution } from "../gateway/development/affectedExecution";
 import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
 import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
 
