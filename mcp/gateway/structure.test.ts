@@ -34,7 +34,7 @@ const WRAPPERS: Readonly<Record<string, string>> = {
   "gateway/control/capabilityManifest.ts":
     'export * from "./capabilityProjection";\n',
   "gateway/control/registry.ts":
-    'export { contextForAuthoringDomain } from "./contexts";\nexport { authoringDomainForCapability, sourceOwnerForCapability } from "./sourceOwners";\n',
+    'export { contextForAuthoringDomain } from "./contexts";\nexport { authoringDomainForCapability, sourceOwnerForCapability } from "./sourceOwners";\nexport { getControlCapabilityProjection } from "./capabilityProjection";\n',
 };
 
 describe("Gateway structural ownership", () => {

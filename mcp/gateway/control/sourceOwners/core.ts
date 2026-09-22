@@ -12,6 +12,11 @@ export const CORE_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     specialist: null,
     test_owner: "mcp/tests/p1-core-ownership.test.ts",
   },
+  list_textures: {
+    source: "mcp/server/tools/texture-read.ts",
+    specialist: null,
+    test_owner: "mcp/tests/texture-authoring-contract.test.ts",
+  },
   inspect_elements: {
     source: "mcp/server/runtime/consolidatedTools.ts",
     specialist: null,

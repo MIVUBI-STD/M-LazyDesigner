@@ -7,11 +7,6 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/authoring/asset-authoring-usage-slimming.test.ts",
   },
-  list_textures: {
-    source: "mcp/server/tools/texture-read.ts",
-    specialist: TEXTURING_PATH,
-    test_owner: "mcp/tests/texture-authoring-contract.test.ts",
-  },
   get_texture: {
     source: "mcp/server/tools/texture-read.ts",
     specialist: TEXTURING_PATH,

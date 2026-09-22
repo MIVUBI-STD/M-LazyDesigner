@@ -1,5 +1,5 @@
 import type { ControlSourceOwner } from "./types";
-import { sourceOwnerForCapability } from "./registry";
+import { sourceOwnerForCapability } from "./sourceOwners";
 
 export type ControlDevelopmentDomain =
   | "GEOMETRY"
