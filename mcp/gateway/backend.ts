@@ -122,7 +122,7 @@ export class BlockitRuntimeBackend {
   }
 
   private operationStatus(): GatewayRuntimeStatus["operations"] {
-    return this.operationStatus();
+    return this.operationQueue.snapshot();
   }
 
   private hasFreshCatalog(now: number = Date.now()): boolean {

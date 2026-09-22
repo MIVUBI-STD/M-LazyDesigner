@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 describe("Runtime TypeScript project reference", () => {
-  test("runtime product source is isolated from tests, scripts and docs tooling", async () => {
+  test("runtime server project is isolated from plugin, tests, scripts and docs tooling", async () => {
     const runtime = JSON.parse(
       await Bun.file("tsconfig.runtime-project.json").text()
     );
@@ -14,10 +14,11 @@ describe("Runtime TypeScript project reference", () => {
       { path: "./tsconfig.gateway-shared.json" },
     ]);
     expect(runtime.include).toContain("server/**/*.ts");
-    expect(runtime.include).toContain("plugin/**/*.ts");
+    expect(runtime.include).not.toContain("plugin/**/*.ts");
     expect(runtime.exclude).toEqual(
       expect.arrayContaining([
         "gateway/**",
+        "plugin/**",
         "tests/**",
         "scripts/**",
         "build/**",

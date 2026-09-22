@@ -5,7 +5,7 @@ import { paintTextureTransactionToolDocs } from "../server/tools/paint-texture-t
 import { wiredCreateTextureParameters } from "../server/runtime/textureRuntimeContracts";
 import { focusedGetTextureParameters } from "../lib/textureEvidence";
 import { animationAwareCaptureModelViewsParameters, focusedInspectAnimationParameters } from "../server/runtime/animationRuntimeContracts";
-import { completeAnimationTimelineParameters } from "../server/tools/animation-native-intelligence";
+import { completeAnimationTimelineParameters, animationNativePropertiesParameters } from "../server/tools/animation-native-intelligence";
 import { completeAnimationControllerParameters } from "../server/tools/animation-runtime-resource-intelligence";
 import type { ToolSpec, PromptSpec, ResourceSpec } from "../lib/factories";
 
@@ -42,7 +42,17 @@ export const toolManifest: CategoryGroup[] = [
   {
     category: "Animation",
     tools: [
-      { ...consolidatedAnimationTimelineToolDocs, parameters: completeAnimationTimelineParameters },
+      {
+        ...consolidatedAnimationTimelineToolDocs,
+        parameters: completeAnimationTimelineParameters,
+        branches: {
+          ...consolidatedAnimationTimelineToolDocs.branches,
+          schemas: {
+            ...consolidatedAnimationTimelineToolDocs.branches.schemas,
+            properties: animationNativePropertiesParameters,
+          },
+        },
+      },
       ...animationToolDocs.filter((tool) => !["manage_keyframes", "animation_graph_editor", "animation_timeline", "batch_keyframe_operations", "animation_copy_paste"].includes(tool.name)),
       ...animationEffectToolDocs,
       ...animationControllerToolDocs.map((tool) => ({ ...tool, parameters: completeAnimationControllerParameters })),

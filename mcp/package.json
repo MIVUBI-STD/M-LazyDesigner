@@ -93,7 +93,8 @@
     "verify:project-graph": "tsc -b tsconfig.project-graph.json --pretty false",
     "snapshot:semantic-registry": "bun run ./scripts/snapshot-semantic-registry.ts",
     "plan:semantic-invalidation": "bun run ./scripts/plan-semantic-invalidation.ts",
-    "benchmark:semantic-invalidation-scope": "bun run ./scripts/benchmark-semantic-invalidation-scope.ts"
+    "benchmark:semantic-invalidation-scope": "bun run ./scripts/benchmark-semantic-invalidation-scope.ts",
+    "benchmark:gateway-hot-path": "bun run ./scripts/benchmark-gateway-hot-path.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",

@@ -4,9 +4,10 @@ describe("semantic dependency matrix ownership", () => {
   test("invalidation planner delegates dimension ownership to central matrix", async () => {
     const source = await Bun.file("gateway/development/semanticInvalidation.ts").text();
     expect(source).toContain("semanticSurfacesAffectedByDimensions");
-    expect(source).toContain("affectedSurfaces");
-    expect(source).toContain('affectedSurfaces.includes("CAPABILITY_SEARCH")');
-    expect(source).toContain('affectedSurfaces.includes("DESCRIBE_SCHEMA")');
+    expect(source).toContain("applyAffectedSurfaces");
+    expect(source).toContain("semanticVerificationChecksForSurfaces");
+    expect(source).not.toContain('checks.add("CAPABILITY_INTELLIGENCE")');
+    expect(source).not.toContain('checks.add("DESCRIBE_PAYLOADS")');
   });
 
   test("artifact freshness delegates dependency scope to central matrix", async () => {
