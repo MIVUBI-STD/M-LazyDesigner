@@ -3,7 +3,7 @@ import type { SemanticImpactReport } from "./impact";
 export type AffectedExecutionCheck =
   | "TYPECHECK_RUNTIME"
   | "TYPECHECK_GATEWAY"
-  | "SEMANTIC_CORE_PROJECT"
+  | "PROJECT_GRAPH"
   | "AUDIT_UNUSED_RUNTIME"
   | "AUDIT_UNUSED_GATEWAY"
   | "DOCS_FRESHNESS"
@@ -34,6 +34,23 @@ function isRuntimeTypeScript(path: string): boolean {
     path.startsWith("mcp/") &&
     path.endsWith(".ts") &&
     !path.startsWith("mcp/gateway/")
+  );
+}
+
+const GATEWAY_SHARED_PROJECT_FILES = new Set([
+  "mcp/lib/runtimeFetch.ts",
+  "mcp/lib/runtimeConnection.ts",
+  "mcp/lib/capabilityMetadata.ts",
+  "mcp/lib/capabilities/manifest.ts",
+  "mcp/lib/authoringPhase.ts",
+  "mcp/lib/registrationProfile.ts",
+]);
+
+function affectsProjectGraph(path: string): boolean {
+  return (
+    (path.startsWith("mcp/gateway/") && path.endsWith(".ts")) ||
+    (path.startsWith("mcp/lib/semantic/") && path.endsWith(".ts")) ||
+    GATEWAY_SHARED_PROJECT_FILES.has(path)
   );
 }
 
@@ -130,8 +147,8 @@ export function planAffectedExecution(input: {
     );
   }
 
-  if (changedPaths.some((path) => path.startsWith("mcp/lib/semantic/") && path.endsWith(".ts"))) {
-    checks.add("SEMANTIC_CORE_PROJECT");
+  if (changedPaths.some(affectsProjectGraph)) {
+    checks.add("PROJECT_GRAPH");
   }
   if (changedPaths.some(isRuntimeTypeScript)) {
     checks.add("TYPECHECK_RUNTIME");
@@ -166,8 +183,8 @@ export function planAffectedExecution(input: {
     commands.push("bun run verify:full");
   } else {
     if (checks.has("DOCS_FRESHNESS")) commands.push("bun run docs:check");
-    if (checks.has("SEMANTIC_CORE_PROJECT")) {
-      commands.push("bun run verify:semantic-core");
+    if (checks.has("PROJECT_GRAPH")) {
+      commands.push("bun run verify:project-graph");
     }
     if (checks.has("TYPECHECK_RUNTIME")) commands.push("bun run typecheck");
     if (checks.has("TYPECHECK_GATEWAY")) commands.push("bun run typecheck:gateway");

@@ -45,8 +45,8 @@ describe("affected execution planner", () => {
       semanticImpact: impact(),
     });
 
-    expect(plan.checks).toContain("SEMANTIC_CORE_PROJECT");
-    expect(plan.commands).toContain("bun run verify:semantic-core");
+    expect(plan.checks).toContain("PROJECT_GRAPH");
+    expect(plan.commands).toContain("bun run verify:project-graph");
   });
 
   test("gateway-only source avoids runtime typecheck when no shared runtime owner changed", () => {
@@ -55,6 +55,7 @@ describe("affected execution planner", () => {
       semanticImpact: impact(),
     });
 
+    expect(plan.checks).toContain("PROJECT_GRAPH");
     expect(plan.checks).toContain("TYPECHECK_GATEWAY");
     expect(plan.checks).not.toContain("TYPECHECK_RUNTIME");
   });
