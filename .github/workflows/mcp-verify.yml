@@ -33,7 +33,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: mcp
@@ -53,6 +53,17 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
+      # Canonical full-gate composition remains explicit here for repository
+      # ownership/audit visibility. Affected mode selects the minimum safe subset;
+      # full mode executes verify:full, whose verify:mcp owner contains:
+      # bun run docs:check
+      # bun run typecheck
+      # bun run typecheck:gateway
+      # bun run test:runtime
+      # bun run verify:authoring
+      # bun run measure:surface
+      # bun run measure:phases
+      # bun run build
       - name: Plan verification scope
         id: scope
         shell: bash
