@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalJson } from "../../lib/semantic/canonical";
 import { dirname, join } from "node:path";
 import { readFile, stat } from "node:fs/promises";
 import type { GatewayRuntimeStatus } from "../backend";
@@ -39,6 +40,36 @@ function parseBlockers(text: string): string[] {
   const value = field(text, "Known blocker(s)");
   if (!value || /^none\b/i.test(value)) return [];
   return value.split(/[;,]/).map((entry) => entry.trim()).filter(Boolean).slice(0, 8);
+}
+
+
+export type WorkspaceSemanticState = {
+  asset: string | null;
+  current_stage: string | null;
+  gates: ControlWorkspaceProjection["gates"];
+  next_step: string | null;
+  blockers: string[];
+};
+
+export function workspaceSemanticState(text: string): WorkspaceSemanticState {
+  return {
+    asset: text.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? null,
+    current_stage: field(text, "Current Stage"),
+    gates: {
+      geometry: field(text, "Geometry"),
+      uv_layout: field(text, "UV Layout"),
+      texturing: field(text, "Texturing"),
+      animation: field(text, "Animation"),
+    },
+    next_step: field(text, "Current next step"),
+    blockers: parseBlockers(text),
+  };
+}
+
+export function workspaceSemanticFingerprint(text: string): string {
+  return createHash("sha256")
+    .update(canonicalJson(workspaceSemanticState(text)))
+    .digest("hex");
 }
 
 function projectSavePath(status: GatewayRuntimeStatus): string | null {
@@ -106,22 +137,12 @@ export async function readWorkspaceProjection(
     if (cached?.signature === signature) return cached.projection;
 
     const text = await readFile(readmePath, "utf8");
-    const fingerprint = createHash("sha256").update(text).digest("hex");
-    const heading = text.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? null;
+    const semantic = workspaceSemanticState(text);
     const projection: ControlWorkspaceProjection = {
       available: true,
       source_path: readmePath,
-      fingerprint,
-      asset: heading,
-      current_stage: field(text, "Current Stage"),
-      gates: {
-        geometry: field(text, "Geometry"),
-        uv_layout: field(text, "UV Layout"),
-        texturing: field(text, "Texturing"),
-        animation: field(text, "Animation"),
-      },
-      next_step: field(text, "Current next step"),
-      blockers: parseBlockers(text),
+      fingerprint: workspaceSemanticFingerprint(text),
+      ...semantic,
     };
     cache.set(readmePath, { signature, projection });
     return projection;

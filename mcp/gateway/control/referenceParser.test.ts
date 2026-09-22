@@ -82,6 +82,28 @@ describe("Control reference parser", () => {
     expect(result?.fingerprint).toHaveLength(64);
   });
 
+  test("fingerprint is stable across JSON whitespace and key ordering", () => {
+    const first = parseReferencePackage(
+      '{"schema":"lazydesigner-reference-v1","asset":{"name":"Chair","kind":"MODEL"}}',
+      "/project/REFERENCE.json",
+      "/project"
+    );
+    const second = parseReferencePackage(
+      JSON.stringify(
+        {
+          asset: { kind: "MODEL", name: "Chair" },
+          schema: "lazydesigner-reference-v1",
+        },
+        null,
+        4
+      ),
+      "/project/REFERENCE.json",
+      "/project"
+    );
+
+    expect(first?.fingerprint).toBe(second?.fingerprint);
+  });
+
   test("projects particle-specific fields only for particle assets", () => {
     const raw = JSON.stringify({
       schema: "lazydesigner-reference-v1",

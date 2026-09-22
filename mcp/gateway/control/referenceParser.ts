@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalJson } from "../../lib/semantic/canonical";
 import type {
   ControlProfile,
   ControlReferenceAssetKind,
@@ -161,7 +162,9 @@ export function parseReferencePackage(
     available: true,
     source_path: sourcePath,
     package_root: packageRoot,
-    fingerprint: createHash("sha256").update(raw).digest("hex"),
+    fingerprint: createHash("sha256")
+      .update(canonicalJson(parsed))
+      .digest("hex"),
     schema: "lazydesigner-reference-v1",
     asset_name: stringValue(asset?.name),
     asset_kind: assetKind,
