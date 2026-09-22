@@ -86,7 +86,9 @@
     "eval:decision-efficiency": "bun run ./scripts/evaluate-decision-efficiency.ts",
     "analyze:semantic-impact": "bun run ./scripts/analyze-semantic-impact.ts",
     "map:knowledge": "bun run ./scripts/build-knowledge-index.ts",
-    "plan:development-context": "bun run ./scripts/plan-development-context.ts"
+    "plan:development-context": "bun run ./scripts/plan-development-context.ts",
+    "plan:affected": "bun run ./scripts/plan-affected-execution.ts",
+    "verify:affected": "bun run ./scripts/run-affected-execution.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
