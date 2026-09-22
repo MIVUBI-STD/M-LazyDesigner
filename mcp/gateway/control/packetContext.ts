@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalJson } from "../../lib/semantic/canonical";
 import type { ControlDevelopmentResolution } from "./developmentIntent";
 import type { ControlReferenceProjection } from "./referenceTypes";
 import type { ControlWorkspaceProjection } from "./workspace";
@@ -28,23 +29,34 @@ export function taskContextId(
   development: ControlDevelopmentResolution | null,
   currentUserDelta: string | null
 ): string {
-  const payload = mode === "SYSTEM_DEVELOPMENT"
-    ? [
-        mode,
-        runtimeContextIdentity(snapshot),
-        development?.domain ?? "no-development-domain",
-        development?.intent ?? "no-development-intent",
-      ]
-    : [
-        mode,
-        snapshot.project.affinity_uuid ?? "unbound",
-        snapshot.authoring.phase ?? "unknown",
-        runtimeContextIdentity(snapshot),
-        workspace.fingerprint ?? "no-workspace-state",
-        reference.fingerprint ?? "no-reference-package",
-        currentUserDelta ?? "no-user-delta",
-      ];
-  return `task:${createHash("sha256").update(payload.join("|")).digest("hex").slice(0, 20)}`;
+  const payload =
+    mode === "SYSTEM_DEVELOPMENT"
+      ? {
+          mode,
+          runtime: runtimeContextIdentity(snapshot),
+          development_domain:
+            development?.domain ?? "no-development-domain",
+          development_intent:
+            development?.intent ?? "no-development-intent",
+        }
+      : {
+          mode,
+          project_affinity:
+            snapshot.project.affinity_uuid ?? "unbound",
+          authoring_phase:
+            snapshot.authoring.phase ?? "unknown",
+          runtime: runtimeContextIdentity(snapshot),
+          workspace:
+            workspace.fingerprint ?? "no-workspace-state",
+          reference:
+            reference.fingerprint ?? "no-reference-package",
+          user_delta:
+            currentUserDelta ?? "no-user-delta",
+        };
+  return `task:${createHash("sha256")
+    .update(canonicalJson(payload))
+    .digest("hex")
+    .slice(0, 20)}`;
 }
 
 function contextFamily(id: string): string {
