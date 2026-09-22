@@ -18,7 +18,6 @@ const CASES: readonly HotPathCase[] = [
   { id: "geometry-update", capability: "manage_cubes", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 8 },
   { id: "element-detail", capability: "inspect_elements", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 6 },
   { id: "animation-timeline", capability: "manage_animation_timeline", route: "SEARCH_THEN_INVOKE", weight: 5 },
-  { id: "uv-plan", capability: "manage_uv_layout", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 4 },
   { id: "blank-texture", capability: "create_texture", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 4 },
   { id: "material-configure", capability: "manage_material", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 4 },
   { id: "reparent", capability: "reparent_element", route: "SEARCH_THEN_INVOKE", weight: 4 },
@@ -28,7 +27,7 @@ const CASES: readonly HotPathCase[] = [
   { id: "particle-authoring", capability: "manage_particle", route: "SEARCH_THEN_INVOKE", weight: 3 },
   { id: "particle-inspection", capability: "inspect_particle", route: "SEARCH_THEN_INVOKE", weight: 2 },
   { id: "render-profile", capability: "manage_render_profile", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 2 },
-  { id: "uv-apply-blocked", capability: "manage_uv_layout", route: "RESOLVE_PREREQUISITE", weight: 2 },
+  { id: "animation-timeline-blocked", capability: "manage_animation_timeline", route: "RESOLVE_PREREQUISITE", weight: 2 },
 ];
 
 function preInvokeCalls(route: HotPathRoute): number {
@@ -146,6 +145,12 @@ export function benchmarkGatewayHotPathStrategies() {
     proof_scope:
       "Deterministic architecture proxy. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas from the canonical static/docs manifest exposed to the AI client. Measures static schema bytes and weighted pre-invoke routing calls; not live model tokens or Blockbench latency.",
     workload_weight: CASES.reduce((sum, item) => sum + item.weight, 0),
+    excluded_future_capabilities: [
+      {
+        capability: "manage_uv_layout",
+        reason: "pre-owned but intentionally not registered on the current Runtime catalog",
+      },
+    ],
     stable_four: {
       client_tool_count: 4,
       added_direct_tool_bytes: 0,
