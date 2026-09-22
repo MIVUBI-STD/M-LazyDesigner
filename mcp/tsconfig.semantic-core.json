@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "lib/semantic",
+    "outDir": ".cache/semantic-core",
+    "tsBuildInfoFile": ".cache/semantic-core.tsbuildinfo",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "types": ["bun"]
+  },
+  "include": [
+    "lib/semantic/canonical.ts",
+    "lib/semantic/identity.ts",
+    "lib/semantic/incremental.ts",
+    "lib/semantic/knowledge.ts"
+  ],
+  "exclude": []
+}
