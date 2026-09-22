@@ -1,14 +1,8 @@
-import type { CapabilityBranchHint, CapabilityFactState } from "../gateway/capabilities/types";
+import type { ShadowReplayCase, ShadowReplayKnowledgeState } from "../gateway/experimental/shadowRouting";
 
-export type ReplayKnowledgeState =
-  | "KNOWN"
-  | "UNKNOWN"
-  | "SCHEMA_STALE"
-  | "BLOCKED"
-  | "UNKNOWN_PRECONDITION";
+export type ReplayKnowledgeState = ShadowReplayKnowledgeState;
 
-export type GatewayReplayCase = {
-  id: string;
+export type GatewayReplayCase = ShadowReplayCase & {
   domain:
     | "GEOMETRY"
     | "TEXTURING"
@@ -16,11 +10,6 @@ export type GatewayReplayCase = {
     | "PARTICLE"
     | "MIXED"
     | "RECOVERY";
-  capability: string;
-  branch?: CapabilityBranchHint;
-  knowledge: ReplayKnowledgeState;
-  needs_schema: boolean;
-  facts?: CapabilityFactState;
 };
 
 export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [

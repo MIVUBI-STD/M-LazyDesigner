@@ -4,7 +4,27 @@ import {
 } from "./hybridProfile";
 import { HYBRID_4_GENERATED_SCHEMAS } from "./generated/hybrid4Schemas";
 import { evaluateCapabilityPreconditions } from "../capabilities/graph";
-import type { GatewayReplayCase } from "../../benchmarks/gatewayReplayCorpus";
+import type {
+  CapabilityBranchHint,
+  CapabilityFactState,
+} from "../capabilities/types";
+
+export type ShadowReplayKnowledgeState =
+  | "KNOWN"
+  | "UNKNOWN"
+  | "SCHEMA_STALE"
+  | "BLOCKED"
+  | "UNKNOWN_PRECONDITION";
+
+export type ShadowReplayCase = {
+  id: string;
+  domain: string;
+  capability: string;
+  branch?: CapabilityBranchHint;
+  knowledge: ShadowReplayKnowledgeState;
+  needs_schema: boolean;
+  facts?: CapabilityFactState;
+};
 
 export type ShadowRoute = {
   case_id: string;
@@ -17,7 +37,7 @@ export type ShadowRoute = {
   capability: string;
 };
 
-function stableFourRoute(item: GatewayReplayCase): ShadowRoute {
+function stableFourRoute(item: ShadowReplayCase): ShadowRoute {
   const blocked =
     item.knowledge === "BLOCKED" ||
     evaluateCapabilityPreconditions(
@@ -79,7 +99,7 @@ function stableFourRoute(item: GatewayReplayCase): ShadowRoute {
 }
 
 function hybridRoute(
-  item: GatewayReplayCase,
+  item: ShadowReplayCase,
   directCapabilities: readonly string[]
 ): ShadowRoute {
   const direct = directCapabilities.includes(item.capability);
@@ -123,7 +143,7 @@ export function hybrid4StaticSchemaBytes(): number {
 }
 
 export function shadowReplayCaseForDirectSet(
-  item: GatewayReplayCase,
+  item: ShadowReplayCase,
   directCapabilities: readonly string[]
 ) {
   const stable = stableFourRoute(item);
@@ -142,7 +162,7 @@ export function shadowReplayCaseForDirectSet(
   };
 }
 
-export function shadowReplayCase(item: GatewayReplayCase) {
+export function shadowReplayCase(item: ShadowReplayCase) {
   return shadowReplayCaseForDirectSet(
     item,
     HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES
