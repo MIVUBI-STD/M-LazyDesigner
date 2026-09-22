@@ -274,7 +274,10 @@ export function registerPaintBrushTools(): void {
               Undo.initEdit(undoAspects);
               try {
                 texture.edit(
-                  (_canvas, env) => {
+                  (
+                    _canvas: HTMLCanvasElement,
+                    env: BlockbenchRuntimeTextureEditEnvironment
+                  ) => {
                     env.ctx.save();
                     env.ctx.globalAlpha = 1;
                     env.ctx.globalCompositeOperation = "source-over";

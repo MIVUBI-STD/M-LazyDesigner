@@ -252,7 +252,10 @@ export function registerPaintTextureTransactionTool(): void {
         Undo.initEdit(undoAspects);
         try {
           texture.edit(
-            (canvas, env) => {
+            (
+              canvas: HTMLCanvasElement,
+              env: BlockbenchRuntimeTextureEditEnvironment
+            ) => {
               const activeOffset =
                 Array.isArray(env.offset) && env.offset.length === 2
                   ? env.offset
