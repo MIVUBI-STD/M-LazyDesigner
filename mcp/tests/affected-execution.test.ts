@@ -49,10 +49,18 @@ describe("affected execution planner", () => {
     expect(plan.checks).not.toContain("TYPECHECK_RUNTIME");
   });
 
-  test("unmapped or truncated changes fail safe to the full verifier", () => {
+  test("unmapped, infra, empty-owner, or truncated changes fail safe to the full verifier", () => {
     for (const candidate of [
       planAffectedExecution({
         changedPaths: ["unknown.bin"],
+        semanticImpact: impact(),
+      }),
+      planAffectedExecution({
+        changedPaths: ["mcp/package.json"],
+        semanticImpact: impact(),
+      }),
+      planAffectedExecution({
+        changedPaths: ["mcp/about.md"],
         semanticImpact: impact(),
       }),
       planAffectedExecution({
@@ -65,3 +73,5 @@ describe("affected execution planner", () => {
     }
   });
 });
+
+

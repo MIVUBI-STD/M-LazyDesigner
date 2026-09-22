@@ -1,7 +1,31 @@
 import { buildAffectedExecutionPlan } from "./plan-affected-execution";
 
-async function runCommand(command: string): Promise<void> {
-  const child = Bun.spawn(["bash", "-lc", command], {
+function commandArgv(command: string): string[] {
+  if (command.startsWith("bun run ")) {
+    const script = command.slice("bun run ".length).trim();
+    if (!script || /\s/.test(script)) {
+      throw new Error(`Unsupported affected run command: ${command}`);
+    }
+    return [process.execPath, "run", script];
+  }
+
+  if (command.startsWith("bun test ")) {
+    const files = command
+      .slice("bun test ".length)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (files.length === 0) {
+      throw new Error(`Affected test command has no files: ${command}`);
+    }
+    return [process.execPath, "test", ...files];
+  }
+
+  throw new Error(`Unsupported affected verification command: ${command}`);
+}
+
+export async function runAffectedCommand(command: string): Promise<void> {
+  const child = Bun.spawn(commandArgv(command), {
     stdin: "inherit",
     stdout: "inherit",
     stderr: "inherit",
@@ -33,7 +57,7 @@ async function main() {
 
   for (const command of plan.execution.commands) {
     console.log(`[affected] ${command}`);
-    await runCommand(command);
+    await runAffectedCommand(command);
   }
 }
 

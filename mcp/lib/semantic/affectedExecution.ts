@@ -81,6 +81,16 @@ function affectsAuthoringContracts(path: string): boolean {
   );
 }
 
+function requiresFullVerify(path: string): boolean {
+  return (
+    path === "mcp/package.json" ||
+    path === "mcp/bun.lock" ||
+    path === "mcp/tsconfig.json" ||
+    path === "mcp/gateway/tsconfig.json" ||
+    path === ".bun-version"
+  );
+}
+
 function clearlyMappedPath(path: string): boolean {
   return (
     path.startsWith("mcp/") ||
@@ -104,6 +114,7 @@ export function planAffectedExecution(input: {
   if (
     input.semanticImpact.truncated ||
     changedPaths.length === 0 ||
+    changedPaths.some(requiresFullVerify) ||
     changedPaths.some((path) => !clearlyMappedPath(path))
   ) {
     checks.add("FULL_VERIFY");
@@ -112,7 +123,9 @@ export function planAffectedExecution(input: {
         ? "semantic impact was truncated"
         : changedPaths.length === 0
           ? "no change set was provided"
-          : "change set contains an unmapped path"
+          : changedPaths.some(requiresFullVerify)
+            ? "change set contains build or dependency infrastructure"
+            : "change set contains an unmapped path"
     );
   }
 
@@ -138,6 +151,11 @@ export function planAffectedExecution(input: {
     )
   );
   if (targetedTests.length > 0) checks.add("TARGETED_TESTS");
+
+  if (checks.size === 0) {
+    checks.add("FULL_VERIFY");
+    reasons.push("mapped change produced no safe bounded verification owner");
+  }
 
   const commands: string[] = [];
   if (checks.has("FULL_VERIFY")) {
