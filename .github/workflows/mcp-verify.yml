@@ -103,9 +103,30 @@ jobs:
             exit 0
           fi
 
-          echo "mode=affected" >> "$GITHUB_OUTPUT"
           echo "Affected verification paths:"
           cat /tmp/mcp-changed-paths.txt
+
+          mapfile -t changed_paths < /tmp/mcp-changed-paths.txt
+          (
+            cd mcp
+            bun run plan:affected -- "${changed_paths[@]}"
+          ) > /tmp/mcp-affected-plan.json
+
+          planner_full="$(bun -e 'const p=JSON.parse(await Bun.file("/tmp/mcp-affected-plan.json").text()); console.log(p.execution.fallback_full_verify ? "true" : "false")')"
+          if [[ "$planner_full" == "true" ]]; then
+            echo "Affected planner requested canonical full verification."
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=affected" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "### MCP verification plan"
+            echo
+            echo '~~~json'
+            cat /tmp/mcp-affected-plan.json
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run affected verification
         if: steps.scope.outputs.mode == 'affected'
