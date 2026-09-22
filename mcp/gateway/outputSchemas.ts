@@ -77,6 +77,28 @@ const capabilityBranchSchema = z
   })
   .strict();
 
+const semanticRevisionsSchema = z
+  .object({
+    routing: hex64,
+    graph: hex64,
+    schema_projection: hex64,
+    aggregate: hex64,
+  })
+  .strict();
+
+const semanticArtifactStampSchema = z
+  .object({
+    semantic_revision_schema: z.literal(1),
+    artifact_kind: z.enum([
+      "DOCS_API",
+      "DESCRIBE_REPORT",
+      "AI_STAGE_CONTEXT",
+      "CAPABILITY_MANIFEST",
+    ]),
+    revisions: semanticRevisionsSchema,
+  })
+  .strict();
+
 const capabilityPredecessorSchema = z
   .object({
     capability: z.string().min(1),
@@ -111,6 +133,7 @@ export const gatewayDescribeCapabilitySchema = z
   .object({
     semantic_id: z.string().min(1),
     semantic_revision: hex64,
+    semantic: semanticArtifactStampSchema,
     inputSchema: z.record(z.string(), z.unknown()),
   })
   .passthrough();

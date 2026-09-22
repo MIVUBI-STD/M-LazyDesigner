@@ -52,6 +52,7 @@ import {
   capabilityDescriptionRevision,
   semanticRecordForCapabilityBranch,
 } from "./capabilities/semanticRegistry";
+import { semanticDerivedArtifactStamp } from "./development/semanticArtifact";
 import { capabilitySemanticId } from "../lib/semantic/identity";
 
 const backend = new BlockitRuntimeBackend();
@@ -445,6 +446,7 @@ registerGatewayTool(
           capability: {
             semantic_id: semanticId,
             semantic_revision: semanticRevision,
+            semantic: semanticDerivedArtifactStamp("DESCRIBE_REPORT"),
             ...capabilityPayload,
           },
         },
