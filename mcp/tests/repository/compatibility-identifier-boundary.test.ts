@@ -10,7 +10,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
       source("package.json"),
       source("gateway/protocol.ts"),
       source("gateway/backend.ts"),
-      source("gateway/runtime/projectAffinity.ts"),
+      source("lib/runtimeAffinity.ts"),
       source("ui/settings.ts"),
       source("lib/authoringPhase.ts"),
       source("lib/registrationProfile.ts"),
@@ -39,7 +39,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     const [backend, queue, affinity, settings, plugin, server, ui, panel, statusBar, readme] = await Promise.all([
       source("gateway/backend.ts"),
       source("gateway/runtime/operationQueue.ts"),
-      source("gateway/runtime/projectAffinity.ts"),
+      source("lib/runtimeAffinity.ts"),
       source("ui/settings.ts"),
       source("index.ts"),
       source("server/server.ts"),

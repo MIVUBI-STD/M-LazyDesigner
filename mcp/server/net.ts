@@ -33,7 +33,7 @@ import {
   normalizeAuthoringPhaseAffinity,
   normalizeProjectAffinityUuid,
   type RuntimeProjectHealth
-} from '@/gateway/projectAffinity'
+} from '@/lib/runtimeAffinity'
 import {
   RuntimeGenerationRetiredError,
   runRuntimeOperationExclusive,

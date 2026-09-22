@@ -13,19 +13,20 @@
     { "path": "./tsconfig.gateway-shared.json" }
   ],
   "include": [
-    "index.ts",
-    "plugin/**/*.ts",
     "server/**/*.ts",
-    "ui/**/*.ts",
-    "macros/**/*.ts",
-    "distribution/**/*.ts",
     "lib/**/*.ts",
     "types.d.ts",
     "blockbench-runtime-augmentations.d.ts",
-    "package.json"
+    "package.json",
+    "compatibility/blockbench.json",
+    "prompts/manifest.json"
   ],
   "exclude": [
     "gateway/**",
+    "plugin/**",
+    "ui/**",
+    "macros/**",
+    "distribution/**",
     "tests/**",
     "scripts/**",
     "build/**",
@@ -34,6 +35,7 @@
     "lib/semantic/**",
     "lib/runtimeFetch.ts",
     "lib/runtimeConnection.ts",
+    "lib/runtimeAffinity.ts",
     "lib/capabilityMetadata.ts",
     "lib/capabilities/manifest.ts",
     "lib/authoringPhase.ts",

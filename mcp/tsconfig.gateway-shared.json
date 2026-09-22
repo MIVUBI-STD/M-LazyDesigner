@@ -8,7 +8,9 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
-    "types": ["bun"]
+    "types": [
+      "bun"
+    ]
   },
   "include": [
     "lib/runtimeFetch.ts",
@@ -16,7 +18,8 @@
     "lib/capabilityMetadata.ts",
     "lib/capabilities/manifest.ts",
     "lib/authoringPhase.ts",
-    "lib/registrationProfile.ts"
+    "lib/registrationProfile.ts",
+    "lib/runtimeAffinity.ts"
   ],
   "exclude": []
 }
