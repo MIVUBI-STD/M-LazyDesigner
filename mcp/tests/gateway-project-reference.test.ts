@@ -11,14 +11,20 @@ describe("Gateway TypeScript project reference", () => {
 
     expect(graph.references).toEqual([
       { path: "./tsconfig.semantic-core.json" },
+      { path: "./tsconfig.gateway-shared.json" },
       { path: "./gateway/tsconfig.project.json" },
     ]);
     expect(gateway.references).toContainEqual({
       path: "../tsconfig.semantic-core.json",
     });
+    expect(gateway.references).toContainEqual({
+      path: "../tsconfig.gateway-shared.json",
+    });
     expect(gateway.compilerOptions.composite).toBe(true);
     expect(gateway.compilerOptions.emitDeclarationOnly).toBe(true);
     expect(gateway.compilerOptions.outDir).toBe("../.cache/gateway-project");
+    expect(gateway.include).toContain("../package.json");
+    expect(gateway.include).not.toContain("../lib/capabilityMetadata.ts");
   });
 
   test("CI and canonical MCP verification execute the composite graph", async () => {

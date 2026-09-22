@@ -9,6 +9,12 @@
     "emitDeclarationOnly": true
   },
   "references": [
-    { "path": "../tsconfig.semantic-core.json" }
-  ]
+    { "path": "../tsconfig.semantic-core.json" },
+    { "path": "../tsconfig.gateway-shared.json" }
+  ],
+  "include": [
+    "./**/*.ts",
+    "../package.json"
+  ],
+  "exclude": ["./dist"]
 }

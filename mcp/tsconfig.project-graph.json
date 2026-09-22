@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./tsconfig.semantic-core.json" },
+    { "path": "./tsconfig.gateway-shared.json" },
     { "path": "./gateway/tsconfig.project.json" }
   ]
 }

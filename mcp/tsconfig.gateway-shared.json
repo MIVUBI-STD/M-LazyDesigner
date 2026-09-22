@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": ".",
+    "outDir": ".cache/gateway-shared",
+    "tsBuildInfoFile": ".cache/gateway-shared.tsbuildinfo",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "types": ["bun"]
+  },
+  "include": [
+    "lib/runtimeFetch.ts",
+    "lib/runtimeConnection.ts",
+    "lib/capabilityMetadata.ts",
+    "lib/capabilities/manifest.ts",
+    "lib/authoringPhase.ts",
+    "lib/registrationProfile.ts"
+  ],
+  "exclude": []
+}
