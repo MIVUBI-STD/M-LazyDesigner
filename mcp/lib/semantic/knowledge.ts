@@ -22,7 +22,7 @@ function slug(value: string): string {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[`*_~]/g, "")
+    .replace(/[`*~]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
