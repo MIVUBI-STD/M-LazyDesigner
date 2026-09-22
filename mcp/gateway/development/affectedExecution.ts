@@ -21,6 +21,7 @@ export type AffectedExecutionCheck =
   | "DECISION_EFFICIENCY"
   | "DESCRIBE_PAYLOADS"
   | "GATEWAY_HOT_PATH_BENCHMARK"
+  | "GATEWAY_REPLAY_SHADOW"
   | "HYBRID4_EXPERIMENTAL_CONTRACTS"
   | "FULL_VERIFY";
 
@@ -103,6 +104,19 @@ function affectsGatewayHotPathBenchmark(path: string): boolean {
     path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts" ||
     path === "mcp/gateway/experimental/hybridProfile.ts" ||
     path === "mcp/gateway/experimental/hybridRegistration.ts"
+  );
+}
+
+function affectsGatewayReplayShadow(path: string): boolean {
+  return (
+    path === "mcp/benchmarks/gatewayReplayCorpus.ts" ||
+    path === "mcp/gateway/experimental/shadowRouting.ts" ||
+    path === "mcp/scripts/benchmark-gateway-replay-shadow.ts" ||
+    path === "mcp/scripts/evaluate-hybrid-promotion-policy.ts" ||
+    path === "mcp/tests/gateway-replay-shadow-benchmark.test.ts" ||
+    path === "mcp/tests/hybrid-promotion-policy.test.ts" ||
+    path === "mcp/gateway/experimental/hybridProfile.ts" ||
+    path === "mcp/gateway/experimental/generated/hybrid4Schemas.ts"
   );
 }
 
@@ -209,6 +223,9 @@ export function planAffectedExecution(input: {
   if (changedPaths.some(affectsGatewayOutputContracts)) {
     checks.add("TARGETED_TESTS");
   }
+  if (changedPaths.some(affectsGatewayReplayShadow)) {
+    checks.add("GATEWAY_REPLAY_SHADOW");
+  }
   if (changedPaths.some(affectsHybrid4ExperimentalContracts)) {
     checks.add("HYBRID4_EXPERIMENTAL_CONTRACTS");
   }
@@ -266,6 +283,10 @@ export function planAffectedExecution(input: {
     }
     if (checks.has("GATEWAY_HOT_PATH_BENCHMARK")) {
       commands.push("bun run benchmark:gateway-hot-path");
+    }
+    if (checks.has("GATEWAY_REPLAY_SHADOW")) {
+      commands.push("bun run benchmark:gateway-replay-shadow");
+      commands.push("bun run eval:hybrid-promotion-policy");
     }
     if (checks.has("HYBRID4_EXPERIMENTAL_CONTRACTS")) {
       commands.push(

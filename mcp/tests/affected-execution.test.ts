@@ -106,6 +106,19 @@ describe("affected execution planner", () => {
     expect(plan.checks).not.toContain("PROJECT_GRAPH");
   });
 
+
+  test("replay corpus changes run shadow benchmark and promotion policy", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/benchmarks/gatewayReplayCorpus.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.fallback_full_verify).toBe(false);
+    expect(plan.checks).toContain("GATEWAY_REPLAY_SHADOW");
+    expect(plan.commands).toContain("bun run benchmark:gateway-replay-shadow");
+    expect(plan.commands).toContain("bun run eval:hybrid-promotion-policy");
+  });
+
   test("hot-path benchmark changes run the dedicated deterministic benchmark", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/scripts/benchmark-gateway-hot-path.ts"],
