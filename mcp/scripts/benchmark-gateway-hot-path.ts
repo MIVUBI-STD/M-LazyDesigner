@@ -1,6 +1,6 @@
 import "@/server/tools";
 import { z } from "zod";
-import { getEnabledToolDefinitions } from "@/lib/factories";
+import { getAllToolDefinitions } from "@/lib/factories";
 
 export type HotPathRoute =
   | "DIRECT_INVOKE"
@@ -44,8 +44,8 @@ function directEligible(route: HotPathRoute): boolean {
 }
 
 function toolStaticBytes(name: string): number {
-  const definition = getEnabledToolDefinitions()[name];
-  if (!definition) throw new Error(`Hot-path capability is not enabled: ${name}`);
+  const definition = getAllToolDefinitions()[name];
+  if (!definition) throw new Error(`Hot-path capability is not registered in the union catalog: ${name}`);
   const schema = z.toJSONSchema(definition.parameterSchema, {
     io: "input",
     target: "draft-2020-12",
@@ -139,7 +139,7 @@ export function benchmarkGatewayHotPathStrategies() {
   return {
     measurement: "gateway-hot-path-strategy-proxy",
     proof_scope:
-      "Deterministic architecture proxy. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas exposed to the AI client. Measures static schema bytes and weighted pre-invoke routing calls; not live model tokens or Blockbench latency.",
+      "Deterministic architecture proxy. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas from the registered union catalog exposed to the AI client. Measures static schema bytes and weighted pre-invoke routing calls; not live model tokens or Blockbench latency.",
     workload_weight: CASES.reduce((sum, item) => sum + item.weight, 0),
     stable_four: {
       client_tool_count: 4,

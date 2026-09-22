@@ -17,6 +17,12 @@ describe("Gateway output schemas", () => {
         catalog_stale: false,
         catalog_count: 54,
         semantic_catalog_revision: "a".repeat(64),
+        semantic_catalog_revisions: {
+          routing: "a".repeat(64),
+          graph: "b".repeat(64),
+          schema_projection: "c".repeat(64),
+          aggregate: "d".repeat(64),
+        },
         identity: {},
       },
       connection: { state: "ready" },
@@ -62,6 +68,16 @@ describe("Gateway output schemas", () => {
         capability: {
           semantic_id: "branch:manage_cubes/operation=update",
           semantic_revision: "c".repeat(64),
+          semantic: {
+            semantic_revision_schema: 1,
+            artifact_kind: "DESCRIBE_REPORT",
+            revisions: {
+              routing: "a".repeat(64),
+              graph: "b".repeat(64),
+              schema_projection: "c".repeat(64),
+              aggregate: "d".repeat(64),
+            },
+          },
           inputSchema: { type: "object" },
         },
       }).success

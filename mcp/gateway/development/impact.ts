@@ -112,7 +112,8 @@ export function analyzeSemanticImpact(input: {
     }
   }
 
-  const queue = [...direct];
+  const orderedDirect = [...direct].sort((a, b) => a.localeCompare(b));
+  const queue = orderedDirect.slice(0, maxCapabilities);
   const visited = new Set(queue);
   while (queue.length > 0 && visited.size < maxCapabilities) {
     const capability = queue.shift()!;

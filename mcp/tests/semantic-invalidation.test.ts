@@ -19,6 +19,7 @@ describe("semantic invalidation planner", () => {
     expect(plan.families).not.toContain("DESCRIBE_SCHEMA");
     expect(plan.checks).toEqual([
       "CAPABILITY_INTELLIGENCE",
+      "CAPABILITY_MANIFEST",
       "DECISION_EFFICIENCY",
     ]);
   });

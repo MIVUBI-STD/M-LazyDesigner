@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 const source = await Bun.file(
   new URL("../server/runtime/consolidatedTools.ts", import.meta.url)
 ).text();
+const compactSource = source.replace(/\s+/g, " ");
 
 describe("Consolidated capability validation preservation", () => {
   test("consolidated branches are first-class addressable schema registries", () => {
@@ -24,7 +25,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(findElementsByCriteriaParameters, "mode", "search")',
       'withToolBranch(inspectElementParameters, "mode", "detail")',
     ]) {
-      expect(source).toContain(signature);
+      expect(compactSource).toContain(signature);
     }
   });
 
@@ -35,13 +36,13 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(assignTextureChannelParameters, "operation", "assign_channel")',
       'withToolBranch(saveMaterialConfigParameters, "operation", "save")',
     ]) {
-      expect(source).toContain(signature);
+      expect(compactSource).toContain(signature);
     }
   });
 
   test("material save exposes a persistence-only continuation receipt", () => {
-    expect(source).toContain('operation !== "save"');
-    expect(source).toContain('scope: "material_persistence_only"');
+    expect(compactSource).toContain('operation !== "save"');
+    expect(compactSource).toContain('scope: "material_persistence_only"');
   });
 
   test("animation timeline branches reuse canonical executor schemas", () => {
@@ -52,7 +53,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(batchKeyframeOperationsParameters, "operation", "batch")',
       'withToolBranch(animationCopyPasteParameters, "operation", "copy_paste")',
     ]) {
-      expect(source).toContain(signature);
+      expect(compactSource).toContain(signature);
     }
   });
 
@@ -64,7 +65,7 @@ describe("Consolidated capability validation preservation", () => {
       'withToolBranch(bulkSetMaterialInstancesParametersSchema, "operation", "bulk_set")',
       'withToolBranch(clearMaterialInstancesParametersSchema, "operation", "clear")',
     ]) {
-      expect(source).toContain(signature);
+      expect(compactSource).toContain(signature);
     }
   });
 
@@ -88,8 +89,8 @@ describe("Consolidated capability validation preservation", () => {
       "bulkSetMaterialInstancesParametersSchema",
       "clearMaterialInstancesParametersSchema",
     ]) {
-      expect(source).not.toContain(`${schema}.and(`);
-      expect(source).not.toContain(`${schema}.merge(`);
+      expect(compactSource).not.toContain(`${schema}.and(`);
+      expect(compactSource).not.toContain(`${schema}.merge(`);
     }
   });
 });

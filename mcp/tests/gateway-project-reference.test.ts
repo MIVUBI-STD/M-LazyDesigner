@@ -12,6 +12,7 @@ describe("Gateway TypeScript project reference", () => {
     expect(graph.references).toEqual([
       { path: "./tsconfig.semantic-core.json" },
       { path: "./tsconfig.gateway-shared.json" },
+      { path: "./tsconfig.runtime-project.json" },
       { path: "./gateway/tsconfig.project.json" },
     ]);
     expect(gateway.references).toContainEqual({

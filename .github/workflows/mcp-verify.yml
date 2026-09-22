@@ -57,6 +57,7 @@ jobs:
       # ownership/audit visibility. Affected mode selects the minimum safe subset;
       # full mode executes verify:full, whose verify:mcp owner contains:
       # bun run docs:check
+      # bun run verify:project-graph
       # bun run typecheck
       # bun run typecheck:gateway
       # bun run test:runtime
