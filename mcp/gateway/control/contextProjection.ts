@@ -3,6 +3,7 @@ import { canonicalJson } from "../../lib/semantic/canonical";
 import type { ControlAuthoringDomain } from "./types";
 import type { ControlWorkspaceProjection } from "./workspace";
 import type { ControlReferenceProjection, ControlReferenceStage } from "./referencePackage";
+import { semanticDerivedArtifactStamp, type SemanticDerivedArtifactStamp } from "../development/semanticArtifact";
 
 export type ControlContextType =
   | "GEOMETRY_CONTEXT"
@@ -12,6 +13,7 @@ export type ControlContextType =
 export type ControlStageContext = {
   context_type: ControlContextType | null;
   context_hash: string;
+  semantic: SemanticDerivedArtifactStamp;
   original_user_intent: string | null;
   current_user_delta: string | null;
   selected_profile: string | null;
@@ -97,6 +99,7 @@ export function buildControlStageContext(input: {
   return {
     context_type: type,
     context_hash: createHash("sha256").update(hashPayload).digest("hex"),
+    semantic: semanticDerivedArtifactStamp("AI_STAGE_CONTEXT"),
     original_user_intent: input.reference.intent,
     current_user_delta: input.currentUserDelta?.trim() || null,
     selected_profile: input.reference.selected_profile,

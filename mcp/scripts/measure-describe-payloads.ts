@@ -5,6 +5,7 @@ import {
   listCapabilitySchemaBranches,
   projectCapabilityInputSchema,
 } from "@/gateway/schemaProjection";
+import { semanticDerivedArtifactStamp } from "@/gateway/development/semanticArtifact";
 
 const encoder = new TextEncoder();
 
@@ -102,6 +103,7 @@ if (import.meta.main) {
         measurement: "gateway-describe-payload-bytes",
         proof_scope:
           "Deterministic serialized-byte proxy for Gateway describe input schemas. It is not provider token telemetry.",
+        semantic: semanticDerivedArtifactStamp("DESCRIBE_REPORT"),
         ...report,
       },
       null,

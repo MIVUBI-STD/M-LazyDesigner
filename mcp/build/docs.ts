@@ -3,6 +3,7 @@ import { toolManifest, promptDocs, resourceDocs } from "./docs-manifest";
 import type { ToolSpec, PromptSpec, ResourceSpec } from "../lib/factories";
 import { version } from "../package.json";
 import { log } from "./utils";
+import { semanticDerivedArtifactStamp, type SemanticDerivedArtifactStamp } from "../gateway/development/semanticArtifact";
 
 // ============================================================================
 // Types
@@ -40,6 +41,7 @@ interface ResourceDocEntry {
 interface DocOutput {
   version: string;
   generatedAt: string;
+  semantic: SemanticDerivedArtifactStamp;
   tools: ToolDocEntry[];
   prompts: PromptDocEntry[];
   resources: ResourceDocEntry[];
@@ -393,6 +395,7 @@ async function main() {
   const output: DocOutput = {
     version,
     generatedAt: new Date().toISOString(),
+    semantic: semanticDerivedArtifactStamp("DOCS_API"),
     tools,
     prompts,
     resources,
