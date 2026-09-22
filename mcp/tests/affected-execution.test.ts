@@ -82,6 +82,17 @@ describe("affected execution planner", () => {
     expect(plan.checks).not.toContain("PROJECT_GRAPH");
   });
 
+  test("hot-path benchmark changes run the dedicated deterministic benchmark", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/scripts/benchmark-gateway-hot-path.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.fallback_full_verify).toBe(false);
+    expect(plan.checks).toContain("GATEWAY_HOT_PATH_BENCHMARK");
+    expect(plan.commands).toContain("bun run benchmark:gateway-hot-path");
+  });
+
   test("semantic invalidation is folded into the same bounded execution plan", () => {
     const semanticInvalidation = planSemanticInvalidation([
       {

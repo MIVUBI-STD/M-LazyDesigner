@@ -20,6 +20,7 @@ export type AffectedExecutionCheck =
   | "CAPABILITY_INTELLIGENCE"
   | "DECISION_EFFICIENCY"
   | "DESCRIBE_PAYLOADS"
+  | "GATEWAY_HOT_PATH_BENCHMARK"
   | "FULL_VERIFY";
 
 export type AffectedExecutionPlan = {
@@ -92,6 +93,13 @@ function affectsRepositoryContracts(path: string): boolean {
     path.startsWith("docs/05-operations/") ||
     path.startsWith("mcp/tests/repository/") ||
     path.startsWith("mcp/gateway/control/")
+  );
+}
+
+function affectsGatewayHotPathBenchmark(path: string): boolean {
+  return (
+    path === "mcp/scripts/benchmark-gateway-hot-path.ts" ||
+    path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts"
   );
 }
 
@@ -172,6 +180,9 @@ export function planAffectedExecution(input: {
     checks.add("AUDIT_UNUSED_RUNTIME");
   }
   if (changedPaths.some(affectsDocs)) checks.add("DOCS_FRESHNESS");
+  if (changedPaths.some(affectsGatewayHotPathBenchmark)) {
+    checks.add("GATEWAY_HOT_PATH_BENCHMARK");
+  }
   if (changedPaths.some(affectsRepositoryContracts)) {
     checks.add("REPOSITORY_CONTRACTS");
   }
@@ -220,6 +231,9 @@ export function planAffectedExecution(input: {
           path.startsWith("mcp/") ? path.slice(4) : path
         ).join(" ")}`
       );
+    }
+    if (checks.has("GATEWAY_HOT_PATH_BENCHMARK")) {
+      commands.push("bun run benchmark:gateway-hot-path");
     }
     if (checks.has("AUTHORING_CONTRACTS")) {
       commands.push("bun run verify:authoring");

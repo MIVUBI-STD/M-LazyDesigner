@@ -5,6 +5,12 @@ import {
 } from "../scripts/benchmark-gateway-hot-path";
 
 describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
+  test("report keeps the stable four-tool strategy as an explicit baseline", () => {
+    const report = benchmarkGatewayHotPathStrategies();
+    expect(report.stable_four.client_tool_count).toBe(4);
+    expect(report.stable_four.added_direct_tool_bytes).toBe(0);
+  });
+
   test("hybrid variants trade static schema cost for fewer routing calls", () => {
     const report = benchmarkGatewayHotPathStrategies();
     assertGatewayHotPathBenchmark();
