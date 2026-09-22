@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
-import type { ControlAuthoringDomain, ControlContextHandle } from "./types";
+import type { ControlAuthoringDomain, ControlContextHandle, ControlContextSemanticDependency } from "./types";
+import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../capabilities/semanticRegistry";
+import { semanticFingerprint } from "../capabilities/semanticRegistry";
 import type { ControlProfile } from "./referencePackage";
 
 export const MODELLING_PATH = ".agents/skills/lazydesigner-modelling/SKILL.md";
@@ -24,6 +26,33 @@ type CachedHandle = {
 
 const contextHandleCache = new Map<string, CachedHandle>();
 
+function semanticDependenciesForPath(
+  path: string
+): ControlContextSemanticDependency[] {
+  if (
+    path === MODELLING_PATH ||
+    path === TEXTURING_PATH ||
+    path === ANIMATION_PATH ||
+    Object.values(PROFILE_PATHS).includes(path)
+  ) {
+    return ["routing", "graph"];
+  }
+  return ["routing"];
+}
+
+function semanticRevisionForDependencies(
+  dependencies: readonly ControlContextSemanticDependency[]
+): string {
+  return semanticFingerprint(
+    Object.fromEntries(
+      dependencies.map((dimension) => [
+        dimension,
+        CAPABILITY_SEMANTIC_CATALOG_REVISIONS[dimension],
+      ])
+    )
+  );
+}
+
 function contextLabel(path: string): string {
   if (path === MODELLING_PATH) return "skill/modelling";
   if (path === TEXTURING_PATH) return "skill/texturing";
@@ -44,10 +73,16 @@ export async function contentHandle(path: string): Promise<ControlContextHandle>
   if (cached?.signature === signature) return cached.handle;
   const bytes = await readFile(file);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const semanticDependencies = semanticDependenciesForPath(path);
+  const semanticRevision = semanticRevisionForDependencies(
+    semanticDependencies
+  );
   const handle: ControlContextHandle = {
-    id: `ctx:${contextLabel(path)}@${sha256.slice(0, 12)}`,
+    id: `ctx:${contextLabel(path)}@${sha256.slice(0, 12)}.${semanticRevision.slice(0, 12)}`,
     path,
     sha256,
+    semantic_dependencies: semanticDependencies,
+    semantic_revision: semanticRevision,
   };
   contextHandleCache.set(path, { signature, handle });
   return handle;

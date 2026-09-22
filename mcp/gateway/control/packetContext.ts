@@ -7,6 +7,8 @@ import type {
   ControlContextHandle,
   ControlSnapshot,
 } from "./types";
+import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../capabilities/semanticRegistry";
+import { semanticFingerprint } from "../capabilities/semanticRegistry";
 
 export type ControlContextDelivery = {
   required: ControlContextHandle[];
@@ -59,6 +61,19 @@ export function taskContextId(
     .slice(0, 20)}`;
 }
 
+function contextSemanticRevision(
+  handle: ControlContextHandle
+): string {
+  return semanticFingerprint(
+    Object.fromEntries(
+      handle.semantic_dependencies.map((dimension) => [
+        dimension,
+        CAPABILITY_SEMANTIC_CATALOG_REVISIONS[dimension],
+      ])
+    )
+  );
+}
+
 function contextFamily(id: string): string {
   const at = id.lastIndexOf("@");
   const versionless = at > 0 ? id.slice(0, at) : id;
@@ -84,14 +99,36 @@ export function filterContext(
   const known = new Set(knownContextIds);
   const current = [...snapshot.context.required, ...snapshot.context.optional];
   const currentIds = new Set(current.map((handle) => handle.id));
+  const semanticallyFreshIds = new Set(
+    current
+      .filter(
+        (handle) =>
+          handle.semantic_revision === contextSemanticRevision(handle)
+      )
+      .map((handle) => handle.id)
+  );
   const currentFamilies = new Set(current.map((handle) => contextFamily(handle.id)));
 
   return {
-    required: snapshot.context.required.filter((handle) => !known.has(handle.id)),
-    optional: snapshot.context.optional.filter((handle) => !known.has(handle.id)),
-    cached_ids: current.filter((handle) => known.has(handle.id)).map((handle) => handle.id),
+    required: snapshot.context.required.filter(
+      (handle) =>
+        !known.has(handle.id) || !semanticallyFreshIds.has(handle.id)
+    ),
+    optional: snapshot.context.optional.filter(
+      (handle) =>
+        !known.has(handle.id) || !semanticallyFreshIds.has(handle.id)
+    ),
+    cached_ids: current
+      .filter(
+        (handle) =>
+          known.has(handle.id) && semanticallyFreshIds.has(handle.id)
+      )
+      .map((handle) => handle.id),
     invalidated_ids: knownContextIds.filter(
-      (id) => !currentIds.has(id) && currentFamilies.has(contextFamily(id))
+      (id) =>
+        (!currentIds.has(id) &&
+          currentFamilies.has(contextFamily(id))) ||
+        (currentIds.has(id) && !semanticallyFreshIds.has(id))
     ),
   };
 }

@@ -15,6 +15,10 @@ const contextHandleSchema = z
     id: z.string().min(1),
     path: z.string().min(1),
     sha256: hex64,
+    semantic_dependencies: z
+      .array(z.enum(["routing", "graph", "schema_projection"]))
+      .min(1),
+    semantic_revision: hex64,
   })
   .strict();
 

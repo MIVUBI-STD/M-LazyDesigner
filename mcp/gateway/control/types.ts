@@ -43,10 +43,17 @@ export type ControlVerificationScope =
       evidence_source: "mutation_response" | "follow_up_read";
     };
 
+export type ControlContextSemanticDependency =
+  | "routing"
+  | "graph"
+  | "schema_projection";
+
 export type ControlContextHandle = {
   id: string;
   path: string;
   sha256: string;
+  semantic_dependencies: ControlContextSemanticDependency[];
+  semantic_revision: string;
 };
 
 export type ControlSourceOwner = {
