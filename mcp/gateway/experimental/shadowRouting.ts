@@ -23,6 +23,7 @@ export type ShadowReplayCase = {
   branch?: CapabilityBranchHint;
   knowledge: ShadowReplayKnowledgeState;
   needs_schema: boolean;
+  weight: number;
   facts?: CapabilityFactState;
 };
 

@@ -1,46 +1,9 @@
 import { z } from "zod";
 import { toolManifest } from "@/build/docs-manifest";
 import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "@/gateway/experimental/hybridProfile";
+import { GATEWAY_REPLAY_CORPUS } from "@/benchmarks/gatewayReplayCorpus";
+import { shadowReplayCaseForDirectSet } from "@/gateway/experimental/shadowRouting";
 
-export type HotPathRoute =
-  | "DIRECT_INVOKE"
-  | "SEARCH_THEN_INVOKE"
-  | "SEARCH_THEN_DESCRIBE_THEN_INVOKE"
-  | "RESOLVE_PREREQUISITE";
-
-type HotPathCase = {
-  id: string;
-  capability: string;
-  route: HotPathRoute;
-  weight: number;
-};
-
-const CASES: readonly HotPathCase[] = [
-  { id: "geometry-update", capability: "manage_cubes", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 8 },
-  { id: "element-detail", capability: "inspect_elements", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 6 },
-  { id: "animation-timeline", capability: "manage_animation_timeline", route: "SEARCH_THEN_INVOKE", weight: 5 },
-  { id: "blank-texture", capability: "create_texture", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 4 },
-  { id: "material-configure", capability: "manage_material", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 4 },
-  { id: "reparent", capability: "reparent_element", route: "SEARCH_THEN_INVOKE", weight: 4 },
-  { id: "model-bounds-known", capability: "inspect_model_bounds", route: "DIRECT_INVOKE", weight: 4 },
-  { id: "pivot-edit", capability: "modify_group", route: "SEARCH_THEN_INVOKE", weight: 3 },
-  { id: "gradient", capability: "gradient_tool", route: "SEARCH_THEN_INVOKE", weight: 3 },
-  { id: "particle-authoring", capability: "manage_particle", route: "SEARCH_THEN_INVOKE", weight: 3 },
-  { id: "particle-inspection", capability: "inspect_particle", route: "SEARCH_THEN_INVOKE", weight: 2 },
-  { id: "render-profile", capability: "manage_render_profile", route: "SEARCH_THEN_DESCRIBE_THEN_INVOKE", weight: 2 },
-  { id: "animation-timeline-blocked", capability: "manage_animation_timeline", route: "RESOLVE_PREREQUISITE", weight: 2 },
-];
-
-function preInvokeCalls(route: HotPathRoute): number {
-  if (route === "DIRECT_INVOKE") return 0;
-  if (route === "SEARCH_THEN_DESCRIBE_THEN_INVOKE") return 2;
-  return 1;
-}
-
-function directEligible(route: HotPathRoute): boolean {
-  return route === "SEARCH_THEN_INVOKE" ||
-    route === "SEARCH_THEN_DESCRIBE_THEN_INVOKE";
-}
 
 function toolStaticBytes(name: string): number {
   const spec = toolManifest
@@ -71,56 +34,61 @@ function candidateSavings(): Array<{
   weighted_preinvoke_calls: number;
   static_bytes: number;
 }> {
-  const savings = new Map<string, number>();
-  for (const item of CASES) {
-    if (!directEligible(item.route)) continue;
-    savings.set(
-      item.capability,
-      (savings.get(item.capability) ?? 0) +
-        item.weight * preInvokeCalls(item.route)
-    );
-  }
-  return [...savings.entries()]
-    .map(([capability, weighted]) => ({
+  const capabilities = [...new Set(
+    GATEWAY_REPLAY_CORPUS.map((item) => item.capability)
+  )];
+  const candidates = capabilities.flatMap((capability) => {
+    const spec = toolManifest
+      .flatMap((group) => group.tools)
+      .find((tool) => tool.name === capability);
+    if (!spec) return [];
+
+    const weighted = GATEWAY_REPLAY_CORPUS
+      .filter((item) => item.capability === capability)
+      .reduce((sum, item) => {
+        const row = shadowReplayCaseForDirectSet(item, [capability]);
+        return sum + row.routing_saving * item.weight;
+      }, 0);
+    if (weighted <= 0) return [];
+
+    return [{
       capability,
       weighted_preinvoke_calls: weighted,
       static_bytes: toolStaticBytes(capability),
-    }))
-    .sort(
-      (left, right) =>
-        right.weighted_preinvoke_calls - left.weighted_preinvoke_calls ||
-        left.capability.localeCompare(right.capability)
-    );
+    }];
+  });
+
+  return candidates.sort(
+    (left, right) =>
+      right.weighted_preinvoke_calls - left.weighted_preinvoke_calls ||
+      left.static_bytes - right.static_bytes ||
+      left.capability.localeCompare(right.capability)
+  );
 }
 
 function evaluateHybrid(size: number) {
   const direct = candidateSavings().slice(0, size);
-  const directNames = new Set(direct.map((item) => item.capability));
+  const directNames = direct.map((item) => item.capability);
   let baselineCalls = 0;
   let hybridCalls = 0;
   let blockedRoutesPreserved = 0;
   let blockedRoutes = 0;
 
-  for (const item of CASES) {
-    const calls = preInvokeCalls(item.route) * item.weight;
-    baselineCalls += calls;
-    if (item.route === "RESOLVE_PREREQUISITE") {
+  for (const item of GATEWAY_REPLAY_CORPUS) {
+    const row = shadowReplayCaseForDirectSet(item, directNames);
+    baselineCalls += row.stable.routing_calls * item.weight;
+    hybridCalls += row.hybrid.routing_calls * item.weight;
+    if (row.stable.blocked) {
       blockedRoutes += item.weight;
-      blockedRoutesPreserved += item.weight;
-      hybridCalls += calls;
-      continue;
+      if (row.blocked_preserved) blockedRoutesPreserved += item.weight;
     }
-    hybridCalls +=
-      directNames.has(item.capability) && directEligible(item.route)
-        ? 0
-        : calls;
   }
 
   const staticBytes = direct.reduce((sum, item) => sum + item.static_bytes, 0);
   const avoidedCalls = baselineCalls - hybridCalls;
   return {
     direct_tool_count: direct.length,
-    direct_capabilities: direct.map((item) => item.capability),
+    direct_capabilities: directNames,
     added_static_bytes: staticBytes,
     baseline_weighted_preinvoke_calls: baselineCalls,
     hybrid_weighted_preinvoke_calls: hybridCalls,
@@ -174,8 +142,11 @@ function recommendedHybrid(
 }
 
 export function benchmarkGatewayHotPathStrategies() {
-  const baselineCalls = CASES.reduce(
-    (sum, item) => sum + preInvokeCalls(item.route) * item.weight,
+  const baselineCalls = GATEWAY_REPLAY_CORPUS.reduce(
+    (sum, item) =>
+      sum +
+      shadowReplayCaseForDirectSet(item, []).stable.routing_calls *
+        item.weight,
     0
   );
   const variants = [4, 8, 12].map(evaluateHybrid);
@@ -185,8 +156,11 @@ export function benchmarkGatewayHotPathStrategies() {
   return {
     measurement: "gateway-hot-path-strategy-proxy",
     proof_scope:
-      "Deterministic architecture proxy. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas from the canonical static/docs manifest exposed to the AI client. Measures static schema bytes and weighted pre-invoke routing calls; not live model tokens or Blockbench latency.",
-    workload_weight: CASES.reduce((sum, item) => sum + item.weight, 0),
+      "Deterministic architecture proxy over the canonical Gateway replay corpus. Hybrid means the stable four Gateway tools plus selected direct Runtime capability schemas. Measures static schema bytes and weighted routing calls; not live model tokens or Blockbench latency.",
+    workload_weight: GATEWAY_REPLAY_CORPUS.reduce(
+      (sum, item) => sum + item.weight,
+      0
+    ),
     excluded_future_capabilities: [
       {
         capability: "manage_uv_layout",

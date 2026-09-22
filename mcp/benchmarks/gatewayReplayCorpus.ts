@@ -15,6 +15,7 @@ export type GatewayReplayCase = ShadowReplayCase & {
 export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   {
     id: "geometry-update-unknown",
+    weight: 8,
     domain: "GEOMETRY",
     capability: "manage_cubes",
     branch: { field: "operation", value: "update" },
@@ -24,6 +25,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "geometry-create-stale-schema",
+    weight: 4,
     domain: "GEOMETRY",
     capability: "manage_cubes",
     branch: { field: "operation", value: "create" },
@@ -33,6 +35,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "geometry-inspect-known",
+    weight: 2,
     domain: "GEOMETRY",
     capability: "inspect_elements",
     branch: { field: "mode", value: "detail" },
@@ -42,6 +45,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "geometry-inspect-unknown",
+    weight: 6,
     domain: "GEOMETRY",
     capability: "inspect_elements",
     branch: { field: "mode", value: "search" },
@@ -51,6 +55,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "geometry-reparent-nonhot",
+    weight: 4,
     domain: "GEOMETRY",
     capability: "reparent_element",
     knowledge: "UNKNOWN",
@@ -59,6 +64,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "texture-blank-unknown",
+    weight: 4,
     domain: "TEXTURING",
     capability: "create_texture",
     branch: { field: "type", value: "blank" },
@@ -68,6 +74,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "texture-template-blocked",
+    weight: 2,
     domain: "TEXTURING",
     capability: "create_texture",
     branch: { field: "type", value: "template" },
@@ -77,6 +84,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "material-create-unknown",
+    weight: 4,
     domain: "TEXTURING",
     capability: "manage_material",
     branch: { field: "operation", value: "create" },
@@ -86,6 +94,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "material-configure-unknown-precondition",
+    weight: 4,
     domain: "TEXTURING",
     capability: "manage_material",
     branch: { field: "operation", value: "configure" },
@@ -95,6 +104,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "gradient-nonhot",
+    weight: 3,
     domain: "TEXTURING",
     capability: "gradient_tool",
     knowledge: "UNKNOWN",
@@ -103,6 +113,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "animation-timeline-nonhot",
+    weight: 5,
     domain: "ANIMATION",
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "timeline" },
@@ -112,6 +123,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "animation-timeline-blocked",
+    weight: 2,
     domain: "ANIMATION",
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "timeline" },
@@ -121,6 +133,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "particle-authoring",
+    weight: 3,
     domain: "PARTICLE",
     capability: "manage_particle",
     knowledge: "UNKNOWN",
@@ -129,6 +142,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "particle-inspection",
+    weight: 2,
     domain: "PARTICLE",
     capability: "inspect_particle",
     knowledge: "KNOWN",
@@ -137,6 +151,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "mixed-model-bounds-known",
+    weight: 4,
     domain: "MIXED",
     capability: "inspect_model_bounds",
     knowledge: "KNOWN",
@@ -145,6 +160,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "mixed-render-profile-stale",
+    weight: 2,
     domain: "MIXED",
     capability: "manage_render_profile",
     knowledge: "SCHEMA_STALE",
@@ -153,6 +169,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "recovery-project-not-bound-hot",
+    weight: 2,
     domain: "RECOVERY",
     capability: "manage_cubes",
     branch: { field: "operation", value: "create" },
@@ -162,6 +179,7 @@ export const GATEWAY_REPLAY_CORPUS: readonly GatewayReplayCase[] = [
   },
   {
     id: "unknown-capability-fallback",
+    weight: 2,
     domain: "RECOVERY",
     capability: "future_unknown_capability",
     knowledge: "UNKNOWN",
