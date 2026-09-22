@@ -59,8 +59,8 @@ jobs:
       - name: Verify generated docs freshness
         run: bun run docs:check
 
-      - name: Verify semantic core project graph
-        run: bun run verify:semantic-core
+      - name: Verify TypeScript project graph
+        run: bun run verify:project-graph
 
       - name: Typecheck Runtime
         run: bun run typecheck
