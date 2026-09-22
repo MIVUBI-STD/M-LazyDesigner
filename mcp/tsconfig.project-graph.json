@@ -3,6 +3,7 @@
   "references": [
     { "path": "./tsconfig.semantic-core.json" },
     { "path": "./tsconfig.gateway-shared.json" },
+    { "path": "./tsconfig.runtime-project.json" },
     { "path": "./gateway/tsconfig.project.json" }
   ]
 }

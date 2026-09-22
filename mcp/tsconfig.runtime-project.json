@@ -1,0 +1,42 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": ".cache/runtime-project",
+    "tsBuildInfoFile": ".cache/runtime-project.tsbuildinfo",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true
+  },
+  "references": [
+    { "path": "./tsconfig.semantic-core.json" },
+    { "path": "./tsconfig.gateway-shared.json" }
+  ],
+  "include": [
+    "index.ts",
+    "plugin/**/*.ts",
+    "server/**/*.ts",
+    "ui/**/*.ts",
+    "macros/**/*.ts",
+    "distribution/**/*.ts",
+    "lib/**/*.ts",
+    "types.d.ts",
+    "blockbench-runtime-augmentations.d.ts",
+    "package.json"
+  ],
+  "exclude": [
+    "gateway/**",
+    "tests/**",
+    "scripts/**",
+    "build/**",
+    "dist/**",
+    ".cache/**",
+    "lib/semantic/**",
+    "lib/runtimeFetch.ts",
+    "lib/runtimeConnection.ts",
+    "lib/capabilityMetadata.ts",
+    "lib/capabilities/manifest.ts",
+    "lib/authoringPhase.ts",
+    "lib/registrationProfile.ts"
+  ]
+}
