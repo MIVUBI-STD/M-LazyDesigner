@@ -32,10 +32,11 @@ function expectImmutableActions(workflow: string, expectedActions: string[]): vo
 
 describe("repository workflow supply chain", () => {
   test("active verification and distribution workflows pin trusted Actions to immutable revisions", async () => {
-    const [repository, authoring, mcp, release, distribution] = await Promise.all([
+    const [repository, authoring, mcp, remote, release, distribution] = await Promise.all([
       source("../.github/workflows/repository-verify.yml"),
       source("../.github/workflows/authoring-policy-verify.yml"),
       source("../.github/workflows/mcp-verify.yml"),
+      source("../.github/workflows/remote-acceptance.yml"),
       source("../.github/workflows/release-verify.yml"),
       source("../.github/workflows/managed-distribution.yml"),
     ]);
@@ -48,6 +49,10 @@ describe("repository workflow supply chain", () => {
       "oven-sh/setup-bun",
       "actions/upload-artifact",
     ]);
+    expectImmutableActions(remote, [
+      "actions/checkout",
+      "oven-sh/setup-bun",
+    ]);
     expectImmutableActions(distribution, [
       "actions/checkout",
       "oven-sh/setup-bun",
@@ -57,8 +62,9 @@ describe("repository workflow supply chain", () => {
   });
 
   test("verification workflows install only the dependency surface they execute", async () => {
-    const [mcpWorkflow, repositoryWorkflow, authoringWorkflow, releaseWorkflow, bunVersion] = await Promise.all([
+    const [mcpWorkflow, remoteWorkflow, repositoryWorkflow, authoringWorkflow, releaseWorkflow, bunVersion] = await Promise.all([
       source("../.github/workflows/mcp-verify.yml"),
+      source("../.github/workflows/remote-acceptance.yml"),
       source("../.github/workflows/repository-verify.yml"),
       source("../.github/workflows/authoring-policy-verify.yml"),
       source("../.github/workflows/release-verify.yml"),
@@ -68,7 +74,7 @@ describe("repository workflow supply chain", () => {
     expect(bunVersion.trim()).toMatch(/^\d+\.\d+\.\d+$/);
     expect(await Bun.file("bun.lock").exists()).toBe(true);
 
-    for (const workflow of [mcpWorkflow, repositoryWorkflow, authoringWorkflow, releaseWorkflow]) {
+    for (const workflow of [mcpWorkflow, remoteWorkflow, repositoryWorkflow, authoringWorkflow, releaseWorkflow]) {
       expect(workflow).toContain('bun-version-file: ".bun-version"');
       expect(workflow).toContain("contents: read");
       expect(workflow).toContain("persist-credentials: false");
@@ -78,8 +84,15 @@ describe("repository workflow supply chain", () => {
     expect(authoringWorkflow).toContain("timeout-minutes: 5");
     expect(mcpWorkflow).toContain("timeout-minutes: 10");
     expect(releaseWorkflow).toContain("timeout-minutes: 10");
+    expect(remoteWorkflow).toContain("timeout-minutes: 15");
 
     expect(mcpWorkflow).toContain("bun install --frozen-lockfile");
+    expect(remoteWorkflow).toContain("bun install --frozen-lockfile");
+    expect(remoteWorkflow).toContain("bun run verify:remote");
+    expect(remoteWorkflow).toContain('ref: ${{ github.sha }}');
+    expect(remoteWorkflow).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
+    expect(remoteWorkflow).not.toMatch(/contents:\s*write/i);
+    expect(remoteWorkflow).not.toMatch(/verify:[^\s"]*live/i);
     expect(releaseWorkflow).toContain("bun install --frozen-lockfile");
     expect(authoringWorkflow).toContain("bun install --frozen-lockfile");
     expect(authoringWorkflow).not.toContain("--production");

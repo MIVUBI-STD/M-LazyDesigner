@@ -145,6 +145,22 @@ describe("repository GitHub discipline", () => {
     expect(mcp).toContain('"!mcp/tests/authoring/**"');
   });
 
+
+  test("remote acceptance proves exact Local SHA without claiming live evidence", async () => {
+    const remote = await source("../.github/workflows/remote-acceptance.yml");
+    const packageText = await source("package.json");
+    const scripts = JSON.parse(packageText).scripts as Record<string, string>;
+
+    expect(remote).toContain("name: Remote Acceptance");
+    expect(remote).toContain("Exact-SHA remote acceptance");
+    expect(remote).toContain('ref: ${{ github.sha }}');
+    expect(remote).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
+    expect(remote).toContain("bun run verify:remote");
+    expect(remote).toContain("live_local_tests: excluded");
+    expect(scripts["verify:remote"]).toBe("bun run verify:full");
+    expect(scripts["verify:remote"]).not.toMatch(/live/i);
+  });
+
   test("release verification stays Local-only and ancestry guarded", async () => {
     const release = await source("../.github/workflows/release-verify.yml");
     expect(release).toContain("name: Full release contract");

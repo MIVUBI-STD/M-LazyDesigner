@@ -481,3 +481,10 @@ Golden Task cost-to-accepted-result measurement
 ```
 
 Do not add a second updater, Gateway daemon/watchdog, compatibility table, authoring engine, asset database, workflow engine, or Desktop AI chat to compensate for missing live proof.
+
+
+## Exact-SHA Remote Acceptance
+
+Source-impacting `Local` heads are eligible for a separate **Remote Acceptance** workflow. It checks out the exact `github.sha`, proves `HEAD == github.sha`, installs the frozen dependency graph, and runs `bun run verify:remote`.
+
+This is remote/static execution proof only. It intentionally excludes `*:live` and local Blockbench acceptance gates, so a green Remote Acceptance run must not be described as live Runtime or visual proof.
