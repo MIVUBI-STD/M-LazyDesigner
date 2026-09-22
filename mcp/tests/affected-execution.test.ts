@@ -39,6 +39,16 @@ describe("affected execution planner", () => {
     )).toBe(true);
   });
 
+  test("semantic core changes exercise the isolated compiler project", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/lib/semantic/canonical.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.checks).toContain("SEMANTIC_CORE_PROJECT");
+    expect(plan.commands).toContain("bun run verify:semantic-core");
+  });
+
   test("gateway-only source avoids runtime typecheck when no shared runtime owner changed", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/gateway/capabilities/catalog.ts"],

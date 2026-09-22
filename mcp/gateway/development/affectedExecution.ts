@@ -3,6 +3,7 @@ import type { SemanticImpactReport } from "./impact";
 export type AffectedExecutionCheck =
   | "TYPECHECK_RUNTIME"
   | "TYPECHECK_GATEWAY"
+  | "SEMANTIC_CORE_PROJECT"
   | "AUDIT_UNUSED_RUNTIME"
   | "AUDIT_UNUSED_GATEWAY"
   | "DOCS_FRESHNESS"
@@ -129,6 +130,9 @@ export function planAffectedExecution(input: {
     );
   }
 
+  if (changedPaths.some((path) => path.startsWith("mcp/lib/semantic/") && path.endsWith(".ts"))) {
+    checks.add("SEMANTIC_CORE_PROJECT");
+  }
   if (changedPaths.some(isRuntimeTypeScript)) {
     checks.add("TYPECHECK_RUNTIME");
     checks.add("AUDIT_UNUSED_RUNTIME");
@@ -162,6 +166,9 @@ export function planAffectedExecution(input: {
     commands.push("bun run verify:full");
   } else {
     if (checks.has("DOCS_FRESHNESS")) commands.push("bun run docs:check");
+    if (checks.has("SEMANTIC_CORE_PROJECT")) {
+      commands.push("bun run verify:semantic-core");
+    }
     if (checks.has("TYPECHECK_RUNTIME")) commands.push("bun run typecheck");
     if (checks.has("TYPECHECK_GATEWAY")) commands.push("bun run typecheck:gateway");
     if (checks.has("AUDIT_UNUSED_RUNTIME")) commands.push("bun run audit:unused");
