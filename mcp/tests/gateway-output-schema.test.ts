@@ -4,6 +4,7 @@ import {
   gatewayErrorOutputSchema,
   gatewaySearchOutputSchema,
   gatewayStatusOutputSchema,
+  gatewayStatusSuccessOutputSchema,
 } from "../gateway/outputSchemas";
 
 describe("Gateway output schemas", () => {

@@ -106,6 +106,14 @@ function affectsGatewayHotPathBenchmark(path: string): boolean {
   );
 }
 
+function affectsGatewayOutputContracts(path: string): boolean {
+  return (
+    path === "mcp/gateway/outputSchemas.ts" ||
+    path === "mcp/tests/gateway-output-schema.test.ts" ||
+    path === "mcp/gateway/index.ts"
+  );
+}
+
 function affectsHybrid4ExperimentalContracts(path: string): boolean {
   return (
     path.startsWith("mcp/gateway/experimental/") ||
@@ -198,6 +206,9 @@ export function planAffectedExecution(input: {
   if (changedPaths.some(affectsGatewayHotPathBenchmark)) {
     checks.add("GATEWAY_HOT_PATH_BENCHMARK");
   }
+  if (changedPaths.some(affectsGatewayOutputContracts)) {
+    checks.add("TARGETED_TESTS");
+  }
   if (changedPaths.some(affectsHybrid4ExperimentalContracts)) {
     checks.add("HYBRID4_EXPERIMENTAL_CONTRACTS");
   }
@@ -217,11 +228,14 @@ export function planAffectedExecution(input: {
     }
   }
 
-  const targetedTests = uniqueSorted(
-    input.semanticImpact.affected_tests.filter((path) =>
+  const targetedTests = uniqueSorted([
+    ...input.semanticImpact.affected_tests.filter((path) =>
       path.startsWith("mcp/tests/") && path.endsWith(".test.ts")
-    )
-  );
+    ),
+    ...(changedPaths.some(affectsGatewayOutputContracts)
+      ? ["mcp/tests/gateway-output-schema.test.ts"]
+      : []),
+  ]);
   if (targetedTests.length > 0) checks.add("TARGETED_TESTS");
 
   if (checks.size === 0) {
