@@ -1,4 +1,10 @@
 import type { SemanticImpactReport } from "./impact";
+import type { SemanticInvalidationPlan } from "./semanticInvalidation";
+import { semanticInvalidationCommands } from "./semanticInvalidation";
+import {
+  planAuthoringDomainInvalidation,
+  type AuthoringDomain,
+} from "./domainInvalidation";
 
 export type AffectedExecutionCheck =
   | "TYPECHECK_RUNTIME"
@@ -10,12 +16,17 @@ export type AffectedExecutionCheck =
   | "REPOSITORY_CONTRACTS"
   | "AUTHORING_CONTRACTS"
   | "TARGETED_TESTS"
+  | "CAPABILITY_MANIFEST"
+  | "CAPABILITY_INTELLIGENCE"
+  | "DECISION_EFFICIENCY"
+  | "DESCRIBE_PAYLOADS"
   | "FULL_VERIFY";
 
 export type AffectedExecutionPlan = {
   changed_paths: string[];
   checks: AffectedExecutionCheck[];
   targeted_tests: string[];
+  authoring_domains: AuthoringDomain[];
   commands: string[];
   fallback_full_verify: boolean;
   reasons: string[];
@@ -120,10 +131,19 @@ function clearlyMappedPath(path: string): boolean {
 export function planAffectedExecution(input: {
   changedPaths: readonly string[];
   semanticImpact: SemanticImpactReport;
+  semanticInvalidation?: SemanticInvalidationPlan;
 }): AffectedExecutionPlan {
   const changedPaths = uniqueSorted(input.changedPaths.map(normalize));
   const checks = new Set<AffectedExecutionCheck>();
   const reasons: string[] = [];
+  const domainInvalidation = planAuthoringDomainInvalidation({
+    changedPaths,
+    affectedCapabilities: input.semanticImpact.affected_capabilities.map(
+      (entry) => entry.capability
+    ),
+    affectedSources: input.semanticImpact.affected_sources,
+    affectedSpecialists: input.semanticImpact.affected_specialists,
+  });
 
   if (
     input.semanticImpact.truncated ||
@@ -156,6 +176,15 @@ export function planAffectedExecution(input: {
   }
   if (changedPaths.some(affectsAuthoringContracts)) {
     checks.add("AUTHORING_CONTRACTS");
+  }
+
+  if (input.semanticInvalidation?.full_catalog_invalidation) {
+    checks.add("FULL_VERIFY");
+    reasons.push("semantic capability identity set changed");
+  } else if (input.semanticInvalidation) {
+    for (const check of input.semanticInvalidation.checks) {
+      checks.add(check);
+    }
   }
 
   const targetedTests = uniqueSorted(
@@ -197,13 +226,17 @@ export function planAffectedExecution(input: {
     if (checks.has("REPOSITORY_CONTRACTS")) {
       commands.push("bun run verify:repository");
     }
+    if (input.semanticInvalidation) {
+      commands.push(...semanticInvalidationCommands(input.semanticInvalidation));
+    }
   }
 
   return {
     changed_paths: changedPaths,
     checks: [...checks].sort(),
     targeted_tests: targetedTests,
-    commands,
+    authoring_domains: domainInvalidation.domains,
+    commands: uniqueSorted(commands),
     fallback_full_verify: checks.has("FULL_VERIFY"),
     reasons,
   };

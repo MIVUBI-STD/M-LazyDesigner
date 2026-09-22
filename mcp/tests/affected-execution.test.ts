@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { planAffectedExecution } from "../gateway/development/affectedExecution";
 import type { SemanticImpactReport } from "../gateway/development/impact";
+import { planSemanticInvalidation } from "../gateway/development/semanticInvalidation";
 
 function impact(overrides: Partial<SemanticImpactReport> = {}): SemanticImpactReport {
   return {
@@ -27,8 +28,9 @@ describe("affected execution planner", () => {
     });
 
     expect(plan.fallback_full_verify).toBe(false);
-    expect(plan.checks).toContain("TYPECHECK_RUNTIME");
-    expect(plan.checks).toContain("AUDIT_UNUSED_RUNTIME");
+    expect(plan.checks).toContain("PROJECT_GRAPH");
+    expect(plan.checks).not.toContain("TYPECHECK_RUNTIME");
+    expect(plan.checks).not.toContain("AUDIT_UNUSED_RUNTIME");
     expect(plan.checks).toContain("DOCS_FRESHNESS");
     expect(plan.checks).toContain("AUTHORING_CONTRACTS");
     expect(plan.targeted_tests).toEqual([
@@ -78,6 +80,54 @@ describe("affected execution planner", () => {
     expect(plan.checks).toContain("TYPECHECK_RUNTIME");
     expect(plan.checks).toContain("AUDIT_UNUSED_RUNTIME");
     expect(plan.checks).not.toContain("PROJECT_GRAPH");
+  });
+
+  test("semantic invalidation is folded into the same bounded execution plan", () => {
+    const semanticInvalidation = planSemanticInvalidation([
+      {
+        id: "branch:manage_cubes/operation=update",
+        change: "CHANGED",
+        dimensions: ["ROUTING"],
+      },
+    ]);
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/gateway/capabilities/catalog.ts"],
+      semanticImpact: impact(),
+      semanticInvalidation,
+    });
+
+    expect(plan.fallback_full_verify).toBe(false);
+    expect(plan.checks).toContain("CAPABILITY_INTELLIGENCE");
+    expect(plan.checks).toContain("DECISION_EFFICIENCY");
+    expect(plan.commands).toContain("bun run eval:capability-intelligence");
+    expect(plan.commands).toContain("bun run eval:decision-efficiency");
+  });
+
+  test("authoring domains stay scoped for a texture-only change", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/server/tools/textures.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.authoring_domains).toEqual(["TEXTURE_UV"]);
+  });
+
+  test("identity-set semantic changes fail wide", () => {
+    const semanticInvalidation = planSemanticInvalidation([
+      {
+        id: "cap:new_capability",
+        change: "ADDED",
+        dimensions: ["ROUTING", "GRAPH", "SCHEMA_PROJECTION"],
+      },
+    ]);
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/gateway/capabilities/manifest.ts"],
+      semanticImpact: impact(),
+      semanticInvalidation,
+    });
+
+    expect(plan.fallback_full_verify).toBe(true);
+    expect(plan.commands).toEqual(["bun run verify:full"]);
   });
 
   test("unmapped, infra, empty-owner, or truncated changes fail safe to the full verifier", () => {
