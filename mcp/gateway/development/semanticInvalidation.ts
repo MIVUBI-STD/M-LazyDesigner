@@ -2,6 +2,7 @@ import type { CapabilitySemanticDiff, SemanticRevisionDimension } from "../capab
 import {
   semanticSurfacesAffectedByDimensions,
   semanticVerificationChecksForSurfaces,
+  type SemanticDependencySurface,
 } from "./semanticDependencyMatrix";
 
 export type SemanticInvalidationFamily =
@@ -28,6 +29,32 @@ function uniqueSorted<T extends string>(values: Iterable<T>): T[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
+function invalidationFamily(
+  surface: SemanticDependencySurface
+): SemanticInvalidationFamily | null {
+  return surface === "CAPABILITY_SEARCH" ||
+    surface === "PRECONDITION_GRAPH" ||
+    surface === "DESCRIBE_SCHEMA" ||
+    surface === "AI_CONTEXT" ||
+    surface === "CAPABILITY_DOCS"
+    ? surface
+    : null;
+}
+
+function applyAffectedSurfaces(
+  surfaces: readonly SemanticDependencySurface[],
+  families: Set<SemanticInvalidationFamily>,
+  checks: Set<SemanticInvalidationCheck>
+): void {
+  for (const surface of surfaces) {
+    const family = invalidationFamily(surface);
+    if (family) families.add(family);
+  }
+  for (const check of semanticVerificationChecksForSurfaces(surfaces)) {
+    checks.add(check);
+  }
+}
+
 /**
  * Converts semantic-diff dimensions into the minimum downstream invalidation.
  *
@@ -45,23 +72,15 @@ export function planSemanticInvalidation(
   for (const diff of diffs) {
     if (diff.change !== "CHANGED") {
       fullCatalogInvalidation = true;
-      for (const family of [
-        "CAPABILITY_SEARCH",
-        "PRECONDITION_GRAPH",
-        "DESCRIBE_SCHEMA",
-        "AI_CONTEXT",
-        "CAPABILITY_DOCS",
-      ] as const) {
-        families.add(family);
-      }
-      for (const check of [
-        "CAPABILITY_INTELLIGENCE",
-        "DECISION_EFFICIENCY",
-        "CAPABILITY_MANIFEST",
-        "DESCRIBE_PAYLOADS",
-      ] as const) {
-        checks.add(check);
-      }
+      applyAffectedSurfaces(
+        semanticSurfacesAffectedByDimensions([
+          "routing",
+          "graph",
+          "schema_projection",
+        ]),
+        families,
+        checks
+      );
       continue;
     }
 
@@ -75,21 +94,7 @@ export function planSemanticInvalidation(
     );
     const affectedSurfaces = semanticSurfacesAffectedByDimensions(dimensions);
 
-    for (const surface of affectedSurfaces) {
-      if (
-        surface === "CAPABILITY_SEARCH" ||
-        surface === "PRECONDITION_GRAPH" ||
-        surface === "DESCRIBE_SCHEMA" ||
-        surface === "AI_CONTEXT" ||
-        surface === "CAPABILITY_DOCS"
-      ) {
-        families.add(surface);
-      }
-    }
-
-    for (const check of semanticVerificationChecksForSurfaces(affectedSurfaces)) {
-      checks.add(check);
-    }
+    applyAffectedSurfaces(affectedSurfaces, families, checks);
   }
 
   return {

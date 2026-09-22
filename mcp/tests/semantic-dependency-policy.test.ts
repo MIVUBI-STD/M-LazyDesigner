@@ -1,17 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import {
-  SEMANTIC_DEPENDENCY_POLICY,
   semanticDependenciesForOwner,
   semanticRevisionForDependencies,
 } from "../gateway/development/semanticDependencies";
+import { SEMANTIC_DEPENDENCY_MATRIX } from "../gateway/development/semanticDependencyMatrix";
 
 describe("semantic dependency ownership", () => {
   test("authoring specialists and profiles share routing+graph ownership", () => {
-    expect(SEMANTIC_DEPENDENCY_POLICY.AUTHORING_SPECIALIST).toEqual([
+    expect(SEMANTIC_DEPENDENCY_MATRIX.AUTHORING_SPECIALIST).toEqual([
       "routing",
       "graph",
     ]);
-    expect(SEMANTIC_DEPENDENCY_POLICY.MODELLING_PROFILE).toEqual([
+    expect(SEMANTIC_DEPENDENCY_MATRIX.MODELLING_PROFILE).toEqual([
       "routing",
       "graph",
     ]);
