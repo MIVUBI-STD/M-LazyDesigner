@@ -22,14 +22,14 @@ export const HYBRID_4_EXPERIMENTAL_PROFILE = Object.freeze({
   base_gateway_tools: [...GATEWAY_TOOL_NAMES],
   direct_capabilities: [...HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES],
   production_default: false,
-  registration_enabled: false,
-  proof_status: "PROJECTION_ONLY" as const,
+  registration_enabled: true,
+  proof_status: "EXPERIMENTAL_REGISTERABLE" as const,
 });
 
 /**
  * Experimental selection remains exact and fail-closed. This resolver does not
- * register direct tools; it only selects a projection plan for benchmark and
- * future startup wiring.
+ * make Hybrid-4 the default; registration is activated only when the exact
+ * experimental profile is selected at Gateway startup.
  */
 export function resolveGatewaySurfaceProfile(
   value: unknown
@@ -55,7 +55,7 @@ export function gatewaySurfaceProjection(
       gateway_tools: [...GATEWAY_TOOL_NAMES],
       direct_capabilities: direct,
       projected_client_tool_count: GATEWAY_TOOL_NAMES.length + direct.length,
-      registration_enabled: false,
+      registration_enabled: true,
     };
   }
 

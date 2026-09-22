@@ -87,6 +87,17 @@ export function evaluateCapabilityPreconditions(
   };
 }
 
+export function capabilityBranchFromArguments(
+  args: Record<string, unknown>
+): CapabilityBranchHint | undefined {
+  const discriminator = ["operation", "type", "mode", "action", "resource_kind"]
+    .map((field) => ({ field, value: args[field] }))
+    .find((candidate) => typeof candidate.value === "string");
+  return discriminator
+    ? { field: discriminator.field, value: discriminator.value as string }
+    : undefined;
+}
+
 export function applyCapabilityGraphOutcome(
   previous: CapabilityFactState,
   capability: string,
@@ -95,12 +106,7 @@ export function applyCapabilityGraphOutcome(
 ): CapabilityFactState {
   if (!succeeded) return previous;
 
-  const discriminator = ["operation", "type", "mode", "action", "resource_kind"]
-    .map((field) => ({ field, value: args[field] }))
-    .find((candidate) => typeof candidate.value === "string");
-  const branch = discriminator
-    ? { field: discriminator.field, value: discriminator.value as string }
-    : undefined;
+  const branch = capabilityBranchFromArguments(args);
   const entry = capabilityGraphEntry(capability, branch);
   if (!entry) return previous;
 

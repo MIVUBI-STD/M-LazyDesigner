@@ -40,6 +40,8 @@ import {
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
 import {
   applyCapabilityGraphOutcome,
+  capabilityBranchFromArguments,
+  evaluateCapabilityPreconditions,
   seedCapabilityFacts,
   type CapabilityFactState,
 } from "./capabilities/graph";
@@ -54,6 +56,11 @@ import {
 } from "./capabilities/semanticRegistry";
 import { semanticDerivedArtifactStamp } from "./development/semanticArtifact";
 import { capabilitySemanticId } from "../lib/semantic/identity";
+import {
+  resolveGatewaySurfaceProfile,
+  type GatewaySurfaceProfile,
+} from "./experimental/hybridProfile";
+import { registerExperimentalHybrid4 } from "./experimental/hybridRegistration";
 
 const backend = new BlockitRuntimeBackend();
 const localCapabilities = new LocalCapabilityRegistry();
@@ -75,7 +82,8 @@ function synchronizeCapabilityFacts(projectUuid: string | null): void {
   };
 }
 
-// Runtime resources and prompts are not proxied; the Gateway intentionally exposes only its four stable tools.
+// Runtime resources and prompts are not proxied. Stable-four remains the
+// production default; Hybrid-4 is an explicit experimental startup profile.
 const GATEWAY_INSTRUCTIONS =
   "LazyDesigner Gateway. Call status only when orientation is unknown or stale; reuse Control/context handles. Asset work: pass reference_package_path when available; Control supplies active-stage context and one Geometry profile. Source work: use task_mode=SYSTEM_DEVELOPMENT with concrete task_intent. Known capability: invoke directly. Unknown/stale capability: search; when search returns branch, pass it to describe so only that branch schema loads. Search eligibility: READY=usable, UNKNOWN=do not assume missing state, BLOCKED=resolve returned requires/predecessor before invoke. Real schema uncertainty: describe. After invoke, obey control_delta: receipt_only=no confirmation read; focused_read=inspect only if returned state is insufficient; visual=refresh only decision-changing visual evidence. Geometry/Texturing share AUTHORING; Animation is the Runtime handoff. Never auto-retry an interrupted mutation.";
 
@@ -264,7 +272,161 @@ const invokeInput = z.object({
   arguments: z.record(z.string(), z.unknown()).default({}),
 });
 
+function directPreconditionBlockedResult(
+  capability: string,
+  args: JsonRecord
+): ReturnType<typeof gatewayErrorResult> | null {
+  const branch = capabilityBranchFromArguments(args);
+  const evaluation = evaluateCapabilityPreconditions(
+    capability,
+    branch,
+    capabilityFacts
+  );
+  if (evaluation.eligibility !== "BLOCKED") return null;
+
+  return {
+    isError: true,
+    content: [
+      {
+        type: "text" as const,
+        text: `CAPABILITY_PRECONDITION_BLOCKED: ${capability} requires ${evaluation.missing.join(", ")}.`,
+      },
+    ],
+    structuredContent: {
+      code: "CAPABILITY_PRECONDITION_BLOCKED",
+      capability,
+      eligibility: evaluation.eligibility,
+      requires: evaluation.missing,
+      ...(evaluation.predecessor
+        ? { predecessor: evaluation.predecessor }
+        : {}),
+      recovery: {
+        category: "CAPABILITY",
+        safe_to_retry: false,
+        state_uncertain: false,
+        requires_status_refresh: false,
+        requires_user_action: false,
+        action: evaluation.predecessor
+          ? `resolve predecessor ${evaluation.predecessor.capability} before direct invoke`
+          : "satisfy the returned capability prerequisites before retrying",
+      },
+    },
+  };
+}
+
+async function invokeGatewayCapability(
+  capability: string,
+  args: JsonRecord,
+  context?: GatewayToolContext,
+  enforceKnownBlockers: boolean = false
+): Promise<unknown> {
+  try {
+    if (enforceKnownBlockers) {
+      const blocked = directPreconditionBlockedResult(capability, args);
+      if (blocked) return blocked;
+    }
+
+    const traceMeta = traceMetaFromContext(context);
+    const phaseBefore = capabilityNeedsPhaseSnapshot(capability)
+      ? (await backend.getStatus()).affinity.authoring_phase
+      : null;
+    const localResult = await localCapabilities.invoke(capability, args);
+    const runtimeInvocation = localResult
+      ? null
+      : await backend.invokeCapabilityWithMetadata(capability, args, traceMeta);
+    const result = localResult ?? runtimeInvocation!.result;
+    const readOnly =
+      localResult !== null
+        ? localCapabilities.readOnlyHint(capability) === true
+        : runtimeInvocation!.readOnly;
+    const succeeded = result.isError !== true;
+    const receipt = deriveControlReceipt(
+      capability,
+      result.structuredContent,
+      succeeded,
+      phaseBefore
+    );
+    if (
+      receipt.projectUuid !== null &&
+      receipt.projectUuid !== capabilityFactsProjectUuid
+    ) {
+      synchronizeCapabilityFacts(receipt.projectUuid);
+    }
+    capabilityFacts = applyCapabilityGraphOutcome(
+      capabilityFacts,
+      capability,
+      args,
+      succeeded
+    );
+    const controlDelta = buildControlDelta({
+      capability,
+      phaseBefore: receipt.phaseBefore,
+      phaseAfter: receipt.phaseAfter,
+      projectUuid: receipt.projectUuid,
+      succeeded,
+      result: result.structuredContent,
+    });
+    const attachControlDelta = shouldAttachGatewayControlDelta(
+      succeeded,
+      readOnly
+    );
+    const orchestration = attachControlDelta
+      ? reduceControlExecutionState(executionState, controlDelta)
+      : null;
+    if (orchestration) executionState = orchestration.state;
+    const gatewayControlDelta = {
+      ...projectControlDeltaForGateway(controlDelta),
+      ...(orchestration
+        ? { continuation: orchestration.continuation }
+        : {}),
+    };
+    if (result.structuredContent === undefined) {
+      return {
+        ...result,
+        ...(attachControlDelta
+          ? { structuredContent: { control_delta: gatewayControlDelta } }
+          : {}),
+      };
+    }
+    const compacted = compactGatewayCapabilityStructuredContent(
+      capability,
+      result.structuredContent,
+      controlDelta.verification_class
+    );
+    const compactedContent = compactGatewayCapabilityContent(
+      capability,
+      result.structuredContent,
+      result.content,
+      controlDelta.verification_class,
+      readOnly
+    );
+    return {
+      ...result,
+      content: compactedContent as typeof result.content,
+      structuredContent:
+        compacted && typeof compacted === "object" && !Array.isArray(compacted)
+          ? {
+              ...(compacted as JsonRecord),
+              ...(attachControlDelta
+                ? { control_delta: gatewayControlDelta }
+                : {}),
+            }
+          : {
+              runtime_result: compacted,
+              ...(attachControlDelta
+                ? { control_delta: gatewayControlDelta }
+                : {}),
+            },
+    };
+  } catch (error) {
+    return gatewayErrorResult(error);
+  }
+}
+
 function buildGatewayServer(): McpServer {
+  const surfaceProfile: GatewaySurfaceProfile = resolveGatewaySurfaceProfile(
+    process.env.LAZYDESIGNER_GATEWAY_SURFACE_PROFILE
+  );
   const server = new McpServer(
     {
       name: GATEWAY_NAME,
@@ -481,104 +643,24 @@ registerGatewayTool(
   async (rawArgs, context) => {
     try {
       const { capability, arguments: args } = invokeInput.parse(rawArgs);
-      const traceMeta = traceMetaFromContext(context);
-      const phaseBefore = capabilityNeedsPhaseSnapshot(capability)
-        ? (await backend.getStatus()).affinity.authoring_phase
-        : null;
-      const localResult = await localCapabilities.invoke(capability, args);
-      const runtimeInvocation = localResult
-        ? null
-        : await backend.invokeCapabilityWithMetadata(capability, args, traceMeta);
-      const result = localResult ?? runtimeInvocation!.result;
-      const readOnly =
-        localResult !== null
-          ? localCapabilities.readOnlyHint(capability) === true
-          : runtimeInvocation!.readOnly;
-      const succeeded = result.isError !== true;
-      const receipt = deriveControlReceipt(
-        capability,
-        result.structuredContent,
-        succeeded,
-        phaseBefore
-      );
-      if (
-        receipt.projectUuid !== null &&
-        receipt.projectUuid !== capabilityFactsProjectUuid
-      ) {
-        synchronizeCapabilityFacts(receipt.projectUuid);
-      }
-      capabilityFacts = applyCapabilityGraphOutcome(
-        capabilityFacts,
-        capability,
-        args,
-        succeeded
-      );
-      const controlDelta = buildControlDelta({
-        capability,
-        phaseBefore: receipt.phaseBefore,
-        phaseAfter: receipt.phaseAfter,
-        projectUuid: receipt.projectUuid,
-        succeeded,
-        result: result.structuredContent,
-      });
-      const attachControlDelta = shouldAttachGatewayControlDelta(
-        succeeded,
-        readOnly
-      );
-      const orchestration = attachControlDelta
-        ? reduceControlExecutionState(executionState, controlDelta)
-        : null;
-      if (orchestration) executionState = orchestration.state;
-      const gatewayControlDelta = {
-        ...projectControlDeltaForGateway(controlDelta),
-        ...(orchestration
-          ? { continuation: orchestration.continuation }
-          : {}),
-      };
-      if (result.structuredContent === undefined) {
-        return {
-          ...result,
-          ...(attachControlDelta
-            ? { structuredContent: { control_delta: gatewayControlDelta } }
-            : {}),
-        };
-      }
-      const compacted = compactGatewayCapabilityStructuredContent(
-        capability,
-        result.structuredContent,
-        controlDelta.verification_class
-      );
-      const compactedContent = compactGatewayCapabilityContent(
-        capability,
-        result.structuredContent,
-        result.content,
-        controlDelta.verification_class,
-        readOnly
-      );
-      return {
-        ...result,
-        content: compactedContent as typeof result.content,
-        structuredContent:
-          compacted && typeof compacted === "object" && !Array.isArray(compacted)
-            ? {
-                ...(compacted as JsonRecord),
-                ...(attachControlDelta
-                  ? { control_delta: gatewayControlDelta }
-                  : {}),
-              }
-            : {
-                runtime_result: compacted,
-                ...(attachControlDelta
-                  ? { control_delta: gatewayControlDelta }
-                  : {}),
-              },
-      };
+      return invokeGatewayCapability(capability, args, context);
     } catch (error) {
       return gatewayErrorResult(error);
     }
   }
 );
 
+  registerExperimentalHybrid4({
+    server,
+    profile: surfaceProfile,
+    invoke: (capability, args, context) =>
+      invokeGatewayCapability(
+        capability,
+        args,
+        context as GatewayToolContext | undefined,
+        true
+      ),
+  });
   return server;
 }
 

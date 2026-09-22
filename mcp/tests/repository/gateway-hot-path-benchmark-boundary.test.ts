@@ -13,14 +13,18 @@ describe("Gateway hot-path benchmark boundary", () => {
     expect(benchmark).not.toContain("registerGatewayTool");
   });
 
-  test("Hybrid-4 stays a projection-only opt-in until safe direct schemas exist", async () => {
+  test("Hybrid-4 registration stays explicit, generated-schema-backed, and opt-in", async () => {
     const profile = await Bun.file("gateway/experimental/hybridProfile.ts").text();
     const gatewayIndex = await Bun.file("gateway/index.ts").text();
 
     expect(profile).toContain('production_default: false');
-    expect(profile).toContain('registration_enabled: false');
-    expect(profile).toContain('proof_status: "PROJECTION_ONLY"');
-    expect(gatewayIndex).not.toContain("HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES");
-    expect(gatewayIndex).not.toContain("hybrid_4_experimental");
+    expect(profile).toContain('registration_enabled: true');
+    expect(profile).toContain('proof_status: "EXPERIMENTAL_REGISTERABLE"');
+    const registration = await Bun.file("gateway/experimental/hybridRegistration.ts").text();
+    expect(gatewayIndex).toContain("resolveGatewaySurfaceProfile");
+    expect(gatewayIndex).toContain("registerExperimentalHybrid4");
+    expect(registration).toContain("fromJsonSchema");
+    expect(registration).not.toContain("../server/");
+    expect(profile).toContain('DEFAULT_GATEWAY_SURFACE_PROFILE: GatewaySurfaceProfile =\n  "stable_four"');
   });
 });
