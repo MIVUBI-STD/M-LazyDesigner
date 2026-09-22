@@ -44,6 +44,11 @@ import {
   type CapabilityFactState,
 } from "./capabilities/graph";
 import {
+  gatewayDescribeOutputSchema,
+  gatewaySearchOutputSchema,
+  gatewayStatusOutputSchema,
+} from "./outputSchemas";
+import {
   capabilityDescriptionRevision,
   semanticRecordForCapabilityBranch,
 } from "./capabilities/semanticRegistry";
@@ -77,6 +82,7 @@ type GatewayToolDefinition = {
   title: string;
   description: string;
   inputSchema: Record<string, z.ZodTypeAny>;
+  outputSchema?: z.ZodTypeAny;
   annotations?: {
     readOnlyHint?: boolean;
     destructiveHint?: boolean;
@@ -268,6 +274,7 @@ function buildGatewayServer(): McpServer {
     description:
       "Returns compact Runtime health and Control orientation/context.",
     inputSchema: statusInput.shape,
+    outputSchema: gatewayStatusOutputSchema,
     annotations: {
       readOnlyHint: true,
       destructiveHint: false,
@@ -329,6 +336,7 @@ registerGatewayTool(
     description:
       "Search exposed capabilities by intent; returns bounded routing and safety hints.",
     inputSchema: searchInput.shape,
+    outputSchema: gatewaySearchOutputSchema,
     annotations: {
       readOnlyHint: true,
       destructiveHint: false,
@@ -370,6 +378,7 @@ registerGatewayTool(
     description:
       "Returns one capability schema; detail=full adds metadata only when needed.",
     inputSchema: describeInput.shape,
+    outputSchema: gatewayDescribeOutputSchema,
     annotations: {
       readOnlyHint: true,
       destructiveHint: false,
