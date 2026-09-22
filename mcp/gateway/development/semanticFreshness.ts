@@ -1,6 +1,10 @@
 import type {
   CapabilitySemanticCatalogRevisions,
 } from "../capabilities/semanticRegistry";
+import {
+  semanticRefreshSurfacesForDimensions,
+  type SemanticRefreshSurface,
+} from "./semanticDependencyMatrix";
 
 export type SemanticFreshnessDimension =
   | "routing"
@@ -109,12 +113,6 @@ export function semanticRevisionStamp(
 }
 
 
-export type SemanticRefreshSurface =
-  | "CAPABILITY_SEARCH"
-  | "DESCRIBE_SCHEMA"
-  | "AI_CONTEXT"
-  | "SEMANTIC_MANIFEST";
-
 export type SemanticConsumerFreshness = SemanticFreshnessReport & {
   refresh_surfaces: SemanticRefreshSurface[];
 };
@@ -122,36 +120,22 @@ export type SemanticConsumerFreshness = SemanticFreshnessReport & {
 export function semanticRefreshSurfaces(
   report: SemanticFreshnessReport
 ): SemanticRefreshSurface[] {
-  const refresh = new Set<SemanticRefreshSurface>();
-  const affected = new Set([
+  const affectedDimensions = [
     ...report.stale_dimensions,
     ...report.missing_dimensions,
-  ]);
+  ].filter(
+    (dimension): dimension is Exclude<SemanticFreshnessDimension, "aggregate"> =>
+      dimension !== "aggregate"
+  );
 
-  if (affected.has("routing")) {
-    refresh.add("CAPABILITY_SEARCH");
-    refresh.add("AI_CONTEXT");
-  }
-  if (affected.has("graph")) {
-    refresh.add("CAPABILITY_SEARCH");
-    refresh.add("AI_CONTEXT");
-  }
-  if (affected.has("schema_projection")) {
-    refresh.add("DESCRIBE_SCHEMA");
-  }
+  const refresh = semanticRefreshSurfacesForDimensions(affectedDimensions);
+  const aggregateOnly =
+    report.dimensions.aggregate !== "FRESH" &&
+    affectedDimensions.length === 0;
 
-  // Aggregate is a catalog consistency checksum. If it is the only mismatch,
-  // refresh the compact semantic manifest rather than reloading every surface.
-  if (
-    affected.has("aggregate") &&
-    !affected.has("routing") &&
-    !affected.has("graph") &&
-    !affected.has("schema_projection")
-  ) {
-    refresh.add("SEMANTIC_MANIFEST");
-  }
-
-  return [...refresh].sort((a, b) => a.localeCompare(b));
+  return aggregateOnly
+    ? [...refresh, "SEMANTIC_MANIFEST"].sort((a, b) => a.localeCompare(b))
+    : refresh;
 }
 
 export function evaluateSemanticConsumerFreshness(

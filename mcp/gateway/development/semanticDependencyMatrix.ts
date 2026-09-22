@@ -49,3 +49,55 @@ export function semanticSurfacesAffectedByDimensions(
     )
     .sort((a, b) => a.localeCompare(b));
 }
+
+
+export type SemanticRefreshSurface =
+  | "CAPABILITY_SEARCH"
+  | "DESCRIBE_SCHEMA"
+  | "AI_CONTEXT"
+  | "SEMANTIC_MANIFEST";
+
+export type SemanticVerificationCheck =
+  | "CAPABILITY_INTELLIGENCE"
+  | "DECISION_EFFICIENCY"
+  | "CAPABILITY_MANIFEST"
+  | "DESCRIBE_PAYLOADS";
+
+export const SEMANTIC_REFRESH_SURFACE_MAP: Readonly<
+  Partial<Record<SemanticDependencySurface, SemanticRefreshSurface>>
+> = Object.freeze({
+  CAPABILITY_SEARCH: "CAPABILITY_SEARCH",
+  DESCRIBE_SCHEMA: "DESCRIBE_SCHEMA",
+  AI_CONTEXT: "AI_CONTEXT",
+});
+
+export const SEMANTIC_VERIFICATION_CHECKS: Readonly<
+  Partial<Record<SemanticDependencySurface, readonly SemanticVerificationCheck[]>>
+> = Object.freeze({
+  CAPABILITY_SEARCH: ["CAPABILITY_INTELLIGENCE", "DECISION_EFFICIENCY"],
+  PRECONDITION_GRAPH: ["DECISION_EFFICIENCY", "CAPABILITY_MANIFEST"],
+  AI_CONTEXT: ["DECISION_EFFICIENCY"],
+  DESCRIBE_SCHEMA: ["CAPABILITY_MANIFEST", "DESCRIBE_PAYLOADS"],
+  DESCRIBE_REPORT: ["DESCRIBE_PAYLOADS"],
+  CAPABILITY_MANIFEST: ["CAPABILITY_MANIFEST"],
+});
+
+export function semanticRefreshSurfacesForDimensions(
+  dimensions: readonly SemanticRevisionDimension[]
+): SemanticRefreshSurface[] {
+  const refresh = semanticSurfacesAffectedByDimensions(dimensions)
+    .flatMap((surface) => {
+      const mapped = SEMANTIC_REFRESH_SURFACE_MAP[surface];
+      return mapped ? [mapped] : [];
+    });
+  return [...new Set(refresh)].sort((a, b) => a.localeCompare(b));
+}
+
+export function semanticVerificationChecksForSurfaces(
+  surfaces: readonly SemanticDependencySurface[]
+): SemanticVerificationCheck[] {
+  const checks = surfaces.flatMap(
+    (surface) => SEMANTIC_VERIFICATION_CHECKS[surface] ?? []
+  );
+  return [...new Set(checks)].sort((a, b) => a.localeCompare(b));
+}

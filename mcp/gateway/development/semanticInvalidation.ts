@@ -1,5 +1,8 @@
 import type { CapabilitySemanticDiff, SemanticRevisionDimension } from "../capabilities/semanticRegistry";
-import { semanticSurfacesAffectedByDimensions } from "./semanticDependencyMatrix";
+import {
+  semanticSurfacesAffectedByDimensions,
+  semanticVerificationChecksForSurfaces,
+} from "./semanticDependencyMatrix";
 
 export type SemanticInvalidationFamily =
   | "CAPABILITY_SEARCH"
@@ -84,28 +87,8 @@ export function planSemanticInvalidation(
       }
     }
 
-    if (affectedSurfaces.includes("CAPABILITY_SEARCH")) {
-      checks.add("CAPABILITY_INTELLIGENCE");
-    }
-    if (
-      affectedSurfaces.includes("CAPABILITY_SEARCH") ||
-      affectedSurfaces.includes("PRECONDITION_GRAPH") ||
-      affectedSurfaces.includes("AI_CONTEXT")
-    ) {
-      checks.add("DECISION_EFFICIENCY");
-    }
-    if (
-      affectedSurfaces.includes("PRECONDITION_GRAPH") ||
-      affectedSurfaces.includes("CAPABILITY_MANIFEST") ||
-      affectedSurfaces.includes("DESCRIBE_SCHEMA")
-    ) {
-      checks.add("CAPABILITY_MANIFEST");
-    }
-    if (
-      affectedSurfaces.includes("DESCRIBE_SCHEMA") ||
-      affectedSurfaces.includes("DESCRIBE_REPORT")
-    ) {
-      checks.add("DESCRIBE_PAYLOADS");
+    for (const check of semanticVerificationChecksForSurfaces(affectedSurfaces)) {
+      checks.add(check);
     }
   }
 
