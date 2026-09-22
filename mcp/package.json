@@ -90,7 +90,9 @@
     "plan:affected": "bun run ./scripts/plan-affected-execution.ts",
     "verify:affected": "bun run ./scripts/run-affected-execution.ts",
     "verify:semantic-core": "tsc -b tsconfig.semantic-solution.json --pretty false",
-    "verify:project-graph": "tsc -b tsconfig.project-graph.json --pretty false"
+    "verify:project-graph": "tsc -b tsconfig.project-graph.json --pretty false",
+    "snapshot:semantic-registry": "bun run ./scripts/snapshot-semantic-registry.ts",
+    "plan:semantic-invalidation": "bun run ./scripts/plan-semantic-invalidation.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
