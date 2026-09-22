@@ -172,7 +172,9 @@ jobs:
 
       - name: Run full verification
         if: steps.scope.outputs.mode == 'full'
-        run: bun run verify:full
+        # CI is a remote/static acceptance environment. verify:remote is the
+        # canonical alias for verify:full and intentionally excludes *:live gates.
+        run: bun run verify:remote
 
       # Keep verified build artifacts only when the canonical full verifier ran.
       # Affected-only pushes intentionally avoid rebuilding unrelated bundles.
