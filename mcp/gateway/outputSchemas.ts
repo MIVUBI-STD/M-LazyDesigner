@@ -2,6 +2,15 @@ import { z } from "zod";
 
 const hex64 = z.string().regex(/^[a-f0-9]{64}$/);
 
+const semanticRevisionsSchema = z
+  .object({
+    routing: hex64,
+    graph: hex64,
+    schema_projection: hex64,
+    aggregate: hex64,
+  })
+  .strict();
+
 export const gatewayErrorOutputSchema = z
   .object({
     code: z.string().min(1),
@@ -103,15 +112,6 @@ const capabilityBranchSchema = z
   .object({
     field: z.string().min(1),
     value: z.string().min(1),
-  })
-  .strict();
-
-const semanticRevisionsSchema = z
-  .object({
-    routing: hex64,
-    graph: hex64,
-    schema_projection: hex64,
-    aggregate: hex64,
   })
   .strict();
 
