@@ -21,6 +21,7 @@ export type AffectedExecutionCheck =
   | "DECISION_EFFICIENCY"
   | "DESCRIBE_PAYLOADS"
   | "GATEWAY_HOT_PATH_BENCHMARK"
+  | "HYBRID4_EXPERIMENTAL_CONTRACTS"
   | "FULL_VERIFY";
 
 export type AffectedExecutionPlan = {
@@ -99,7 +100,21 @@ function affectsRepositoryContracts(path: string): boolean {
 function affectsGatewayHotPathBenchmark(path: string): boolean {
   return (
     path === "mcp/scripts/benchmark-gateway-hot-path.ts" ||
-    path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts"
+    path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts" ||
+    path === "mcp/gateway/experimental/hybridProfile.ts" ||
+    path === "mcp/gateway/experimental/hybridRegistration.ts"
+  );
+}
+
+function affectsHybrid4ExperimentalContracts(path: string): boolean {
+  return (
+    path.startsWith("mcp/gateway/experimental/") ||
+    path === "mcp/scripts/generate-hybrid4-schemas.ts" ||
+    path === "mcp/scripts/benchmark-gateway-hot-path.ts" ||
+    path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts" ||
+    path === "mcp/tests/hybrid4-generated-schema.test.ts" ||
+    path === "mcp/tests/hybrid4-precondition-safety.test.ts" ||
+    path === "mcp/docs/api.json"
   );
 }
 
@@ -183,6 +198,9 @@ export function planAffectedExecution(input: {
   if (changedPaths.some(affectsGatewayHotPathBenchmark)) {
     checks.add("GATEWAY_HOT_PATH_BENCHMARK");
   }
+  if (changedPaths.some(affectsHybrid4ExperimentalContracts)) {
+    checks.add("HYBRID4_EXPERIMENTAL_CONTRACTS");
+  }
   if (changedPaths.some(affectsRepositoryContracts)) {
     checks.add("REPOSITORY_CONTRACTS");
   }
@@ -234,6 +252,11 @@ export function planAffectedExecution(input: {
     }
     if (checks.has("GATEWAY_HOT_PATH_BENCHMARK")) {
       commands.push("bun run benchmark:gateway-hot-path");
+    }
+    if (checks.has("HYBRID4_EXPERIMENTAL_CONTRACTS")) {
+      commands.push(
+        "bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts"
+      );
     }
     if (checks.has("AUTHORING_CONTRACTS")) {
       commands.push("bun run verify:authoring");

@@ -17,6 +17,29 @@ function impact(overrides: Partial<SemanticImpactReport> = {}): SemanticImpactRe
 }
 
 describe("affected execution planner", () => {
+  test("Hybrid-4 experimental owners trigger bounded benchmark and contract checks", () => {
+    const plan = buildAffectedExecutionPlan([
+      "mcp/gateway/experimental/hybridRegistration.ts",
+    ]);
+
+    expect(plan.execution.fallback_full_verify).toBe(false);
+    expect(plan.execution.checks).toContain("GATEWAY_HOT_PATH_BENCHMARK");
+    expect(plan.execution.checks).toContain("HYBRID4_EXPERIMENTAL_CONTRACTS");
+    expect(plan.execution.commands).toContain(
+      "bun run benchmark:gateway-hot-path"
+    );
+    expect(plan.execution.commands).toContain(
+      "bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts"
+    );
+  });
+
+  test("docs API changes validate generated Hybrid-4 schema freshness", () => {
+    const plan = buildAffectedExecutionPlan(["mcp/docs/api.json"]);
+
+    expect(plan.execution.checks).toContain("HYBRID4_EXPERIMENTAL_CONTRACTS");
+  });
+
+
   test("selects runtime checks and exact owner tests for a bounded tool change", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/server/tools/cubes.ts"],
