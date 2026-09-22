@@ -31,7 +31,13 @@ const baseSnapshot = (): ControlSnapshot => ({
     catalog_stale: false,
   },
   context: {
-    required: [{ id: "ctx:skill/modelling@abc", path: "skill", sha256: "abc" }],
+    required: [{
+      id: "ctx:skill/modelling@abc.def",
+      path: "skill",
+      sha256: "a".repeat(64),
+      semantic_dependencies: ["routing", "graph"],
+      semantic_revision: "b".repeat(64),
+    }],
     optional: [],
   },
   blockers: [],
