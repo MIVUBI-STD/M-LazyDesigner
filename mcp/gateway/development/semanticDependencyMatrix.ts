@@ -11,6 +11,7 @@ export type SemanticDependencySurface =
   | "CAPABILITY_DOCS"
   | "DOCS_API"
   | "DESCRIBE_REPORT"
+  | "AI_STAGE_CONTEXT"
   | "CAPABILITY_MANIFEST";
 
 export const SEMANTIC_DEPENDENCY_MATRIX: Readonly<
@@ -26,6 +27,7 @@ export const SEMANTIC_DEPENDENCY_MATRIX: Readonly<
   CAPABILITY_DOCS: ["schema_projection"],
   DOCS_API: ["schema_projection"],
   DESCRIBE_REPORT: ["schema_projection"],
+  AI_STAGE_CONTEXT: ["routing", "graph"],
   CAPABILITY_MANIFEST: ["routing", "graph", "schema_projection"],
 });
 

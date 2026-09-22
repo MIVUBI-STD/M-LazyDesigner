@@ -24,6 +24,7 @@ describe("semantic derived artifact stamps", () => {
   test("old derived stamp identifies the exact stale semantic dimension", () => {
     const stamp = semanticDerivedArtifactStamp("AI_STAGE_CONTEXT");
     const report = evaluateDerivedArtifactFreshness({
+      artifact_kind: "AI_STAGE_CONTEXT",
       revisions: {
         ...stamp.revisions,
         routing: "stale-routing-revision",

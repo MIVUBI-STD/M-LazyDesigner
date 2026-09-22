@@ -8,6 +8,12 @@ import {
   type SemanticDependencySurface,
 } from "./semanticDependencyMatrix";
 
+export const SEMANTIC_DEPENDENCY_POLICY = Object.freeze({
+  AUTHORING_SPECIALIST: semanticDependenciesForSurface("AUTHORING_SPECIALIST"),
+  MODELLING_PROFILE: semanticDependenciesForSurface("MODELLING_PROFILE"),
+  GENERIC_CONTEXT: semanticDependenciesForSurface("GENERIC_CONTEXT"),
+});
+
 export type SemanticDependencyOwner = Extract<
   SemanticDependencySurface,
   "AUTHORING_SPECIALIST" | "MODELLING_PROFILE" | "GENERIC_CONTEXT"
