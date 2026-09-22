@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { planAffectedExecution } from "../gateway/development/affectedExecution";
+import { buildAffectedExecutionPlan } from "../scripts/plan-affected-execution";
 import type { SemanticImpactReport } from "../gateway/development/impact";
 import { planSemanticInvalidation } from "../gateway/development/semanticInvalidation";
 
