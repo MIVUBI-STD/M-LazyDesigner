@@ -119,9 +119,30 @@ jobs:
           cat /tmp/mcp-changed-paths.txt
 
           mapfile -t changed_paths < /tmp/mcp-changed-paths.txt
+
+          semantic_args=()
+          previous_worktree="/tmp/mcp-before-${BEFORE_SHA:0:12}"
+          if git worktree add --detach "$previous_worktree" "$BEFORE_SHA" >/dev/null 2>&1; then
+            if (
+              cd "$previous_worktree/mcp"
+              bun run ./scripts/snapshot-semantic-registry.ts
+            ) > /tmp/mcp-previous-semantic-registry.json 2>/tmp/mcp-semantic-snapshot.err; then
+              semantic_args=(
+                --previous-semantic-snapshot
+                /tmp/mcp-previous-semantic-registry.json
+              )
+            else
+              echo "Previous semantic snapshot unavailable; path-based planner remains authoritative."
+              cat /tmp/mcp-semantic-snapshot.err || true
+            fi
+            git worktree remove --force "$previous_worktree" >/dev/null 2>&1 || true
+          else
+            echo "Previous worktree unavailable; path-based planner remains authoritative."
+          fi
+
           (
             cd mcp
-            bun run plan:affected -- "${changed_paths[@]}"
+            bun run plan:affected -- "${semantic_args[@]}" "${changed_paths[@]}"
           ) > /tmp/mcp-affected-plan.json
 
           planner_full="$(bun -e 'const p=JSON.parse(await Bun.file("/tmp/mcp-affected-plan.json").text()); console.log(p.execution.fallback_full_verify ? "true" : "false")')"
