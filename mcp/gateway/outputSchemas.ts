@@ -104,6 +104,14 @@ export const gatewayStatusSuccessOutputSchema = z
         queued: z.number().int().nonnegative(),
       })
       .passthrough(),
+    gateway_surface: z
+      .object({
+        profile: z.enum(["stable_four", "hybrid_4_experimental"]),
+        stable_gateway_tool_count: z.literal(4),
+        experimental_direct_tools: z.array(z.string()),
+        projected_client_tool_count: z.number().int().min(4),
+      })
+      .strict(),
     control: gatewayControlSchema,
   })
   .passthrough();

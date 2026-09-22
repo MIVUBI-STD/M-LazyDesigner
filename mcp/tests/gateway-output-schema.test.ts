@@ -99,4 +99,48 @@ describe("Gateway output schemas", () => {
       expect(schema.safeParse(error).success).toBe(true);
     }
   });
+  test("status schema carries the active Gateway surface profile", () => {
+    const parsed = gatewayStatusSuccessOutputSchema.safeParse({
+      gateway: "ready",
+      affinity: {
+        project_uuid: null,
+        authoring_phase: null,
+      },
+      runtime: {
+        online: false,
+        mcp_client_ready: false,
+        catalog_stale: false,
+        catalog_count: 0,
+        semantic_catalog_revision: "a".repeat(64),
+        semantic_catalog_revisions: {
+          routing: "a".repeat(64),
+          graph: "b".repeat(64),
+          schema_projection: "c".repeat(64),
+          aggregate: "d".repeat(64),
+        },
+        identity: {},
+      },
+      connection: { state: "offline" },
+      operations: { active: 0, queued: 0 },
+      gateway_surface: {
+        profile: "hybrid_4_experimental",
+        stable_gateway_tool_count: 4,
+        experimental_direct_tools: [
+          "manage_cubes",
+          "inspect_elements",
+          "create_texture",
+          "manage_material",
+        ],
+        projected_client_tool_count: 8,
+      },
+      control: {
+        system: "OFFLINE",
+        task_context_id: "task:" + "a".repeat(20),
+        context: {},
+      },
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+
 });

@@ -431,6 +431,7 @@ function buildGatewayServer(): McpServer {
   const surfaceProfile: GatewaySurfaceProfile = resolveGatewaySurfaceProfile(
     process.env.LAZYDESIGNER_GATEWAY_SURFACE_PROFILE
   );
+  let registeredExperimentalTools: string[] = [];
   const server = new McpServer(
     {
       name: GATEWAY_NAME,
@@ -500,6 +501,13 @@ function buildGatewayServer(): McpServer {
         ],
         structuredContent: {
           ...projectGatewayStatus(status, known_semantic_revisions),
+          gateway_surface: {
+            profile: surfaceProfile,
+            stable_gateway_tool_count: 4,
+            experimental_direct_tools: [...registeredExperimentalTools],
+            projected_client_tool_count:
+              4 + registeredExperimentalTools.length,
+          },
           control: gatewayControl,
         },
       };
@@ -654,7 +662,7 @@ registerGatewayTool(
   }
 );
 
-  registerExperimentalHybrid4({
+  registeredExperimentalTools = registerExperimentalHybrid4({
     server,
     profile: surfaceProfile,
     invoke: (capability, args, context) =>
