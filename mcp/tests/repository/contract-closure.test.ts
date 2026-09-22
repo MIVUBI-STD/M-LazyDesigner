@@ -84,4 +84,14 @@ describe("MCP dependency closure", () => {
       expect(workflow).not.toContain("docs/foundation/");
     }
   });
+  test("remote acceptance composes the canonical full verifier without live checks", async () => {
+    const packageText = await Bun.file("package.json").text();
+    const scripts = JSON.parse(packageText).scripts as Record<string, string>;
+
+    expect(scripts["verify:remote"]).toBe("bun run verify:full");
+    expect(scripts["verify:remote"]).not.toContain(":live");
+    expect(scripts["verify:full"]).not.toContain(":live");
+  });
+
+
 });

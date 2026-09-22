@@ -98,7 +98,8 @@
     "benchmark:gateway-replay-shadow": "bun run ./scripts/benchmark-gateway-replay-shadow.ts",
     "generate:hybrid4-schemas": "bun run ./scripts/generate-hybrid4-schemas.ts",
     "eval:hybrid-promotion-policy": "bun run ./scripts/evaluate-hybrid-promotion-policy.ts",
-    "verify:hybrid-remote": "bun run benchmark:gateway-hot-path && bun run benchmark:gateway-replay-shadow && bun run eval:hybrid-promotion-policy && bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/gateway-replay-shadow-benchmark.test.ts tests/hybrid-promotion-policy.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts"
+    "verify:hybrid-remote": "bun run benchmark:gateway-hot-path && bun run benchmark:gateway-replay-shadow && bun run eval:hybrid-promotion-policy && bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/gateway-replay-shadow-benchmark.test.ts tests/hybrid-promotion-policy.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts",
+    "verify:remote": "bun run verify:full"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
