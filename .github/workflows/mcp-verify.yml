@@ -61,6 +61,7 @@ jobs:
       # bun run typecheck:gateway
       # bun run test:runtime
       # bun run verify:authoring
+      # bun run benchmark:semantic-invalidation-scope
       # bun run measure:surface
       # bun run measure:phases
       # bun run build
