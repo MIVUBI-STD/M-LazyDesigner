@@ -36,6 +36,27 @@ describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
     }
   });
 
+  test("recommendation chooses the smallest safe variant reaching target coverage", () => {
+    const report = benchmarkGatewayHotPathStrategies();
+    const recommended = report.hybrid_variants.find(
+      (variant) =>
+        variant.direct_tool_count === report.recommendation.direct_tool_count
+    )!;
+
+    expect(recommended.quality_preserved).toBe(true);
+    expect(report.pareto_frontier.length).toBeGreaterThan(0);
+
+    if (recommended.avoided_call_ratio >= 0.5) {
+      expect(
+        report.hybrid_variants.some(
+          (variant) =>
+            variant.direct_tool_count < recommended.direct_tool_count &&
+            variant.avoided_call_ratio >= 0.5
+        )
+      ).toBe(false);
+    }
+  });
+
   test("blocked prerequisite cases are never converted into direct calls", () => {
     const variants = benchmarkGatewayHotPathStrategies().hybrid_variants;
     expect(
