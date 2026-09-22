@@ -52,6 +52,31 @@ export const gatewayStatusSuccessOutputSchema = z
         catalog_stale: z.boolean(),
         catalog_count: z.number().int().nonnegative(),
         semantic_catalog_revision: hex64,
+        semantic_catalog_revisions: semanticRevisionsSchema,
+        semantic_freshness: z
+          .object({
+            status: z.enum(["FRESH", "STALE", "MISSING"]),
+            dimensions: z.record(
+              z.enum(["routing", "graph", "schema_projection", "aggregate"]),
+              z.enum(["FRESH", "STALE", "MISSING"])
+            ),
+            stale_dimensions: z.array(
+              z.enum(["routing", "graph", "schema_projection", "aggregate"])
+            ),
+            missing_dimensions: z.array(
+              z.enum(["routing", "graph", "schema_projection", "aggregate"])
+            ),
+            refresh_surfaces: z.array(
+              z.enum([
+                "CAPABILITY_SEARCH",
+                "DESCRIBE_SCHEMA",
+                "AI_CONTEXT",
+                "SEMANTIC_MANIFEST",
+              ])
+            ),
+          })
+          .strict()
+          .optional(),
         identity: z.record(z.string(), z.unknown()),
       })
       .passthrough(),

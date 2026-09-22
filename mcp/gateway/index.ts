@@ -222,6 +222,18 @@ const statusInput = z.object({
     .max(500)
     .optional()
     .describe("Concrete system-development task intent."),
+  known_semantic_revisions: z
+    .object({
+      routing: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+      graph: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+      schema_projection: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+      aggregate: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+    })
+    .strict()
+    .optional()
+    .describe(
+      "Semantic catalog revisions already cached by the client. When provided, status returns only the surfaces that need refresh."
+    ),
 });
 
 const searchInput = z.object({
@@ -293,6 +305,7 @@ function buildGatewayServer(): McpServer {
         current_user_delta,
         task_mode,
         task_intent,
+        known_semantic_revisions,
       } = statusInput.parse(rawArgs);
       const status = adopt_active_project
         ? await backend.adoptActiveProject()
@@ -320,7 +333,7 @@ function buildGatewayServer(): McpServer {
           },
         ],
         structuredContent: {
-          ...projectGatewayStatus(status),
+          ...projectGatewayStatus(status, known_semantic_revisions),
           control: gatewayControl,
         },
       };

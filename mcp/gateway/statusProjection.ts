@@ -1,6 +1,7 @@
 import type { GatewayRuntimeStatus } from "./backend";
 import type { JsonRecord } from "./protocol";
-import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "./capabilities/semanticRegistry";
+import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS, type CapabilitySemanticCatalogRevisions } from "./capabilities/semanticRegistry";
+import { evaluateSemanticConsumerFreshness } from "./development/semanticFreshness";
 
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -32,7 +33,10 @@ function runtimeIdentity(health: JsonRecord | null) {
  * Stable AI-client projection. Raw Runtime health remains backend/debug evidence
  * and is intentionally not copied into the normal Gateway status contract.
  */
-export function projectGatewayStatus(status: GatewayRuntimeStatus) {
+export function projectGatewayStatus(
+  status: GatewayRuntimeStatus,
+  knownSemanticRevisions?: Partial<CapabilitySemanticCatalogRevisions>
+) {
   const connection =
     status.connection.state === "ready"
       ? { state: status.connection.state }
@@ -60,6 +64,15 @@ export function projectGatewayStatus(status: GatewayRuntimeStatus) {
       catalog_count: status.runtime.catalog_count,
       semantic_catalog_revision:
         CAPABILITY_SEMANTIC_CATALOG_REVISIONS.aggregate,
+      semantic_catalog_revisions: CAPABILITY_SEMANTIC_CATALOG_REVISIONS,
+      ...(knownSemanticRevisions
+        ? {
+            semantic_freshness: evaluateSemanticConsumerFreshness(
+              CAPABILITY_SEMANTIC_CATALOG_REVISIONS,
+              knownSemanticRevisions
+            ),
+          }
+        : {}),
       identity: runtimeIdentity(status.runtime.health),
     },
     connection,
