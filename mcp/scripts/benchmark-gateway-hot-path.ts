@@ -242,8 +242,8 @@ export function assertGatewayHotPathBenchmark(): void {
   }
   if (
     report.recommendation.strategy === "HYBRID_4" &&
-    JSON.stringify(report.recommendation.direct_capabilities) !==
-      JSON.stringify(HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES)
+    JSON.stringify([...report.recommendation.direct_capabilities].sort()) !==
+      JSON.stringify([...HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES].sort())
   ) {
     throw new Error(
       "Experimental Hybrid-4 profile drifted from the current Pareto recommendation."
