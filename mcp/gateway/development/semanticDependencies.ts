@@ -3,24 +3,20 @@ import {
   semanticFingerprint,
   type SemanticRevisionDimension,
 } from "../capabilities/semanticRegistry";
+import {
+  semanticDependenciesForSurface,
+  type SemanticDependencySurface,
+} from "./semanticDependencyMatrix";
 
-export type SemanticDependencyOwner =
-  | "AUTHORING_SPECIALIST"
-  | "MODELLING_PROFILE"
-  | "GENERIC_CONTEXT";
-
-export const SEMANTIC_DEPENDENCY_POLICY: Readonly<
-  Record<SemanticDependencyOwner, readonly SemanticRevisionDimension[]>
-> = Object.freeze({
-  AUTHORING_SPECIALIST: ["routing", "graph"],
-  MODELLING_PROFILE: ["routing", "graph"],
-  GENERIC_CONTEXT: ["routing"],
-});
+export type SemanticDependencyOwner = Extract<
+  SemanticDependencySurface,
+  "AUTHORING_SPECIALIST" | "MODELLING_PROFILE" | "GENERIC_CONTEXT"
+>;
 
 export function semanticDependenciesForOwner(
   owner: SemanticDependencyOwner
 ): SemanticRevisionDimension[] {
-  return [...SEMANTIC_DEPENDENCY_POLICY[owner]];
+  return semanticDependenciesForSurface(owner);
 }
 
 export function semanticRevisionForDependencies(

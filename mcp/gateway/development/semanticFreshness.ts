@@ -17,7 +17,7 @@ export type SemanticFreshnessReport = {
   missing_dimensions: SemanticFreshnessDimension[];
 };
 
-const DIMENSIONS: readonly SemanticFreshnessDimension[] = [
+export const SEMANTIC_FRESHNESS_DIMENSIONS: readonly SemanticFreshnessDimension[] = [
   "routing",
   "graph",
   "schema_projection",
@@ -40,7 +40,7 @@ export function evaluateSemanticFreshness(
   const staleDimensions: SemanticFreshnessDimension[] = [];
   const missingDimensions: SemanticFreshnessDimension[] = [];
 
-  for (const dimension of DIMENSIONS) {
+  for (const dimension of SEMANTIC_FRESHNESS_DIMENSIONS) {
     const actual = observed?.[dimension];
     if (!actual) {
       dimensions[dimension] = "MISSING";
@@ -63,6 +63,36 @@ export function evaluateSemanticFreshness(
     dimensions,
     stale_dimensions: staleDimensions,
     missing_dimensions: missingDimensions,
+  };
+}
+
+
+export function evaluateSemanticFreshnessForDimensions(
+  expected: CapabilitySemanticCatalogRevisions,
+  observed: Partial<CapabilitySemanticCatalogRevisions> | null | undefined,
+  dimensions: readonly SemanticFreshnessDimension[]
+): SemanticFreshnessReport {
+  const scoped = new Set(dimensions);
+  const base = evaluateSemanticFreshness(expected, observed);
+  const scopedDimensions = Object.fromEntries(
+    SEMANTIC_FRESHNESS_DIMENSIONS.map((dimension) => [
+      dimension,
+      scoped.has(dimension) ? base.dimensions[dimension] : "FRESH",
+    ])
+  ) as Record<SemanticFreshnessDimension, SemanticFreshnessStatus>;
+  const stale = base.stale_dimensions.filter((dimension) => scoped.has(dimension));
+  const missing = base.missing_dimensions.filter((dimension) => scoped.has(dimension));
+
+  return {
+    status:
+      missing.length > 0
+        ? "MISSING"
+        : stale.length > 0
+          ? "STALE"
+          : "FRESH",
+    dimensions: scopedDimensions,
+    stale_dimensions: stale,
+    missing_dimensions: missing,
   };
 }
 

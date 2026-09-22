@@ -1,4 +1,5 @@
-import type { CapabilitySemanticDiff } from "../capabilities/semanticRegistry";
+import type { CapabilitySemanticDiff, SemanticRevisionDimension } from "../capabilities/semanticRegistry";
+import { semanticSurfacesAffectedByDimensions } from "./semanticDependencyMatrix";
 
 export type SemanticInvalidationFamily =
   | "CAPABILITY_SEARCH"
@@ -61,23 +62,50 @@ export function planSemanticInvalidation(
       continue;
     }
 
-    for (const dimension of diff.dimensions) {
-      if (dimension === "ROUTING") {
-        families.add("CAPABILITY_SEARCH");
-        families.add("AI_CONTEXT");
-        checks.add("CAPABILITY_INTELLIGENCE");
-        checks.add("DECISION_EFFICIENCY");
-      } else if (dimension === "GRAPH") {
-        families.add("PRECONDITION_GRAPH");
-        families.add("AI_CONTEXT");
-        checks.add("DECISION_EFFICIENCY");
-        checks.add("CAPABILITY_MANIFEST");
-      } else if (dimension === "SCHEMA_PROJECTION") {
-        families.add("DESCRIBE_SCHEMA");
-        families.add("CAPABILITY_DOCS");
-        checks.add("DESCRIBE_PAYLOADS");
-        checks.add("CAPABILITY_MANIFEST");
+    const dimensions = diff.dimensions.map(
+      (dimension): SemanticRevisionDimension =>
+        dimension === "ROUTING"
+          ? "routing"
+          : dimension === "GRAPH"
+            ? "graph"
+            : "schema_projection"
+    );
+    const affectedSurfaces = semanticSurfacesAffectedByDimensions(dimensions);
+
+    for (const surface of affectedSurfaces) {
+      if (
+        surface === "CAPABILITY_SEARCH" ||
+        surface === "PRECONDITION_GRAPH" ||
+        surface === "DESCRIBE_SCHEMA" ||
+        surface === "AI_CONTEXT" ||
+        surface === "CAPABILITY_DOCS"
+      ) {
+        families.add(surface);
       }
+    }
+
+    if (affectedSurfaces.includes("CAPABILITY_SEARCH")) {
+      checks.add("CAPABILITY_INTELLIGENCE");
+    }
+    if (
+      affectedSurfaces.includes("CAPABILITY_SEARCH") ||
+      affectedSurfaces.includes("PRECONDITION_GRAPH") ||
+      affectedSurfaces.includes("AI_CONTEXT")
+    ) {
+      checks.add("DECISION_EFFICIENCY");
+    }
+    if (
+      affectedSurfaces.includes("PRECONDITION_GRAPH") ||
+      affectedSurfaces.includes("CAPABILITY_MANIFEST") ||
+      affectedSurfaces.includes("DESCRIBE_SCHEMA")
+    ) {
+      checks.add("CAPABILITY_MANIFEST");
+    }
+    if (
+      affectedSurfaces.includes("DESCRIBE_SCHEMA") ||
+      affectedSurfaces.includes("DESCRIBE_REPORT")
+    ) {
+      checks.add("DESCRIBE_PAYLOADS");
     }
   }
 

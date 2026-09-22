@@ -3,10 +3,11 @@ import {
   type CapabilitySemanticCatalogRevisions,
 } from "../capabilities/semanticRegistry";
 import {
-  evaluateSemanticFreshness,
+  evaluateSemanticFreshnessForDimensions,
   semanticRevisionStamp,
   type SemanticFreshnessReport,
 } from "./semanticFreshness";
+import { semanticDependenciesForSurface } from "./semanticDependencyMatrix";
 
 export type SemanticDerivedArtifactKind =
   | "DOCS_API"
@@ -33,9 +34,17 @@ export function semanticDerivedArtifactStamp(
 }
 
 export function evaluateDerivedArtifactFreshness(
-  stamp: Pick<SemanticDerivedArtifactStamp, "revisions"> | null | undefined,
+  stamp: Pick<SemanticDerivedArtifactStamp, "revisions" | "artifact_kind"> | null | undefined,
   expected: CapabilitySemanticCatalogRevisions =
     CAPABILITY_SEMANTIC_CATALOG_REVISIONS
 ): SemanticFreshnessReport {
-  return evaluateSemanticFreshness(expected, stamp?.revisions);
+  const kind = (stamp as { artifact_kind?: SemanticDerivedArtifactKind } | null | undefined)
+    ?.artifact_kind;
+  return evaluateSemanticFreshnessForDimensions(
+    expected,
+    stamp?.revisions,
+    kind
+      ? semanticDependenciesForSurface(kind)
+      : ["routing", "graph", "schema_projection"]
+  );
 }
