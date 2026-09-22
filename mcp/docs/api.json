@@ -3,13 +3,13 @@
   "generatedAt": "2026-09-21T03:51:50.349Z",
   "semantic": {
     "semantic_revision_schema": 1,
-    "artifact_kind": "DOCS_API",
     "revisions": {
       "routing": "870bd6fc6b823710135cb55d6af75a653b71fed9644f31692ba07a0a8d9f4f24",
       "graph": "bf9d441ab848ddddca295d315f738ba315328e3db7d4c358f2f9ac7354839ff3",
       "schema_projection": "470864c7104a7e3f409fbb36338775116b4f48baca74c0e0e225400d6afbbe60",
       "aggregate": "e50a4dde91303454f915993567da4295d3476183fd4f938022d1bd4d870c9788"
-    }
+    },
+    "artifact_kind": "DOCS_API"
   },
   "tools": [
     {
