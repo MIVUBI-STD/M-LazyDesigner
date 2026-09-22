@@ -95,7 +95,8 @@
     "plan:semantic-invalidation": "bun run ./scripts/plan-semantic-invalidation.ts",
     "benchmark:semantic-invalidation-scope": "bun run ./scripts/benchmark-semantic-invalidation-scope.ts",
     "benchmark:gateway-hot-path": "bun run ./scripts/benchmark-gateway-hot-path.ts",
-    "benchmark:gateway-replay-shadow": "bun run ./scripts/benchmark-gateway-replay-shadow.ts"
+    "benchmark:gateway-replay-shadow": "bun run ./scripts/benchmark-gateway-replay-shadow.ts",
+    "generate:hybrid4-schemas": "bun run ./scripts/generate-hybrid4-schemas.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
