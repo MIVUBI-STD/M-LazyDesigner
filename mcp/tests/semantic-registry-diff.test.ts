@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   CAPABILITY_SEMANTIC_REGISTRY,
+  capabilitySemanticCatalogRevisions,
   diffCapabilitySemanticRegistry,
   type CapabilitySemanticRecord,
 } from "../gateway/capabilities/semanticRegistry";
@@ -23,6 +24,20 @@ describe("semantic registry dimensional fingerprints", () => {
       expect(fingerprint).toMatch(/^[a-f0-9]{64}$/);
     }
     expect(record.semanticFingerprint).toBe(record.fingerprints.aggregate);
+  });
+
+  test("catalog revisions are deterministic and dimension-specific", () => {
+    const first = capabilitySemanticCatalogRevisions(
+      CAPABILITY_SEMANTIC_REGISTRY
+    );
+    const reversed = capabilitySemanticCatalogRevisions(
+      [...CAPABILITY_SEMANTIC_REGISTRY].reverse()
+    );
+
+    expect(first).toEqual(reversed);
+    for (const revision of Object.values(first)) {
+      expect(revision).toMatch(/^[a-f0-9]{64}$/);
+    }
   });
 
   test("semantic diff reports only the changed dimension", () => {

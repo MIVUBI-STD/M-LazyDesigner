@@ -17,6 +17,9 @@ describe("development context planner", () => {
       "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
     );
     expect(plan.semantic_impact?.direct_capabilities).toContain("manage_cubes");
+    expect(plan.semantic_catalog_revisions.aggregate).toMatch(
+      /^[a-f0-9]{64}$/
+    );
     expect(
       plan.knowledge_sections.reduce(
         (sum, section) => sum + section.token_proxy,

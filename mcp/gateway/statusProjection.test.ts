@@ -53,6 +53,9 @@ describe("projectGatewayStatus", () => {
     });
 
     expect(projected.runtime.identity.build_identity).toBe("build-1");
+    expect(projected.runtime.semantic_catalog_revision).toMatch(
+      /^[a-f0-9]{64}$/
+    );
     expect(projected.runtime.identity.exposed_tool_count).toBe(42);
     expect("health" in projected.runtime).toBe(false);
     expect("endpoint" in projected.runtime).toBe(false);

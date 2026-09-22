@@ -6,6 +6,7 @@ import {
   type KnowledgeSelection,
 } from "../lib/semantic/knowledge";
 import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
+import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../gateway/capabilities/semanticRegistry";
 import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
 import { resolveDevelopmentIntent } from "../gateway/control/developmentIntent";
 import {
@@ -26,6 +27,7 @@ export type DevelopmentContextPlan = {
   };
   symbol_map: Awaited<ReturnType<typeof buildDevelopmentSymbolMap>>;
   semantic_impact: ReturnType<typeof analyzeSemanticImpact> | null;
+  semantic_catalog_revisions: typeof CAPABILITY_SEMANTIC_CATALOG_REVISIONS;
   knowledge_sections: KnowledgeSelection[];
   read_targets: {
     source: string[];
@@ -107,6 +109,8 @@ export async function buildDevelopmentContextPlan(input: {
     },
     symbol_map: symbolMap,
     semantic_impact: semanticImpact,
+    semantic_catalog_revisions:
+      CAPABILITY_SEMANTIC_CATALOG_REVISIONS,
     knowledge_sections: selectedKnowledge,
     read_targets: {
       source: uniqueSorted([

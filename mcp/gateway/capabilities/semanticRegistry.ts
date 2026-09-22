@@ -25,6 +25,13 @@ export type CapabilitySemanticDiff = {
   dimensions: Array<"ROUTING" | "GRAPH" | "SCHEMA_PROJECTION">;
 };
 
+export type CapabilitySemanticCatalogRevisions = {
+  routing: string;
+  graph: string;
+  schema_projection: string;
+  aggregate: string;
+};
+
 export function semanticFingerprint(value: unknown): string {
   return createHash("sha256").update(canonicalJson(value)).digest("hex");
 }
@@ -150,3 +157,35 @@ export function diffCapabilitySemanticRegistry(
 
   return diffs;
 }
+
+
+export function capabilitySemanticCatalogRevisions(
+  records: readonly CapabilitySemanticRecord[] = CAPABILITY_SEMANTIC_REGISTRY
+): CapabilitySemanticCatalogRevisions {
+  const ordered = [...records].sort((left, right) =>
+    left.id.localeCompare(right.id)
+  );
+  const routing = semanticFingerprint(
+    ordered.map((entry) => [entry.id, entry.fingerprints.routing])
+  );
+  const graph = semanticFingerprint(
+    ordered.map((entry) => [entry.id, entry.fingerprints.graph])
+  );
+  const schemaProjection = semanticFingerprint(
+    ordered.map((entry) => [entry.id, entry.fingerprints.schema_projection])
+  );
+
+  return {
+    routing,
+    graph,
+    schema_projection: schemaProjection,
+    aggregate: semanticFingerprint({
+      routing,
+      graph,
+      schema_projection: schemaProjection,
+    }),
+  };
+}
+
+export const CAPABILITY_SEMANTIC_CATALOG_REVISIONS =
+  capabilitySemanticCatalogRevisions();

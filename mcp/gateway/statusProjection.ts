@@ -1,5 +1,6 @@
 import type { GatewayRuntimeStatus } from "./backend";
 import type { JsonRecord } from "./protocol";
+import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "./capabilities/semanticRegistry";
 
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -57,6 +58,8 @@ export function projectGatewayStatus(status: GatewayRuntimeStatus) {
       mcp_client_ready: status.runtime.mcp_client_ready,
       catalog_stale: status.runtime.catalog_stale,
       catalog_count: status.runtime.catalog_count,
+      semantic_catalog_revision:
+        CAPABILITY_SEMANTIC_CATALOG_REVISIONS.aggregate,
       identity: runtimeIdentity(status.runtime.health),
     },
     connection,
