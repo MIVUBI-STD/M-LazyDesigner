@@ -78,10 +78,11 @@ function stableFourRoute(item: GatewayReplayCase): ShadowRoute {
   };
 }
 
-function hybridRoute(item: GatewayReplayCase): ShadowRoute {
-  const direct = (
-    HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES as readonly string[]
-  ).includes(item.capability);
+function hybridRoute(
+  item: GatewayReplayCase,
+  directCapabilities: readonly string[]
+): ShadowRoute {
+  const direct = directCapabilities.includes(item.capability);
 
   if (!direct) return { ...stableFourRoute(item), strategy: "HYBRID_4" };
 
@@ -121,9 +122,12 @@ export function hybrid4StaticSchemaBytes(): number {
   );
 }
 
-export function shadowReplayCase(item: GatewayReplayCase) {
+export function shadowReplayCaseForDirectSet(
+  item: GatewayReplayCase,
+  directCapabilities: readonly string[]
+) {
   const stable = stableFourRoute(item);
-  const hybrid = hybridRoute(item);
+  const hybrid = hybridRoute(item, directCapabilities);
   return {
     case_id: item.id,
     domain: item.domain,
@@ -136,4 +140,11 @@ export function shadowReplayCase(item: GatewayReplayCase) {
     blocked_preserved: stable.blocked === hybrid.blocked,
     capability_preserved: stable.capability === hybrid.capability,
   };
+}
+
+export function shadowReplayCase(item: GatewayReplayCase) {
+  return shadowReplayCaseForDirectSet(
+    item,
+    HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES
+  );
 }
