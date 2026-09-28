@@ -192,4 +192,74 @@ describe("Gateway orchestration recovery state", () => {
     });
   });
 
+  test("process restart creates a new handle namespace even for the same project and payload", () => {
+    const request = {
+      domain: "GEOMETRY" as const,
+      source: "capture_model_views" as const,
+      verification_risk: "LOW" as const,
+      views: ["front"] as const,
+      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
+      size: 256 as const,
+      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
+      scope_instance_ids: ["arms:0", "arms:1"],
+    };
+
+    const firstProcess = new GatewayOrchestrationRecoveryState("process-a");
+    const secondProcess = new GatewayOrchestrationRecoveryState("process-b");
+
+    expect(firstProcess.synchronizeProjectAffinity("project-a")).toBe(false);
+    expect(secondProcess.synchronizeProjectAffinity("project-a")).toBe(false);
+
+    const evidenceA = firstProcess.evidence.put({
+      request,
+      result: { revision: 1 },
+    });
+    const evidenceB = secondProcess.evidence.put({
+      request,
+      result: { revision: 1 },
+    });
+
+    const correctionA = firstProcess.corrections.start({
+      recipe_id: "same-asset",
+      base_recipe: { ...recipe(), id: "same-asset", name: "same-asset" },
+      verification_request: request,
+      verification_evidence_handle: evidenceA,
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+    const correctionB = secondProcess.corrections.start({
+      recipe_id: "same-asset",
+      base_recipe: { ...recipe(), id: "same-asset", name: "same-asset" },
+      verification_request: request,
+      verification_evidence_handle: evidenceB,
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    expect(evidenceB).not.toBe(evidenceA);
+    expect(correctionB).not.toBe(correctionA);
+    expect(
+      secondProcess.corrections.projectContinuation(correctionB).continuation_id
+    ).not.toBe(
+      firstProcess.corrections.projectContinuation(correctionA).continuation_id
+    );
+
+    expect(() => secondProcess.evidence.get(evidenceA)).toThrow(
+      "VERIFICATION_EVIDENCE_NOT_FOUND"
+    );
+    expect(() =>
+      secondProcess.corrections.projectContinuation(correctionA)
+    ).toThrow("CORRECTION_LOOP_NOT_FOUND");
+  });
+
 });
