@@ -8,6 +8,7 @@ import {
 import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
 import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../gateway/capabilities/semanticRegistry";
 import {
+  anchorTestForSourceOwner,
   authoringDomainForCapability,
   listExplicitSourceOwners,
 } from "../gateway/control/sourceOwners";
@@ -34,6 +35,8 @@ export type DevelopmentContextPlan = {
   knowledge_sections: KnowledgeSelection[];
   read_targets: {
     source: string[];
+    anchor_tests: string[];
+    /** @deprecated Compatibility alias for anchor_tests. */
     tests: string[];
     specialists: string[];
   };
@@ -126,9 +129,10 @@ export async function buildDevelopmentContextPlan(input: {
       : routing;
 
   const routingSources = effectiveRouting.source_owners.map((owner) => owner.source);
-  const routingTests = effectiveRouting.source_owners.flatMap((owner) =>
-    owner.test_owner ? [owner.test_owner] : []
-  );
+  const routingAnchorTests = effectiveRouting.source_owners.flatMap((owner) => {
+    const anchorTest = anchorTestForSourceOwner(owner);
+    return anchorTest ? [anchorTest] : [];
+  });
   const routingSpecialists = effectiveRouting.source_owners.flatMap((owner) =>
     owner.specialist ? [owner.specialist] : []
   );
@@ -182,9 +186,13 @@ export async function buildDevelopmentContextPlan(input: {
         ...routingSources,
         ...(semanticImpact?.affected_sources ?? []),
       ]),
+      anchor_tests: uniqueSorted([
+        ...routingAnchorTests,
+        ...(semanticImpact?.affected_anchor_tests ?? []),
+      ]),
       tests: uniqueSorted([
-        ...routingTests,
-        ...(semanticImpact?.affected_tests ?? []),
+        ...routingAnchorTests,
+        ...(semanticImpact?.affected_anchor_tests ?? []),
       ]),
       specialists: uniqueSorted([
         ...routingSpecialists,

@@ -1,9 +1,10 @@
 import type { ControlSourceOwner } from "../control/types";
+import { anchorTestForSourceOwner } from "../control/sourceOwners";
 import type { CapabilityBranchManifestEntry } from "../capabilities/manifest";
 
 export type SemanticImpactReason =
   | "DIRECT_SOURCE"
-  | "DIRECT_TEST"
+  | "DIRECT_ANCHOR_TEST"
   | "DIRECT_SPECIALIST"
   | "REQUIRES_CHANGED_FACT"
   | "PREDECESSOR_CHANGED";
@@ -20,6 +21,8 @@ export type SemanticImpactReport = {
   direct_capabilities: string[];
   affected_capabilities: SemanticImpactEntry[];
   affected_sources: string[];
+  affected_anchor_tests: string[];
+  /** @deprecated Compatibility alias for affected_anchor_tests. */
   affected_tests: string[];
   affected_specialists: string[];
   truncated: boolean;
@@ -79,9 +82,10 @@ export function analyzeSemanticImpact(input: {
       direct.add(capability);
       addReason(reasons, capability, "DIRECT_SOURCE");
     }
-    if (owner.test_owner && changed.has(normalizePath(owner.test_owner))) {
+    const anchorTest = anchorTestForSourceOwner(owner);
+    if (anchorTest && changed.has(normalizePath(anchorTest))) {
       direct.add(capability);
-      addReason(reasons, capability, "DIRECT_TEST");
+      addReason(reasons, capability, "DIRECT_ANCHOR_TEST");
     }
     if (owner.specialist && changed.has(normalizePath(owner.specialist))) {
       direct.add(capability);
@@ -159,8 +163,17 @@ export function analyzeSemanticImpact(input: {
     direct_capabilities: uniqueSorted(direct),
     affected_capabilities: affectedCapabilities,
     affected_sources: uniqueSorted(owners.map((owner) => owner.source)),
+    affected_anchor_tests: uniqueSorted(
+      owners.flatMap((owner) => {
+        const anchorTest = anchorTestForSourceOwner(owner);
+        return anchorTest ? [anchorTest] : [];
+      })
+    ),
     affected_tests: uniqueSorted(
-      owners.flatMap((owner) => (owner.test_owner ? [owner.test_owner] : []))
+      owners.flatMap((owner) => {
+        const anchorTest = anchorTestForSourceOwner(owner);
+        return anchorTest ? [anchorTest] : [];
+      })
     ),
     affected_specialists: uniqueSorted(
       owners.flatMap((owner) => (owner.specialist ? [owner.specialist] : []))

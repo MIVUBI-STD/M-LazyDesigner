@@ -46,6 +46,12 @@ export function authoringDomainForCapability(
   return getControlCapabilityProjection(capability).authoringDomain;
 }
 
+export function anchorTestForSourceOwner(
+  owner: ControlSourceOwner
+): string | null {
+  return owner.anchor_test ?? owner.test_owner ?? null;
+}
+
 export function sourceOwnerForCapability(
   capability: string
 ): ControlSourceOwner {

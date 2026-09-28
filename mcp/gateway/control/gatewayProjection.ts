@@ -1,4 +1,5 @@
 import type { ControlPacket } from "./packet";
+import { anchorTestForSourceOwner } from "./sourceOwners";
 import type { ControlDevelopmentResolution } from "./developmentIntent";
 import {
   DEFAULT_CONTROL_HEADROOM_POLICY,
@@ -69,7 +70,11 @@ function projectDevelopmentForGateway(
     domain: development.domain,
     confidence: development.confidence,
     context_strategy: development.context_strategy,
-    source_owners: development.source_owners,
+    source_owners: development.source_owners.map((owner) => ({
+      source: owner.source,
+      specialist: owner.specialist,
+      anchor_test: anchorTestForSourceOwner(owner),
+    })),
     required_context_paths: development.required_context_paths,
     ...(development.confidence !== "STRONG" &&
     development.matched_terms.length > 0

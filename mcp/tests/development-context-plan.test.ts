@@ -13,9 +13,10 @@ describe("development context planner", () => {
     expect(plan.routing.domain).toBe("GEOMETRY");
     expect(plan.symbol_map.bytes).toBeLessThanOrEqual(3000);
     expect(plan.read_targets.source).toContain("mcp/server/tools/cubes.ts");
-    expect(plan.read_targets.tests).toContain(
+    expect(plan.read_targets.anchor_tests).toContain(
       "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
     );
+    expect(plan.read_targets.tests).toEqual(plan.read_targets.anchor_tests);
     expect(plan.semantic_impact?.direct_capabilities).toContain("manage_cubes");
     expect(plan.semantic_catalog_revisions.aggregate).toMatch(
       /^[a-f0-9]{64}$/
