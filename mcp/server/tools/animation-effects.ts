@@ -1,5 +1,6 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { animationEffectsReceipt } from "@/lib/receipts/animationEffects";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveCoreAnimation } from "@/lib/coreIdentity";
@@ -498,11 +499,11 @@ export function registerAnimationEffectTools() {
         }
 
         Animator.preview();
-        const result = {
+        const result = animationEffectsReceipt({
           animation: { uuid: animation.uuid, name: animation.name },
           operation_count: operations.length,
           results,
-        };
+        });
         return {
           content: [{ type: "text" as const, text: `Managed ${operations.length} animation effect operation(s).` }],
           structuredContent: result,
