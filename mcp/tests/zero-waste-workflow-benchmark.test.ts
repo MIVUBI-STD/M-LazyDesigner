@@ -109,6 +109,20 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(
       visual.quality_checks.cross_view_expansion_available_if_risk_detected
     ).toBe(true);
+    expect(
+      visual.quality_checks.unrelated_discrepancy_history_retained_locally
+    ).toBe(true);
+    expect(visual.quality_checks.targeted_reverification_only).toBe(true);
+    const optimizedVerification = visual.optimized.steps.find(
+      (step) =>
+        step.kind === "verify" &&
+        JSON.stringify(step).includes("replayed_discrepancies")
+    );
+    expect(optimizedVerification).toBeDefined();
+    expect(JSON.stringify(optimizedVerification)).toContain("WIDTH_HIGH");
+    expect(JSON.stringify(optimizedVerification)).not.toContain(
+      "shoulder contact needs independent review"
+    );
   });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {
