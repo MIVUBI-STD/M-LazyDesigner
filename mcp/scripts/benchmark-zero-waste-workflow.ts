@@ -558,6 +558,83 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const crossViewReuse = summarize(
+    "visual_cross_view_reuse",
+    [
+      step(
+        "verify",
+        {
+          views: ["front", "left"],
+          discrepancies: ["WIDTH_HIGH", "SHOULDER_CONTACT"],
+        },
+        true,
+        "Baseline establishes two-view evidence.",
+        { imageInputs: 2, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        { target: "WIDTH_HIGH", action: "RESIZE" },
+        true,
+        "Bounded width correction.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          views: ["front", "left"],
+          convergence: "IMPROVED",
+        },
+        true,
+        "Baseline recaptures both views even though only front evidence was invalidated.",
+        { imageInputs: 2, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          views: ["front", "left"],
+          discrepancies: [
+            { code: "WIDTH_HIGH", views: ["front"] },
+            { code: "SHOULDER_CONTACT", views: ["left"] },
+          ],
+        },
+        true,
+        "Optimized path records bounded view provenance once.",
+        { imageInputs: 2, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        {
+          target_discrepancy_codes: ["WIDTH_HIGH"],
+          stale_views: ["front"],
+          reusable_views: ["left"],
+        },
+        true,
+        "Correction keeps unrelated left-view evidence local.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          recapture_views: ["front"],
+          reused_views: ["left"],
+          convergence: "IMPROVED",
+        },
+        true,
+        "Only stale front evidence is recaptured; left remains available for cross-view safety.",
+        { imageInputs: 1, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+    ],
+    {
+      full_pre_correction_evidence_kept: true,
+      targeted_stale_view_recaptured: true,
+      unaffected_view_reused: true,
+      cross_view_guard_retained: true,
+      incomplete_provenance_falls_back_conservatively: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -597,6 +674,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     materialEdit,
     animationEffectEdit,
     visualCorrection,
+    crossViewReuse,
     failedMutation,
   ];
 }
