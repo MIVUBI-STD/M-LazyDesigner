@@ -479,6 +479,7 @@ describe("zero-waste correction loop reuse", () => {
     const first = registry.projectContinuationDelivery(handle);
     expect(first.cached).toBe(false);
     expect(first.delivery).toBe("FULL");
+    expect(first.group).toBeNull();
     expect(first.payload?.continuation_id).toBe(first.continuation_id);
     expect(first.delta).toBeNull();
 
@@ -491,6 +492,7 @@ describe("zero-waste correction loop reuse", () => {
       delivery: "CACHED",
       payload: null,
       delta: null,
+      group: null,
     });
 
     registry.planGeometryCorrection(handle, [{
@@ -533,6 +535,133 @@ describe("zero-waste correction loop reuse", () => {
         stale_views: ["front"],
       },
     });
+  });
+
+  test("groups multiple state changes into one continuation delivery at a semantic boundary", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-group",
+      base_recipe: { ...recipe(), id: "asset-group", name: "asset-group" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:group-initial",
+      discrepancies: [
+        {
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Upper arms are slightly too narrow.",
+          views: ["front"],
+          evidence_targets: ["width"],
+        },
+        {
+          code: "SHOULDER_CONTACT",
+          severity: "REVIEW",
+          summary: "Shoulder contact requires separate review.",
+          views: ["left"],
+          evidence_targets: ["attachment"],
+        },
+      ],
+    });
+
+    const first = registry.projectContinuationDelivery(handle);
+    const group = registry.beginContinuationGroup(handle, "VERIFICATION_COHORT");
+    expect(group).toEqual({
+      id: "correctiongroup:1",
+      kind: "VERIFICATION_COHORT",
+    });
+
+    registry.planGeometryCorrection(handle, [{
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.09,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+
+    const deferredAfterPlan = registry.projectContinuationDelivery(handle, [
+      first.continuation_id,
+    ]);
+    expect(deferredAfterPlan.delivery).toBe("DEFERRED");
+    expect(deferredAfterPlan.group).toEqual(group);
+
+    registry.updateEvidence(handle, "verificationevidence:front-fresh", []);
+
+    const deferredAfterEvidence = registry.projectContinuationDelivery(handle, [
+      first.continuation_id,
+    ]);
+    expect(deferredAfterEvidence.delivery).toBe("DEFERRED");
+
+    const grouped = registry.commitContinuationGroup(handle, [
+      first.continuation_id,
+    ]);
+    expect(grouped.delivery).toBe("DELTA");
+    expect(grouped.group).toBeNull();
+    expect(grouped.delta).toMatchObject({
+      from_continuation_id: first.continuation_id,
+      to_continuation_id: grouped.continuation_id,
+      resolved_discrepancy_codes: ["WIDTH_LOW"],
+      fresh_view_evidence_upsert: [
+        { view: "front", handle: "verificationevidence:front-fresh" },
+      ],
+      unresolved_count: 1,
+    });
+    expect(grouped.delta?.verification?.pending).toBe(false);
+  });
+
+  test("aborting a continuation group restores normal delivery without publishing intermediate state", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-group-abort",
+      base_recipe: { ...recipe(), id: "asset-group-abort", name: "asset-group-abort" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:abort",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    const first = registry.projectContinuationDelivery(handle);
+    registry.beginContinuationGroup(handle, "EXECUTION_COHORT");
+    expect(
+      registry.projectContinuationDelivery(handle, [first.continuation_id]).delivery
+    ).toBe("DEFERRED");
+    registry.abortContinuationGroup(handle);
+    expect(
+      registry.projectContinuationDelivery(handle, [first.continuation_id]).delivery
+    ).toBe("CACHED");
   });
 
   test("sends only changed view evidence and resolved discrepancy codes as continuation delta", () => {
