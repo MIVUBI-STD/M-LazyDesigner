@@ -38,6 +38,8 @@ import {
   deriveControlReceipt,
 } from "./control/receipt";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
+import { VerificationEvidenceRegistry } from "../lib/orchestration/evidenceRegistry";
+import { CorrectionLoopRegistry } from "../lib/orchestration/correctionLoop";
 import {
   applyCapabilityGraphOutcome,
   capabilityBranchFromArguments,
@@ -62,7 +64,14 @@ import {
 } from "./experimental/hybridProfile";
 import { registerExperimentalHybrid4 } from "./experimental/hybridRegistration";
 
-const backend = new BlockitRuntimeBackend();
+const verificationEvidenceRegistry = new VerificationEvidenceRegistry();
+const correctionLoopRegistry = new CorrectionLoopRegistry();
+const backend = new BlockitRuntimeBackend(undefined, undefined, {
+  onRuntimeGenerationChange: () => {
+    verificationEvidenceRegistry.clear();
+    correctionLoopRegistry.invalidateRuntimeGeneration();
+  },
+});
 const localCapabilities = new LocalCapabilityRegistry();
 let executionState: ControlExecutionState | null = null;
 let capabilityFacts: CapabilityFactState = seedCapabilityFacts({});
