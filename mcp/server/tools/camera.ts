@@ -146,7 +146,7 @@ export function selectModelViewsForEvidence(
     targets: VisualEvidenceTarget[];
   }> = [];
 
-  while (uncovered.size > 0) {
+  while (uncovered.size > 0 && selected.length < 5) {
     let best:
       | {
           view: ModelView;
