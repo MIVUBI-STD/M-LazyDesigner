@@ -54,6 +54,11 @@ type CorrectionLoopRecord = {
     base_state: CorrectionLoopContinuation["state"];
   } | null;
   next_continuation_group_id: number;
+  evidence_recovery_required: boolean;
+  evidence_recovery_reason:
+    | "EVIDENCE_EXPIRED"
+    | "RUNTIME_GENERATION_CHANGED"
+    | null;
 };
 
 type CorrectionLoopDecision = {
@@ -92,7 +97,8 @@ type CorrectionLoopDecision = {
     | "CORRECTION_ATTEMPT_LIMIT"
     | "NO_ELIGIBLE_CORRECTION"
     | "CANDIDATE_BUDGET_EXCEEDED"
-    | "CORRECTION_FAMILY_MISMATCH";
+    | "CORRECTION_FAMILY_MISMATCH"
+    | "EVIDENCE_RECOVERY_REQUIRED";
 };
 
 function candidateBudget(
@@ -148,6 +154,8 @@ export class CorrectionLoopRegistry {
       | "last_delivered_continuation"
       | "continuation_group"
       | "next_continuation_group_id"
+      | "evidence_recovery_required"
+      | "evidence_recovery_reason"
     >
   ): CorrectionLoopHandle {
     const viewEvidenceHandles: Partial<
@@ -173,6 +181,8 @@ export class CorrectionLoopRegistry {
       last_delivered_continuation: null,
       continuation_group: null,
       next_continuation_group_id: 1,
+      evidence_recovery_required: false,
+      evidence_recovery_reason: null,
     };
     const handle = (
       "correctionloop:" +
@@ -221,7 +231,8 @@ export class CorrectionLoopRegistry {
       evidence_targets: [...(item.evidence_targets ?? [])],
     }));
 
-    const pending = record.pending_stale_views.length > 0;
+    const pending =
+      record.pending_stale_views.length > 0 || record.evidence_recovery_required;
     const state: CorrectionLoopContinuation["state"] =
       pending
         ? "VERIFY_PENDING"
@@ -264,6 +275,8 @@ export class CorrectionLoopRegistry {
           record.verification_request.domain === "GEOMETRY"
             ? record.verification_request.verification_risk
             : null,
+        recovery_required: record.evidence_recovery_required,
+        recovery_reason: record.evidence_recovery_reason,
       },
     };
 
@@ -388,6 +401,52 @@ export class CorrectionLoopRegistry {
     };
   }
 
+  invalidateEvidenceHandles(
+    handle: CorrectionLoopHandle,
+    handles: readonly VerificationEvidenceHandle[],
+    reason: "EVIDENCE_EXPIRED" | "RUNTIME_GENERATION_CHANGED"
+  ): void {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+    }
+
+    const invalid = new Set(handles);
+    const invalidatedViews: ModelView[] = [];
+    for (const [view, evidenceHandle] of Object.entries(
+      record.view_evidence_handles
+    ) as Array<[ModelView, VerificationEvidenceHandle | undefined]>) {
+      if (evidenceHandle && invalid.has(evidenceHandle)) {
+        delete record.view_evidence_handles[view];
+        invalidatedViews.push(view);
+      }
+    }
+
+    const primaryInvalid = invalid.has(record.verification_evidence_handle);
+    if (!primaryInvalid && invalidatedViews.length === 0) return;
+
+    const fallbackViews =
+      record.verification_request.domain === "GEOMETRY"
+        ? record.verification_request.views
+        : [];
+    record.pending_stale_views = [
+      ...new Set([
+        ...record.pending_stale_views,
+        ...invalidatedViews,
+        ...(primaryInvalid ? fallbackViews : []),
+      ]),
+    ];
+    record.pending_target_discrepancy_codes = [
+      ...new Set([
+        ...record.pending_target_discrepancy_codes,
+        ...record.discrepancies.map((item) => item.code),
+      ]),
+    ];
+    record.evidence_recovery_required = true;
+    record.evidence_recovery_reason = reason;
+    record.continuation_group = null;
+  }
+
   updateEvidence(
     handle: CorrectionLoopHandle,
     evidenceHandle: VerificationEvidenceHandle,
@@ -427,6 +486,8 @@ export class CorrectionLoopRegistry {
     );
     record.pending_target_discrepancy_codes = [];
     record.pending_stale_views = [];
+    record.evidence_recovery_required = false;
+    record.evidence_recovery_reason = null;
   }
 
   planGeometryCorrection(
@@ -436,6 +497,16 @@ export class CorrectionLoopRegistry {
   ): CorrectionLoopDecision {
     const record = this.entries.get(handle);
     if (!record) throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+
+    if (record.evidence_recovery_required) {
+      return {
+        handle,
+        state: "BLOCKED",
+        attempt: Math.max(1, record.attempt) as 1 | 2,
+        verification_request: structuredClone(record.verification_request),
+        blocked_reason: "EVIDENCE_RECOVERY_REQUIRED",
+      };
+    }
 
     if (record.attempt >= 2) {
       return {
