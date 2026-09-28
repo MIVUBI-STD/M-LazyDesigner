@@ -1,14 +1,27 @@
+import { randomUUID } from "node:crypto";
 import { VerificationEvidenceRegistry } from "@/lib/orchestration/evidenceRegistry";
 import { CorrectionLoopRegistry } from "@/lib/orchestration/correctionLoop";
 
 export class GatewayOrchestrationRecoveryState {
   readonly evidence = new VerificationEvidenceRegistry();
   readonly corrections = new CorrectionLoopRegistry();
+  private readonly processSessionIdentity: string;
   private invalidationCount = 0;
   private projectResetCount = 0;
   private projectAffinityInitialized = false;
   private projectUuid: string | null = null;
   private projectEpoch = 0;
+
+  constructor(processSessionIdentity: string = randomUUID()) {
+    if (!processSessionIdentity) {
+      throw new Error("Gateway process session identity must be non-empty.");
+    }
+    this.processSessionIdentity = processSessionIdentity;
+    const scopeIdentity =
+      "process:" + processSessionIdentity + ":project:unbound:epoch:0";
+    this.evidence.setScopeIdentity(scopeIdentity);
+    this.corrections.setScopeIdentity(scopeIdentity);
+  }
 
   synchronizeProjectAffinity(projectUuid: string | null): boolean {
     if (
@@ -23,7 +36,12 @@ export class GatewayOrchestrationRecoveryState {
     this.projectUuid = projectUuid;
     this.projectEpoch += 1;
     const scopeIdentity =
-      "project:" + (projectUuid ?? "unbound") + ":epoch:" + this.projectEpoch;
+      "process:" +
+      this.processSessionIdentity +
+      ":project:" +
+      (projectUuid ?? "unbound") +
+      ":epoch:" +
+      this.projectEpoch;
 
     this.evidence.setScopeIdentity(scopeIdentity);
     this.corrections.setScopeIdentity(scopeIdentity);
