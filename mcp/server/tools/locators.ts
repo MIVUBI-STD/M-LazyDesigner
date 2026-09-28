@@ -2,6 +2,7 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { locatorMutationReceipt } from "@/lib/receipts/locatorMutation";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreGroup } from "@/lib/coreIdentity";
@@ -437,6 +438,7 @@ export function registerLocatorTools() {
             locator.addTo(parent).init();
             edited.push(locator);
             Undo.finishEdit("Add Bedrock locator");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
             updatePreview(locator);
             return mutationResult(locatorState(locator), "create", [
               "name",
@@ -505,6 +507,7 @@ export function registerLocatorTools() {
           }
           updatePreview(locator);
           Undo.finishEdit("Update Bedrock locator");
+          recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
           return mutationResult(locatorState(locator), "update", [
             ...(parentChanges ? ["parent"] : []),
             ...(positionChanges ? ["position"] : []),
@@ -542,6 +545,7 @@ export function registerLocatorTools() {
             element.addTo(parent).init();
             edited.push(element);
             Undo.finishEdit("Add Bedrock null object");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
             updatePreview(element);
             return mutationResult(nullObjectState(element), "create", [
               "name",
@@ -591,6 +595,7 @@ export function registerLocatorTools() {
           }
           updatePreview(element);
           Undo.finishEdit("Update Bedrock null object");
+          recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
           return mutationResult(nullObjectState(element), "update", [
             ...(parentChanges ? ["parent"] : []),
             ...(positionChanges ? ["position"] : []),

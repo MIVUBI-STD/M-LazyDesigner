@@ -45,3 +45,16 @@ export function mergeSemanticHistoryEffects(
     ),
   };
 }
+
+export function recordCurrentSemanticHistoryEffect(
+  scopes: readonly SemanticHistoryScope[]
+): void {
+  if (typeof Undo === "undefined") return;
+  const history = Undo.history ?? [];
+  const index = (Undo.index ?? 0) - 1;
+  if (index < 0) return;
+  recordSemanticHistoryEffect(
+    history[index] as object | undefined,
+    scopes
+  );
+}

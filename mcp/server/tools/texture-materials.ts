@@ -7,6 +7,7 @@ import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { getChannelTextureInfo, isAbsoluteFilesystemPath } from "@/lib/util";
 import { materialMutationReceipt } from "@/lib/receipts/materialMutation";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import {
   pbrChannelEnum,
   textureIdSchema,
@@ -502,6 +503,7 @@ export function registerTextureMaterialTools(): void {
             texture_groups: [textureGroup],
             textures: texturesToAdd,
           });
+          recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
         } catch (error) {
           for (const { texture, group, pbrChannel } of originalTextureChannels) {
             texture.group = group;
@@ -652,6 +654,7 @@ export function registerTextureMaterialTools(): void {
           textureGroup.updateMaterial();
   
           Undo.finishEdit("Agent configured material");
+          recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
         } catch (error) {
           Undo.cancelEdit(true);
           Canvas.updateAll();
@@ -868,6 +871,7 @@ export function registerTextureMaterialTools(): void {
           textureGroup.updateMaterial();
   
           Undo.finishEdit("Agent assigned texture channel");
+          recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
         } catch (error) {
           Undo.cancelEdit(true);
           Canvas.updateAll();

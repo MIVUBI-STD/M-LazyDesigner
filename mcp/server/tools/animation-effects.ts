@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { animationEffectsReceipt } from "@/lib/receipts/animationEffects";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveCoreAnimation } from "@/lib/coreIdentity";
@@ -491,6 +492,7 @@ export function registerAnimationEffectTools() {
 
           animation.setLength();
           Undo.finishEdit("Manage animation effects");
+          recordCurrentSemanticHistoryEffect(["ANIMATION_EFFECTS"]);
         } catch (error) {
           Undo.cancelEdit(true);
           Animator.preview();
