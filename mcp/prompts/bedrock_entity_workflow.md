@@ -52,7 +52,7 @@ No `evidence_map`, `reference_grounded_v1`, role namespaces or compiler strategi
 
 Reuse returned UUID/from/to/origin/rotation/`box_uv_region`; do not immediately re-inspect fresh Cubes. Tool success is execution evidence only.
 
-Judge reference fidelity **difference-first** with fresh model views. Check identity, masses/counts, silhouette/proportion, depth, orientation, contact, and negative spaces. For a bounded unanswered claim, prefer `capture_model_views(evidence_targets=[...])` so Runtime deterministically chooses the minimum useful canonical view set; use explicit `views` only when reference correspondence or a nonstandard question requires them.
+Judge reference fidelity **difference-first** with fresh model views. Check identity, masses/counts, silhouette/proportion, depth, orientation, contact, and negative spaces. For a bounded unanswered claim, prefer `capture_model_views(evidence_targets=[...], verification_risk=...)`. Reuse the existing delta-verification risk when known: LOW keeps minimum views, MEDIUM adds one orthogonal view, HIGH ensures front/left/top core coverage when possible. Use explicit `views` only when reference correspondence or a nonstandard question requires them.
 
 ```text
 FAIL       = critical/major supported mismatch
