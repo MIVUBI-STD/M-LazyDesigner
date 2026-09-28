@@ -48,6 +48,7 @@ const SHARED_RECEIPT_CONTRACT_TESTS = [
   "mcp/tests/animation-effects-receipt-contract.test.ts",
   "mcp/tests/authority-transition-receipt-contract.test.ts",
   "mcp/tests/bone-rigging-receipt-contract.test.ts",
+  "mcp/tests/cube-receipt-contract.test.ts",
   "mcp/tests/group-receipt-contract.test.ts",
   "mcp/tests/locator-receipt-contract.test.ts",
   "mcp/tests/material-instances-receipt-contract.test.ts",
