@@ -74,6 +74,12 @@ let capabilityFacts: CapabilityFactState = seedCapabilityFacts({});
 let capabilityFactsProjectUuid: string | null = null;
 
 function synchronizeCapabilityFacts(projectUuid: string | null): void {
+  const orchestrationProjectChanged =
+    gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid);
+  if (orchestrationProjectChanged) {
+    executionState = null;
+  }
+
   if (projectUuid !== capabilityFactsProjectUuid) {
     capabilityFactsProjectUuid = projectUuid;
     capabilityFacts = seedCapabilityFacts({
