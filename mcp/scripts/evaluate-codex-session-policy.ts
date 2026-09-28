@@ -22,6 +22,11 @@ export type SessionMilestone =
 
 export type CheckpointState = "MISSING" | "STALE" | "FRESH";
 
+export type SessionDecisionClass =
+  | "DETERMINISTIC_EXECUTION"
+  | "BOUNDED_INTERPRETATION"
+  | "VISUAL_JUDGMENT";
+
 export type SessionPolicyInput = {
   task_class: SessionTaskClass;
   pressure: SessionPressure;
@@ -34,6 +39,7 @@ export type SessionPolicyInput = {
   stage_extension_stable: boolean;
   tool_action_pending: boolean;
   telemetry_available: boolean;
+  decision_class?: SessionDecisionClass;
 };
 
 export type SessionCompactionDecision =
@@ -83,20 +89,30 @@ function cacheDecision(
 
 function reasoningDecision(input: SessionPolicyInput): SessionReasoningHint {
   if (
-    input.task_class === "DIRECT" &&
-    !input.routing_ambiguity &&
-    !input.visual_verification_pending &&
-    !input.recovery_uncertainty
+    input.visual_verification_pending ||
+    input.routing_ambiguity ||
+    input.recovery_uncertainty ||
+    input.decision_class === "VISUAL_JUDGMENT"
   ) {
+    return "QUALITY_FIRST";
+  }
+
+  if (input.decision_class === "DETERMINISTIC_EXECUTION") {
+    return "ECONOMY_WHEN_SUPPORTED";
+  }
+
+  if (input.decision_class === "BOUNDED_INTERPRETATION") {
+    return "BALANCED";
+  }
+
+  // Backward-compatible fallback for clients that have not adopted decision_class.
+  if (input.task_class === "DIRECT") {
     return "ECONOMY_WHEN_SUPPORTED";
   }
 
   if (
     input.task_class === "FULL_REFERENCE_DRIVEN" ||
-    input.task_class === "ANIMATION" ||
-    input.visual_verification_pending ||
-    input.routing_ambiguity ||
-    input.recovery_uncertainty
+    input.task_class === "ANIMATION"
   ) {
     return "QUALITY_FIRST";
   }
@@ -170,9 +186,19 @@ export function evaluateCodexSessionPolicy(
   }
 
   if (reasoning === "ECONOMY_WHEN_SUPPORTED") {
-    reasons.push("deterministic direct task is eligible for lower reasoning effort when the client supports it");
+    reasons.push(
+      input.decision_class === "DETERMINISTIC_EXECUTION"
+        ? "decision is deterministic execution; lower reasoning effort is eligible when the client supports it"
+        : "deterministic direct task is eligible for lower reasoning effort when the client supports it"
+    );
   } else if (reasoning === "QUALITY_FIRST") {
-    reasons.push("task ambiguity, visual/recovery evidence, or task class requires quality-first reasoning");
+    reasons.push(
+      input.decision_class === "VISUAL_JUDGMENT"
+        ? "decision requires visual judgment; quality-first reasoning is required"
+        : "task ambiguity, visual/recovery evidence, or legacy task-class fallback requires quality-first reasoning"
+    );
+  } else if (input.decision_class === "BOUNDED_INTERPRETATION") {
+    reasons.push("bounded interpretation uses balanced reasoning without escalating the whole task");
   }
 
   if (output === "MINIMAL_INTERMEDIATE") {

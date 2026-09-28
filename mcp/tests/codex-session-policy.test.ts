@@ -100,6 +100,33 @@ describe("Codex session policy contract", () => {
     expect(result.cache).toBe("RESET_PREFIX_IDENTITY");
   });
 
+
+  test("deterministic execution inside a reference-driven task may use economy reasoning", () => {
+    const result = evaluateCodexSessionPolicy({
+      ...base,
+      task_class: "FULL_REFERENCE_DRIVEN",
+      decision_class: "DETERMINISTIC_EXECUTION",
+    });
+    expect(result.reasoning).toBe("ECONOMY_WHEN_SUPPORTED");
+  });
+
+  test("bounded interpretation stays balanced even inside animation work", () => {
+    const result = evaluateCodexSessionPolicy({
+      ...base,
+      task_class: "ANIMATION",
+      decision_class: "BOUNDED_INTERPRETATION",
+    });
+    expect(result.reasoning).toBe("BALANCED");
+  });
+
+  test("visual judgment escalates quality even for an otherwise direct task", () => {
+    const result = evaluateCodexSessionPolicy({
+      ...base,
+      decision_class: "VISUAL_JUDGMENT",
+    });
+    expect(result.reasoning).toBe("QUALITY_FIRST");
+  });
+
   test("complex reference work remains quality-first", () => {
     const result = evaluateCodexSessionPolicy({
       ...base,

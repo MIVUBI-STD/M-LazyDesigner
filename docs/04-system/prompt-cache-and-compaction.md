@@ -145,7 +145,15 @@ common-prefix stability
 stage-extension stability
 whether another tool action is pending
 whether source-provided usage telemetry exists
+decision class when the client can classify the current decision deterministically:
+  DETERMINISTIC_EXECUTION | BOUNDED_INTERPRETATION | VISUAL_JUDGMENT
 ```
+
+Decision class is intentionally narrower than task class. A long reference-driven or
+Animation task may contain many exact mutations, saves, inspections, and receipt
+handling steps that do not require expensive visual reasoning. Clients should classify
+the **current decision**, not permanently escalate the whole task. If `decision_class`
+is omitted, the evaluator preserves the legacy task-class fallback.
 
 The evaluator returns:
 
@@ -168,6 +176,43 @@ Safety rules:
 - the evaluator does not call a provider API, own chat history, or modify Codex configuration.
 
 A future client/controller that actually owns model invocation may map these decisions to provider-native cache, compaction, reasoning, and output controls. Until then, the evaluator is the tested handoff contract and must not be represented as active upstream execution.
+
+### GPT-6 Astra main-model profile
+
+When GPT-6 Astra is the owning client/model, preserve one model across the task and
+change reasoning effort **per decision** rather than swapping models or rewriting the
+stable prefix:
+
+```text
+DETERMINISTIC_EXECUTION → ECONOMY_WHEN_SUPPORTED → low
+BOUNDED_INTERPRETATION → BALANCED               → medium
+VISUAL_JUDGMENT        → QUALITY_FIRST          → high
+routing/recovery ambiguity or pending material visual verdict → high
+```
+
+`xhigh` / `max` are not normal authoring defaults. Use them only when an explicit
+benchmark or unresolved high-value decision proves that `high` is insufficient.
+
+The provider-owning client should prefer its native mid-conversation reasoning update
+mechanism when available so reasoning effort can change without rewriting the reusable
+prompt prefix. LazyDesigner does not call that provider API itself.
+
+For provider-native prompt caching, map the existing LazyDesigner structure rather than
+adding another cache/router layer:
+
+```text
+stable common prefix
+  → repository/Gateway instructions + four Gateway tool definitions
+optional stage-stable breakpoint
+  → exactly one active specialist
+uncached dynamic tail
+  → task delta + Control projection + selected evidence + fresh results
+```
+
+Do not defer-load the four Gateway tools merely to imitate provider tool search. The
+Gateway already keeps the AI-facing tool surface fixed and performs bounded capability
+discovery behind it; provider-specific tool-search integration is justified only by
+measured usage evidence that this four-tool boundary is itself a bottleneck.
 
 ## Measurement Layers
 
