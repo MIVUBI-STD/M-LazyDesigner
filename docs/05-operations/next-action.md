@@ -55,6 +55,11 @@ Priority order:
 
 Do not add a second Control/router/profile/state system.
 
+## Runtime boundary
+
+The persistent Gateway remains the client-stability boundary; Runtime owns
+Blockbench execution. Do not move Runtime/native authoring state into Control.
+
 ## Zero-Waste rules
 
 Optimize cost to accepted result, not raw tool count.
@@ -105,7 +110,7 @@ reactivated.
 - no duplicate authoring engine;
 - no second semantic state database;
 - no speculative planner/vector store/heartbeat;
-- no hand-editing generated API/prompt output;
+- No hand-editing generated docs/output; generated API/prompt artifacts remain generator-owned;
 - no capability reduction solely for context savings;
 - no current-head PASS claim without matching evidence;
 - no proof-of-proof infrastructure when an existing owner already answers the
