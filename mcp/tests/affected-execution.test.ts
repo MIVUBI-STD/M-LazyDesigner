@@ -95,15 +95,24 @@ describe("affected execution planner", () => {
     }
   });
 
-  test("tooling outside the composite graph retains root compiler verification", () => {
+  test("report-only tooling stays bounded to compiler hygiene and never becomes full acceptance", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/scripts/measure-mcp-efficiency.ts"],
       semanticImpact: impact(),
     });
 
+    expect(plan.fallback_full_verify).toBe(false);
     expect(plan.checks).toContain("TYPECHECK_RUNTIME");
     expect(plan.checks).toContain("AUDIT_UNUSED_RUNTIME");
     expect(plan.checks).not.toContain("PROJECT_GRAPH");
+    expect(plan.checks).not.toContain("FULL_VERIFY");
+    expect(plan.checks).not.toContain("GATEWAY_HOT_PATH_BENCHMARK");
+    expect(plan.checks).not.toContain("GATEWAY_REPLAY_SHADOW");
+    expect(plan.checks).not.toContain("HYBRID4_EXPERIMENTAL_CONTRACTS");
+    expect(plan.commands).toEqual([
+      "bun run audit:unused",
+      "bun run typecheck",
+    ]);
   });
 
 
