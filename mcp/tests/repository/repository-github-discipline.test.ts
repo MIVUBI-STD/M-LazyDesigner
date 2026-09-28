@@ -124,7 +124,7 @@ describe("repository GitHub discipline", () => {
     expect(scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
     expect(scripts["verify:release"]).toBe("bun run verify:full");
     expect(scripts["verify:mcp"]).toBe(
-      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:measurements && bun run verify:build"
+      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run verify:build"
     );
     expect(scripts["verify:types"]).toContain("bun run verify:project-graph");
     expect(scripts["verify:types"]).toContain("bun run typecheck:gateway");
@@ -133,7 +133,13 @@ describe("repository GitHub discipline", () => {
     expect(scripts["verify:benchmarks"]).toContain(
       "bun run benchmark:semantic-invalidation-scope"
     );
-    expect(scripts["verify:measurements"]).toContain("bun run measure:surface");
+    expect(scripts["verify:surface-guards"]).toBe(
+      "bun run measure:surface && bun run measure:phases"
+    );
+    expect(scripts["report:mcp-efficiency"]).toBe(
+      "bun run measure:mcp-efficiency"
+    );
+    expect(scripts["verify:mcp"]).not.toContain("report:mcp-efficiency");
     expect(scripts["verify:build"]).toBe("bun run build");
     expect(scripts["verify:experimental"]).toBe("bun run verify:hybrid-remote");
     expect(scripts["verify:mcp"]).not.toContain("verify:experimental");
@@ -145,7 +151,7 @@ describe("repository GitHub discipline", () => {
       "bun run verify:types",
       "bun run verify:contracts",
       "bun run verify:benchmarks",
-      "bun run verify:measurements",
+      "bun run verify:surface-guards",
       "bun run verify:build",
     ]) expect(mcp).toContain(gate);
     expect(release).toContain("bun run verify:release");
