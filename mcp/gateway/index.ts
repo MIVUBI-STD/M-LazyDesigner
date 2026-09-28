@@ -63,15 +63,20 @@ import {
 } from "./experimental/hybridProfile";
 import { registerExperimentalHybrid4 } from "./experimental/hybridRegistration";
 
-const backend = new BlockitRuntimeBackend(undefined, undefined, {
-  onRuntimeGenerationChange: () => {
-    gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration();
-  },
-});
-const localCapabilities = new LocalCapabilityRegistry();
 let executionState: ControlExecutionState | null = null;
 let capabilityFacts: CapabilityFactState = seedCapabilityFacts({});
 let capabilityFactsProjectUuid: string | null = null;
+
+const backend = new BlockitRuntimeBackend(undefined, undefined, {
+  onRuntimeGenerationChange: () => {
+    gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration();
+    executionState = null;
+    capabilityFacts = seedCapabilityFacts({
+      projectBound: capabilityFactsProjectUuid !== null,
+    });
+  },
+});
+const localCapabilities = new LocalCapabilityRegistry();
 
 function synchronizeCapabilityFacts(projectUuid: string | null): void {
   const orchestrationProjectChanged =
