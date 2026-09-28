@@ -212,6 +212,13 @@ describe("Zero-Waste workflow benchmark", () => {
       failure.quality_checks.missing_continuation_base_uses_full_delivery
     ).toBe(true);
     expect(failure.quality_checks.group_abort_available_on_recovery).toBe(true);
+    expect(
+      failure.quality_checks.process_restart_requires_reorientation
+    ).toBe(true);
+    expect(failure.quality_checks.old_process_handles_not_reused).toBe(true);
+    expect(
+      failure.quality_checks.checkpoint_remains_process_independent
+    ).toBe(true);
   });
 
   test("aggregate workflow proxy produces material savings without claiming model tokens", () => {
