@@ -497,6 +497,67 @@ describe("zero-waste correction loop reuse", () => {
     expect(after.verification.pending).toBe(false);
   });
 
+  test("second correction remains VERIFY_PENDING until its fresh evidence arrives", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-second-pending",
+      base_recipe: { ...recipe(), id: "asset-second-pending", name: "asset-second-pending" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms remain too narrow.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    const candidate = {
+      id: "widen",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS" as const,
+            axis: "X" as const,
+            mode: "MULTIPLY" as const,
+            value: 1.02,
+          },
+        },
+      },
+    };
+
+    expect(registry.planGeometryCorrection(handle, [candidate]).attempt).toBe(1);
+    registry.updateEvidence(
+      handle,
+      "verificationevidence:second",
+      [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width improved but remains too narrow.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }]
+    );
+    expect(registry.planGeometryCorrection(handle, [candidate]).attempt).toBe(2);
+    expect(registry.projectContinuation(handle).state).toBe("VERIFY_PENDING");
+  });
+
   test("targeted evidence update preserves unrelated discrepancies and tracks per-view handles across rounds", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
