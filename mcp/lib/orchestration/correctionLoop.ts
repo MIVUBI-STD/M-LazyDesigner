@@ -65,7 +65,7 @@ type CorrectionLoopDecision = {
   handle: CorrectionLoopHandle;
   continuation_mode?: "DECISION_SUMMARY";
   state: "CORRECTION_READY" | "BLOCKED";
-  attempt: 1 | 2;
+  attempt: 0 | 1 | 2;
   decision_summary?: {
     selected_candidate_id: string;
     rejected_candidate_ids: string[];
@@ -447,6 +447,22 @@ export class CorrectionLoopRegistry {
     record.continuation_group = null;
   }
 
+  invalidateRuntimeGeneration(): void {
+    for (const [handle, record] of this.entries) {
+      const handles = [
+        record.verification_evidence_handle,
+        ...Object.values(record.view_evidence_handles).filter(
+          (value): value is VerificationEvidenceHandle => value !== undefined
+        ),
+      ];
+      this.invalidateEvidenceHandles(
+        handle,
+        [...new Set(handles)],
+        "RUNTIME_GENERATION_CHANGED"
+      );
+    }
+  }
+
   updateEvidence(
     handle: CorrectionLoopHandle,
     evidenceHandle: VerificationEvidenceHandle,
@@ -502,7 +518,7 @@ export class CorrectionLoopRegistry {
       return {
         handle,
         state: "BLOCKED",
-        attempt: Math.max(1, record.attempt) as 1 | 2,
+        attempt: record.attempt,
         verification_request: structuredClone(record.verification_request),
         blocked_reason: "EVIDENCE_RECOVERY_REQUIRED",
       };
