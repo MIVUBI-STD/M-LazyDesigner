@@ -18,6 +18,7 @@ describe("verification evidence compaction", () => {
         views: ["front"],
         views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         scope_instance_ids: ["arm:0"],
       },
     ]);
@@ -45,6 +46,7 @@ describe("verification evidence compaction", () => {
       views: ["front"],
       views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
       size: 256,
+      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
       scope_instance_ids: ["arm:0"],
     };
     const result = { png_data_url: "data:image/png;base64," + "x".repeat(5000) };
