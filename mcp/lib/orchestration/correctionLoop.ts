@@ -107,7 +107,6 @@ export type CorrectionContinuationDelta = {
 
 export type CorrectionContinuationDelivery = {
   continuation_id: CorrectionLoopContinuation["continuation_id"];
-  cached: boolean;
   delivery: "FULL" | "DELTA" | "CACHED" | "DEFERRED";
   payload: CorrectionLoopContinuation | null;
   delta: CorrectionContinuationDelta | null;
@@ -509,7 +508,6 @@ export class CorrectionLoopRegistry {
       record.last_delivered_continuation = structuredClone(payload);
       return {
         continuation_id: payload.continuation_id,
-        cached: true,
         delivery: "CACHED",
         payload: null,
         delta: null,
@@ -526,7 +524,6 @@ export class CorrectionLoopRegistry {
       record.last_delivered_continuation = structuredClone(payload);
       return {
         continuation_id: payload.continuation_id,
-        cached: false,
         delivery: "DELTA",
         payload: null,
         delta,
@@ -537,7 +534,6 @@ export class CorrectionLoopRegistry {
     record.last_delivered_continuation = structuredClone(payload);
     return {
       continuation_id: payload.continuation_id,
-      cached: false,
       delivery: "FULL",
       payload,
       delta: null,
