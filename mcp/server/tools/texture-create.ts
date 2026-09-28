@@ -2,6 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
@@ -445,6 +446,7 @@ export function registerCreateTextureTool(): void {
             textures: [texture],
             collections: [],
           });
+          recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"]);
         } catch (error) {
           if (texture) texture.remove(true);
           Undo.cancelEdit();

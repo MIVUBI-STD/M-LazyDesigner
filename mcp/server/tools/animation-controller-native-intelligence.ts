@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { manageAnimationControllerParameters } from "./animation-controller";
 import {
   getAllToolDefinitions,
@@ -435,6 +436,7 @@ async function executeNative(
         : undefined;
     }
     Undo.finishEdit("Change native animation controller composition");
+    recordCurrentSemanticHistoryEffect(["ANIMATION_CONTROLLER"]);
   } catch (error) {
     Undo.cancelEdit(true);
     Animator.preview();

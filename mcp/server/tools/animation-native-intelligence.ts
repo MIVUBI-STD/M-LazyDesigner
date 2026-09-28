@@ -2,6 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { optimizedAnimationTimelineParameters } from "../runtime/animationRuntimeContracts";
 import {
   getAllToolDefinitions,
@@ -241,6 +242,7 @@ async function executeNativeProperties(
         update.relative_to === "entity";
     }
     Undo.finishEdit("Change Bedrock animation properties");
+    recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
   } catch (error) {
     Undo.cancelEdit(true);
     Animator.preview();

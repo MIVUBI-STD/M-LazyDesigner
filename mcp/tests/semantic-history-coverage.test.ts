@@ -18,6 +18,10 @@ const HOT_PATH_FILES = [
   "server/tools/texture-assignment.ts",
   "server/tools/paint-brush.ts",
   "server/tools/paint-selection-layers.ts",
+  "server/tools/animation-controller-native-intelligence.ts",
+  "server/tools/animation-native-intelligence.ts",
+  "server/tools/texture-create.ts",
+  "server/tools/texture-quality-runtime.ts",
 ] as const;
 
 describe("semantic Undo history coverage", () => {
@@ -31,6 +35,18 @@ describe("semantic Undo history coverage", () => {
       expect(finishCount, path).toBeGreaterThan(0);
       expect(semanticCount, path).toBe(finishCount);
     }
+  });
+
+  test("open-ended maintenance UI remains intentionally unannotated", async () => {
+    const source = await Bun.file("server/tools/ui.ts").text();
+    const finishCount = source.match(/Undo\.finishEdit\(/g)?.length ?? 0;
+    const semanticCount =
+      source.match(/recordCurrentSemanticHistoryEffect\(/g)?.length ?? 0;
+
+    expect(finishCount).toBeGreaterThan(0);
+    expect(semanticCount).toBe(0);
+    expect(source).toContain("risky_eval");
+    expect(source).toContain("trigger_action");
   });
 
   test("semantic history remains ephemeral and fail-closed", async () => {

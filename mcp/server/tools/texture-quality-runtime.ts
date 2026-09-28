@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { getAllToolDefinitions } from "@/lib/factories";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import {
   planExclusivePbrMaterialAssignment,
   planPbrMaterialConfiguration,
@@ -255,6 +256,7 @@ async function configureMaterial(
       "Configured material"
     );
     Undo.finishEdit("Agent configured material");
+    recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
   } catch (error) {
     Undo.cancelEdit(true);
     Canvas.updateAll();
@@ -312,6 +314,7 @@ async function assignMaterialChannel(
       "Assigned material channel"
     );
     Undo.finishEdit("Agent assigned texture channel");
+    recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
   } catch (error) {
     Undo.cancelEdit(true);
     Canvas.updateAll();
