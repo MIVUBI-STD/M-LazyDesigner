@@ -70,6 +70,25 @@ test("undo and redo expose semantic effect only when every traversed entry is an
 });
 
 
+test("Geometry producers consume manifest-owned semantic scopes", async () => {
+  const files = [
+    ["server/tools/element-hierarchy.ts", ["add_group", "modify_group", "reparent_element"]],
+    ["server/tools/element-mutation.ts", ["remove_element", "duplicate_element", "rename_element"]],
+    ["server/tools/locators.ts", ["manage_locator", "manage_null_object"]],
+  ] as const;
+
+  for (const [path, capabilities] of files) {
+    const source = await Bun.file(path).text();
+    expect(source, path).toContain("recordCurrentCapabilitySemanticHistoryEffect");
+    expect(source, path).not.toContain("recordCurrentSemanticHistoryEffect([");
+    for (const capability of capabilities) {
+      expect(source, `${path}: ${capability}`).toContain(
+        `recordCurrentCapabilitySemanticHistoryEffect("${capability}")`
+      );
+    }
+  }
+});
+
 test("semantic history distinguishes known empty effects from unknown entries",()=>{
   const known={action:"checkpoint"};
   recordSemanticHistoryEffect(
