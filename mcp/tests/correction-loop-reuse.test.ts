@@ -1124,6 +1124,24 @@ describe("zero-waste correction loop reuse", () => {
     expect(blocked.attempt).toBe(0);
     expect(registry.projectContinuation(handle).attempt).toBe(0);
 
+    expect(() =>
+      registry.updateEvidence(
+        handle,
+        "verificationevidence:partial",
+        [{
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Partial recovery.",
+          views: ["front"],
+          evidence_targets: ["width"],
+        }],
+        { recovered_views: ["front"] }
+      )
+    ).toThrow("EVIDENCE_RECOVERY_INCOMPLETE");
+    expect(
+      registry.projectContinuation(handle).verification.recovery_required
+    ).toBe(true);
+
     registry.updateEvidence(
       handle,
       "verificationevidence:fresh",
@@ -1133,7 +1151,8 @@ describe("zero-waste correction loop reuse", () => {
         summary: "Width still needs review.",
         views: ["front"],
         evidence_targets: ["width"],
-      }]
+      }],
+      { recovered_views: ["front", "left"] }
     );
     const recovered = registry.projectContinuation(handle);
     expect(recovered.verification.recovery_required).toBe(false);
