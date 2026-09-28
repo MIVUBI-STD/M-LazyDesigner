@@ -41,8 +41,17 @@ export type CorrectionLoopRecord = {
   pending_stale_views: ModelView[];
 };
 
+export type CorrectionContinuationMode =
+  | "CANDIDATE_CONTEXT"
+  | "DECISION_SUMMARY"
+  | "VERIFY_PENDING"
+  | "PRUNED_READY"
+  | "CLEAR"
+  | "BLOCKED";
+
 export type CorrectionLoopContinuation = {
   protocol: "lazydesigner-correction-continuation-v1";
+  mode: Exclude<CorrectionContinuationMode, "DECISION_SUMMARY">;
   handle: CorrectionLoopHandle;
   recipe_id: string;
   attempt: 0 | 1 | 2;
@@ -72,6 +81,7 @@ export type CorrectionLoopContinuation = {
 
 export type CorrectionLoopDecision = {
   handle: CorrectionLoopHandle;
+  continuation_mode?: "DECISION_SUMMARY";
   state: "CORRECTION_READY" | "BLOCKED";
   attempt: 1 | 2;
   selected_candidate_id?: string;
@@ -248,9 +258,20 @@ export class CorrectionLoopRegistry {
           : record.attempt >= 2
             ? "BLOCKED"
             : "READY";
+    const mode: CorrectionLoopContinuation["mode"] =
+      pending
+        ? "VERIFY_PENDING"
+        : record.discrepancies.length === 0
+          ? "CLEAR"
+          : record.attempt >= 2
+            ? "BLOCKED"
+            : record.attempt === 0
+              ? "CANDIDATE_CONTEXT"
+              : "PRUNED_READY";
 
     return {
       protocol: "lazydesigner-correction-continuation-v1",
+      mode,
       handle,
       recipe_id: record.recipe_id,
       attempt: record.attempt,
@@ -464,6 +485,7 @@ export class CorrectionLoopRegistry {
 
     return {
       handle,
+      continuation_mode: "DECISION_SUMMARY",
       state: "CORRECTION_READY",
       attempt: record.attempt,
       selected_candidate_id: decision.selected.id,
