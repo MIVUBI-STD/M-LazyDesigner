@@ -82,6 +82,14 @@ export async function runZeroWasteTotalContextBenchmark() {
     (sum, item) => sum + item.optimized.image_inputs,
     0
   );
+  const baselineImagePixelArea = workflows.reduce(
+    (sum, item) => sum + item.baseline.image_pixel_area,
+    0
+  );
+  const optimizedImagePixelArea = workflows.reduce(
+    (sum, item) => sum + item.optimized.image_pixel_area,
+    0
+  );
   const baselineHighReasoning = workflows.reduce(
     (sum, item) => sum + item.baseline.high_reasoning_decisions,
     0
@@ -119,6 +127,8 @@ export async function runZeroWasteTotalContextBenchmark() {
       optimized_calls: optimizedCalls,
       baseline_image_inputs: baselineImageInputs,
       optimized_image_inputs: optimizedImageInputs,
+      baseline_image_pixel_area: baselineImagePixelArea,
+      optimized_image_pixel_area: optimizedImagePixelArea,
       baseline_high_reasoning_decisions: baselineHighReasoning,
       optimized_high_reasoning_decisions: optimizedHighReasoning,
       baseline_bytes: workflowBefore,
@@ -180,6 +190,12 @@ export function assertZeroWasteTotalContextBenchmark(
     report.dynamic_workflow.baseline_image_inputs
   ) {
     failures.push("optimized workflow image input count is not smaller");
+  }
+  if (
+    report.dynamic_workflow.optimized_image_pixel_area >=
+    report.dynamic_workflow.baseline_image_pixel_area
+  ) {
+    failures.push("optimized workflow image pixel area is not smaller");
   }
   if (
     report.dynamic_workflow.optimized_high_reasoning_decisions >=
