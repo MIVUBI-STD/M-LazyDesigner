@@ -13,15 +13,19 @@ export type CapabilityVerificationClass =
   | "focused_read"
   | "visual";
 
+export const CAPABILITY_SEMANTIC_SCOPES = [
+  "GEOMETRY_STRUCTURE",
+  "UV_MAPPING",
+  "TEXTURE_APPEARANCE",
+  "MATERIAL_RENDER",
+  "ANIMATION_MOTION",
+  "ANIMATION_CONTROLLER",
+  "ANIMATION_EFFECTS",
+  "PARTICLE_SYSTEM",
+] as const;
+
 export type CapabilitySemanticScope =
-  | "GEOMETRY_STRUCTURE"
-  | "UV_MAPPING"
-  | "TEXTURE_APPEARANCE"
-  | "MATERIAL_RENDER"
-  | "ANIMATION_MOTION"
-  | "ANIMATION_CONTROLLER"
-  | "ANIMATION_EFFECTS"
-  | "PARTICLE_SYSTEM";
+  (typeof CAPABILITY_SEMANTIC_SCOPES)[number];
 
 export type CapabilityStateClass =
   | "cross_authoring"

@@ -1,19 +1,12 @@
 import type { CapabilitySummary, JsonRecord } from "../protocol";
 import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
+import type { CapabilitySemanticScope } from "../../lib/capabilities/manifest";
 import type { BlockitAuthoringPhaseAffinity } from "../runtime/projectAffinity";
 import type { SemanticRevisionDimension } from "../capabilities/semanticRegistry";
 
 export type ControlAuthoringDomain = "GEOMETRY" | "TEXTURING" | "ANIMATION" | "CORE";
 
-export type ControlFreshnessScope =
-  | "GEOMETRY_STRUCTURE"
-  | "UV_MAPPING"
-  | "TEXTURE_APPEARANCE"
-  | "MATERIAL_RENDER"
-  | "ANIMATION_MOTION"
-  | "ANIMATION_CONTROLLER"
-  | "ANIMATION_EFFECTS"
-  | "PARTICLE_SYSTEM";
+export type ControlFreshnessScope = CapabilitySemanticScope;
 
 export type ControlVerificationScope =
   | {

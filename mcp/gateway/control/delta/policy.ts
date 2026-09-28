@@ -1,4 +1,7 @@
-import { capabilitiesByStateClass } from "../../../lib/capabilities/manifest";
+import {
+  CAPABILITY_SEMANTIC_SCOPES,
+  capabilitiesByStateClass,
+} from "../../../lib/capabilities/manifest";
 import type { ControlFreshnessScope } from "../types";
 
 export const STATE_MUTATIONS = new Set(
@@ -17,12 +20,5 @@ export const STATE_MUTATIONS = new Set(
 );
 
 export const ALL_FRESHNESS_SCOPES: readonly ControlFreshnessScope[] = [
-  "GEOMETRY_STRUCTURE",
-  "UV_MAPPING",
-  "TEXTURE_APPEARANCE",
-  "MATERIAL_RENDER",
-  "ANIMATION_MOTION",
-  "ANIMATION_CONTROLLER",
-  "ANIMATION_EFFECTS",
-  "PARTICLE_SYSTEM",
+  ...CAPABILITY_SEMANTIC_SCOPES,
 ];

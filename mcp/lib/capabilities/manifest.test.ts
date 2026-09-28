@@ -49,6 +49,20 @@ describe("core capability manifest", () => {
     });
   });
 
+  test("owns the complete semantic scope universe", async () => {
+    const manifest = await import("./manifest");
+    expect(manifest.CAPABILITY_SEMANTIC_SCOPES).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "MATERIAL_RENDER",
+      "ANIMATION_MOTION",
+      "ANIMATION_CONTROLLER",
+      "ANIMATION_EFFECTS",
+      "PARTICLE_SYSTEM",
+    ]);
+  });
+
   test("centralizes default semantic invalidation scopes", () => {
     expect(
       getCapabilityCoreManifestEntry("manage_cubes")?.defaultStaleScopes
