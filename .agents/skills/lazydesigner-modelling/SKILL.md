@@ -185,7 +185,9 @@ Native packing is a starting layout. Keep named body/head/appendage cohorts in r
 ## Local Correction / Convergence
 Correction continuation is identity-deduplicated. Reuse returned `continuation_id` values through `knownContinuationIds`; when the projected state is unchanged, runtime returns the cached ID without replaying unresolved summaries or evidence-handle lists. A changed correction state produces a new identity and full current payload.
 
-When a known previous continuation is still available and the state changes, prefer delta-only continuation: resolved discrepancy IDs, changed unresolved entries, changed per-view evidence handles, invalidated evidence handles, and changed verification/mode fields only. Unchanged summaries and evidence handles are inherited from the referenced previous continuation. If the previous identity is unknown, fall back to FULL delivery.
+When a known previous continuation is still available and the state changes, prefer delta-only continuation: resolved discrepancy IDs, changed unresolved entries, changed per-view evidence handles, invalidated evidence handles, and changed verification/mode fields only.
+
+Use a semantic continuation group only for multiple non-decision-changing updates inside one runtime cohort. While the group remains in the same mode/state, intermediate continuation delivery is `DEFERRED` and one committed FULL/DELTA/CACHED packet represents the cohort. Any mode/state transition such as entering `VERIFY_PENDING` is a hard boundary and flushes immediately; never delay required verification to save context. Abort the group on internal failure rather than leaving continuation delivery blocked. Unchanged summaries and evidence handles are inherited from the referenced previous continuation. If the previous identity is unknown, fall back to FULL delivery.
 
 Continuation mode is runtime-selected; the model does not choose it. Before selection use bounded candidate context, immediate post-solver handoff uses `DECISION_SUMMARY`, pending verification uses `VERIFY_PENDING`, unresolved post-verification work uses `PRUNED_READY`, and completed/terminal states use `CLEAR`/`BLOCKED`.
 
