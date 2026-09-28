@@ -170,8 +170,6 @@ const HEAVY: readonly string[] = [
   "capture_model_views", "paint_texture_transaction", "export_model",
 ];
 
-const RECEIPT_ONLY: readonly string[] = [];
-
 const FOCUSED_READ: readonly string[] = [
   "create_project", "switch_authoring_phase", "add_group", "modify_group", "reparent_element",
   "remove_element", "rename_element", "manage_locator", "manage_null_object",
@@ -340,11 +338,9 @@ patch(PARTICLE_STATE, {
 patch(PERSISTENCE_STATE, { defaultStaleScopes: [] });
 patch(FAST, { executionClass: "fast" });
 patch(HEAVY, { executionClass: "heavy" });
-// Preserve the legacy verification precedence:
- // receipt_only > focused_read > visual > not_applicable.
+// Static defaults are conservative. receipt_only is result-driven in Control.
 patch(VISUAL, { verificationClass: "visual" });
 patch(FOCUSED_READ, { verificationClass: "focused_read" });
-patch(RECEIPT_ONLY, { verificationClass: "receipt_only" });
 
 for (const [name, aliases] of Object.entries(ALIASES)) {
   map.set(name, { ...(map.get(name) ?? {}), aliases });
