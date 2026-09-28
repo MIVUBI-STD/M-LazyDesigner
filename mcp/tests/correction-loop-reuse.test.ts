@@ -66,7 +66,7 @@ describe("zero-waste correction loop reuse", () => {
 
     expect(decision.state).toBe("CORRECTION_READY");
     expect(decision.attempt).toBe(1);
-    expect(decision.selected_candidate_id).toBe("widen-arms");
+    expect(decision.decision_summary?.selected_candidate_id).toBe("widen-arms");
     expect(decision.verification_request).toEqual({
       domain: "GEOMETRY",
       source: "capture_model_views",
