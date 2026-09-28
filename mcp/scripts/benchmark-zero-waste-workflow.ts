@@ -17,6 +17,7 @@ type WorkflowStep = {
   required_for_decision: boolean;
   reason: string;
   image_inputs: number;
+  image_pixel_area: number;
   reasoning_class: ReasoningClass;
 };
 
@@ -27,6 +28,7 @@ export type WorkflowGoldenResult = {
     calls: number;
     ai_payload_bytes: number;
     image_inputs: number;
+    image_pixel_area: number;
     high_reasoning_decisions: number;
   };
   optimized: {
@@ -34,11 +36,13 @@ export type WorkflowGoldenResult = {
     calls: number;
     ai_payload_bytes: number;
     image_inputs: number;
+    image_pixel_area: number;
     high_reasoning_decisions: number;
   };
   saved_calls: number;
   saved_bytes: number;
   saved_image_inputs: number;
+  saved_image_pixel_area: number;
   saved_high_reasoning_decisions: number;
   reduction_percent: number;
   redundant_baseline_calls_removed: number;
@@ -57,6 +61,7 @@ function step(
   reason: string,
   options: {
     imageInputs?: number;
+    imageSize?: number;
     reasoningClass?: ReasoningClass;
   } = {}
 ): WorkflowStep {
@@ -66,6 +71,8 @@ function step(
     required_for_decision: requiredForDecision,
     reason,
     image_inputs: options.imageInputs ?? 0,
+    image_pixel_area:
+      (options.imageInputs ?? 0) * Math.pow(options.imageSize ?? 0, 2),
     reasoning_class: options.reasoningClass ?? "NONE",
   };
 }
@@ -88,6 +95,8 @@ function summarize(
   const savedCalls = Math.max(0, baselineSteps.length - optimizedSteps.length);
   const baselineImages = baselineSteps.reduce((sum, item) => sum + item.image_inputs, 0);
   const optimizedImages = optimizedSteps.reduce((sum, item) => sum + item.image_inputs, 0);
+  const baselinePixels = baselineSteps.reduce((sum, item) => sum + item.image_pixel_area, 0);
+  const optimizedPixels = optimizedSteps.reduce((sum, item) => sum + item.image_pixel_area, 0);
   const baselineHigh = baselineSteps.filter((item) => item.reasoning_class === "HIGH").length;
   const optimizedHigh = optimizedSteps.filter((item) => item.reasoning_class === "HIGH").length;
   return {
@@ -97,6 +106,7 @@ function summarize(
       calls: baselineSteps.length,
       ai_payload_bytes: baselineBytes,
       image_inputs: baselineImages,
+      image_pixel_area: baselinePixels,
       high_reasoning_decisions: baselineHigh,
     },
     optimized: {
@@ -104,11 +114,13 @@ function summarize(
       calls: optimizedSteps.length,
       ai_payload_bytes: optimizedBytes,
       image_inputs: optimizedImages,
+      image_pixel_area: optimizedPixels,
       high_reasoning_decisions: optimizedHigh,
     },
     saved_calls: savedCalls,
     saved_bytes: savedBytes,
     saved_image_inputs: Math.max(0, baselineImages - optimizedImages),
+    saved_image_pixel_area: Math.max(0, baselinePixels - optimizedPixels),
     saved_high_reasoning_decisions: Math.max(0, baselineHigh - optimizedHigh),
     reduction_percent:
       baselineBytes === 0
@@ -438,7 +450,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         },
         true,
         "Baseline captures a full board and emits prose before deciding the correction.",
-        { imageInputs: 5, reasoningClass: "HIGH" }
+        { imageInputs: 5, imageSize: 512, reasoningClass: "HIGH" }
       ),
       step(
         "inspect",
@@ -465,7 +477,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         },
         true,
         "Baseline recaptures the full board for convergence.",
-        { imageInputs: 5, reasoningClass: "HIGH" }
+        { imageInputs: 5, imageSize: 512, reasoningClass: "HIGH" }
       ),
     ],
     [
@@ -494,7 +506,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         },
         true,
         "Information-gain routing captures only the decision-changing front view and emits one compact difference.",
-        { imageInputs: 1, reasoningClass: "HIGH" }
+        { imageInputs: 1, imageSize: 256, reasoningClass: "HIGH" }
       ),
       step(
         "mutate",
@@ -530,7 +542,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         },
         true,
         "Only the affected evidence is recaptured for convergence.",
-        { imageInputs: 1, reasoningClass: "HIGH" }
+        { imageInputs: 1, imageSize: 256, reasoningClass: "HIGH" }
       ),
     ],
     {
@@ -615,6 +627,14 @@ if (import.meta.main) {
     (sum, item) => sum + item.optimized.image_inputs,
     0
   );
+  const beforeImagePixels = workflows.reduce(
+    (sum, item) => sum + item.baseline.image_pixel_area,
+    0
+  );
+  const afterImagePixels = workflows.reduce(
+    (sum, item) => sum + item.optimized.image_pixel_area,
+    0
+  );
   const beforeHighReasoning = workflows.reduce(
     (sum, item) => sum + item.baseline.high_reasoning_decisions,
     0
@@ -643,6 +663,9 @@ if (import.meta.main) {
           baseline_image_inputs: beforeImages,
           optimized_image_inputs: afterImages,
           saved_image_inputs: Math.max(0, beforeImages - afterImages),
+          baseline_image_pixel_area: beforeImagePixels,
+          optimized_image_pixel_area: afterImagePixels,
+          saved_image_pixel_area: Math.max(0, beforeImagePixels - afterImagePixels),
           baseline_high_reasoning_decisions: beforeHighReasoning,
           optimized_high_reasoning_decisions: afterHighReasoning,
           saved_high_reasoning_decisions: Math.max(
