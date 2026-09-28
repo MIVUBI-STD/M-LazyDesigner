@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(9);
+    expect(workflows).toHaveLength(10);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -182,6 +182,23 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(JSON.stringify(continuation)).toContain("resize-096");
     expect(JSON.stringify(continuation)).not.toContain("predicted_error\":0.07");
 
+  });
+
+  test("correction continuation prunes resolved history while preserving live state", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "correction_continuation_pruning"
+    )!;
+    expect(workflow.quality_preserved).toBe(true);
+    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
+      workflow.baseline.ai_payload_bytes
+    );
+    expect(workflow.quality_checks.unresolved_issue_preserved).toBe(true);
+    expect(workflow.quality_checks.fresh_view_evidence_preserved).toBe(true);
+    expect(workflow.quality_checks.pending_verification_preserved).toBe(true);
+    expect(workflow.quality_checks.resolved_discrepancy_pruned).toBe(true);
+    expect(workflow.quality_checks.old_candidate_history_pruned).toBe(true);
+    expect(workflow.quality_checks.stale_handle_pruned).toBe(true);
+    expect(workflow.quality_checks.recipe_internal_state_pruned).toBe(true);
   });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {
