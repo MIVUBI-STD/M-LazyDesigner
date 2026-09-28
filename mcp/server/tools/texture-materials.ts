@@ -6,7 +6,10 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { getChannelTextureInfo, isAbsoluteFilesystemPath } from "@/lib/util";
-import { materialMutationReceipt } from "@/lib/receipts/materialMutation";
+import {
+  materialMutationReceipt,
+  materialPersistenceReceipt,
+} from "@/lib/receipts/materialMutation";
 import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentCapabilitySemanticHistoryEffectIfAdvanced,
@@ -928,7 +931,27 @@ export function registerTextureMaterialTools(): void {
           filePath
         );
   
-        return `Saved material config to "${filePath}"`;
+        const result = materialPersistenceReceipt({
+          operation: "save",
+          scope: "material_persistence_only",
+          material: {
+            uuid: textureGroup.uuid,
+            name: textureGroup.name,
+          },
+          file_path: filePath,
+          saved: true,
+          file_exists: true,
+        });
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Saved material config to "${filePath}"`,
+            },
+          ],
+          structuredContent: result,
+        };
       },
     }, textureMaterialToolDocs[6].status);
   

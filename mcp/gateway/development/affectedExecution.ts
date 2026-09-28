@@ -52,6 +52,7 @@ const SHARED_RECEIPT_CONTRACT_TESTS = [
   "mcp/tests/group-receipt-contract.test.ts",
   "mcp/tests/locator-receipt-contract.test.ts",
   "mcp/tests/material-instances-receipt-contract.test.ts",
+  "mcp/tests/material-persistence-receipt-contract.test.ts",
   "mcp/tests/material-receipt-contract.test.ts",
   "mcp/tests/particle-receipt-contract.test.ts",
   "mcp/tests/remove-element-receipt-contract.test.ts",

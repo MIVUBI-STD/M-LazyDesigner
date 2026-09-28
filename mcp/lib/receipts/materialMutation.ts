@@ -48,3 +48,26 @@ export function materialMutationReceipt<T extends Record<string, unknown>>(
 export function isMaterialMutationReceipt(value: unknown): boolean {
   return materialMutationReceiptSchema.safeParse(value).success;
 }
+
+export const materialPersistenceReceiptSchema = z.object({
+  operation: z.literal("save"),
+  scope: z.literal("material_persistence_only"),
+  material: z.object({
+    uuid: z.string().min(1),
+    name: z.string().min(1),
+  }),
+  file_path: z.string().min(1),
+  saved: z.literal(true),
+  file_exists: z.literal(true),
+});
+
+export function materialPersistenceReceipt<T extends Record<string, unknown>>(
+  receipt: T
+): T {
+  materialPersistenceReceiptSchema.parse(receipt);
+  return receipt;
+}
+
+export function isMaterialPersistenceReceipt(value: unknown): boolean {
+  return materialPersistenceReceiptSchema.safeParse(value).success;
+}

@@ -208,14 +208,21 @@ describe("Control Texture mutation precision", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
-  test("direct material-config save changes persistence without invalidating authored appearance", () => {
+  test("direct material-config save uses verified persistence receipt without reread", () => {
     const delta = buildControlDelta({
       capability: "save_material_config",
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
       succeeded: true,
-      result: 'Saved material config to "/tmp/material.texture_set.json"',
+      result: {
+        operation: "save",
+        scope: "material_persistence_only",
+        material: { uuid: "material-a", name: "metal" },
+        file_path: "/tmp/material.texture_set.json",
+        saved: true,
+        file_exists: true,
+      },
     });
 
     expect(delta.invalidates.authoring_domains).toEqual([]);
@@ -224,6 +231,23 @@ describe("Control Texture mutation precision", () => {
     expect(delta.freshness.basis).toBe("NO_CHANGE");
     expect(delta.freshness.stale).toEqual([]);
     expect(delta.freshness.fresh).toHaveLength(8);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("incomplete direct material-config save does not claim receipt-only verification", () => {
+    const delta = buildControlDelta({
+      capability: "save_material_config",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "save",
+        scope: "material_persistence_only",
+      },
+    });
+
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
     expect(delta.verification_class).toBe("focused_read");
   });
 

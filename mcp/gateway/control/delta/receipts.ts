@@ -12,7 +12,10 @@ import {
 import { isGroupMutationReceipt } from "../../../lib/receipts/groupMutation";
 import { isLocatorMutationReceipt } from "../../../lib/receipts/locatorMutation";
 import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materialInstances";
-import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
+import {
+  isMaterialMutationReceipt,
+  isMaterialPersistenceReceipt,
+} from "../../../lib/receipts/materialMutation";
 import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMutation";
 import { isRenderProfileMutationReceipt } from "../../../lib/receipts/renderProfile";
 import { isTextureGroupReceipt } from "../../../lib/receipts/textureGroup";
@@ -116,9 +119,16 @@ export function directAnimationStateNeutral(
 export function materialPersistenceOnly(value: unknown): boolean {
   return resultCandidates(value).some(
     (candidate) =>
-      candidate.operation === "save" &&
-      candidate.scope === "material_persistence_only"
+      isMaterialPersistenceReceipt(candidate) ||
+      (
+        candidate.operation === "save" &&
+        candidate.scope === "material_persistence_only"
+      )
   );
+}
+
+export function materialPersistenceReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some(isMaterialPersistenceReceipt);
 }
 
 export function animationControllerReceiptComplete(value: unknown): boolean {
@@ -183,6 +193,8 @@ export function receiptSupportsContinuation(
       return animationControllerReceiptComplete(value);
     case "add_texture_group":
       return textureGroupReceiptComplete(value);
+    case "save_material_config":
+      return materialPersistenceReceiptComplete(value);
     case "manage_material":
     case "create_pbr_material":
     case "configure_material":
