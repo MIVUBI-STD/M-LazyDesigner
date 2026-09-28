@@ -458,6 +458,35 @@ Explicit `views` remain authoritative when the reference requires a specific
 correspondence. If the target set itself cannot be covered within five views, narrow the
 claim instead of silently exceeding the context budget.
 
+## Adaptive Capture Resolution
+
+When `evidence_targets` are present and no explicit `size` is required, choose the
+smallest resolution that still supports the current decision:
+
+```text
+256
+→ silhouette / width / height / length / count
+
+384
+→ depth / orientation / negative_space / asymmetry
+
+512
+→ attachment / layering / rear_topology / underside
+```
+
+Risk raises the floor:
+
+```text
+LOW    → target-driven minimum
+MEDIUM → at least 384
+HIGH   → 512
+```
+
+An explicit `size` always wins. Explicit `views` without grounded evidence targets
+retain the 512 default, preserving existing high-detail behavior. Texture/identity review
+should continue using detail-appropriate evidence; do not downsample merely to reduce
+Codex allowance when the decision depends on fine visual detail.
+
 ## Evidence Economy
 
 Good reasons to capture:
