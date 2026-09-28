@@ -44,6 +44,14 @@ export class VerificationEvidenceRegistry {
     return structuredClone(record);
   }
 
+  invalidate(handle: VerificationEvidenceHandle): boolean {
+    return this.entries.delete(handle);
+  }
+
+  clear(): void {
+    this.entries.clear();
+  }
+
   size(): number {
     return this.entries.size;
   }
