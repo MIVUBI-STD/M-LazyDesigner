@@ -188,16 +188,6 @@ export class CorrectionLoopRegistry {
     return handle;
   }
 
-  get(handle: CorrectionLoopHandle): CorrectionLoopRecord {
-    const record = this.entries.get(handle);
-    if (!record) {
-      throw new Error(
-        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
-      );
-    }
-    return structuredClone(record);
-  }
-
   projectContinuation(handle: CorrectionLoopHandle): CorrectionLoopContinuation {
     const record = this.entries.get(handle);
     if (!record) {
