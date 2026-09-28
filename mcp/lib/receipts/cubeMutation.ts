@@ -68,3 +68,48 @@ export function cubeVisualScopeFromResult(value: unknown) {
     ? cubeVisualScopeSchema.parse(root.visual_scope)
     : null;
 }
+
+export type CubeSemanticScope =
+  | "GEOMETRY_STRUCTURE"
+  | "UV_MAPPING"
+  | "TEXTURE_APPEARANCE"
+  | "ANIMATION_MOTION";
+
+const CUBE_UV_FIELDS = new Set([
+  "faces",
+  "box_uv",
+  "uv_offset",
+  "mirror_uv",
+  "autouv",
+]);
+
+const CUBE_SHAPE_FIELDS = new Set([
+  "from",
+  "to",
+  "inflate",
+]);
+
+export function cubeSemanticScopesFromChangedFields(
+  changedFields: readonly string[]
+): CubeSemanticScope[] {
+  if (changedFields.length === 0) {
+    return [
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ];
+  }
+
+  const stale = new Set<CubeSemanticScope>(["GEOMETRY_STRUCTURE"]);
+  if (changedFields.some((field) => CUBE_UV_FIELDS.has(field))) {
+    stale.add("UV_MAPPING");
+    stale.add("TEXTURE_APPEARANCE");
+  }
+  if (changedFields.some((field) => CUBE_SHAPE_FIELDS.has(field))) {
+    stale.add("UV_MAPPING");
+    stale.add("TEXTURE_APPEARANCE");
+    stale.add("ANIMATION_MOTION");
+  }
+  return [...stale];
+}

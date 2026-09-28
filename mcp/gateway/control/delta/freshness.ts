@@ -1,4 +1,7 @@
-import { cubeChangedFieldsFromResult } from "../../../lib/receipts/cubeMutation";
+import {
+  cubeChangedFieldsFromResult,
+  cubeSemanticScopesFromChangedFields,
+} from "../../../lib/receipts/cubeMutation";
 import type {
   ControlAuthoringDomain,
   ControlDelta,
@@ -9,10 +12,8 @@ import {
   ANIMATION_MOTION_MUTATIONS,
   HIERARCHY_OR_MOTION_STRUCTURE,
   MATERIAL_RENDER_MUTATIONS,
-  SHAPE_FIELDS,
   STATE_MUTATIONS,
   TEXTURE_APPEARANCE_MUTATIONS,
-  UV_FIELDS,
 } from "./policy";
 import {
   record,
@@ -317,17 +318,10 @@ export function geometryFreshnessScopes(
       };
     }
 
-    const stale = new Set<ControlFreshnessScope>(["GEOMETRY_STRUCTURE"]);
-    if (changedFields.some((field) => UV_FIELDS.has(field))) {
-      stale.add("UV_MAPPING");
-      stale.add("TEXTURE_APPEARANCE");
-    }
-    if (changedFields.some((field) => SHAPE_FIELDS.has(field))) {
-      stale.add("UV_MAPPING");
-      stale.add("TEXTURE_APPEARANCE");
-      stale.add("ANIMATION_MOTION");
-    }
-    return { stale: [...stale], precise: true };
+    return {
+      stale: cubeSemanticScopesFromChangedFields(changedFields),
+      precise: true,
+    };
   }
 
   if (capability === "remove_element" || capability === "duplicate_element") {

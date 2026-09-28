@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   cubeGeometryEffect as validatedCubeGeometryEffect,
   cubeVisualScope as validatedCubeVisualScope,
+  cubeSemanticScopesFromChangedFields,
 } from "@/lib/receipts/cubeMutation";
 import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
@@ -950,7 +951,6 @@ export function registerCubesTools() {
         });
 
         Undo.finishEdit("Agent modified cubes");
-        recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
       } catch (error) {
         Undo.cancelEdit(true);
         Canvas.updateAll();
@@ -960,6 +960,9 @@ export function registerCubesTools() {
       Canvas.updateAll();
       const after = finalCubeState(cubes[0]);
       const geometryEffect = cubeGeometryEffect(before, after);
+      recordCurrentSemanticHistoryEffect(
+        cubeSemanticScopesFromChangedFields(geometryEffect.changed_fields)
+      );
       const result = {
         execution: "applied" as const,
         visual_verdict: "not_evaluated" as const,
@@ -1066,7 +1069,6 @@ export function registerCubesTools() {
         }
 
         Undo.finishEdit("Agent modified multiple cubes");
-        recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
       } catch (error) {
         Undo.cancelEdit(true);
         Canvas.updateAll();
@@ -1102,6 +1104,9 @@ export function registerCubesTools() {
           return counts;
         },
         {}
+      );
+      recordCurrentSemanticHistoryEffect(
+        cubeSemanticScopesFromChangedFields(Object.keys(changedFieldCounts))
       );
       const result = {
         execution: "applied" as const,

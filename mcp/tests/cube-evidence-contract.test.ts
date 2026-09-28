@@ -4,6 +4,7 @@ import {
   cubeGeometryEffect,
   cubeVisualScope,
   cubeVisualScopeFromResult,
+  cubeSemanticScopesFromChangedFields,
 } from "@/lib/receipts/cubeMutation";
 
 describe("shared Cube mutation evidence contract", () => {
@@ -66,6 +67,36 @@ describe("shared Cube mutation evidence contract", () => {
         ],
       }).sort()
     ).toEqual(["faces", "from"]);
+  });
+
+  test("derives one canonical semantic scope set from Cube changed fields", () => {
+    expect(
+      cubeSemanticScopesFromChangedFields(["rotation", "visibility"])
+    ).toEqual(["GEOMETRY_STRUCTURE"]);
+
+    expect(
+      cubeSemanticScopesFromChangedFields(["faces"])
+    ).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+    ]);
+
+    expect(
+      cubeSemanticScopesFromChangedFields(["from"])
+    ).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ]);
+
+    expect(cubeSemanticScopesFromChangedFields([])).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ]);
   });
 
   test("rejects malformed effect and over-broad visual scope", () => {
