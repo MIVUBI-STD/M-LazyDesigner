@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(14);
+    expect(workflows).toHaveLength(11);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -184,22 +184,6 @@ describe("Zero-Waste workflow benchmark", () => {
 
   });
 
-  test("correction continuation prunes resolved history while preserving live state", () => {
-    const workflow = runZeroWasteWorkflowBenchmark().find(
-      (item) => item.workflow === "correction_continuation_pruning"
-    )!;
-    expect(workflow.quality_preserved).toBe(true);
-    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
-      workflow.baseline.ai_payload_bytes
-    );
-    expect(workflow.quality_checks.unresolved_issue_preserved).toBe(true);
-    expect(workflow.quality_checks.fresh_view_evidence_preserved).toBe(true);
-    expect(workflow.quality_checks.pending_verification_preserved).toBe(true);
-    expect(workflow.quality_checks.resolved_discrepancy_pruned).toBe(true);
-    expect(workflow.quality_checks.old_candidate_history_pruned).toBe(true);
-    expect(workflow.quality_checks.stale_handle_pruned).toBe(true);
-    expect(workflow.quality_checks.recipe_internal_state_pruned).toBe(true);
-  });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {
     const failure = runZeroWasteWorkflowBenchmark().find(
@@ -242,56 +226,30 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(((beforeBytes - afterBytes) / beforeBytes) * 100).toBeGreaterThan(10);
     expect(workflows.every((item) => item.quality_preserved)).toBe(true);
   });
-  test("automatic continuation mode selection removes model routing decisions", () => {
-    const workflow = runZeroWasteWorkflowBenchmark().find(
-      (item) => item.workflow === "correction_continuation_mode_selection"
-    )!;
-    expect(workflow.quality_preserved).toBe(true);
-    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
-      workflow.baseline.ai_payload_bytes
-    );
-    expect(workflow.quality_checks.immediate_mode_preserved).toBe(true);
-    expect(workflow.quality_checks.verification_mode_preserved).toBe(true);
-    expect(workflow.quality_checks.no_model_mode_selection_required).toBe(true);
-    expect(workflow.quality_checks.correction_state_semantics_preserved).toBe(
-      true
-    );
-  });
 
-  test("continuation identity deduplication avoids repeating unchanged payloads", () => {
+
+
+  test("consolidated continuation transport preserves state while removing repeated routing context", () => {
     const workflow = runZeroWasteWorkflowBenchmark().find(
-      (item) => item.workflow === "correction_continuation_identity_dedup"
+      (item) => item.workflow === "correction_continuation_transport"
     )!;
     expect(workflow.quality_preserved).toBe(true);
     expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
       workflow.baseline.ai_payload_bytes
     );
-    expect(workflow.quality_checks.first_payload_preserved).toBe(true);
+    expect(workflow.quality_checks.runtime_mode_selection_preserved).toBe(true);
+    expect(workflow.quality_checks.unresolved_state_preserved).toBe(true);
+    expect(workflow.quality_checks.fresh_view_evidence_preserved).toBe(true);
+    expect(workflow.quality_checks.resolved_history_pruned).toBe(true);
+    expect(workflow.quality_checks.old_candidate_history_pruned).toBe(true);
     expect(workflow.quality_checks.unchanged_payload_not_repeated).toBe(true);
-    expect(workflow.quality_checks.identity_preserved).toBe(true);
-    expect(workflow.quality_checks.changed_state_requires_new_identity).toBe(
+    expect(workflow.quality_checks.changed_field_delta_preserved).toBe(true);
+    expect(
+      workflow.quality_checks.unknown_base_full_fallback_preserved
+    ).toBe(true);
+    expect(workflow.quality_checks.no_model_transport_routing_required).toBe(
       true
     );
-  });
-
-  test("delta-only continuation delivery avoids repeating unchanged correction state", () => {
-    const workflow = runZeroWasteWorkflowBenchmark().find(
-      (item) => item.workflow === "correction_continuation_delta_delivery"
-    )!;
-    expect(workflow.quality_preserved).toBe(true);
-    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
-      workflow.baseline.ai_payload_bytes
-    );
-    expect(workflow.quality_checks.first_full_payload_preserved).toBe(true);
-    expect(workflow.quality_checks.resolved_issue_delta_preserved).toBe(true);
-    expect(workflow.quality_checks.changed_view_handle_preserved).toBe(true);
-    expect(workflow.quality_checks.unchanged_view_handle_not_repeated).toBe(true);
-    expect(
-      workflow.quality_checks.unchanged_unresolved_summary_not_repeated
-    ).toBe(true);
-    expect(
-      workflow.quality_checks.full_delivery_fallback_available_when_base_unknown
-    ).toBe(true);
   });
 
   test("semantic delta grouping coalesces micro updates without delaying decision boundaries", () => {
