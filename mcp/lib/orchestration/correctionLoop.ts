@@ -39,6 +39,12 @@ export type CorrectionLoopDecision = {
   rebuild?: ReturnType<typeof planIncrementalRecipeRebuild>;
   verification_request: VerificationEvidenceRequest;
   reverification_discrepancies?: VerificationDiscrepancy[];
+  evidence_reuse?: {
+    source_handle: VerificationEvidenceHandle;
+    stale_views: string[];
+    reusable_views: string[];
+    basis: "TARGETED_VIEW_PROVENANCE" | "CONSERVATIVE_ALL_VIEWS";
+  };
   blocked_reason?:
     | "REPEATED_FAILURE_WITHOUT_NEW_EVIDENCE"
     | "CORRECTION_ATTEMPT_LIMIT"
@@ -185,6 +191,28 @@ export class CorrectionLoopRegistry {
       reverificationDiscrepancies = uniqueCodes.map((code) => byCode.get(code)!);
     }
 
+    const geometryRequest =
+      record.verification_request.domain === "GEOMETRY"
+        ? record.verification_request
+        : null;
+    const requestViews = geometryRequest?.views ?? [];
+    const targetedViews = [
+      ...new Set(
+        reverificationDiscrepancies.flatMap((item) => item.views ?? [])
+      ),
+    ];
+    const hasTargetedViewProvenance =
+      reverificationDiscrepancies.length > 0 &&
+      reverificationDiscrepancies.every(
+        (item) => Array.isArray(item.views) && item.views.length > 0
+      );
+    const staleViews = hasTargetedViewProvenance
+      ? requestViews.filter((view) => targetedViews.includes(view))
+      : [...requestViews];
+    const reusableViews = hasTargetedViewProvenance
+      ? requestViews.filter((view) => !staleViews.includes(view))
+      : [];
+
     const nextRecipe = rewriteAuthoringRecipeForSemanticEdit(
       record.base_recipe,
       decision.selected.patch.intent
@@ -203,6 +231,14 @@ export class CorrectionLoopRegistry {
       rebuild,
       verification_request: structuredClone(record.verification_request),
       reverification_discrepancies: structuredClone(reverificationDiscrepancies),
+      evidence_reuse: {
+        source_handle: record.verification_evidence_handle,
+        stale_views: [...staleViews],
+        reusable_views: [...reusableViews],
+        basis: hasTargetedViewProvenance
+          ? "TARGETED_VIEW_PROVENANCE"
+          : "CONSERVATIVE_ALL_VIEWS",
+      },
     };
   }
 
