@@ -679,6 +679,84 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const candidateEconomy = summarize(
+    "correction_candidate_economy",
+    [
+      step(
+        "verify",
+        {
+          discrepancy: "DEPTH_HIGH",
+          candidates: [
+            { id: "resize-092", family: "RESIZE", predicted_error: 0.09, mutation_cost: 0.12, risk: 0.18 },
+            { id: "resize-094", family: "RESIZE", predicted_error: 0.07, mutation_cost: 0.10, risk: 0.14 },
+            { id: "resize-096", family: "RESIZE", predicted_error: 0.05, mutation_cost: 0.08, risk: 0.10 },
+            { id: "resize-098", family: "RESIZE", predicted_error: 0.08, mutation_cost: 0.06, risk: 0.12 },
+            { id: "translate-back", family: "TRANSLATE", predicted_error: 0.21, mutation_cost: 0.07, risk: 0.25 },
+            { id: "rotate-small", family: "ROTATE", predicted_error: 0.24, mutation_cost: 0.09, risk: 0.22 },
+          ],
+          selected: "resize-096",
+        },
+        true,
+        "Baseline emits a broad six-candidate option tree before selection.",
+        { reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        { selected_candidate: "resize-096" },
+        true,
+        "Execute selected correction.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        { convergence: "IMPROVED" },
+        true,
+        "Convergence remains required.",
+        { imageInputs: 1, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          discrepancy: "DEPTH_HIGH",
+          verification_risk: "HIGH",
+          grounded_family: "RESIZE",
+          candidates: [
+            { id: "resize-094", predicted_error: 0.07, mutation_cost: 0.10, risk: 0.14 },
+            { id: "resize-096", predicted_error: 0.05, mutation_cost: 0.08, risk: 0.10 },
+            { id: "resize-098", predicted_error: 0.08, mutation_cost: 0.06, risk: 0.12 },
+          ],
+          selected: "resize-096",
+        },
+        true,
+        "HIGH risk permits at most three family-compatible candidates; deterministic solver preserves the same selected candidate.",
+        { reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        { selected_candidate: "resize-096" },
+        true,
+        "Execute the same selected correction.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        { convergence: "IMPROVED" },
+        true,
+        "Convergence remains required.",
+        { imageInputs: 1, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+    ],
+    {
+      same_selected_candidate: true,
+      same_correction_family: true,
+      convergence_gate_kept: true,
+      candidate_budget_respected: true,
+      unsupported_family_candidates_removed: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -719,6 +797,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     animationEffectEdit,
     visualCorrection,
     crossViewReuse,
+    candidateEconomy,
     failedMutation,
   ];
 }
