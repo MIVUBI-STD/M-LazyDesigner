@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(13);
+    expect(workflows).toHaveLength(14);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -292,6 +292,21 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(
       workflow.quality_checks.full_delivery_fallback_available_when_base_unknown
     ).toBe(true);
+  });
+
+  test("semantic delta grouping coalesces micro updates without delaying decision boundaries", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "correction_semantic_delta_grouping"
+    )!;
+    expect(workflow.quality_preserved).toBe(true);
+    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
+      workflow.baseline.ai_payload_bytes
+    );
+    expect(workflow.quality_checks.same_boundary_updates_grouped).toBe(true);
+    expect(workflow.quality_checks.decision_boundary_not_delayed).toBe(true);
+    expect(workflow.quality_checks.verification_signal_preserved).toBe(true);
+    expect(workflow.quality_checks.abort_path_preserved).toBe(true);
+    expect(workflow.quality_checks.no_extra_model_routing_decision).toBe(true);
   });
 
 });
