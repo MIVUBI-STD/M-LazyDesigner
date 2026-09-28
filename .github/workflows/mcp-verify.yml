@@ -50,16 +50,22 @@ jobs:
         shell: bash
         env:
           EXPECTED_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           actual_sha="$(git rev-parse HEAD)"
           test "$actual_sha" = "$EXPECTED_SHA"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            full_acceptance="false"
+          else
+            full_acceptance="true"
+          fi
           {
             echo "### MCP exact-SHA proof"
             echo
-            echo "- exact_sha: `$actual_sha`"
-            echo "- event: `${{ github.event_name }}`"
-            echo "- full_acceptance: `${{ github.event_name != 'push' }}`"
+            printf -- '- exact_sha: `%s`\n' "$actual_sha"
+            printf -- '- event: `%s`\n' "$EVENT_NAME"
+            printf -- '- full_acceptance: `%s`\n' "$full_acceptance"
             echo "- live_local_tests: excluded"
           } >> "$GITHUB_STEP_SUMMARY"
 
