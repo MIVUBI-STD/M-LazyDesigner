@@ -1,3 +1,7 @@
+import {
+  isCreateProjectReceipt,
+  isPhaseTransitionReceipt,
+} from "../../../lib/receipts/authorityTransition";
 import { isAnimationControllerReceipt } from "../../../lib/receipts/animationController";
 import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffects";
 import {
@@ -152,4 +156,12 @@ export function animationEffectsReceiptComplete(value: unknown): boolean {
 
 export function renameElementReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isAppliedRenameElementReceipt);
+}
+
+export function createProjectReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some(isCreateProjectReceipt);
+}
+
+export function phaseTransitionReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some(isPhaseTransitionReceipt);
 }
