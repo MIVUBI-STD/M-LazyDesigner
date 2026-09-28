@@ -1,7 +1,54 @@
 import { describe, expect, test } from "bun:test";
 import { buildControlDelta, projectControlDeltaForGateway } from "@/gateway/control";
+import { CAPABILITY_CORE_MANIFEST } from "@/lib/capabilities/manifest";
+import {
+  ANIMATION_MOTION_MUTATIONS,
+  MATERIAL_RENDER_MUTATIONS,
+  STATE_MUTATIONS,
+  TEXTURE_APPEARANCE_MUTATIONS,
+} from "@/gateway/control/delta/policy";
 
 describe("LazyDesigner Control continuation hardening", () => {
+  test("capability manifest and Control mutation policy cannot silently drift apart", () => {
+    const manifestNames = new Set(CAPABILITY_CORE_MANIFEST.keys());
+
+    for (const capability of STATE_MUTATIONS) {
+      expect(manifestNames.has(capability), capability).toBe(true);
+      const entry = CAPABILITY_CORE_MANIFEST.get(capability);
+      expect(entry?.phase, capability).toBeDefined();
+      expect(entry?.verificationClass, capability).not.toBeUndefined();
+      expect(entry?.verificationClass, capability).not.toBe("not_applicable");
+    }
+
+    for (const scopedSet of [
+      TEXTURE_APPEARANCE_MUTATIONS,
+      MATERIAL_RENDER_MUTATIONS,
+      ANIMATION_MOTION_MUTATIONS,
+    ]) {
+      for (const capability of scopedSet) {
+        expect(STATE_MUTATIONS.has(capability), capability).toBe(true);
+      }
+    }
+
+    const nonAuthoredVerificationExceptions = new Set([
+      "capture_model_views",
+      "switch_authoring_phase",
+      "save_material_config",
+    ]);
+
+    for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
+      if (
+        entry.phase == null ||
+        entry.verificationClass == null ||
+        entry.verificationClass === "not_applicable" ||
+        nonAuthoredVerificationExceptions.has(capability)
+      ) {
+        continue;
+      }
+      expect(STATE_MUTATIONS.has(capability), capability).toBe(true);
+    }
+  });
+
   test("successful phase handoff records the real transition and requests one refresh", () => {
     const delta = buildControlDelta({
       capability: "switch_authoring_phase",

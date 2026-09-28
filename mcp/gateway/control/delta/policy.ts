@@ -36,7 +36,7 @@ export const TEXTURE_APPEARANCE_MUTATIONS = new Set([
 ]);
 
 export const MATERIAL_RENDER_MUTATIONS = new Set([
-  "create_pbr_material", "configure_material", "assign_texture_channel", "save_material_config",
+  "create_pbr_material", "configure_material", "assign_texture_channel",
   "set_face_material_instance", "bulk_set_material_instances", "clear_material_instances",
   "manage_material", "manage_material_instances", "manage_render_profile",
 ]);
