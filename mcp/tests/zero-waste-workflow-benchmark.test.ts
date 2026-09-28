@@ -169,6 +169,19 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(workflow.quality_checks.unsupported_family_candidates_removed).toBe(
       true
     );
+    expect(
+      workflow.quality_checks.full_candidate_payload_not_carried_forward
+    ).toBe(true);
+    expect(workflow.quality_checks.rejected_candidates_reduced_to_ids).toBe(true);
+    const continuation = workflow.optimized.steps.find(
+      (step) =>
+        step.kind === "mutate" &&
+        JSON.stringify(step).includes("decision_summary")
+    );
+    expect(continuation).toBeDefined();
+    expect(JSON.stringify(continuation)).toContain("resize-096");
+    expect(JSON.stringify(continuation)).not.toContain("predicted_error\":0.07");
+
   });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {
