@@ -405,6 +405,98 @@ describe("zero-waste correction loop reuse", () => {
     expect(JSON.stringify(decision.decision_summary)).not.toContain("semantic_group");
   });
 
+  test("projects a pruned correction continuation without internal recipe or solver history", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-continuation",
+      base_recipe: { ...recipe(), id: "asset-continuation", name: "asset-continuation" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:continuation",
+      discrepancies: [
+        {
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Upper arms are slightly too narrow.",
+          views: ["front"],
+          evidence_targets: ["width"],
+        },
+        {
+          code: "SHOULDER_CONTACT",
+          severity: "REVIEW",
+          summary: "Shoulder contact requires separate review.",
+          views: ["left"],
+          evidence_targets: ["attachment"],
+        },
+      ],
+    });
+
+    const before = registry.projectContinuation(handle);
+    expect(before).toMatchObject({
+      protocol: "lazydesigner-correction-continuation-v1",
+      state: "READY",
+      unresolved_count: 2,
+      verification: { pending: false, risk: "MEDIUM" },
+    });
+    expect(before.fresh_view_evidence).toEqual([
+      { view: "front", handle: "verificationevidence:continuation" },
+      { view: "left", handle: "verificationevidence:continuation" },
+    ]);
+
+    registry.planGeometryCorrection(handle, [{
+      id: "widen-arms",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+
+    const pending = registry.projectContinuation(handle);
+    expect(pending.state).toBe("VERIFY_PENDING");
+    expect(pending.verification.target_discrepancy_codes).toEqual(["WIDTH_LOW"]);
+    expect(pending.verification.stale_views).toEqual(["front"]);
+    expect(pending.fresh_view_evidence).toEqual([
+      { view: "left", handle: "verificationevidence:continuation" },
+    ]);
+    expect(JSON.stringify(pending)).not.toContain("base_recipe");
+    expect(JSON.stringify(pending)).not.toContain("evidence_fingerprint");
+    expect(JSON.stringify(pending)).not.toContain("selected_candidate_id");
+    expect(JSON.stringify(pending)).not.toContain("rejected_candidate_ids");
+    expect(JSON.stringify(pending)).not.toContain("scope_instance_ids");
+
+    registry.updateEvidence(handle, "verificationevidence:front-fresh", []);
+    const after = registry.projectContinuation(handle);
+    expect(after.state).toBe("READY");
+    expect(after.unresolved.map((item) => item.code)).toEqual([
+      "SHOULDER_CONTACT",
+    ]);
+    expect(after.fresh_view_evidence).toEqual([
+      { view: "front", handle: "verificationevidence:front-fresh" },
+      { view: "left", handle: "verificationevidence:continuation" },
+    ]);
+    expect(after.verification.pending).toBe(false);
+  });
+
   test("targeted evidence update preserves unrelated discrepancies and tracks per-view handles across rounds", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
