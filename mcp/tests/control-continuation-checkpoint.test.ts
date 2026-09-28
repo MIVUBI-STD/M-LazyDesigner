@@ -154,4 +154,27 @@ describe("Control compaction-safe continuation checkpoint", () => {
       new TextEncoder().encode(JSON.stringify(value)).byteLength;
     expect(bytes(checkpoint)).toBeLessThan(bytes({ packet, delta }));
   });
+  test("excludes process-local orchestration handles so restart reorients from Runtime and Workspace", async () => {
+    const packet = await buildControlPacket(status);
+    const delta = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { geometry_effect: { changed_fields: ["rotation"] } },
+    });
+    const checkpoint = buildControlContinuationCheckpoint(packet, delta);
+    const serialized = JSON.stringify(checkpoint);
+
+    expect(serialized).not.toContain("verificationevidence:");
+    expect(serialized).not.toContain("correctionloop:");
+    expect(serialized).not.toContain("correctionctx:");
+    expect(serialized).not.toContain("correctiongroup:");
+    expect(checkpoint.project.active_uuid).toBe("project-a");
+    expect(checkpoint.workspace).toEqual(packet.workspace);
+    expect(checkpoint.reference).toEqual(packet.reference);
+    expect(checkpoint.last_operation?.verification_class).toBe("visual");
+  });
+
 });
