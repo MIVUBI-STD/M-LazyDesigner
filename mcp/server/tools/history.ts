@@ -4,6 +4,10 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { requireOpenProject } from "@/lib/util";
+import {
+  mergeSemanticHistoryEffects,
+  type SemanticHistoryEffect,
+} from "@/lib/semanticHistory";
 
 function historyStepsParameters(action: "undo" | "redo") {
   return z.object({
@@ -150,7 +154,10 @@ function summarizeHistory(limit: number): {
   };
 }
 
-function applyHistorySteps(direction: HistoryDirection, steps: number): string[] {
+function applyHistorySteps(
+  direction: HistoryDirection,
+  steps: number
+): { actions: string[]; semantic_effect: SemanticHistoryEffect | null } {
   if (Undo.current_save) throw new Error("Finish the active Undo edit before navigating history.");
   const history = Undo.history ?? [];
   const index = Undo.index ?? 0;
@@ -172,12 +179,14 @@ function applyHistorySteps(direction: HistoryDirection, steps: number): string[]
   }
 
   const actions: string[] = [];
+  const traversedEntries: object[] = [];
   try {
     for (let i = 0; i < steps; i++) {
       const previousIndex = Undo.index ?? 0;
       const entryIndex =
         direction === "undo" ? (Undo.index ?? 0) - 1 : (Undo.index ?? 0);
-      const entry = history[entryIndex] as { action?: string } | undefined;
+      const entry = history[entryIndex] as ({ action?: string } & object) | undefined;
+      if (entry) traversedEntries.push(entry);
       if (direction === "undo") {
         Undo.undo();
       } else {
@@ -197,7 +206,10 @@ function applyHistorySteps(direction: HistoryDirection, steps: number): string[]
     );
   }
 
-  return actions;
+  return {
+    actions,
+    semantic_effect: mergeSemanticHistoryEffects(traversedEntries),
+  };
 }
 
 export function registerHistoryTools() {
@@ -208,9 +220,10 @@ export function registerHistoryTools() {
       const undone = applyHistorySteps("undo", steps);
       const position = currentHistoryPosition();
       const result = {
-        undone_count: undone.length,
+        undone_count: undone.actions.length,
         requested: steps,
-        undone,
+        undone: undone.actions,
+        semantic_effect: undone.semantic_effect,
         new_index: position.index,
         total: position.total,
         can_undo: position.can_undo,
@@ -220,7 +233,7 @@ export function registerHistoryTools() {
         content: [
           {
             type: "text" as const,
-            text: `Undid ${undone.length} edit(s); history is now at ${position.index}/${position.total}.`,
+            text: `Undid ${undone.actions.length} edit(s); history is now at ${position.index}/${position.total}.`,
           },
         ],
         structuredContent: result,
@@ -236,9 +249,10 @@ export function registerHistoryTools() {
       Canvas.updateAll();
       const position = currentHistoryPosition();
       const result = {
-        redone_count: redone.length,
+        redone_count: redone.actions.length,
         requested: steps,
-        redone,
+        redone: redone.actions,
+        semantic_effect: redone.semantic_effect,
         new_index: position.index,
         total: position.total,
         can_undo: position.can_undo,
@@ -248,7 +262,7 @@ export function registerHistoryTools() {
         content: [
           {
             type: "text" as const,
-            text: `Redid ${redone.length} edit(s); history is now at ${position.index}/${position.total}.`,
+            text: `Redid ${redone.actions.length} edit(s); history is now at ${position.index}/${position.total}.`,
           },
         ],
         structuredContent: result,

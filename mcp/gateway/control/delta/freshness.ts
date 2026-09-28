@@ -317,11 +317,32 @@ export function staleScopesForMutation(
     };
   }
 
-  if (
-    capability === "create_project" ||
-    capability === "undo" ||
-    capability === "redo"
-  ) {
+  if (capability === "create_project") {
+    return {
+      stale: [...ALL_FRESHNESS_SCOPES],
+      precise: false,
+    };
+  }
+
+  if (capability === "undo" || capability === "redo") {
+    for (const candidate of resultCandidates(result)) {
+      const semanticEffect = record(candidate.semantic_effect);
+      if (
+        semanticEffect &&
+        Array.isArray(semanticEffect.stale) &&
+        semanticEffect.stale.length > 0 &&
+        semanticEffect.stale.every((scope) =>
+          ALL_FRESHNESS_SCOPES.includes(scope as ControlFreshnessScope)
+        )
+      ) {
+        return {
+          stale: [...new Set(
+            semanticEffect.stale as ControlFreshnessScope[]
+          )],
+          precise: true,
+        };
+      }
+    }
     return {
       stale: [...ALL_FRESHNESS_SCOPES],
       precise: false,
