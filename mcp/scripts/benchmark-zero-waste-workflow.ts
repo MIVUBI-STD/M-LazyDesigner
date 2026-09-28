@@ -771,6 +771,61 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const continuationPruning = summarize(
+    "correction_continuation_pruning",
+    [
+      step(
+        "verify",
+        {
+          correction_state: {
+            selected_candidate_id: "resize-096",
+            rejected_candidate_ids: ["resize-094", "resize-098"],
+            selected_metrics: { predicted_error: 0.05, mutation_cost: 0.08, risk: 0.1 },
+            base_recipe: "full recipe payload",
+            evidence_fingerprint: "sha256:old",
+            resolved_discrepancy: "WIDTH_HIGH",
+            unresolved_discrepancy: "SHOULDER_CONTACT",
+            stale_handle: "verificationevidence:old-front",
+            fresh_handles: {
+              front: "verificationevidence:front-fresh",
+              left: "verificationevidence:left-fresh",
+            },
+          },
+        },
+        true,
+        "Baseline carries resolved solver/evidence history forward after verification.",
+        { reasoningClass: "MEDIUM" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          protocol: "lazydesigner-correction-continuation-v1",
+          state: "READY",
+          unresolved: ["SHOULDER_CONTACT"],
+          fresh_view_evidence: {
+            front: "verificationevidence:front-fresh",
+            left: "verificationevidence:left-fresh",
+          },
+          verification: { pending: false },
+        },
+        true,
+        "Optimized continuation keeps only unresolved work, fresh view handles, and pending verification state.",
+        { reasoningClass: "LOW" }
+      ),
+    ],
+    {
+      unresolved_issue_preserved: true,
+      fresh_view_evidence_preserved: true,
+      pending_verification_preserved: true,
+      resolved_discrepancy_pruned: true,
+      old_candidate_history_pruned: true,
+      stale_handle_pruned: true,
+      recipe_internal_state_pruned: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -812,6 +867,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     visualCorrection,
     crossViewReuse,
     candidateEconomy,
+    continuationPruning,
     failedMutation,
   ];
 }
