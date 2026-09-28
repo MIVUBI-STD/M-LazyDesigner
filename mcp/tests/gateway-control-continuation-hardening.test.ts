@@ -1,12 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { buildControlDelta, projectControlDeltaForGateway } from "@/gateway/control";
 import { CAPABILITY_CORE_MANIFEST } from "@/lib/capabilities/manifest";
-import {
-  ANIMATION_MOTION_MUTATIONS,
-  MATERIAL_RENDER_MUTATIONS,
-  STATE_MUTATIONS,
-  TEXTURE_APPEARANCE_MUTATIONS,
-} from "@/gateway/control/delta/policy";
+import { STATE_MUTATIONS } from "@/gateway/control/delta/policy";
 
 describe("LazyDesigner Control continuation hardening", () => {
   test("capability manifest and Control mutation policy cannot silently drift apart", () => {
@@ -18,16 +13,6 @@ describe("LazyDesigner Control continuation hardening", () => {
       expect(entry?.phase, capability).toBeDefined();
       expect(entry?.verificationClass, capability).not.toBeUndefined();
       expect(entry?.verificationClass, capability).not.toBe("not_applicable");
-    }
-
-    for (const scopedSet of [
-      TEXTURE_APPEARANCE_MUTATIONS,
-      MATERIAL_RENDER_MUTATIONS,
-      ANIMATION_MOTION_MUTATIONS,
-    ]) {
-      for (const capability of scopedSet) {
-        expect(STATE_MUTATIONS.has(capability), capability).toBe(true);
-      }
     }
 
     const nonAuthoredVerificationExceptions = new Set([

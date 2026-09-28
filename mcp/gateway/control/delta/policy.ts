@@ -1,7 +1,4 @@
-import {
-  capabilitiesByStateClass,
-  CAPABILITY_CORE_MANIFEST,
-} from "../../../lib/capabilities/manifest";
+import { capabilitiesByStateClass } from "../../../lib/capabilities/manifest";
 import type { ControlFreshnessScope } from "../types";
 
 export const STATE_MUTATIONS = new Set(
@@ -17,36 +14,6 @@ export const STATE_MUTATIONS = new Set(
     "animation_effects",
     "particle"
   )
-);
-
-export const UV_FIELDS = new Set([
-  "faces", "box_uv", "uv_offset", "mirror_uv", "autouv",
-]);
-
-export const SHAPE_FIELDS = new Set([
-  "from", "to", "inflate",
-]);
-
-export const HIERARCHY_OR_MOTION_STRUCTURE = new Set(
-  [...CAPABILITY_CORE_MANIFEST.entries()]
-    .filter(([, entry]) =>
-      entry.defaultStaleScopes?.length === 2 &&
-      entry.defaultStaleScopes.includes("GEOMETRY_STRUCTURE") &&
-      entry.defaultStaleScopes.includes("ANIMATION_MOTION")
-    )
-    .map(([name]) => name)
-);
-
-export const TEXTURE_APPEARANCE_MUTATIONS = new Set(
-  capabilitiesByStateClass("texture_appearance")
-);
-
-export const MATERIAL_RENDER_MUTATIONS = new Set(
-  capabilitiesByStateClass("material_render")
-);
-
-export const ANIMATION_MOTION_MUTATIONS = new Set(
-  capabilitiesByStateClass("animation_motion")
 );
 
 export const ALL_FRESHNESS_SCOPES: readonly ControlFreshnessScope[] = [
