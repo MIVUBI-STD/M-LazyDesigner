@@ -43,9 +43,15 @@ describe("Consolidated capability validation preservation", () => {
     }
   });
 
-  test("material save exposes a persistence-only continuation receipt", () => {
-    expect(containsSignature('operation !== "save"')).toBe(true);
-    expect(containsSignature('scope: "material_persistence_only"')).toBe(true);
+  test("material consolidation stays routing-only for persistence receipts", async () => {
+    const materialProducer = await Bun.file(
+      "server/tools/texture-materials.ts"
+    ).text();
+
+    expect(source).not.toContain('operation !== "save"');
+    expect(source).not.toContain('scope: "material_persistence_only"');
+    expect(materialProducer).toContain("materialPersistenceReceipt({");
+    expect(materialProducer).toContain('scope: "material_persistence_only"');
   });
 
   test("animation timeline branches reuse canonical executor schemas", () => {
