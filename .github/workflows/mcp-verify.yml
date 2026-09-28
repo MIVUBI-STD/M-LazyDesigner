@@ -45,6 +45,24 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Prove exact SHA
+        working-directory: .
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          test "$actual_sha" = "$EXPECTED_SHA"
+          {
+            echo "### MCP exact-SHA proof"
+            echo
+            echo "- exact_sha: `$actual_sha`"
+            echo "- event: `${{ github.event_name }}`"
+            echo "- full_acceptance: `${{ github.event_name != 'push' }}`"
+            echo "- live_local_tests: excluded"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:

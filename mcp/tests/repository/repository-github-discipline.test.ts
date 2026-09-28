@@ -146,17 +146,20 @@ describe("repository GitHub discipline", () => {
   });
 
 
-  test("remote acceptance proves exact Local SHA without claiming live evidence", async () => {
-    const remote = await source("../.github/workflows/remote-acceptance.yml");
+  test("MCP Verify owns bounded push verification and exact-SHA full manual acceptance", async () => {
+    const mcp = await source("../.github/workflows/mcp-verify.yml");
     const packageText = await source("package.json");
     const scripts = JSON.parse(packageText).scripts as Record<string, string>;
 
-    expect(remote).toContain("name: Remote Acceptance");
-    expect(remote).toContain("Exact-SHA remote acceptance");
-    expect(remote).toContain('ref: ${{ github.sha }}');
-    expect(remote).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
-    expect(remote).toContain("bun run verify:remote");
-    expect(remote).toContain("live_local_tests: excluded");
+    expect(mcp).toContain("name: MCP Verify");
+    expect(mcp).toContain("workflow_dispatch:");
+    expect(mcp).toContain('EXPECTED_SHA: ${{ github.sha }}');
+    expect(mcp).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
+    expect(mcp).toContain("MCP exact-SHA proof");
+    expect(mcp).toContain('if [[ "$EVENT_NAME" != "push" ]]');
+    expect(mcp).toContain("Manual/non-push verification uses the canonical full verifier.");
+    expect(mcp).toContain("bun run verify:remote");
+    expect(mcp).toContain("live_local_tests: excluded");
     expect(scripts["verify:remote"]).toBe("bun run verify:full");
     expect(scripts["verify:remote"]).not.toMatch(/live/i);
   });

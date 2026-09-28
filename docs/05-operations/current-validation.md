@@ -483,8 +483,8 @@ Golden Task cost-to-accepted-result measurement
 Do not add a second updater, Gateway daemon/watchdog, compatibility table, authoring engine, asset database, workflow engine, or Desktop AI chat to compensate for missing live proof.
 
 
-## Exact-SHA Remote Acceptance
+## Exact-SHA Source Acceptance
 
-Source-impacting `Local` heads are eligible for a separate **Remote Acceptance** workflow. It checks out the exact `github.sha`, proves `HEAD == github.sha`, installs the frozen dependency graph, and runs `bun run verify:remote`.
+`MCP Verify` is the canonical executable source-verification workflow for `Local`. Every run proves `HEAD == github.sha`. Push events use the affected planner and fail wide to the canonical full verifier when bounded ownership is insufficient; manual/non-push execution uses `bun run verify:remote` directly.
 
-This is remote/static execution proof only. It intentionally excludes `*:live` and local Blockbench acceptance gates, so a green Remote Acceptance run must not be described as live Runtime or visual proof.
+This is remote/static execution proof only. It intentionally excludes `*:live` and local Blockbench acceptance gates, so a green MCP Verify run must not be described as live Runtime or visual proof. A separate duplicate full-acceptance workflow is intentionally not maintained.
