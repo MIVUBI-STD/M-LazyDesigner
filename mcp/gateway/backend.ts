@@ -48,6 +48,7 @@ import {
   type GatewayRuntimeInvocation,
   type GatewayRuntimeStatus,
   type HealthProbe,
+  type RuntimeGenerationChangeEvent,
 } from "./runtime/backendContract";
 
 export {
@@ -57,6 +58,7 @@ export {
   type GatewayRuntimeInvocation,
   type GatewayRuntimeStatus,
   type BlockitRuntimeBackendOptions,
+  type RuntimeGenerationChangeEvent,
 } from "./runtime/backendContract";
 
 export class BlockitRuntimeBackend {
@@ -66,6 +68,9 @@ export class BlockitRuntimeBackend {
   private readonly callTimeoutMs: number;
   private readonly closeTimeoutMs: number;
   private readonly catalogLeaseMs: number;
+  private readonly onRuntimeGenerationChange:
+    | ((event: RuntimeGenerationChangeEvent) => void)
+    | undefined;
   private readonly connection = new GatewayConnectionManager();
   private readonly operationQueue: GatewayOperationQueue;
   private client: Client | null = null;
@@ -115,6 +120,7 @@ export class BlockitRuntimeBackend {
       1000,
       100
     );
+    this.onRuntimeGenerationChange = options.onRuntimeGenerationChange;
   }
 
   private runExclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -256,6 +262,8 @@ export class BlockitRuntimeBackend {
   }
 
   private async connectFreshUnsafe(signature: string): Promise<void> {
+    const previousSignature = this.connectedSignature;
+    const hadReadyRuntime = this.connection.session.hasBeenReady();
     await this.closeConnectionUnsafe();
     this.connection.beginConnect();
 
@@ -281,6 +289,15 @@ export class BlockitRuntimeBackend {
       this.catalogValidatedAt = Date.now();
       this.lastError = null;
       this.connection.markReady({ catalogRefreshed: true });
+      if (hadReadyRuntime) {
+        const snapshot = this.connection.snapshot();
+        this.onRuntimeGenerationChange?.({
+          previous_signature: previousSignature,
+          next_signature: signature,
+          connection_generation: snapshot.generation,
+          reconnect_count: snapshot.reconnect_count,
+        });
+      }
     } catch (error) {
       await this.closeClientBestEffort(client);
       const message = errorMessage(error);
