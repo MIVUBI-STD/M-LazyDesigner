@@ -882,6 +882,80 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const continuationIdentityDedup = summarize(
+    "correction_continuation_identity_dedup",
+    [
+      step(
+        "verify",
+        {
+          continuation: {
+            unresolved: ["SHOULDER_CONTACT"],
+            fresh_view_evidence: {
+              front: "verificationevidence:front-fresh",
+              left: "verificationevidence:left-fresh",
+            },
+            verification: { pending: false },
+          },
+        },
+        true,
+        "Baseline resends an unchanged continuation payload.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation: {
+            unresolved: ["SHOULDER_CONTACT"],
+            fresh_view_evidence: {
+              front: "verificationevidence:front-fresh",
+              left: "verificationevidence:left-fresh",
+            },
+            verification: { pending: false },
+          },
+        },
+        false,
+        "Baseline repeats the same state again even though identity is unchanged.",
+        { reasoningClass: "LOW" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          continuation_id: "correctionctx:stable",
+          payload: {
+            unresolved: ["SHOULDER_CONTACT"],
+            fresh_view_evidence: {
+              front: "verificationevidence:front-fresh",
+              left: "verificationevidence:left-fresh",
+            },
+            verification: { pending: false },
+          },
+        },
+        true,
+        "First delivery includes the payload and its deterministic identity.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation_id: "correctionctx:stable",
+          cached: true,
+          payload: null,
+        },
+        false,
+        "Unchanged state is acknowledged by identity only.",
+        { reasoningClass: "NONE" }
+      ),
+    ],
+    {
+      first_payload_preserved: true,
+      unchanged_payload_not_repeated: true,
+      identity_preserved: true,
+      changed_state_requires_new_identity: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -925,6 +999,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     candidateEconomy,
     continuationPruning,
     continuationModeSelection,
+    continuationIdentityDedup,
     failedMutation,
   ];
 }
