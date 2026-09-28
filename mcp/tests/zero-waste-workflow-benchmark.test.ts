@@ -135,8 +135,8 @@ describe("Zero-Waste workflow benchmark", () => {
       (item) => item.workflow === "visual_cross_view_reuse"
     )!;
     expect(workflow.quality_preserved).toBe(true);
-    expect(workflow.optimized.image_inputs).toBe(3);
-    expect(workflow.baseline.image_inputs).toBe(4);
+    expect(workflow.optimized.image_inputs).toBe(4);
+    expect(workflow.baseline.image_inputs).toBe(6);
     expect(workflow.optimized.image_pixel_area).toBeLessThan(
       workflow.baseline.image_pixel_area
     );
@@ -145,6 +145,12 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(workflow.quality_checks.cross_view_guard_retained).toBe(true);
     expect(
       workflow.quality_checks.incomplete_provenance_falls_back_conservatively
+    ).toBe(true);
+    expect(workflow.quality_checks.per_view_handles_survive_multiple_rounds).toBe(
+      true
+    );
+    expect(
+      workflow.quality_checks.unrelated_discrepancies_survive_targeted_updates
     ).toBe(true);
   });
 
