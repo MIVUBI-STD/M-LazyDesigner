@@ -13,6 +13,7 @@ import {
   materialInstanceMutationReceiptComplete,
   renderProfileMutationReceiptComplete,
   removeElementReceiptComplete,
+  renameElementReceiptComplete,
   locatorReceiptComplete,
   nativeIkControllerReceiptComplete,
   boneRiggingStateReceiptComplete,
@@ -181,7 +182,12 @@ export function verificationClassForResult(
     return "receipt_only";
   }
 
-
+  if (
+    capability === "rename_element" &&
+    renameElementReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
 
   if (
     (capability === "manage_locator" || capability === "manage_null_object") &&

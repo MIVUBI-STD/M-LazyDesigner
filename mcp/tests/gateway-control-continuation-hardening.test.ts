@@ -560,6 +560,59 @@ describe("LazyDesigner Control continuation hardening", () => {
     ]);
   });
 
+  test("applied rename requires a complete shared receipt before receipt-only continuation", () => {
+    const malformed = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        element: {
+          uuid: "",
+          name: "broken",
+          type: "cube",
+          parent: "root",
+        },
+      },
+    });
+    expect(malformed.verification_class).toBe("focused_read");
+
+    const complete = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        element: {
+          uuid: "cube-a",
+          name: "body_new",
+          type: "cube",
+          parent: "root",
+        },
+      },
+    });
+    expect(complete.verification_class).toBe("receipt_only");
+
+    const planned = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "planned",
+        changes: [{ id: "group-a", old_name: "arm", new_name: "arm_new" }],
+        affected_animations: 1,
+      },
+    });
+    expect(planned.freshness.basis).toBe("NO_CHANGE");
+    expect(planned.verification_class).toBe("receipt_only");
+  });
+
   test("semantic Undo/Redo narrows freshness and domain invalidation when history evidence is complete", () => {
     const materialUndo = buildControlDelta({
       capability: "undo",

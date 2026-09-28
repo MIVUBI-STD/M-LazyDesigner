@@ -171,7 +171,7 @@ const HEAVY: readonly string[] = [
 ];
 
 const RECEIPT_ONLY: readonly string[] = [
-  "create_project", "rename_element", "switch_authoring_phase",
+  "create_project", "switch_authoring_phase",
 ];
 
 const FOCUSED_READ: readonly string[] = [

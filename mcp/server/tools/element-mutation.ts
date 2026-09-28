@@ -6,6 +6,7 @@ import {
   recordCurrentSemanticHistoryEffect,
 } from "@/lib/semanticHistory";
 import { removeElementReceipt } from "@/lib/receipts/removeElement";
+import { renameElementReceipt } from "@/lib/receipts/renameElement";
 import {
   removedElementSemanticScopes,
   renamedElementSemanticScopes,
@@ -234,7 +235,11 @@ export function registerElementMutationTools(): void {
             const changes = plan.rows.map(row => ({id: row.group.uuid, old_name: row.old_name, new_name: row.new_name}));
             if (batch.dry_run || !changes.length) return {
               content: [{type: "text" as const, text: `${changes.length} Group rename(s) planned; no mutation.`}],
-              structuredContent: {execution: batch.dry_run ? "planned" : "unchanged", changes, affected_animations: plan.references.length},
+              structuredContent: renameElementReceipt({
+                execution: batch.dry_run ? "planned" : "unchanged",
+                changes,
+                affected_animations: plan.references.length,
+              }),
             };
             Undo.initEdit({groups: plan.rows.map(row => row.group) as Group[], animations: plan.references.map(ref => ref.animation) as unknown as _Animation[], outliner: true});
             try {
@@ -245,7 +250,15 @@ export function registerElementMutationTools(): void {
               );
             } catch(error) {Undo.cancelEdit(true); Canvas.updateAll(); throw error;}
             Canvas.updateAll();
-            return {content:[{type:"text" as const,text:`Renamed ${changes.length} Groups and synchronized ${plan.references.length} animation(s).`}], structuredContent:{execution:"applied",changes,affected_animations:plan.references.length,...(singleElement ? {element: elementContinuationState(singleElement)} : {})}};
+            return {
+              content:[{type:"text" as const,text:`Renamed ${changes.length} Groups and synchronized ${plan.references.length} animation(s).`}],
+              structuredContent: renameElementReceipt({
+                execution:"applied",
+                changes,
+                affected_animations:plan.references.length,
+                ...(singleElement ? {element: elementContinuationState(singleElement)} : {}),
+              }),
+            };
           }
           const {new_name} = request;
           const element = singleElement!;
@@ -279,7 +292,10 @@ export function registerElementMutationTools(): void {
           }
     
           Canvas.updateAll();
-          const result = { element: elementContinuationState(element) };
+          const result = renameElementReceipt({
+            execution: "applied",
+            element: elementContinuationState(element),
+          });
           return {
             content: [
               {

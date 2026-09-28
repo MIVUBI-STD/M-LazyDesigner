@@ -13,6 +13,7 @@ import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMu
 import { isRenderProfileMutationReceipt } from "../../../lib/receipts/renderProfile";
 import { isTextureGroupReceipt } from "../../../lib/receipts/textureGroup";
 import { isRemoveElementReceipt } from "../../../lib/receipts/removeElement";
+import { isAppliedRenameElementReceipt } from "../../../lib/receipts/renameElement";
 
 export function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -148,3 +149,7 @@ export function animationEffectsReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isAnimationEffectsReceipt);
 }
 
+
+export function renameElementReceiptComplete(value: unknown): boolean {
+  return resultCandidates(value).some(isAppliedRenameElementReceipt);
+}
