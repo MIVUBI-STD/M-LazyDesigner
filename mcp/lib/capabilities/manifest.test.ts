@@ -117,6 +117,58 @@ describe("core capability manifest", () => {
     }
   });
 
+  test("state classes own coherent semantic stale-scope defaults", () => {
+    const allScopes = new Set([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "MATERIAL_RENDER",
+      "ANIMATION_MOTION",
+      "ANIMATION_CONTROLLER",
+      "ANIMATION_EFFECTS",
+      "PARTICLE_SYSTEM",
+    ]);
+
+    const exactByClass = new Map([
+      ["uv", ["UV_MAPPING", "TEXTURE_APPEARANCE"]],
+      ["texture_appearance", ["TEXTURE_APPEARANCE"]],
+      ["texture_material", ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"]],
+      ["material_render", ["MATERIAL_RENDER"]],
+      ["animation_motion", ["ANIMATION_MOTION"]],
+      ["animation_controller", ["ANIMATION_CONTROLLER"]],
+      ["animation_effects", ["ANIMATION_EFFECTS"]],
+      ["particle", ["PARTICLE_SYSTEM"]],
+      ["persistence", []],
+    ] as const);
+
+    for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
+      if (!entry.stateClass) continue;
+      const scopes = [...(entry.defaultStaleScopes ?? [])];
+
+      for (const scope of scopes) {
+        expect(allScopes.has(scope), capability).toBe(true);
+      }
+
+      if (entry.stateClass === "cross_authoring") {
+        expect(new Set(scopes), capability).toEqual(allScopes);
+        continue;
+      }
+
+      const expected = exactByClass.get(entry.stateClass as any);
+      if (expected) {
+        expect(scopes.sort(), capability).toEqual([...expected].sort());
+        continue;
+      }
+
+      // Geometry capabilities intentionally retain per-capability precision,
+      // but an authored Geometry mutation must never have an empty default.
+      if (entry.stateClass === "geometry") {
+        expect(scopes.length, capability).toBeGreaterThan(0);
+        expect(scopes, capability).toContain("GEOMETRY_STRUCTURE");
+      }
+    }
+  });
+
   test("keeps aliases and maintenance classification centralized", () => {
     expect(
       getCapabilityCoreManifestEntry("manage_uv_layout")?.aliases
