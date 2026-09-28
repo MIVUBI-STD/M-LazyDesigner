@@ -1,3 +1,4 @@
+import { cubeChangedFieldsFromResult } from "../../../lib/receipts/cubeMutation";
 import type {
   ControlAuthoringDomain,
   ControlDelta,
@@ -178,18 +179,7 @@ export function capabilityMutatesState(
 export function effectChangedFields(value: unknown): string[] {
   const root = record(value);
   if (!root) return [];
-  const fields = new Set<string>();
-  const addEffect = (raw: unknown) => {
-    const effect = record(raw);
-    const geometryEffect = record(effect?.geometry_effect);
-    const changed = geometryEffect?.changed_fields;
-    if (Array.isArray(changed)) {
-      for (const field of changed) if (typeof field === "string") fields.add(field);
-    }
-  };
-  addEffect(root);
-  if (Array.isArray(root.effects)) for (const effect of root.effects) addEffect(effect);
-  return [...fields];
+  return cubeChangedFieldsFromResult(root);
 }
 
 export function geometryInvalidation(capability: string, result: unknown): ControlAuthoringDomain[] {

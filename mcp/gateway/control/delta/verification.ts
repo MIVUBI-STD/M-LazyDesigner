@@ -1,4 +1,5 @@
 import { getCapabilityMetadata } from "../../../lib/capabilityMetadata";
+import { cubeVisualScopeFromResult } from "../../../lib/receipts/cubeMutation";
 import type { ControlDelta, ControlVerificationScope } from "../types";
 import { STATE_MUTATIONS } from "./policy";
 import {
@@ -21,23 +22,14 @@ import {
 
 export function cubeVerificationScope(value: unknown): ControlVerificationScope | null {
   for (const candidate of resultCandidates(value)) {
-    const scope = record(candidate.visual_scope);
-    const framing = record(scope?.framing);
-    const ids = scope?.cube_uuids;
-    const min = framing?.min;
-    const max = framing?.max;
-    if (
-      !Array.isArray(ids) || ids.length === 0 || ids.length > 32 ||
-      !ids.every((entry) => typeof entry === "string") ||
-      !Array.isArray(min) || !Array.isArray(max) || min.length !== 3 || max.length !== 3 ||
-      ![...min, ...max].every((entry) => typeof entry === "number" && Number.isFinite(entry))
-    ) continue;
+    const scope = cubeVisualScopeFromResult(candidate);
+    if (!scope) continue;
     return {
       kind: "CUBE_TARGETS",
-      cube_uuids: [...ids],
+      cube_uuids: [...scope.cube_uuids],
       framing: {
-        min: [...min] as [number, number, number],
-        max: [...max] as [number, number, number],
+        min: [...scope.framing.min] as [number, number, number],
+        max: [...scope.framing.max] as [number, number, number],
       },
     };
   }

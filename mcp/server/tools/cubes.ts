@@ -1,6 +1,10 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import {
+  cubeGeometryEffect as validatedCubeGeometryEffect,
+  cubeVisualScope as validatedCubeVisualScope,
+} from "@/lib/receipts/cubeMutation";
 import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { autoUvEnum, cubeSchema, faceEnum } from "@/lib/zodObjects";
@@ -613,13 +617,13 @@ function cubeVisualScope(cubes: readonly Cube[]) {
   try {
     const observed = readRenderedCubeBounds(cubes.map((cube) => cube.uuid));
     if (!observed.bounds) return null;
-    return {
+    return validatedCubeVisualScope({
       cube_uuids: cubes.map((cube) => cube.uuid),
       framing: {
         min: observed.bounds.min,
         max: observed.bounds.max,
       },
-    };
+    });
   } catch {
     // Visual scoping is optional evidence optimization; authoring success remains authoritative.
     return null;
@@ -668,7 +672,7 @@ function cubeGeometryEffect(before: CubeAuthoredState, after: CubeAuthoredState)
   if (before.visibility !== after.visibility) changedFields.push("visibility");
   if (!faceUvsEqual(before.face_uvs, after.face_uvs)) changedFields.push("faces");
 
-  return {
+  return validatedCubeGeometryEffect({
     changed_fields: changedFields,
     center_delta: vec3Delta(cubeStateCenter(after), cubeStateCenter(before)),
     size_delta: vec3Delta(after.size, before.size),
@@ -683,7 +687,7 @@ function cubeGeometryEffect(before: CubeAuthoredState, after: CubeAuthoredState)
     autouv_changed: before.autouv !== after.autouv,
     visibility_changed: before.visibility !== after.visibility,
     faces_changed: changedFields.includes("faces"),
-  };
+  });
 }
 
 type ModifyCubeRequest = z.infer<typeof modifyCubeParameters>;
