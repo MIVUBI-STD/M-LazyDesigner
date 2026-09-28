@@ -251,8 +251,8 @@ describe("Control Texture mutation precision", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
-  test("material save preserves semantic freshness while marking persistence state changed", () => {
-    const delta = buildControlDelta({
+  test("material save keeps authored freshness but requires complete persistence proof", () => {
+    const incomplete = buildControlDelta({
       capability: "manage_material",
       phaseBefore: "texturing",
       phaseAfter: "texturing",
@@ -264,13 +264,32 @@ describe("Control Texture mutation precision", () => {
       },
     });
 
-    expect(delta.invalidates.authoring_domains).toEqual([]);
-    expect(delta.invalidates.workspace_projection).toBe(true);
-    expect(delta.invalidates.acceptance_gates).toBe(false);
-    expect(delta.freshness.basis).toBe("NO_CHANGE");
-    expect(delta.freshness.stale).toEqual([]);
-    expect(delta.freshness.fresh).toHaveLength(8);
-    expect(delta.verification_class).toBe("receipt_only");
+    expect(incomplete.invalidates.authoring_domains).toEqual([]);
+    expect(incomplete.invalidates.workspace_projection).toBe(true);
+    expect(incomplete.invalidates.acceptance_gates).toBe(false);
+    expect(incomplete.freshness.basis).toBe("NO_CHANGE");
+    expect(incomplete.freshness.stale).toEqual([]);
+    expect(incomplete.freshness.fresh).toHaveLength(8);
+    expect(incomplete.verification_class).toBe("focused_read");
+
+    const complete = buildControlDelta({
+      capability: "manage_material",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "save",
+        scope: "material_persistence_only",
+        material: { uuid: "material-a", name: "metal" },
+        file_path: "/tmp/material.texture_set.json",
+        saved: true,
+        file_exists: true,
+      },
+    });
+
+    expect(complete.freshness.basis).toBe("NO_CHANGE");
+    expect(complete.verification_class).toBe("receipt_only");
   });
 
   test("TextureGroup creation invalidates both appearance and material/render state", () => {

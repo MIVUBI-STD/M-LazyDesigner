@@ -5,6 +5,8 @@ import { STATE_MUTATIONS } from "./policy";
 import {
   record,
   resultCandidates,
+  materialPersistenceOnly,
+  materialPersistenceReceiptComplete,
   receiptSupportsContinuation,
 
 } from "./receipts";
@@ -108,6 +110,14 @@ export function verificationClassForResult(
 ): ControlDelta["verification_class"] {
   const fallback = getCapabilityMetadata(capability).verificationClass;
   if (!succeeded) return fallback;
+
+  if (
+    capability === "manage_material" &&
+    materialPersistenceOnly(result) &&
+    !materialPersistenceReceiptComplete(result)
+  ) {
+    return fallback;
+  }
 
   if (STATE_MUTATIONS.has(capability) && freshness.basis === "NO_CHANGE") {
     return "receipt_only";
