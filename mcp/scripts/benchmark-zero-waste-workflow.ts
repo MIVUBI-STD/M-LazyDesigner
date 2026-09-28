@@ -826,6 +826,62 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const continuationModeSelection = summarize(
+    "correction_continuation_mode_selection",
+    [
+      step(
+        "verify",
+        {
+          correction_state: "solver selected candidate",
+          model_decision:
+            "Choose whether to continue with candidate details, decision summary, verification state, or pruned continuation.",
+        },
+        true,
+        "Baseline asks the model to decide continuation representation.",
+        { reasoningClass: "MEDIUM" }
+      ),
+      step(
+        "verify",
+        {
+          correction_state: "verification pending",
+          model_decision:
+            "Choose whether to keep decision summary or switch to verification continuation.",
+        },
+        true,
+        "Baseline repeats mode selection after execution.",
+        { reasoningClass: "MEDIUM" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          continuation_mode: "DECISION_SUMMARY",
+          source: "planGeometryCorrection",
+        },
+        true,
+        "Runtime selects the immediate post-solver mode.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation_mode: "VERIFY_PENDING",
+          source: "projectContinuation",
+        },
+        true,
+        "Registry state selects the post-execution mode deterministically.",
+        { reasoningClass: "LOW" }
+      ),
+    ],
+    {
+      immediate_mode_preserved: true,
+      verification_mode_preserved: true,
+      no_model_mode_selection_required: true,
+      correction_state_semantics_preserved: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -868,6 +924,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     crossViewReuse,
     candidateEconomy,
     continuationPruning,
+    continuationModeSelection,
     failedMutation,
   ];
 }
