@@ -49,7 +49,7 @@ describe("LazyDesigner Control system-development intent", () => {
       {
         source: "mcp/server/runtime/uvLayoutService.ts",
         specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
-        test_owner: "mcp/tests/uv-registration-readiness.test.ts",
+        anchor_test: "mcp/tests/uv-registration-readiness.test.ts",
       },
     ]);
 
@@ -201,7 +201,7 @@ describe("LazyDesigner Control system-development intent", () => {
       expect(result.confidence, intent).toBe("STRONG");
       for (const entry of result.source_owners) {
         expect(existsSync(repoPath(entry.source)), `${intent}: ${entry.source}`).toBe(true);
-        if (entry.test_owner) expect(existsSync(repoPath(entry.test_owner)), `${intent}: ${entry.test_owner}`).toBe(true);
+        if (entry.anchor_test) expect(existsSync(repoPath(entry.anchor_test)), `${intent}: ${entry.anchor_test}`).toBe(true);
         if (entry.specialist) expect(existsSync(repoPath(entry.specialist)), `${intent}: ${entry.specialist}`).toBe(true);
       }
       for (const path of result.required_context_paths) expect(existsSync(repoPath(path)), `${intent}: context ${path}`).toBe(true);
