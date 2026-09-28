@@ -2,7 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import {
@@ -418,7 +418,7 @@ export function registerAnimationKeyframeTools(): void {
           }
   
           Undo.finishEdit(`${action} keyframes`);
-          recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
+          recordCurrentCapabilitySemanticHistoryEffect("manage_keyframes");
         } catch (error) {
           Undo.cancelEdit(true);
           Animator.preview();
@@ -581,7 +581,7 @@ export function registerAnimationKeyframeTools(): void {
           });
   
           Undo.finishEdit("Modify animation curves");
-          recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
+          recordCurrentCapabilitySemanticHistoryEffect("animation_graph_editor");
         } catch (error) {
           Undo.cancelEdit(true);
           Animator.preview();

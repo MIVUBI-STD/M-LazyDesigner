@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { animationEasingSchema, buildAnimationEasing } from "@/lib/animationEasing";
@@ -197,7 +197,7 @@ export function registerAnimationTimelineTool(): void {
           try {
             mutate();
             Undo.finishEdit(label);
-            recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
+            recordCurrentCapabilitySemanticHistoryEffect("animation_timeline");
           } catch (error) {
             Undo.cancelEdit(true);
             Animator.preview();
