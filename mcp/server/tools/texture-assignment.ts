@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { textureGroupReceipt } from "@/lib/receipts/textureGroup";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
@@ -200,7 +200,7 @@ export function registerTextureAssignmentTools(): void {
           }
   
           Undo.finishEdit("Agent applied texture");
-          recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"]);
+          recordCurrentCapabilitySemanticHistoryEffect("apply_texture");
         } catch (error) {
           Undo.cancelEdit(true);
           Canvas.updateAll();
@@ -255,7 +255,7 @@ export function registerTextureAssignmentTools(): void {
             texture_groups: [textureGroup],
             textures: textureList,
           });
-          recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"]);
+          recordCurrentCapabilitySemanticHistoryEffect("add_texture_group");
         } catch (error) {
           for (const { texture, group } of originalTextureGroups) {
             texture.group = group;

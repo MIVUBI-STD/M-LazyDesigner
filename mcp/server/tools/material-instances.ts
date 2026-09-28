@@ -1,7 +1,7 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { resolveCoreCube } from "@/lib/coreIdentity";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
@@ -365,7 +365,7 @@ export function registerMaterialInstanceTools() {
         const modifiedCount = applyMaterialInstanceFaceChanges(plannedChanges);
 
         Undo.finishEdit("Set material instances");
-        recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
+        recordCurrentCapabilitySemanticHistoryEffect("set_face_material_instance");
         Canvas.updateAll();
 
         const result = buildMaterialInstanceMutationSummary(
@@ -488,7 +488,7 @@ export function registerMaterialInstanceTools() {
         const totalModified = applyMaterialInstanceFaceChanges(plannedChanges);
 
         Undo.finishEdit("Bulk set material instances");
-        recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
+        recordCurrentCapabilitySemanticHistoryEffect("bulk_set_material_instances");
         Canvas.updateAll();
 
         const result = buildMaterialInstanceMutationSummary(
@@ -538,7 +538,7 @@ export function registerMaterialInstanceTools() {
         const clearedCount = applyMaterialInstanceFaceChanges(plannedChanges);
 
         Undo.finishEdit("Clear material instances");
-        recordCurrentSemanticHistoryEffect(["MATERIAL_RENDER"]);
+        recordCurrentCapabilitySemanticHistoryEffect("clear_material_instances");
         Canvas.updateAll();
 
         const result = buildMaterialInstanceMutationSummary(
