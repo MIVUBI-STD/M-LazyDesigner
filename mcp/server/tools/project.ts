@@ -1,6 +1,10 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import {
+  createProjectReceipt,
+  createProjectReceiptSchema,
+} from "@/lib/receipts/authorityTransition";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_STABLE } from "@/lib/constants";
 import { readRenderedModelBounds } from "@/lib/renderedModelBounds";
@@ -23,15 +27,7 @@ export const createProjectParameters = z
   })
   .strict();
 
-export const createProjectOutputSchema = z
-  .object({
-    project: z
-      .object({
-        uuid: z.string().min(1),
-      })
-      .passthrough(),
-  })
-  .passthrough();
+export const createProjectOutputSchema = createProjectReceiptSchema;
 
 export const getProjectInfoParameters = z.object({});
 export const inspectModelBoundsParameters = z.object({});
@@ -131,14 +127,14 @@ export function registerProjectTools() {
       Project!.texture_width = resolution ?? DEFAULT_BEDROCK_UV_RESOLUTION;
       Project!.texture_height = resolution ?? DEFAULT_BEDROCK_UV_RESOLUTION;
 
-      const result = {
+      const result = createProjectReceipt({
         project: currentProjectLifecycle(),
         format: { id: "bedrock" as const },
         resolution: {
           texture_width: Project!.texture_width ?? null,
           texture_height: Project!.texture_height ?? null,
         },
-      };
+      });
 
       return {
         content: [{
