@@ -735,9 +735,21 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       ),
       step(
         "mutate",
-        { selected_candidate: "resize-096" },
+        {
+          decision_summary: {
+            selected_candidate_id: "resize-096",
+            rejected_candidate_ids: ["resize-094", "resize-098"],
+            selected_metrics: {
+              predicted_error: 0.05,
+              mutation_cost: 0.08,
+              risk: 0.10,
+            },
+            candidate_count: 3,
+            candidate_budget: 3,
+          },
+        },
         true,
-        "Execute the same selected correction.",
+        "Continuation keeps only the compact solver decision; full candidate patches are discarded.",
         { reasoningClass: "LOW" }
       ),
       step(
@@ -754,6 +766,8 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       convergence_gate_kept: true,
       candidate_budget_respected: true,
       unsupported_family_candidates_removed: true,
+      full_candidate_payload_not_carried_forward: true,
+      rejected_candidates_reduced_to_ids: true,
     }
   );
 
