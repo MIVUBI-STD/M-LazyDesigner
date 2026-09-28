@@ -1,5 +1,9 @@
+import { CAPABILITY_CORE_MANIFEST } from "../../lib/capabilities/manifest";
 import type { ControlSourceOwner } from "./types";
-import { sourceOwnerForCapability } from "./sourceOwners";
+import {
+  authoringDomainForCapability,
+  sourceOwnerForCapability,
+} from "./sourceOwners";
 
 export type ControlDevelopmentDomain =
   | "GEOMETRY"
@@ -16,7 +20,7 @@ export type ControlDevelopmentResolution = {
   task_class: "SYSTEM_DEVELOPMENT";
   intent: string;
   domain: ControlDevelopmentDomain;
-  confidence: "STRONG" | "AMBIGUOUS" | "UNRESOLVED";
+  confidence: "EXACT" | "STRONG" | "AMBIGUOUS" | "UNRESOLVED";
   context_strategy:
     | "DIRECT_SOURCE_OWNERS"
     | "BOUNDED_SYMBOL_MAP"
@@ -154,6 +158,27 @@ function matches(text: string, term: string): boolean {
   return false;
 }
 
+function exactDevelopmentDomain(
+  capability: string
+): Exclude<ControlDevelopmentDomain, "UNRESOLVED"> | null {
+  if (capability === "manage_particle" || capability === "inspect_particle") {
+    return "PARTICLE";
+  }
+
+  const domain = authoringDomainForCapability(capability);
+  if (domain === "GEOMETRY" || domain === "TEXTURING" || domain === "ANIMATION") {
+    return domain;
+  }
+  return null;
+}
+
+function exactCapabilityMatches(text: string): string[] {
+  return [...CAPABILITY_CORE_MANIFEST.keys()]
+    .filter((capability) => exactDevelopmentDomain(capability) !== null)
+    .filter((capability) => matches(text, capability))
+    .sort((a, b) => a.localeCompare(b));
+}
+
 function baseResolution(intent: string): ControlDevelopmentResolution {
   return {
     task_class: "SYSTEM_DEVELOPMENT",
@@ -171,6 +196,53 @@ function baseResolution(intent: string): ControlDevelopmentResolution {
 export function resolveDevelopmentIntent(intent: string): ControlDevelopmentResolution {
   const normalized = normalizedIntent(intent);
   if (!normalized) return baseResolution("");
+
+  const exactCapabilities = exactCapabilityMatches(normalized);
+  if (exactCapabilities.length === 1) {
+    const capability = exactCapabilities[0];
+    const domain = exactDevelopmentDomain(capability);
+    if (domain) {
+      const sourceOwner = sourceOwnerForCapability(capability);
+      return {
+        task_class: "SYSTEM_DEVELOPMENT",
+        intent: intent.trim(),
+        domain,
+        confidence: "EXACT",
+        context_strategy: "DIRECT_SOURCE_OWNERS",
+        matched_terms: [capability],
+        source_owners: [sourceOwner],
+        required_context_paths: [
+          ...new Set([
+            ...BASE_CONTEXT,
+            ...(sourceOwner.specialist ? [sourceOwner.specialist] : []),
+          ]),
+        ],
+        avoid_context_classes: [
+          "asset workspace history",
+          "unrelated authoring docs",
+          "unrelated Runtime schemas",
+        ],
+      };
+    }
+  }
+
+  if (exactCapabilities.length > 1) {
+    const owners = exactCapabilities.map(sourceOwnerForCapability);
+    return {
+      task_class: "SYSTEM_DEVELOPMENT",
+      intent: intent.trim(),
+      domain: "UNRESOLVED",
+      confidence: "AMBIGUOUS",
+      context_strategy: "BOUNDED_SYMBOL_MAP",
+      matched_terms: exactCapabilities,
+      source_owners: uniqueOwners(owners).slice(0, 8),
+      required_context_paths: [...BASE_CONTEXT],
+      avoid_context_classes: [
+        "asset workspace history",
+        "unrelated authoring docs",
+      ],
+    };
+  }
 
   const scored = RULES.map((rule) => {
     const matched = rule.terms.filter((term) => matches(normalized, term));

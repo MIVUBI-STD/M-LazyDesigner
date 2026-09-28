@@ -35,6 +35,32 @@ const representativeIntents = [
 function repoPath(path: string): string { return resolve(process.cwd(), "..", path); }
 
 describe("LazyDesigner Control system-development intent", () => {
+  test("explicit capability names bypass heuristic scoring with exact ownership", () => {
+    const uv = resolveDevelopmentIntent(
+      "audit manage_uv_layout stale receipt handling"
+    );
+    expect(uv).toMatchObject({
+      domain: "TEXTURING",
+      confidence: "EXACT",
+      context_strategy: "DIRECT_SOURCE_OWNERS",
+      matched_terms: ["manage_uv_layout"],
+    });
+    expect(uv.source_owners).toEqual([
+      {
+        source: "mcp/server/runtime/uvLayoutService.ts",
+        specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
+        test_owner: "mcp/tests/uv-registration-readiness.test.ts",
+      },
+    ]);
+
+    const particle = resolveDevelopmentIntent("manage_particle receipt bug");
+    expect(particle.domain).toBe("PARTICLE");
+    expect(particle.confidence).toBe("EXACT");
+    expect(particle.source_owners[0]?.source).toBe(
+      "mcp/server/tools/particle.ts"
+    );
+  });
+
   test("animation quality wording routes directly to animation quality owners", () => {
     const result = resolveDevelopmentIntent("animasi keyframe terlalu kaku");
     expect(result).toMatchObject({
