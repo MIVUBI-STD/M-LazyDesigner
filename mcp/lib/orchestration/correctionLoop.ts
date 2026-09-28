@@ -121,8 +121,7 @@ export type CorrectionLoopDecision = {
   continuation_mode?: "DECISION_SUMMARY";
   state: "CORRECTION_READY" | "BLOCKED";
   attempt: 1 | 2;
-  selected_candidate_id?: string;
-  decision_summary?: {
+   decision_summary?: {
     selected_candidate_id: string;
     rejected_candidate_ids: string[];
     selected_metrics: {
@@ -733,7 +732,6 @@ export class CorrectionLoopRegistry {
       continuation_mode: "DECISION_SUMMARY",
       state: "CORRECTION_READY",
       attempt: record.attempt,
-      selected_candidate_id: decision.selected.id,
       decision_summary: {
         selected_candidate_id: decision.selected.id,
         rejected_candidate_ids: [...decision.rejected_ids],
