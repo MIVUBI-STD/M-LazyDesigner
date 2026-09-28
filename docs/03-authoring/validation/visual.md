@@ -448,10 +448,15 @@ HIGH
 ```
 
 Risk expansion is a quality guard, not a second visual planner. It does not change the
-claim, judge the image, or add more than the five-view capture budget. Explicit `views`
-remain authoritative when the reference requires a specific correspondence. If the
-target set itself cannot be covered within five views, narrow the claim instead of
-silently exceeding the context budget.
+claim, judge the image, or add more than the five-view capture budget. For post-mutation
+verification, reuse `DeltaVerificationPlan.evidence_requests[].verification_risk`
+directly; Codex should not restate or reclassify the same risk. The visual claim/evidence
+targets still come from grounded visual diagnosis and must not be invented from risk
+alone.
+
+Explicit `views` remain authoritative when the reference requires a specific
+correspondence. If the target set itself cannot be covered within five views, narrow the
+claim instead of silently exceeding the context budget.
 
 ## Evidence Economy
 
