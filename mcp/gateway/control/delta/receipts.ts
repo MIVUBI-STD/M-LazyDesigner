@@ -3,6 +3,7 @@ import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffect
 import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materialInstances";
 import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
 import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMutation";
+import { isRenderProfileMutationReceipt } from "../../../lib/receipts/renderProfile";
 
 export function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -312,84 +313,8 @@ export function removeElementReceiptComplete(value: unknown): boolean {
   });
 }
 
-export function renderProfileWriteReceiptComplete(value: unknown): boolean {
-  const write = record(value);
-  return Boolean(
-    write &&
-      (write.key === "client_entity" || write.key === "render_controller") &&
-      typeof write.path === "string" &&
-      write.path.length > 0 &&
-      typeof write.byte_length === "number" &&
-      write.byte_length > 0 &&
-      typeof write.replaced_existing === "boolean" &&
-      (write.transaction === "single_atomic" ||
-        write.transaction === "paired_atomic")
-  );
-}
-
 export function renderProfileMutationReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (
-      candidate.execution !== "applied" ||
-      candidate.action !== "render_profile"
-    ) {
-      return false;
-    }
-
-    if (candidate.operation === "bind") {
-      const transaction = record(candidate.write_transaction);
-      const binding = record(candidate.binding);
-      const summary = record(candidate.summary);
-      const writes = [
-        candidate.client_entity_write,
-        candidate.render_controller_write,
-      ].filter((entry) => entry !== null && entry !== undefined);
-      return Boolean(
-        transaction &&
-          (transaction.state === "single_atomic" ||
-            transaction.state === "paired_atomic") &&
-          typeof transaction.write_count === "number" &&
-          transaction.write_count === writes.length &&
-          writes.length > 0 &&
-          writes.every(renderProfileWriteReceiptComplete) &&
-          binding &&
-          typeof binding.slot === "string" &&
-          typeof binding.minecraft_material_code === "string" &&
-          summary &&
-          Array.isArray(summary.slots) &&
-          Array.isArray(summary.assignments) &&
-          Array.isArray(summary.diagnostics)
-      );
-    }
-
-    if (candidate.operation === "set_slot") {
-      const summary = record(candidate.summary);
-      return Boolean(
-        renderProfileWriteReceiptComplete(candidate.write) &&
-          typeof candidate.slot === "string" &&
-          typeof candidate.render_profile === "string" &&
-          typeof candidate.minecraft_material_code === "string" &&
-          summary &&
-          Array.isArray(summary.slots) &&
-          Array.isArray(summary.diagnostics)
-      );
-    }
-
-    if (
-      candidate.operation === "assign" ||
-      candidate.operation === "unassign"
-    ) {
-      return Boolean(
-        renderProfileWriteReceiptComplete(candidate.write) &&
-          typeof candidate.render_controller === "string" &&
-          typeof candidate.bone_pattern === "string" &&
-          (candidate.operation === "unassign" ||
-            typeof candidate.slot === "string")
-      );
-    }
-
-    return false;
-  });
+  return resultCandidates(value).some(isRenderProfileMutationReceipt);
 }
 
 export function animationEffectsReceiptComplete(value: unknown): boolean {
