@@ -69,6 +69,35 @@ describe("LazyDesigner Control system-development intent", () => {
     }
   });
 
+  test("controller wording does not leak into Gateway through the control substring", () => {
+    const result = resolveDevelopmentIntent("controller bug");
+    expect(result.domain).toBe("ANIMATION");
+    expect(result.confidence).toBe("STRONG");
+    expect(result.matched_terms).toEqual(["controller"]);
+    expect(
+      result.source_owners.some((entry) =>
+        entry.source === "mcp/gateway/control/packet.ts"
+      )
+    ).toBe(false);
+  });
+
+  test("rigging follows the canonical Geometry ownership boundary", () => {
+    for (const intent of ["rigging issue", "bone rig pivot problem"]) {
+      const result = resolveDevelopmentIntent(intent);
+      expect(result.domain, intent).toBe("GEOMETRY");
+      expect(result.confidence, intent).toBe("STRONG");
+      expect(
+        result.source_owners.some((entry) =>
+          entry.source === "mcp/server/tools/animation-rigging.ts"
+        ),
+        intent
+      ).toBe(true);
+      expect(result.required_context_paths, intent).toContain(
+        ".agents/skills/lazydesigner-modelling/SKILL.md"
+      );
+    }
+  });
+
   test("particle development uses the focused particle capability owner", () => {
     const result = resolveDevelopmentIntent("particle snowstorm semantics");
     expect(result.domain).toBe("PARTICLE");

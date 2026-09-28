@@ -54,7 +54,7 @@ const uniqueOwners = (owners: readonly ControlSourceOwner[]): ControlSourceOwner
 const RULES: readonly Rule[] = [
   {
     domain: "ANIMATION",
-    terms: ["animation", "animasi", "keyframe", "timeline", "motion", "gerak", "stiff", "kaku", "controller", "rigging", "easing", "playback"],
+    terms: ["animation", "animasi", "keyframe", "timeline", "motion", "gerak", "stiff", "kaku", "controller", "easing", "playback"],
     owners: () => [
       sourceOwnerForCapability("manage_animation_timeline"),
       owner("mcp/lib/animationMotionDynamics.ts", "mcp/tests/animation-native-intelligence.test.ts", ".agents/skills/lazydesigner-animation/SKILL.md"),
@@ -74,7 +74,7 @@ const RULES: readonly Rule[] = [
   },
   {
     domain: "GEOMETRY",
-    terms: ["geometry", "geometri", "cube", "cuboid", "shape", "bentuk", "model shape", "floating", "melayang", "pivot", "hierarchy", "bone", "silhouette", "proportion"],
+    terms: ["geometry", "geometri", "cube", "cuboid", "shape", "bentuk", "model shape", "floating", "melayang", "pivot", "hierarchy", "bone", "rig", "rigging", "silhouette", "proportion"],
     owners: () => [
       sourceOwnerForCapability("manage_cubes"),
       sourceOwnerForCapability("capture_model_views"),
@@ -134,7 +134,15 @@ function normalizedIntent(intent: string): string {
 }
 
 function matches(text: string, term: string): boolean {
+  const normalizedTerm = term.toLocaleLowerCase();
+  const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\function matches(text: string, term: string): boolean {
   return text.includes(term.toLocaleLowerCase());
+}");
+  const pattern = new RegExp(
+    `(^|[^a-z0-9_])${escaped}(?=$|[^a-z0-9_])`,
+    "i"
+  );
+  return pattern.test(text);
 }
 
 function baseResolution(intent: string): ControlDevelopmentResolution {
