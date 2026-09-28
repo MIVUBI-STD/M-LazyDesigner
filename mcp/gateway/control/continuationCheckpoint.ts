@@ -48,7 +48,9 @@ export type ControlContinuationCheckpoint = {
 /**
  * Minimal deterministic state for an upstream conversation-compaction owner.
  * It is not chat history, not a persistent state database, and is not emitted
- * on normal Gateway status/invoke responses.
+ * on normal Gateway status/invoke responses. It intentionally excludes
+ * process-local verification/correction/continuation handles; after Gateway
+ * restart those handles must be rebuilt from fresh Runtime/Workspace state.
  */
 export function buildControlContinuationCheckpoint(
   packet: ControlPacket,
