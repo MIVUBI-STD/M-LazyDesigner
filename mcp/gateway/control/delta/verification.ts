@@ -98,6 +98,7 @@ const VISUAL_SCOPE_RESOLVERS: Readonly<
   Record<string, VisualScopeResolver>
 > = {
   manage_cubes: cubeVerificationScope,
+  animation_graph_editor: animationVerificationScope,
   manage_animation_timeline: animationVerificationScope,
   manage_keyframes: animationVerificationScope,
   paint_texture_transaction: textureVerificationScope,

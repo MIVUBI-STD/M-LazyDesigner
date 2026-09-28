@@ -256,6 +256,43 @@ describe("LazyDesigner Control continuation hardening", () => {
     });
   });
 
+  test("graph-editor mutations emit bounded animation verification evidence", () => {
+    const delta = buildControlDelta({
+      capability: "animation_graph_editor",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "ease_in",
+        animation: { uuid: "anim-a", name: "walk" },
+        bone: { uuid: "bone-a", name: "arm" },
+        channel: "rotation",
+        axis: "x",
+        affected_count: 3,
+        affected_keyframes: [
+          { uuid: "kf-a", time: 0.1, interpolation: "bezier" },
+          { uuid: "kf-b", time: 0.4, interpolation: "bezier" },
+          { uuid: "kf-c", time: 0.7, interpolation: "bezier" },
+        ],
+      },
+    });
+
+    expect(delta.verification_class).toBe("visual");
+    expect(delta.verification_scope).toEqual({
+      kind: "ANIMATION_RANGE",
+      animation_uuid: "anim-a",
+      bone_uuid: "bone-a",
+      channel: "rotation",
+      time_range: [0.1, 0.7],
+      review: {
+        bone_ids: ["bone-a"],
+        range: { start: 0.1, end: 0.7 },
+        sample_times: [0.1, 0.4, 0.7],
+      },
+    });
+  });
+
   test("direct canonical mutation capabilities never preserve stale evidence as NO_CHANGE", () => {
     const cases = [
       ["apply_texture", "TEXTURE_APPEARANCE"],

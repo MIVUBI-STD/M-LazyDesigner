@@ -592,7 +592,25 @@ export function registerAnimationKeyframeTools(): void {
         Animator.preview();
         updateKeyframeSelection();
   
-        return `Applied ${action} curve to ${keyframes.length} keyframes in ${bone_name}.${channel}`;
+        const result = {
+          action,
+          animation: { uuid: animation.uuid, name: animation.name },
+          bone: { uuid: group.uuid, name: group.name },
+          channel,
+          axis: axis ?? null,
+          affected_count: keyframes.length,
+          affected_keyframes: keyframes.map(keyframeContinuationState),
+        };
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Applied ${action} curve to ${keyframes.length} keyframes in ${bone_name}.${channel}`,
+            },
+          ],
+          structuredContent: result,
+        };
       },
     },
     animationGraphEditorToolDoc.status
