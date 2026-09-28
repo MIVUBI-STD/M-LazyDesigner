@@ -478,7 +478,9 @@ describe("zero-waste correction loop reuse", () => {
 
     const first = registry.projectContinuationDelivery(handle);
     expect(first.cached).toBe(false);
+    expect(first.delivery).toBe("FULL");
     expect(first.payload?.continuation_id).toBe(first.continuation_id);
+    expect(first.delta).toBeNull();
 
     const second = registry.projectContinuationDelivery(handle, [
       first.continuation_id,
@@ -486,7 +488,9 @@ describe("zero-waste correction loop reuse", () => {
     expect(second).toEqual({
       continuation_id: first.continuation_id,
       cached: true,
+      delivery: "CACHED",
       payload: null,
+      delta: null,
     });
 
     registry.planGeometryCorrection(handle, [{
@@ -513,8 +517,107 @@ describe("zero-waste correction loop reuse", () => {
       first.continuation_id,
     ]);
     expect(changed.cached).toBe(false);
+    expect(changed.delivery).toBe("DELTA");
     expect(changed.continuation_id).not.toBe(first.continuation_id);
-    expect(changed.payload?.mode).toBe("VERIFY_PENDING");
+    expect(changed.payload).toBeNull();
+    expect(changed.delta).toMatchObject({
+      from_continuation_id: first.continuation_id,
+      to_continuation_id: changed.continuation_id,
+      mode: "VERIFY_PENDING",
+      state: "VERIFY_PENDING",
+      attempt: 1,
+      unresolved_count: 1,
+      verification: {
+        pending: true,
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        stale_views: ["front"],
+      },
+    });
+  });
+
+  test("sends only changed view evidence and resolved discrepancy codes as continuation delta", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-delta",
+      base_recipe: { ...recipe(), id: "asset-delta", name: "asset-delta" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:initial",
+      discrepancies: [
+        {
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Upper arms are slightly too narrow.",
+          views: ["front"],
+          evidence_targets: ["width"],
+        },
+        {
+          code: "SHOULDER_CONTACT",
+          severity: "REVIEW",
+          summary: "Shoulder contact requires separate review.",
+          views: ["left"],
+          evidence_targets: ["attachment"],
+        },
+      ],
+    });
+
+    const first = registry.projectContinuationDelivery(handle);
+    registry.planGeometryCorrection(handle, [{
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.09,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+    const pending = registry.projectContinuationDelivery(handle, [
+      first.continuation_id,
+    ]);
+    expect(pending.delivery).toBe("DELTA");
+
+    registry.updateEvidence(handle, "verificationevidence:front-fresh", []);
+    const ready = registry.projectContinuationDelivery(handle, [
+      pending.continuation_id,
+    ]);
+    expect(ready.delivery).toBe("DELTA");
+    expect(ready.payload).toBeNull();
+    expect(ready.delta).toMatchObject({
+      resolved_discrepancy_codes: ["WIDTH_LOW"],
+      fresh_view_evidence_upsert: [
+        { view: "front", handle: "verificationevidence:front-fresh" },
+      ],
+      mode: "PRUNED_READY",
+      state: "READY",
+      unresolved_count: 1,
+      verification: {
+        pending: false,
+        target_discrepancy_codes: [],
+        stale_views: [],
+      },
+    });
+    expect(ready.delta?.fresh_view_evidence_upsert).not.toContainEqual({
+      view: "left",
+      handle: "verificationevidence:initial",
+    });
   });
 
   test("projects a pruned correction continuation without internal recipe or solver history", () => {
