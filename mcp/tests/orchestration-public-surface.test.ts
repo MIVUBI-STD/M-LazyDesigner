@@ -29,5 +29,6 @@ describe("cross-domain orchestration preserves public surface", () => {
     );
     expect(source).not.toContain("export type CorrectionLoopContinuation");
     expect(source).not.toContain("export type CorrectionContinuationDelivery");
+    expect(source).not.toContain("  get(handle: CorrectionLoopHandle)");
   });
 });
