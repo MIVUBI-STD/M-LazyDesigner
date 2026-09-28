@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  phaseTransitionReceipt,
+  phaseTransitionReceiptSchema,
+} from "@/lib/receipts/authorityTransition";
 import { createTool } from "@/lib/factories";
 import {
   getActiveMcpAuthoringPhase,
@@ -28,17 +32,7 @@ export function requestMcpPhaseSwitch(phase: McpAuthoringPhase): void {
   phaseSwitchHandler(phase);
 }
 
-export const phaseControlOutputSchema = z.object({
-  phase: z.enum(["geometry", "texturing", "animation"]),
-  runtime_surface: z.string(),
-  reason: z.string(),
-  resume_from: z.string(),
-  readiness: z.unknown().optional(),
-  readiness_summary: z.unknown().nullable(),
-  surface_changed: z.boolean(),
-  reload_required: z.literal(false),
-  action: z.string(),
-}).strict();
+export const phaseControlOutputSchema = phaseTransitionReceiptSchema;
 
 export const phaseControlToolDocs = {
   name: "switch_authoring_phase",
@@ -87,7 +81,7 @@ export function registerPhaseControlTool(): void {
               text: `MCP authoring focus switched to ${target_phase}. Continue this task through Gateway.`,
             },
           ],
-          structuredContent: {
+          structuredContent: phaseTransitionReceipt({
             phase: target_phase,
             runtime_surface: targetSurface,
             reason,
@@ -99,7 +93,7 @@ export function registerPhaseControlTool(): void {
             action: surfaceChanged
               ? "continue through Gateway in the same task; Runtime surface changes automatically"
               : "continue through Gateway in the same task; shared AUTHORING surface is unchanged",
-          },
+          }),
         };
       },
     },
