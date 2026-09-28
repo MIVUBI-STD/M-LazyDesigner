@@ -36,4 +36,22 @@ describe("Gateway index boundary", () => {
     expect(source).not.toContain("new VerificationEvidenceRegistry()");
     expect(source).not.toContain("new CorrectionLoopRegistry()");
   });
+
+  test("project affinity changes hard-reset orchestration state through the same synchronization boundary", () => {
+    const syncStart = source.indexOf("function synchronizeCapabilityFacts");
+    const syncEnd = source.indexOf(
+      "// Runtime resources and prompts are not proxied.",
+      syncStart
+    );
+    const syncSource = source.slice(syncStart, syncEnd);
+
+    expect(syncSource).toContain(
+      "gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid)"
+    );
+    expect(syncSource).toContain("executionState = null");
+    expect(source).toContain(
+      "synchronizeCapabilityFacts(status.affinity.project_uuid)"
+    );
+    expect(source).toContain("synchronizeCapabilityFacts(receipt.projectUuid)");
+  });
 });
