@@ -474,12 +474,22 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         {
           evidence_targets: ["width", "silhouette"],
           selected_views: ["front"],
-          difference: {
-            criterion: "PROPORTION",
-            severity: "MAJOR",
-            view: "front",
-            delta: "upper arms read too wide",
-          },
+          discrepancies: [
+            {
+              code: "WIDTH_HIGH",
+              criterion: "PROPORTION",
+              severity: "MAJOR",
+              view: "front",
+              delta: "upper arms read too wide",
+            },
+            {
+              code: "SHOULDER_CONTACT",
+              criterion: "CONTACT",
+              severity: "MINOR",
+              view: "front_left_3q",
+              delta: "shoulder contact needs independent review",
+            },
+          ],
           correction_family: "RESIZE",
         },
         true,
@@ -490,6 +500,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         "mutate",
         {
           target: { semantic_group: "upper_arm" },
+          target_discrepancy_codes: ["WIDTH_HIGH"],
           correction_family: "RESIZE",
           geometry_operations: [
             { kind: "RESIZE_AXIS", axis: "X", mode: "MULTIPLY", value: 0.9 },
@@ -505,6 +516,16 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         {
           evidence_targets: ["width", "silhouette"],
           selected_views: ["front"],
+          replayed_discrepancies: [
+            {
+              code: "WIDTH_HIGH",
+              criterion: "PROPORTION",
+              severity: "MAJOR",
+              view: "front",
+              delta: "upper arms read too wide",
+            },
+          ],
+          retained_locally: ["SHOULDER_CONTACT"],
           convergence: "IMPROVED",
         },
         true,
@@ -520,6 +541,8 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       pre_and_post_evidence_kept: true,
       convergence_gate_kept: true,
       cross_view_expansion_available_if_risk_detected: true,
+      unrelated_discrepancy_history_retained_locally: true,
+      targeted_reverification_only: true,
     }
   );
 
