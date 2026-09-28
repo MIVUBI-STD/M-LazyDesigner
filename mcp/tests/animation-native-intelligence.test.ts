@@ -257,4 +257,16 @@ describe("Bedrock animation native intelligence", () => {
     expect(skill).toContain("operation: properties");
     expect(skill).toContain("math.ease_{in|out|in_out}_");
   });
+
+  test("graph editor preserves continuation evidence for bounded visual verification", async () => {
+    const source = await Bun.file("server/tools/animation-keyframes.ts").text();
+    const graphStart = source.indexOf("animationGraphEditorToolDoc.name");
+    const graphBody = source.slice(graphStart);
+
+    expect(graphStart).toBeGreaterThanOrEqual(0);
+    expect(graphBody).toContain("structuredContent: result");
+    expect(graphBody).toContain("animation: { uuid: animation.uuid, name: animation.name }");
+    expect(graphBody).toContain("bone: { uuid: group.uuid, name: group.name }");
+    expect(graphBody).toContain("affected_keyframes: keyframes.map(keyframeContinuationState)");
+  });
 });
