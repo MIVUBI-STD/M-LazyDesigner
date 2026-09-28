@@ -8,7 +8,18 @@ describe("resolveGatewayCapabilityEffects", () => {
   test("adopts created project through metadata", () => {
     const resolved = resolveGatewayCapabilityEffects(
       "create_project",
-      { project: { uuid: "project-123" } },
+      {
+        project: {
+          uuid: "project-123",
+          name: "Asset",
+          save_path: null,
+          export_path: null,
+          export_codec: null,
+          saved: false,
+        },
+        format: { id: "bedrock" },
+        resolution: { texture_width: 128, texture_height: 128 },
+      },
       "geometry"
     );
 
@@ -21,7 +32,16 @@ describe("resolveGatewayCapabilityEffects", () => {
   test("updates authoring phase while surface change stays result-driven", () => {
     const resolved = resolveGatewayCapabilityEffects(
       "switch_authoring_phase",
-      { phase: "animation", surface_changed: true },
+      {
+        phase: "animation",
+        runtime_surface: "ANIMATION",
+        reason: "handoff",
+        resume_from: "geometry-ready",
+        readiness_summary: null,
+        surface_changed: true,
+        reload_required: false,
+        action: "continue",
+      },
       "geometry"
     );
 
@@ -34,7 +54,16 @@ describe("resolveGatewayCapabilityEffects", () => {
   test("same AUTHORING surface focus change does not report a surface change", () => {
     const resolved = resolveGatewayCapabilityEffects(
       "switch_authoring_phase",
-      { phase: "texturing", surface_changed: false },
+      {
+        phase: "texturing",
+        runtime_surface: "AUTHORING",
+        reason: "texture",
+        resume_from: "geometry",
+        readiness_summary: null,
+        surface_changed: false,
+        reload_required: false,
+        action: "continue",
+      },
       "geometry"
     );
 
