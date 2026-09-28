@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { animationControllerReceipt } from "@/lib/receipts/animationController";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveUuidOrUniqueName } from "@/lib/coreIdentity";
@@ -1077,10 +1077,10 @@ export function registerAnimationControllerTools(): void {
             Undo.finishEdit("Create animation controller", {
               animation_controllers: [controller],
             });
-            recordCurrentSemanticHistoryEffect(["ANIMATION_CONTROLLER"]);
+            recordCurrentCapabilitySemanticHistoryEffect("manage_animation_controller");
           } else {
             Undo.finishEdit("Manage animation controller");
-            recordCurrentSemanticHistoryEffect(["ANIMATION_CONTROLLER"]);
+            recordCurrentCapabilitySemanticHistoryEffect("manage_animation_controller");
           }
           editOpen = false;
         } catch (error) {

@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { boneRiggingReceipt } from "@/lib/receipts/boneRigging";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
@@ -677,7 +677,7 @@ export function registerBoneRiggingTool(): void {
               ? { outliner: true, groups: [createdGroup], elements: childElements }
               : undefined
           );
-          recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
+          recordCurrentCapabilitySemanticHistoryEffect("bone_rigging");
         } catch (error) {
           Undo.cancelEdit(true);
           Canvas.updateAll();
