@@ -211,6 +211,8 @@ mcp/lib/capabilityMetadata.ts  canonical tier/search aliases/declarative effects
 mcp/lib/authoringPhase.ts      semantic stage classification + AUTHORING/ANIMATION surface mapping
 mcp/lib/authoringReadiness.ts  canonical Animation handoff readiness
 mcp/lib/validationVerdict.ts   conservative Validator gate projection
+mcp/lib/receipts/**             shared Runtime→Control mutation receipt contracts
+mcp/lib/semanticHistory.ts      ephemeral WeakMap semantic Undo/Redo effects
 mcp/lib/factories.ts           Tool/Resource/Prompt registration + canonical validation/result compaction
 mcp/lib/runtimeLifecycle.ts    runtime generation/lifecycle safety helpers
 ```

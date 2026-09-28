@@ -117,9 +117,20 @@ coverage against silent drift. Direct authored mutations cannot default to
 `NO_CHANGE`. Receipt-proven state-neutral actions may preserve authored
 freshness. Incomplete or uncertain mutation receipts remain conservative.
 
+Stable mutation hot paths now share typed receipt contracts between Runtime
+producers and Control for Material, Material Instances, Animation Effects,
+Animation Controller, Particle writes, Render Profile writes, Locator/Null,
+Group mutations, Remove Element, Bone Rigging and TextureGroup creation.
+Producer/consumer receipt drift therefore fails at the shared schema boundary
+instead of relying on duplicate handwritten shape recognition.
+
 UV layout changes invalidate UV mapping and Texture appearance while preserving
-unrelated evidence. Project creation and Undo/Redo are intentionally
-conservative because they can invalidate evidence across authoring domains.
+unrelated evidence. Project creation remains conservative across all authored evidence. Undo/Redo
+uses ephemeral semantic history metadata keyed by the native Undo entry object.
+When every traversed entry has known metadata, Control invalidates only the
+recorded freshness scopes and authoring domains; metadata-only/checkpoint
+history can preserve authored freshness. Missing metadata fails closed to
+all-scope conservative invalidation. No semantic history database is persisted.
 
 ### Receipt / verification boundary
 

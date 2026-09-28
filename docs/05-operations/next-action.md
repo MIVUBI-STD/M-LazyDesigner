@@ -44,15 +44,16 @@ inventing execution evidence.
 Priority order:
 
 1. keep current-proof documentation compact and exact;
-2. keep canonical verification split by ownership; surface/phase measurements
-   with assertions remain production guards, while pure efficiency scorecards are
-   reports and Hybrid-4 remains an explicit experimental gate;
-3. reduce duplicated capability semantics through parity-guarded projections,
-   not a big-bang rewrite;
-4. move producer/Control receipt interpretation toward shared typed contracts;
-5. strengthen deterministic development routing with exact/evidence signals
-   before keyword fallback;
-6. prepare bounded semantic Undo/Redo impact only if it can fail closed.
+2. continue reducing duplicated capability semantics through parity-guarded
+   projections, not a big-bang rewrite;
+3. extend exact development diagnosis only from authoritative evidence
+   (capability/source/anchor-test/changed-path), with keyword routing as fallback;
+4. audit remaining mutation families for missing shared receipt ownership rather
+   than adding duplicate validators;
+5. keep semantic Undo/Redo coverage aligned with every hot-path Undo commit and
+   preserve fail-closed fallback for unknown native history;
+6. audit capability/source ownership boundaries that still rely on compatibility
+   fallback or ambiguous multi-owner routing.
 
 Do not add a second Control/router/profile/state system.
 
