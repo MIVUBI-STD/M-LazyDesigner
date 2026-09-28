@@ -356,7 +356,6 @@ export class CorrectionLoopRegistry {
       if (!decisionBoundaryChanged) {
         return {
           continuation_id: payload.continuation_id,
-          cached: false,
           delivery: "DEFERRED",
           payload: null,
           delta: null,
