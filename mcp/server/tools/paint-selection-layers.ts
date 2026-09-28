@@ -1,7 +1,10 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import {
+  recordCurrentCapabilitySemanticHistoryEffect,
+  recordCurrentSemanticHistoryEffect,
+} from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { morphBinaryMaskRound } from "@/lib/binaryMaskMorphology";
@@ -598,10 +601,17 @@ export function registerPaintSelectionLayerTools(): void {
                   }
 
                   Undo.finishEdit("Layer management: batch_metadata");
-                  recordCurrentSemanticHistoryEffect(
-                    plan.visualChange ? ["TEXTURE_APPEARANCE"] : [],
-                    { workspace_projection: true, acceptance_gates: plan.visualChange }
-                  );
+                  if (plan.visualChange) {
+                    recordCurrentCapabilitySemanticHistoryEffect(
+                      "texture_layer_management",
+                      { workspace_projection: true, acceptance_gates: true }
+                    );
+                  } else {
+                    recordCurrentSemanticHistoryEffect([], {
+                      workspace_projection: true,
+                      acceptance_gates: false,
+                    });
+                  }
                   refreshLayerInterface(plan.orderChange);
                   return {
                     content: [
@@ -642,7 +652,7 @@ export function registerPaintSelectionLayerTools(): void {
                   newLayer.addForEditing();
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface(true);
                   return {
                     content: [{ type: "text" as const, text: `Created layer "${newLayer.name}".` }],
@@ -668,7 +678,7 @@ export function registerPaintSelectionLayerTools(): void {
                   target.remove(false);
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface(true);
                   return {
                     content: [{ type: "text" as const, text: `Deleted layer "${removed.name}".` }],
@@ -701,7 +711,7 @@ export function registerPaintSelectionLayerTools(): void {
                   duplicatedLayer.addForEditing();
                   texture.updateLayerChanges(true);
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface(true);
                   return {
                     content: [{ type: "text" as const, text: `Duplicated layer "${source.name}".` }],
@@ -735,7 +745,7 @@ export function registerPaintSelectionLayerTools(): void {
                   source.mergeDown(false);
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface(true);
                   return {
                     content: [{ type: "text" as const, text: `Merged layer "${source.name}" down.` }],
@@ -766,7 +776,7 @@ export function registerPaintSelectionLayerTools(): void {
                   target.opacity = opacity!;
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface();
                   return {
                     content: [{ type: "text" as const, text: `Set layer opacity to ${opacity}%.` }],
@@ -796,7 +806,7 @@ export function registerPaintSelectionLayerTools(): void {
                   target.blend_mode = blend_mode!;
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface();
                   return {
                     content: [{ type: "text" as const, text: `Set layer blend mode to ${blend_mode}.` }],
@@ -833,7 +843,7 @@ export function registerPaintSelectionLayerTools(): void {
                   texture.layers.splice(target_index!, 0, target);
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   refreshLayerInterface();
                   return {
                     content: [{ type: "text" as const, text: `Moved layer to position ${target_index}.` }],
@@ -924,7 +934,7 @@ export function registerPaintSelectionLayerTools(): void {
                   }
                   texture.updateChangesAfterEdit();
                   Undo.finishEdit(`Layer management: ${action}`);
-                  recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"], {"workspace_projection":true,"acceptance_gates":true});
+                  recordCurrentCapabilitySemanticHistoryEffect("texture_layer_management", { workspace_projection: true, acceptance_gates: true });
                   UVEditor.vue.layer = null;
                   refreshLayerInterface(true);
                   return {
