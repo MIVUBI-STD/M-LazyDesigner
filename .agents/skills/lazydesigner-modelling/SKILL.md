@@ -183,12 +183,18 @@ Review the actual atlas and mapped adjoining surfaces together: group islands by
 Native packing is a starting layout. Keep named body/head/appendage cohorts in readable zones with coherent order and gutters. Reposition exact native islands via UV offsets without stretching; verify bounds/overlap. Scattered placement fails editability even if the audit is ready. Unused atlas stays transparent.
 
 ## Local Correction / Convergence
-`TRANSLATE placement | RESIZE extent | ROTATE orientation | REATTACH contact/parent | LAYER OFFSET surface separation/inset | SPLIT distinct volume/orientation | MERGE/REMOVE compensatory geometry | ADD MASS missing volume`.
+For a visual mismatch, compress judgment into the existing `CompactAuthoringIntent`; do not replay a prose diagnosis before execution:
 
-`LAYER OFFSET` uses translate/resize or justified inflate/deflate; never a universal epsilon. Hidden intersection may be intentional; exposed coplanar overlap/hairline gaps are not.
-Reuse fresh exact authored state; otherwise `inspect_elements(mode=detail)` once. State target UUID(s), cause, intended change, invariant; returned `geometry_effect` must match intent.
-`REMOVE`/`REATTACH` preserve the whole assembly boundary and intentional openings. For `RESIZE` on mapped/textured Geometry, preflight UV/pixel impact and choose `PRESERVE_MAPPING | PRESERVE_DENSITY | RELAYOUT`.
-Reuse fresh affected pre-correction evidence; capture before mutation only when none exists. After mutation, recapture affected view(s); expand only for cross-view regression risk. `IMPROVED | UNCHANGED | REGRESSED`; require `IMPROVED` without regression elsewhere. Same causal correction failing twice without new evidence → `BLOCKED`.
+```text
+target
+difference = { criterion, severity, view, delta, claim_id? }
+correction_family = TRANSLATE | RESIZE | ROTATE | REATTACH | LAYER_OFFSET | SPLIT | MERGE_REMOVE | ADD_MASS
+geometry_operations = exact semantic operation(s)
+preserve = only affected invariants
+```
+
+`delta` is one bounded observable mismatch, not an explanation. Reuse fresh exact authored state; otherwise inspect once. `LAYER_OFFSET` uses translate/resize or justified inflate/deflate, never a universal epsilon. `MERGE_REMOVE`/`REATTACH` preserve assembly boundaries/openings; mapped/textured `RESIZE` preflights UV/pixel impact.
+After mutation, recapture only affected evidence and judge `IMPROVED | UNCHANGED | REGRESSED`; progress requires improvement with no material regression. Same causal direction failing twice without new evidence → `BLOCKED`.
 
 ## Existing Assets / Shared Session
 Existing geometry is a baseline, not fidelity proof. Geometry owns shape/rig/UV; Texturing pixels/PBR. Geometry↔Texturing stays shared AUTHORING; `HANDOFF_REQUIRED` + `switch_authoring_phase` only for AUTHORING↔Animation.

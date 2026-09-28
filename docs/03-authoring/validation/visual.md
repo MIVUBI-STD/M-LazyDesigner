@@ -308,13 +308,37 @@ LOCAL
 → qualitative fidelity delta
 ```
 
+### Compact Difference Contract
+
+For a local visual mismatch, the reviewing model should stop after producing the
+minimum decision payload needed by the existing authoring-intent compiler:
+
+```text
+target
+difference:
+  criterion: SILHOUETTE | PROPORTION | PLACEMENT | ORIENTATION | CONTACT |
+             TOPOLOGY | NEGATIVE_SPACE | COUNT | DEPTH | LAYERING
+  severity: CRITICAL | MAJOR | MINOR
+  view: canonical paired view
+  delta: one observable mismatch
+  claim_id: optional
+correction_family:
+  TRANSLATE | RESIZE | ROTATE | REATTACH | LAYER_OFFSET |
+  SPLIT | MERGE_REMOVE | ADD_MASS
+geometry_operations:
+  exact semantic operation(s)
+preserve:
+  only invariants materially at risk
+```
+
+Do not repeat the diagnosis as explanatory prose before execution. `delta` is bounded
+to one concrete mismatch; it is not a chain-of-thought field. If exact semantic
+operations are not yet grounded, remain in visual judgment rather than inventing
+coordinates.
+
 ### Causal Correction
 
-Use:
-
-`TRANSLATE`, `RESIZE`, `ROTATE`, `REATTACH`, `SPLIT`, `MERGE/REMOVE`, `ADD MASS`.
-
-Do not default to adding another Cube.
+Use the correction family carried by the compact intent. Do not default to adding another Cube.
 
 For one multi-Cube relationship, `manage_cubes(operation=batch_update)` may execute different
 exact-UUID corrections as one recoverable operation. It does not plan or judge

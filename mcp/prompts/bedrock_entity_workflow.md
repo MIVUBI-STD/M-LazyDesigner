@@ -64,7 +64,7 @@ PASS       = no critical/major supported mismatch
 
 Known major mismatch stays FAIL despite earlier approval; never submit as READY_FOR_USER_REVIEW. Use side/bottom views for concealed contacts; distinguish dark paint from missing geometry.
 
-Correction: reuse fresh target state; otherwise `inspect_elements(mode=detail)` once. Diagnose `TRANSLATE | RESIZE | ROTATE | REATTACH | SPLIT | MERGE/REMOVE | ADD MASS`, mutate one coherent cohort, verify `geometry_effect`, then compare `IMPROVED | UNCHANGED | REGRESSED`. Capture affected view(s), not every unchanged view. Same causal correction failing twice without new evidence → `BLOCKED`.
+Correction: reuse fresh target state; otherwise inspect once. For a visual mismatch emit one compact authoring intent: `target + difference{criterion,severity,view,delta,claim_id?} + correction_family + exact geometry_operations + preserve`. Use `TRANSLATE | RESIZE | ROTATE | REATTACH | LAYER_OFFSET | SPLIT | MERGE_REMOVE | ADD_MASS`; keep `delta` to one observable mismatch, not prose. Execute one coherent cohort, verify `geometry_effect`, then compare `IMPROVED | UNCHANGED | REGRESSED` from affected view(s) only. Same causal direction failing twice without new evidence → `BLOCKED`.
 
 ## UV Layout
 

@@ -51,6 +51,66 @@ describe("zero-waste authoring execution", () => {
     expect(desired.application_boundary).toBe("RECIPE_REWRITE_REQUIRED");
   });
 
+  test("carries compact visual diagnosis into one authoring intent without prose replay", () => {
+    const compiled = compileAuthoringRecipe(recipe(4));
+    const intent = {
+      action: "MODIFY" as const,
+      target: { semantic_group: "upper_arm" },
+      difference: {
+        criterion: "PROPORTION" as const,
+        severity: "MAJOR" as const,
+        view: "front",
+        delta: "upper arms read too wide",
+      },
+      correction_family: "RESIZE" as const,
+      geometry_operations: [
+        { kind: "RESIZE_AXIS" as const, axis: "X" as const, mode: "MULTIPLY" as const, value: 0.9 },
+      ],
+      preserve: ["RIG_PIVOTS" as const, "UV_DENSITY" as const],
+    };
+    const desired = compileDesiredGeometryState(compiled, intent);
+    expect(desired.affected_instance_ids).toEqual(["arms:0", "arms:1"]);
+  });
+
+  test("rejects visual diagnosis without a paired correction family", () => {
+    const compiled = compileAuthoringRecipe(recipe(4));
+    expect(() =>
+      compileDesiredGeometryState(compiled, {
+        action: "MODIFY",
+        target: { semantic_group: "upper_arm" },
+        difference: {
+          criterion: "PROPORTION",
+          severity: "MAJOR",
+          view: "front",
+          delta: "upper arms read too wide",
+        },
+        geometry_operations: [
+          { kind: "RESIZE_AXIS", axis: "X", mode: "MULTIPLY", value: 0.9 },
+        ],
+      })
+    ).toThrow("Visual difference and correction_family");
+  });
+
+  test("rejects unbounded visual-difference prose", () => {
+    const compiled = compileAuthoringRecipe(recipe(4));
+    expect(() =>
+      compileDesiredGeometryState(compiled, {
+        action: "MODIFY",
+        target: { semantic_group: "upper_arm" },
+        difference: {
+          criterion: "PROPORTION",
+          severity: "MAJOR",
+          view: "front",
+          delta: "x".repeat(161),
+        },
+        correction_family: "RESIZE",
+        geometry_operations: [
+          { kind: "RESIZE_AXIS", axis: "X", mode: "MULTIPLY", value: 0.9 },
+        ],
+      })
+    ).toThrow("at most 160 characters");
+  });
+
   test("prefers recipe-owned incremental execution over explicit direct mutation", () => {
     const impact = planAuthoringImpact(recipe(4), recipe(5), {
       rig_instance_ids: ["arms:0", "arms:1"],
