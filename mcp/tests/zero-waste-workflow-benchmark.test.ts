@@ -200,6 +200,18 @@ describe("Zero-Waste workflow benchmark", () => {
     ]);
     expect(failure.quality_checks.unknown_scope_complete).toBe(true);
     expect(failure.quality_checks.no_false_retry).toBe(true);
+    expect(failure.quality_checks.expired_evidence_fails_closed).toBe(true);
+    expect(
+      failure.quality_checks.recovery_does_not_consume_correction_attempt
+    ).toBe(true);
+    expect(failure.quality_checks.partial_recovery_rejected).toBe(true);
+    expect(
+      failure.quality_checks.runtime_generation_requires_fresh_evidence
+    ).toBe(true);
+    expect(
+      failure.quality_checks.missing_continuation_base_uses_full_delivery
+    ).toBe(true);
+    expect(failure.quality_checks.group_abort_available_on_recovery).toBe(true);
   });
 
   test("aggregate workflow proxy produces material savings without claiming model tokens", () => {
