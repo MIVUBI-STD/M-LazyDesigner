@@ -6,7 +6,10 @@ import {
   cubeVisualScope as validatedCubeVisualScope,
   cubeSemanticScopesFromChangedFields,
 } from "@/lib/receipts/cubeMutation";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import {
+  recordCurrentCapabilitySemanticHistoryEffect,
+  recordCurrentSemanticHistoryEffect,
+} from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { autoUvEnum, cubeSchema, faceEnum } from "@/lib/zodObjects";
 import { readRenderedCubeBounds } from "@/lib/renderedModelBounds";
@@ -830,7 +833,7 @@ export function registerCubesTools() {
         });
 
         Undo.finishEdit("Agent placed cubes", { elements: cubes });
-        recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
+        recordCurrentCapabilitySemanticHistoryEffect("manage_cubes");
       } catch (error) {
         Undo.cancelEdit(true);
         Canvas.updateAll();
