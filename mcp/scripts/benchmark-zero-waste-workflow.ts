@@ -1022,6 +1022,9 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       runtime_generation_requires_fresh_evidence: true,
       missing_continuation_base_uses_full_delivery: true,
       group_abort_available_on_recovery: true,
+      process_restart_requires_reorientation: true,
+      old_process_handles_not_reused: true,
+      checkpoint_remains_process_independent: true,
     }
   );
 
