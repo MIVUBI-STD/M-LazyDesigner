@@ -42,6 +42,13 @@ describe("development context planner", () => {
       "changed-owner:manage_cubes"
     );
     expect(plan.semantic_impact?.direct_capabilities).toContain("manage_cubes");
+    expect(plan.read_targets.source).toContain("mcp/server/tools/cubes.ts");
+    expect(plan.read_targets.source).not.toContain(
+      "mcp/server/tools/texture-create.ts"
+    );
+    expect(plan.read_targets.specialists).toEqual([
+      ".agents/skills/lazydesigner-modelling/SKILL.md",
+    ]);
   });
 
   test("omits semantic impact when there is no change set", async () => {

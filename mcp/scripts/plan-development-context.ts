@@ -80,6 +80,7 @@ export async function buildDevelopmentContextPlan(input: {
   knowledgeTokenBudget?: number;
 }): Promise<DevelopmentContextPlan> {
   const routing = resolveDevelopmentIntent(input.intent);
+  const sourceOwners = listExplicitSourceOwners();
   const symbolMap = await buildDevelopmentSymbolMap(
     input.intent,
     input.symbolMapMaxBytes ?? DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES
@@ -88,7 +89,7 @@ export async function buildDevelopmentContextPlan(input: {
     input.changedPaths && input.changedPaths.length > 0
       ? analyzeSemanticImpact({
           changedPaths: input.changedPaths,
-          sourceOwners: listExplicitSourceOwners(),
+          sourceOwners,
           manifest: CAPABILITY_BRANCH_MANIFEST,
         })
       : null;
@@ -96,6 +97,11 @@ export async function buildDevelopmentContextPlan(input: {
   const evidenceDomain = semanticImpact
     ? directEvidenceDomain(semanticImpact.direct_capabilities)
     : null;
+  const evidenceOwners = semanticImpact
+    ? semanticImpact.direct_capabilities
+        .map((capability) => sourceOwners[capability])
+        .filter((owner): owner is NonNullable<typeof owner> => owner != null)
+    : [];
   const effectiveRouting =
     routing.confidence !== "EXACT" && evidenceDomain
       ? {
@@ -106,6 +112,16 @@ export async function buildDevelopmentContextPlan(input: {
           matched_terms: semanticImpact!.direct_capabilities.map(
             (capability) => `changed-owner:${capability}`
           ),
+          source_owners: evidenceOwners,
+          required_context_paths: [
+            ...new Set([
+              "AGENTS.md",
+              "mcp/AGENTS.md",
+              ...evidenceOwners.flatMap((owner) =>
+                owner.specialist ? [owner.specialist] : []
+              ),
+            ]),
+          ],
         }
       : routing;
 
