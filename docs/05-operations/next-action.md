@@ -13,6 +13,21 @@ log, research archive, or duplicate roadmap.
 `REMOTE_GITHUB` remains the source-development authority until the current
 source head has matching repository/MCP CI proof.
 
+Current proof blocker (2026-09-28):
+
+- `Local` source hardening has advanced beyond the last proven CI state.
+- `MCP Verify` is now the single canonical executable source-verification workflow:
+  push events use affected verification when safe; manual/non-push execution uses
+  the full `verify:remote` gate; every run proves the exact `github.sha`.
+- No GitHub Actions workflow run or commit status is currently present for the
+  latest `Local` heads created during this REMOTE_GITHUB pass.
+- Therefore do **not** claim typecheck/test/build/remote-acceptance PASS for the
+  current head until a matching `MCP Verify` run completes successfully.
+- Do not create trigger-only commits, temporary workflows, branches, or proof
+  markers to compensate. The next proof action is to execute/restore the normal
+  `MCP Verify` path for `Local` or diagnose repository Actions execution
+  settings outside source code if that path still produces no run.
+
 Historical reusable baseline includes:
 
 ```text
