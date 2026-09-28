@@ -97,7 +97,12 @@ export function verificationScopeForResult(
 ): ControlVerificationScope | null {
   if (verificationClass !== "visual") return null;
   if (capability === "manage_cubes") return cubeVerificationScope(result);
-  if (capability === "manage_animation_timeline") return animationVerificationScope(result);
+  if (
+    capability === "manage_animation_timeline" ||
+    capability === "manage_keyframes"
+  ) {
+    return animationVerificationScope(result);
+  }
   if (capability === "paint_texture_transaction") return textureVerificationScope(result);
   return null;
 }

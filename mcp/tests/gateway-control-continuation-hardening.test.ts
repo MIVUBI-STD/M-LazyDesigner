@@ -221,6 +221,41 @@ describe("LazyDesigner Control continuation hardening", () => {
     });
   });
 
+  test("direct keyframe mutations reuse bounded animation visual scope", () => {
+    const delta = buildControlDelta({
+      capability: "manage_keyframes",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        action: "edit",
+        animation: { uuid: "anim-a", name: "walk" },
+        bone: { uuid: "bone-a", name: "arm" },
+        channel: "rotation",
+        affected_count: 2,
+        affected_keyframes: [
+          { uuid: "kf-a", time: 0.2 },
+          { uuid: "kf-b", time: 0.8 },
+        ],
+      },
+    });
+
+    expect(delta.verification_class).toBe("visual");
+    expect(delta.verification_scope).toEqual({
+      kind: "ANIMATION_RANGE",
+      animation_uuid: "anim-a",
+      bone_uuid: "bone-a",
+      channel: "rotation",
+      time_range: [0.2, 0.8],
+      review: {
+        bone_ids: ["bone-a"],
+        range: { start: 0.2, end: 0.8 },
+        sample_times: [0.2, 0.5, 0.8],
+      },
+    });
+  });
+
   test("direct canonical mutation capabilities never preserve stale evidence as NO_CHANGE", () => {
     const cases = [
       ["apply_texture", "TEXTURE_APPEARANCE"],
