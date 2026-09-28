@@ -44,6 +44,8 @@ export type CorrectionLoopRecord = {
   continuation_group: {
     id: number;
     kind: "EXECUTION_COHORT" | "VERIFICATION_COHORT";
+    base_mode: CorrectionLoopContinuation["mode"];
+    base_state: CorrectionLoopContinuation["state"];
   } | null;
   next_continuation_group_id: number;
 };
@@ -439,7 +441,13 @@ export class CorrectionLoopRegistry {
     }
 
     const id = record.next_continuation_group_id++;
-    record.continuation_group = { id, kind };
+    const base = this.projectContinuation(handle);
+    record.continuation_group = {
+      id,
+      kind,
+      base_mode: base.mode,
+      base_state: base.state,
+    };
     return { id: `correctiongroup:${id}`, kind };
   }
 
@@ -479,17 +487,23 @@ export class CorrectionLoopRegistry {
 
     const payload = this.projectContinuation(handle);
     if (record.continuation_group) {
-      return {
-        continuation_id: payload.continuation_id,
-        cached: false,
-        delivery: "DEFERRED",
-        payload: null,
-        delta: null,
-        group: {
-          id: `correctiongroup:${record.continuation_group.id}`,
-          kind: record.continuation_group.kind,
-        },
-      };
+      const group = record.continuation_group;
+      const decisionBoundaryChanged =
+        payload.mode !== group.base_mode || payload.state !== group.base_state;
+      if (!decisionBoundaryChanged) {
+        return {
+          continuation_id: payload.continuation_id,
+          cached: false,
+          delivery: "DEFERRED",
+          payload: null,
+          delta: null,
+          group: {
+            id: `correctiongroup:${group.id}`,
+            kind: group.kind,
+          },
+        };
+      }
+      record.continuation_group = null;
     }
     if (knownContinuationIds.includes(payload.continuation_id)) {
       record.last_delivered_continuation = structuredClone(payload);
