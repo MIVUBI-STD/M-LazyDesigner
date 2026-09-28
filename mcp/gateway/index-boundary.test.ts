@@ -26,4 +26,14 @@ describe("Gateway index boundary", () => {
     expect(source).toContain("projectGatewayStatus(status)");
     expect(source).not.toContain("...status,\n          control");
   });
+
+  test("wires runtime generation changes into the shared orchestration recovery owner", () => {
+    expect(source).toContain("gatewayOrchestrationRecoveryState");
+    expect(source).toContain("onRuntimeGenerationChange");
+    expect(source).toContain(
+      "gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration()"
+    );
+    expect(source).not.toContain("new VerificationEvidenceRegistry()");
+    expect(source).not.toContain("new CorrectionLoopRegistry()");
+  });
 });
