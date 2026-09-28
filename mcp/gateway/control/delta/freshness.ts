@@ -1,6 +1,7 @@
 import {
   capabilityDefaultStaleScopes,
 } from "../../../lib/capabilities/manifest";
+import { isSemanticHistoryEffect } from "../../../lib/semanticHistory";
 import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
@@ -107,25 +108,9 @@ function semanticHistoryEffectFromResult(result: unknown): {
   acceptance_gates: boolean;
 } | null {
   for (const candidate of resultCandidates(result)) {
-    const semanticEffect = record(candidate.semantic_effect);
-    if (
-      !semanticEffect ||
-      !Array.isArray(semanticEffect.stale) ||
-      typeof semanticEffect.workspace_projection !== "boolean" ||
-      typeof semanticEffect.acceptance_gates !== "boolean" ||
-      !semanticEffect.stale.every((scope) =>
-        ALL_FRESHNESS_SCOPES.includes(scope as ControlFreshnessScope)
-      )
-    ) {
-      continue;
+    if (isSemanticHistoryEffect(candidate.semantic_effect)) {
+      return candidate.semantic_effect;
     }
-    return {
-      stale: [...new Set(
-        semanticEffect.stale as ControlFreshnessScope[]
-      )],
-      workspace_projection: semanticEffect.workspace_projection,
-      acceptance_gates: semanticEffect.acceptance_gates,
-    };
   }
   return null;
 }

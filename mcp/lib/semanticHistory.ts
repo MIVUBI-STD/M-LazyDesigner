@@ -1,6 +1,8 @@
 /// <reference types="blockbench-types" />
 
+import { z } from "zod";
 import {
+  CAPABILITY_SEMANTIC_SCOPES,
   capabilityDefaultStaleScopes,
   type CapabilitySemanticScope,
 } from "./capabilities/manifest";
@@ -12,6 +14,18 @@ export type SemanticHistoryEffect = {
   workspace_projection: boolean;
   acceptance_gates: boolean;
 };
+
+export const semanticHistoryEffectSchema = z.object({
+  stale: z.array(z.enum(CAPABILITY_SEMANTIC_SCOPES)),
+  workspace_projection: z.boolean(),
+  acceptance_gates: z.boolean(),
+});
+
+export function isSemanticHistoryEffect(
+  value: unknown
+): value is SemanticHistoryEffect {
+  return semanticHistoryEffectSchema.safeParse(value).success;
+}
 
 export type SemanticHistoryEffectOptions = {
   workspace_projection?: boolean;
