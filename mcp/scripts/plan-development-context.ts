@@ -7,7 +7,10 @@ import {
 } from "../lib/semantic/knowledge";
 import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
 import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../gateway/capabilities/semanticRegistry";
-import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
+import {
+  authoringDomainForCapability,
+  listExplicitSourceOwners,
+} from "../gateway/control/sourceOwners";
 import { resolveDevelopmentIntent } from "../gateway/control/developmentIntent";
 import {
   buildDevelopmentSymbolMap,
@@ -36,6 +39,36 @@ export type DevelopmentContextPlan = {
   };
 };
 
+function developmentDomainForCapability(
+  capability: string
+): "GEOMETRY" | "TEXTURING" | "ANIMATION" | "PARTICLE" | null {
+  if (capability === "manage_particle" || capability === "inspect_particle") {
+    return "PARTICLE";
+  }
+  const domain = authoringDomainForCapability(capability);
+  return domain === "GEOMETRY" ||
+      domain === "TEXTURING" ||
+      domain === "ANIMATION"
+    ? domain
+    : null;
+}
+
+function directEvidenceDomain(
+  directCapabilities: readonly string[]
+): "GEOMETRY" | "TEXTURING" | "ANIMATION" | "PARTICLE" | null {
+  const domains = new Set(
+    directCapabilities
+      .map(developmentDomainForCapability)
+      .filter(
+        (
+          value
+        ): value is "GEOMETRY" | "TEXTURING" | "ANIMATION" | "PARTICLE" =>
+          value !== null
+      )
+  );
+  return domains.size === 1 ? [...domains][0] : null;
+}
+
 function uniqueSorted(values: Iterable<string>): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
@@ -60,17 +93,33 @@ export async function buildDevelopmentContextPlan(input: {
         })
       : null;
 
-  const routingSources = routing.source_owners.map((owner) => owner.source);
-  const routingTests = routing.source_owners.flatMap((owner) =>
+  const evidenceDomain = semanticImpact
+    ? directEvidenceDomain(semanticImpact.direct_capabilities)
+    : null;
+  const effectiveRouting =
+    routing.confidence !== "EXACT" && evidenceDomain
+      ? {
+          ...routing,
+          domain: evidenceDomain,
+          confidence: "EXACT" as const,
+          context_strategy: "DIRECT_SOURCE_OWNERS" as const,
+          matched_terms: semanticImpact!.direct_capabilities.map(
+            (capability) => `changed-owner:${capability}`
+          ),
+        }
+      : routing;
+
+  const routingSources = effectiveRouting.source_owners.map((owner) => owner.source);
+  const routingTests = effectiveRouting.source_owners.flatMap((owner) =>
     owner.test_owner ? [owner.test_owner] : []
   );
-  const routingSpecialists = routing.source_owners.flatMap((owner) =>
+  const routingSpecialists = effectiveRouting.source_owners.flatMap((owner) =>
     owner.specialist ? [owner.specialist] : []
   );
 
 
   const knowledgePaths = uniqueSorted([
-    ...routing.required_context_paths,
+    ...effectiveRouting.required_context_paths,
     ...routingSpecialists,
     ...(semanticImpact?.affected_specialists ?? []),
   ]).filter((path) => /\.md$/i.test(path));
@@ -92,20 +141,20 @@ export async function buildDevelopmentContextPlan(input: {
 
   const selectedKnowledge = selectKnowledgeSections({
     sections: knowledgeSections,
-    query: routing.intent,
+    query: effectiveRouting.intent,
     maxTokenProxy: input.knowledgeTokenBudget ?? 1200,
   });
 
   return {
     schema: 1,
-    intent: routing.intent,
+    intent: effectiveRouting.intent,
     routing: {
-      domain: routing.domain,
-      confidence: routing.confidence,
-      context_strategy: routing.context_strategy,
-      matched_terms: routing.matched_terms,
-      required_context_paths: routing.required_context_paths,
-      avoid_context_classes: routing.avoid_context_classes,
+      domain: effectiveRouting.domain,
+      confidence: effectiveRouting.confidence,
+      context_strategy: effectiveRouting.context_strategy,
+      matched_terms: effectiveRouting.matched_terms,
+      required_context_paths: effectiveRouting.required_context_paths,
+      avoid_context_classes: effectiveRouting.avoid_context_classes,
     },
     symbol_map: symbolMap,
     semantic_impact: semanticImpact,

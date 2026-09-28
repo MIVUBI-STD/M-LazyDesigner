@@ -28,6 +28,22 @@ describe("development context planner", () => {
     ).toBeLessThanOrEqual(600);
   });
 
+  test("direct changed-path ownership outranks ambiguous keyword routing", async () => {
+    const plan = await buildDevelopmentContextPlan({
+      intent: "geometry texture issue",
+      changedPaths: ["mcp/server/tools/cubes.ts"],
+      symbolMapMaxBytes: 2500,
+    });
+
+    expect(plan.routing.domain).toBe("GEOMETRY");
+    expect(plan.routing.confidence).toBe("EXACT");
+    expect(plan.routing.context_strategy).toBe("DIRECT_SOURCE_OWNERS");
+    expect(plan.routing.matched_terms).toContain(
+      "changed-owner:manage_cubes"
+    );
+    expect(plan.semantic_impact?.direct_capabilities).toContain("manage_cubes");
+  });
+
   test("omits semantic impact when there is no change set", async () => {
     const plan = await buildDevelopmentContextPlan({
       intent: "gateway routing discovery",
