@@ -65,6 +65,9 @@ describe("Gateway orchestration recovery state", () => {
 
     expect(state.snapshot()).toEqual({
       invalidation_count: 0,
+      project_reset_count: 0,
+      project_uuid: null,
+      project_epoch: 0,
       evidence_entries: 1,
       correction_loops: 1,
     });
@@ -73,6 +76,9 @@ describe("Gateway orchestration recovery state", () => {
 
     expect(state.snapshot()).toEqual({
       invalidation_count: 1,
+      project_reset_count: 0,
+      project_uuid: null,
+      project_epoch: 0,
       evidence_entries: 0,
       correction_loops: 1,
     });
@@ -86,4 +92,83 @@ describe("Gateway orchestration recovery state", () => {
       "VERIFICATION_EVIDENCE_NOT_FOUND"
     );
   });
+  test("project affinity switch hard-resets all orchestration state and scopes new identities", () => {
+    const state = new GatewayOrchestrationRecoveryState();
+    const request = {
+      domain: "GEOMETRY" as const,
+      source: "capture_model_views" as const,
+      verification_risk: "LOW" as const,
+      views: ["front"] as const,
+      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
+      size: 256 as const,
+      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
+      scope_instance_ids: ["arms:0", "arms:1"],
+    };
+
+    expect(state.synchronizeProjectAffinity("project-a")).toBe(false);
+
+    const evidenceA = state.evidence.put({
+      request,
+      result: { revision: 1 },
+    });
+    const correctionA = state.corrections.start({
+      recipe_id: "same-asset",
+      base_recipe: { ...recipe(), id: "same-asset", name: "same-asset" },
+      verification_request: request,
+      verification_evidence_handle: evidenceA,
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+    const continuationA = state.corrections.projectContinuation(correctionA);
+    state.corrections.beginContinuationGroup(
+      correctionA,
+      "VERIFICATION_COHORT"
+    );
+
+    expect(state.synchronizeProjectAffinity("project-b")).toBe(true);
+    expect(state.snapshot()).toMatchObject({
+      project_reset_count: 1,
+      project_uuid: "project-b",
+      project_epoch: 2,
+      evidence_entries: 0,
+      correction_loops: 0,
+    });
+    expect(() => state.evidence.get(evidenceA)).toThrow(
+      "VERIFICATION_EVIDENCE_NOT_FOUND"
+    );
+    expect(() => state.corrections.projectContinuation(correctionA)).toThrow(
+      "CORRECTION_LOOP_NOT_FOUND"
+    );
+
+    const evidenceB = state.evidence.put({
+      request,
+      result: { revision: 1 },
+    });
+    const correctionB = state.corrections.start({
+      recipe_id: "same-asset",
+      base_recipe: { ...recipe(), id: "same-asset", name: "same-asset" },
+      verification_request: request,
+      verification_evidence_handle: evidenceB,
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+    const continuationB = state.corrections.projectContinuation(correctionB);
+
+    expect(evidenceB).not.toBe(evidenceA);
+    expect(correctionB).not.toBe(correctionA);
+    expect(continuationB.continuation_id).not.toBe(
+      continuationA.continuation_id
+    );
+  });
+
 });
