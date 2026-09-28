@@ -5,6 +5,7 @@ import { TEXTURING_SOURCE_OWNERS } from "./sourceOwners/texturing";
 import { ANIMATION_SOURCE_OWNERS } from "./sourceOwners/animation";
 import { CORE_SOURCE_OWNERS } from "./sourceOwners/core";
 import {
+  anchorTestForSourceOwner,
   authoringDomainForCapability,
   listExplicitSourceOwners,
   sourceOwnerForCapability,
@@ -38,6 +39,16 @@ describe("Control source-owner registry", () => {
       .sort();
 
     expect(missing).toEqual([]);
+  });
+
+  test("anchor-test semantics normalize legacy and canonical owner fields", () => {
+    expect(
+      anchorTestForSourceOwner(sourceOwnerForCapability("manage_cubes"))
+    ).toBe("mcp/tests/model-effectiveness-correction-accuracy.test.ts");
+
+    expect(
+      anchorTestForSourceOwner(sourceOwnerForCapability("future_unknown_tool"))
+    ).toBe("mcp/tests/gateway-contract.test.ts");
   });
 
   test("preserves representative ownership mappings", () => {

@@ -43,14 +43,14 @@ const BASE_CONTEXT = ["AGENTS.md", "mcp/AGENTS.md"] as const;
 
 const owner = (
   source: string,
-  test_owner: string | null = null,
+  anchor_test: string | null = null,
   specialist: string | null = null
-): ControlSourceOwner => ({ source, specialist, test_owner });
+): ControlSourceOwner => ({ source, specialist, anchor_test });
 
 const uniqueOwners = (owners: readonly ControlSourceOwner[]): ControlSourceOwner[] => {
   const seen = new Set<string>();
   return owners.filter((entry) => {
-    const key = `${entry.source}|${entry.specialist ?? ""}|${entry.test_owner ?? ""}`;
+    const key = `${entry.source}|${entry.specialist ?? ""}|${anchorTestForSourceOwner(entry) ?? ""}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

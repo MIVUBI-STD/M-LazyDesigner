@@ -60,7 +60,7 @@ export type ControlSourceOwner = {
   /** Canonical bounded regression anchor. This is not the full proof surface. */
   anchor_test?: string | null;
   /** @deprecated Compatibility input; development-facing projections use anchor_test. */
-  test_owner: string | null;
+  test_owner?: string | null;
 };
 
 export type ControlSystemState = "READY" | "DEGRADED" | "OFFLINE";

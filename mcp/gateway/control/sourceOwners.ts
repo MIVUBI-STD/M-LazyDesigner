@@ -21,22 +21,22 @@ const DEFAULT_SOURCE_BY_DOMAIN: Record<ControlAuthoringDomain, ControlSourceOwne
   GEOMETRY: {
     source: "mcp/server/runtime/registration.ts",
     specialist: MODELLING_PATH,
-    test_owner: "mcp/tests/authoring-phase-surface.test.ts",
+    anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
   },
   TEXTURING: {
     source: "mcp/server/runtime/registration.ts",
     specialist: TEXTURING_PATH,
-    test_owner: "mcp/tests/authoring-phase-surface.test.ts",
+    anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
   },
   ANIMATION: {
     source: "mcp/server/runtime/registration.ts",
     specialist: ANIMATION_PATH,
-    test_owner: "mcp/tests/authoring-phase-surface.test.ts",
+    anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
   },
   CORE: {
     source: "mcp/server/runtime/registration.ts",
     specialist: null,
-    test_owner: "mcp/tests/gateway-contract.test.ts",
+    anchor_test: "mcp/tests/gateway-contract.test.ts",
   },
 };
 
