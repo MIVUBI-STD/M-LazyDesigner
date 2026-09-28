@@ -41,7 +41,7 @@ export class VerificationEvidenceRegistry {
     const record = this.entries.get(handle);
     if (!record) {
       throw new Error(
-        "VERIFICATION_EVIDENCE_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+        "VERIFICATION_EVIDENCE_NOT_FOUND: handle expired or belongs to a previous Gateway process, project epoch, or Runtime generation."
       );
     }
     this.entries.delete(handle);
