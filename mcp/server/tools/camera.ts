@@ -23,6 +23,24 @@ const modelViewEnum = z.enum([
 ]);
 
 export type ModelView = z.infer<typeof modelViewEnum>;
+
+const visualEvidenceTargetEnum = z.enum([
+  "width",
+  "height",
+  "length",
+  "depth",
+  "silhouette",
+  "count",
+  "rear_topology",
+  "asymmetry",
+  "attachment",
+  "negative_space",
+  "layering",
+  "orientation",
+  "underside",
+]);
+
+export type VisualEvidenceTarget = z.infer<typeof visualEvidenceTargetEnum>;
 type FrontDirection = "+z" | "-z";
 type FramingInput =
   | { mode: "model" }
@@ -106,6 +124,76 @@ export function modelViewReferenceContract(
   }
 }
 
+const MODEL_VIEW_SELECTION_ORDER: readonly ModelView[] = [
+  "front",
+  "left",
+  "top",
+  "back",
+  "front_left_3q",
+  "right",
+  "bottom",
+  "front_right_3q",
+];
+
+export function selectModelViewsForEvidence(
+  targets: readonly VisualEvidenceTarget[]
+) {
+  const requested = [...new Set(targets)];
+  const uncovered = new Set<VisualEvidenceTarget>(requested);
+  const selected: ModelView[] = [];
+  const coverage: Array<{
+    view: ModelView;
+    targets: VisualEvidenceTarget[];
+  }> = [];
+
+  while (uncovered.size > 0) {
+    let best:
+      | {
+          view: ModelView;
+          covers: VisualEvidenceTarget[];
+          referencePaired: boolean;
+        }
+      | undefined;
+
+    for (const view of MODEL_VIEW_SELECTION_ORDER) {
+      if (selected.includes(view)) continue;
+      const contract = modelViewReferenceContract(view);
+      const covers = contract.primary_evidence.filter(
+        (target): target is VisualEvidenceTarget =>
+          uncovered.has(target as VisualEvidenceTarget)
+      );
+      if (covers.length === 0) continue;
+
+      const candidate = {
+        view,
+        covers,
+        referencePaired: contract.reference_slot !== null,
+      };
+      if (
+        !best ||
+        candidate.covers.length > best.covers.length ||
+        (candidate.covers.length === best.covers.length &&
+          candidate.referencePaired &&
+          !best.referencePaired)
+      ) {
+        best = candidate;
+      }
+    }
+
+    if (!best) break;
+    selected.push(best.view);
+    coverage.push({ view: best.view, targets: best.covers });
+    best.covers.forEach((target) => uncovered.delete(target));
+  }
+
+  return {
+    requested_targets: requested,
+    views: selected,
+    coverage,
+    uncovered_targets: [...uncovered],
+  };
+}
+
 export function buildModelViewReferenceComparison(
   views: readonly ModelView[]
 ) {
@@ -166,12 +254,21 @@ const uniqueModelViewsSchema = z
     message: "views must contain unique canonical view names.",
   });
 
-export const captureModelViewsParameters = z.object({
+export const captureModelViewsParameters = z
+  .object({
   size: z.number().int().min(32).max(1024).default(CAPTURE_SIZE).describe("Square PNG pixels: 256 for a quick silhouette/pose check, 512 default for texture/reference detail, 32-64 for icons only. Prefer one relevant view; increase size only when details are unreadable."),
   highlight_missing_textures: z.boolean().default(false).describe("Diagnostic capture: brighten native missing-texture materials temporarily. Restores state; not a normal shaded comparison or flashing UI."),
-  views: uniqueModelViewsSchema.describe(
-    "One to five unique canonical model views to capture."
+  views: uniqueModelViewsSchema.optional().describe(
+    "Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set."
   ),
+  evidence_targets: z
+    .array(visualEvidenceTargetEnum)
+    .min(1)
+    .max(13)
+    .optional()
+    .describe(
+      "Current unanswered visual claim(s). When views is omitted, runtime deterministically selects the minimum canonical view set that covers these targets."
+    ),
   front_direction: z
     .enum(["+z", "-z"])
     .describe(
@@ -184,7 +281,16 @@ export const captureModelViewsParameters = z.object({
     ])
     .optional()
     .default({ mode: "model" }),
-});
+})
+  .superRefine((value, ctx) => {
+    if (!value.views?.length && !value.evidence_targets?.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide explicit views or evidence_targets.",
+        path: ["views"],
+      });
+    }
+  });
 
 export const cameraToolDocs: ToolSpec[] = [
   {
@@ -223,7 +329,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_model_views",
     description:
-      "Captures 1-5 deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Model and explicit framing require visible Cube geometry in the current Blockbench project. Returns observation only; no score/PASS/FAIL.",
+      "Captures deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Provide explicit views, or evidence_targets so runtime selects the minimum useful canonical view set deterministically. Model and explicit framing require visible Cube geometry. Returns observation only; no score/PASS/FAIL.",
     annotations: {
       title: "Capture Model Views",
       readOnlyHint: true,
@@ -521,7 +627,7 @@ export function registerCameraTools() {
 
   createTool(cameraToolDocs[3].name, {
     ...cameraToolDocs[3],
-    async execute({ views, front_direction, framing, highlight_missing_textures, size }) {
+    async execute({ views, evidence_targets, front_direction, framing, highlight_missing_textures, size }) {
       if (!Project) {
         throw new Error(
           "No project is open. Open or create the intended Bedrock project before capturing model views."
@@ -532,6 +638,22 @@ export function registerCameraTools() {
       }
 
       const observed = readRenderedModelBounds();
+      const selection = views?.length
+        ? {
+            requested_targets: evidence_targets ?? [],
+            views: views as ModelView[],
+            coverage: [],
+            uncovered_targets: [],
+          }
+        : selectModelViewsForEvidence(
+            (evidence_targets ?? []) as VisualEvidenceTarget[]
+          );
+      if (selection.views.length === 0 || selection.uncovered_targets.length > 0) {
+        throw new Error(
+          `Unable to select canonical model views for evidence targets: ${selection.uncovered_targets.join(", ") || "none selected"}.`
+        );
+      }
+      const selectedViews = selection.views;
       const framingInput = framing as FramingInput;
       if (framingInput.mode === "model") {
         if (!observed.bounds || observed.rendered_cube_count === 0) {
@@ -566,7 +688,7 @@ export function registerCameraTools() {
         png_bytes: number;
       }> = [];
 
-      for (const view of views as ModelView[]) {
+      for (const view of selectedViews) {
         const spec = cameraSpec(
           capturePreview,
           view,
@@ -599,6 +721,12 @@ export function registerCameraTools() {
         total_png_bytes: captures.reduce((sum, capture) => sum + capture.png_bytes, 0),
         front_direction,
         framing_mode: framingInput.mode,
+        view_selection: {
+          mode: views?.length ? "explicit" : "information_gain",
+          requested_targets: selection.requested_targets,
+          coverage: selection.coverage,
+          selected_views: selectedViews,
+        },
         captures,
         reference_comparison: buildModelViewReferenceComparison(
           captures.map((capture) => capture.view)

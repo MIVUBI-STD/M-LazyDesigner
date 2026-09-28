@@ -4,6 +4,7 @@ import {
   captureModelViewsParameters,
   modelViewReferenceContract,
   prepareOffscreenPreview,
+  selectModelViewsForEvidence,
 } from "@/server/tools/camera";
 
 const baseInput = {
@@ -12,6 +13,41 @@ const baseInput = {
 } as const;
 
 describe("capture_model_views explicit framing contract", () => {
+  test("requires either explicit views or evidence targets", () => {
+    expect(
+      captureModelViewsParameters.safeParse({ front_direction: "+z" }).success
+    ).toBe(false);
+    expect(
+      captureModelViewsParameters.safeParse({
+        front_direction: "+z",
+        evidence_targets: ["depth"],
+      }).success
+    ).toBe(true);
+  });
+
+  test("selects the minimum high-information view set deterministically", () => {
+    expect(selectModelViewsForEvidence(["width", "height", "silhouette"]).views).toEqual([
+      "front",
+    ]);
+    expect(selectModelViewsForEvidence(["depth", "attachment"]).views).toEqual([
+      "left",
+    ]);
+    expect(selectModelViewsForEvidence(["orientation", "layering"]).views).toEqual([
+      "front_left_3q",
+    ]);
+    expect(selectModelViewsForEvidence(["rear_topology", "depth"]).views).toEqual([
+      "back",
+      "left",
+    ]);
+    expect(selectModelViewsForEvidence(["underside"]).views).toEqual(["bottom"]);
+  });
+
+  test("prefers reference-paired views when information gain ties", () => {
+    const result = selectModelViewsForEvidence(["height"]);
+    expect(result.views).toEqual(["front"]);
+    expect(modelViewReferenceContract(result.views[0]!).reference_slot).not.toBeNull();
+  });
+
   test("icon sizes resize both native projection bases and preserve default comparisons",()=>{
     expect(captureModelViewsParameters.parse(baseInput).size).toBe(512);
     for(const size of [32,48,512,1024]){

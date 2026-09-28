@@ -386,6 +386,32 @@ Does not block intended use.
 
 Critical/major issues block visual completion.
 
+## Information-Gain Visual Gate
+
+Before `capture_model_views`, identify the **current unanswered visual claim**. When
+that claim maps to canonical evidence targets, prefer `evidence_targets` and let the
+Runtime choose the minimum useful view set deterministically instead of asking Astra/Codex
+to reason about camera selection.
+
+Examples:
+
+```text
+width + height + silhouette → front
+depth + attachment          → left
+orientation + layering      → front_left_3q
+rear_topology + depth       → back + left
+underside                    → bottom
+```
+
+This selector is evidence routing, not visual judgment. It must not decide PASS/FAIL,
+invent reference claims, or replace direct inspection of the returned image(s). Explicit
+`views` remain valid when the reference itself dictates a specific correspondence or
+when the canonical evidence vocabulary cannot express the question.
+
+For Codex allowance efficiency, one view that answers the claim is better than a
+multi-view board that adds no decision-changing evidence. Expand the view set only when
+the first selected view leaves a material axis unsupported or exposes cross-view risk.
+
 ## Evidence Economy
 
 Good reasons to capture:
