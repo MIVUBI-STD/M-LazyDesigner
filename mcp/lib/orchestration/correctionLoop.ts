@@ -466,10 +466,25 @@ export class CorrectionLoopRegistry {
   updateEvidence(
     handle: CorrectionLoopHandle,
     evidenceHandle: VerificationEvidenceHandle,
-    discrepancies: readonly VerificationDiscrepancy[]
+    discrepancies: readonly VerificationDiscrepancy[],
+    options: { recovered_views?: readonly ModelView[] } = {}
   ): void {
     const record = this.entries.get(handle);
     if (!record) throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+
+    if (record.evidence_recovery_required) {
+      const recovered = new Set(options.recovered_views ?? []);
+      const missingRecoveryViews = record.pending_stale_views.filter(
+        (view) => !recovered.has(view)
+      );
+      if (missingRecoveryViews.length > 0) {
+        throw new Error(
+          "EVIDENCE_RECOVERY_INCOMPLETE: fresh evidence missing views " +
+            missingRecoveryViews.join(", ") +
+            "."
+        );
+      }
+    }
 
     const incoming = [...structuredClone(discrepancies)];
     if (record.pending_target_discrepancy_codes.length > 0) {
