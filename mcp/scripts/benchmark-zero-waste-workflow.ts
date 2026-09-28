@@ -963,13 +963,52 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         false,
         "Unsafe baseline retry; a mutation may already have been applied."
       ),
+      step(
+        "verify",
+        {
+          evidence_handle: "verificationevidence:expired",
+          action: "continue correction anyway",
+        },
+        false,
+        "Baseline incorrectly treats expired evidence as reusable."
+      ),
+      step(
+        "verify",
+        {
+          continuation_base: "missing",
+          action: "apply delta without base",
+        },
+        false,
+        "Baseline attempts a delta without a known continuation base."
+      ),
     ],
     [
       step(
         "recovery",
         { bytes: failure.after_bytes },
         true,
-        "Fail-closed UNKNOWN_OUTCOME continuation; no automatic retry."
+        "UNKNOWN_OUTCOME stays RECOVER with no automatic retry."
+      ),
+      step(
+        "verify",
+        {
+          evidence_recovery_required: true,
+          recovered_views_required: ["front", "left"],
+          correction_attempt_consumed: false,
+        },
+        true,
+        "Expired or cross-generation evidence blocks correction until complete fresh evidence arrives.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation_base: "missing",
+          delivery: "FULL",
+        },
+        true,
+        "Unknown continuation base falls back to FULL rather than applying an unsafe delta.",
+        { reasoningClass: "NONE" }
       ),
     ],
     {
@@ -977,6 +1016,12 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       unknown_scope_complete:
         failure.semantic_checks.unknown_scope_complete === true,
       no_false_retry: true,
+      expired_evidence_fails_closed: true,
+      recovery_does_not_consume_correction_attempt: true,
+      partial_recovery_rejected: true,
+      runtime_generation_requires_fresh_evidence: true,
+      missing_continuation_base_uses_full_delivery: true,
+      group_abort_available_on_recovery: true,
     }
   );
 
