@@ -90,6 +90,41 @@ describe("LazyDesigner Control continuation hardening", () => {
     });
   });
 
+  test("Cube pivot and rotation changes invalidate animation motion readiness", () => {
+    for (const field of ["origin", "rotation"] as const) {
+      const delta = buildControlDelta({
+        capability: "manage_cubes",
+        phaseBefore: "geometry",
+        phaseAfter: "geometry",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          execution: "applied",
+          geometry_effect: { changed_fields: [field] },
+        },
+      });
+      expect(delta.freshness.stale, field).toEqual([
+        "GEOMETRY_STRUCTURE",
+        "ANIMATION_MOTION",
+      ]);
+    }
+
+    const visibility = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        geometry_effect: { changed_fields: ["visibility"] },
+      },
+    });
+    expect(visibility.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+    ]);
+  });
+
   test("visual animation verification scopes to affected bone and keyframe range", () => {
     const delta = buildControlDelta({
       capability: "manage_animation_timeline",
@@ -679,7 +714,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       project_uuid: "project-a",
       freshness: {
         basis: "PRECISE_EFFECT",
-        stale: ["GEOMETRY_STRUCTURE"],
+        stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
       },
       next_intent: "VERIFY_OR_CONTINUE_GEOMETRY",
       requires_status_refresh: false,

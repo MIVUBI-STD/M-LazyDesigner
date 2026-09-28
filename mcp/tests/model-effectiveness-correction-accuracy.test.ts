@@ -164,6 +164,13 @@ describe("model creation effectiveness — correction accuracy", () => {
     );
   });
 
+  test("Cube semantic motion readiness includes pivot and rotation changes", async () => {
+    const sourceText = await source("lib/receipts/cubeMutation.ts");
+    expect(sourceText).toContain('"origin"');
+    expect(sourceText).toContain('"rotation"');
+    expect(sourceText).toContain("CUBE_MOTION_READINESS_FIELDS");
+  });
+
   test("packing distinguishes capacity exhaustion from malformed data", () => {
     expect(() => packBoxUvOffsets([], Array.from({ length: 9 }, () => [64, 32] as const), 128, 128)).toThrow(BoxUvCapacityError);
     expect(packBoxUvOffsets([], [[64, 32]], 128, 128)).toEqual([[0, 0]]);

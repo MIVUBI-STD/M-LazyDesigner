@@ -89,6 +89,11 @@ const CUBE_SHAPE_FIELDS = new Set([
   "inflate",
 ]);
 
+const CUBE_MOTION_READINESS_FIELDS = new Set([
+  "origin",
+  "rotation",
+]);
+
 export function cubeSemanticScopesFromChangedFields(
   changedFields: readonly string[]
 ): CubeSemanticScope[] {
@@ -109,6 +114,13 @@ export function cubeSemanticScopesFromChangedFields(
   if (changedFields.some((field) => CUBE_SHAPE_FIELDS.has(field))) {
     stale.add("UV_MAPPING");
     stale.add("TEXTURE_APPEARANCE");
+    stale.add("ANIMATION_MOTION");
+  }
+  if (
+    changedFields.some((field) =>
+      CUBE_MOTION_READINESS_FIELDS.has(field)
+    )
+  ) {
     stale.add("ANIMATION_MOTION");
   }
   return [...stale];
