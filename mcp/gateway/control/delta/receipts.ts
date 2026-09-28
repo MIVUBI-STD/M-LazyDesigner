@@ -184,9 +184,15 @@ export function receiptSupportsContinuation(
     case "add_texture_group":
       return textureGroupReceiptComplete(value);
     case "manage_material":
+    case "create_pbr_material":
+    case "configure_material":
+    case "assign_texture_channel":
     case "import_texture_set":
       return materialMutationReceiptComplete(value);
     case "manage_material_instances":
+    case "set_face_material_instance":
+    case "bulk_set_material_instances":
+    case "clear_material_instances":
       return materialInstanceMutationReceiptComplete(value);
     case "manage_render_profile":
       return renderProfileMutationReceiptComplete(value);

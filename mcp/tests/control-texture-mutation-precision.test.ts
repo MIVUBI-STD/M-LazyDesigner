@@ -96,6 +96,86 @@ describe("Control Texture mutation precision", () => {
     }
   });
 
+  test("direct material mutation tools reuse complete shared receipts without rereads", () => {
+    const cases = [
+      ["create_pbr_material", "create"],
+      ["configure_material", "configure"],
+      ["assign_texture_channel", "assign_channel"],
+    ] as const;
+
+    for (const [capability, operation] of cases) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: "texturing",
+        phaseAfter: "texturing",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          operation,
+          material: {
+            uuid: "material-a",
+            name: "metal",
+            is_material: true,
+            channels: {
+              color: null,
+              normal: null,
+              height: null,
+              mer: null,
+            },
+            config: {
+              color_value: [255, 255, 255, 255],
+              mer_value: [0, 0, 255],
+              subsurface_value: 0,
+              saved: false,
+            },
+          },
+        },
+      });
+
+      expect(delta.verification_class, capability).toBe("receipt_only");
+      expect(delta.freshness.stale, capability).toEqual(["MATERIAL_RENDER"]);
+    }
+  });
+
+  test("direct material-instance writes reuse exact final face receipts", () => {
+    for (const capability of [
+      "set_face_material_instance",
+      "bulk_set_material_instances",
+      "clear_material_instances",
+    ] as const) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: "texturing",
+        phaseAfter: "texturing",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          operation:
+            capability === "set_face_material_instance"
+              ? "set"
+              : capability === "bulk_set_material_instances"
+                ? "bulk_set"
+                : "clear",
+          cube_count: 1,
+          face_count: 1,
+          cubes: [{ uuid: "cube-a", name: "body" }],
+          changes: [
+            {
+              cube_uuid: "cube-a",
+              cube_name: "body",
+              face: "north",
+              material_name:
+                capability === "clear_material_instances" ? "" : "metal",
+            },
+          ],
+        },
+      });
+
+      expect(delta.verification_class, capability).toBe("receipt_only");
+      expect(delta.freshness.stale, capability).toEqual(["MATERIAL_RENDER"]);
+    }
+  });
+
   test("malformed material continuation state cannot claim receipt-only verification", () => {
     const delta = buildControlDelta({
       capability: "manage_material",
