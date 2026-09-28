@@ -46,6 +46,18 @@ export type CorrectionLoopDecision = {
   state: "CORRECTION_READY" | "BLOCKED";
   attempt: 1 | 2;
   selected_candidate_id?: string;
+  decision_summary?: {
+    selected_candidate_id: string;
+    rejected_candidate_ids: string[];
+    selected_metrics: {
+      predicted_error: number;
+      mutation_cost: number;
+      risk: number;
+    };
+    solver_score: number;
+    candidate_count: number;
+    candidate_budget: 1 | 2 | 3;
+  };
   next_recipe?: AuthoringRecipe;
   rebuild?: ReturnType<typeof planIncrementalRecipeRebuild>;
   verification_request: VerificationEvidenceRequest;
@@ -357,6 +369,18 @@ export class CorrectionLoopRegistry {
       state: "CORRECTION_READY",
       attempt: record.attempt,
       selected_candidate_id: decision.selected.id,
+      decision_summary: {
+        selected_candidate_id: decision.selected.id,
+        rejected_candidate_ids: [...decision.rejected_ids],
+        selected_metrics: {
+          predicted_error: decision.selected.predicted_error,
+          mutation_cost: decision.selected.mutation_cost,
+          risk: decision.selected.risk,
+        },
+        solver_score: decision.score,
+        candidate_count: candidates.length,
+        candidate_budget: budget,
+      },
       next_recipe: nextRecipe,
       rebuild,
       verification_request: structuredClone(record.verification_request),
