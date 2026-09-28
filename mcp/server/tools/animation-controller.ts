@@ -1,5 +1,6 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { animationControllerReceipt } from "@/lib/receipts/animationController";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveUuidOrUniqueName } from "@/lib/coreIdentity";
@@ -1088,9 +1089,9 @@ export function registerAnimationControllerTools(): void {
         const initial = finalPlan.states.find(
           (state) => state.uuid === finalPlan.initial_state
         );
-        const result = {
-          execution: "applied" as const,
-          action: creating ? ("created" as const) : ("updated" as const),
+        const result = animationControllerReceipt({
+          execution: "applied",
+          action: creating ? "created" : "updated",
           operation_count: operations.length,
           controller: {
             uuid: controller.uuid,
@@ -1105,7 +1106,7 @@ export function registerAnimationControllerTools(): void {
             .map(controllerStateContinuation),
           created,
           removed,
-        };
+        });
 
         return {
           content: [
