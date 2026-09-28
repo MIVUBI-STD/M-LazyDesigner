@@ -73,7 +73,7 @@ test("undo and redo expose semantic effect only when every traversed entry is an
 test("Geometry producers consume manifest-owned semantic scopes", async () => {
   const files = [
     ["server/tools/element-hierarchy.ts", ["add_group", "modify_group", "reparent_element"]],
-    ["server/tools/element-mutation.ts", ["remove_element", "duplicate_element", "rename_element"]],
+    ["server/tools/element-mutation.ts", ["duplicate_element", "rename_element"]],
     ["server/tools/locators.ts", ["manage_locator", "manage_null_object"]],
   ] as const;
 
@@ -87,6 +87,15 @@ test("Geometry producers consume manifest-owned semantic scopes", async () => {
       );
     }
   }
+});
+
+test("remove_element history derives scopes from the removed element type", async () => {
+  const source = await Bun.file("server/tools/element-mutation.ts").text();
+  expect(source).toContain("removeElementSemanticScopes(removedRoot.type)");
+  expect(source).toContain("recordCurrentSemanticHistoryEffect(");
+  expect(source).not.toContain(
+    'recordCurrentCapabilitySemanticHistoryEffect("remove_element")'
+  );
 });
 
 test("semantic history distinguishes known empty effects from unknown entries",()=>{

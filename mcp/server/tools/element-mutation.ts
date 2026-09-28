@@ -1,8 +1,14 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
-import { removeElementReceipt } from "@/lib/receipts/removeElement";
+import {
+  recordCurrentCapabilitySemanticHistoryEffect,
+  recordCurrentSemanticHistoryEffect,
+} from "@/lib/semanticHistory";
+import {
+  removeElementReceipt,
+  removeElementSemanticScopes,
+} from "@/lib/receipts/removeElement";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { elementIdSchema } from "@/lib/zodObjects";
@@ -140,7 +146,9 @@ export function registerRemoveElementTool(): void {
             }
             deleteElements.length = 0;
             Undo.finishEdit("Agent removed element");
-            recordCurrentCapabilitySemanticHistoryEffect("remove_element");
+            recordCurrentSemanticHistoryEffect(
+              removeElementSemanticScopes(removedRoot.type)
+            );
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();

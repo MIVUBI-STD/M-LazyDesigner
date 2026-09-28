@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { CapabilitySemanticScope } from "../capabilities/manifest";
 
 export const removeElementReceiptSchema = z
   .object({
@@ -37,4 +38,37 @@ export function removeElementReceipt<T extends Record<string, unknown>>(
 
 export function isRemoveElementReceipt(value: unknown): boolean {
   return removeElementReceiptSchema.safeParse(value).success;
+}
+
+
+export type RemovedElementType =
+  | "cube"
+  | "group"
+  | "locator"
+  | "null_object"
+  | "element";
+
+export function removeElementSemanticScopes(
+  type: RemovedElementType | string
+): CapabilitySemanticScope[] {
+  if (type === "locator") {
+    return ["GEOMETRY_STRUCTURE", "ANIMATION_EFFECTS"];
+  }
+  if (type === "null_object") {
+    return ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"];
+  }
+  if (type === "cube" || type === "group") {
+    return [
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ];
+  }
+  return [
+    "GEOMETRY_STRUCTURE",
+    "UV_MAPPING",
+    "TEXTURE_APPEARANCE",
+    "ANIMATION_MOTION",
+  ];
 }

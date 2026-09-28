@@ -347,6 +347,58 @@ describe("LazyDesigner Control continuation hardening", () => {
     }
   });
 
+  test("remove_element scopes by final removed target type when receipt proves it", () => {
+    const locator = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        removed_root: {
+          uuid: "locator-a",
+          name: "muzzle",
+          type: "locator",
+          parent: "bone-a",
+        },
+        removed_counts: { groups: 0, elements: 1, total_nodes: 1 },
+        affected_animations: 0,
+      },
+    });
+    expect(locator.freshness.stale.sort()).toEqual([
+      "ANIMATION_EFFECTS",
+      "GEOMETRY_STRUCTURE",
+    ]);
+    expect(locator.invalidates.authoring_domains.sort()).toEqual([
+      "ANIMATION",
+      "GEOMETRY",
+    ]);
+
+    const nullObject = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        removed_root: {
+          uuid: "null-a",
+          name: "ik_controller",
+          type: "null_object",
+          parent: "bone-a",
+        },
+        removed_counts: { groups: 0, elements: 1, total_nodes: 1 },
+        affected_animations: 0,
+      },
+    });
+    expect(nullObject.freshness.stale.sort()).toEqual([
+      "ANIMATION_MOTION",
+      "GEOMETRY_STRUCTURE",
+    ]);
+    expect(nullObject.freshness.stale).not.toContain("UV_MAPPING");
+    expect(nullObject.freshness.stale).not.toContain("TEXTURE_APPEARANCE");
+  });
+
   test("semantic Undo/Redo narrows freshness and domain invalidation when history evidence is complete", () => {
     const materialUndo = buildControlDelta({
       capability: "undo",

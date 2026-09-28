@@ -5,6 +5,7 @@ import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
 } from "../../../lib/receipts/cubeMutation";
+import { removeElementSemanticScopes } from "../../../lib/receipts/removeElement";
 import type {
   ControlAuthoringDomain,
   ControlDelta,
@@ -220,6 +221,17 @@ export function geometryInvalidation(
     return authoringDomainsForScopes(scopes);
   }
 
+  if (capability === "remove_element") {
+    for (const candidate of resultCandidates(result)) {
+      const removedRoot = record(candidate.removed_root);
+      if (typeof removedRoot?.type === "string") {
+        return authoringDomainsForScopes(
+          removeElementSemanticScopes(removedRoot.type)
+        );
+      }
+    }
+  }
+
   const scopes = capabilityDefaultStaleScopes(capability);
   return scopes.length > 0
     ? authoringDomainsForScopes(scopes)
@@ -327,6 +339,18 @@ export function geometryFreshnessScopes(
       stale: cubeSemanticScopesFromChangedFields(changedFields),
       precise: true,
     };
+  }
+
+  if (capability === "remove_element") {
+    for (const candidate of resultCandidates(result)) {
+      const removedRoot = record(candidate.removed_root);
+      if (typeof removedRoot?.type === "string") {
+        return {
+          stale: removeElementSemanticScopes(removedRoot.type),
+          precise: true,
+        };
+      }
+    }
   }
 
   const defaults = capabilityDefaultStaleScopes(capability);
