@@ -956,6 +956,96 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const continuationDeltaDelivery = summarize(
+    "correction_continuation_delta_delivery",
+    [
+      step(
+        "verify",
+        {
+          continuation_id: "correctionctx:old",
+          mode: "PRUNED_READY",
+          unresolved: [
+            { code: "WIDTH_LOW", views: ["front"] },
+            { code: "SHOULDER_CONTACT", views: ["left"] },
+          ],
+          fresh_view_evidence: [
+            { view: "front", handle: "verificationevidence:old" },
+            { view: "left", handle: "verificationevidence:old" },
+          ],
+          verification: { pending: false },
+        },
+        true,
+        "Baseline sends the full previous continuation.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation_id: "correctionctx:new",
+          mode: "PRUNED_READY",
+          unresolved: [{ code: "SHOULDER_CONTACT", views: ["left"] }],
+          fresh_view_evidence: [
+            { view: "front", handle: "verificationevidence:front-fresh" },
+            { view: "left", handle: "verificationevidence:old" },
+          ],
+          verification: { pending: false },
+        },
+        true,
+        "Baseline resends the full continuation even though only one issue resolved and one view handle changed.",
+        { reasoningClass: "LOW" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          continuation_id: "correctionctx:old",
+          delivery: "FULL",
+          payload: {
+            unresolved: [
+              { code: "WIDTH_LOW", views: ["front"] },
+              { code: "SHOULDER_CONTACT", views: ["left"] },
+            ],
+            fresh_view_evidence: [
+              { view: "front", handle: "verificationevidence:old" },
+              { view: "left", handle: "verificationevidence:old" },
+            ],
+          },
+        },
+        true,
+        "First delivery remains complete.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation_id: "correctionctx:new",
+          delivery: "DELTA",
+          delta: {
+            from_continuation_id: "correctionctx:old",
+            to_continuation_id: "correctionctx:new",
+            resolved_discrepancy_codes: ["WIDTH_LOW"],
+            fresh_view_evidence_upsert: [
+              { view: "front", handle: "verificationevidence:front-fresh" },
+            ],
+            verification: { pending: false },
+          },
+        },
+        true,
+        "Changed state sends only resolved IDs, changed view handles, and changed verification fields.",
+        { reasoningClass: "NONE" }
+      ),
+    ],
+    {
+      first_full_payload_preserved: true,
+      resolved_issue_delta_preserved: true,
+      changed_view_handle_preserved: true,
+      unchanged_view_handle_not_repeated: true,
+      unchanged_unresolved_summary_not_repeated: true,
+      full_delivery_fallback_available_when_base_unknown: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -1000,6 +1090,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     continuationPruning,
     continuationModeSelection,
     continuationIdentityDedup,
+    continuationDeltaDelivery,
     failedMutation,
   ];
 }
