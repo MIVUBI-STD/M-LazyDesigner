@@ -10,6 +10,7 @@ export type VerificationEvidenceHandle = `verificationevidence:${string}`;
 
 export class VerificationEvidenceRegistry {
   private readonly entries = new Map<VerificationEvidenceHandle, VerificationEvidenceRecord>();
+  private scopeIdentity = "unbound:0";
 
   constructor(private readonly maxEntries = 16) {
     if (!Number.isInteger(maxEntries) || maxEntries < 1 || maxEntries > 64) {
@@ -20,7 +21,11 @@ export class VerificationEvidenceRegistry {
   put(record: VerificationEvidenceRecord): VerificationEvidenceHandle {
     const handle = (
       "verificationevidence:" +
-      createHash("sha256").update(JSON.stringify(record)).digest("hex")
+      createHash("sha256")
+        .update(this.scopeIdentity)
+        .update("\n")
+        .update(JSON.stringify(record))
+        .digest("hex")
     ) as VerificationEvidenceHandle;
     this.entries.delete(handle);
     this.entries.set(handle, structuredClone(record));
@@ -42,6 +47,15 @@ export class VerificationEvidenceRegistry {
     this.entries.delete(handle);
     this.entries.set(handle, record);
     return structuredClone(record);
+  }
+
+  setScopeIdentity(scopeIdentity: string): void {
+    if (!scopeIdentity) {
+      throw new Error("Verification evidence scope identity must be non-empty.");
+    }
+    if (scopeIdentity === this.scopeIdentity) return;
+    this.entries.clear();
+    this.scopeIdentity = scopeIdentity;
   }
 
   invalidate(handle: VerificationEvidenceHandle): boolean {
