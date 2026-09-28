@@ -31,7 +31,7 @@ describe("zero-waste correction loop reuse", () => {
         domain: "GEOMETRY",
         source: "capture_model_views",
         verification_risk: "LOW",
-        views: ["front"],
+        views: ["front", "left"],
         views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         size: 256,
         size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
@@ -101,11 +101,15 @@ describe("zero-waste correction loop reuse", () => {
           code: "WIDTH_LOW",
           severity: "REVIEW",
           summary: "Upper arms are slightly too narrow.",
+          views: ["front"],
+          evidence_targets: ["width", "silhouette"],
         },
         {
           code: "SHOULDER_CONTACT",
           severity: "REVIEW",
           summary: "Shoulder contact requires separate review.",
+          views: ["left"],
+          evidence_targets: ["attachment"],
         },
       ],
     });
@@ -136,8 +140,67 @@ describe("zero-waste correction loop reuse", () => {
         code: "WIDTH_LOW",
         severity: "REVIEW",
         summary: "Upper arms are slightly too narrow.",
+        views: ["front"],
+        evidence_targets: ["width", "silhouette"],
       },
     ]);
+    expect(decision.evidence_reuse).toEqual({
+      source_handle: "verificationevidence:first",
+      stale_views: ["front"],
+      reusable_views: ["left"],
+      basis: "TARGETED_VIEW_PROVENANCE",
+    });
+  });
+
+  test("falls back to recapturing all request views when discrepancy view provenance is missing", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "widen-arms",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+            anchor: "MIN",
+          },
+        },
+      },
+    }]);
+
+    expect(decision.evidence_reuse).toEqual({
+      source_handle: "verificationevidence:first",
+      stale_views: ["front", "left"],
+      reusable_views: [],
+      basis: "CONSERVATIVE_ALL_VIEWS",
+    });
   });
 
   test("rejects a correction that targets a discrepancy absent from current evidence", () => {
