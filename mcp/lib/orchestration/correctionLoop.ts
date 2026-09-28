@@ -266,7 +266,7 @@ export class CorrectionLoopRegistry {
         (item) => Array.isArray(item.views) && item.views.length > 0
       );
     const knownEvidenceViews = fullEvidenceHasViewProvenance
-      ? [...new Set(record.discrepancies.flatMap((item) => item.views ?? []))]
+      ? (Object.keys(record.view_evidence_handles) as ModelView[])
       : [];
     const canReuseViews =
       fullEvidenceHasViewProvenance && targetedEvidenceHasViewProvenance;
