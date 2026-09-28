@@ -41,6 +41,11 @@ export type CorrectionLoopRecord = {
   pending_target_discrepancy_codes: string[];
   pending_stale_views: ModelView[];
   last_delivered_continuation: CorrectionLoopContinuation | null;
+  continuation_group: {
+    id: number;
+    kind: "EXECUTION_COHORT" | "VERIFICATION_COHORT";
+  } | null;
+  next_continuation_group_id: number;
 };
 
 export type CorrectionContinuationMode =
@@ -101,9 +106,13 @@ export type CorrectionContinuationDelta = {
 export type CorrectionContinuationDelivery = {
   continuation_id: CorrectionLoopContinuation["continuation_id"];
   cached: boolean;
-  delivery: "FULL" | "DELTA" | "CACHED";
+  delivery: "FULL" | "DELTA" | "CACHED" | "DEFERRED";
   payload: CorrectionLoopContinuation | null;
   delta: CorrectionContinuationDelta | null;
+  group: {
+    id: `correctiongroup:${number}`;
+    kind: "EXECUTION_COHORT" | "VERIFICATION_COHORT";
+  } | null;
 };
 
 export type CorrectionLoopDecision = {
@@ -278,6 +287,8 @@ export class CorrectionLoopRegistry {
       | "pending_target_discrepancy_codes"
       | "pending_stale_views"
       | "last_delivered_continuation"
+      | "continuation_group"
+      | "next_continuation_group_id"
     >
   ): CorrectionLoopHandle {
     const viewEvidenceHandles: Partial<
@@ -301,6 +312,8 @@ export class CorrectionLoopRegistry {
       pending_target_discrepancy_codes: [],
       pending_stale_views: [],
       last_delivered_continuation: null,
+      continuation_group: null,
+      next_continuation_group_id: 1,
     };
     const handle = (
       "correctionloop:" +
@@ -411,6 +424,48 @@ export class CorrectionLoopRegistry {
     };
   }
 
+  beginContinuationGroup(
+    handle: CorrectionLoopHandle,
+    kind: "EXECUTION_COHORT" | "VERIFICATION_COHORT"
+  ): { id: `correctiongroup:${number}`; kind: typeof kind } {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error(
+        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+      );
+    }
+    if (record.continuation_group) {
+      throw new Error("CORRECTION_CONTINUATION_GROUP_ALREADY_OPEN");
+    }
+
+    const id = record.next_continuation_group_id++;
+    record.continuation_group = { id, kind };
+    return { id: `correctiongroup:${id}`, kind };
+  }
+
+  abortContinuationGroup(handle: CorrectionLoopHandle): void {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+    }
+    record.continuation_group = null;
+  }
+
+  commitContinuationGroup(
+    handle: CorrectionLoopHandle,
+    knownContinuationIds: readonly string[] = []
+  ): CorrectionContinuationDelivery {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+    }
+    if (!record.continuation_group) {
+      throw new Error("CORRECTION_CONTINUATION_GROUP_NOT_OPEN");
+    }
+    record.continuation_group = null;
+    return this.projectContinuationDelivery(handle, knownContinuationIds);
+  }
+
   projectContinuationDelivery(
     handle: CorrectionLoopHandle,
     knownContinuationIds: readonly string[] = []
@@ -423,6 +478,19 @@ export class CorrectionLoopRegistry {
     }
 
     const payload = this.projectContinuation(handle);
+    if (record.continuation_group) {
+      return {
+        continuation_id: payload.continuation_id,
+        cached: false,
+        delivery: "DEFERRED",
+        payload: null,
+        delta: null,
+        group: {
+          id: `correctiongroup:${record.continuation_group.id}`,
+          kind: record.continuation_group.kind,
+        },
+      };
+    }
     if (knownContinuationIds.includes(payload.continuation_id)) {
       record.last_delivered_continuation = structuredClone(payload);
       return {
@@ -431,6 +499,7 @@ export class CorrectionLoopRegistry {
         delivery: "CACHED",
         payload: null,
         delta: null,
+        group: null,
       };
     }
 
@@ -447,6 +516,7 @@ export class CorrectionLoopRegistry {
         delivery: "DELTA",
         payload: null,
         delta,
+        group: null,
       };
     }
 
@@ -457,6 +527,7 @@ export class CorrectionLoopRegistry {
       delivery: "FULL",
       payload,
       delta: null,
+      group: null,
     };
   }
 
