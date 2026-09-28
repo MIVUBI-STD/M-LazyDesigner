@@ -43,6 +43,54 @@ function uniqueSorted(values: Iterable<string>): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
+const SHARED_RECEIPT_CONTRACT_TESTS = [
+  "mcp/tests/animation-controller-receipt-contract.test.ts",
+  "mcp/tests/animation-effects-receipt-contract.test.ts",
+  "mcp/tests/authority-transition-receipt-contract.test.ts",
+  "mcp/tests/bone-rigging-receipt-contract.test.ts",
+  "mcp/tests/group-receipt-contract.test.ts",
+  "mcp/tests/locator-receipt-contract.test.ts",
+  "mcp/tests/material-instances-receipt-contract.test.ts",
+  "mcp/tests/material-receipt-contract.test.ts",
+  "mcp/tests/particle-receipt-contract.test.ts",
+  "mcp/tests/remove-element-receipt-contract.test.ts",
+  "mcp/tests/rename-element-receipt-contract.test.ts",
+  "mcp/tests/render-profile-receipt-contract.test.ts",
+  "mcp/tests/texture-group-receipt-contract.test.ts",
+  "mcp/tests/gateway-control-continuation-hardening.test.ts",
+  "mcp/tests/control-texture-mutation-precision.test.ts",
+] as const;
+
+const SEMANTIC_HISTORY_CONTRACT_TESTS = [
+  "mcp/tests/history-result-state.test.ts",
+  "mcp/tests/semantic-history-contract.test.ts",
+  "mcp/tests/semantic-history-coverage.test.ts",
+  "mcp/tests/semantic-history-native-owned.test.ts",
+  "mcp/tests/gateway-control-continuation-hardening.test.ts",
+] as const;
+
+const CONTROL_DELTA_CONTRACT_TESTS = [
+  "mcp/tests/gateway-control-continuation-hardening.test.ts",
+  "mcp/tests/control-texture-mutation-precision.test.ts",
+] as const;
+
+function sharedContractTestsForPath(path: string): readonly string[] {
+  if (path.startsWith("mcp/lib/receipts/")) {
+    return SHARED_RECEIPT_CONTRACT_TESTS;
+  }
+  if (path === "mcp/lib/semanticHistory.ts") {
+    return SEMANTIC_HISTORY_CONTRACT_TESTS;
+  }
+  if (
+    path === "mcp/gateway/control/delta/receipts.ts" ||
+    path === "mcp/gateway/control/delta/freshness.ts" ||
+    path === "mcp/gateway/control/delta/verification.ts"
+  ) {
+    return CONTROL_DELTA_CONTRACT_TESTS;
+  }
+  return [];
+}
+
 function isProjectGraphTypeScript(path: string): boolean {
   return (
     path.endsWith(".ts") &&
@@ -249,6 +297,7 @@ export function planAffectedExecution(input: {
     ...input.semanticImpact.affected_anchor_tests.filter((path) =>
       path.startsWith("mcp/tests/") && path.endsWith(".test.ts")
     ),
+    ...changedPaths.flatMap(sharedContractTestsForPath),
     ...(changedPaths.some(affectsGatewayOutputContracts)
       ? ["mcp/tests/gateway-output-schema.test.ts"]
       : []),

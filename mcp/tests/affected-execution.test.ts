@@ -65,6 +65,59 @@ describe("affected execution planner", () => {
     )).toBe(true);
   });
 
+  test("shared receipt changes run bounded receipt and continuation contracts", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/lib/receipts/materialMutation.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.fallback_full_verify).toBe(false);
+    expect(plan.checks).toContain("PROJECT_GRAPH");
+    expect(plan.checks).toContain("TARGETED_TESTS");
+    expect(plan.targeted_tests).toContain(
+      "mcp/tests/material-receipt-contract.test.ts"
+    );
+    expect(plan.targeted_tests).toContain(
+      "mcp/tests/gateway-control-continuation-hardening.test.ts"
+    );
+    expect(plan.commands.some((command) =>
+      command.includes("material-receipt-contract.test.ts")
+    )).toBe(true);
+  });
+
+  test("semantic history changes run history and Control continuation contracts", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/lib/semanticHistory.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.fallback_full_verify).toBe(false);
+    expect(plan.checks).toContain("PROJECT_GRAPH");
+    expect(plan.checks).toContain("TARGETED_TESTS");
+    for (const required of [
+      "mcp/tests/history-result-state.test.ts",
+      "mcp/tests/semantic-history-contract.test.ts",
+      "mcp/tests/semantic-history-native-owned.test.ts",
+      "mcp/tests/gateway-control-continuation-hardening.test.ts",
+    ]) {
+      expect(plan.targeted_tests).toContain(required);
+    }
+  });
+
+  test("Control delta contract changes run continuation regressions", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/gateway/control/delta/freshness.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.targeted_tests).toEqual(
+      expect.arrayContaining([
+        "mcp/tests/gateway-control-continuation-hardening.test.ts",
+        "mcp/tests/control-texture-mutation-precision.test.ts",
+      ])
+    );
+  });
+
   test("semantic core changes exercise the isolated compiler project", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/lib/semantic/canonical.ts"],
