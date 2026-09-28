@@ -41,6 +41,35 @@ export type CorrectionLoopRecord = {
   pending_stale_views: ModelView[];
 };
 
+export type CorrectionLoopContinuation = {
+  protocol: "lazydesigner-correction-continuation-v1";
+  handle: CorrectionLoopHandle;
+  recipe_id: string;
+  attempt: 0 | 1 | 2;
+  state: "CLEAR" | "READY" | "VERIFY_PENDING" | "BLOCKED";
+  unresolved_count: number;
+  unresolved: Array<{
+    code: string;
+    severity: VerificationDiscrepancy["severity"];
+    summary: string;
+    views: ModelView[];
+    evidence_targets: string[];
+  }>;
+  unresolved_truncated: boolean;
+  fresh_view_evidence: Array<{
+    view: ModelView;
+    handle: VerificationEvidenceHandle;
+  }>;
+  verification: {
+    pending: boolean;
+    target_discrepancy_codes: string[];
+    stale_views: ModelView[];
+    domain: VerificationEvidenceRequest["domain"];
+    source: VerificationEvidenceRequest["source"];
+    risk: "LOW" | "MEDIUM" | "HIGH" | null;
+  };
+};
+
 export type CorrectionLoopDecision = {
   handle: CorrectionLoopHandle;
   state: "CORRECTION_READY" | "BLOCKED";
@@ -175,6 +204,75 @@ export class CorrectionLoopRegistry {
       );
     }
     return structuredClone(record);
+  }
+
+  projectContinuation(handle: CorrectionLoopHandle): CorrectionLoopContinuation {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error(
+        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+      );
+    }
+
+    const pendingStale = new Set(record.pending_stale_views);
+    const freshViewEvidence = (Object.entries(record.view_evidence_handles) as Array<
+      [ModelView, VerificationEvidenceHandle | undefined]
+    >)
+      .filter(
+        (entry): entry is [ModelView, VerificationEvidenceHandle] =>
+          entry[1] !== undefined && !pendingStale.has(entry[0])
+      )
+      .map(([view, evidenceHandle]) => ({
+        view,
+        handle: evidenceHandle,
+      }))
+      .sort((a, b) => a.view.localeCompare(b.view));
+
+    const unresolved = record.discrepancies.slice(0, 6).map((item) => ({
+      code: item.code,
+      severity: item.severity,
+      summary:
+        item.summary.length <= 160
+          ? item.summary
+          : item.summary.slice(0, 157) + "...",
+      views: [...(item.views ?? [])],
+      evidence_targets: [...(item.evidence_targets ?? [])],
+    }));
+
+    const pending = record.pending_stale_views.length > 0;
+    const state: CorrectionLoopContinuation["state"] =
+      record.attempt >= 2 && record.discrepancies.length > 0
+        ? "BLOCKED"
+        : pending
+          ? "VERIFY_PENDING"
+          : record.discrepancies.length === 0
+            ? "CLEAR"
+            : "READY";
+
+    return {
+      protocol: "lazydesigner-correction-continuation-v1",
+      handle,
+      recipe_id: record.recipe_id,
+      attempt: record.attempt,
+      state,
+      unresolved_count: record.discrepancies.length,
+      unresolved,
+      unresolved_truncated: record.discrepancies.length > unresolved.length,
+      fresh_view_evidence: freshViewEvidence,
+      verification: {
+        pending,
+        target_discrepancy_codes: [
+          ...record.pending_target_discrepancy_codes,
+        ],
+        stale_views: [...record.pending_stale_views],
+        domain: record.verification_request.domain,
+        source: record.verification_request.source,
+        risk:
+          record.verification_request.domain === "GEOMETRY"
+            ? record.verification_request.verification_risk
+            : null,
+      },
+    };
   }
 
   updateEvidence(
