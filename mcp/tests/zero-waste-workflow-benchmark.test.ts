@@ -97,6 +97,11 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(visual.optimized.image_inputs).toBeLessThan(visual.baseline.image_inputs);
     expect(visual.optimized.image_inputs).toBe(2);
     expect(visual.baseline.image_inputs).toBe(10);
+    expect(visual.optimized.image_pixel_area).toBe(2 * 256 * 256);
+    expect(visual.baseline.image_pixel_area).toBe(10 * 512 * 512);
+    expect(visual.optimized.image_pixel_area).toBeLessThan(
+      visual.baseline.image_pixel_area
+    );
     expect(visual.optimized.high_reasoning_decisions).toBeLessThan(
       visual.baseline.high_reasoning_decisions
     );
