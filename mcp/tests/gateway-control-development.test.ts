@@ -71,6 +71,12 @@ describe("LazyDesigner Control system-development intent", () => {
       "path:mcp/server/tools/cubes.ts"
     );
 
+    const windowsPath = resolveDevelopmentIntent(
+      String.raw`C:\\repo\\mcp\\server\\tools\\cubes.ts:418`
+    );
+    expect(windowsPath.domain).toBe("GEOMETRY");
+    expect(windowsPath.confidence).toBe("EXACT");
+
     const anchorPath = resolveDevelopmentIntent(
       "failure in mcp/tests/particle-tool-contract.test.ts"
     );
