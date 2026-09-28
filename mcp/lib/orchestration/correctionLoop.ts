@@ -16,6 +16,7 @@ export type CorrectionLoopHandle = `correctionloop:${string}`;
 
 export type GeometryCorrectionPatch = {
   intent: SemanticGeometryEditIntent;
+  target_discrepancy_codes?: readonly string[];
 };
 
 export type CorrectionLoopRecord = {
@@ -37,6 +38,7 @@ export type CorrectionLoopDecision = {
   next_recipe?: AuthoringRecipe;
   rebuild?: ReturnType<typeof planIncrementalRecipeRebuild>;
   verification_request: VerificationEvidenceRequest;
+  reverification_discrepancies?: VerificationDiscrepancy[];
   blocked_reason?:
     | "REPEATED_FAILURE_WITHOUT_NEW_EVIDENCE"
     | "CORRECTION_ATTEMPT_LIMIT"
@@ -156,6 +158,33 @@ export class CorrectionLoopRegistry {
       };
     }
 
+    const requestedCodes = decision.selected.patch.target_discrepancy_codes;
+    let reverificationDiscrepancies = [...record.discrepancies];
+    if (requestedCodes !== undefined) {
+      const uniqueCodes = [...new Set(requestedCodes)];
+      if (uniqueCodes.length === 0) {
+        return {
+          handle,
+          state: "BLOCKED",
+          attempt: Math.min(2, record.attempt + 1) as 1 | 2,
+          verification_request: structuredClone(record.verification_request),
+          blocked_reason: "NO_ELIGIBLE_CORRECTION",
+        };
+      }
+      const byCode = new Map(record.discrepancies.map((item) => [item.code, item]));
+      const missing = uniqueCodes.filter((code) => !byCode.has(code));
+      if (missing.length > 0) {
+        return {
+          handle,
+          state: "BLOCKED",
+          attempt: Math.min(2, record.attempt + 1) as 1 | 2,
+          verification_request: structuredClone(record.verification_request),
+          blocked_reason: "NO_ELIGIBLE_CORRECTION",
+        };
+      }
+      reverificationDiscrepancies = uniqueCodes.map((code) => byCode.get(code)!);
+    }
+
     const nextRecipe = rewriteAuthoringRecipeForSemanticEdit(
       record.base_recipe,
       decision.selected.patch.intent
@@ -173,6 +202,7 @@ export class CorrectionLoopRegistry {
       next_recipe: nextRecipe,
       rebuild,
       verification_request: structuredClone(record.verification_request),
+      reverification_discrepancies: structuredClone(reverificationDiscrepancies),
     };
   }
 
