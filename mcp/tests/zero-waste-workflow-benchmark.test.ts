@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(8);
+    expect(workflows).toHaveLength(9);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -152,6 +152,23 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(
       workflow.quality_checks.unrelated_discrepancies_survive_targeted_updates
     ).toBe(true);
+  });
+
+  test("candidate economy shrinks ambiguity output without changing the chosen correction", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "correction_candidate_economy"
+    )!;
+    expect(workflow.quality_preserved).toBe(true);
+    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
+      workflow.baseline.ai_payload_bytes
+    );
+    expect(workflow.quality_checks.same_selected_candidate).toBe(true);
+    expect(workflow.quality_checks.same_correction_family).toBe(true);
+    expect(workflow.quality_checks.convergence_gate_kept).toBe(true);
+    expect(workflow.quality_checks.candidate_budget_respected).toBe(true);
+    expect(workflow.quality_checks.unsupported_family_candidates_removed).toBe(
+      true
+    );
   });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {
