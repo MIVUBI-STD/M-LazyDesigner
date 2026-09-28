@@ -6,6 +6,7 @@ export type VerificationEvidenceRequest =
   | {
       domain: "GEOMETRY";
       source: "capture_model_views";
+      verification_risk: VerificationRisk;
       views: ModelView[];
       size: 256 | 512;
       scope_instance_ids: string[];
@@ -51,6 +52,7 @@ export function compileVerificationEvidenceRequests(
         return {
           domain: "GEOMETRY",
           source: "capture_model_views",
+          verification_risk: risk,
           views: geometryViews(risk),
           size: risk === "HIGH" ? 512 : 256,
           scope_instance_ids: [...task.instance_ids],
