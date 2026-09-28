@@ -575,17 +575,28 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         "mutate",
         { target: "WIDTH_HIGH", action: "RESIZE" },
         true,
-        "Bounded width correction.",
+        "First bounded width correction.",
         { reasoningClass: "LOW" }
       ),
       step(
         "verify",
-        {
-          views: ["front", "left"],
-          convergence: "IMPROVED",
-        },
+        { views: ["front", "left"], convergence: "WIDTH_IMPROVED" },
         true,
-        "Baseline recaptures both views even though only front evidence was invalidated.",
+        "Baseline recaptures both views after the first correction.",
+        { imageInputs: 2, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        { target: "SHOULDER_CONTACT", action: "TRANSLATE" },
+        true,
+        "Second bounded contact correction.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        { views: ["front", "left"], convergence: "CONTACT_IMPROVED" },
+        true,
+        "Baseline recaptures both views again after the second correction.",
         { imageInputs: 2, imageSize: 384, reasoningClass: "HIGH" }
       ),
     ],
@@ -598,6 +609,10 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
             { code: "WIDTH_HIGH", views: ["front"] },
             { code: "SHOULDER_CONTACT", views: ["left"] },
           ],
+          view_handles: {
+            front: "verificationevidence:first",
+            left: "verificationevidence:first",
+          },
         },
         true,
         "Optimized path records bounded view provenance once.",
@@ -611,7 +626,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
           reusable_views: ["left"],
         },
         true,
-        "Correction keeps unrelated left-view evidence local.",
+        "First correction keeps unrelated left evidence local.",
         { reasoningClass: "LOW" }
       ),
       step(
@@ -619,10 +634,37 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         {
           recapture_views: ["front"],
           reused_views: ["left"],
-          convergence: "IMPROVED",
+          view_handles: {
+            front: "verificationevidence:front-second",
+            left: "verificationevidence:first",
+          },
+          convergence: "WIDTH_IMPROVED",
         },
         true,
-        "Only stale front evidence is recaptured; left remains available for cross-view safety.",
+        "Only stale front evidence is recaptured after the first correction.",
+        { imageInputs: 1, imageSize: 384, reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        {
+          target_discrepancy_codes: ["SHOULDER_CONTACT"],
+          stale_views: ["left"],
+          reusable_views: ["front"],
+          reusable_handle: "verificationevidence:front-second",
+        },
+        true,
+        "Second correction reuses the fresh front handle from the previous round.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          recapture_views: ["left"],
+          reused_views: ["front"],
+          convergence: "CONTACT_IMPROVED",
+        },
+        true,
+        "Only stale left evidence is recaptured after the second correction.",
         { imageInputs: 1, imageSize: 384, reasoningClass: "HIGH" }
       ),
     ],
@@ -632,6 +674,8 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
       unaffected_view_reused: true,
       cross_view_guard_retained: true,
       incomplete_provenance_falls_back_conservatively: true,
+      per_view_handles_survive_multiple_rounds: true,
+      unrelated_discrepancies_survive_targeted_updates: true,
     }
   );
 
