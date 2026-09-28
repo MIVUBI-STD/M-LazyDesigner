@@ -10,6 +10,13 @@ export type SemanticHistoryScope =
 
 export type SemanticHistoryEffect = {
   stale: SemanticHistoryScope[];
+  workspace_projection: boolean;
+  acceptance_gates: boolean;
+};
+
+export type SemanticHistoryEffectOptions = {
+  workspace_projection?: boolean;
+  acceptance_gates?: boolean;
 };
 
 const effects = new WeakMap<object, SemanticHistoryEffect>();
@@ -22,10 +29,15 @@ function normalizedScopes(
 
 export function recordSemanticHistoryEffect(
   entry: object | null | undefined,
-  scopes: readonly SemanticHistoryScope[]
+  scopes: readonly SemanticHistoryScope[],
+  options: SemanticHistoryEffectOptions = {}
 ): void {
-  if (!entry || scopes.length === 0) return;
-  effects.set(entry, { stale: normalizedScopes(scopes) });
+  if (!entry) return;
+  effects.set(entry, {
+    stale: normalizedScopes(scopes),
+    workspace_projection: options.workspace_projection ?? scopes.length > 0,
+    acceptance_gates: options.acceptance_gates ?? scopes.length > 0,
+  });
 }
 
 export function semanticHistoryEffectForEntry(
@@ -43,11 +55,18 @@ export function mergeSemanticHistoryEffects(
     stale: normalizedScopes(
       resolved.flatMap((effect) => effect?.stale ?? [])
     ),
+    workspace_projection: resolved.some(
+      (effect) => effect?.workspace_projection === true
+    ),
+    acceptance_gates: resolved.some(
+      (effect) => effect?.acceptance_gates === true
+    ),
   };
 }
 
 export function recordCurrentSemanticHistoryEffect(
-  scopes: readonly SemanticHistoryScope[]
+  scopes: readonly SemanticHistoryScope[],
+  options: SemanticHistoryEffectOptions = {}
 ): void {
   if (typeof Undo === "undefined") return;
   const history = Undo.history ?? [];
@@ -55,6 +74,7 @@ export function recordCurrentSemanticHistoryEffect(
   if (index < 0) return;
   recordSemanticHistoryEffect(
     history[index] as object | undefined,
-    scopes
+    scopes,
+    options
   );
 }

@@ -96,12 +96,45 @@ export function renameElementStateNeutral(value: unknown): boolean {
   );
 }
 
+function semanticHistoryEffectFromResult(result: unknown): {
+  stale: ControlFreshnessScope[];
+  workspace_projection: boolean;
+  acceptance_gates: boolean;
+} | null {
+  for (const candidate of resultCandidates(result)) {
+    const semanticEffect = record(candidate.semantic_effect);
+    if (
+      !semanticEffect ||
+      !Array.isArray(semanticEffect.stale) ||
+      typeof semanticEffect.workspace_projection !== "boolean" ||
+      typeof semanticEffect.acceptance_gates !== "boolean" ||
+      !semanticEffect.stale.every((scope) =>
+        ALL_FRESHNESS_SCOPES.includes(scope as ControlFreshnessScope)
+      )
+    ) {
+      continue;
+    }
+    return {
+      stale: [...new Set(
+        semanticEffect.stale as ControlFreshnessScope[]
+      )],
+      workspace_projection: semanticEffect.workspace_projection,
+      acceptance_gates: semanticEffect.acceptance_gates,
+    };
+  }
+  return null;
+}
+
 export function capabilityMutatesState(
   capability: string,
   succeeded: boolean,
   result: unknown
 ): boolean {
   if (!succeeded || !STATE_MUTATIONS.has(capability)) return false;
+  if (capability === "undo" || capability === "redo") {
+    const semanticEffect = semanticHistoryEffectFromResult(result);
+    if (semanticEffect && semanticEffect.stale.length === 0) return false;
+  }
   if (capability === "manage_cubes" && cubeStateNeutral(result)) return false;
   if (capability === "rename_element" && renameElementStateNeutral(result)) return false;
   if (
@@ -177,45 +210,41 @@ export function geometryInvalidation(capability: string, result: unknown): Contr
   return ["GEOMETRY"];
 }
 
-function semanticHistoryInvalidationDomains(
+function semanticHistoryInvalidation(
   result: unknown
-): ControlAuthoringDomain[] | null {
-  for (const candidate of resultCandidates(result)) {
-    const semanticEffect = record(candidate.semantic_effect);
-    if (!semanticEffect || !Array.isArray(semanticEffect.stale)) continue;
+): {
+  authoring_domains: ControlAuthoringDomain[];
+  workspace_projection: boolean;
+  acceptance_gates: boolean;
+} | null {
+  const effect = semanticHistoryEffectFromResult(result);
+  if (!effect) return null;
 
-    const scopes = semanticEffect.stale;
+  const domains = new Set<ControlAuthoringDomain>();
+  for (const scope of effect.stale) {
+    if (scope === "GEOMETRY_STRUCTURE") domains.add("GEOMETRY");
     if (
-      scopes.length === 0 ||
-      !scopes.every((scope) =>
-        ALL_FRESHNESS_SCOPES.includes(scope as ControlFreshnessScope)
-      )
+      scope === "UV_MAPPING" ||
+      scope === "TEXTURE_APPEARANCE" ||
+      scope === "MATERIAL_RENDER"
     ) {
-      continue;
+      domains.add("TEXTURING");
     }
-
-    const domains = new Set<ControlAuthoringDomain>();
-    for (const scope of scopes as ControlFreshnessScope[]) {
-      if (scope === "GEOMETRY_STRUCTURE") domains.add("GEOMETRY");
-      if (
-        scope === "UV_MAPPING" ||
-        scope === "TEXTURE_APPEARANCE" ||
-        scope === "MATERIAL_RENDER"
-      ) {
-        domains.add("TEXTURING");
-      }
-      if (
-        scope === "ANIMATION_MOTION" ||
-        scope === "ANIMATION_CONTROLLER" ||
-        scope === "ANIMATION_EFFECTS" ||
-        scope === "PARTICLE_SYSTEM"
-      ) {
-        domains.add("ANIMATION");
-      }
+    if (
+      scope === "ANIMATION_MOTION" ||
+      scope === "ANIMATION_CONTROLLER" ||
+      scope === "ANIMATION_EFFECTS" ||
+      scope === "PARTICLE_SYSTEM"
+    ) {
+      domains.add("ANIMATION");
     }
-    return [...domains];
   }
-  return null;
+
+  return {
+    authoring_domains: [...domains],
+    workspace_projection: effect.workspace_projection,
+    acceptance_gates: effect.acceptance_gates,
+  };
 }
 
 export function mutationInvalidation(
@@ -224,6 +253,11 @@ export function mutationInvalidation(
   succeeded: boolean,
   result: unknown
 ): ControlDelta["invalidates"] {
+  if (succeeded && (capability === "undo" || capability === "redo")) {
+    const historyInvalidation = semanticHistoryInvalidation(result);
+    if (historyInvalidation) return historyInvalidation;
+  }
+
   if (succeeded && capability === "save_material_config") {
     return {
       authoring_domains: [],
@@ -262,9 +296,7 @@ export function mutationInvalidation(
     if (capability === "create_project") {
       affectedDomains = ["GEOMETRY", "TEXTURING", "ANIMATION"];
     } else if (capability === "undo" || capability === "redo") {
-      affectedDomains =
-        semanticHistoryInvalidationDomains(result) ??
-        ["GEOMETRY", "TEXTURING", "ANIMATION"];
+      affectedDomains = ["GEOMETRY", "TEXTURING", "ANIMATION"];
     } else if (domain === "GEOMETRY") affectedDomains = geometryInvalidation(capability, result);
     else if (domain === "TEXTURING") affectedDomains = ["TEXTURING"];
     else if (domain === "ANIMATION") affectedDomains = ["ANIMATION"];
@@ -370,23 +402,12 @@ export function staleScopesForMutation(
   }
 
   if (capability === "undo" || capability === "redo") {
-    for (const candidate of resultCandidates(result)) {
-      const semanticEffect = record(candidate.semantic_effect);
-      if (
-        semanticEffect &&
-        Array.isArray(semanticEffect.stale) &&
-        semanticEffect.stale.length > 0 &&
-        semanticEffect.stale.every((scope) =>
-          ALL_FRESHNESS_SCOPES.includes(scope as ControlFreshnessScope)
-        )
-      ) {
-        return {
-          stale: [...new Set(
-            semanticEffect.stale as ControlFreshnessScope[]
-          )],
-          precise: true,
-        };
-      }
+    const semanticEffect = semanticHistoryEffectFromResult(result);
+    if (semanticEffect) {
+      return {
+        stale: semanticEffect.stale,
+        precise: true,
+      };
     }
     return {
       stale: [...ALL_FRESHNESS_SCOPES],

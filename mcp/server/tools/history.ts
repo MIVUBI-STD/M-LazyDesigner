@@ -6,6 +6,7 @@ import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { requireOpenProject } from "@/lib/util";
 import {
   mergeSemanticHistoryEffects,
+  recordSemanticHistoryEffect,
   type SemanticHistoryEffect,
 } from "@/lib/semanticHistory";
 
@@ -288,6 +289,11 @@ export function registerHistoryTools() {
         collections: [],
       });
       Undo.finishEdit(label);
+      recordSemanticHistoryEffect(
+        (Undo.history ?? [])[Math.max(0, (Undo.index ?? 1) - 1)] as object | undefined,
+        [],
+        { workspace_projection: false, acceptance_gates: false }
+      );
 
       return JSON.stringify(
         {

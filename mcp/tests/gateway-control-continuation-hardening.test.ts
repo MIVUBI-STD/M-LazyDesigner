@@ -413,6 +413,30 @@ describe("LazyDesigner Control continuation hardening", () => {
     ]);
   });
 
+  test("known metadata-only Undo preserves authored freshness and acceptance gates", () => {
+    const delta = buildControlDelta({
+      capability: "undo",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        semantic_effect: {
+          stale: [],
+          workspace_projection: true,
+          acceptance_gates: false,
+        },
+      },
+    });
+
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.freshness.stale).toEqual([]);
+    expect(delta.invalidates.authoring_domains).toEqual([]);
+    expect(delta.invalidates.workspace_projection).toBe(true);
+    expect(delta.invalidates.acceptance_gates).toBe(false);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
   test("receipt-proven direct animation read/view actions preserve authored freshness", () => {
     const cases = [
       {

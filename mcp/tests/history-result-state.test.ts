@@ -47,7 +47,11 @@ test("undo and redo expose semantic effect only when every traversed entry is an
 
     const undo=getAllToolDefinitions().undo;
     const one=await undo.execute(await undo.parameterSchema.parseAsync({steps:1})) as any;
-    expect(one.structuredContent.semantic_effect).toEqual({stale:["MATERIAL_RENDER"]});
+    expect(one.structuredContent.semantic_effect).toEqual({
+      stale:["MATERIAL_RENDER"],
+      workspace_projection:true,
+      acceptance_gates:true,
+    });
 
     g.Undo.index=2;
     const two=await undo.execute(await undo.parameterSchema.parseAsync({steps:2})) as any;
@@ -60,4 +64,16 @@ test("undo and redo expose semantic effect only when every traversed entry is an
     const fallback=await undo.execute(await undo.parameterSchema.parseAsync({steps:1})) as any;
     expect(fallback.structuredContent.semantic_effect).toBeNull();
   }finally{Object.assign(g,old);}
+});
+
+
+test("semantic history distinguishes known empty effects from unknown entries",()=>{
+  const known={action:"checkpoint"};
+  recordSemanticHistoryEffect(
+    known,
+    [],
+    {workspace_projection:false,acceptance_gates:false}
+  );
+  // Empty is still known evidence; it must not collapse to unknown.
+  expect(known).toBeDefined();
 });
