@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalJson } from "@/lib/semantic/canonical";
 import type { AuthoringRecipe } from "@/lib/authoringRecipe/contracts";
 import type { SemanticGeometryEditIntent } from "@/lib/authoringRecipe/semanticEdit";
 import { rewriteAuthoringRecipeForSemanticEdit } from "@/lib/authoringRecipe/semanticRewrite";
@@ -163,7 +164,7 @@ function correctionContinuationId(
 ): CorrectionLoopContinuation["continuation_id"] {
   return (
     "correctionctx:" +
-    createHash("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 20)
+    createHash("sha256").update(canonicalJson(payload)).digest("hex").slice(0, 20)
   ) as CorrectionLoopContinuation["continuation_id"];
 }
 
