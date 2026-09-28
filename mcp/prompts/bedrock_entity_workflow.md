@@ -66,7 +66,9 @@ Known major mismatch stays FAIL despite earlier approval; never submit as READY_
 
 Correction continuation is identity-deduplicated. Pass previously received `continuation_id` values as `knownContinuationIds`; unchanged state should return a cached ID with no repeated continuation payload. Any change to unresolved issues, evidence handles, attempt/mode, or pending verification produces a new identity and a fresh payload.
 
-For a changed state whose previous continuation identity is known, accept delta-only continuation rather than asking for the full packet again. Apply resolved IDs, unresolved upserts, per-view evidence-handle upserts/invalidations, and changed verification/mode fields over the known base. Unknown base identity requires FULL delivery.
+For a changed state whose previous continuation identity is known, accept delta-only continuation rather than asking for the full packet again.
+
+Semantic continuation grouping is runtime-owned. Same-mode/state micro updates within one execution or verification cohort may be deferred and committed as one packet. A decision-changing mode/state transition bypasses grouping and must be delivered immediately; verification signals are never delayed for context savings. Apply resolved IDs, unresolved upserts, per-view evidence-handle upserts/invalidations, and changed verification/mode fields over the known base. Unknown base identity requires FULL delivery.
 
 Continuation mode is selected by runtime state, not by model choice: pre-selection uses bounded candidate context; post-solver uses `DECISION_SUMMARY`; post-execution with stale evidence uses `VERIFY_PENDING`; unresolved verified work uses `PRUNED_READY`; terminal states use `CLEAR` or `BLOCKED`.
 
