@@ -23,23 +23,24 @@ const DEFAULT_SOURCE_BY_DOMAIN: Record<ControlAuthoringDomain, ControlSourceOwne
     specialist: MODELLING_PATH,
     anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
     resolution: "FALLBACK",
-    resolution: "FALLBACK",
-    resolution: "FALLBACK",
   },
   TEXTURING: {
     source: "mcp/server/runtime/registration.ts",
     specialist: TEXTURING_PATH,
     anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
+    resolution: "FALLBACK",
   },
   ANIMATION: {
     source: "mcp/server/runtime/registration.ts",
     specialist: ANIMATION_PATH,
     anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
+    resolution: "FALLBACK",
   },
   CORE: {
     source: "mcp/server/runtime/registration.ts",
     specialist: null,
     anchor_test: "mcp/tests/gateway-contract.test.ts",
+    resolution: "FALLBACK",
   },
 };
 
