@@ -176,56 +176,49 @@ export function phaseTransitionReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isPhaseTransitionReceipt);
 }
 
+type ContinuationReceiptValidator = (value: unknown) => boolean;
+
+const CONTINUATION_RECEIPT_VALIDATORS: Readonly<
+  Record<string, ContinuationReceiptValidator>
+> = {
+  create_project: createProjectReceiptComplete,
+  switch_authoring_phase: phaseTransitionReceiptComplete,
+  manage_animation_effects: animationEffectsReceiptComplete,
+  manage_particle: particleMutationReceiptComplete,
+  manage_animation_controller: animationControllerReceiptComplete,
+  add_texture_group: textureGroupReceiptComplete,
+  manage_material: materialMutationReceiptComplete,
+  create_pbr_material: materialMutationReceiptComplete,
+  configure_material: materialMutationReceiptComplete,
+  assign_texture_channel: materialMutationReceiptComplete,
+  import_texture_set: materialMutationReceiptComplete,
+  manage_material_instances: materialInstanceMutationReceiptComplete,
+  set_face_material_instance: materialInstanceMutationReceiptComplete,
+  bulk_set_material_instances: materialInstanceMutationReceiptComplete,
+  clear_material_instances: materialInstanceMutationReceiptComplete,
+  manage_render_profile: renderProfileMutationReceiptComplete,
+  remove_element: removeElementReceiptComplete,
+  rename_element: renameElementReceiptComplete,
+  manage_locator: locatorReceiptComplete,
+  manage_null_object: locatorReceiptComplete,
+  bone_rigging: (value) =>
+    nativeIkControllerReceiptComplete(value) ||
+    boneRiggingStateReceiptComplete(value) ||
+    boneRiggingDeletionReceiptComplete(value),
+  add_group: (value) => groupReceiptComplete("add_group", value),
+  modify_group: (value) => groupReceiptComplete("modify_group", value),
+  reparent_element: (value) => groupReceiptComplete("reparent_element", value),
+};
+
+export const CONTINUATION_RECEIPT_CAPABILITIES = Object.freeze(
+  Object.keys(CONTINUATION_RECEIPT_VALIDATORS).sort((a, b) =>
+    a.localeCompare(b)
+  )
+);
+
 export function receiptSupportsContinuation(
   capability: string,
   value: unknown
 ): boolean {
-  switch (capability) {
-    case "create_project":
-      return createProjectReceiptComplete(value);
-    case "switch_authoring_phase":
-      return phaseTransitionReceiptComplete(value);
-    case "manage_animation_effects":
-      return animationEffectsReceiptComplete(value);
-    case "manage_particle":
-      return particleMutationReceiptComplete(value);
-    case "manage_animation_controller":
-      return animationControllerReceiptComplete(value);
-    case "add_texture_group":
-      return textureGroupReceiptComplete(value);
-    case "save_material_config":
-      return materialPersistenceReceiptComplete(value);
-    case "manage_material":
-    case "create_pbr_material":
-    case "configure_material":
-    case "assign_texture_channel":
-    case "import_texture_set":
-      return materialMutationReceiptComplete(value);
-    case "manage_material_instances":
-    case "set_face_material_instance":
-    case "bulk_set_material_instances":
-    case "clear_material_instances":
-      return materialInstanceMutationReceiptComplete(value);
-    case "manage_render_profile":
-      return renderProfileMutationReceiptComplete(value);
-    case "remove_element":
-      return removeElementReceiptComplete(value);
-    case "rename_element":
-      return renameElementReceiptComplete(value);
-    case "manage_locator":
-    case "manage_null_object":
-      return locatorReceiptComplete(value);
-    case "bone_rigging":
-      return (
-        nativeIkControllerReceiptComplete(value) ||
-        boneRiggingStateReceiptComplete(value) ||
-        boneRiggingDeletionReceiptComplete(value)
-      );
-    case "add_group":
-    case "modify_group":
-    case "reparent_element":
-      return groupReceiptComplete(capability, value);
-    default:
-      return false;
-  }
+  return CONTINUATION_RECEIPT_VALIDATORS[capability]?.(value) ?? false;
 }
