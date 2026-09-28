@@ -90,21 +90,32 @@ export function textureVerificationScope(value: unknown): ControlVerificationSco
   return null;
 }
 
+type VisualScopeResolver = (
+  value: unknown
+) => ControlVerificationScope | null;
+
+const VISUAL_SCOPE_RESOLVERS: Readonly<
+  Record<string, VisualScopeResolver>
+> = {
+  manage_cubes: cubeVerificationScope,
+  manage_animation_timeline: animationVerificationScope,
+  manage_keyframes: animationVerificationScope,
+  paint_texture_transaction: textureVerificationScope,
+};
+
+export const BOUNDED_VISUAL_SCOPE_CAPABILITIES = Object.freeze(
+  Object.keys(VISUAL_SCOPE_RESOLVERS).sort((a, b) =>
+    a.localeCompare(b)
+  )
+);
+
 export function verificationScopeForResult(
   capability: string,
   verificationClass: ControlDelta["verification_class"],
   result: unknown
 ): ControlVerificationScope | null {
   if (verificationClass !== "visual") return null;
-  if (capability === "manage_cubes") return cubeVerificationScope(result);
-  if (
-    capability === "manage_animation_timeline" ||
-    capability === "manage_keyframes"
-  ) {
-    return animationVerificationScope(result);
-  }
-  if (capability === "paint_texture_transaction") return textureVerificationScope(result);
-  return null;
+  return VISUAL_SCOPE_RESOLVERS[capability]?.(result) ?? null;
 }
 
 export function verificationClassForResult(
