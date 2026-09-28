@@ -1,5 +1,6 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { particleMutationReceipt } from "@/lib/receipts/particleMutation";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { isAbsoluteFilesystemPath } from "@/lib/util";
@@ -960,7 +961,7 @@ export function registerParticleTools(): void {
                   : `Prepared particle ${summary.identifier}: ${summary.component_count} components${particleWrite ? "; particle write verified" : ""}${previewPath && !previewError ? "; native preview loaded" : ""}${previewError ? "; native preview failed after artifact preparation" : ""}.`,
             },
           ],
-          structuredContent: {
+          structuredContent: particleMutationReceipt({
             valid,
             artifact_ready: artifactReady,
             validation_scope: PARTICLE_VALIDATION_SCOPE,
@@ -983,7 +984,7 @@ export function registerParticleTools(): void {
             summary,
             writes,
             ...particleContent,
-          },
+          }),
         };
       },
     },
