@@ -20,13 +20,7 @@ import {
   type CorrectionLoopHandle,
 } from "@/lib/orchestration/correctionContinuation";
 
-export type {
-  CorrectionContinuationMode,
-  CorrectionLoopContinuation,
-  CorrectionContinuationDelta,
-  CorrectionContinuationDelivery,
-  CorrectionLoopHandle,
-} from "@/lib/orchestration/correctionContinuation";
+export type { CorrectionLoopHandle } from "@/lib/orchestration/correctionContinuation";
 
 export type ExecutableGeometryCorrectionFamily =
   | "TRANSLATE"
@@ -40,7 +34,7 @@ export type GeometryCorrectionPatch = {
   target_discrepancy_codes?: readonly string[];
 };
 
-export type CorrectionLoopRecord = {
+type CorrectionLoopRecord = {
   recipe_id: string;
   base_recipe: AuthoringRecipe;
   verification_request: VerificationEvidenceRequest;
