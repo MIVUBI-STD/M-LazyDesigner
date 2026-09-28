@@ -128,6 +128,25 @@ describe("Control Texture mutation precision", () => {
     expect(delta.verification_class).toBe("focused_read");
   });
 
+  test("direct material-config save changes persistence without invalidating authored appearance", () => {
+    const delta = buildControlDelta({
+      capability: "save_material_config",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: 'Saved material config to "/tmp/material.texture_set.json"',
+    });
+
+    expect(delta.invalidates.authoring_domains).toEqual([]);
+    expect(delta.invalidates.workspace_projection).toBe(true);
+    expect(delta.invalidates.acceptance_gates).toBe(false);
+    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.freshness.stale).toEqual([]);
+    expect(delta.freshness.fresh).toHaveLength(8);
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("material save preserves semantic freshness while marking persistence state changed", () => {
     const delta = buildControlDelta({
       capability: "manage_material",

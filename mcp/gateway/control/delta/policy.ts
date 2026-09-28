@@ -1,6 +1,7 @@
 import type { ControlFreshnessScope } from "../types";
 
 export const STATE_MUTATIONS = new Set([
+  "create_project", "undo", "redo",
   "manage_cubes", "add_group", "modify_group", "duplicate_element", "reparent_element", "remove_element",
   "rename_element", "manage_locator", "manage_null_object", "bone_rigging",
   "create_texture", "apply_texture", "add_texture_group", "import_texture_set",
@@ -8,7 +9,7 @@ export const STATE_MUTATIONS = new Set([
   "paint_with_brush", "eraser_tool", "texture_layer_management", "paint_texture_transaction",
   "create_pbr_material", "configure_material", "assign_texture_channel", "save_material_config",
   "set_face_material_instance", "bulk_set_material_instances", "clear_material_instances",
-  "manage_material", "manage_material_instances", "manage_render_profile", "create_animation",
+  "manage_material", "manage_material_instances", "manage_render_profile", "manage_uv_layout", "create_animation",
   "manage_keyframes", "animation_graph_editor", "animation_timeline",
   "batch_keyframe_operations", "animation_copy_paste",
   "manage_animation_timeline", "manage_animation_effects", "manage_animation_controller",

@@ -276,6 +276,45 @@ describe("LazyDesigner Control continuation hardening", () => {
     expect(effects.verification_class).toBe("receipt_only");
   });
 
+  test("UV, history, and project-boundary mutations invalidate the evidence they can make stale", () => {
+    const uv = buildControlDelta({
+      capability: "manage_uv_layout",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { execution: "applied" },
+    });
+    expect(uv.freshness.basis).toBe("PRECISE_EFFECT");
+    expect(uv.freshness.stale).toEqual([
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+    ]);
+    expect(uv.freshness.fresh).toContain("MATERIAL_RENDER");
+    expect(uv.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(uv.invalidates.acceptance_gates).toBe(true);
+
+    for (const capability of ["undo", "redo", "create_project"] as const) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: "geometry",
+        phaseAfter: "geometry",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {},
+      });
+      expect(delta.freshness.basis, capability).toBe("CONSERVATIVE_EFFECT");
+      expect(delta.freshness.stale, capability).toHaveLength(8);
+      expect(delta.invalidates.authoring_domains, capability).toEqual([
+        "GEOMETRY",
+        "TEXTURING",
+        "ANIMATION",
+      ]);
+      expect(delta.invalidates.workspace_projection, capability).toBe(true);
+      expect(delta.invalidates.acceptance_gates, capability).toBe(true);
+    }
+  });
+
   test("ordinary successful mutation continues without status reread", () => {
     const delta = buildControlDelta({
       capability: "manage_cubes",

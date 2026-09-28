@@ -119,6 +119,9 @@ export function capabilityMutatesState(
   if (capability === "manage_material" && materialPersistenceOnly(result)) {
     return false;
   }
+  if (capability === "save_material_config") {
+    return false;
+  }
   if (capability === "manage_material_instances") {
     return !materialInstancesStateNeutral(result);
   }
@@ -169,6 +172,14 @@ export function mutationInvalidation(
   succeeded: boolean,
   result: unknown
 ): ControlDelta["invalidates"] {
+  if (succeeded && capability === "save_material_config") {
+    return {
+      authoring_domains: [],
+      workspace_projection: true,
+      acceptance_gates: false,
+    };
+  }
+
   if (
     succeeded &&
     capability === "manage_material" &&
@@ -196,7 +207,9 @@ export function mutationInvalidation(
   const mutates = capabilityMutatesState(capability, succeeded, result);
   let affectedDomains: ControlAuthoringDomain[] = [];
   if (mutates) {
-    if (domain === "GEOMETRY") affectedDomains = geometryInvalidation(capability, result);
+    if (capability === "create_project" || capability === "undo" || capability === "redo") {
+      affectedDomains = ["GEOMETRY", "TEXTURING", "ANIMATION"];
+    } else if (domain === "GEOMETRY") affectedDomains = geometryInvalidation(capability, result);
     else if (domain === "TEXTURING") affectedDomains = ["TEXTURING"];
     else if (domain === "ANIMATION") affectedDomains = ["ANIMATION"];
     else affectedDomains = ["CORE"];
@@ -269,6 +282,12 @@ export function staleScopesForMutation(
   if (domain === "GEOMETRY") return geometryFreshnessScopes(capability, result);
 
   if (domain === "TEXTURING") {
+    if (capability === "manage_uv_layout") {
+      return {
+        stale: ["UV_MAPPING", "TEXTURE_APPEARANCE"],
+        precise: true,
+      };
+    }
     if (capability === "import_texture_set") {
       return {
         stale: ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"],
@@ -283,6 +302,17 @@ export function staleScopesForMutation(
     }
     return {
       stale: ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"],
+      precise: false,
+    };
+  }
+
+  if (
+    capability === "create_project" ||
+    capability === "undo" ||
+    capability === "redo"
+  ) {
+    return {
+      stale: [...ALL_FRESHNESS_SCOPES],
       precise: false,
     };
   }
