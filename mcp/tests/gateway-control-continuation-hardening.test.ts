@@ -34,6 +34,68 @@ describe("LazyDesigner Control continuation hardening", () => {
     }
   });
 
+  test("authority transitions require complete shared receipts for receipt-only verification", () => {
+    const badProject = buildControlDelta({
+      capability: "create_project",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: null,
+      succeeded: true,
+      result: { project: { uuid: "project-a" } },
+    });
+    expect(badProject.verification_class).toBe("focused_read");
+
+    const goodProject = buildControlDelta({
+      capability: "create_project",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        project: {
+          uuid: "project-a",
+          name: "demo",
+          save_path: null,
+          export_path: null,
+          export_codec: null,
+          saved: false,
+        },
+        format: { id: "bedrock" },
+        resolution: { texture_width: 128, texture_height: 128 },
+      },
+    });
+    expect(goodProject.verification_class).toBe("receipt_only");
+
+    const badPhase = buildControlDelta({
+      capability: "switch_authoring_phase",
+      phaseBefore: "geometry",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { phase: "animation" },
+    });
+    expect(badPhase.verification_class).toBe("focused_read");
+
+    const goodPhase = buildControlDelta({
+      capability: "switch_authoring_phase",
+      phaseBefore: "geometry",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        phase: "animation",
+        runtime_surface: "ANIMATION",
+        reason: "animate",
+        resume_from: "geometry-ready",
+        readiness_summary: null,
+        surface_changed: true,
+        reload_required: false,
+        action: "continue through Gateway",
+      },
+    });
+    expect(goodPhase.verification_class).toBe("receipt_only");
+  });
+
   test("successful phase handoff records the real transition and requests one refresh", () => {
     const delta = buildControlDelta({
       capability: "switch_authoring_phase",
