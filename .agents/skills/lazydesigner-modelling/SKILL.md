@@ -185,6 +185,8 @@ Native packing is a starting layout. Keep named body/head/appendage cohorts in r
 ## Local Correction / Convergence
 Correction continuation is identity-deduplicated. Reuse returned `continuation_id` values through `knownContinuationIds`; when the projected state is unchanged, runtime returns the cached ID without replaying unresolved summaries or evidence-handle lists. A changed correction state produces a new identity and full current payload.
 
+When a known previous continuation is still available and the state changes, prefer delta-only continuation: resolved discrepancy IDs, changed unresolved entries, changed per-view evidence handles, invalidated evidence handles, and changed verification/mode fields only. Unchanged summaries and evidence handles are inherited from the referenced previous continuation. If the previous identity is unknown, fall back to FULL delivery.
+
 Continuation mode is runtime-selected; the model does not choose it. Before selection use bounded candidate context, immediate post-solver handoff uses `DECISION_SUMMARY`, pending verification uses `VERIFY_PENDING`, unresolved post-verification work uses `PRUNED_READY`, and completed/terminal states use `CLEAR`/`BLOCKED`.
 
 After the immediate execution handoff consumes `decision_summary`, later turns use the pruned `lazydesigner-correction-continuation-v1` projection: unresolved discrepancies, fresh per-view evidence handles, and pending verification only. Resolved branches, stale handles, old candidate IDs/metrics, full recipe state, and evidence fingerprints stay out of later model turns.
