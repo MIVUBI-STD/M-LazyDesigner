@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(11);
+    expect(workflows).toHaveLength(12);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -254,6 +254,22 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(workflow.quality_checks.verification_mode_preserved).toBe(true);
     expect(workflow.quality_checks.no_model_mode_selection_required).toBe(true);
     expect(workflow.quality_checks.correction_state_semantics_preserved).toBe(
+      true
+    );
+  });
+
+  test("continuation identity deduplication avoids repeating unchanged payloads", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "correction_continuation_identity_dedup"
+    )!;
+    expect(workflow.quality_preserved).toBe(true);
+    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
+      workflow.baseline.ai_payload_bytes
+    );
+    expect(workflow.quality_checks.first_payload_preserved).toBe(true);
+    expect(workflow.quality_checks.unchanged_payload_not_repeated).toBe(true);
+    expect(workflow.quality_checks.identity_preserved).toBe(true);
+    expect(workflow.quality_checks.changed_state_requires_new_identity).toBe(
       true
     );
   });
