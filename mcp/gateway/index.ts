@@ -38,8 +38,7 @@ import {
   deriveControlReceipt,
 } from "./control/receipt";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
-import { VerificationEvidenceRegistry } from "../lib/orchestration/evidenceRegistry";
-import { CorrectionLoopRegistry } from "../lib/orchestration/correctionLoop";
+import { gatewayOrchestrationRecoveryState } from "./runtime/orchestrationRecoveryState";
 import {
   applyCapabilityGraphOutcome,
   capabilityBranchFromArguments,
@@ -64,12 +63,9 @@ import {
 } from "./experimental/hybridProfile";
 import { registerExperimentalHybrid4 } from "./experimental/hybridRegistration";
 
-const verificationEvidenceRegistry = new VerificationEvidenceRegistry();
-const correctionLoopRegistry = new CorrectionLoopRegistry();
 const backend = new BlockitRuntimeBackend(undefined, undefined, {
   onRuntimeGenerationChange: () => {
-    verificationEvidenceRegistry.clear();
-    correctionLoopRegistry.invalidateRuntimeGeneration();
+    gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration();
   },
 });
 const localCapabilities = new LocalCapabilityRegistry();
