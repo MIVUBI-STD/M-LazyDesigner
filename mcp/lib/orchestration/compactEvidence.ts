@@ -1,10 +1,13 @@
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
+import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
 
 export type VerificationDiscrepancy = {
   code: string;
   severity: "INFO" | "REVIEW" | "BLOCKING";
   summary: string;
+  views?: ModelView[];
+  evidence_targets?: VisualEvidenceTarget[];
 };
 
 export type CompactVerificationEvidence = {
