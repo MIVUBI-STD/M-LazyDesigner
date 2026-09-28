@@ -433,8 +433,25 @@ invent reference claims, or replace direct inspection of the returned image(s). 
 when the canonical evidence vocabulary cannot express the question.
 
 For Codex allowance efficiency, one view that answers the claim is better than a
-multi-view board that adds no decision-changing evidence. Expand the view set only when
-the first selected view leaves a material axis unsupported or exposes cross-view risk.
+multi-view board that adds no decision-changing evidence. Reuse the existing verification
+risk when available:
+
+```text
+LOW
+→ minimum evidence-target view set
+
+MEDIUM
+→ minimum set + one deterministic orthogonal view
+
+HIGH
+→ minimum set + front/left/top core coverage when possible
+```
+
+Risk expansion is a quality guard, not a second visual planner. It does not change the
+claim, judge the image, or add more than the five-view capture budget. Explicit `views`
+remain authoritative when the reference requires a specific correspondence. If the
+target set itself cannot be covered within five views, narrow the claim instead of
+silently exceeding the context budget.
 
 ## Evidence Economy
 
