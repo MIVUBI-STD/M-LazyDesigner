@@ -14,7 +14,9 @@ describe("verification evidence compaction", () => {
       {
         domain: "GEOMETRY",
         source: "capture_model_views",
+        verification_risk: "LOW",
         views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         size: 256,
         scope_instance_ids: ["arm:0"],
       },
@@ -39,7 +41,9 @@ describe("verification evidence compaction", () => {
     const request: VerificationEvidenceRequest = {
       domain: "GEOMETRY",
       source: "capture_model_views",
+      verification_risk: "LOW",
       views: ["front"],
+      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
       size: 256,
       scope_instance_ids: ["arm:0"],
     };
