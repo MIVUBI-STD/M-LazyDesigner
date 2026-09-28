@@ -143,6 +143,21 @@ describe("repository workflow supply chain", () => {
     expect(await Bun.file("../SECURITY.md").exists()).toBe(true);
   });
 
+  test("Bash workflow summaries do not use unsafe command-substitution backticks", async () => {
+    const workflows = [
+      await source("../.github/workflows/mcp-verify.yml"),
+      await source("../.github/workflows/head-proof.yml"),
+    ];
+
+    for (const workflow of workflows) {
+      for (const line of workflow.split("\n")) {
+        if (!/\becho\s+"/.test(line)) continue;
+        const body = line.slice(line.indexOf("echo") + 4);
+        expect(body).not.toMatch(/(^|[^\\])`/);
+      }
+    }
+  });
+
   test("supply-chain policy retains least-privilege and pinned-action boundaries", async () => {
     const rules = await source("../GITHUB_RULES.md");
     expect(rules).toMatch(/least-privilege/i);
