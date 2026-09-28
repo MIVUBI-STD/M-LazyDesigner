@@ -451,6 +451,72 @@ describe("zero-waste correction loop reuse", () => {
     expect(JSON.stringify(decision.decision_summary)).not.toContain("semantic_group");
   });
 
+  test("deduplicates unchanged continuation payloads by deterministic identity", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-dedup",
+      base_recipe: { ...recipe(), id: "asset-dedup", name: "asset-dedup" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:dedup",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    const first = registry.projectContinuationDelivery(handle);
+    expect(first.cached).toBe(false);
+    expect(first.payload?.continuation_id).toBe(first.continuation_id);
+
+    const second = registry.projectContinuationDelivery(handle, [
+      first.continuation_id,
+    ]);
+    expect(second).toEqual({
+      continuation_id: first.continuation_id,
+      cached: true,
+      payload: null,
+    });
+
+    registry.planGeometryCorrection(handle, [{
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.09,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+
+    const changed = registry.projectContinuationDelivery(handle, [
+      first.continuation_id,
+    ]);
+    expect(changed.cached).toBe(false);
+    expect(changed.continuation_id).not.toBe(first.continuation_id);
+    expect(changed.payload?.mode).toBe("VERIFY_PENDING");
+  });
+
   test("projects a pruned correction continuation without internal recipe or solver history", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
