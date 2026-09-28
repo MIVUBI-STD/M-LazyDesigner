@@ -5,6 +5,8 @@ import { STATE_MUTATIONS } from "./policy";
 import {
   record,
   resultCandidates,
+  createProjectReceiptComplete,
+  phaseTransitionReceiptComplete,
   animationEffectsReceiptComplete,
   particleMutationReceiptComplete,
   animationControllerReceiptComplete,
@@ -122,6 +124,20 @@ export function verificationClassForResult(
   if (!succeeded) return fallback;
 
   if (STATE_MUTATIONS.has(capability) && freshness.basis === "NO_CHANGE") {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "create_project" &&
+    createProjectReceiptComplete(result)
+  ) {
+    return "receipt_only";
+  }
+
+  if (
+    capability === "switch_authoring_phase" &&
+    phaseTransitionReceiptComplete(result)
+  ) {
     return "receipt_only";
   }
 
