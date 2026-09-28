@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { boneRiggingReceipt } from "@/lib/receipts/boneRigging";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { vector3Schema, axisEnum } from "@/lib/zodObjects";
@@ -683,20 +684,20 @@ export function registerBoneRiggingTool(): void {
   
         Canvas.updateAll();
         if (action === "delete") {
-          const result = {
+          const result = boneRiggingReceipt({
             action,
             ...deletionReceipt!,
-          };
+          });
           return {
             content: [{ type: "text" as const, text: resultText }],
             structuredContent: result,
           };
         }
         if (action === "set_ik_controller") {
-          const result = {
+          const result = boneRiggingReceipt({
             action,
             controller: nativeIkControllerState(ikController!),
-          };
+          });
           return {
             content: [{ type: "text" as const, text: resultText }],
             structuredContent: result,
@@ -705,10 +706,10 @@ export function registerBoneRiggingTool(): void {
         if (!affectedBone) {
           throw new Error(`Bone rigging action "${action}" completed without a continuation bone.`);
         }
-        const result = {
+        const result = boneRiggingReceipt({
           action,
           bone: boneState(affectedBone),
-        };
+        });
         return {
           content: [{ type: "text" as const, text: resultText }],
           structuredContent: result,

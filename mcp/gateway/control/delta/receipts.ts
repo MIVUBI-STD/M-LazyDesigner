@@ -1,5 +1,10 @@
 import { isAnimationControllerReceipt } from "../../../lib/receipts/animationController";
 import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffects";
+import {
+  isBoneRiggingDeletionReceipt,
+  isBoneRiggingStateReceipt,
+  isNativeIkControllerReceipt,
+} from "../../../lib/receipts/boneRigging";
 import { isGroupMutationReceipt } from "../../../lib/receipts/groupMutation";
 import { isLocatorMutationReceipt } from "../../../lib/receipts/locatorMutation";
 import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materialInstances";
@@ -35,93 +40,15 @@ export function locatorReceiptComplete(value: unknown): boolean {
 }
 
 export function boneRiggingDeletionReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (candidate.action !== "delete") return false;
-    const removedRoot = record(candidate.removed_root);
-    const removedCounts = record(candidate.removed_counts);
-    if (
-      !removedRoot ||
-      !removedCounts ||
-      typeof removedRoot.uuid !== "string" ||
-      removedRoot.uuid.length === 0 ||
-      typeof removedRoot.name !== "string" ||
-      removedRoot.name.length === 0 ||
-      typeof removedRoot.parent !== "string" ||
-      typeof removedCounts.groups !== "number" ||
-      typeof removedCounts.elements !== "number" ||
-      typeof removedCounts.total_nodes !== "number" ||
-      typeof candidate.affected_animations !== "number"
-    ) {
-      return false;
-    }
-    return (
-      removedCounts.groups >= 1 &&
-      removedCounts.elements >= 0 &&
-      removedCounts.total_nodes ===
-        removedCounts.groups + removedCounts.elements &&
-      candidate.affected_animations >= 0
-    );
-  });
+  return resultCandidates(value).some(isBoneRiggingDeletionReceipt);
 }
 
 export function boneRiggingStateReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (
-      ![
-        "create",
-        "parent",
-        "unparent",
-        "rename",
-        "set_pivot",
-        "set_ik",
-        "mirror",
-      ].includes(String(candidate.action))
-    ) {
-      return false;
-    }
-
-    const bone = record(candidate.bone);
-    if (
-      !bone ||
-      typeof bone.uuid !== "string" ||
-      bone.uuid.length === 0 ||
-      typeof bone.name !== "string" ||
-      bone.name.length === 0 ||
-      typeof bone.parent !== "string" ||
-      !Array.isArray(bone.origin) ||
-      bone.origin.length !== 3 ||
-      !bone.origin.every(
-        (value) => typeof value === "number" && Number.isFinite(value)
-      ) ||
-      !Array.isArray(bone.rotation) ||
-      bone.rotation.length !== 3 ||
-      !bone.rotation.every(
-        (value) => typeof value === "number" && Number.isFinite(value)
-      ) ||
-      typeof bone.ik_enabled !== "boolean" ||
-      !Object.prototype.hasOwnProperty.call(bone, "ik_target")
-    ) {
-      return false;
-    }
-
-    return bone.ik_target === null || typeof bone.ik_target === "string";
-  });
+  return resultCandidates(value).some(isBoneRiggingStateReceipt);
 }
 
 export function nativeIkControllerReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (candidate.action !== "set_ik_controller") return false;
-    const controller = record(candidate.controller);
-    return Boolean(
-      controller &&
-      typeof controller.uuid === "string" &&
-      typeof controller.name === "string" &&
-      Object.prototype.hasOwnProperty.call(controller, "ik_target") &&
-      Object.prototype.hasOwnProperty.call(controller, "ik_source") &&
-      Object.prototype.hasOwnProperty.call(controller, "ik_pole") &&
-      typeof controller.lock_ik_target_rotation === "boolean"
-    );
-  });
+  return resultCandidates(value).some(isNativeIkControllerReceipt);
 }
 
 export function groupReceiptComplete(capability: string, value: unknown): boolean {
