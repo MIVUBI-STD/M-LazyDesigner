@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { compileVerificationEvidenceRequests, type VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import { VerificationEvidenceRegistry } from "@/lib/orchestration/evidenceRegistry";
-import { compactVerificationEvidence } from "@/lib/orchestration/compactEvidence";
+import {
+  compactVerificationEvidence,
+  type VerificationDiscrepancy,
+} from "@/lib/orchestration/compactEvidence";
 import type { VerificationTask } from "@/lib/orchestration/verificationPlan";
 
 describe("verification evidence compaction", () => {
@@ -51,13 +54,16 @@ describe("verification evidence compaction", () => {
     };
     const result = { png_data_url: "data:image/png;base64," + "x".repeat(5000) };
     const handle = registry.put({ request, result });
-    const discrepancies = Array.from({ length: 10 }, (_, index) => ({
-      code: "D" + index,
-      severity: index === 9 ? ("BLOCKING" as const) : ("REVIEW" as const),
-      summary: "issue " + index,
-      views: index === 0 ? (["front"] as const) : undefined,
-      evidence_targets: index === 0 ? (["width"] as const) : undefined,
-    }));
+    const discrepancies: VerificationDiscrepancy[] = Array.from(
+      { length: 10 },
+      (_, index) => ({
+        code: "D" + index,
+        severity: index === 9 ? "BLOCKING" : "REVIEW",
+        summary: "issue " + index,
+        views: index === 0 ? ["front"] : undefined,
+        evidence_targets: index === 0 ? ["width"] : undefined,
+      })
+    );
     const compact = compactVerificationEvidence(request, handle, discrepancies);
 
     expect(compact.state).toBe("BLOCKED");
