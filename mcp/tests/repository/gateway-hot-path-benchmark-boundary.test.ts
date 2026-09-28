@@ -13,6 +13,17 @@ describe("Gateway hot-path benchmark boundary", () => {
     expect(benchmark).not.toContain("registerGatewayTool");
   });
 
+  test("Hybrid-4 remains outside canonical production verification", async () => {
+    const profile = await Bun.file("gateway/experimental/hybridProfile.ts").text();
+    const packageText = await Bun.file("package.json").text();
+    const scripts = JSON.parse(packageText).scripts as Record<string, string>;
+
+    expect(profile).toContain("production_default: false");
+    expect(scripts["verify:experimental"]).toBe("bun run verify:hybrid-remote");
+    expect(scripts["verify:mcp"]).not.toContain("verify:experimental");
+    expect(scripts["verify:full"]).not.toContain("verify:experimental");
+  });
+
   test("Hybrid-4 registration stays explicit, generated-schema-backed, and opt-in", async () => {
     const profile = await Bun.file("gateway/experimental/hybridProfile.ts").text();
     const gatewayIndex = await Bun.file("gateway/index.ts").text();
