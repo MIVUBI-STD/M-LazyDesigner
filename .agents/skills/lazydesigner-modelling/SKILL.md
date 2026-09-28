@@ -183,17 +183,14 @@ Review the actual atlas and mapped adjoining surfaces together: group islands by
 Native packing is a starting layout. Keep named body/head/appendage cohorts in readable zones with coherent order and gutters. Reposition exact native islands via UV offsets without stretching; verify bounds/overlap. Scattered placement fails editability even if the audit is ready. Unused atlas stays transparent.
 
 ## Local Correction / Convergence
-Correction continuation is identity-deduplicated. Reuse returned `continuation_id` values through `knownContinuationIds`; when the projected state is unchanged, runtime returns the cached ID without replaying unresolved summaries or evidence-handle lists. A changed correction state produces a new identity and full current payload.
+Correction continuation is runtime-owned and incremental:
 
-When a known previous continuation is still available and the state changes, prefer delta-only continuation: resolved discrepancy IDs, changed unresolved entries, changed per-view evidence handles, invalidated evidence handles, and changed verification/mode fields only.
+```text
+CANDIDATE_CONTEXT → DECISION_SUMMARY → VERIFY_PENDING → PRUNED_READY → CLEAR/BLOCKED
+FULL | DELTA | CACHED | DEFERRED
+```
 
-Use a semantic continuation group only for multiple non-decision-changing updates inside one runtime cohort. While the group remains in the same mode/state, intermediate continuation delivery is `DEFERRED` and one committed FULL/DELTA/CACHED packet represents the cohort. Any mode/state transition such as entering `VERIFY_PENDING` is a hard boundary and flushes immediately; never delay required verification to save context. Abort the group on internal failure rather than leaving continuation delivery blocked. Unchanged summaries and evidence handles are inherited from the referenced previous continuation. If the previous identity is unknown, fall back to FULL delivery.
-
-Continuation mode is runtime-selected; the model does not choose it. Before selection use bounded candidate context, immediate post-solver handoff uses `DECISION_SUMMARY`, pending verification uses `VERIFY_PENDING`, unresolved post-verification work uses `PRUNED_READY`, and completed/terminal states use `CLEAR`/`BLOCKED`.
-
-After the immediate execution handoff consumes `decision_summary`, later turns use the pruned `lazydesigner-correction-continuation-v1` projection: unresolved discrepancies, fresh per-view evidence handles, and pending verification only. Resolved branches, stale handles, old candidate IDs/metrics, full recipe state, and evidence fingerprints stay out of later model turns.
-
-After the solver selects a candidate, continuation carries only `decision_summary = selected_candidate_id + rejected_candidate_ids + selected metrics + solver score + candidate_count/budget`. Full rejected candidate patches are ephemeral and must not be replayed into the next model turn.
+Reuse `continuation_id` via `knownContinuationIds`. `decision_summary` is immediate-handoff only; later turns use the pruned continuation containing unresolved discrepancies, fresh per-view evidence handles, and pending verification. Known unchanged state → CACHED; known changed base → DELTA; unknown base → FULL. Same-mode/state micro updates may be DEFERRED inside a runtime-owned semantic group, but any mode/state change flushes immediately. Resolved branches, stale handles, old candidate IDs/metrics, full recipe state, and fingerprints do not persist model-facing. Full rejected candidate patches remain ephemeral.
 
 For correction ambiguity, do not enumerate a large option tree. Candidate budget follows verification risk: `LOW=1 | MEDIUM=2 | HIGH=3`. Each executable candidate must stay inside one supported family: `TRANSLATE→TRANSLATE`, `RESIZE→RESIZE_AXIS`, `ROTATE→ROTATE_AXIS`, `LAYER_OFFSET→TRANSLATE|RESIZE_AXIS|INFLATE`. `REATTACH | SPLIT | MERGE_REMOVE | ADD_MASS` require their owning structural path and must not be disguised as semantic-edit candidates. If the bounded candidate set is still insufficient, keep the decision ambiguous/blocked rather than emitting more speculative candidates.
 
