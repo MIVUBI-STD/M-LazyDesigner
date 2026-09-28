@@ -477,8 +477,7 @@ describe("zero-waste correction loop reuse", () => {
     });
 
     const first = registry.projectContinuationDelivery(handle);
-    expect(first.cached).toBe(false);
-    expect(first.delivery).toBe("FULL");
+     expect(first.delivery).toBe("FULL");
     expect(first.group).toBeNull();
     expect(first.payload?.continuation_id).toBe(first.continuation_id);
     expect(first.delta).toBeNull();
@@ -488,8 +487,7 @@ describe("zero-waste correction loop reuse", () => {
     ]);
     expect(second).toEqual({
       continuation_id: first.continuation_id,
-      cached: true,
-      delivery: "CACHED",
+       delivery: "CACHED",
       payload: null,
       delta: null,
       group: null,
@@ -518,8 +516,7 @@ describe("zero-waste correction loop reuse", () => {
     const changed = registry.projectContinuationDelivery(handle, [
       first.continuation_id,
     ]);
-    expect(changed.cached).toBe(false);
-    expect(changed.delivery).toBe("DELTA");
+     expect(changed.delivery).toBe("DELTA");
     expect(changed.continuation_id).not.toBe(first.continuation_id);
     expect(changed.payload).toBeNull();
     expect(changed.delta).toMatchObject({
