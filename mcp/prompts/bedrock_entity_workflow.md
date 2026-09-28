@@ -64,17 +64,24 @@ PASS       = no critical/major supported mismatch
 
 Known major mismatch stays FAIL despite earlier approval; never submit as READY_FOR_USER_REVIEW. Use side/bottom views for concealed contacts; distinguish dark paint from missing geometry.
 
-Correction continuation is identity-deduplicated. Pass previously received `continuation_id` values as `knownContinuationIds`; unchanged state should return a cached ID with no repeated continuation payload. Any change to unresolved issues, evidence handles, attempt/mode, or pending verification produces a new identity and a fresh payload.
+Correction continuation is runtime-owned and incremental:
 
-For a changed state whose previous continuation identity is known, accept delta-only continuation rather than asking for the full packet again.
+```text
+pre-selection        → CANDIDATE_CONTEXT
+post-solver          → DECISION_SUMMARY
+stale evidence       → VERIFY_PENDING
+verified unresolved  → PRUNED_READY
+terminal             → CLEAR | BLOCKED
 
-Semantic continuation grouping is runtime-owned. Same-mode/state micro updates within one execution or verification cohort may be deferred and committed as one packet. A decision-changing mode/state transition bypasses grouping and must be delivered immediately; verification signals are never delayed for context savings. Apply resolved IDs, unresolved upserts, per-view evidence-handle upserts/invalidations, and changed verification/mode fields over the known base. Unknown base identity requires FULL delivery.
+delivery:
+unknown base         → FULL
+unchanged known ID   → CACHED
+changed known base   → DELTA
+same-boundary churn  → DEFERRED until cohort commit
+mode/state change    → flush immediately
+```
 
-Continuation mode is selected by runtime state, not by model choice: pre-selection uses bounded candidate context; post-solver uses `DECISION_SUMMARY`; post-execution with stale evidence uses `VERIFY_PENDING`; unresolved verified work uses `PRUNED_READY`; terminal states use `CLEAR` or `BLOCKED`.
-
-Use `decision_summary` only for the immediate execution handoff. Once execution or verification state changes, switch to `lazydesigner-correction-continuation-v1`: unresolved discrepancies, fresh per-view evidence handles, and pending verification state only. Do not replay resolved discrepancies, stale evidence handles, candidate history, recipe internals, or fingerprints.
-
-After deterministic selection, continue from the compact `decision_summary`; do not carry rejected candidate patches or option prose into the next turn. Preserve only selected ID, rejected IDs, selected metrics, solver score, candidate count/budget, affected scope, and verification/evidence state.
+Reuse `continuation_id` through `knownContinuationIds`. `decision_summary` is immediate-handoff only; later turns use `lazydesigner-correction-continuation-v1` with unresolved discrepancies, fresh per-view evidence handles, and pending verification. Apply DELTA as resolved IDs + unresolved/evidence upserts/invalidations + changed verification/mode fields over the known base. Unknown base requires FULL. Do not replay resolved branches, stale handles, candidate history, recipe internals, or fingerprints. Runtime-owned grouping may coalesce only same-mode/state micro updates; verification boundaries are never delayed.
 
 Correction candidate economy: emit at most `1/2/3` executable candidates for `LOW/MEDIUM/HIGH` verification risk. Keep candidates within the grounded correction family and semantic compiler support; do not generate unsupported structural families as fake executable options. The deterministic correction solver chooses among the bounded safe set.
 
