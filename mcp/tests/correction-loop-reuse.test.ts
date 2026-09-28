@@ -1060,6 +1060,127 @@ describe("zero-waste correction loop reuse", () => {
     });
   });
 
+  test("expired evidence fails closed until fresh verification arrives without consuming an attempt", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-recovery",
+      base_recipe: { ...recipe(), id: "asset-recovery", name: "asset-recovery" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:old",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    registry.invalidateEvidenceHandles(
+      handle,
+      ["verificationevidence:old"],
+      "EVIDENCE_EXPIRED"
+    );
+
+    const continuation = registry.projectContinuation(handle);
+    expect(continuation.mode).toBe("VERIFY_PENDING");
+    expect(continuation.attempt).toBe(0);
+    expect(continuation.verification).toMatchObject({
+      pending: true,
+      recovery_required: true,
+      recovery_reason: "EVIDENCE_EXPIRED",
+      stale_views: ["front", "left"],
+    });
+    expect(continuation.fresh_view_evidence).toEqual([]);
+
+    const blocked = registry.planGeometryCorrection(handle, [{
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.09,
+      patch: {
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+    expect(blocked.blocked_reason).toBe("EVIDENCE_RECOVERY_REQUIRED");
+    expect(blocked.attempt).toBe(1);
+    expect(registry.projectContinuation(handle).attempt).toBe(0);
+
+    registry.updateEvidence(
+      handle,
+      "verificationevidence:fresh",
+      [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width still needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }]
+    );
+    const recovered = registry.projectContinuation(handle);
+    expect(recovered.verification.recovery_required).toBe(false);
+    expect(recovered.verification.recovery_reason).toBeNull();
+    expect(recovered.mode).toBe("CANDIDATE_CONTEXT");
+  });
+
+  test("runtime generation invalidation aborts an open continuation group", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-generation",
+      base_recipe: { ...recipe(), id: "asset-generation", name: "asset-generation" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:generation-a",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Width needs review.",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    registry.beginContinuationGroup(handle, "VERIFICATION_COHORT");
+    registry.invalidateEvidenceHandles(
+      handle,
+      ["verificationevidence:generation-a"],
+      "RUNTIME_GENERATION_CHANGED"
+    );
+
+    const delivery = registry.projectContinuationDelivery(handle);
+    expect(delivery.delivery).not.toBe("DEFERRED");
+    expect(delivery.payload?.verification).toMatchObject({
+      recovery_required: true,
+      recovery_reason: "RUNTIME_GENERATION_CHANGED",
+    });
+  });
+
   test("rejects a correction that targets a discrepancy absent from current evidence", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
