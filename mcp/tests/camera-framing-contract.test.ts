@@ -42,6 +42,26 @@ describe("capture_model_views explicit framing contract", () => {
     expect(selectModelViewsForEvidence(["underside"]).views).toEqual(["bottom"]);
   });
 
+  test("caps automatic evidence selection at the five-view context budget", () => {
+    const result = selectModelViewsForEvidence([
+      "width",
+      "height",
+      "length",
+      "depth",
+      "silhouette",
+      "count",
+      "rear_topology",
+      "asymmetry",
+      "attachment",
+      "negative_space",
+      "layering",
+      "orientation",
+      "underside",
+    ]);
+    expect(result.views.length).toBeLessThanOrEqual(5);
+    expect(result.uncovered_targets).toContain("underside");
+  });
+
   test("prefers reference-paired views when information gain ties", () => {
     const result = selectModelViewsForEvidence(["height"]);
     expect(result.views).toEqual(["front"]);
