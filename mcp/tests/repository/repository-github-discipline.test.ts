@@ -123,21 +123,30 @@ describe("repository GitHub discipline", () => {
     expect(scripts["test:runtime"]).toBe("bun test tests/*.test.ts");
     expect(scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
     expect(scripts["verify:release"]).toBe("bun run verify:full");
-    expect(scripts["verify:mcp"]).toContain("bun run test:runtime");
-    expect(scripts["verify:mcp"]).toContain("bun run verify:authoring");
+    expect(scripts["verify:mcp"]).toBe(
+      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:measurements && bun run verify:build"
+    );
+    expect(scripts["verify:types"]).toContain("bun run verify:project-graph");
+    expect(scripts["verify:types"]).toContain("bun run typecheck:gateway");
+    expect(scripts["verify:contracts"]).toContain("bun run test:runtime");
+    expect(scripts["verify:contracts"]).toContain("bun run verify:authoring");
+    expect(scripts["verify:benchmarks"]).toContain(
+      "bun run benchmark:semantic-invalidation-scope"
+    );
+    expect(scripts["verify:measurements"]).toContain("bun run measure:surface");
+    expect(scripts["verify:build"]).toBe("bun run build");
+    expect(scripts["verify:experimental"]).toBe("bun run verify:hybrid-remote");
+    expect(scripts["verify:mcp"]).not.toContain("verify:experimental");
     expect(scripts["verify:mcp"]).not.toContain("bun run verify:repository");
 
     expect(repository).toContain("bun run verify:repository");
     expect(authoring).toContain("bun run verify:authoring");
     for (const gate of [
-      "bun run docs:check",
-      "bun run typecheck",
-      "bun run typecheck:gateway",
-      "bun run test:runtime",
-      "bun run verify:authoring",
-      "bun run measure:surface",
-      "bun run measure:phases",
-      "bun run build",
+      "bun run verify:types",
+      "bun run verify:contracts",
+      "bun run verify:benchmarks",
+      "bun run verify:measurements",
+      "bun run verify:build",
     ]) expect(mcp).toContain(gate);
     expect(release).toContain("bun run verify:release");
     expect(authoring).toContain('"workspace/active/**"');

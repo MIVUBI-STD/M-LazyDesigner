@@ -44,8 +44,8 @@ inventing execution evidence.
 Priority order:
 
 1. keep current-proof documentation compact and exact;
-2. audit canonical verification composition and separate production gates from
-   measurements/experiments where evidence supports it;
+2. keep canonical verification composition split by ownership; Hybrid-4 remains
+   an explicit experimental gate and does not block production acceptance by default;
 3. reduce duplicated capability semantics through parity-guarded projections,
    not a big-bang rewrite;
 4. move producer/Control receipt interpretation toward shared typed contracts;
