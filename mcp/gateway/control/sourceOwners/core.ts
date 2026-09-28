@@ -2,6 +2,11 @@ import type { ControlSourceOwner } from "../types";
 import { MODELLING_PATH } from "../contexts";
 
 export const CORE_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
+  create_project: {
+    source: "mcp/server/tools/project.ts",
+    specialist: null,
+    test_owner: "mcp/tests/project-affinity-runtime.test.ts",
+  },
   switch_authoring_phase: {
     source: "mcp/server/runtime/phaseControl.ts",
     specialist: null,
@@ -36,5 +41,25 @@ export const CORE_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     source: "mcp/server/tools/project.ts",
     specialist: MODELLING_PATH,
     test_owner: "mcp/tests/rendered-model-bounds-numeric-safety.test.ts",
+  },
+  export_model: {
+    source: "mcp/server/tools/export.ts",
+    specialist: null,
+    test_owner: "mcp/tests/inspection-export-capability-baseline.test.ts",
+  },
+  undo: {
+    source: "mcp/server/tools/history.ts",
+    specialist: null,
+    test_owner: "mcp/tests/history-result-state.test.ts",
+  },
+  redo: {
+    source: "mcp/server/tools/history.ts",
+    specialist: null,
+    test_owner: "mcp/tests/history-result-state.test.ts",
+  },
+  get_undo_stack: {
+    source: "mcp/server/tools/history.ts",
+    specialist: null,
+    test_owner: "mcp/tests/history-result-state.test.ts",
   },
 };

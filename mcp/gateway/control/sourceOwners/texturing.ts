@@ -17,10 +17,25 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/texture-module-ownership.test.ts",
   },
+  apply_texture: {
+    source: "mcp/server/tools/texture-assignment.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/texture-module-ownership.test.ts",
+  },
   add_texture_group: {
     source: "mcp/server/tools/texture-assignment.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/pbr-channel-contract.test.ts",
+  },
+  create_pbr_material: {
+    source: "mcp/server/tools/texture-materials.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-native-ownership.test.ts",
+  },
+  configure_material: {
+    source: "mcp/server/tools/texture-materials.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-native-ownership.test.ts",
   },
   list_materials: {
     source: "mcp/server/tools/texture-materials.ts",
@@ -36,6 +51,16 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     source: "mcp/server/tools/texture-materials.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/texture-authoring-contract.test.ts",
+  },
+  assign_texture_channel: {
+    source: "mcp/server/tools/texture-materials.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/pbr-channel-contract.test.ts",
+  },
+  save_material_config: {
+    source: "mcp/server/tools/texture-materials.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/pbr-material-configuration.test.ts",
   },
   paint_fill_tool: {
     source: "mcp/server/tools/paint-primitives.ts",
@@ -102,6 +127,31 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/texture-runtime-live-contract.test.ts",
   },
+  get_face_material_instances: {
+    source: "mcp/server/tools/material-instances.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-instance-mutation-result.test.ts",
+  },
+  set_face_material_instance: {
+    source: "mcp/server/tools/material-instances.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-instance-mutation-result.test.ts",
+  },
+  list_material_instances: {
+    source: "mcp/server/tools/material-instances.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-instance-mutation-result.test.ts",
+  },
+  bulk_set_material_instances: {
+    source: "mcp/server/tools/material-instances.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-instance-mutation-result.test.ts",
+  },
+  clear_material_instances: {
+    source: "mcp/server/tools/material-instances.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-instance-mutation-result.test.ts",
+  },
   manage_material: {
     source: "mcp/server/runtime/consolidatedTools.ts",
     specialist: TEXTURING_PATH,
@@ -121,5 +171,10 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     source: "mcp/server/runtime/uvLayoutService.ts",
     specialist: TEXTURING_PATH,
     test_owner: "mcp/tests/uv-registration-readiness.test.ts",
+  },
+  filter_by_material: {
+    source: "mcp/server/tools/element-discovery.ts",
+    specialist: TEXTURING_PATH,
+    test_owner: "mcp/tests/material-native-ownership.test.ts",
   },
 };

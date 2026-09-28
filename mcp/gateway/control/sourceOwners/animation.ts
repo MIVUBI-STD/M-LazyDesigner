@@ -7,6 +7,31 @@ export const ANIMATION_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
     specialist: ANIMATION_PATH,
     test_owner: "mcp/tests/create-animation-contract.test.ts",
   },
+  manage_keyframes: {
+    source: "mcp/server/tools/animation-keyframes.ts",
+    specialist: ANIMATION_PATH,
+    test_owner: "mcp/tests/animation-native-intelligence.test.ts",
+  },
+  animation_graph_editor: {
+    source: "mcp/server/tools/animation-keyframes.ts",
+    specialist: ANIMATION_PATH,
+    test_owner: "mcp/tests/animation-native-intelligence.test.ts",
+  },
+  animation_timeline: {
+    source: "mcp/server/tools/animation-timeline.ts",
+    specialist: ANIMATION_PATH,
+    test_owner: "mcp/tests/animation-timeline-target.test.ts",
+  },
+  batch_keyframe_operations: {
+    source: "mcp/server/tools/animation-batch.ts",
+    specialist: ANIMATION_PATH,
+    test_owner: "mcp/tests/animation-timeline-batch-ownership.test.ts",
+  },
+  animation_copy_paste: {
+    source: "mcp/server/tools/animation-batch.ts",
+    specialist: ANIMATION_PATH,
+    test_owner: "mcp/tests/animation-timeline-batch-ownership.test.ts",
+  },
   inspect_animation: {
     source: "mcp/server/tools/animation-inspection.ts",
     specialist: ANIMATION_PATH,

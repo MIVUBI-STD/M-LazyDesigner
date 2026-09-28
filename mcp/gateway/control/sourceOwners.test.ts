@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { CAPABILITY_CORE_MANIFEST } from "../../lib/capabilities/manifest";
 import { GEOMETRY_SOURCE_OWNERS } from "./sourceOwners/geometry";
 import { TEXTURING_SOURCE_OWNERS } from "./sourceOwners/texturing";
 import { ANIMATION_SOURCE_OWNERS } from "./sourceOwners/animation";
@@ -28,6 +29,17 @@ describe("Control source-owner registry", () => {
     expect(Object.keys(listExplicitSourceOwners()).length).toBe(seen.size);
   });
 
+  test("every canonical phased capability has an explicit source owner", () => {
+    const explicit = listExplicitSourceOwners();
+    const missing = [...CAPABILITY_CORE_MANIFEST.entries()]
+      .filter(([, entry]) => entry.phase != null)
+      .map(([name]) => name)
+      .filter((name) => explicit[name] == null)
+      .sort();
+
+    expect(missing).toEqual([]);
+  });
+
   test("preserves representative ownership mappings", () => {
     expect(sourceOwnerForCapability("manage_cubes")).toMatchObject({
       source: "mcp/server/tools/cubes.ts",
@@ -45,6 +57,17 @@ describe("Control source-owner registry", () => {
       source: "mcp/server/runtime/phaseControl.ts",
       specialist: null,
     });
+  });
+
+  test("canonical capabilities never use the generic registration fallback", () => {
+    const explicit = listExplicitSourceOwners();
+    for (const [name, entry] of CAPABILITY_CORE_MANIFEST) {
+      if (entry.phase == null) continue;
+      expect(explicit[name]).toBeDefined();
+      expect(sourceOwnerForCapability(name).source).not.toBe(
+        "mcp/server/runtime/registration.ts"
+      );
+    }
   });
 
   test("unknown capabilities fall back by canonical authoring domain", () => {
