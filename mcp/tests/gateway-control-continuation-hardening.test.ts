@@ -467,6 +467,64 @@ describe("LazyDesigner Control continuation hardening", () => {
     expect(nullObject.freshness.stale).not.toContain("TEXTURE_APPEARANCE");
   });
 
+  test("rename_element scopes by renamed target type when receipt proves it", () => {
+    const cube = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        element: {
+          uuid: "cube-a",
+          name: "body_renamed",
+          type: "cube",
+          parent: "root",
+        },
+      },
+    });
+    expect(cube.freshness.stale).toEqual(["GEOMETRY_STRUCTURE"]);
+
+    const locator = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        element: {
+          uuid: "locator-a",
+          name: "muzzle_renamed",
+          type: "locator",
+          parent: "bone-a",
+        },
+      },
+    });
+    expect(locator.freshness.stale.sort()).toEqual([
+      "ANIMATION_EFFECTS",
+      "GEOMETRY_STRUCTURE",
+    ]);
+
+    const groups = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        changes: [
+          { id: "group-a", old_name: "arm", new_name: "arm_new" },
+        ],
+        affected_animations: 1,
+      },
+    });
+    expect(groups.freshness.stale.sort()).toEqual([
+      "ANIMATION_MOTION",
+      "GEOMETRY_STRUCTURE",
+    ]);
+  });
+
   test("semantic Undo/Redo narrows freshness and domain invalidation when history evidence is complete", () => {
     const materialUndo = buildControlDelta({
       capability: "undo",

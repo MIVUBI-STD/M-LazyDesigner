@@ -5,7 +5,10 @@ import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
 } from "../../../lib/receipts/cubeMutation";
-import { removeElementSemanticScopes } from "../../../lib/receipts/removeElement";
+import {
+  removedElementSemanticScopes,
+  renamedElementSemanticScopes,
+} from "../../../lib/elementSemanticScopes";
 import type {
   ControlAuthoringDomain,
   ControlDelta,
@@ -226,7 +229,23 @@ export function geometryInvalidation(
       const removedRoot = record(candidate.removed_root);
       if (typeof removedRoot?.type === "string") {
         return authoringDomainsForScopes(
-          removeElementSemanticScopes(removedRoot.type)
+          removedElementSemanticScopes(removedRoot.type)
+        );
+      }
+    }
+  }
+
+  if (capability === "rename_element") {
+    for (const candidate of resultCandidates(result)) {
+      const element = record(candidate.element);
+      if (typeof element?.type === "string") {
+        return authoringDomainsForScopes(
+          renamedElementSemanticScopes(element.type)
+        );
+      }
+      if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
+        return authoringDomainsForScopes(
+          renamedElementSemanticScopes("group")
         );
       }
     }
@@ -346,7 +365,25 @@ export function geometryFreshnessScopes(
       const removedRoot = record(candidate.removed_root);
       if (typeof removedRoot?.type === "string") {
         return {
-          stale: removeElementSemanticScopes(removedRoot.type),
+          stale: removedElementSemanticScopes(removedRoot.type),
+          precise: true,
+        };
+      }
+    }
+  }
+
+  if (capability === "rename_element") {
+    for (const candidate of resultCandidates(result)) {
+      const element = record(candidate.element);
+      if (typeof element?.type === "string") {
+        return {
+          stale: renamedElementSemanticScopes(element.type),
+          precise: true,
+        };
+      }
+      if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
+        return {
+          stale: renamedElementSemanticScopes("group"),
           precise: true,
         };
       }

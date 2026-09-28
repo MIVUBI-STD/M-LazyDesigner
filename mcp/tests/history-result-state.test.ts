@@ -98,6 +98,21 @@ test("remove_element history derives scopes from the removed element type", asyn
   );
 });
 
+test("element identity history derives semantic scopes from target type", async () => {
+  const source = await Bun.file("server/tools/element-mutation.ts").text();
+  expect(source).toContain("removedElementSemanticScopes(removedRoot.type)");
+  expect(source).toContain('renamedElementSemanticScopes("group")');
+  expect(source).toContain(
+    "renamedElementSemanticScopes(continuationElementType(element))"
+  );
+  expect(source).not.toContain(
+    'recordCurrentCapabilitySemanticHistoryEffect("remove_element")'
+  );
+  expect(source).not.toContain(
+    'recordCurrentCapabilitySemanticHistoryEffect("rename_element")'
+  );
+});
+
 test("semantic history distinguishes known empty effects from unknown entries",()=>{
   const known={action:"checkpoint"};
   recordSemanticHistoryEffect(

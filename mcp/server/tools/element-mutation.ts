@@ -5,10 +5,11 @@ import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentSemanticHistoryEffect,
 } from "@/lib/semanticHistory";
+import { removeElementReceipt } from "@/lib/receipts/removeElement";
 import {
-  removeElementReceipt,
-  removeElementSemanticScopes,
-} from "@/lib/receipts/removeElement";
+  removedElementSemanticScopes,
+  renamedElementSemanticScopes,
+} from "@/lib/elementSemanticScopes";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { elementIdSchema } from "@/lib/zodObjects";
@@ -147,7 +148,7 @@ export function registerRemoveElementTool(): void {
             deleteElements.length = 0;
             Undo.finishEdit("Agent removed element");
             recordCurrentSemanticHistoryEffect(
-              removeElementSemanticScopes(removedRoot.type)
+              removedElementSemanticScopes(removedRoot.type)
             );
           } catch (error) {
             Undo.cancelEdit(true);
@@ -239,7 +240,9 @@ export function registerElementMutationTools(): void {
             try {
               applyGroupRename(plan);
               Undo.finishEdit("Batch rename Groups");
-              recordCurrentCapabilitySemanticHistoryEffect("rename_element");
+              recordCurrentSemanticHistoryEffect(
+                renamedElementSemanticScopes("group")
+              );
             } catch(error) {Undo.cancelEdit(true); Canvas.updateAll(); throw error;}
             Canvas.updateAll();
             return {content:[{type:"text" as const,text:`Renamed ${changes.length} Groups and synchronized ${plan.references.length} animation(s).`}], structuredContent:{execution:"applied",changes,affected_animations:plan.references.length,...(singleElement ? {element: elementContinuationState(singleElement)} : {})}};
@@ -266,7 +269,9 @@ export function registerElementMutationTools(): void {
           try {
             element.name = new_name;
             Undo.finishEdit("Agent renamed element");
-            recordCurrentCapabilitySemanticHistoryEffect("rename_element");
+            recordCurrentSemanticHistoryEffect(
+              renamedElementSemanticScopes(continuationElementType(element))
+            );
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
