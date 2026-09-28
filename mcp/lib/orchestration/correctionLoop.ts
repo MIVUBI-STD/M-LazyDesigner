@@ -15,8 +15,15 @@ import type { ModelView } from "@/server/tools/camera";
 
 export type CorrectionLoopHandle = `correctionloop:${string}`;
 
+export type ExecutableGeometryCorrectionFamily =
+  | "TRANSLATE"
+  | "RESIZE"
+  | "ROTATE"
+  | "LAYER_OFFSET";
+
 export type GeometryCorrectionPatch = {
   intent: SemanticGeometryEditIntent;
+  correction_family?: ExecutableGeometryCorrectionFamily;
   target_discrepancy_codes?: readonly string[];
 };
 
@@ -56,8 +63,33 @@ export type CorrectionLoopDecision = {
   blocked_reason?:
     | "REPEATED_FAILURE_WITHOUT_NEW_EVIDENCE"
     | "CORRECTION_ATTEMPT_LIMIT"
-    | "NO_ELIGIBLE_CORRECTION";
+    | "NO_ELIGIBLE_CORRECTION"
+    | "CANDIDATE_BUDGET_EXCEEDED"
+    | "CORRECTION_FAMILY_MISMATCH";
 };
+
+function candidateBudget(
+  request: VerificationEvidenceRequest
+): 1 | 2 | 3 {
+  if (request.domain !== "GEOMETRY") return 1;
+  if (request.verification_risk === "HIGH") return 3;
+  if (request.verification_risk === "MEDIUM") return 2;
+  return 1;
+}
+
+function correctionFamilyMatchesOperation(
+  family: ExecutableGeometryCorrectionFamily,
+  operation: SemanticGeometryEditIntent["operation"]
+): boolean {
+  if (family === "TRANSLATE") return operation.kind === "TRANSLATE";
+  if (family === "RESIZE") return operation.kind === "RESIZE_AXIS";
+  if (family === "ROTATE") return operation.kind === "ROTATE_AXIS";
+  return (
+    operation.kind === "TRANSLATE" ||
+    operation.kind === "RESIZE_AXIS" ||
+    operation.kind === "INFLATE"
+  );
+}
 
 function fingerprintEvidence(
   handle: VerificationEvidenceHandle,
@@ -202,6 +234,34 @@ export class CorrectionLoopRegistry {
         attempt: record.attempt as 1 | 2,
         verification_request: structuredClone(record.verification_request),
         blocked_reason: "REPEATED_FAILURE_WITHOUT_NEW_EVIDENCE",
+      };
+    }
+
+    const budget = candidateBudget(record.verification_request);
+    if (candidates.length > budget) {
+      return {
+        handle,
+        state: "BLOCKED",
+        attempt: Math.min(2, record.attempt + 1) as 1 | 2,
+        verification_request: structuredClone(record.verification_request),
+        blocked_reason: "CANDIDATE_BUDGET_EXCEEDED",
+      };
+    }
+
+    const familyMismatch = candidates.some((candidate) => {
+      const family = candidate.patch.correction_family;
+      return (
+        family !== undefined &&
+        !correctionFamilyMatchesOperation(family, candidate.patch.intent.operation)
+      );
+    });
+    if (familyMismatch) {
+      return {
+        handle,
+        state: "BLOCKED",
+        attempt: Math.min(2, record.attempt + 1) as 1 | 2,
+        verification_request: structuredClone(record.verification_request),
+        blocked_reason: "CORRECTION_FAMILY_MISMATCH",
       };
     }
 
