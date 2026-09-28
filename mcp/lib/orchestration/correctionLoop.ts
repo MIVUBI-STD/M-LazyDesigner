@@ -210,12 +210,16 @@ function correctionContinuationDelta(
     const prior = previousByView.get(item.view);
     return prior === undefined || prior.handle !== item.handle;
   });
-  const invalidatedEvidenceHandles = previous.fresh_view_evidence
-    .filter((item) => {
-      const next = currentByView.get(item.view);
-      return next === undefined || next.handle !== item.handle;
-    })
-    .map((item) => item.handle);
+  const currentEvidenceHandles = new Set(
+    current.fresh_view_evidence.map((item) => item.handle)
+  );
+  const invalidatedEvidenceHandles = [
+    ...new Set(
+      previous.fresh_view_evidence
+        .map((item) => item.handle)
+        .filter((evidenceHandle) => !currentEvidenceHandles.has(evidenceHandle))
+    ),
+  ];
 
   return {
     protocol: "lazydesigner-correction-continuation-delta-v1",
