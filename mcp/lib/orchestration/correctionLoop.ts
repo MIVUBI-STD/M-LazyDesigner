@@ -22,13 +22,13 @@ import {
 
 export type { CorrectionLoopHandle } from "@/lib/orchestration/correctionContinuation";
 
-export type ExecutableGeometryCorrectionFamily =
+type ExecutableGeometryCorrectionFamily =
   | "TRANSLATE"
   | "RESIZE"
   | "ROTATE"
   | "LAYER_OFFSET";
 
-export type GeometryCorrectionPatch = {
+type GeometryCorrectionPatch = {
   intent: SemanticGeometryEditIntent;
   correction_family?: ExecutableGeometryCorrectionFamily;
   target_discrepancy_codes?: readonly string[];
@@ -56,12 +56,12 @@ type CorrectionLoopRecord = {
   next_continuation_group_id: number;
 };
 
-export type CorrectionLoopDecision = {
+type CorrectionLoopDecision = {
   handle: CorrectionLoopHandle;
   continuation_mode?: "DECISION_SUMMARY";
   state: "CORRECTION_READY" | "BLOCKED";
   attempt: 1 | 2;
-   decision_summary?: {
+  decision_summary?: {
     selected_candidate_id: string;
     rejected_candidate_ids: string[];
     selected_metrics: {
