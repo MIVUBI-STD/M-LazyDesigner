@@ -5,22 +5,8 @@ import { STATE_MUTATIONS } from "./policy";
 import {
   record,
   resultCandidates,
-  createProjectReceiptComplete,
-  phaseTransitionReceiptComplete,
-  animationEffectsReceiptComplete,
-  particleMutationReceiptComplete,
-  animationControllerReceiptComplete,
-  textureGroupReceiptComplete,
-  materialMutationReceiptComplete,
-  materialInstanceMutationReceiptComplete,
-  renderProfileMutationReceiptComplete,
-  removeElementReceiptComplete,
-  renameElementReceiptComplete,
-  locatorReceiptComplete,
-  nativeIkControllerReceiptComplete,
-  boneRiggingStateReceiptComplete,
-  boneRiggingDeletionReceiptComplete,
-  groupReceiptComplete,
+  receiptSupportsContinuation,
+
 } from "./receipts";
 
 export function cubeVerificationScope(value: unknown): ControlVerificationScope | null {
@@ -127,106 +113,7 @@ export function verificationClassForResult(
     return "receipt_only";
   }
 
-  if (
-    capability === "create_project" &&
-    createProjectReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "switch_authoring_phase" &&
-    phaseTransitionReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "manage_animation_effects" &&
-    animationEffectsReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "manage_particle" &&
-    particleMutationReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-
-  if (
-    capability === "manage_animation_controller" &&
-    animationControllerReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "add_texture_group" &&
-    textureGroupReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    (capability === "manage_material" || capability === "import_texture_set") &&
-    materialMutationReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "manage_material_instances" &&
-    materialInstanceMutationReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "manage_render_profile" &&
-    renderProfileMutationReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "remove_element" &&
-    removeElementReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "rename_element" &&
-    renameElementReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    (capability === "manage_locator" || capability === "manage_null_object") &&
-    locatorReceiptComplete(result)
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    capability === "bone_rigging" &&
-    (
-      nativeIkControllerReceiptComplete(result) ||
-      boneRiggingStateReceiptComplete(result) ||
-      boneRiggingDeletionReceiptComplete(result)
-    )
-  ) {
-    return "receipt_only";
-  }
-
-  if (
-    ["add_group", "modify_group", "reparent_element"].includes(capability) &&
-    groupReceiptComplete(capability, result)
-  ) {
+  if (receiptSupportsContinuation(capability, result)) {
     return "receipt_only";
   }
 
