@@ -8,6 +8,7 @@ export type VerificationEvidenceRequest =
       source: "capture_model_views";
       verification_risk: VerificationRisk;
       views: ModelView[];
+      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS";
       size: 256 | 512;
       scope_instance_ids: string[];
     }
@@ -54,6 +55,7 @@ export function compileVerificationEvidenceRequests(
           source: "capture_model_views",
           verification_risk: risk,
           views: geometryViews(risk),
+          views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
           size: risk === "HIGH" ? 512 : 256,
           scope_instance_ids: [...task.instance_ids],
         };
