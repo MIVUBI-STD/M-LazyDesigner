@@ -170,12 +170,10 @@ const HEAVY: readonly string[] = [
   "capture_model_views", "paint_texture_transaction", "export_model",
 ];
 
-const RECEIPT_ONLY: readonly string[] = [
-  "create_project", "switch_authoring_phase",
-];
+const RECEIPT_ONLY: readonly string[] = [];
 
 const FOCUSED_READ: readonly string[] = [
-  "create_project", "add_group", "modify_group", "reparent_element",
+  "create_project", "switch_authoring_phase", "add_group", "modify_group", "reparent_element",
   "remove_element", "rename_element", "manage_locator", "manage_null_object",
   "bone_rigging", "add_texture_group", "import_texture_set",
   "create_pbr_material", "configure_material", "assign_texture_channel",
