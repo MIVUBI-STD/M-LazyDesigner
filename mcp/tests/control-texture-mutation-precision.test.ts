@@ -96,6 +96,38 @@ describe("Control Texture mutation precision", () => {
     }
   });
 
+  test("malformed material continuation state cannot claim receipt-only verification", () => {
+    const delta = buildControlDelta({
+      capability: "manage_material",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "configure",
+        material: {
+          uuid: "material-a",
+          name: "metal",
+          is_material: true,
+          channels: {
+            color: { uuid: "", name: "broken" },
+            normal: null,
+            height: null,
+            mer: null,
+          },
+          config: {
+            color_value: [255, 255, 255, 255],
+            mer_value: [0, 0, 255],
+            subsurface_value: 0,
+            saved: false,
+          },
+        },
+      },
+    });
+
+    expect(delta.verification_class).toBe("focused_read");
+  });
+
   test("material save preserves semantic freshness while marking persistence state changed", () => {
     const delta = buildControlDelta({
       capability: "manage_material",

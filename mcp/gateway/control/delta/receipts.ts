@@ -239,16 +239,119 @@ export function animationControllerReceiptComplete(value: unknown): boolean {
       return false;
     }
 
-    for (const key of [
-      "states",
-      "transitions",
-      "animation_links",
-      "sounds",
-      "particles",
-    ] as const) {
-      if (!Array.isArray(created[key]) || !Array.isArray(removed[key])) {
-        return false;
-      }
+    const initialState = record(controller.initial_state);
+    if (
+      controller.initial_state !== null &&
+      !(
+        initialState &&
+        typeof initialState.uuid === "string" &&
+        initialState.uuid.length > 0 &&
+        typeof initialState.name === "string" &&
+        initialState.name.length > 0
+      )
+    ) {
+      return false;
+    }
+
+    const createdStates = created.states;
+    const createdTransitions = created.transitions;
+    const createdLinks = created.animation_links;
+    const createdSounds = created.sounds;
+    const createdParticles = created.particles;
+    const removedStates = removed.states;
+    const removedTransitions = removed.transitions;
+    const removedLinks = removed.animation_links;
+    const removedSounds = removed.sounds;
+    const removedParticles = removed.particles;
+
+    if (
+      !Array.isArray(createdStates) ||
+      !Array.isArray(createdTransitions) ||
+      !Array.isArray(createdLinks) ||
+      !Array.isArray(createdSounds) ||
+      !Array.isArray(createdParticles) ||
+      !Array.isArray(removedStates) ||
+      !Array.isArray(removedTransitions) ||
+      !Array.isArray(removedLinks) ||
+      !Array.isArray(removedSounds) ||
+      !Array.isArray(removedParticles)
+    ) {
+      return false;
+    }
+
+    const hasId = (entry: unknown): boolean => {
+      const item = record(entry);
+      return Boolean(
+        item &&
+        typeof item.uuid === "string" &&
+        item.uuid.length > 0
+      );
+    };
+    const hasIdAndName = (entry: unknown): boolean => {
+      const item = record(entry);
+      return Boolean(
+        hasId(entry) &&
+        item &&
+        typeof item.name === "string" &&
+        item.name.length > 0
+      );
+    };
+    const allRemovedIds = (entries: unknown[]): boolean =>
+      entries.every((entry) => typeof entry === "string" && entry.length > 0);
+
+    if (
+      !createdStates.every(hasIdAndName) ||
+      !createdTransitions.every((entry) => {
+        const item = record(entry);
+        return Boolean(
+          hasId(entry) &&
+          item &&
+          typeof item.state_uuid === "string" &&
+          item.state_uuid.length > 0 &&
+          typeof item.target_uuid === "string" &&
+          item.target_uuid.length > 0
+        );
+      }) ||
+      !createdLinks.every((entry) => {
+        const item = record(entry);
+        return Boolean(
+          hasId(entry) &&
+          item &&
+          typeof item.state_uuid === "string" &&
+          item.state_uuid.length > 0 &&
+          typeof item.animation_key === "string" &&
+          item.animation_key.length > 0 &&
+          (item.animation_uuid === null ||
+            typeof item.animation_uuid === "string")
+        );
+      }) ||
+      !createdSounds.every((entry) => {
+        const item = record(entry);
+        return Boolean(
+          hasId(entry) &&
+          item &&
+          typeof item.state_uuid === "string" &&
+          item.state_uuid.length > 0 &&
+          typeof item.effect === "string"
+        );
+      }) ||
+      !createdParticles.every((entry) => {
+        const item = record(entry);
+        return Boolean(
+          hasId(entry) &&
+          item &&
+          typeof item.state_uuid === "string" &&
+          item.state_uuid.length > 0 &&
+          typeof item.effect === "string"
+        );
+      }) ||
+      !removedStates.every(hasIdAndName) ||
+      !allRemovedIds(removedTransitions) ||
+      !allRemovedIds(removedLinks) ||
+      !allRemovedIds(removedSounds) ||
+      !allRemovedIds(removedParticles)
+    ) {
+      return false;
     }
 
     return candidate.affected_states.every((entry) => {
@@ -301,16 +404,54 @@ export function materialMutationReceiptComplete(value: unknown): boolean {
     const material = record(candidate.material);
     const channels = record(material?.channels);
     const config = record(material?.config);
-    return Boolean(
-      material &&
-      typeof material.uuid === "string" &&
-      typeof material.name === "string" &&
-      channels &&
-      ["color", "normal", "height", "mer"].every((key) =>
-        Object.prototype.hasOwnProperty.call(channels, key)
+    if (
+      !material ||
+      typeof material.uuid !== "string" ||
+      material.uuid.length === 0 ||
+      typeof material.name !== "string" ||
+      material.name.length === 0 ||
+      typeof material.is_material !== "boolean" ||
+      !channels ||
+      !config
+    ) {
+      return false;
+    }
+
+    const validChannel = (value: unknown): boolean => {
+      if (value === null) return true;
+      const channel = record(value);
+      return Boolean(
+        channel &&
+        typeof channel.uuid === "string" &&
+        channel.uuid.length > 0 &&
+        typeof channel.name === "string"
+      );
+    };
+
+    if (
+      !["color", "normal", "height", "mer"].every(
+        (key) =>
+          Object.prototype.hasOwnProperty.call(channels, key) &&
+          validChannel(channels[key])
+      )
+    ) {
+      return false;
+    }
+
+    return (
+      Array.isArray(config.color_value) &&
+      config.color_value.length === 4 &&
+      config.color_value.every(
+        (entry) => typeof entry === "number" && Number.isFinite(entry)
       ) &&
-      config &&
-      Object.prototype.hasOwnProperty.call(config, "saved")
+      Array.isArray(config.mer_value) &&
+      config.mer_value.length === 3 &&
+      config.mer_value.every(
+        (entry) => typeof entry === "number" && Number.isFinite(entry)
+      ) &&
+      typeof config.subsurface_value === "number" &&
+      Number.isFinite(config.subsurface_value) &&
+      typeof config.saved === "boolean"
     );
   });
 }

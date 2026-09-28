@@ -148,6 +148,40 @@ describe("LazyDesigner Control continuation hardening", () => {
     });
     expect(controller.verification_class).toBe("focused_read");
 
+    const malformedCreatedIdentity = buildControlDelta({
+      capability: "manage_animation_controller",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        operation_count: 1,
+        controller: {
+          uuid: "controller-a",
+          name: "controller.animation.test",
+          initial_state: null,
+          state_count: 1,
+        },
+        affected_states: [],
+        created: {
+          states: [{ uuid: "", name: "broken" }],
+          transitions: [],
+          animation_links: [],
+          sounds: [],
+          particles: [],
+        },
+        removed: {
+          states: [],
+          transitions: [],
+          animation_links: [],
+          sounds: [],
+          particles: [],
+        },
+      },
+    });
+    expect(malformedCreatedIdentity.verification_class).toBe("focused_read");
+
     const effects = buildControlDelta({
       capability: "manage_animation_effects",
       phaseBefore: "animation",
