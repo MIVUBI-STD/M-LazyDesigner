@@ -53,7 +53,7 @@ export function authoringDomainForCapability(
 export function anchorTestForSourceOwner(
   owner: ControlSourceOwner
 ): string | null {
-  return owner.anchor_test ?? owner.test_owner ?? null;
+  return owner.anchor_test;
 }
 
 function canonicalSourceOwner(owner: ControlSourceOwner): ControlSourceOwner {

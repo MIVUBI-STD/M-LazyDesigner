@@ -68,7 +68,7 @@ describe("Control source-owner registry", () => {
     expect(explicit.manage_cubes).not.toHaveProperty("test_owner");
   });
 
-  test("anchor-test semantics normalize legacy and canonical owner fields", () => {
+  test("anchor-test semantics remain canonical for explicit and fallback owners", () => {
     expect(
       anchorTestForSourceOwner(sourceOwnerForCapability("manage_cubes"))
     ).toBe("mcp/tests/model-effectiveness-correction-accuracy.test.ts");

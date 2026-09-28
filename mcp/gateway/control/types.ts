@@ -51,9 +51,7 @@ export type ControlSourceOwner = {
   source: string;
   specialist: string | null;
   /** Canonical bounded regression anchor. This is not the full proof surface. */
-  anchor_test?: string | null;
-  /** @deprecated Compatibility input; development-facing projections use anchor_test. */
-  test_owner?: string | null;
+  anchor_test: string | null;
   /** Omitted on explicit owners; FALLBACK means bounded orientation only. */
   resolution?: "FALLBACK";
 };
