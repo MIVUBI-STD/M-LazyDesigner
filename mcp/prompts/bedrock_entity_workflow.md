@@ -64,6 +64,8 @@ PASS       = no critical/major supported mismatch
 
 Known major mismatch stays FAIL despite earlier approval; never submit as READY_FOR_USER_REVIEW. Use side/bottom views for concealed contacts; distinguish dark paint from missing geometry.
 
+Continuation mode is selected by runtime state, not by model choice: pre-selection uses bounded candidate context; post-solver uses `DECISION_SUMMARY`; post-execution with stale evidence uses `VERIFY_PENDING`; unresolved verified work uses `PRUNED_READY`; terminal states use `CLEAR` or `BLOCKED`.
+
 Use `decision_summary` only for the immediate execution handoff. Once execution or verification state changes, switch to `lazydesigner-correction-continuation-v1`: unresolved discrepancies, fresh per-view evidence handles, and pending verification state only. Do not replay resolved discrepancies, stale evidence handles, candidate history, recipe internals, or fingerprints.
 
 After deterministic selection, continue from the compact `decision_summary`; do not carry rejected candidate patches or option prose into the next turn. Preserve only selected ID, rejected IDs, selected metrics, solver score, candidate count/budget, affected scope, and verification/evidence state.
