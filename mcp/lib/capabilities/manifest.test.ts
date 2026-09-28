@@ -17,7 +17,7 @@ describe("core capability manifest", () => {
 
     expect(getCapabilityMetadata("create_project")).toMatchObject({
       tier: "support",
-      verificationClass: "receipt_only",
+      verificationClass: "focused_read",
     });
     expect(capabilityPhaseByName("create_project")).toBe("core");
 
@@ -188,6 +188,12 @@ describe("core capability manifest", () => {
       executionClass: "normal",
       verificationClass: "not_applicable",
     });
+  });
+
+  test("no canonical capability relies on unconditional receipt-only verification", () => {
+    for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
+      expect(entry.verificationClass, capability).not.toBe("receipt_only");
+    }
   });
 
   test("does not duplicate manifest keys", () => {
