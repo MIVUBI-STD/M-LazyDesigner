@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { createTool, type ToolSpec } from "@/lib/factories";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { bakeNativeCubeAo } from "@/lib/cubeAoRuntime";
 import { imageContent, resolvePaintTexture } from "@/lib/util";
 import {
@@ -306,6 +307,7 @@ export function registerPaintTextureTransactionTool(): void {
             commitTexturePngWrite(preparedOutput.fs, preparedOutput.state, outputBytes);
           }
           Undo.finishEdit("Paint texture transaction");
+          recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"]);
           if (preparedOutput) {
             finalizeTexturePngWrite(preparedOutput.fs, preparedOutput.state);
           }

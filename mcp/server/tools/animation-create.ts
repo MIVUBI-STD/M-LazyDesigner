@@ -2,6 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_STABLE } from "@/lib/constants";
 import { finiteAnimationVector3Schema } from "./animation-shared";
@@ -401,6 +402,7 @@ export function registerCreateAnimationTool(): void {
           Undo.finishEdit("Create animation", {
             animations: createdAnimations,
           });
+          recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
           editStarted = false;
   
           const requestedParticleEffectCount = particle_effects

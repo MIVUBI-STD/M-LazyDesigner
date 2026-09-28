@@ -1,6 +1,7 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { autoUvEnum, cubeSchema, faceEnum } from "@/lib/zodObjects";
 import { readRenderedCubeBounds } from "@/lib/renderedModelBounds";
@@ -824,6 +825,7 @@ export function registerCubesTools() {
         });
 
         Undo.finishEdit("Agent placed cubes", { elements: cubes });
+        recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
       } catch (error) {
         Undo.cancelEdit(true);
         Canvas.updateAll();
@@ -944,6 +946,7 @@ export function registerCubesTools() {
         });
 
         Undo.finishEdit("Agent modified cubes");
+        recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
       } catch (error) {
         Undo.cancelEdit(true);
         Canvas.updateAll();
@@ -1059,6 +1062,7 @@ export function registerCubesTools() {
         }
 
         Undo.finishEdit("Agent modified multiple cubes");
+        recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
       } catch (error) {
         Undo.cancelEdit(true);
         Canvas.updateAll();

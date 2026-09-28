@@ -2,6 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import {
@@ -392,6 +393,7 @@ export function registerAnimationBatchTools(): void {
             }
   
             Undo.finishEdit(`Batch keyframe operation: ${operation}`);
+            recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Animator.preview();
@@ -511,6 +513,7 @@ export function registerAnimationBatchTools(): void {
   
               animation.setLength();
               Undo.finishEdit("Batch keyframe operation: bake");
+              recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
               editStarted = false;
             }
           } catch (error) {
@@ -598,6 +601,7 @@ export function registerAnimationBatchTools(): void {
   
             animation.setLength();
             Undo.finishEdit("Batch keyframe operation: scale");
+            recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Animator.preview();
@@ -656,6 +660,7 @@ export function registerAnimationBatchTools(): void {
             });
   
             Undo.finishEdit("Batch keyframe operation: reverse");
+            recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Animator.preview();
@@ -687,6 +692,7 @@ export function registerAnimationBatchTools(): void {
               kf.interpolation = "catmullrom";
             });
             Undo.finishEdit("Batch keyframe operation: smooth");
+            recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Animator.preview();
@@ -922,6 +928,7 @@ export function registerAnimationBatchTools(): void {
   
               tgtAnimation.setLength();
               Undo.finishEdit(`${action} animation data`);
+              recordCurrentSemanticHistoryEffect(["ANIMATION_MOTION"]);
             } catch (error) {
               Undo.cancelEdit(true);
               Animator.preview();
