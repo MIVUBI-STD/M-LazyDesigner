@@ -224,6 +224,9 @@ describe("LazyDesigner Control system-development intent", () => {
     });
     expect(development.source_owners.length).toBeGreaterThan(0);
     expect(development.source_owners[0]).toHaveProperty("anchor_test");
+    expect(development.source_owners[0]).toMatchObject({
+      ownership_resolution: "EXPLICIT",
+    });
     expect(development.source_owners[0]).not.toHaveProperty("test_owner");
     expect(development.required_context_paths).toEqual(["AGENTS.md", "mcp/AGENTS.md"]);
     expect(development).not.toHaveProperty("task_class");

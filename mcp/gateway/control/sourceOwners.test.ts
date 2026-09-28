@@ -86,6 +86,7 @@ describe("Control source-owner registry", () => {
     expect(sourceOwnerForCapability("future_unknown_tool")).toMatchObject({
       source: "mcp/server/runtime/registration.ts",
       specialist: null,
+      resolution: "FALLBACK",
     });
   });
   test("source-owner modules match canonical authoring domains", () => {

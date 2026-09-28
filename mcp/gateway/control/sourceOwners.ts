@@ -22,6 +22,9 @@ const DEFAULT_SOURCE_BY_DOMAIN: Record<ControlAuthoringDomain, ControlSourceOwne
     source: "mcp/server/runtime/registration.ts",
     specialist: MODELLING_PATH,
     anchor_test: "mcp/tests/authoring-phase-surface.test.ts",
+    resolution: "FALLBACK",
+    resolution: "FALLBACK",
+    resolution: "FALLBACK",
   },
   TEXTURING: {
     source: "mcp/server/runtime/registration.ts",

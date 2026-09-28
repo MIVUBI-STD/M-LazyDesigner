@@ -61,6 +61,8 @@ export type ControlSourceOwner = {
   anchor_test?: string | null;
   /** @deprecated Compatibility input; development-facing projections use anchor_test. */
   test_owner?: string | null;
+  /** Omitted on explicit owners; FALLBACK means bounded orientation only. */
+  resolution?: "FALLBACK";
 };
 
 export type ControlSystemState = "READY" | "DEGRADED" | "OFFLINE";

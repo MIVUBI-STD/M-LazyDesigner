@@ -74,6 +74,7 @@ function projectDevelopmentForGateway(
       source: owner.source,
       specialist: owner.specialist,
       anchor_test: anchorTestForSourceOwner(owner),
+      ownership_resolution: owner.resolution ?? "EXPLICIT",
     })),
     required_context_paths: development.required_context_paths,
     ...(development.confidence !== "STRONG" &&
