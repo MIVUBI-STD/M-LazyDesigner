@@ -38,10 +38,11 @@ export type MaterialMutationReceipt = z.infer<
   typeof materialMutationReceiptSchema
 >;
 
-export function materialMutationReceipt(
-  receipt: MaterialMutationReceipt
-): MaterialMutationReceipt {
-  return materialMutationReceiptSchema.parse(receipt);
+export function materialMutationReceipt<T extends Record<string, unknown>>(
+  receipt: T
+): T {
+  materialMutationReceiptSchema.parse(receipt);
+  return receipt;
 }
 
 export function isMaterialMutationReceipt(value: unknown): boolean {

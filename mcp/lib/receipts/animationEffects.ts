@@ -85,10 +85,11 @@ export type AnimationEffectsReceipt = z.infer<
   typeof animationEffectsReceiptSchema
 >;
 
-export function animationEffectsReceipt(
-  receipt: AnimationEffectsReceipt
-): AnimationEffectsReceipt {
-  return animationEffectsReceiptSchema.parse(receipt);
+export function animationEffectsReceipt<T extends Record<string, unknown>>(
+  receipt: T
+): T {
+  animationEffectsReceiptSchema.parse(receipt);
+  return receipt;
 }
 
 export function isAnimationEffectsReceipt(value: unknown): boolean {

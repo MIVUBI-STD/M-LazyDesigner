@@ -107,10 +107,11 @@ export type AnimationControllerReceipt = z.infer<
   typeof animationControllerReceiptSchema
 >;
 
-export function animationControllerReceipt(
-  receipt: AnimationControllerReceipt
-): AnimationControllerReceipt {
-  return animationControllerReceiptSchema.parse(receipt);
+export function animationControllerReceipt<T extends Record<string, unknown>>(
+  receipt: T
+): T {
+  animationControllerReceiptSchema.parse(receipt);
+  return receipt;
 }
 
 export function isAnimationControllerReceipt(value: unknown): boolean {
