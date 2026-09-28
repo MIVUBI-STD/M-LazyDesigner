@@ -5,61 +5,61 @@ export const CORE_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
   create_project: {
     source: "mcp/server/tools/project.ts",
     specialist: null,
-    test_owner: "mcp/tests/project-affinity-runtime.test.ts",
+    anchor_test: "mcp/tests/project-affinity-runtime.test.ts",
   },
   switch_authoring_phase: {
     source: "mcp/server/runtime/phaseControl.ts",
     specialist: null,
-    test_owner: "mcp/tests/authoring-flow-simplification.test.ts",
+    anchor_test: "mcp/tests/authoring-flow-simplification.test.ts",
   },
   get_project_info: {
     source: "mcp/server/tools/project.ts",
     specialist: null,
-    test_owner: "mcp/tests/p1-core-ownership.test.ts",
+    anchor_test: "mcp/tests/p1-core-ownership.test.ts",
   },
   list_textures: {
     source: "mcp/server/tools/texture-read.ts",
     specialist: null,
-    test_owner: "mcp/tests/texture-authoring-contract.test.ts",
+    anchor_test: "mcp/tests/texture-authoring-contract.test.ts",
   },
   inspect_elements: {
     source: "mcp/server/runtime/consolidatedTools.ts",
     specialist: null,
-    test_owner: "mcp/tests/consolidated-validation-preservation.test.ts",
+    anchor_test: "mcp/tests/consolidated-validation-preservation.test.ts",
   },
   list_locator_elements: {
     source: "mcp/server/tools/locators.ts",
     specialist: null,
-    test_owner: "mcp/tests/bedrock-locator-coverage.test.ts",
+    anchor_test: "mcp/tests/bedrock-locator-coverage.test.ts",
   },
   capture_model_views: {
     source: "mcp/server/tools/camera.ts",
     specialist: MODELLING_PATH,
-    test_owner: "mcp/tests/camera-framing-contract.test.ts",
+    anchor_test: "mcp/tests/camera-framing-contract.test.ts",
   },
   inspect_model_bounds: {
     source: "mcp/server/tools/project.ts",
     specialist: MODELLING_PATH,
-    test_owner: "mcp/tests/rendered-model-bounds-numeric-safety.test.ts",
+    anchor_test: "mcp/tests/rendered-model-bounds-numeric-safety.test.ts",
   },
   export_model: {
     source: "mcp/server/tools/export.ts",
     specialist: null,
-    test_owner: "mcp/tests/inspection-export-capability-baseline.test.ts",
+    anchor_test: "mcp/tests/inspection-export-capability-baseline.test.ts",
   },
   undo: {
     source: "mcp/server/tools/history.ts",
     specialist: null,
-    test_owner: "mcp/tests/history-result-state.test.ts",
+    anchor_test: "mcp/tests/history-result-state.test.ts",
   },
   redo: {
     source: "mcp/server/tools/history.ts",
     specialist: null,
-    test_owner: "mcp/tests/history-result-state.test.ts",
+    anchor_test: "mcp/tests/history-result-state.test.ts",
   },
   get_undo_stack: {
     source: "mcp/server/tools/history.ts",
     specialist: null,
-    test_owner: "mcp/tests/history-result-state.test.ts",
+    anchor_test: "mcp/tests/history-result-state.test.ts",
   },
 };

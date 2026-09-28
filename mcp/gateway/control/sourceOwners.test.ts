@@ -41,6 +41,19 @@ describe("Control source-owner registry", () => {
     expect(missing).toEqual([]);
   });
 
+  test("explicit owner registries no longer author the legacy test_owner field", async () => {
+    for (const path of [
+      "gateway/control/sourceOwners/core.ts",
+      "gateway/control/sourceOwners/geometry.ts",
+      "gateway/control/sourceOwners/texturing.ts",
+      "gateway/control/sourceOwners/animation.ts",
+    ]) {
+      const source = await Bun.file(path).text();
+      expect(source, path).toContain("anchor_test:");
+      expect(source, path).not.toContain("test_owner:");
+    }
+  });
+
   test("public source-owner projections expose anchor_test without legacy test_owner", () => {
     const explicit = listExplicitSourceOwners();
     const owner = sourceOwnerForCapability("manage_cubes");
