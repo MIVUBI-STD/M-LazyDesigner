@@ -1,3 +1,5 @@
+/// <reference types="blockbench-types" />
+
 export type SemanticHistoryScope =
   | "GEOMETRY_STRUCTURE"
   | "UV_MAPPING"

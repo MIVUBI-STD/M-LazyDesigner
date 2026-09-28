@@ -1,7 +1,10 @@
 import {test,expect} from "bun:test";
 import "@/server/tools";
 import {getAllToolDefinitions} from "@/lib/factories";
-import {recordSemanticHistoryEffect} from "@/lib/semanticHistory";
+import {
+  recordSemanticHistoryEffect,
+  semanticHistoryEffectForEntry,
+} from "@/lib/semanticHistory";
 
 test("undo and redo report only completed transitions and reject native no-effect",async()=>{
   const g=globalThis as any,old={Project:g.Project,Undo:g.Undo,Canvas:g.Canvas};
@@ -74,6 +77,9 @@ test("semantic history distinguishes known empty effects from unknown entries",(
     [],
     {workspace_projection:false,acceptance_gates:false}
   );
-  // Empty is still known evidence; it must not collapse to unknown.
-  expect(known).toBeDefined();
+  expect(semanticHistoryEffectForEntry(known)).toEqual({
+    stale: [],
+    workspace_projection: false,
+    acceptance_gates: false,
+  });
 });
