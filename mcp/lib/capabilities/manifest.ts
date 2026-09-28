@@ -13,6 +13,18 @@ export type CapabilityVerificationClass =
   | "focused_read"
   | "visual";
 
+export type CapabilityStateClass =
+  | "cross_authoring"
+  | "geometry"
+  | "uv"
+  | "texture_appearance"
+  | "material_render"
+  | "animation_motion"
+  | "animation_controller"
+  | "animation_effects"
+  | "particle"
+  | "persistence";
+
 export type CapabilityLifecycleStage = "active" | "deprecated";
 export type CapabilityLifecycle = {
   stage: CapabilityLifecycleStage;
@@ -31,6 +43,7 @@ export type CapabilityCoreManifestEntry = {
   phase?: McpToolPhaseCategory;
   executionClass?: CapabilityExecutionClass;
   verificationClass?: CapabilityVerificationClass;
+  stateClass?: CapabilityStateClass;
   lifecycle?: CapabilityLifecycle;
   effects?: CapabilityEffects;
 };
@@ -85,6 +98,48 @@ const ANIMATION_PHASE: readonly string[] = [
   "inspect_animation", "manage_animation_timeline", "manage_animation_effects",
   "manage_animation_controller", "inspect_particle", "manage_particle",
 ];
+
+const CROSS_AUTHORING_STATE: readonly string[] = [
+  "create_project", "undo", "redo",
+];
+
+const GEOMETRY_STATE: readonly string[] = [
+  "manage_cubes", "add_group", "modify_group", "duplicate_element",
+  "reparent_element", "remove_element", "rename_element", "manage_locator",
+  "manage_null_object", "bone_rigging",
+];
+
+const UV_STATE: readonly string[] = ["manage_uv_layout"];
+
+const TEXTURE_APPEARANCE_STATE: readonly string[] = [
+  "create_texture", "apply_texture", "add_texture_group", "paint_fill_tool",
+  "draw_shape_tool", "gradient_tool", "copy_brush_tool", "paint_with_brush",
+  "eraser_tool", "texture_layer_management", "paint_texture_transaction",
+];
+
+const MATERIAL_RENDER_STATE: readonly string[] = [
+  "create_pbr_material", "configure_material", "assign_texture_channel",
+  "set_face_material_instance", "bulk_set_material_instances",
+  "clear_material_instances", "manage_material", "manage_material_instances",
+  "manage_render_profile",
+];
+
+const ANIMATION_MOTION_STATE: readonly string[] = [
+  "create_animation", "manage_keyframes", "animation_graph_editor",
+  "animation_timeline", "batch_keyframe_operations", "animation_copy_paste",
+  "manage_animation_timeline",
+];
+
+const ANIMATION_CONTROLLER_STATE: readonly string[] = [
+  "manage_animation_controller",
+];
+
+const ANIMATION_EFFECTS_STATE: readonly string[] = [
+  "manage_animation_effects",
+];
+
+const PARTICLE_STATE: readonly string[] = ["manage_particle"];
+const PERSISTENCE_STATE: readonly string[] = ["save_material_config"];
 
 const FAST: readonly string[] = [
   "get_project_info", "inspect_elements", "list_textures", "get_texture",
@@ -196,6 +251,16 @@ patch(CORE_PHASE, { phase: "core" });
 patch(GEOMETRY_PHASE, { phase: "geometry" });
 patch(TEXTURING_PHASE, { phase: "texturing" });
 patch(ANIMATION_PHASE, { phase: "animation" });
+patch(CROSS_AUTHORING_STATE, { stateClass: "cross_authoring" });
+patch(GEOMETRY_STATE, { stateClass: "geometry" });
+patch(UV_STATE, { stateClass: "uv" });
+patch(TEXTURE_APPEARANCE_STATE, { stateClass: "texture_appearance" });
+patch(MATERIAL_RENDER_STATE, { stateClass: "material_render" });
+patch(ANIMATION_MOTION_STATE, { stateClass: "animation_motion" });
+patch(ANIMATION_CONTROLLER_STATE, { stateClass: "animation_controller" });
+patch(ANIMATION_EFFECTS_STATE, { stateClass: "animation_effects" });
+patch(PARTICLE_STATE, { stateClass: "particle" });
+patch(PERSISTENCE_STATE, { stateClass: "persistence" });
 patch(FAST, { executionClass: "fast" });
 patch(HEAVY, { executionClass: "heavy" });
 // Preserve the legacy verification precedence:
@@ -241,4 +306,14 @@ export function capabilityPhaseByName(
   name: string
 ): McpToolPhaseCategory | null {
   return CAPABILITY_CORE_MANIFEST.get(name)?.phase ?? null;
+}
+
+export function capabilitiesByStateClass(
+  ...classes: readonly CapabilityStateClass[]
+): string[] {
+  const wanted = new Set(classes);
+  return [...CAPABILITY_CORE_MANIFEST.entries()]
+    .filter(([, entry]) => entry.stateClass && wanted.has(entry.stateClass))
+    .map(([name]) => name)
+    .sort((a, b) => a.localeCompare(b));
 }
