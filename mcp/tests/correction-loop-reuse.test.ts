@@ -155,6 +155,124 @@ describe("zero-waste correction loop reuse", () => {
     });
   });
 
+  test("bounds correction candidate count by verification risk", () => {
+    const registry = new CorrectionLoopRegistry();
+    const lowHandle = registry.start({
+      recipe_id: "asset",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+
+    const twoCandidates = [1.03, 1.05].map((value, index) => ({
+      id: "resize-" + index,
+      predicted_error: 0.1 + index * 0.01,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        correction_family: "RESIZE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS" as const,
+            axis: "X" as const,
+            mode: "MULTIPLY" as const,
+            value,
+            anchor: "MIN" as const,
+          },
+        },
+      },
+    }));
+
+    const low = registry.planGeometryCorrection(lowHandle, twoCandidates);
+    expect(low.state).toBe("BLOCKED");
+    expect(low.blocked_reason).toBe("CANDIDATE_BUDGET_EXCEEDED");
+
+    const mediumHandle = registry.start({
+      recipe_id: "asset-medium",
+      base_recipe: { ...recipe(), id: "asset-medium", name: "asset-medium" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:medium",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+    expect(registry.planGeometryCorrection(mediumHandle, twoCandidates).state).toBe(
+      "CORRECTION_READY"
+    );
+  });
+
+  test("rejects correction family and semantic operation mismatch", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "wrong-family",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        correction_family: "ROTATE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+
+    expect(decision.state).toBe("BLOCKED");
+    expect(decision.blocked_reason).toBe("CORRECTION_FAMILY_MISMATCH");
+  });
+
   test("targeted evidence update preserves unrelated discrepancies and tracks per-view handles across rounds", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
