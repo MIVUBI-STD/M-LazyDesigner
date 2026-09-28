@@ -207,7 +207,7 @@ export class CorrectionLoopRegistry {
     const record = this.entries.get(handle);
     if (!record) {
       throw new Error(
-        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Gateway process, project epoch, or Runtime generation."
       );
     }
 
@@ -298,7 +298,7 @@ export class CorrectionLoopRegistry {
     const record = this.entries.get(handle);
     if (!record) {
       throw new Error(
-        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Gateway process, project epoch, or Runtime generation."
       );
     }
     if (record.continuation_group) {
@@ -346,7 +346,7 @@ export class CorrectionLoopRegistry {
     const record = this.entries.get(handle);
     if (!record) {
       throw new Error(
-        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Gateway process, project epoch, or Runtime generation."
       );
     }
 
