@@ -186,6 +186,21 @@ describe("LazyDesigner Control system-development intent", () => {
     expect(result.source_owners.length).toBeGreaterThan(0);
   });
 
+  test("fallback source ownership can never create exact development confidence", () => {
+    const result = resolveDevelopmentIntent(
+      "future_unknown_tool failed near registration"
+    );
+
+    expect(result.confidence).not.toBe("EXACT");
+    expect(result.domain).toBe("UNRESOLVED");
+    expect(result.source_owners).toEqual([]);
+    expect(
+      result.source_owners.some(
+        (owner) => owner.resolution === "FALLBACK"
+      )
+    ).toBe(false);
+  });
+
   test("unknown development wording stays unresolved and bounded", () => {
     const result = resolveDevelopmentIntent("something unusual elsewhere");
     expect(result.domain).toBe("UNRESOLVED");
