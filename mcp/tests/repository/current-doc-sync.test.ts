@@ -74,6 +74,21 @@ describe("current developer-facing documentation sync", () => {
     }
   });
 
+  test("current operations documents stay compact and role-pure", async () => {
+    const [validation, next] = await Promise.all([
+      text("../docs/05-operations/current-validation.md"),
+      text("../docs/05-operations/next-action.md"),
+    ]);
+
+    expect(Buffer.byteLength(validation, "utf8")).toBeLessThan(10_000);
+    expect(Buffer.byteLength(next, "utf8")).toBeLessThan(6_000);
+    expect(validation).toContain("## Current proof matrix");
+    expect(validation).toContain("## Last reusable proven source baseline");
+    expect(next).toContain("## Next REMOTE_GITHUB work");
+    expect(validation).not.toMatch(/^Updated:/m);
+    expect(next).not.toMatch(/^Updated:/m);
+  });
+
   test("operations owners keep continuation, proof, and local acceptance separate", async () => {
     const [validation, next, runbook] = await Promise.all([
       text("../docs/05-operations/current-validation.md"),

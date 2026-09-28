@@ -1,162 +1,112 @@
 # LazyDesigner Next Action
 
-Updated: 2026-09-22
-Branch: `Local` only.
+This file owns **continuation only**. Stable architecture belongs in
+`docs/01-product/` and `docs/04-system/`; current proof interpretation belongs
+in `docs/05-operations/current-validation.md`.
 
-This file owns **current continuation only**. Stable architecture belongs in
-`docs/01-product/` and `docs/04-system/`; exact proof interpretation belongs in
-`docs/05-operations/current-validation.md`. Do not turn this file into a history
-log, research archive, or duplicate roadmap.
+## Current direction
 
-## Current Direction
+Continue in `REMOTE_GITHUB`.
 
-`REMOTE_GITHUB` remains the source-development authority until the current
-source head has matching repository/MCP CI proof.
-
-Current proof blocker (2026-09-28):
-
-- `Local` source hardening has advanced beyond the last proven CI state.
-- `MCP Verify` is now the single canonical executable source-verification workflow:
-  push events use affected verification when safe; manual/non-push execution uses
-  the full `verify:remote` gate; every run proves the exact `github.sha`.
-- No GitHub Actions workflow run or commit status is currently present for the
-  latest `Local` heads created during this REMOTE_GITHUB pass.
-- Therefore do **not** claim typecheck/test/build/remote-acceptance PASS for the
-  current head until a matching `MCP Verify` run completes successfully.
-- Do not create trigger-only commits, temporary workflows, branches, or proof
-  markers to compensate. The next proof action is to execute/restore the normal
-  `MCP Verify` path for `Local` or diagnose repository Actions execution
-  settings outside source code if that path still produces no run.
-
-Historical reusable baseline includes:
+Current source hardening is ahead of its matching executable CI proof. The
+canonical source-verification workflow is `MCP Verify`:
 
 ```text
-generated freshness PASS
-modern MCP 2026 negotiation/list/call PASS
-legacy 2025 JSON initialize/list/call PASS
+Local push
+→ exact-SHA proof
+→ affected verification when safe
+→ full verify:remote when bounded proof is insufficient
+
+manual/non-push
+→ exact-SHA proof
+→ full verify:remote
 ```
 
-Historical proof does not automatically transfer to changed SHAs.
+No matching workflow run or commit status is currently present for the latest
+`Local` source-hardening heads.
 
-Current architecture remains:
+Therefore do **not** claim current-head:
 
 ```text
-user intent / approved reference
-→ LazyDesigner Control
-→ four-tool Gateway
-→ Runtime
-→ Blockbench
-→ structured receipt
-→ control_delta
-→ deterministic continuation action
+typecheck PASS
+Runtime/Gateway test PASS
+build PASS
+remote source acceptance PASS
+local/live PASS
+visual/reference PASS
 ```
 
-Public Gateway surface stays:
+## Next REMOTE_GITHUB work
 
-```text
-status
-search_capabilities
-describe_capability
-invoke_capability
-```
+Continue only work that improves source correctness or proof integrity without
+inventing execution evidence.
 
-The persistent Gateway survives Runtime/plugin reload. Runtime owns Blockbench
-execution. Canonical Control source is `mcp/gateway/control/`; former `mcp/gateway/navigator/` source is removed with no alias and remains retired. Control owns bounded routing/context projection, not authored truth.
+Priority order:
 
-## Remote Work Boundary
+1. keep current-proof documentation compact and exact;
+2. audit canonical verification composition and separate production gates from
+   measurements/experiments where evidence supports it;
+3. reduce duplicated capability semantics through parity-guarded projections,
+   not a big-bang rewrite;
+4. move producer/Control receipt interpretation toward shared typed contracts;
+5. strengthen deterministic development routing with exact/evidence signals
+   before keyword fallback;
+6. prepare bounded semantic Undo/Redo impact only if it can fail closed.
 
-Remote work may finish:
+Do not add a second Control/router/profile/state system.
 
-- source/type correctness;
-- deterministic routing/orchestration contracts;
-- repository/runtime regression tests;
-- generated-freshness checks;
-- static Zero-Waste guards and benchmarks;
-- build/provenance preparation that CI can prove.
+## Zero-Waste rules
 
-Current authoring automation must continue through existing owners rather than
-new public capability families:
+Optimize cost to accepted result, not raw tool count.
 
-```text
-Geometry / parametric recipe → existing Geometry owners
-UV                        → existing UV/Texturing owners
-Texture/material          → existing Painter/Texture owners
-Rig                       → add_group / bone_rigging owners
-Animation                 → existing animation owners
-Control continuation      → Gateway Control reducer
-```
-
-Keep the system additive and deterministic. No second
-Control/router/profile/state system.
-
-## Zero-Waste Rules
-
-Optimize **cost to accepted result**, not tool count in isolation.
-
-Hot-path rules:
-
-- known capability → invoke directly;
-- search only for unknown/stale capability identity;
+- known capability → direct invoke;
+- search only when identity is unknown/stale;
 - describe only for real schema uncertainty;
-- status only for orientation, authority change, or recovery;
-- reuse content-addressed specialist/profile context;
+- status only for orientation, authority change or recovery;
+- reuse content-addressed context;
 - invalidate only materially affected evidence;
-- authoritative mutation receipts replace reassurance reads;
-- visual verification must be decision-changing and scope-bounded;
-- batch mechanical operations when existing capability semantics allow it;
+- complete authoritative receipts may replace reassurance reads;
+- visual verification must be decision-changing and bounded;
 - unknown mutation outcome never auto-retries.
 
-Do not add an AI planner, vector store, background heartbeat, persistent
-dependency database, duplicate authoring engine, or new tool family merely to
-reduce prompt size.
+## Proof blocker
 
-## Proof Discipline
+The current blocker is operational proof availability, not an invitation to
+fabricate a trigger.
 
-Source/static/CI claims are exact-SHA claims.
+Do not create:
 
-A changed source head must not inherit earlier wording such as Runtime/Gateway
-typecheck PASS, Runtime regression PASS, or build PASS unless matching current
-CI actually completed successfully.
+```text
+trigger-only commits
+temporary proof workflows
+temporary branches
+proof-marker files
+history rewrites
+```
 
-There is no claim of Bun/typecheck/CI/local/live PASS until that proof actually ran.
+The normal `MCP Verify` path remains authoritative. If it continues to produce
+no run, diagnose Actions execution/settings through an authorized capability
+when available; do not redesign product architecture around that limitation.
 
-Read exact current proof from GitHub Actions and
-`docs/05-operations/current-validation.md`.
+## Higher-context residue
 
-## LOCAL_CODE
+`LOCAL_CODE` is only for executable checkout/toolchain residue that cannot be
+completed remotely.
 
-After REMOTE_GITHUB source gates are clean, `LOCAL_CODE` owns only residue that
-requires an executable checkout/toolchain, including:
+`LIVE_BLOCKBENCH` is only for installed/native/session/visual evidence such as
+Runtime reconnect, Blockbench Undo/Redo, persistence, native UV/Painter/
+Animation/Particle execution, app close/open recovery and visual acceptance.
 
-- canonical generator/filesystem work unavailable remotely;
-- local benchmark telemetry not produced by CI;
-- prepared harness execution whose result depends on the local environment.
+These are deferred. Do not redo accepted REMOTE_GITHUB analysis when they are
+reactivated.
 
-Do not redo repository audits already proven by matching CI.
+## Stop rules
 
-## LIVE_BLOCKBENCH
-
-`LIVE_BLOCKBENCH` owns native/session/visual evidence:
-
-- installed Runtime identity and reconnect behavior;
-- real Blockbench Undo/Redo and persistence;
-- project/tab Save and Save As behavior;
-- native UV/Painter/animation/particle execution;
-- plugin reload and app close/open recovery;
-- visual/reference acceptance;
-- accepted-result correction rounds and real usage telemetry.
-
-Use `docs/05-operations/local-acceptance-runbook.md` for that residue.
-
-## Stop Rules
-
-- no second Control/router/profile/state system;
-- no duplicate Desktop project database;
+- no duplicate authoring engine;
+- no second semantic state database;
+- no speculative planner/vector store/heartbeat;
+- no hand-editing generated API/prompt output;
 - no capability reduction solely for context savings;
-- no mutation auto-retry after unknown outcome;
-- No hand-editing generated docs/output; generated API/prompt artifacts remain generator-owned;
-- no speculative abstraction after the current owner can express the need;
-- no claim above the current execution-context proof ceiling.
-
-When REMOTE_GITHUB checks are green, stop remote feature expansion and hand off
-only the remaining LOCAL_CODE / LIVE_BLOCKBENCH proof.
+- no current-head PASS claim without matching evidence;
+- no proof-of-proof infrastructure when an existing owner already answers the
+  decision.

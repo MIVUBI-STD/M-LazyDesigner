@@ -1,50 +1,139 @@
 # LazyDesigner Current Validation
 
-Updated: 2026-09-19
+This file owns **current proof interpretation only**. Product workflow belongs in
+`docs/01-product/flow.md`; source ownership in
+`docs/04-system/implementation-map.md`; continuation in
+`docs/05-operations/next-action.md`; local/live procedure in
+`docs/05-operations/local-acceptance-runbook.md`.
 
-This file owns **current proof interpretation only**. Product workflow belongs in `docs/01-product/flow.md`; reference preparation in `docs/02-reference/`; source ownership in `docs/04-system/implementation-map.md`; continuation in `docs/05-operations/next-action.md`.
+## Current authority
 
-## Current Source Architecture
+Branch authority: `Local`.
+
+Current source architecture:
 
 ```text
 ChatGPT Reference Preparation
 → Reference Package
 → LazyDesigner Control
 → Codex
-→ Gateway
+→ persistent Gateway
 → Runtime
 → Plugin
 → Blockbench
 ```
 
-Canonical Control source: `mcp/gateway/control/`. Navigator active source path: removed.
+Geometry and Texturing share the AUTHORING Runtime surface. Animation is the
+separate ANIMATION surface. Canonical Control source is
+`mcp/gateway/control/`. The retired Navigator source remains removed.
 
-The current source contract is Bedrock-first and keeps one ownership chain. Geometry and Texturing share AUTHORING; Animation is the only separate authoring Runtime surface.
+## Current proof matrix
 
-## Source-Proven Contracts
+| Surface | Canonical proof | Current-head status |
+| --- | --- | --- |
+| Repository policy / ownership | `verify:repository` | **MISSING for current Local head** |
+| Executable MCP source | `MCP Verify` | **MISSING for current Local head** |
+| Typecheck / Runtime regressions | `MCP Verify` / `verify:remote` | **MISSING for current Local head** |
+| Build + provenance artifact | full `MCP Verify` | **MISSING for current Local head** |
+| Local executable checkout | `LOCAL_CODE` runbook residue | historical evidence only |
+| Installed/native Blockbench behavior | `LIVE_BLOCKBENCH` runbook residue | historical evidence only |
+| Visual/reference acceptance | live bounded review | not current-head proven |
+
+The latest REMOTE_GITHUB source-hardening commits currently have no matching
+GitHub Actions workflow run or commit status. Therefore the current `Local`
+head must **not** be described as typecheck PASS, test PASS, build PASS,
+remote-acceptance PASS, installed-runtime PASS, or visual PASS.
+
+Only completed successful proof on the same exact source SHA may raise a row
+above MISSING.
+
+## Exact-SHA source acceptance
+
+`MCP Verify` is the canonical executable source-verification workflow.
+
+```text
+push
+→ exact-SHA check
+→ affected planner
+→ bounded verification when ownership is sufficient
+→ fail wide to verify:remote when bounded proof is insufficient
+
+workflow_dispatch / non-push
+→ exact-SHA check
+→ verify:remote
+```
+
+`verify:remote` aliases `verify:full` and intentionally excludes `*:live`
+gates. A green source workflow is remote/static execution proof only; it is not
+installed Runtime, native Blockbench, persistence, playback, or visual proof.
+
+A separate duplicate full-acceptance workflow is intentionally not maintained.
+
+## Head Proof
+
+`Head Proof` remains a lightweight source-equivalence classifier, not an
+executable verifier.
+
+A docs-only head may report that executable source did not change relative to
+its parent. That is source-equivalence evidence only and does not create a new
+typecheck/test/build result.
+
+A source-impacting head receives no acceptance from `Head Proof`.
+Source-impacting heads continue to require their normal source verification
+workflows.
+
+## Current source contracts
 
 ### Control
 
+Current source implements:
+
 ```text
 ASSET_AUTHORING / SYSTEM_DEVELOPMENT intake
-Reference Package + Active Workspace projection
-GEOMETRY_CONTEXT / TEXTURE_CONTEXT / ANIMATION_CONTEXT
-exactly-one-profile Geometry loading
+bounded context selection
 content-addressed context handles
-stage-scoped readiness and bounded invalidation
-semantic freshness receipt with stale/fresh/unknown scopes
+explicit capability source ownership
+semantic freshness scopes
+fail-closed unknown mutation outcomes
 control_delta continuation
+receipt-bounded verification
 ```
 
-Control selects context and lifecycle state; it is not a second Runtime, recovery engine, semantic database, or persistent authored-state database.
+Freshness scopes are:
 
-Post-operation Control deltas now retain the compatibility-level authoring-domain invalidation summary while also projecting semantic freshness scopes for Geometry structure, UV mapping, Texture appearance, material/render state, Animation motion/controller/effects, and Particle state. Successful bounded effects can therefore preserve unrelated scopes without a reassurance reread; failed/uncertain mutations report freshness as unknown instead of pretending unchanged state. Runtime result evidence also keeps authored state fresh for Animation selection/playback/timeline-view/clipboard-copy operations, no-op Animation loop requests that already match the current mode, Particle preparation that performs neither a file write nor native preview, Material Instance list/get reads, Render Profile inspect, Render Profile compile-only operations with no output write, and Material save persistence that does not alter already-authored material semantics. Persistence-only Material save still marks the workspace projection changed while preserving semantic freshness. Incomplete mixed read/write receipts remain conservative. For successful capabilities that are normally classified as mutations, a source-proven `NO_CHANGE` receipt narrows post-operation verification to `receipt_only`. Complete real-mutation receipts now also qualify for `receipt_only` when they carry the final affected authored state: Animation Effects returns final effect entries or explicit removals; Animation Controller returns only final affected state subgraphs with transitions, animation links, sounds and particles plus explicit created/removed identities; PBR Material create/configure/assign-channel returns compact final channel/config state; imported texture-set materials return their final material/channel/config state; TextureGroup creation returns final group plus texture assignments; Material Instance set/bulk-set/clear returns exact final Cube/face/material changes. Legacy or incomplete shapes retain canonical focused-read guidance. Geometry hot-path receipts now also remove redundant reads for Locator/Null Object mutations and bounded Group add/modify/reparent results. Subtree translation remains focused-read because descendant final state is summarized only. Cube simplify dry-run/unchanged is state-neutral and receipt-only; actual Cube and animation-motion changes remain visual because semantic completeness does not constitute visual/reference acceptance. Visual evidence can now be bounded by `control_delta.verification_scope`: exact changed Cube UUIDs plus rendered bounds (directly consumable by existing `capture_model_views` explicit framing), affected Animation bone/time range with start/mid/end review samples, or Paint Transaction texture/affected-rect/revision. Paint Transaction also returns the exact post-mutation affected-region PNG in the same mutation response, so bounded texture corrections do not require an immediate full-atlas reread. This narrows observation cost without weakening visual acceptance. Retained mutations that previously inherited `not_applicable` verification now carry explicit semantics: geometry duplication and visual texture edits remain visual; rigging/material-import/group mutations require focused state verification unless a complete receipt proves continuation state.
+```text
+GEOMETRY_STRUCTURE
+UV_MAPPING
+TEXTURE_APPEARANCE
+MATERIAL_RENDER
+ANIMATION_MOTION
+ANIMATION_CONTROLLER
+ANIMATION_EFFECTS
+PARTICLE_SYSTEM
+```
 
-The normal authoring packet is intentionally compact. It carries decision/readiness/reference/workspace identities and does not duplicate complete Geometry/Texture/Animation semantic documents inside `stage_context`.
+Current source guards canonical capability ownership and mutation-policy
+coverage against silent drift. Direct authored mutations cannot default to
+`NO_CHANGE`. Receipt-proven state-neutral actions may preserve authored
+freshness. Incomplete or uncertain mutation receipts remain conservative.
 
-### Gateway
+UV layout changes invalidate UV mapping and Texture appearance while preserving
+unrelated evidence. Project creation and Undo/Redo are intentionally
+conservative because they can invalidate evidence across authoring domains.
 
-The public AI-client surface remains exactly:
+### Receipt / verification boundary
+
+Complete final-state receipts may replace reassurance reads only when their
+shared semantics are sufficient for deterministic continuation. Incomplete
+receipts retain focused-read or visual verification.
+
+Actual visual Geometry/Texture/Animation mutation remains visual even when its
+structural receipt is complete. Semantic completeness is not visual/reference
+acceptance.
+
+### Gateway / Runtime
+
+The public AI-client Gateway surface remains exactly:
 
 ```text
 status
@@ -53,201 +142,24 @@ describe_capability
 invoke_capability
 ```
 
-Current source contains:
+The persistent Gateway owns client stability, Runtime reconnect, project/phase
+affinity, catalog invalidation, serialized mutation dispatch and structured
+recovery. Runtime owns Blockbench execution.
 
-```text
-persistent Gateway process boundary
-demand-driven Runtime reconnect
-bounded reconnect backoff
-Runtime signature/catalog invalidation
-catalog fast-path for discovery
-serialized Runtime mutations
-bounded queue-wait / operation-duration observability through Gateway status
-deterministic Gateway fault contracts for queue saturation, interrupted reads/mutations, and runtime-signature invalidation
-fail-closed project affinity
-phase affinity
-structured recovery semantics
-OUTCOME_UNKNOWN with no mutation replay
-normalized public status
-canonical declarative capability effects
-producer-side affinity receipt schemas for project creation and phase handoff
-```
+Unknown mutation outcome is never automatically replayed.
 
-Plugin reload, Runtime rebuild, authoring phase change, or temporary Runtime loss are designed to recover below the persistent Gateway. Only replacing the Gateway process itself requires client reconnection. The Windows acceptance section below records the subset actually exercised; rebuild and full application close/open recovery remain unverified.
+### Protocol / compatibility
 
-Catalog invalidation after phase changes remains intentionally conservative until same-AUTHORING-surface transport reuse is covered by local Gateway/Runtime tests. The Runtime receipt already distinguishes `surface_changed=false` for Geometry↔Texturing from true AUTHORING↔Animation handoff.
+Current source retains modern MCP SDK v2 handling plus the bounded legacy JSON
+compatibility path. Compatibility-bound `blockit_*`, `BLOCKIT_*` and related
+persisted identifiers remain intentional until a separately dependency-mapped
+migration.
 
-### Protocol / Transport
+Do not infer current-head protocol PASS from historical evidence.
 
-Current source is on the MCP TypeScript SDK v2 split packages and has exact-head source proof for both protocol eras on the same Runtime endpoint:
+## Last reusable proven source baseline
 
-```text
-MCP 2026-07-28 modern client
-→ version negotiation / server discovery
-→ tools/list
-→ tools/call
-
-legacy 2025-era client
-→ initialize
-→ tools/list
-→ tools/call
-```
-
-The modern path is owned by `createMcpHandler(..., { legacy: "reject", responseMode: "auto" })`. Modern MCP 2026 POST responses are forwarded in the SDK-selected representation (JSON or `text/event-stream`) instead of being rejected by LazyDesigner. The modern SDK handler uses `responseMode="auto"`: ordinary calls remain JSON while per-request progress/log messages can upgrade to SSE. The outer Node→Web bridge forwards SSE incrementally instead of buffering the stream to completion. Finite MCP requests still force the connection closed for deterministic request ownership; only `subscriptions/listen` may retain the client's long-lived connection semantics. The separate legacy compatibility transport remains JSON-only. The official conformance workflow uses the same `server/net.ts` transport but activates a process-local fixture surface containing only pinned-suite protocol fixtures. Fixture registration now requires both the dedicated harness environment opt-in and the process-local harness flag, so production cannot enter fixture mode through one accidental signal. It now includes core content/resources/prompts/completion, progress notifications through the SDK v2 request context, and SEP-2322 input-required/requestState flows backed by the SDK HMAC codec. Production registration is bypassed only in that harness. The temporary legacy compatibility leg keeps LazyDesigner's established request-owned JSON behavior with `WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })`; both legs construct the same canonical Runtime server/tool/resource/prompt surface.
-
-Current source-proven transport properties include:
-
-```text
-loopback-only listener
-modern MCP 2026-07-28 negotiation and tool invocation
-legacy stateless JSON compatibility
-Host/Origin validation
-header/body size limits
-ambiguous/malformed HTTP header rejection
-serialized native tool mutation
-project/phase affinity enforcement
-generation-safe teardown with pre/post execution fencing
-```
-
-Node now owns HTTP framing in `server/net.ts`; LazyDesigner still owns a bounded Node→Web Request bridge plus Host/Origin/body-limit/affinity/generation policy around MCP dispatch. The remaining transport debt is narrower: the modern 2026 path is SDK-owned, while legacy 2025 JSON uses a temporary official-SDK stateless transport shim because server v2.0.0 does not apply `responseMode="json"` to its built-in legacy fallback. Do not add another transport path or custom legacy protocol parser. Remove the shim only when the supported SDK can preserve the required legacy JSON contract itself, or when that compatibility contract is intentionally retired.
-
-### Runtime
-
-Current ownership is split explicitly:
-
-```text
-server/net.ts                         Runtime HTTP/MCP transport + operation serialization
-server/runtime/registration.ts       registration/profile/surface ownership
-server/runtime/consolidatedRoutes.ts consolidated route descriptors
-server/runtime/consolidatedTools.ts  routing-only wrappers
-server/runtime/phaseControl.ts       authoring-focus + AUTHORING↔Animation control capability
-server/runtime/bootstrap.ts          exactly-once Runtime initialization
-server/runtime/extensions.ts         ordered Runtime extension composition
-server/runtime/textureRuntimeContracts.ts   Texture contract enrichment
-server/runtime/animationRuntimeContracts.ts Animation contract enrichment
-server/tools/**                       domain Tool implementations
-```
-
-Tool-family facades (`animation.ts`, `texture.ts`, `paint.ts`, `element.ts`) are compatibility/aggregation owners only; concrete implementation ownership lives in their focused sibling modules documented in `docs/04-system/implementation-map.md`.
-
-`switch_authoring_phase` applies the registered Runtime phase/surface handler before returning its Gateway handoff receipt. Geometry↔Texturing remains one shared AUTHORING surface; Animation remains the only foreign authoring surface.
-
-Runtime phase/profile changes use granular registration/surface state rather than creating a second workflow engine.
-
-### Plugin / Blockbench Boundary
-
-```text
-mcp/index.ts                         plugin orchestration only
-mcp/plugin/runtimeHost.ts           native network + listener lifecycle
-mcp/plugin/blockbenchIntegration.ts settings/UI/prompts/resources integration
-mcp/plugin/devSync.ts               development reload watcher
-```
-
-Setup/teardown ownership is explicit and defensive against duplicate setup/reload.
-
-### Tools — Zero Capability Loss
-
-Tool cleanup is **routing/metadata/contract hardening only**.
-
-Source guards preserve:
-
-```text
-original executor definitions
-original runtime schemas/refinements/defaults
-validation before execution
-native Blockbench behavior
-all consolidated branches
-domain intelligence for Geometry / Texture / Animation / Particle
-```
-
-Consolidated capabilities delegate to retained original executors. Unknown branches fail instead of silently falling back to another operation.
-
-Family baselines guard Geometry/Element, Texture/Material, Animation, Particle, Inspection and Export surfaces. Consolidated validation-preservation guards cover Inspection, Material, Animation Timeline, and Material Instances rather than Animation Timeline alone. No implementation algorithm was intentionally simplified for context/tool-count reduction.
-
-### Validation / QA / Gates
-
-Canonical handoff readiness: `mcp/lib/authoringReadiness.ts`.
-
-```text
-USER_APPROVED
-or
-AUTONOMOUS_VERIFIED
-```
-
-Animation handoff requires UV Layout PASS, no blockers and a saved checkpoint plus the appropriate approval/authorized-verification evidence.
-
-Canonical Validator projection: `mcp/lib/validationVerdict.ts`.
-
-```text
-BLOCKED
-REVIEW_REQUIRED
-VALIDATOR_CLEAR
-```
-
-`VALIDATOR_CLEAR` remains technical evidence only:
-
-```text
-approval_claim = false
-visual_pass_claim = false
-```
-
-Quality-intelligence augmentation remains evidence-only and cannot create approval or phase authorization. Control lifecycle `READY` also does not replace `switch_authoring_phase` readiness.
-
-### Skills / Knowledge / Context
-
-Canonical semantic owners remain:
-
-```text
-docs/04-system/ai-context-loading.md
-docs/04-system/authoring-stage-context.md
-docs/04-system/control/context-projection.md
-```
-
-Normal authoring hot path loads one active specialist and only the stage-relevant Control projection. Geometry may additionally load exactly one selected modelling profile. `authoring-stage-context.md` is the canonical cross-stage semantic owner but is **conditional context**, loaded only for a material cross-stage/approval/freshness/convergence/handoff ambiguity rather than duplicated on every authoring turn.
-
-Reference Preparation compiles confirmed user intent before generation and does not pass raw conversation transcript or prompt history as the Codex handoff package.
-
-### Development Source Ownership
-
-Control development routing points public consolidated capabilities at their actual Runtime public owners:
-
-```text
-inspect_elements
-manage_material
-manage_material_instances
-manage_animation_timeline
-→ mcp/server/runtime/consolidatedTools.ts
-
-switch_authoring_phase
-→ mcp/server/runtime/phaseControl.ts
-```
-
-This prevents bounded SYSTEM_DEVELOPMENT work from defaulting to the compatibility `mcp/server/tools.ts` facade when the public route is owned elsewhere.
-
-## Compatibility Boundary
-
-Current product-facing identity is LazyDesigner. These compatibility-bound values remain intentionally unchanged until a separately dependency-mapped migration:
-
-```text
-package/server/plugin IDs
-blockit_mcp.js
-blockit_mcp
-blockit-gateway
-BLOCKIT_* environment variables
-x-blockit-* affinity headers
-persisted setting identifiers
-build/provenance identities coupled to them
-```
-
-Legacy-looking compatibility identifiers are not evidence of stale architecture by themselves.
-
-## Historical Native Evidence
-
-Historical BlockIT native/runtime proof predates the current LazyDesigner hardening. It must **not** be used as proof that the current `Local` source is installed, type-correct, live, or behaviorally accepted.
-
-## Local-Test Handoff Baseline
-
-The source state handed to local testing is:
+A previous exact source baseline was recorded at:
 
 ```text
 Local SHA: 7d3abf40238373461085fac179fcbbc07a7da300
@@ -257,234 +169,28 @@ MCP Conformance: PASS
 Managed Distribution: PASS
 ```
 
-This closes the remote/source acceptance partition for that exact SHA. Local testing should not repeat the repository audit; it should prove only LOCAL_CODE and LIVE_BLOCKBENCH residue through `docs/05-operations/local-acceptance-runbook.md`.
+That evidence is historical. It does not transfer to changed source SHAs.
 
-## Current Proof Ceiling
+## Historical local/live evidence
 
-REMOTE_GITHUB verification has been exercised during the current synchronization pass and has already exposed stale contracts that were corrected. Source-changing verification heads are proven by the matching GitHub workflows through generated freshness, Runtime/Gateway typecheck, Runtime regression, authoring contracts, surface/phase measurement, build, provenance, and artifact upload.
+Historical Windows/Blockbench acceptance exists for earlier source/build
+identities and remains useful only as prior evidence that the tested workflows
+once functioned in a real environment. It does not prove the current `Local`
+head.
 
-A docs-only head must not be described as newly "exact-head verified" when no matching full workflow ran. The lightweight `Head Proof` workflow classifies each `Local` push as documentation-only or source-impacting. Documentation-only heads establish only that executable source did not change in that commit; they inherit no stronger runtime/local/live claim from wording alone. Source-impacting heads continue to require their normal verification workflows.
+Current local/live residue includes installed build identity, Runtime rebuild
+and reconnect behavior, native Undo/Redo/persistence, app close/open recovery,
+visual/reference acceptance, interrupted-mutation recovery and real
+cost-to-accepted-result telemetry.
 
-### Windows local acceptance — 2026-09-19
+Use `docs/05-operations/local-acceptance-runbook.md` when that residue is
+reactivated.
 
-Base SHA: `f4525a9e567f3532c29c571b48eafecb2a772518`, with the HTTPS transport, test/harness and documentation changes delivered by release tag `v2.1` (Version 2.1). Tests below were executed on the pre-commit working tree, not by exact-commit CI. Consult GitHub Actions on the tag's commit for subsequent CI results. The release label is separate from the retained compatibility package/plugin version `0.2.0`; no version-only rebuild replaces the native-tested bundle. Bun `1.3.14` and the frozen lockfile were used. Installed Blockbench: 5.2.0 (Electron 43.4.0, Node 24.18.1).
-
-`bun run verify:full` PASS: 82 repository tests, 962 Runtime tests, 157 authoring tests (1,201 total), generated freshness, Runtime/Gateway typecheck, surface/phase measurement, and build. Earlier test corrections cover Windows paths, file-URL subprocess cwd, discovery catalog isolation and compact continuation. HTTPS regression exercises the canonical handler and Gateway, valid trust, rejection of an untrusted certificate, hostile Origin and non-loopback URL. Live preflight exposed stale `response_mode=json` assertions; corrected to the current `auto` contract with a red→green CLI regression. Blocker-fix regressions prove restricted-native-fs overwrite with symlink/non-file/consent protections and the actual texture-live creation payload against the canonical schema.
-
-Current installed build identity: `sha256:c73fc8c1556af4f92d8d456b7590b671001a3f1e05384cc55ce19672de06e674`. Deployed to `%APPDATA%/Blockbench/plugins/blockit_mcp.js`, with the prior plugin backed up. Initial stale-product preflight and unsupported native `http` startup were diagnosed before authoring. The user authorized the HTTPS migration and then both blocker fixes. Runtime uses native `https` with the same Node HTTP request handler and loopback protections; machine-local certificate trust stays in Bun clients, not the OS trust store. No permission or TLS-verification bypass was used.
-
-Executed native results on disposable fixtures only. The initial matrix ran on `sha256:f5c65cc502cd83856b7101e219b72046172fead86a96bb44b945aa13e56e43e8`; persistence and texture-runtime were retested on the current `c73fc8…` build after their bounded fixes. Earlier matrix results are not claimed as reruns on the new identity:
-
-| Check | Result |
-| --- | --- |
-| `verify:stateless-local` | PASS, 12/12; matching installed identity and 47 AUTHORING tools |
-| `verify:project-affinity-live` | PASS; two Gateways, separate projects, concurrent reads |
-| `verify:geometry-live` | PASS; native mutation/render change, thin per-face UV, Undo/Redo |
-| `verify:texturing-live` | PASS; repack/pixels, explicit target isolation, Painter Undo/Redo |
-| Gateway AUTHORING→Animation handoff | PASS; saved disposable checkpoint, AUTONOMOUS_VERIFIED test evidence, no user-approval claim, catalog refresh on same backend |
-| `verify:animation-live` | PASS; explicit targeting, playback start/pause/stop, keyframes and Undo/Redo |
-| `verify:particle-live` | PASS; authored parametric Molang readback and native preview load |
-| `verify:surface-gap-live` | PASS; gap/contact/cover/hidden-cover regression |
-| `verify:template-live` | PASS; brush sizes 1/2 changed 1/4 pixels, atlas rebuild, Undo/Redo, new-file export |
-| `verify:uv-density-live` + `--verify-reopen` | PASS; native 32x mapping/history; saved fixture was closed and reopened through Blockbench UI |
-| Persistent stdio client/Gateway across native plugin Reload | PASS; same client PID 5756, four public tools, preserved project affinity and successful post-reload read |
-| `verify:persistence-live --prepare` + `--verify` | PASS on current build; overwrote existing checkpoint, then native UI close/reopen preserved geometry, thin per-face UV, texture state and both animations |
-| `verify:texture-runtime-live` | PASS on current build; UUID/name project identity, focused PNG, stale-revision rejection, variant isolation and one-transaction Undo/Redo |
-
-Reload changed Runtime instance `5eb9648e-931e-41ae-8692-536120391543` → `ab85cd2d-2491-4a28-a129-c3775af88aa4` with the same build. The reload harness lives in ignored `mcp/.cache/verify-https-reload.ts`; UV reopen receipt is `mcp/.cache/uv-density-live/receipt.json`. Source/live logs are `%TEMP%/lazydesigner-*-https.log` (full source gate: `lazydesigner-verify-full-https.log`). Template verification used bundled Python/Pillow via `PYTHON`; no package installation was needed.
-
-Both reported blockers are closed. Export now uses native `readdirSync(..., {withFileTypes:true})` to inspect the destination entry without following leaf symlinks; missing/ambiguous entries, symlinks and non-files fail closed, and overwrite consent/Bedrock-file refusal remain intact. The texture verifier no longer sends retired `model_identifier` and verifies UUID/name identity instead. Current logs: `%TEMP%/lazydesigner-verify-full-blockers.log`, `lazydesigner-persistence-fixed-prepare.log`, `lazydesigner-persistence-fixed-reopen.log`, `lazydesigner-texture-runtime-fixed.log`. Persistence checkpoint SHA-256: `7ac9421294e44bbb4aadd3d5939ba44412d8f549f96e7ea4f6db7d0b855ec412`.
-
-Core tested workflows are usable; exhaustive native acceptance is not claimed. Runtime rebuild/app close-open recovery, interrupted-mutation recovery and visual/reference quality remain unverified. The pre-existing Codex MCP process targets old HTTP and reports Runtime offline. User-level `config.toml` now launches this checkout's `mcp/gateway/index.ts` through a durable Bun `1.3.14` installation, with the HTTPS loopback URL explicit; the previous config was backed up locally. A fresh official-SDK stdio client using that actual TOML entry passed initialization, four-tool discovery, Runtime catalog discovery (47 tools), and online/client-ready status with matching `c73fc8…` identity. This does not prove that the already-running Codex process reloaded its configuration: reconnect/restart the MCP connection once. Subsequent native plugin reloads stay beneath the Gateway. Seven disposable tabs remain open for inspection; production assets were not modified.
-
-Version 2.1 delivery includes the source fixes, regressions, setup/runbook updates and this proof record on `Local` only. Machine-local TLS keys/certificates, personal Codex configuration/backups, temporary logs and disposable model fixtures are excluded from Git. This is a source release, not acceptance of the separate managed Windows installer; provision TLS and use the updated source Gateway as documented.
-
-Safe current claims:
-
-```text
-Control/Gateway/Runtime/Plugin ownership         implemented in source
-single-owner authoring context flow              implemented + regression-guarded in source
-Runtime phase-handler application                implemented + source-guarded
-persistent-Gateway recovery architecture        implemented in source
-zero-loss Tool routing contracts                implemented + regression-guarded in source
-canonical QA/readiness separation               implemented + regression-guarded in source
-stage-context/context-loading economy            implemented/guarded in source
-Reference Package compact projection            implemented in source
-compatibility boundaries                         documented in source
-```
-
-Still requiring terminal/current-head or higher-context proof:
-
-```text
-live Gateway survival across rebuild/close-open
-same-AUTHORING-surface no-reconnect optimization
-activation of the updated HTTPS-aware Gateway in the existing Codex connection
-interrupted-mutation recovery
-visual/reference acceptance
-Minecraft in-game behavior
-measured token/latency or whole-task usage savings
-```
-
-## Efficiency Interpretation
-
-Authoring Efficiency means **Cost to Accepted Result**, not fewer tools or fewer lines. Source changes target repeated context loading, duplicate routing, unnecessary discovery/readback, phase bouncing, cache churn and recovery ambiguity while preserving accepted quality and capability.
-
-Static character counts or source size alone cannot prove end-to-end usage improvement.
-
-## Proof Rule
+## Proof boundary
 
 Do not strengthen source/static claims into local/live/visual claims without matching evidence from the exact current source SHA.
 
-
-## Remote Quality / Representation Closure
-
-Updated: 2026-09-18
-
-REMOTE_GITHUB now has explicit representation-eligibility coverage for:
-
-```text
-SOLID_CUBOID
-PLANE_LIKE
-PLANAR_CUTOUT_CARRIER
-LAYERED_SURFACE
-SEGMENTED_FORM
-TEXTURE
-OMIT
-```
-
-The representation ladder is regression-locked to bounded one-level-at-a-time escalation, with `REDUNDANT_GEOMETRY` and minimum-sufficient-geometry rules preserved. The existing six synthetic benchmark cases cover rigid prop/furniture, vehicle, articulated character/mob, organic/curved form, mechanical assembly, and layered/cutout behavior. No seventh case is added because no uncovered material construction class was found in the current remote audit.
-
-This closes remote/source coverage only. Measured visual quality, native playback/contact, save/reopen, and installed Blockbench behavior remain `LOCAL_CODE` / `LIVE_BLOCKBENCH` proof.
-
-
-## Desktop Control Plane / Managed Distribution — REMOTE_GITHUB closure
-
-Updated: 2026-09-19.
-
-The Desktop machine-control-plane work has a separate proof chain from the earlier native authoring acceptance. Static/package proof must not be upgraded into live Blockbench acceptance.
-
-### Distribution source baseline
-
-SHA:
-
-```text
-5cdf7342f29d3a76281a4d2fc10e74b018371807
-```
-
-Matching GitHub proof:
-
-```text
-MCP Verify          PASS
-Managed Distribution PASS
-Repository Verify   PASS
-Head Proof          PASS
-```
-
-This baseline contains the canonical managed install/update/repair/recover/TLS implementation used by Desktop. Runtime TLS explicit renewal is guarded by later source/tests without changing the one-owner rule: Desktop delegates; Managed Distribution executes.
-
-### Desktop executable/package baseline
-
-SHA:
-
-```text
-be02af2d2f2316a12f3954c5568c41d0defe222e
-```
-
-Matching GitHub proof:
-
-```text
-Desktop Verify      PASS
-Repository Verify   PASS
-Head Proof          PASS
-```
-
-The Desktop verifier proves the Windows source/build/package surface on that exact head, including:
-
-```text
-PowerShell syntax preflight
-Svelte typecheck/frontend build
-Rust cargo check + tests
-NSIS installer build
-silent Desktop installation
-bundled exact-SHA managed-package presence
-bundled manager self-test
-first managed installation smoke
-explicit Blockbench plugin destination
-Runtime TLS first-install provisioning
-managed status source-SHA equality
-TLS readiness
-TLS renewal safety regression
-installer SHA-256/provenance artifact
-```
-
-Safe remote claims from this proof:
-
-```text
-Desktop shell/package is buildable on Windows CI
-managed bootstrap payload is exact-source and packaged with Desktop
-fresh managed install path is source/package-smoke proven
-managed plugin target and TLS lifecycle are source/CI guarded
-Gateway lifecycle remains MCP-client-owned
-unknown managed status fails closed in Desktop UX
-managed Update / Repair / Recover are distinct operations
-```
-
-This does **not** prove the actual user's Windows installation, native Blockbench trust dialog, installed app close/open behavior, or visual authoring quality.
-
-### Desktop release/version contract
-
-SHA:
-
-```text
-42328480b2c52e5c2e94cf0b65cf015192d27db2
-```
-
-Matching proof already completed for the release-contract change:
-
-```text
-Repository Verify   PASS
-Head Proof          PASS
-```
-
-The release contract is manual and draft-only:
-
-```text
-desktop-vMAJOR.MINOR.PATCH
-source package/Cargo/Tauri versions must match requested version
-exact-SHA integrated installer
-same-SHA managed payload
-SHA256SUMS + desktop-build-provenance
-duplicate-version rejection
-GitHub Release created as draft only when manually dispatched from main
-```
-
-No Desktop release/tag was created by this development pass. No self-updater or update channel was added. Desktop application release/versioning remains separate from `blockit.exe update`, which updates managed components only.
-
-### Remaining higher-context proof
-
-The meaningful residue is now LOCAL_CODE / LIVE_BLOCKBENCH, not additional remote feature work:
-
-```text
-fresh-machine NSIS installation on the target Windows environment
-Desktop → Install LazyDesigner
-native Blockbench Plugins → Load Plugin from File trust/load once
-Runtime online through machine-local HTTPS
-real Codex/MCP reconnection
-Desktop close/open lifecycle
-Blockbench close/open lifecycle
-plugin reload and Runtime rebuild recovery
-repair/recover against intentionally damaged/interrupted local state
-actual-machine TLS renewal
-interrupted mutation inspect-before-retry
-representative visual/reference acceptance
-Golden Task cost-to-accepted-result measurement
-```
-
-Do not add a second updater, Gateway daemon/watchdog, compatibility table, authoring engine, asset database, workflow engine, or Desktop AI chat to compensate for missing live proof.
-
-
-## Exact-SHA Source Acceptance
-
-`MCP Verify` is the canonical executable source-verification workflow for `Local`. Every run proves `HEAD == github.sha`. Push events use the affected planner and fail wide to the canonical full verifier when bounded ownership is insufficient; manual/non-push execution uses `bun run verify:remote` directly.
-
-This is remote/static execution proof only. It intentionally excludes `*:live` and local Blockbench acceptance gates, so a green MCP Verify run must not be described as live Runtime or visual proof. A separate duplicate full-acceptance workflow is intentionally not maintained.
+Do not combine evidence from different SHAs. Do not upgrade source-equivalence,
+prepared harnesses, generated artifacts, static fixtures, or historical live
+results into proof that the current source actually executed in that
+environment.
