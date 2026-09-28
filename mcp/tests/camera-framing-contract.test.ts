@@ -4,6 +4,7 @@ import {
   captureModelViewsParameters,
   modelViewReferenceContract,
   prepareOffscreenPreview,
+  selectCaptureSizeForEvidence,
   selectModelViewsForEvidence,
 } from "@/server/tools/camera";
 
@@ -40,6 +41,15 @@ describe("capture_model_views explicit framing contract", () => {
       "back",
     ]);
     expect(selectModelViewsForEvidence(["underside"]).views).toEqual(["bottom"]);
+  });
+
+  test("selects minimum evidence resolution by target detail and risk", () => {
+    expect(selectCaptureSizeForEvidence(["width", "silhouette"], "LOW")).toBe(256);
+    expect(selectCaptureSizeForEvidence(["depth"], "LOW")).toBe(384);
+    expect(selectCaptureSizeForEvidence(["attachment"], "LOW")).toBe(512);
+    expect(selectCaptureSizeForEvidence(["width"], "MEDIUM")).toBe(384);
+    expect(selectCaptureSizeForEvidence(["width"], "HIGH")).toBe(512);
+    expect(selectCaptureSizeForEvidence(["attachment"], "MEDIUM")).toBe(512);
   });
 
   test("expands evidence by risk without asking the model to choose cameras", () => {
@@ -88,8 +98,8 @@ describe("capture_model_views explicit framing contract", () => {
     expect(modelViewReferenceContract(result.views[0]!).reference_slot).not.toBeNull();
   });
 
-  test("icon sizes resize both native projection bases and preserve default comparisons",()=>{
-    expect(captureModelViewsParameters.parse(baseInput).size).toBe(512);
+  test("icon sizes resize both native projection bases and explicit views retain runtime 512 fallback",()=>{
+    expect(captureModelViewsParameters.parse(baseInput).size).toBeUndefined();
     for(const size of [32,48,512,1024]){
       const input=captureModelViewsParameters.parse({...baseInput,size});
       let dimensions:number[]=[];
