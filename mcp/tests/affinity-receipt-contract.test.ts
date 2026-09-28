@@ -6,15 +6,30 @@ describe("Gateway affinity producer receipt contracts", () => {
   test("create_project requires the project UUID consumed by Gateway affinity", () => {
     expect(
       createProjectOutputSchema.safeParse({
-        project: { uuid: "project-123", name: "Asset" },
+        project: {
+          uuid: "project-123",
+          name: "Asset",
+          save_path: null,
+          export_path: null,
+          export_codec: null,
+          saved: false,
+        },
         format: { id: "bedrock" },
+        resolution: { texture_width: 128, texture_height: 128 },
       }).success
     ).toBe(true);
 
     expect(
       createProjectOutputSchema.safeParse({
-        project: { name: "Asset" },
+        project: {
+          name: "Asset",
+          save_path: null,
+          export_path: null,
+          export_codec: null,
+          saved: false,
+        },
         format: { id: "bedrock" },
+        resolution: { texture_width: 128, texture_height: 128 },
       }).success
     ).toBe(false);
   });
