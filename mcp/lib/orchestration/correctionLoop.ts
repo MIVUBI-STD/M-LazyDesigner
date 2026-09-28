@@ -51,6 +51,7 @@ export type CorrectionContinuationMode =
 
 export type CorrectionLoopContinuation = {
   protocol: "lazydesigner-correction-continuation-v1";
+  continuation_id: `correctionctx:${string}`;
   mode: Exclude<CorrectionContinuationMode, "DECISION_SUMMARY">;
   handle: CorrectionLoopHandle;
   recipe_id: string;
@@ -77,6 +78,12 @@ export type CorrectionLoopContinuation = {
     source: VerificationEvidenceRequest["source"];
     risk: "LOW" | "MEDIUM" | "HIGH" | null;
   };
+};
+
+export type CorrectionContinuationDelivery = {
+  continuation_id: CorrectionLoopContinuation["continuation_id"];
+  cached: boolean;
+  payload: CorrectionLoopContinuation | null;
 };
 
 export type CorrectionLoopDecision = {
@@ -149,6 +156,15 @@ function fingerprintEvidence(
   return createHash("sha256")
     .update(JSON.stringify({ handle, discrepancies }))
     .digest("hex");
+}
+
+function correctionContinuationId(
+  payload: Omit<CorrectionLoopContinuation, "continuation_id">
+): CorrectionLoopContinuation["continuation_id"] {
+  return (
+    "correctionctx:" +
+    createHash("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 20)
+  ) as CorrectionLoopContinuation["continuation_id"];
 }
 
 export class CorrectionLoopRegistry {
@@ -269,7 +285,7 @@ export class CorrectionLoopRegistry {
               ? "CANDIDATE_CONTEXT"
               : "PRUNED_READY";
 
-    return {
+    const payload: Omit<CorrectionLoopContinuation, "continuation_id"> = {
       protocol: "lazydesigner-correction-continuation-v1",
       mode,
       handle,
@@ -293,6 +309,24 @@ export class CorrectionLoopRegistry {
             ? record.verification_request.verification_risk
             : null,
       },
+    };
+
+    return {
+      ...payload,
+      continuation_id: correctionContinuationId(payload),
+    };
+  }
+
+  projectContinuationDelivery(
+    handle: CorrectionLoopHandle,
+    knownContinuationIds: readonly string[] = []
+  ): CorrectionContinuationDelivery {
+    const payload = this.projectContinuation(handle);
+    const cached = knownContinuationIds.includes(payload.continuation_id);
+    return {
+      continuation_id: payload.continuation_id,
+      cached,
+      payload: cached ? null : payload,
     };
   }
 
