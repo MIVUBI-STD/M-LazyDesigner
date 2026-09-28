@@ -966,8 +966,8 @@ describe("zero-waste correction loop reuse", () => {
 
     registry.updateEvidence(handle, "verificationevidence:front-second", []);
 
-    const afterUpdate = registry.get(handle);
-    expect(afterUpdate.discrepancies).toEqual([
+    const afterUpdate = registry.projectContinuation(handle);
+    expect(afterUpdate.unresolved).toEqual([
       {
         code: "SHOULDER_CONTACT",
         severity: "REVIEW",
@@ -976,10 +976,10 @@ describe("zero-waste correction loop reuse", () => {
         evidence_targets: ["attachment"],
       },
     ]);
-    expect(afterUpdate.view_evidence_handles).toMatchObject({
-      front: "verificationevidence:front-second",
-      left: "verificationevidence:first",
-    });
+    expect(afterUpdate.fresh_view_evidence).toEqual([
+      { view: "front", handle: "verificationevidence:front-second" },
+      { view: "left", handle: "verificationevidence:first" },
+    ]);
 
     const second = registry.planGeometryCorrection(handle, [{
       id: "fix-contact",
