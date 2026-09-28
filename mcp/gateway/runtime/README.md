@@ -42,3 +42,30 @@ authorize reuse across a connection generation whose evidence ownership is uncer
 
 Unknown continuation bases still fall back to FULL delivery, and
 `UNKNOWN_OUTCOME` remains a separate fail-closed mutation-recovery path.
+
+
+## Project-affinity isolation
+
+Project affinity is a harder boundary than Runtime-generation recovery.
+
+```text
+same project UUID
+→ keep orchestration state
+
+Project A → Project B / unbound
+→ increment project-affinity epoch
+→ clear VerificationEvidenceRegistry
+→ clear CorrectionLoopRegistry
+→ reset Control execution continuation
+→ reset capability facts for the new binding
+```
+
+Evidence and correction handles are salted with the current project-affinity epoch.
+Therefore identical payloads authored in different project bindings still receive different
+handles and continuation identities. Returning to a previously used project creates a new
+epoch; handles from the earlier visit do not become valid again.
+
+Runtime-generation reconnect within the same project uses recovery
+(`VERIFY_PENDING` + fresh evidence). Project-affinity change uses hard isolation instead:
+Project A correction loops, pending groups, evidence handles, continuation IDs, and
+recovery metadata are discarded rather than transferred to Project B.
