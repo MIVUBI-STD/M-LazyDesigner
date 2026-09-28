@@ -183,6 +183,8 @@ Review the actual atlas and mapped adjoining surfaces together: group islands by
 Native packing is a starting layout. Keep named body/head/appendage cohorts in readable zones with coherent order and gutters. Reposition exact native islands via UV offsets without stretching; verify bounds/overlap. Scattered placement fails editability even if the audit is ready. Unused atlas stays transparent.
 
 ## Local Correction / Convergence
+After the immediate execution handoff consumes `decision_summary`, later turns use the pruned `lazydesigner-correction-continuation-v1` projection: unresolved discrepancies, fresh per-view evidence handles, and pending verification only. Resolved branches, stale handles, old candidate IDs/metrics, full recipe state, and evidence fingerprints stay out of later model turns.
+
 After the solver selects a candidate, continuation carries only `decision_summary = selected_candidate_id + rejected_candidate_ids + selected metrics + solver score + candidate_count/budget`. Full rejected candidate patches are ephemeral and must not be replayed into the next model turn.
 
 For correction ambiguity, do not enumerate a large option tree. Candidate budget follows verification risk: `LOW=1 | MEDIUM=2 | HIGH=3`. Each executable candidate must stay inside one supported family: `TRANSLATE→TRANSLATE`, `RESIZE→RESIZE_AXIS`, `ROTATE→ROTATE_AXIS`, `LAYER_OFFSET→TRANSLATE|RESIZE_AXIS|INFLATE`. `REATTACH | SPLIT | MERGE_REMOVE | ADD_MASS` require their owning structural path and must not be disguised as semantic-edit candidates. If the bounded candidate set is still insufficient, keep the decision ambiguous/blocked rather than emitting more speculative candidates.
