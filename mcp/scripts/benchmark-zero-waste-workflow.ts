@@ -1046,6 +1046,68 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const semanticDeltaGrouping = summarize(
+    "correction_semantic_delta_grouping",
+    [
+      step(
+        "verify",
+        {
+          updates: [
+            { kind: "same_boundary_micro_update", field: "summary" },
+            { kind: "same_boundary_micro_update", field: "evidence_metadata" },
+            { kind: "same_boundary_micro_update", field: "continuation_projection" },
+          ],
+          deliveries: 3,
+        },
+        true,
+        "Baseline publishes every micro update as a separate continuation change.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          transition: "CANDIDATE_CONTEXT -> VERIFY_PENDING",
+          delivery: "immediate",
+        },
+        true,
+        "Decision-changing boundary is still delivered immediately.",
+        { reasoningClass: "LOW" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          group: "VERIFICATION_COHORT",
+          same_boundary_updates: 3,
+          intermediate_delivery: "DEFERRED",
+          committed_deliveries: 1,
+        },
+        true,
+        "Same-boundary micro changes are coalesced into one semantic delivery.",
+        { reasoningClass: "NONE" }
+      ),
+      step(
+        "verify",
+        {
+          transition: "CANDIDATE_CONTEXT -> VERIFY_PENDING",
+          delivery: "immediate",
+          grouping_bypassed: true,
+        },
+        true,
+        "Decision-changing mode/state transition bypasses grouping.",
+        { reasoningClass: "NONE" }
+      ),
+    ],
+    {
+      same_boundary_updates_grouped: true,
+      decision_boundary_not_delayed: true,
+      verification_signal_preserved: true,
+      abort_path_preserved: true,
+      no_extra_model_routing_decision: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -1091,6 +1153,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     continuationModeSelection,
     continuationIdentityDedup,
     continuationDeltaDelivery,
+    semanticDeltaGrouping,
     failedMutation,
   ];
 }
