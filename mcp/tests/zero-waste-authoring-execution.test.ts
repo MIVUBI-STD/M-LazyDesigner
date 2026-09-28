@@ -138,6 +138,36 @@ describe("zero-waste authoring execution", () => {
     expect(decision.strategy).toBe("PROCEDURAL");
   });
 
+  test("delta verification propagates risk directly into geometry evidence requests", () => {
+    const low = compileDeltaVerificationPlan(planAuthoringImpact(recipe(4), recipe(5)));
+    const lowGeometry = low.evidence_requests.find(
+      (request) => request.domain === "GEOMETRY"
+    );
+    expect(low.risk).toBe("LOW");
+    expect(lowGeometry).toMatchObject({
+      domain: "GEOMETRY",
+      source: "capture_model_views",
+      verification_risk: "LOW",
+      views: ["front"],
+      size: 256,
+    });
+
+    const high = compileDeltaVerificationPlan(
+      planAuthoringImpact(recipe(4, 2), recipe(4, 1))
+    );
+    const highGeometry = high.evidence_requests.find(
+      (request) => request.domain === "GEOMETRY"
+    );
+    expect(high.risk).toBe("HIGH");
+    expect(highGeometry).toMatchObject({
+      domain: "GEOMETRY",
+      source: "capture_model_views",
+      verification_risk: "HIGH",
+      views: ["front", "left", "front_left_3q"],
+      size: 512,
+    });
+  });
+
   test("verification budget never truncates required checks", () => {
     const impact = planAuthoringImpact(recipe(4, 2), recipe(4, 1));
     const verification = compileDeltaVerificationPlan(impact);
