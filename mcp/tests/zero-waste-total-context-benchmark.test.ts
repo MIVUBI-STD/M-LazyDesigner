@@ -27,6 +27,9 @@ describe("Zero-Waste total-context proxy benchmark", () => {
     expect(result.dynamic_workflow.optimized_image_inputs).toBeLessThan(
       result.dynamic_workflow.baseline_image_inputs
     );
+    expect(result.dynamic_workflow.optimized_image_pixel_area).toBeLessThan(
+      result.dynamic_workflow.baseline_image_pixel_area
+    );
     expect(
       result.dynamic_workflow.optimized_high_reasoning_decisions
     ).toBeLessThan(
