@@ -128,12 +128,14 @@ const GEOMETRY_STATE: readonly string[] = [
 const UV_STATE: readonly string[] = ["manage_uv_layout"];
 
 const TEXTURE_APPEARANCE_STATE: readonly string[] = [
-  "create_texture", "apply_texture", "add_texture_group", "paint_fill_tool",
+  "create_texture", "apply_texture", "paint_fill_tool",
   "draw_shape_tool", "gradient_tool", "copy_brush_tool", "paint_with_brush",
   "eraser_tool", "texture_layer_management", "paint_texture_transaction",
 ];
 
-const TEXTURE_MATERIAL_STATE: readonly string[] = ["import_texture_set"];
+const TEXTURE_MATERIAL_STATE: readonly string[] = [
+  "add_texture_group", "import_texture_set",
+];
 
 const MATERIAL_RENDER_STATE: readonly string[] = [
   "create_pbr_material", "configure_material", "assign_texture_channel",

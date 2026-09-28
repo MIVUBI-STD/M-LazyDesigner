@@ -169,6 +169,40 @@ describe("Control Texture mutation precision", () => {
     expect(delta.verification_class).toBe("receipt_only");
   });
 
+  test("TextureGroup creation invalidates both appearance and material/render state", () => {
+    const delta = buildControlDelta({
+      capability: "add_texture_group",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "create_group",
+        texture_group: {
+          uuid: "group-a",
+          name: "painted",
+          is_material: true,
+        },
+        textures: [
+          {
+            uuid: "texture-a",
+            id: "texture-a",
+            name: "base.png",
+            group: "group-a",
+            pbr_channel: "color",
+          },
+        ],
+      },
+    });
+
+    expect(delta.freshness.stale.sort()).toEqual([
+      "MATERIAL_RENDER",
+      "TEXTURE_APPEARANCE",
+    ]);
+    expect(delta.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+    expect(delta.verification_class).toBe("receipt_only");
+  });
+
   test("material-instance reads preserve authored freshness while writes stay scoped", () => {
     const list = buildControlDelta({
       capability: "manage_material_instances",
