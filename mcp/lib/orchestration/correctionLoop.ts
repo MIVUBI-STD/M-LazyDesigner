@@ -195,22 +195,30 @@ export class CorrectionLoopRegistry {
       record.verification_request.domain === "GEOMETRY"
         ? record.verification_request
         : null;
-    const requestViews = geometryRequest?.views ?? [];
+    const fallbackViews = geometryRequest?.views ?? [];
     const targetedViews = [
       ...new Set(
         reverificationDiscrepancies.flatMap((item) => item.views ?? [])
       ),
     ];
-    const hasTargetedViewProvenance =
+    const fullEvidenceHasViewProvenance =
+      record.discrepancies.length > 0 &&
+      record.discrepancies.every(
+        (item) => Array.isArray(item.views) && item.views.length > 0
+      );
+    const targetedEvidenceHasViewProvenance =
       reverificationDiscrepancies.length > 0 &&
       reverificationDiscrepancies.every(
         (item) => Array.isArray(item.views) && item.views.length > 0
       );
-    const staleViews = hasTargetedViewProvenance
-      ? requestViews.filter((view) => targetedViews.includes(view))
-      : [...requestViews];
-    const reusableViews = hasTargetedViewProvenance
-      ? requestViews.filter((view) => !staleViews.includes(view))
+    const knownEvidenceViews = fullEvidenceHasViewProvenance
+      ? [...new Set(record.discrepancies.flatMap((item) => item.views ?? []))]
+      : [];
+    const canReuseViews =
+      fullEvidenceHasViewProvenance && targetedEvidenceHasViewProvenance;
+    const staleViews = canReuseViews ? targetedViews : [...fallbackViews];
+    const reusableViews = canReuseViews
+      ? knownEvidenceViews.filter((view) => !staleViews.includes(view))
       : [];
 
     const nextRecipe = rewriteAuthoringRecipeForSemanticEdit(
@@ -235,7 +243,7 @@ export class CorrectionLoopRegistry {
         source_handle: record.verification_evidence_handle,
         stale_views: [...staleViews],
         reusable_views: [...reusableViews],
-        basis: hasTargetedViewProvenance
+        basis: canReuseViews
           ? "TARGETED_VIEW_PROVENANCE"
           : "CONSERVATIVE_ALL_VIEWS",
       },
