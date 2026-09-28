@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(7);
+    expect(workflows).toHaveLength(8);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -128,6 +128,24 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(JSON.stringify(optimizedVerification)).not.toContain(
       "shoulder contact needs independent review"
     );
+  });
+
+  test("cross-view reuse recaptures only stale evidence while retaining quality guards", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "visual_cross_view_reuse"
+    )!;
+    expect(workflow.quality_preserved).toBe(true);
+    expect(workflow.optimized.image_inputs).toBe(3);
+    expect(workflow.baseline.image_inputs).toBe(4);
+    expect(workflow.optimized.image_pixel_area).toBeLessThan(
+      workflow.baseline.image_pixel_area
+    );
+    expect(workflow.quality_checks.targeted_stale_view_recaptured).toBe(true);
+    expect(workflow.quality_checks.unaffected_view_reused).toBe(true);
+    expect(workflow.quality_checks.cross_view_guard_retained).toBe(true);
+    expect(
+      workflow.quality_checks.incomplete_provenance_falls_back_conservatively
+    ).toBe(true);
   });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {
