@@ -5,6 +5,7 @@ import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materia
 import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
 import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMutation";
 import { isRenderProfileMutationReceipt } from "../../../lib/receipts/renderProfile";
+import { isRemoveElementReceipt } from "../../../lib/receipts/removeElement";
 
 export function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -262,35 +263,7 @@ export function particleMutationReceiptComplete(value: unknown): boolean {
 }
 
 export function removeElementReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    const removedRoot = record(candidate.removed_root);
-    const removedCounts = record(candidate.removed_counts);
-    if (
-      !removedRoot ||
-      !removedCounts ||
-      typeof removedRoot.uuid !== "string" ||
-      removedRoot.uuid.length === 0 ||
-      typeof removedRoot.name !== "string" ||
-      removedRoot.name.length === 0 ||
-      typeof removedRoot.type !== "string" ||
-      typeof removedRoot.parent !== "string" ||
-      typeof removedCounts.groups !== "number" ||
-      typeof removedCounts.elements !== "number" ||
-      typeof removedCounts.total_nodes !== "number" ||
-      typeof candidate.affected_animations !== "number"
-    ) {
-      return false;
-    }
-
-    return (
-      removedCounts.groups >= 0 &&
-      removedCounts.elements >= 0 &&
-      removedCounts.total_nodes > 0 &&
-      removedCounts.total_nodes ===
-        removedCounts.groups + removedCounts.elements &&
-      candidate.affected_animations >= 0
-    );
-  });
+  return resultCandidates(value).some(isRemoveElementReceipt);
 }
 
 export function renderProfileMutationReceiptComplete(value: unknown): boolean {

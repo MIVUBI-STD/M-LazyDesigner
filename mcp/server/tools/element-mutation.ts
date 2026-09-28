@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { removeElementReceipt } from "@/lib/receipts/removeElement";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { elementIdSchema } from "@/lib/zodObjects";
@@ -145,11 +146,11 @@ export function registerRemoveElementTool(): void {
           }
     
           Canvas.updateAll();
-          const result = {
+          const result = removeElementReceipt({
             removed_root: removedRoot,
             removed_counts: deletionCounts,
             affected_animations: affectedAnimationCount,
-          };
+          });
           return {
             content: [
               {
