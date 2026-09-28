@@ -42,6 +42,7 @@ const visualEvidenceTargetEnum = z.enum([
 
 export type VisualEvidenceTarget = z.infer<typeof visualEvidenceTargetEnum>;
 export type VisualEvidenceRisk = "LOW" | "MEDIUM" | "HIGH";
+export type VisualEvidenceResolution = 256 | 384 | 512;
 type FrontDirection = "+z" | "-z";
 type FramingInput =
   | { mode: "model" }
@@ -151,6 +152,33 @@ function orthogonalExpansionView(view: ModelView): ModelView {
     case "front_right_3q":
       return "front";
   }
+}
+
+const DETAIL_384_TARGETS = new Set<VisualEvidenceTarget>([
+  "depth",
+  "negative_space",
+  "orientation",
+  "asymmetry",
+]);
+
+const DETAIL_512_TARGETS = new Set<VisualEvidenceTarget>([
+  "attachment",
+  "layering",
+  "rear_topology",
+  "underside",
+]);
+
+export function selectCaptureSizeForEvidence(
+  targets: readonly VisualEvidenceTarget[],
+  risk: VisualEvidenceRisk = "LOW"
+): VisualEvidenceResolution {
+  let size: VisualEvidenceResolution = 256;
+  if (targets.some((target) => DETAIL_512_TARGETS.has(target))) size = 512;
+  else if (targets.some((target) => DETAIL_384_TARGETS.has(target))) size = 384;
+
+  if (risk === "HIGH") return 512;
+  if (risk === "MEDIUM" && size < 384) return 384;
+  return size;
 }
 
 export function selectModelViewsForEvidence(
@@ -293,7 +321,7 @@ const uniqueModelViewsSchema = z
 
 export const captureModelViewsParameters = z
   .object({
-  size: z.number().int().min(32).max(1024).default(CAPTURE_SIZE).describe("Square PNG pixels: 256 for a quick silhouette/pose check, 512 default for texture/reference detail, 32-64 for icons only. Prefer one relevant view; increase size only when details are unreadable."),
+  size: z.number().int().min(32).max(1024).optional().describe("Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only."),
   highlight_missing_textures: z.boolean().default(false).describe("Diagnostic capture: brighten native missing-texture materials temporarily. Restores state; not a normal shaded comparison or flashing UI."),
   views: uniqueModelViewsSchema.optional().describe(
     "Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set."
@@ -372,7 +400,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_model_views",
     description:
-      "Captures deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects and risk-expands evidence deterministically. Model and explicit framing require visible Cube geometry. Returns observation only; no score/PASS/FAIL.",
+      "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects views and 256/384/512 evidence resolution deterministically. Explicit size overrides automatic resolution; explicit views without evidence_targets retain 512×512. Returns observation only; no score/PASS/FAIL.",
     annotations: {
       title: "Capture Model Views",
       readOnlyHint: true,
@@ -700,6 +728,14 @@ export function registerCameraTools() {
         );
       }
       const selectedViews = selection.views;
+      const captureSize =
+        size ??
+        (evidence_targets?.length
+          ? selectCaptureSizeForEvidence(
+              evidence_targets as VisualEvidenceTarget[],
+              verification_risk as VisualEvidenceRisk
+            )
+          : CAPTURE_SIZE);
       const framingInput = framing as FramingInput;
       if (framingInput.mode === "model") {
         if (!observed.bounds || observed.rendered_cube_count === 0) {
@@ -720,7 +756,7 @@ export function registerCameraTools() {
           "Blockbench offscreen screenshot preview is unavailable; canonical capture refuses to mutate the active editor camera."
         );
       }
-      prepareOffscreenPreview(capturePreview, size);
+      prepareOffscreenPreview(capturePreview, captureSize);
 
       const content: Array<
         | { type: "text"; text: string }
@@ -750,8 +786,8 @@ export function registerCameraTools() {
         captures.push({
           view,
           projection: spec.projection,
-          width: size,
-          height: size,
+          width: captureSize,
+          height: captureSize,
           png_bytes: Math.floor(image.data.length * 3 / 4) - (image.data.endsWith("==") ? 2 : image.data.endsWith("=") ? 1 : 0),
         });
       }
@@ -775,6 +811,11 @@ export function registerCameraTools() {
           expansion_views: selection.expansion,
           coverage: selection.coverage,
           selected_views: selectedViews,
+        },
+        resolution_selection: {
+          mode: size === undefined && evidence_targets?.length ? "adaptive" : "explicit_or_default",
+          requested_size: size ?? null,
+          selected_size: captureSize,
         },
         captures,
         reference_comparison: buildModelViewReferenceComparison(
