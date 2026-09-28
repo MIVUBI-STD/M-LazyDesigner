@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { planAffectedExecution } from "../gateway/development/affectedExecution";
+import { readdir } from "node:fs/promises";
+import {
+  planAffectedExecution,
+  RECEIPT_CONTRACT_TESTS_BY_PATH,
+} from "../gateway/development/affectedExecution";
 import { buildAffectedExecutionPlan } from "../scripts/plan-affected-execution";
 import type { SemanticImpactReport } from "../gateway/development/impact";
 import { planSemanticInvalidation } from "../gateway/development/semanticInvalidation";
@@ -63,6 +67,47 @@ describe("affected execution planner", () => {
     expect(plan.commands.some((command) =>
       command.includes("model-effectiveness-correction-accuracy.test.ts")
     )).toBe(true);
+  });
+
+  test("every shared receipt module has an explicit bounded verifier owner", async () => {
+    const receiptFiles = (await readdir("lib/receipts"))
+      .filter((name) => name.endsWith(".ts"))
+      .map((name) => `mcp/lib/receipts/${name}`)
+      .sort();
+
+    expect(Object.keys(RECEIPT_CONTRACT_TESTS_BY_PATH).sort()).toEqual(
+      receiptFiles
+    );
+
+    for (const [source, contracts] of Object.entries(
+      RECEIPT_CONTRACT_TESTS_BY_PATH
+    )) {
+      expect(contracts.length, source).toBeGreaterThanOrEqual(2);
+      for (const contract of contracts) {
+        expect(contract, source).toMatch(/^mcp\/tests\/.*\.test\.ts$/);
+      }
+    }
+  });
+
+  test("one shared receipt change does not execute unrelated receipt suites", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/lib/receipts/materialMutation.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.targeted_tests).toEqual(
+      expect.arrayContaining([
+        "mcp/tests/material-receipt-contract.test.ts",
+        "mcp/tests/material-persistence-receipt-contract.test.ts",
+        "mcp/tests/control-texture-mutation-precision.test.ts",
+      ])
+    );
+    expect(plan.targeted_tests).not.toContain(
+      "mcp/tests/animation-controller-receipt-contract.test.ts"
+    );
+    expect(plan.targeted_tests).not.toContain(
+      "mcp/tests/particle-receipt-contract.test.ts"
+    );
   });
 
   test("shared receipt changes run bounded receipt and continuation contracts", () => {

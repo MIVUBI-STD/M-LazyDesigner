@@ -43,25 +43,73 @@ function uniqueSorted(values: Iterable<string>): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
-const SHARED_RECEIPT_CONTRACT_TESTS = [
-  "mcp/tests/animation-controller-receipt-contract.test.ts",
-  "mcp/tests/animation-effects-receipt-contract.test.ts",
-  "mcp/tests/authority-transition-receipt-contract.test.ts",
-  "mcp/tests/bone-rigging-receipt-contract.test.ts",
-  "mcp/tests/cube-receipt-contract.test.ts",
-  "mcp/tests/group-receipt-contract.test.ts",
-  "mcp/tests/locator-receipt-contract.test.ts",
-  "mcp/tests/material-instances-receipt-contract.test.ts",
-  "mcp/tests/material-persistence-receipt-contract.test.ts",
-  "mcp/tests/material-receipt-contract.test.ts",
-  "mcp/tests/particle-receipt-contract.test.ts",
-  "mcp/tests/remove-element-receipt-contract.test.ts",
-  "mcp/tests/rename-element-receipt-contract.test.ts",
-  "mcp/tests/render-profile-receipt-contract.test.ts",
-  "mcp/tests/texture-group-receipt-contract.test.ts",
-  "mcp/tests/gateway-control-continuation-hardening.test.ts",
-  "mcp/tests/control-texture-mutation-precision.test.ts",
-] as const;
+const RECEIPT_CONTINUATION_TEST =
+  "mcp/tests/gateway-control-continuation-hardening.test.ts";
+const TEXTURE_CONTINUATION_TEST =
+  "mcp/tests/control-texture-mutation-precision.test.ts";
+
+export const RECEIPT_CONTRACT_TESTS_BY_PATH: Readonly<
+  Record<string, readonly string[]>
+> = {
+  "mcp/lib/receipts/animationController.ts": [
+    "mcp/tests/animation-controller-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/animationEffects.ts": [
+    "mcp/tests/animation-effects-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/authorityTransition.ts": [
+    "mcp/tests/authority-transition-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/boneRigging.ts": [
+    "mcp/tests/bone-rigging-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/cubeMutation.ts": [
+    "mcp/tests/cube-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/groupMutation.ts": [
+    "mcp/tests/group-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/locatorMutation.ts": [
+    "mcp/tests/locator-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/materialInstances.ts": [
+    "mcp/tests/material-instances-receipt-contract.test.ts",
+    TEXTURE_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/materialMutation.ts": [
+    "mcp/tests/material-receipt-contract.test.ts",
+    "mcp/tests/material-persistence-receipt-contract.test.ts",
+    TEXTURE_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/particleMutation.ts": [
+    "mcp/tests/particle-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/removeElement.ts": [
+    "mcp/tests/remove-element-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/renameElement.ts": [
+    "mcp/tests/rename-element-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/renderProfile.ts": [
+    "mcp/tests/render-profile-receipt-contract.test.ts",
+    TEXTURE_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/textureGroup.ts": [
+    "mcp/tests/texture-group-receipt-contract.test.ts",
+    TEXTURE_CONTINUATION_TEST,
+  ],
+};
+
 
 const SEMANTIC_HISTORY_CONTRACT_TESTS = [
   "mcp/tests/history-result-state.test.ts",
@@ -78,7 +126,7 @@ const CONTROL_DELTA_CONTRACT_TESTS = [
 
 function sharedContractTestsForPath(path: string): readonly string[] {
   if (path.startsWith("mcp/lib/receipts/")) {
-    return SHARED_RECEIPT_CONTRACT_TESTS;
+    return RECEIPT_CONTRACT_TESTS_BY_PATH[path] ?? [];
   }
   if (path === "mcp/lib/semanticHistory.ts") {
     return SEMANTIC_HISTORY_CONTRACT_TESTS;
