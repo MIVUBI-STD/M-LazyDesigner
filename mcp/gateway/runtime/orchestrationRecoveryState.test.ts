@@ -92,6 +92,15 @@ describe("Gateway orchestration recovery state", () => {
       "VERIFICATION_EVIDENCE_NOT_FOUND"
     );
   });
+  test("same project affinity does not reset active orchestration state", () => {
+    const state = new GatewayOrchestrationRecoveryState();
+    expect(state.synchronizeProjectAffinity("project-a")).toBe(false);
+
+    const before = state.snapshot();
+    expect(state.synchronizeProjectAffinity("project-a")).toBe(false);
+    expect(state.snapshot()).toEqual(before);
+  });
+
   test("project affinity switch hard-resets all orchestration state and scopes new identities", () => {
     const state = new GatewayOrchestrationRecoveryState();
     const request = {
@@ -169,6 +178,18 @@ describe("Gateway orchestration recovery state", () => {
     expect(continuationB.continuation_id).not.toBe(
       continuationA.continuation_id
     );
+
+    expect(state.synchronizeProjectAffinity("project-a")).toBe(true);
+    const evidenceA2 = state.evidence.put({
+      request,
+      result: { revision: 1 },
+    });
+    expect(evidenceA2).not.toBe(evidenceA);
+    expect(state.snapshot()).toMatchObject({
+      project_reset_count: 2,
+      project_uuid: "project-a",
+      project_epoch: 3,
+    });
   });
 
 });
