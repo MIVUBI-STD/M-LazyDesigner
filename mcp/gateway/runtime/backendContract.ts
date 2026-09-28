@@ -76,12 +76,20 @@ export type GatewayRuntimeInvocation = {
   readOnly: boolean;
 };
 
+export type RuntimeGenerationChangeEvent = {
+  previous_signature: string | null;
+  next_signature: string;
+  connection_generation: number;
+  reconnect_count: number;
+};
+
 export type BlockitRuntimeBackendOptions = {
   connectTimeoutMs?: number;
   callTimeoutMs?: number;
   closeTimeoutMs?: number;
   maxQueueDepth?: number;
   catalogLeaseMs?: number;
+  onRuntimeGenerationChange?: (event: RuntimeGenerationChangeEvent) => void;
 };
 
 export function errorMessage(error: unknown): string {
