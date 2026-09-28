@@ -135,6 +135,7 @@ function fingerprintEvidence(
 
 export class CorrectionLoopRegistry {
   private readonly entries = new Map<CorrectionLoopHandle, CorrectionLoopRecord>();
+  private scopeIdentity = "unbound:0";
 
   constructor(private readonly maxEntries = 8) {
     if (!Number.isInteger(maxEntries) || maxEntries < 1 || maxEntries > 32) {
@@ -186,7 +187,11 @@ export class CorrectionLoopRegistry {
     };
     const handle = (
       "correctionloop:" +
-      createHash("sha256").update(JSON.stringify(record)).digest("hex")
+      createHash("sha256")
+        .update(this.scopeIdentity)
+        .update("\n")
+        .update(JSON.stringify(record))
+        .digest("hex")
     ) as CorrectionLoopHandle;
     this.entries.delete(handle);
     this.entries.set(handle, record);
@@ -708,6 +713,19 @@ export class CorrectionLoopRegistry {
           : "CONSERVATIVE_ALL_VIEWS",
       },
     };
+  }
+
+  setScopeIdentity(scopeIdentity: string): void {
+    if (!scopeIdentity) {
+      throw new Error("Correction loop scope identity must be non-empty.");
+    }
+    if (scopeIdentity === this.scopeIdentity) return;
+    this.entries.clear();
+    this.scopeIdentity = scopeIdentity;
+  }
+
+  clear(): void {
+    this.entries.clear();
   }
 
   size(): number {
