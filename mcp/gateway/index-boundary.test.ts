@@ -33,6 +33,8 @@ describe("Gateway index boundary", () => {
     expect(source).toContain(
       "gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration()"
     );
+    expect(source).toContain("executionState = null");
+    expect(source).toContain("capabilityFacts = seedCapabilityFacts({");
     expect(source).not.toContain("new VerificationEvidenceRegistry()");
     expect(source).not.toContain("new CorrectionLoopRegistry()");
   });
@@ -49,6 +51,9 @@ describe("Gateway index boundary", () => {
       "gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid)"
     );
     expect(syncSource).toContain("executionState = null");
+    expect(syncSource).toContain(
+      "gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid)"
+    );
     expect(source).toContain(
       "synchronizeCapabilityFacts(status.affinity.project_uuid)"
     );
