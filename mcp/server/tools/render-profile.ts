@@ -1,5 +1,6 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { renderProfileWriteReceiptSchema } from "@/lib/receipts/renderProfile";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { isAbsoluteFilesystemPath } from "@/lib/util";
 import {
@@ -343,13 +344,18 @@ export function writeRenderResourceBatchAtomic(intents: readonly WriteIntent[]) 
     } catch {}
   }
 
-  return writes.map((write) => ({
-    key: write.key,
-    path: write.path,
-    byte_length: write.byteLength,
-    replaced_existing: write.existed,
-    transaction: intents.length > 1 ? ("paired_atomic" as const) : ("single_atomic" as const),
-  }));
+  return writes.map((write) =>
+    renderProfileWriteReceiptSchema.parse({
+      key: write.key,
+      path: write.path,
+      byte_length: write.byteLength,
+      replaced_existing: write.existed,
+      transaction:
+        intents.length > 1
+          ? ("paired_atomic" as const)
+          : ("single_atomic" as const),
+    })
+  );
 }
 
 function writeAtomic(
