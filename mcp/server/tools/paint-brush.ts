@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { runPaintStroke } from "@/lib/paintStroke";
@@ -302,6 +303,7 @@ export function registerPaintBrushTools(): void {
                   { no_undo: true }
                 );
                 Undo.finishEdit("Paint exact texture pixels");
+                recordCurrentSemanticHistoryEffect(["TEXTURE_APPEARANCE"]);
               } catch (error) {
                 Undo.cancelEdit(true);
                 throw error;
