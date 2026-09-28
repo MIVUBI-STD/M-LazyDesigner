@@ -222,10 +222,16 @@ export function animationControllerReceiptComplete(value: unknown): boolean {
     const removed = record(candidate.removed);
     if (
       candidate.execution !== "applied" ||
+      typeof candidate.operation_count !== "number" ||
+      candidate.operation_count < 1 ||
       !controller ||
       typeof controller.uuid !== "string" ||
+      controller.uuid.length === 0 ||
       typeof controller.name !== "string" ||
+      controller.name.length === 0 ||
       typeof controller.state_count !== "number" ||
+      controller.state_count < 0 ||
+      !Object.prototype.hasOwnProperty.call(controller, "initial_state") ||
       !Array.isArray(candidate.affected_states) ||
       !created ||
       !removed
@@ -233,12 +239,26 @@ export function animationControllerReceiptComplete(value: unknown): boolean {
       return false;
     }
 
+    for (const key of [
+      "states",
+      "transitions",
+      "animation_links",
+      "sounds",
+      "particles",
+    ] as const) {
+      if (!Array.isArray(created[key]) || !Array.isArray(removed[key])) {
+        return false;
+      }
+    }
+
     return candidate.affected_states.every((entry) => {
       const state = record(entry);
       return Boolean(
         state &&
         typeof state.uuid === "string" &&
+        state.uuid.length > 0 &&
         typeof state.name === "string" &&
+        state.name.length > 0 &&
         Array.isArray(state.animations) &&
         Array.isArray(state.transitions) &&
         Array.isArray(state.sounds) &&
@@ -471,33 +491,79 @@ export function renderProfileMutationReceiptComplete(value: unknown): boolean {
 
 export function animationEffectsReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
+    const animation = record(candidate.animation);
     if (
-      !record(candidate.animation) ||
+      !animation ||
+      typeof animation.uuid !== "string" ||
+      animation.uuid.length === 0 ||
+      typeof animation.name !== "string" ||
       typeof candidate.operation_count !== "number" ||
-      !Array.isArray(candidate.results)
+      candidate.operation_count < 1 ||
+      !Array.isArray(candidate.results) ||
+      candidate.results.length !== candidate.operation_count
     ) {
       return false;
     }
 
     return candidate.results.every((entry) => {
       const result = record(entry);
-      if (!result || typeof result.channel !== "string") return false;
+      if (
+        !result ||
+        !["particle", "sound", "timeline"].includes(String(result.channel))
+      ) {
+        return false;
+      }
 
       const removed = record(result.removed);
       if (removed) {
-        return (
-          typeof removed.keyframe_uuid === "string" &&
-          (removed.data_point_index === null ||
-            typeof removed.data_point_index === "number")
-        );
+        if (
+          typeof removed.keyframe_uuid !== "string" ||
+          removed.keyframe_uuid.length === 0 ||
+          !(
+            removed.data_point_index === null ||
+            (typeof removed.data_point_index === "number" &&
+              Number.isSafeInteger(removed.data_point_index) &&
+              removed.data_point_index >= 0)
+          )
+        ) {
+          return false;
+        }
+        if (removed.data_point_index !== null && !Array.isArray(removed.remaining)) {
+          return false;
+        }
+        return true;
       }
 
-      return (
-        typeof result.keyframe_uuid === "string" &&
-        typeof result.time === "number" &&
-        (result.data_point_index === null ||
-          typeof result.data_point_index === "number")
-      );
+      if (
+        typeof result.keyframe_uuid !== "string" ||
+        result.keyframe_uuid.length === 0 ||
+        typeof result.time !== "number" ||
+        !Number.isFinite(result.time) ||
+        !(
+          result.data_point_index === null ||
+          (typeof result.data_point_index === "number" &&
+            Number.isSafeInteger(result.data_point_index) &&
+            result.data_point_index >= 0)
+        )
+      ) {
+        return false;
+      }
+
+      if (result.channel === "timeline") {
+        return typeof result.script === "string";
+      }
+      if (typeof result.effect !== "string") return false;
+      if (!(result.locator === null || typeof result.locator === "string")) {
+        return false;
+      }
+      if (result.channel === "particle") {
+        return (
+          (result.bind_to_actor === null || typeof result.bind_to_actor === "boolean") &&
+          (result.pre_effect_script === null ||
+            typeof result.pre_effect_script === "string")
+        );
+      }
+      return true;
     });
   });
 }

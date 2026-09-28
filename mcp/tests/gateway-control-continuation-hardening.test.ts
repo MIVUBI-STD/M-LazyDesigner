@@ -125,6 +125,123 @@ describe("LazyDesigner Control continuation hardening", () => {
     }
   });
 
+  test("incomplete animation receipts never downgrade verification to receipt-only", () => {
+    const controller = buildControlDelta({
+      capability: "manage_animation_controller",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        operation_count: 1,
+        controller: {
+          uuid: "controller-a",
+          name: "controller.animation.test",
+          initial_state: null,
+          state_count: 1,
+        },
+        affected_states: [],
+        created: {},
+        removed: {},
+      },
+    });
+    expect(controller.verification_class).toBe("focused_read");
+
+    const effects = buildControlDelta({
+      capability: "manage_animation_effects",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        animation: { uuid: "anim-a", name: "walk" },
+        operation_count: 2,
+        results: [
+          {
+            channel: "sound",
+            keyframe_uuid: "kf-a",
+            time: 0.5,
+            data_point_index: 0,
+            effect: "step",
+            locator: null,
+          },
+        ],
+      },
+    });
+    expect(effects.verification_class).toBe("focused_read");
+  });
+
+  test("complete animation receipts retain receipt-only continuation", () => {
+    const controller = buildControlDelta({
+      capability: "manage_animation_controller",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        operation_count: 1,
+        controller: {
+          uuid: "controller-a",
+          name: "controller.animation.test",
+          initial_state: { uuid: "state-a", name: "idle" },
+          state_count: 1,
+        },
+        affected_states: [
+          {
+            uuid: "state-a",
+            name: "idle",
+            animations: [],
+            transitions: [],
+            sounds: [],
+            particles: [],
+          },
+        ],
+        created: {
+          states: [],
+          transitions: [],
+          animation_links: [],
+          sounds: [],
+          particles: [],
+        },
+        removed: {
+          states: [],
+          transitions: [],
+          animation_links: [],
+          sounds: [],
+          particles: [],
+        },
+      },
+    });
+    expect(controller.verification_class).toBe("receipt_only");
+
+    const effects = buildControlDelta({
+      capability: "manage_animation_effects",
+      phaseBefore: "animation",
+      phaseAfter: "animation",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        animation: { uuid: "anim-a", name: "walk" },
+        operation_count: 1,
+        results: [
+          {
+            channel: "particle",
+            keyframe_uuid: "kf-a",
+            time: 0.5,
+            data_point_index: 0,
+            effect: "minecraft:spark",
+            locator: null,
+            bind_to_actor: null,
+            pre_effect_script: null,
+          },
+        ],
+      },
+    });
+    expect(effects.verification_class).toBe("receipt_only");
+  });
+
   test("ordinary successful mutation continues without status reread", () => {
     const delta = buildControlDelta({
       capability: "manage_cubes",
