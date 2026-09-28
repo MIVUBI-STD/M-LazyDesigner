@@ -771,21 +771,19 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
-  const continuationPruning = summarize(
-    "correction_continuation_pruning",
+  const continuationTransport = summarize(
+    "correction_continuation_transport",
     [
       step(
         "verify",
         {
           correction_state: {
+            mode_choice: "model-selected",
             selected_candidate_id: "resize-096",
             rejected_candidate_ids: ["resize-094", "resize-098"],
-            selected_metrics: { predicted_error: 0.05, mutation_cost: 0.08, risk: 0.1 },
-            base_recipe: "full recipe payload",
-            evidence_fingerprint: "sha256:old",
             resolved_discrepancy: "WIDTH_HIGH",
             unresolved_discrepancy: "SHOULDER_CONTACT",
-            stale_handle: "verificationevidence:old-front",
+            evidence_fingerprint: "sha256:old",
             fresh_handles: {
               front: "verificationevidence:front-fresh",
               left: "verificationevidence:left-fresh",
@@ -793,16 +791,48 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
           },
         },
         true,
-        "Baseline carries resolved solver/evidence history forward after verification.",
+        "Baseline carries solver history, resolved state, and routing prose.",
         { reasoningClass: "MEDIUM" }
+      ),
+      step(
+        "verify",
+        {
+          continuation: {
+            unresolved: ["SHOULDER_CONTACT"],
+            fresh_view_evidence: {
+              front: "verificationevidence:front-fresh",
+              left: "verificationevidence:left-fresh",
+            },
+            verification: { pending: false },
+          },
+        },
+        false,
+        "Baseline resends unchanged continuation state.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          continuation: {
+            unresolved: ["SHOULDER_CONTACT"],
+            fresh_view_evidence: {
+              front: "verificationevidence:front-new",
+              left: "verificationevidence:left-fresh",
+            },
+            verification: { pending: false },
+          },
+        },
+        true,
+        "Baseline resends the full continuation after one view handle changes.",
+        { reasoningClass: "LOW" }
       ),
     ],
     [
       step(
         "verify",
         {
-          protocol: "lazydesigner-correction-continuation-v1",
-          state: "READY",
+          continuation_id: "correctionctx:ready",
+          mode: "PRUNED_READY",
           unresolved: ["SHOULDER_CONTACT"],
           fresh_view_evidence: {
             front: "verificationevidence:front-fresh",
@@ -811,238 +841,48 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
           verification: { pending: false },
         },
         true,
-        "Optimized continuation keeps only unresolved work, fresh view handles, and pending verification state.",
-        { reasoningClass: "LOW" }
-      ),
-    ],
-    {
-      unresolved_issue_preserved: true,
-      fresh_view_evidence_preserved: true,
-      pending_verification_preserved: true,
-      resolved_discrepancy_pruned: true,
-      old_candidate_history_pruned: true,
-      stale_handle_pruned: true,
-      recipe_internal_state_pruned: true,
-    }
-  );
-
-  const continuationModeSelection = summarize(
-    "correction_continuation_mode_selection",
-    [
-      step(
-        "verify",
-        {
-          correction_state: "solver selected candidate",
-          model_decision:
-            "Choose whether to continue with candidate details, decision summary, verification state, or pruned continuation.",
-        },
-        true,
-        "Baseline asks the model to decide continuation representation.",
-        { reasoningClass: "MEDIUM" }
-      ),
-      step(
-        "verify",
-        {
-          correction_state: "verification pending",
-          model_decision:
-            "Choose whether to keep decision summary or switch to verification continuation.",
-        },
-        true,
-        "Baseline repeats mode selection after execution.",
-        { reasoningClass: "MEDIUM" }
-      ),
-    ],
-    [
-      step(
-        "verify",
-        {
-          continuation_mode: "DECISION_SUMMARY",
-          source: "planGeometryCorrection",
-        },
-        true,
-        "Runtime selects the immediate post-solver mode.",
+        "Runtime selects the pruned mode and sends one compact authoritative payload.",
         { reasoningClass: "LOW" }
       ),
       step(
         "verify",
         {
-          continuation_mode: "VERIFY_PENDING",
-          source: "projectContinuation",
-        },
-        true,
-        "Registry state selects the post-execution mode deterministically.",
-        { reasoningClass: "LOW" }
-      ),
-    ],
-    {
-      immediate_mode_preserved: true,
-      verification_mode_preserved: true,
-      no_model_mode_selection_required: true,
-      correction_state_semantics_preserved: true,
-    }
-  );
-
-  const continuationIdentityDedup = summarize(
-    "correction_continuation_identity_dedup",
-    [
-      step(
-        "verify",
-        {
-          continuation: {
-            unresolved: ["SHOULDER_CONTACT"],
-            fresh_view_evidence: {
-              front: "verificationevidence:front-fresh",
-              left: "verificationevidence:left-fresh",
-            },
-            verification: { pending: false },
-          },
-        },
-        true,
-        "Baseline resends an unchanged continuation payload.",
-        { reasoningClass: "LOW" }
-      ),
-      step(
-        "verify",
-        {
-          continuation: {
-            unresolved: ["SHOULDER_CONTACT"],
-            fresh_view_evidence: {
-              front: "verificationevidence:front-fresh",
-              left: "verificationevidence:left-fresh",
-            },
-            verification: { pending: false },
-          },
-        },
-        false,
-        "Baseline repeats the same state again even though identity is unchanged.",
-        { reasoningClass: "LOW" }
-      ),
-    ],
-    [
-      step(
-        "verify",
-        {
-          continuation_id: "correctionctx:stable",
-          payload: {
-            unresolved: ["SHOULDER_CONTACT"],
-            fresh_view_evidence: {
-              front: "verificationevidence:front-fresh",
-              left: "verificationevidence:left-fresh",
-            },
-            verification: { pending: false },
-          },
-        },
-        true,
-        "First delivery includes the payload and its deterministic identity.",
-        { reasoningClass: "LOW" }
-      ),
-      step(
-        "verify",
-        {
-          continuation_id: "correctionctx:stable",
-          cached: true,
+          continuation_id: "correctionctx:ready",
+          delivery: "CACHED",
           payload: null,
         },
         false,
-        "Unchanged state is acknowledged by identity only.",
+        "Unchanged state is represented by identity only.",
         { reasoningClass: "NONE" }
       ),
-    ],
-    {
-      first_payload_preserved: true,
-      unchanged_payload_not_repeated: true,
-      identity_preserved: true,
-      changed_state_requires_new_identity: true,
-    }
-  );
-
-  const continuationDeltaDelivery = summarize(
-    "correction_continuation_delta_delivery",
-    [
       step(
         "verify",
         {
-          continuation_id: "correctionctx:old",
-          mode: "PRUNED_READY",
-          unresolved: [
-            { code: "WIDTH_LOW", views: ["front"] },
-            { code: "SHOULDER_CONTACT", views: ["left"] },
-          ],
-          fresh_view_evidence: [
-            { view: "front", handle: "verificationevidence:old" },
-            { view: "left", handle: "verificationevidence:old" },
-          ],
-          verification: { pending: false },
-        },
-        true,
-        "Baseline sends the full previous continuation.",
-        { reasoningClass: "LOW" }
-      ),
-      step(
-        "verify",
-        {
-          continuation_id: "correctionctx:new",
-          mode: "PRUNED_READY",
-          unresolved: [{ code: "SHOULDER_CONTACT", views: ["left"] }],
-          fresh_view_evidence: [
-            { view: "front", handle: "verificationevidence:front-fresh" },
-            { view: "left", handle: "verificationevidence:old" },
-          ],
-          verification: { pending: false },
-        },
-        true,
-        "Baseline resends the full continuation even though only one issue resolved and one view handle changed.",
-        { reasoningClass: "LOW" }
-      ),
-    ],
-    [
-      step(
-        "verify",
-        {
-          continuation_id: "correctionctx:old",
-          delivery: "FULL",
-          payload: {
-            unresolved: [
-              { code: "WIDTH_LOW", views: ["front"] },
-              { code: "SHOULDER_CONTACT", views: ["left"] },
-            ],
-            fresh_view_evidence: [
-              { view: "front", handle: "verificationevidence:old" },
-              { view: "left", handle: "verificationevidence:old" },
-            ],
-          },
-        },
-        true,
-        "First delivery remains complete.",
-        { reasoningClass: "LOW" }
-      ),
-      step(
-        "verify",
-        {
-          continuation_id: "correctionctx:new",
+          continuation_id: "correctionctx:ready-next",
           delivery: "DELTA",
           delta: {
-            from_continuation_id: "correctionctx:old",
-            to_continuation_id: "correctionctx:new",
-            resolved_discrepancy_codes: ["WIDTH_LOW"],
+            from_continuation_id: "correctionctx:ready",
+            to_continuation_id: "correctionctx:ready-next",
             fresh_view_evidence_upsert: [
-              { view: "front", handle: "verificationevidence:front-fresh" },
+              { view: "front", handle: "verificationevidence:front-new" },
             ],
-            verification: { pending: false },
           },
         },
         true,
-        "Changed state sends only resolved IDs, changed view handles, and changed verification fields.",
+        "Changed state sends only the changed evidence handle over the known base.",
         { reasoningClass: "NONE" }
       ),
     ],
     {
-      first_full_payload_preserved: true,
-      resolved_issue_delta_preserved: true,
-      changed_view_handle_preserved: true,
-      unchanged_view_handle_not_repeated: true,
-      unchanged_unresolved_summary_not_repeated: true,
-      full_delivery_fallback_available_when_base_unknown: true,
+      runtime_mode_selection_preserved: true,
+      unresolved_state_preserved: true,
+      fresh_view_evidence_preserved: true,
+      resolved_history_pruned: true,
+      old_candidate_history_pruned: true,
+      unchanged_payload_not_repeated: true,
+      changed_field_delta_preserved: true,
+      unknown_base_full_fallback_preserved: true,
+      no_model_transport_routing_required: true,
     }
   );
 
@@ -1149,10 +989,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     visualCorrection,
     crossViewReuse,
     candidateEconomy,
-    continuationPruning,
-    continuationModeSelection,
-    continuationIdentityDedup,
-    continuationDeltaDelivery,
+    continuationTransport,
     semanticDeltaGrouping,
     failedMutation,
   ];
