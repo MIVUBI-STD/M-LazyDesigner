@@ -7,7 +7,10 @@ import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { getChannelTextureInfo, isAbsoluteFilesystemPath } from "@/lib/util";
 import { materialMutationReceipt } from "@/lib/receipts/materialMutation";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import {
+  recordCurrentCapabilitySemanticHistoryEffect,
+  recordCurrentCapabilitySemanticHistoryEffectIfAdvanced,
+} from "@/lib/semanticHistory";
 import {
   pbrChannelEnum,
   textureIdSchema,
@@ -799,6 +802,7 @@ export function registerTextureMaterialTools(): void {
         const groupUuidsBefore = new Set(
           TextureGroup.all.map((group: TextureGroup) => group.uuid)
         );
+        const historyIndexBefore = Undo.index ?? 0;
         // Native import owns its Undo boundary and image/channel loading behavior.
         // @ts-ignore - importTextureSet is globally available
         importTextureSet({ path, name: fileName });
@@ -812,6 +816,10 @@ export function registerTextureMaterialTools(): void {
         }
         const [createdGroup] = createdGroups;
         const materialState = materialContinuationState(createdGroup);
+        recordCurrentCapabilitySemanticHistoryEffectIfAdvanced(
+          "import_texture_set",
+          historyIndexBefore
+        );
 
         return {
           content: [{

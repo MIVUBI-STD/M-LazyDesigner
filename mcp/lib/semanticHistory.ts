@@ -73,6 +73,17 @@ export function recordCurrentCapabilitySemanticHistoryEffect(
   );
 }
 
+export function recordCurrentCapabilitySemanticHistoryEffectIfAdvanced(
+  capability: string,
+  previousIndex: number,
+  options: SemanticHistoryEffectOptions = {}
+): boolean {
+  if (typeof Undo === "undefined") return false;
+  if ((Undo.index ?? 0) <= previousIndex) return false;
+  recordCurrentCapabilitySemanticHistoryEffect(capability, options);
+  return true;
+}
+
 export function recordCurrentSemanticHistoryEffect(
   scopes: readonly SemanticHistoryScope[],
   options: SemanticHistoryEffectOptions = {}

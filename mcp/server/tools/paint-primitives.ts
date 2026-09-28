@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { runPaintStroke } from "@/lib/paintStroke";
+import { recordCurrentCapabilitySemanticHistoryEffectIfAdvanced } from "@/lib/semanticHistory";
 import { getAndActivateTexture, setBarItemValues } from "@/lib/util";
 import {
   blendModeEnum,
@@ -23,6 +24,22 @@ import {
   requirePixelsWithinTexture,
   texturePixelRectToUvTag,
 } from "./paint-shared";
+
+function runSemanticPaintStroke(
+  capability:
+    | "paint_fill_tool"
+    | "draw_shape_tool"
+    | "gradient_tool"
+    | "copy_brush_tool",
+  stroke: () => void
+): void {
+  const historyIndexBefore = typeof Undo === "undefined" ? 0 : (Undo.index ?? 0);
+  runPaintStroke(stroke);
+  recordCurrentCapabilitySemanticHistoryEffectIfAdvanced(
+    capability,
+    historyIndexBefore
+  );
+}
 
 export const paintFillToolParameters = z.object({
   texture_id: textureIdOptionalSchema,
@@ -191,7 +208,7 @@ export function registerPaintPrimitiveTools(): void {
           }
   
           // Perform fill
-          runPaintStroke(() => {
+          runSemanticPaintStroke("paint_fill_tool", () => {
             getRuntimePainter().startPaintTool(texture, x, y, {}, { shiftKey: false });
           });
           Canvas.updateAll();
@@ -252,7 +269,7 @@ export function registerPaintPrimitiveTools(): void {
   
           // Pass the bounded UV tag through Blockbench's native Painter so the
           // requested pixel rectangle clips the shape instead of allowing bleed.
-          runPaintStroke(() => {
+          runSemanticPaintStroke("draw_shape_tool", () => {
             getRuntimePainter().startPaintTool(
               texture,
               start.x,
@@ -315,7 +332,7 @@ export function registerPaintPrimitiveTools(): void {
   
   
           // Apply gradient
-          runPaintStroke(() => {
+          runSemanticPaintStroke("gradient_tool", () => {
             getRuntimePainter().startPaintTool(texture, start.x, start.y, {}, { shiftKey: false });
             getRuntimePainter().useGradientTool(texture, end.x, end.y, {});
           });
@@ -385,7 +402,7 @@ export function registerPaintPrimitiveTools(): void {
           });
   
           // Set source point (Ctrl+click equivalent)
-          runPaintStroke(() => {
+          runSemanticPaintStroke("copy_brush_tool", () => {
             getRuntimePainter().startPaintTool(texture, source.x, source.y, {}, {
               ctrlOrCmd: true,
             });
