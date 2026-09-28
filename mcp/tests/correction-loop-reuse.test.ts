@@ -227,6 +227,59 @@ describe("zero-waste correction loop reuse", () => {
     );
   });
 
+  test("allows three candidates at HIGH risk but rejects a fourth", () => {
+    const makeHandle = (suffix: string) => {
+      const registry = new CorrectionLoopRegistry();
+      const handle = registry.start({
+        recipe_id: "asset-" + suffix,
+        base_recipe: { ...recipe(), id: "asset-" + suffix, name: "asset-" + suffix },
+        verification_request: {
+          domain: "GEOMETRY",
+          source: "capture_model_views",
+          verification_risk: "HIGH",
+          views: ["front", "left", "top"],
+          views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+          size: 512,
+          size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+          scope_instance_ids: ["arms:0", "arms:1"],
+        },
+        verification_evidence_handle: "verificationevidence:" + suffix as any,
+        discrepancies: [{
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Upper arms are slightly too narrow.",
+        }],
+      });
+      return { registry, handle };
+    };
+    const candidates = [1.02, 1.04, 1.06, 1.08].map((value, index) => ({
+      id: "resize-" + index,
+      predicted_error: 0.1 + index * 0.01,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        correction_family: "RESIZE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS" as const,
+            axis: "X" as const,
+            mode: "MULTIPLY" as const,
+            value,
+          },
+        },
+      },
+    }));
+    const allowed = makeHandle("high-three");
+    expect(
+      allowed.registry.planGeometryCorrection(allowed.handle, candidates.slice(0, 3)).state
+    ).toBe("CORRECTION_READY");
+    const blocked = makeHandle("high-four");
+    expect(
+      blocked.registry.planGeometryCorrection(blocked.handle, candidates).blocked_reason
+    ).toBe("CANDIDATE_BUDGET_EXCEEDED");
+  });
+
   test("rejects correction family and semantic operation mismatch", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
