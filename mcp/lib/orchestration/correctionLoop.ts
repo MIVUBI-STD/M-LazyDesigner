@@ -11,6 +11,7 @@ import {
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import type { VerificationDiscrepancy } from "@/lib/orchestration/compactEvidence";
+import type { ModelView } from "@/server/tools/camera";
 
 export type CorrectionLoopHandle = `correctionloop:${string}`;
 
@@ -28,6 +29,9 @@ export type CorrectionLoopRecord = {
   attempt: 0 | 1 | 2;
   evidence_fingerprint: string;
   last_attempt_evidence_fingerprint: string | null;
+  view_evidence_handles: Partial<Record<ModelView, VerificationEvidenceHandle>>;
+  pending_target_discrepancy_codes: string[];
+  pending_stale_views: ModelView[];
 };
 
 export type CorrectionLoopDecision = {
@@ -41,8 +45,12 @@ export type CorrectionLoopDecision = {
   reverification_discrepancies?: VerificationDiscrepancy[];
   evidence_reuse?: {
     source_handle: VerificationEvidenceHandle;
-    stale_views: string[];
-    reusable_views: string[];
+    stale_views: ModelView[];
+    reusable_views: ModelView[];
+    reusable_evidence: Array<{
+      view: ModelView;
+      handle: VerificationEvidenceHandle;
+    }>;
     basis: "TARGETED_VIEW_PROVENANCE" | "CONSERVATIVE_ALL_VIEWS";
   };
   blocked_reason?:
@@ -72,9 +80,23 @@ export class CorrectionLoopRegistry {
   start(
     input: Omit<
       CorrectionLoopRecord,
-      "attempt" | "evidence_fingerprint" | "last_attempt_evidence_fingerprint"
+      | "attempt"
+      | "evidence_fingerprint"
+      | "last_attempt_evidence_fingerprint"
+      | "view_evidence_handles"
+      | "pending_target_discrepancy_codes"
+      | "pending_stale_views"
     >
   ): CorrectionLoopHandle {
+    const viewEvidenceHandles: Partial<
+      Record<ModelView, VerificationEvidenceHandle>
+    > = {};
+    for (const discrepancy of input.discrepancies) {
+      for (const view of discrepancy.views ?? []) {
+        viewEvidenceHandles[view] = input.verification_evidence_handle;
+      }
+    }
+
     const record: CorrectionLoopRecord = {
       ...structuredClone(input),
       attempt: 0,
@@ -83,6 +105,9 @@ export class CorrectionLoopRegistry {
         input.discrepancies
       ),
       last_attempt_evidence_fingerprint: null,
+      view_evidence_handles: viewEvidenceHandles,
+      pending_target_discrepancy_codes: [],
+      pending_stale_views: [],
     };
     const handle = (
       "correctionloop:" +
@@ -115,9 +140,38 @@ export class CorrectionLoopRegistry {
   ): void {
     const record = this.entries.get(handle);
     if (!record) throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+
+    const incoming = [...structuredClone(discrepancies)];
+    if (record.pending_target_discrepancy_codes.length > 0) {
+      const replaced = new Set(record.pending_target_discrepancy_codes);
+      const retained = record.discrepancies.filter(
+        (item) => !replaced.has(item.code)
+      );
+      const incomingCodes = new Set(incoming.map((item) => item.code));
+      record.discrepancies = [
+        ...retained.filter((item) => !incomingCodes.has(item.code)),
+        ...incoming,
+      ];
+    } else {
+      record.discrepancies = incoming;
+    }
+
+    for (const view of record.pending_stale_views) {
+      record.view_evidence_handles[view] = evidenceHandle;
+    }
+    for (const discrepancy of incoming) {
+      for (const view of discrepancy.views ?? []) {
+        record.view_evidence_handles[view] = evidenceHandle;
+      }
+    }
+
     record.verification_evidence_handle = evidenceHandle;
-    record.discrepancies = [...structuredClone(discrepancies)];
-    record.evidence_fingerprint = fingerprintEvidence(evidenceHandle, discrepancies);
+    record.evidence_fingerprint = fingerprintEvidence(
+      evidenceHandle,
+      record.discrepancies
+    );
+    record.pending_target_discrepancy_codes = [];
+    record.pending_stale_views = [];
   }
 
   planGeometryCorrection(
@@ -220,6 +274,10 @@ export class CorrectionLoopRegistry {
     const reusableViews = canReuseViews
       ? knownEvidenceViews.filter((view) => !staleViews.includes(view))
       : [];
+    const reusableEvidence = reusableViews.flatMap((view) => {
+      const evidenceHandle = record.view_evidence_handles[view];
+      return evidenceHandle ? [{ view, handle: evidenceHandle }] : [];
+    });
 
     const nextRecipe = rewriteAuthoringRecipeForSemanticEdit(
       record.base_recipe,
@@ -229,6 +287,10 @@ export class CorrectionLoopRegistry {
     record.base_recipe = structuredClone(nextRecipe);
     record.attempt = (record.attempt + 1) as 1 | 2;
     record.last_attempt_evidence_fingerprint = record.evidence_fingerprint;
+    record.pending_target_discrepancy_codes = reverificationDiscrepancies.map(
+      (item) => item.code
+    );
+    record.pending_stale_views = [...staleViews];
 
     return {
       handle,
@@ -243,6 +305,7 @@ export class CorrectionLoopRegistry {
         source_handle: record.verification_evidence_handle,
         stale_views: [...staleViews],
         reusable_views: [...reusableViews],
+        reusable_evidence: structuredClone(reusableEvidence),
         basis: canReuseViews
           ? "TARGETED_VIEW_PROVENANCE"
           : "CONSERVATIVE_ALL_VIEWS",
