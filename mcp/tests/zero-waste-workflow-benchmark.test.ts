@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(6);
+    expect(workflows).toHaveLength(7);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -86,6 +86,29 @@ describe("Zero-Waste workflow benchmark", () => {
       ).toBe(false);
       expect(workflow.quality_preserved).toBe(true);
     }
+  });
+
+  test("visual correction reduces image/context load without weakening the quality gate", () => {
+    const visual = runZeroWasteWorkflowBenchmark().find(
+      (workflow) => workflow.workflow === "visual_local_correction"
+    )!;
+
+    expect(visual.quality_preserved).toBe(true);
+    expect(visual.optimized.image_inputs).toBeLessThan(visual.baseline.image_inputs);
+    expect(visual.optimized.image_inputs).toBe(2);
+    expect(visual.baseline.image_inputs).toBe(10);
+    expect(visual.optimized.high_reasoning_decisions).toBeLessThan(
+      visual.baseline.high_reasoning_decisions
+    );
+    expect(visual.optimized.steps.some(
+      (step) => step.kind === "mutate" && step.reasoning_class === "LOW"
+    )).toBe(true);
+    expect(visual.quality_checks.visual_verification_kept).toBe(true);
+    expect(visual.quality_checks.pre_and_post_evidence_kept).toBe(true);
+    expect(visual.quality_checks.convergence_gate_kept).toBe(true);
+    expect(
+      visual.quality_checks.cross_view_expansion_available_if_risk_detected
+    ).toBe(true);
   });
 
   test("failed mutations remove unsafe retries rather than hiding uncertainty", () => {

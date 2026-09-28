@@ -74,6 +74,22 @@ export async function runZeroWasteTotalContextBenchmark() {
     (sum, item) => sum + item.optimized.calls,
     0
   );
+  const baselineImageInputs = workflows.reduce(
+    (sum, item) => sum + item.baseline.image_inputs,
+    0
+  );
+  const optimizedImageInputs = workflows.reduce(
+    (sum, item) => sum + item.optimized.image_inputs,
+    0
+  );
+  const baselineHighReasoning = workflows.reduce(
+    (sum, item) => sum + item.baseline.high_reasoning_decisions,
+    0
+  );
+  const optimizedHighReasoning = workflows.reduce(
+    (sum, item) => sum + item.optimized.high_reasoning_decisions,
+    0
+  );
 
   const packet = await buildControlPacket(status, {
     currentUserDelta: "Continue the benchmark correction without broad rereads.",
@@ -101,6 +117,10 @@ export async function runZeroWasteTotalContextBenchmark() {
       workflow_count: workflows.length,
       baseline_calls: baselineCalls,
       optimized_calls: optimizedCalls,
+      baseline_image_inputs: baselineImageInputs,
+      optimized_image_inputs: optimizedImageInputs,
+      baseline_high_reasoning_decisions: baselineHighReasoning,
+      optimized_high_reasoning_decisions: optimizedHighReasoning,
       baseline_bytes: workflowBefore,
       optimized_bytes: workflowAfter,
       saved_bytes: Math.max(0, workflowBefore - workflowAfter),
@@ -154,6 +174,18 @@ export function assertZeroWasteTotalContextBenchmark(
     report.dynamic_workflow.baseline_calls
   ) {
     failures.push("optimized workflow call count is not smaller");
+  }
+  if (
+    report.dynamic_workflow.optimized_image_inputs >=
+    report.dynamic_workflow.baseline_image_inputs
+  ) {
+    failures.push("optimized workflow image input count is not smaller");
+  }
+  if (
+    report.dynamic_workflow.optimized_high_reasoning_decisions >=
+    report.dynamic_workflow.baseline_high_reasoning_decisions
+  ) {
+    failures.push("optimized workflow high-reasoning decision count is not smaller");
   }
   if (
     report.compaction_checkpoint.checkpoint_bytes >=

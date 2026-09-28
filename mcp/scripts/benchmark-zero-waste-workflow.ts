@@ -9,11 +9,15 @@ type StepKind =
   | "verify"
   | "recovery";
 
+type ReasoningClass = "LOW" | "MEDIUM" | "HIGH" | "NONE";
+
 type WorkflowStep = {
   kind: StepKind;
   ai_payload_bytes: number;
   required_for_decision: boolean;
   reason: string;
+  image_inputs: number;
+  reasoning_class: ReasoningClass;
 };
 
 export type WorkflowGoldenResult = {
@@ -22,14 +26,20 @@ export type WorkflowGoldenResult = {
     steps: WorkflowStep[];
     calls: number;
     ai_payload_bytes: number;
+    image_inputs: number;
+    high_reasoning_decisions: number;
   };
   optimized: {
     steps: WorkflowStep[];
     calls: number;
     ai_payload_bytes: number;
+    image_inputs: number;
+    high_reasoning_decisions: number;
   };
   saved_calls: number;
   saved_bytes: number;
+  saved_image_inputs: number;
+  saved_high_reasoning_decisions: number;
   reduction_percent: number;
   redundant_baseline_calls_removed: number;
   quality_checks: Record<string, boolean>;
@@ -44,13 +54,19 @@ function step(
   kind: StepKind,
   payload: unknown,
   requiredForDecision: boolean,
-  reason: string
+  reason: string,
+  options: {
+    imageInputs?: number;
+    reasoningClass?: ReasoningClass;
+  } = {}
 ): WorkflowStep {
   return {
     kind,
     ai_payload_bytes: payloadBytes(payload),
     required_for_decision: requiredForDecision,
     reason,
+    image_inputs: options.imageInputs ?? 0,
+    reasoning_class: options.reasoningClass ?? "NONE",
   };
 }
 
@@ -70,20 +86,30 @@ function summarize(
   );
   const savedBytes = Math.max(0, baselineBytes - optimizedBytes);
   const savedCalls = Math.max(0, baselineSteps.length - optimizedSteps.length);
+  const baselineImages = baselineSteps.reduce((sum, item) => sum + item.image_inputs, 0);
+  const optimizedImages = optimizedSteps.reduce((sum, item) => sum + item.image_inputs, 0);
+  const baselineHigh = baselineSteps.filter((item) => item.reasoning_class === "HIGH").length;
+  const optimizedHigh = optimizedSteps.filter((item) => item.reasoning_class === "HIGH").length;
   return {
     workflow,
     baseline: {
       steps: baselineSteps,
       calls: baselineSteps.length,
       ai_payload_bytes: baselineBytes,
+      image_inputs: baselineImages,
+      high_reasoning_decisions: baselineHigh,
     },
     optimized: {
       steps: optimizedSteps,
       calls: optimizedSteps.length,
       ai_payload_bytes: optimizedBytes,
+      image_inputs: optimizedImages,
+      high_reasoning_decisions: optimizedHigh,
     },
     saved_calls: savedCalls,
     saved_bytes: savedBytes,
+    saved_image_inputs: Math.max(0, baselineImages - optimizedImages),
+    saved_high_reasoning_decisions: Math.max(0, baselineHigh - optimizedHigh),
     reduction_percent:
       baselineBytes === 0
         ? 0
@@ -400,6 +426,103 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     }
   );
 
+  const visualCorrection = summarize(
+    "visual_local_correction",
+    [
+      step(
+        "verify",
+        {
+          views: ["front", "left", "top", "back", "front_left_3q"],
+          review:
+            "The upper arms appear too wide compared with the reference. The width should be reduced while preserving pivots, UV density, symmetry, and the current animation structure.",
+        },
+        true,
+        "Baseline captures a full board and emits prose before deciding the correction.",
+        { imageInputs: 5, reasoningClass: "HIGH" }
+      ),
+      step(
+        "inspect",
+        representativeInspect,
+        false,
+        "Baseline rereads an already-known target before correction."
+      ),
+      step(
+        "mutate",
+        {
+          target: "upper_arm",
+          action: "resize",
+          preserve: ["RIG_PIVOTS", "UV_DENSITY", "SYMMETRY"],
+        },
+        true,
+        "Apply the same bounded correction.",
+        { reasoningClass: "HIGH" }
+      ),
+      step(
+        "verify",
+        {
+          views: ["front", "left", "top", "back", "front_left_3q"],
+          convergence: "IMPROVED",
+        },
+        true,
+        "Baseline recaptures the full board for convergence.",
+        { imageInputs: 5, reasoningClass: "HIGH" }
+      ),
+    ],
+    [
+      step(
+        "verify",
+        {
+          evidence_targets: ["width", "silhouette"],
+          selected_views: ["front"],
+          difference: {
+            criterion: "PROPORTION",
+            severity: "MAJOR",
+            view: "front",
+            delta: "upper arms read too wide",
+          },
+          correction_family: "RESIZE",
+        },
+        true,
+        "Information-gain routing captures only the decision-changing front view and emits one compact difference.",
+        { imageInputs: 1, reasoningClass: "HIGH" }
+      ),
+      step(
+        "mutate",
+        {
+          target: { semantic_group: "upper_arm" },
+          correction_family: "RESIZE",
+          geometry_operations: [
+            { kind: "RESIZE_AXIS", axis: "X", mode: "MULTIPLY", value: 0.9 },
+          ],
+          preserve: ["RIG_PIVOTS", "UV_DENSITY", "SYMMETRY"],
+        },
+        true,
+        "Exact compact authoring intent executes deterministically without replaying diagnosis.",
+        { reasoningClass: "LOW" }
+      ),
+      step(
+        "verify",
+        {
+          evidence_targets: ["width", "silhouette"],
+          selected_views: ["front"],
+          convergence: "IMPROVED",
+        },
+        true,
+        "Only the affected evidence is recaptured for convergence.",
+        { imageInputs: 1, reasoningClass: "HIGH" }
+      ),
+    ],
+    {
+      same_target_semantics: true,
+      same_correction_family: true,
+      same_preservation_invariants: true,
+      visual_verification_kept: true,
+      pre_and_post_evidence_kept: true,
+      convergence_gate_kept: true,
+      cross_view_expansion_available_if_risk_detected: true,
+    }
+  );
+
   const failedMutation = summarize(
     "failed_mutation_recovery",
     [
@@ -438,6 +561,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     hierarchyEdit,
     materialEdit,
     animationEffectEdit,
+    visualCorrection,
     failedMutation,
   ];
 }
@@ -460,6 +584,22 @@ if (import.meta.main) {
     (sum, item) => sum + item.optimized.calls,
     0
   );
+  const beforeImages = workflows.reduce(
+    (sum, item) => sum + item.baseline.image_inputs,
+    0
+  );
+  const afterImages = workflows.reduce(
+    (sum, item) => sum + item.optimized.image_inputs,
+    0
+  );
+  const beforeHighReasoning = workflows.reduce(
+    (sum, item) => sum + item.baseline.high_reasoning_decisions,
+    0
+  );
+  const afterHighReasoning = workflows.reduce(
+    (sum, item) => sum + item.optimized.high_reasoning_decisions,
+    0
+  );
 
   console.log(
     JSON.stringify(
@@ -477,6 +617,15 @@ if (import.meta.main) {
           baseline_calls: beforeCalls,
           optimized_calls: afterCalls,
           saved_calls: Math.max(0, beforeCalls - afterCalls),
+          baseline_image_inputs: beforeImages,
+          optimized_image_inputs: afterImages,
+          saved_image_inputs: Math.max(0, beforeImages - afterImages),
+          baseline_high_reasoning_decisions: beforeHighReasoning,
+          optimized_high_reasoning_decisions: afterHighReasoning,
+          saved_high_reasoning_decisions: Math.max(
+            0,
+            beforeHighReasoning - afterHighReasoning
+          ),
           before_bytes: beforeBytes,
           after_bytes: afterBytes,
           saved_bytes: Math.max(0, beforeBytes - afterBytes),
