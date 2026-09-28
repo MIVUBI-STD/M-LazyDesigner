@@ -55,12 +55,18 @@ describe("verification evidence compaction", () => {
       code: "D" + index,
       severity: index === 9 ? ("BLOCKING" as const) : ("REVIEW" as const),
       summary: "issue " + index,
+      views: index === 0 ? (["front"] as const) : undefined,
+      evidence_targets: index === 0 ? (["width"] as const) : undefined,
     }));
     const compact = compactVerificationEvidence(request, handle, discrepancies);
 
     expect(compact.state).toBe("BLOCKED");
     expect(compact.discrepancy_count).toBe(10);
     expect(compact.discrepancies).toHaveLength(6);
+    expect(compact.discrepancies[0]).toMatchObject({
+      views: ["front"],
+      evidence_targets: ["width"],
+    });
     expect(JSON.stringify(compact)).not.toContain("base64");
     expect(registry.get(handle).result).toEqual(result);
   });
