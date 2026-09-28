@@ -347,6 +347,74 @@ describe("LazyDesigner Control continuation hardening", () => {
     }
   });
 
+  test("Locator mutations invalidate attachment effects rather than animation motion", () => {
+    const locator = buildControlDelta({
+      capability: "manage_locator",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "update",
+        id: "locator-a",
+        name: "muzzle",
+        type: "locator",
+        parent: { uuid: "bone-a", name: "arm" },
+        changed_fields: ["position"],
+        state: {
+          uuid: "locator-a",
+          name: "muzzle",
+          type: "locator",
+          parent: { uuid: "bone-a", name: "arm" },
+          position: [1, 2, 3],
+          rotation: [0, 0, 0],
+          ignore_inherited_scale: false,
+          visibility: true,
+        },
+      },
+    });
+
+    expect(locator.freshness.stale.sort()).toEqual([
+      "ANIMATION_EFFECTS",
+      "GEOMETRY_STRUCTURE",
+    ]);
+    expect(locator.freshness.stale).not.toContain("ANIMATION_MOTION");
+
+    const nullObject = buildControlDelta({
+      capability: "manage_null_object",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied",
+        action: "update",
+        id: "null-a",
+        name: "ik_controller",
+        type: "null_object",
+        parent: { uuid: "bone-a", name: "arm" },
+        changed_fields: ["position"],
+        state: {
+          uuid: "null-a",
+          name: "ik_controller",
+          type: "null_object",
+          parent: { uuid: "bone-a", name: "arm" },
+          position: [1, 2, 3],
+          ik_target: null,
+          ik_source: null,
+          ik_pole: null,
+          lock_ik_target_rotation: false,
+          visibility: true,
+        },
+      },
+    });
+    expect(nullObject.freshness.stale.sort()).toEqual([
+      "ANIMATION_MOTION",
+      "GEOMETRY_STRUCTURE",
+    ]);
+  });
+
   test("remove_element scopes by final removed target type when receipt proves it", () => {
     const locator = buildControlDelta({
       capability: "remove_element",

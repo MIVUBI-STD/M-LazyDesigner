@@ -307,11 +307,13 @@ patch([
   "modify_group",
   "reparent_element",
   "rename_element",
-  "manage_locator",
   "manage_null_object",
   "bone_rigging",
 ], {
   defaultStaleScopes: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
+});
+patch(["manage_locator"], {
+  defaultStaleScopes: ["GEOMETRY_STRUCTURE", "ANIMATION_EFFECTS"],
 });
 patch(UV_STATE, {
   defaultStaleScopes: ["UV_MAPPING", "TEXTURE_APPEARANCE"],
