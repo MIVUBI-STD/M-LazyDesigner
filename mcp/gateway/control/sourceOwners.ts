@@ -56,17 +56,32 @@ export function anchorTestForSourceOwner(
   return owner.anchor_test ?? owner.test_owner ?? null;
 }
 
+function canonicalSourceOwner(owner: ControlSourceOwner): ControlSourceOwner {
+  const anchorTest = anchorTestForSourceOwner(owner);
+  return {
+    source: owner.source,
+    specialist: owner.specialist,
+    anchor_test: anchorTest,
+    ...(owner.resolution ? { resolution: owner.resolution } : {}),
+  };
+}
+
 export function sourceOwnerForCapability(
   capability: string
 ): ControlSourceOwner {
-  return (
+  return canonicalSourceOwner(
     SOURCE_BY_CAPABILITY[capability] ??
-    DEFAULT_SOURCE_BY_DOMAIN[authoringDomainForCapability(capability)]
+      DEFAULT_SOURCE_BY_DOMAIN[authoringDomainForCapability(capability)]
   );
 }
 
 export function listExplicitSourceOwners(): Readonly<
   Record<string, ControlSourceOwner>
 > {
-  return SOURCE_BY_CAPABILITY;
+  return Object.fromEntries(
+    Object.entries(SOURCE_BY_CAPABILITY).map(([capability, owner]) => [
+      capability,
+      canonicalSourceOwner(owner),
+    ])
+  );
 }

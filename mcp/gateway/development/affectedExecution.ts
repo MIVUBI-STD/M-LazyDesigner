@@ -246,7 +246,7 @@ export function planAffectedExecution(input: {
   }
 
   const targetedTests = uniqueSorted([
-    ...input.semanticImpact.affected_tests.filter((path) =>
+    ...input.semanticImpact.affected_anchor_tests.filter((path) =>
       path.startsWith("mcp/tests/") && path.endsWith(".test.ts")
     ),
     ...(changedPaths.some(affectsGatewayOutputContracts)

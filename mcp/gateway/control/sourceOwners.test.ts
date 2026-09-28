@@ -41,6 +41,20 @@ describe("Control source-owner registry", () => {
     expect(missing).toEqual([]);
   });
 
+  test("public source-owner projections expose anchor_test without legacy test_owner", () => {
+    const explicit = listExplicitSourceOwners();
+    const owner = sourceOwnerForCapability("manage_cubes");
+
+    expect(owner.anchor_test).toBe(
+      "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
+    );
+    expect(owner).not.toHaveProperty("test_owner");
+    expect(explicit.manage_cubes?.anchor_test).toBe(
+      "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
+    );
+    expect(explicit.manage_cubes).not.toHaveProperty("test_owner");
+  });
+
   test("anchor-test semantics normalize legacy and canonical owner fields", () => {
     expect(
       anchorTestForSourceOwner(sourceOwnerForCapability("manage_cubes"))
