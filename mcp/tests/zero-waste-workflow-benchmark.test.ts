@@ -5,7 +5,7 @@ describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
-    expect(workflows).toHaveLength(12);
+    expect(workflows).toHaveLength(13);
     for (const workflow of workflows) {
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
@@ -272,6 +272,26 @@ describe("Zero-Waste workflow benchmark", () => {
     expect(workflow.quality_checks.changed_state_requires_new_identity).toBe(
       true
     );
+  });
+
+  test("delta-only continuation delivery avoids repeating unchanged correction state", () => {
+    const workflow = runZeroWasteWorkflowBenchmark().find(
+      (item) => item.workflow === "correction_continuation_delta_delivery"
+    )!;
+    expect(workflow.quality_preserved).toBe(true);
+    expect(workflow.optimized.ai_payload_bytes).toBeLessThan(
+      workflow.baseline.ai_payload_bytes
+    );
+    expect(workflow.quality_checks.first_full_payload_preserved).toBe(true);
+    expect(workflow.quality_checks.resolved_issue_delta_preserved).toBe(true);
+    expect(workflow.quality_checks.changed_view_handle_preserved).toBe(true);
+    expect(workflow.quality_checks.unchanged_view_handle_not_repeated).toBe(true);
+    expect(
+      workflow.quality_checks.unchanged_unresolved_summary_not_repeated
+    ).toBe(true);
+    expect(
+      workflow.quality_checks.full_delivery_fallback_available_when_base_unknown
+    ).toBe(true);
   });
 
 });
