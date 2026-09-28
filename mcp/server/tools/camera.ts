@@ -41,6 +41,7 @@ const visualEvidenceTargetEnum = z.enum([
 ]);
 
 export type VisualEvidenceTarget = z.infer<typeof visualEvidenceTargetEnum>;
+export type VisualEvidenceRisk = "LOW" | "MEDIUM" | "HIGH";
 type FrontDirection = "+z" | "-z";
 type FramingInput =
   | { mode: "model" }
@@ -135,8 +136,26 @@ const MODEL_VIEW_SELECTION_ORDER: readonly ModelView[] = [
   "front_right_3q",
 ];
 
+function orthogonalExpansionView(view: ModelView): ModelView {
+  switch (view) {
+    case "front":
+    case "back":
+      return "left";
+    case "left":
+    case "right":
+      return "front";
+    case "top":
+    case "bottom":
+      return "front_left_3q";
+    case "front_left_3q":
+    case "front_right_3q":
+      return "front";
+  }
+}
+
 export function selectModelViewsForEvidence(
-  targets: readonly VisualEvidenceTarget[]
+  targets: readonly VisualEvidenceTarget[],
+  risk: VisualEvidenceRisk = "LOW"
 ) {
   const requested = [...new Set(targets)];
   const uncovered = new Set<VisualEvidenceTarget>(requested);
@@ -186,11 +205,29 @@ export function selectModelViewsForEvidence(
     best.covers.forEach((target) => uncovered.delete(target));
   }
 
+  const minimumViews = [...selected];
+  if (uncovered.size === 0 && risk === "MEDIUM" && selected.length > 0 && selected.length < 5) {
+    const orthogonal = orthogonalExpansionView(selected[0]!);
+    if (!selected.includes(orthogonal)) selected.push(orthogonal);
+  }
+  if (uncovered.size === 0 && risk === "HIGH") {
+    for (const view of ["front", "left", "top"] as const) {
+      if (selected.length >= 5) break;
+      if (!selected.includes(view)) selected.push(view);
+    }
+  }
+
   return {
     requested_targets: requested,
+    risk,
+    minimum_views: minimumViews,
     views: selected,
     coverage,
     uncovered_targets: [...uncovered],
+    expansion:
+      selected.length === minimumViews.length
+        ? []
+        : selected.filter((view) => !minimumViews.includes(view)),
   };
 }
 
@@ -267,7 +304,13 @@ export const captureModelViewsParameters = z
     .max(13)
     .optional()
     .describe(
-      "Current unanswered visual claim(s). When views is omitted, runtime deterministically selects the minimum canonical view set that covers these targets."
+      "Current unanswered visual claim(s). When views is omitted, runtime deterministically selects canonical views that cover these targets."
+    ),
+  verification_risk: z
+    .enum(["LOW", "MEDIUM", "HIGH"])
+    .default("LOW")
+    .describe(
+      "Risk-aware evidence expansion. LOW keeps minimum useful views; MEDIUM adds one orthogonal view; HIGH ensures front/left/top core coverage when possible."
     ),
   front_direction: z
     .enum(["+z", "-z"])
@@ -329,7 +372,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_model_views",
     description:
-      "Captures deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Provide explicit views, or evidence_targets so runtime selects the minimum useful canonical view set deterministically. Model and explicit framing require visible Cube geometry. Returns observation only; no score/PASS/FAIL.",
+      "Captures deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects and risk-expands evidence deterministically. Model and explicit framing require visible Cube geometry. Returns observation only; no score/PASS/FAIL.",
     annotations: {
       title: "Capture Model Views",
       readOnlyHint: true,
@@ -627,7 +670,7 @@ export function registerCameraTools() {
 
   createTool(cameraToolDocs[3].name, {
     ...cameraToolDocs[3],
-    async execute({ views, evidence_targets, front_direction, framing, highlight_missing_textures, size }) {
+    async execute({ views, evidence_targets, verification_risk, front_direction, framing, highlight_missing_textures, size }) {
       if (!Project) {
         throw new Error(
           "No project is open. Open or create the intended Bedrock project before capturing model views."
@@ -641,9 +684,12 @@ export function registerCameraTools() {
       const selection = views?.length
         ? {
             requested_targets: evidence_targets ?? [],
+            risk: verification_risk as VisualEvidenceRisk,
+            minimum_views: views as ModelView[],
             views: views as ModelView[],
             coverage: [],
             uncovered_targets: [],
+            expansion: [],
           }
         : selectModelViewsForEvidence(
             (evidence_targets ?? []) as VisualEvidenceTarget[]
@@ -724,6 +770,9 @@ export function registerCameraTools() {
         view_selection: {
           mode: views?.length ? "explicit" : "information_gain",
           requested_targets: selection.requested_targets,
+          verification_risk: selection.risk,
+          minimum_views: selection.minimum_views,
+          expansion_views: selection.expansion,
           coverage: selection.coverage,
           selected_views: selectedViews,
         },
