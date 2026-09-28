@@ -69,3 +69,35 @@ Runtime-generation reconnect within the same project uses recovery
 (`VERIFY_PENDING` + fresh evidence). Project-affinity change uses hard isolation instead:
 Project A correction loops, pending groups, evidence handles, continuation IDs, and
 recovery metadata are discarded rather than transferred to Project B.
+
+
+## Gateway process restart
+
+Gateway orchestration registries are intentionally process-local. A process restart does
+not persist or restore verification evidence, correction loops, continuation groups, or
+their handles.
+
+Every Gateway process receives a fresh process-session identity. Evidence and correction
+handle hashes include that process identity in addition to project affinity/epoch, so an
+identical project and payload cannot recreate a handle from a previous process. Old
+`verificationevidence:`, `correctionloop:`, `correctionctx:`, and
+`correctiongroup:` references must be treated as expired.
+
+Durable/reconstructible truth remains elsewhere:
+
+```text
+Runtime / open Blockbench project
+→ authored geometry, texture, animation, active project identity
+
+Workspace README / Reference Package
+→ stage, gates, next step, blockers, approved reference context
+
+Control status + fresh inspection
+→ reconstruct current orientation after Gateway restart
+```
+
+The Control continuation checkpoint is conversation-compaction metadata only. It
+intentionally contains no process-local evidence/correction handles and must not be used
+to resurrect a correction registry after restart. Reorientation starts from fresh Gateway
+status, current Runtime project state, Workspace, and the required fresh verification
+evidence.
