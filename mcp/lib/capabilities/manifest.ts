@@ -13,6 +13,16 @@ export type CapabilityVerificationClass =
   | "focused_read"
   | "visual";
 
+export type CapabilitySemanticScope =
+  | "GEOMETRY_STRUCTURE"
+  | "UV_MAPPING"
+  | "TEXTURE_APPEARANCE"
+  | "MATERIAL_RENDER"
+  | "ANIMATION_MOTION"
+  | "ANIMATION_CONTROLLER"
+  | "ANIMATION_EFFECTS"
+  | "PARTICLE_SYSTEM";
+
 export type CapabilityStateClass =
   | "cross_authoring"
   | "geometry"
@@ -45,6 +55,7 @@ export type CapabilityCoreManifestEntry = {
   executionClass?: CapabilityExecutionClass;
   verificationClass?: CapabilityVerificationClass;
   stateClass?: CapabilityStateClass;
+  defaultStaleScopes?: readonly CapabilitySemanticScope[];
   lifecycle?: CapabilityLifecycle;
   effects?: CapabilityEffects;
 };
@@ -265,6 +276,62 @@ patch(ANIMATION_CONTROLLER_STATE, { stateClass: "animation_controller" });
 patch(ANIMATION_EFFECTS_STATE, { stateClass: "animation_effects" });
 patch(PARTICLE_STATE, { stateClass: "particle" });
 patch(PERSISTENCE_STATE, { stateClass: "persistence" });
+patch(CROSS_AUTHORING_STATE, {
+  defaultStaleScopes: [
+    "GEOMETRY_STRUCTURE",
+    "UV_MAPPING",
+    "TEXTURE_APPEARANCE",
+    "MATERIAL_RENDER",
+    "ANIMATION_MOTION",
+    "ANIMATION_CONTROLLER",
+    "ANIMATION_EFFECTS",
+    "PARTICLE_SYSTEM",
+  ],
+});
+patch(["manage_cubes", "duplicate_element", "remove_element"], {
+  defaultStaleScopes: [
+    "GEOMETRY_STRUCTURE",
+    "UV_MAPPING",
+    "TEXTURE_APPEARANCE",
+    "ANIMATION_MOTION",
+  ],
+});
+patch([
+  "add_group",
+  "modify_group",
+  "reparent_element",
+  "rename_element",
+  "manage_locator",
+  "manage_null_object",
+  "bone_rigging",
+], {
+  defaultStaleScopes: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
+});
+patch(UV_STATE, {
+  defaultStaleScopes: ["UV_MAPPING", "TEXTURE_APPEARANCE"],
+});
+patch(TEXTURE_APPEARANCE_STATE, {
+  defaultStaleScopes: ["TEXTURE_APPEARANCE"],
+});
+patch(TEXTURE_MATERIAL_STATE, {
+  defaultStaleScopes: ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"],
+});
+patch(MATERIAL_RENDER_STATE, {
+  defaultStaleScopes: ["MATERIAL_RENDER"],
+});
+patch(ANIMATION_MOTION_STATE, {
+  defaultStaleScopes: ["ANIMATION_MOTION"],
+});
+patch(ANIMATION_CONTROLLER_STATE, {
+  defaultStaleScopes: ["ANIMATION_CONTROLLER"],
+});
+patch(ANIMATION_EFFECTS_STATE, {
+  defaultStaleScopes: ["ANIMATION_EFFECTS"],
+});
+patch(PARTICLE_STATE, {
+  defaultStaleScopes: ["PARTICLE_SYSTEM"],
+});
+patch(PERSISTENCE_STATE, { defaultStaleScopes: [] });
 patch(FAST, { executionClass: "fast" });
 patch(HEAVY, { executionClass: "heavy" });
 // Preserve the legacy verification precedence:
@@ -320,4 +387,10 @@ export function capabilitiesByStateClass(
     .filter(([, entry]) => entry.stateClass && wanted.has(entry.stateClass))
     .map(([name]) => name)
     .sort((a, b) => a.localeCompare(b));
+}
+
+export function capabilityDefaultStaleScopes(
+  name: string
+): CapabilitySemanticScope[] {
+  return [...(CAPABILITY_CORE_MANIFEST.get(name)?.defaultStaleScopes ?? [])];
 }

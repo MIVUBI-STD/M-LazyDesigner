@@ -49,6 +49,30 @@ describe("core capability manifest", () => {
     });
   });
 
+  test("centralizes default semantic invalidation scopes", () => {
+    expect(
+      getCapabilityCoreManifestEntry("manage_cubes")?.defaultStaleScopes
+    ).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "UV_MAPPING",
+      "TEXTURE_APPEARANCE",
+      "ANIMATION_MOTION",
+    ]);
+    expect(
+      getCapabilityCoreManifestEntry("add_group")?.defaultStaleScopes
+    ).toEqual(["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"]);
+    expect(
+      getCapabilityCoreManifestEntry("configure_material")?.defaultStaleScopes
+    ).toEqual(["MATERIAL_RENDER"]);
+    expect(
+      getCapabilityCoreManifestEntry("manage_animation_effects")
+        ?.defaultStaleScopes
+    ).toEqual(["ANIMATION_EFFECTS"]);
+    expect(
+      getCapabilityCoreManifestEntry("save_material_config")?.defaultStaleScopes
+    ).toEqual([]);
+  });
+
   test("centralizes authored-state classification for Control projections", () => {
     expect(getCapabilityCoreManifestEntry("manage_cubes")?.stateClass).toBe("geometry");
     expect(getCapabilityCoreManifestEntry("manage_uv_layout")?.stateClass).toBe("uv");

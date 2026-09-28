@@ -1,6 +1,13 @@
 /// <reference types="blockbench-types" />
 
-export type SemanticHistoryScope =
+import {
+  capabilityDefaultStaleScopes,
+  type CapabilitySemanticScope,
+} from "./capabilities/manifest";
+
+export type SemanticHistoryScope = CapabilitySemanticScope;
+
+type _LegacySemanticHistoryScope =
   | "GEOMETRY_STRUCTURE"
   | "UV_MAPPING"
   | "TEXTURE_APPEARANCE"
@@ -64,6 +71,16 @@ export function mergeSemanticHistoryEffects(
       (effect) => effect?.acceptance_gates === true
     ),
   };
+}
+
+export function recordCurrentCapabilitySemanticHistoryEffect(
+  capability: string,
+  options: SemanticHistoryEffectOptions = {}
+): void {
+  recordCurrentSemanticHistoryEffect(
+    capabilityDefaultStaleScopes(capability),
+    options
+  );
 }
 
 export function recordCurrentSemanticHistoryEffect(

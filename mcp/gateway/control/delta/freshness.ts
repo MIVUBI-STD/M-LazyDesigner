@@ -1,4 +1,7 @@
 import {
+  capabilityDefaultStaleScopes,
+} from "../../../lib/capabilities/manifest";
+import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
 } from "../../../lib/receipts/cubeMutation";
@@ -9,11 +12,7 @@ import type {
 } from "../types";
 import {
   ALL_FRESHNESS_SCOPES,
-  ANIMATION_MOTION_MUTATIONS,
-  HIERARCHY_OR_MOTION_STRUCTURE,
-  MATERIAL_RENDER_MUTATIONS,
   STATE_MUTATIONS,
-  TEXTURE_APPEARANCE_MUTATIONS,
 } from "./policy";
 import {
   record,
@@ -324,26 +323,11 @@ export function geometryFreshnessScopes(
     };
   }
 
-  if (capability === "remove_element" || capability === "duplicate_element") {
-    return {
-      stale: [
-        "GEOMETRY_STRUCTURE",
-        "UV_MAPPING",
-        "TEXTURE_APPEARANCE",
-        "ANIMATION_MOTION",
-      ],
-      precise: true,
-    };
-  }
-
-  if (HIERARCHY_OR_MOTION_STRUCTURE.has(capability)) {
-    return {
-      stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
-      precise: true,
-    };
-  }
-
-  return { stale: ["GEOMETRY_STRUCTURE"], precise: true };
+  const defaults = capabilityDefaultStaleScopes(capability);
+  return {
+    stale: defaults.length > 0 ? defaults : ["GEOMETRY_STRUCTURE"],
+    precise: true,
+  };
 }
 
 export function staleScopesForMutation(
@@ -354,23 +338,9 @@ export function staleScopesForMutation(
   if (domain === "GEOMETRY") return geometryFreshnessScopes(capability, result);
 
   if (domain === "TEXTURING") {
-    if (capability === "manage_uv_layout") {
-      return {
-        stale: ["UV_MAPPING", "TEXTURE_APPEARANCE"],
-        precise: true,
-      };
-    }
-    if (capability === "import_texture_set") {
-      return {
-        stale: ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"],
-        precise: true,
-      };
-    }
-    if (TEXTURE_APPEARANCE_MUTATIONS.has(capability)) {
-      return { stale: ["TEXTURE_APPEARANCE"], precise: true };
-    }
-    if (MATERIAL_RENDER_MUTATIONS.has(capability)) {
-      return { stale: ["MATERIAL_RENDER"], precise: true };
+    const defaults = capabilityDefaultStaleScopes(capability);
+    if (defaults.length > 0) {
+      return { stale: defaults, precise: true };
     }
     return {
       stale: ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"],
@@ -400,17 +370,9 @@ export function staleScopesForMutation(
   }
 
   if (domain === "ANIMATION") {
-    if (ANIMATION_MOTION_MUTATIONS.has(capability)) {
-      return { stale: ["ANIMATION_MOTION"], precise: true };
-    }
-    if (capability === "manage_animation_controller") {
-      return { stale: ["ANIMATION_CONTROLLER"], precise: true };
-    }
-    if (capability === "manage_animation_effects") {
-      return { stale: ["ANIMATION_EFFECTS"], precise: true };
-    }
-    if (capability === "manage_particle") {
-      return { stale: ["PARTICLE_SYSTEM"], precise: true };
+    const defaults = capabilityDefaultStaleScopes(capability);
+    if (defaults.length > 0) {
+      return { stale: defaults, precise: true };
     }
     return {
       stale: [
