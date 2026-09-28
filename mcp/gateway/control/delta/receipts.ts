@@ -1,5 +1,6 @@
 import { isAnimationControllerReceipt } from "../../../lib/receipts/animationController";
 import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffects";
+import { isLocatorMutationReceipt } from "../../../lib/receipts/locatorMutation";
 import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materialInstances";
 import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
 import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMutation";
@@ -28,28 +29,7 @@ export function cubeStateNeutral(value: unknown): boolean {
 }
 
 export function locatorReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    const state = record(candidate.state);
-    if (
-      candidate.execution !== "applied" ||
-      !state ||
-      typeof state.uuid !== "string" ||
-      typeof state.name !== "string" ||
-      typeof state.type !== "string" ||
-      !Array.isArray(candidate.changed_fields)
-    ) {
-      return false;
-    }
-    if (!Array.isArray(state.position) || state.position.length !== 3) return false;
-    if (state.type === "locator") {
-      return (
-        Array.isArray(state.rotation) &&
-        state.rotation.length === 3 &&
-        typeof state.ignore_inherited_scale === "boolean"
-      );
-    }
-    return state.type === "null_object";
-  });
+  return resultCandidates(value).some(isLocatorMutationReceipt);
 }
 
 export function boneRiggingDeletionReceiptComplete(value: unknown): boolean {

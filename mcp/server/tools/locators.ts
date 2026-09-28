@@ -1,6 +1,7 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { locatorMutationReceipt } from "@/lib/receipts/locatorMutation";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreGroup } from "@/lib/coreIdentity";
@@ -320,7 +321,7 @@ function mutationResult(
   action: "create" | "update",
   changedFields: readonly string[]
 ) {
-  const summary = {
+  const summary = locatorMutationReceipt({
     execution: "applied" as const,
     action,
     id: state.uuid,
@@ -329,7 +330,7 @@ function mutationResult(
     parent: state.parent,
     changed_fields: [...changedFields],
     state,
-  };
+  });
   return {
     content: [
       {
