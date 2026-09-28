@@ -11,6 +11,7 @@ import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materia
 import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
 import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMutation";
 import { isRenderProfileMutationReceipt } from "../../../lib/receipts/renderProfile";
+import { isTextureGroupReceipt } from "../../../lib/receipts/textureGroup";
 import { isRemoveElementReceipt } from "../../../lib/receipts/removeElement";
 
 export function record(value: unknown): Record<string, unknown> | null {
@@ -120,28 +121,7 @@ export function animationControllerReceiptComplete(value: unknown): boolean {
 }
 
 export function textureGroupReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    const group = record(candidate.texture_group);
-    if (
-      candidate.operation !== "create_group" ||
-      !group ||
-      typeof group.uuid !== "string" ||
-      typeof group.name !== "string" ||
-      typeof group.is_material !== "boolean" ||
-      !Array.isArray(candidate.textures)
-    ) {
-      return false;
-    }
-    return candidate.textures.every((entry) => {
-      const texture = record(entry);
-      return Boolean(
-        texture &&
-        typeof texture.uuid === "string" &&
-        typeof texture.name === "string" &&
-        texture.group === group.uuid
-      );
-    });
-  });
+  return resultCandidates(value).some(isTextureGroupReceipt);
 }
 
 export function materialMutationReceiptComplete(value: unknown): boolean {

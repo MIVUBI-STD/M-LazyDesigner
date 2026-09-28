@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { textureGroupReceipt } from "@/lib/receipts/textureGroup";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreCubeOrGroup, resolveCoreTexture } from "@/lib/coreIdentity";
@@ -264,7 +265,7 @@ export function registerTextureAssignmentTools(): void {
   
         Canvas.updateAll();
 
-        const result = {
+        const result = textureGroupReceipt({
           operation: "create_group" as const,
           texture_group: {
             uuid: textureGroup.uuid,
@@ -278,7 +279,7 @@ export function registerTextureAssignmentTools(): void {
             group: texture.group,
             pbr_channel: texture.pbr_channel ?? null,
           })),
-        };
+        });
         return {
           content: [{
             type: "text" as const,
