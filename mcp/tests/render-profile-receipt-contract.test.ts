@@ -112,9 +112,14 @@ describe("shared render-profile receipt contract", () => {
     ).toBe(false);
   });
 
-  test("Control uses the shared Render Profile receipt owner", async () => {
+  test("Runtime write funnel and Control share the Render Profile receipt owner", async () => {
+    const producer = await Bun.file("server/tools/render-profile.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
+    expect(producer).toContain(
+      'from "@/lib/receipts/renderProfile"'
+    );
+    expect(producer).toContain("renderProfileWriteReceiptSchema.parse({");
     expect(control).toContain(
       'from "../../../lib/receipts/renderProfile"'
     );
