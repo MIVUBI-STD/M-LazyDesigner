@@ -165,3 +165,49 @@ export function createProjectReceiptComplete(value: unknown): boolean {
 export function phaseTransitionReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isPhaseTransitionReceipt);
 }
+
+export function receiptSupportsContinuation(
+  capability: string,
+  value: unknown
+): boolean {
+  switch (capability) {
+    case "create_project":
+      return createProjectReceiptComplete(value);
+    case "switch_authoring_phase":
+      return phaseTransitionReceiptComplete(value);
+    case "manage_animation_effects":
+      return animationEffectsReceiptComplete(value);
+    case "manage_particle":
+      return particleMutationReceiptComplete(value);
+    case "manage_animation_controller":
+      return animationControllerReceiptComplete(value);
+    case "add_texture_group":
+      return textureGroupReceiptComplete(value);
+    case "manage_material":
+    case "import_texture_set":
+      return materialMutationReceiptComplete(value);
+    case "manage_material_instances":
+      return materialInstanceMutationReceiptComplete(value);
+    case "manage_render_profile":
+      return renderProfileMutationReceiptComplete(value);
+    case "remove_element":
+      return removeElementReceiptComplete(value);
+    case "rename_element":
+      return renameElementReceiptComplete(value);
+    case "manage_locator":
+    case "manage_null_object":
+      return locatorReceiptComplete(value);
+    case "bone_rigging":
+      return (
+        nativeIkControllerReceiptComplete(value) ||
+        boneRiggingStateReceiptComplete(value) ||
+        boneRiggingDeletionReceiptComplete(value)
+      );
+    case "add_group":
+    case "modify_group":
+    case "reparent_element":
+      return groupReceiptComplete(capability, value);
+    default:
+      return false;
+  }
+}
