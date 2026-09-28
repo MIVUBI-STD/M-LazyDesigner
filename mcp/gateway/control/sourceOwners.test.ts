@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 import { CAPABILITY_CORE_MANIFEST } from "../../lib/capabilities/manifest";
 import { GEOMETRY_SOURCE_OWNERS } from "./sourceOwners/geometry";
 import { TEXTURING_SOURCE_OWNERS } from "./sourceOwners/texturing";
@@ -10,6 +12,24 @@ import {
   listExplicitSourceOwners,
   sourceOwnerForCapability,
 } from "./sourceOwners";
+
+async function activeTypeScriptFiles(dir: string): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await activeTypeScriptFiles(path)));
+    } else if (
+      entry.isFile() &&
+      path.endsWith(".ts") &&
+      !path.endsWith(".test.ts")
+    ) {
+      files.push(path.replaceAll("\\", "/"));
+    }
+  }
+  return files;
+}
 
 const MODULES = [
   GEOMETRY_SOURCE_OWNERS,
@@ -76,6 +96,26 @@ describe("Control source-owner registry", () => {
     expect(
       anchorTestForSourceOwner(sourceOwnerForCapability("future_unknown_tool"))
     ).toBe("mcp/tests/gateway-contract.test.ts");
+  });
+
+  test("active Gateway and development code cannot reintroduce legacy test_owner", async () => {
+    const files = [
+      ...(await activeTypeScriptFiles("gateway")),
+      ...(await activeTypeScriptFiles("scripts")),
+    ];
+
+    const violations: string[] = [];
+    for (const path of files) {
+      const source = await Bun.file(path).text();
+      if (
+        /\btest_owner\b/.test(source) ||
+        /\.test_owner\b/.test(source)
+      ) {
+        violations.push(path);
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   test("preserves representative ownership mappings", () => {
