@@ -248,7 +248,10 @@ describe("zero-waste correction loop reuse", () => {
 
     expect(second.evidence_reuse).toMatchObject({
       stale_views: ["left"],
-      reusable_views: [],
+      reusable_views: ["front"],
+      reusable_evidence: [
+        { view: "front", handle: "verificationevidence:front-second" },
+      ],
       basis: "TARGETED_VIEW_PROVENANCE",
     });
   });
