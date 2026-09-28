@@ -7,6 +7,7 @@ export const STATE_MUTATIONS = new Set(
     "geometry",
     "uv",
     "texture_appearance",
+    "texture_material",
     "material_render",
     "animation_motion",
     "animation_controller",

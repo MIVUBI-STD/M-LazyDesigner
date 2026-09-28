@@ -18,6 +18,7 @@ export type CapabilityStateClass =
   | "geometry"
   | "uv"
   | "texture_appearance"
+  | "texture_material"
   | "material_render"
   | "animation_motion"
   | "animation_controller"
@@ -116,6 +117,8 @@ const TEXTURE_APPEARANCE_STATE: readonly string[] = [
   "draw_shape_tool", "gradient_tool", "copy_brush_tool", "paint_with_brush",
   "eraser_tool", "texture_layer_management", "paint_texture_transaction",
 ];
+
+const TEXTURE_MATERIAL_STATE: readonly string[] = ["import_texture_set"];
 
 const MATERIAL_RENDER_STATE: readonly string[] = [
   "create_pbr_material", "configure_material", "assign_texture_channel",
@@ -255,6 +258,7 @@ patch(CROSS_AUTHORING_STATE, { stateClass: "cross_authoring" });
 patch(GEOMETRY_STATE, { stateClass: "geometry" });
 patch(UV_STATE, { stateClass: "uv" });
 patch(TEXTURE_APPEARANCE_STATE, { stateClass: "texture_appearance" });
+patch(TEXTURE_MATERIAL_STATE, { stateClass: "texture_material" });
 patch(MATERIAL_RENDER_STATE, { stateClass: "material_render" });
 patch(ANIMATION_MOTION_STATE, { stateClass: "animation_motion" });
 patch(ANIMATION_CONTROLLER_STATE, { stateClass: "animation_controller" });

@@ -52,6 +52,7 @@ describe("core capability manifest", () => {
   test("centralizes authored-state classification for Control projections", () => {
     expect(getCapabilityCoreManifestEntry("manage_cubes")?.stateClass).toBe("geometry");
     expect(getCapabilityCoreManifestEntry("manage_uv_layout")?.stateClass).toBe("uv");
+    expect(getCapabilityCoreManifestEntry("import_texture_set")?.stateClass).toBe("texture_material");
     expect(getCapabilityCoreManifestEntry("configure_material")?.stateClass).toBe("material_render");
     expect(getCapabilityCoreManifestEntry("manage_animation_controller")?.stateClass).toBe("animation_controller");
     expect(getCapabilityCoreManifestEntry("save_material_config")?.stateClass).toBe("persistence");
