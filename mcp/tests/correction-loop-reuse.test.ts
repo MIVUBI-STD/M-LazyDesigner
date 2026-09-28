@@ -30,7 +30,9 @@ describe("zero-waste correction loop reuse", () => {
       verification_request: {
         domain: "GEOMETRY",
         source: "capture_model_views",
+        verification_risk: "LOW",
         views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         size: 256,
         scope_instance_ids: ["arms:0", "arms:1"],
       },
@@ -67,11 +69,118 @@ describe("zero-waste correction loop reuse", () => {
     expect(decision.verification_request).toEqual({
       domain: "GEOMETRY",
       source: "capture_model_views",
+      verification_risk: "LOW",
       views: ["front"],
+      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
       size: 256,
       scope_instance_ids: ["arms:0", "arms:1"],
     });
     expect(decision.rebuild?.metrics.native_affected_count).toBe(2);
+  });
+
+  test("reverification carries only the discrepancy targeted by the selected correction", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [
+        {
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Upper arms are slightly too narrow.",
+        },
+        {
+          code: "SHOULDER_CONTACT",
+          severity: "REVIEW",
+          summary: "Shoulder contact requires separate review.",
+        },
+      ],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "widen-arms",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+            anchor: "MIN",
+          },
+        },
+      },
+    }]);
+
+    expect(decision.state).toBe("CORRECTION_READY");
+    expect(decision.reverification_discrepancies).toEqual([
+      {
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      },
+    ]);
+  });
+
+  test("rejects a correction that targets a discrepancy absent from current evidence", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "wrong-target",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["UNKNOWN_CODE"],
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+            anchor: "MIN",
+          },
+        },
+      },
+    }]);
+
+    expect(decision.state).toBe("BLOCKED");
+    expect(decision.blocked_reason).toBe("NO_ELIGIBLE_CORRECTION");
   });
 
   test("blocks a second correction when no new evidence exists", () => {
@@ -82,7 +191,9 @@ describe("zero-waste correction loop reuse", () => {
       verification_request: {
         domain: "GEOMETRY",
         source: "capture_model_views",
+        verification_risk: "LOW",
         views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         size: 256,
         scope_instance_ids: ["arms:0", "arms:1"],
       },
@@ -127,7 +238,9 @@ describe("zero-waste correction loop reuse", () => {
       verification_request: {
         domain: "GEOMETRY",
         source: "capture_model_views",
+        verification_risk: "LOW",
         views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
         size: 256,
         scope_instance_ids: ["arms:0", "arms:1"],
       },
