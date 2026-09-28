@@ -83,6 +83,26 @@ describe("core capability manifest", () => {
     expect(getCapabilityCoreManifestEntry("get_project_info")?.stateClass).toBeUndefined();
   });
 
+  test("every authored state class has explicit default semantic scope ownership", () => {
+    for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
+      if (entry.stateClass === undefined) continue;
+
+      expect(
+        entry.defaultStaleScopes,
+        `${capability}: missing defaultStaleScopes`
+      ).toBeDefined();
+
+      if (entry.stateClass === "persistence") {
+        expect(entry.defaultStaleScopes, capability).toEqual([]);
+      } else {
+        expect(
+          entry.defaultStaleScopes?.length ?? 0,
+          `${capability}: authored state class must invalidate at least one semantic scope`
+        ).toBeGreaterThan(0);
+      }
+    }
+  });
+
   test("keeps aliases and maintenance classification centralized", () => {
     expect(
       getCapabilityCoreManifestEntry("manage_uv_layout")?.aliases
