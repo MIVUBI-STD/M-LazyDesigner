@@ -35,7 +35,9 @@ describe("semantic Undo history coverage", () => {
       if (SEMANTIC_HISTORY_EXEMPTIONS.has(path)) continue;
 
       const semanticCount =
-        source.match(/recordCurrentSemanticHistoryEffect\(/g)?.length ?? 0;
+        source.match(
+          /recordCurrent(?:Capability)?SemanticHistoryEffect(?:IfAdvanced)?\(/g
+        )?.length ?? 0;
 
       expect(
         semanticCount,
@@ -55,7 +57,11 @@ describe("semantic Undo history coverage", () => {
       new Set(["server/tools/ui.ts"])
     );
     expect(source.match(/Undo\.finishEdit\(/g)?.length ?? 0).toBeGreaterThan(0);
-    expect(source.match(/recordCurrentSemanticHistoryEffect\(/g)?.length ?? 0).toBe(0);
+    expect(
+      source.match(
+        /recordCurrent(?:Capability)?SemanticHistoryEffect(?:IfAdvanced)?\(/g
+      )?.length ?? 0
+    ).toBe(0);
     expect(source).toContain("risky_eval");
     expect(source).toContain("trigger_action");
   });
