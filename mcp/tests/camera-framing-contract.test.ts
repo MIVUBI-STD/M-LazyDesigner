@@ -42,6 +42,26 @@ describe("capture_model_views explicit framing contract", () => {
     expect(selectModelViewsForEvidence(["underside"]).views).toEqual(["bottom"]);
   });
 
+  test("expands evidence by risk without asking the model to choose cameras", () => {
+    expect(selectModelViewsForEvidence(["width", "silhouette"], "LOW").views).toEqual([
+      "front",
+    ]);
+    expect(selectModelViewsForEvidence(["width", "silhouette"], "MEDIUM").views).toEqual([
+      "front",
+      "left",
+    ]);
+    expect(selectModelViewsForEvidence(["width", "silhouette"], "HIGH").views).toEqual([
+      "front",
+      "left",
+      "top",
+    ]);
+    expect(selectModelViewsForEvidence(["underside"], "MEDIUM")).toMatchObject({
+      minimum_views: ["bottom"],
+      expansion: ["front_left_3q"],
+      views: ["bottom", "front_left_3q"],
+    });
+  });
+
   test("caps automatic evidence selection at the five-view context budget", () => {
     const result = selectModelViewsForEvidence([
       "width",
