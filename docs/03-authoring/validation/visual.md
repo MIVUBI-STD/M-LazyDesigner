@@ -458,6 +458,27 @@ Explicit `views` remain authoritative when the reference requires a specific
 correspondence. If the target set itself cannot be covered within five views, narrow the
 claim instead of silently exceeding the context budget.
 
+## Dynamic Evidence Reuse
+
+For a bounded correction, fresh evidence from an unaffected view remains reusable when
+the current discrepancy set carries complete view provenance.
+
+```text
+WIDTH_HIGH          → front
+SHOULDER_CONTACT    → left
+
+correct WIDTH_HIGH
+→ front becomes stale
+→ left remains reusable
+→ recapture front only
+```
+
+Reuse is valid only when every current discrepancy needed for the reuse decision has
+explicit view provenance. Missing/partial provenance falls back to conservative
+recapture of the request views. Evidence reuse references the existing verification
+evidence handle; it does not create a second visual cache or mark unresolved
+discrepancies complete.
+
 ## Adaptive Capture Resolution
 
 When `evidence_targets` are present and no explicit `size` is required, choose the
