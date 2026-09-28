@@ -22,8 +22,6 @@ export type SemanticImpactReport = {
   affected_capabilities: SemanticImpactEntry[];
   affected_sources: string[];
   affected_anchor_tests: string[];
-  /** @deprecated Compatibility alias for affected_anchor_tests. */
-  affected_tests: string[];
   affected_specialists: string[];
   truncated: boolean;
 };
@@ -164,12 +162,6 @@ export function analyzeSemanticImpact(input: {
     affected_capabilities: affectedCapabilities,
     affected_sources: uniqueSorted(owners.map((owner) => owner.source)),
     affected_anchor_tests: uniqueSorted(
-      owners.flatMap((owner) => {
-        const anchorTest = anchorTestForSourceOwner(owner);
-        return anchorTest ? [anchorTest] : [];
-      })
-    ),
-    affected_tests: uniqueSorted(
       owners.flatMap((owner) => {
         const anchorTest = anchorTestForSourceOwner(owner);
         return anchorTest ? [anchorTest] : [];

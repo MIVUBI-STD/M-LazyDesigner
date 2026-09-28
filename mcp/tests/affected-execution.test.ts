@@ -10,7 +10,7 @@ function impact(overrides: Partial<SemanticImpactReport> = {}): SemanticImpactRe
     direct_capabilities: [],
     affected_capabilities: [],
     affected_sources: [],
-    affected_tests: [],
+    affected_anchor_tests: [],
     affected_specialists: [],
     truncated: false,
     ...overrides,
@@ -45,7 +45,7 @@ describe("affected execution planner", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/server/tools/cubes.ts"],
       semanticImpact: impact({
-        affected_tests: [
+        affected_anchor_tests: [
           "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
         ],
       }),

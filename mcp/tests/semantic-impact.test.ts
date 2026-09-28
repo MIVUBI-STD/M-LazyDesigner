@@ -4,7 +4,7 @@ import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
 import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
 
 describe("semantic affected graph", () => {
-  test("maps a source change to its canonical capability and test owner", () => {
+  test("maps a source change to its canonical capability and anchor test", () => {
     const report = analyzeSemanticImpact({
       changedPaths: ["mcp/server/tools/cubes.ts"],
       sourceOwners: listExplicitSourceOwners(),
@@ -13,7 +13,7 @@ describe("semantic affected graph", () => {
 
     expect(report.direct_capabilities).toContain("manage_cubes");
     expect(report.affected_sources).toContain("mcp/server/tools/cubes.ts");
-    expect(report.affected_tests).toContain(
+    expect(report.affected_anchor_tests).toContain(
       "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
     );
     expect(

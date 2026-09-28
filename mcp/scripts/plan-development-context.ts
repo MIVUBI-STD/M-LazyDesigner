@@ -36,8 +36,6 @@ export type DevelopmentContextPlan = {
   read_targets: {
     source: string[];
     anchor_tests: string[];
-    /** @deprecated Compatibility alias for anchor_tests. */
-    tests: string[];
     specialists: string[];
   };
 };
@@ -187,10 +185,6 @@ export async function buildDevelopmentContextPlan(input: {
         ...(semanticImpact?.affected_sources ?? []),
       ]),
       anchor_tests: uniqueSorted([
-        ...routingAnchorTests,
-        ...(semanticImpact?.affected_anchor_tests ?? []),
-      ]),
-      tests: uniqueSorted([
         ...routingAnchorTests,
         ...(semanticImpact?.affected_anchor_tests ?? []),
       ]),
