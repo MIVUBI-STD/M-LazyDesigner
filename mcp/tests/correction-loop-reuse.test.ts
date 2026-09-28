@@ -326,6 +326,52 @@ describe("zero-waste correction loop reuse", () => {
     expect(decision.blocked_reason).toBe("CORRECTION_FAMILY_MISMATCH");
   });
 
+  test("selects DECISION_SUMMARY automatically for the immediate post-solver handoff", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-mode",
+      base_recipe: { ...recipe(), id: "asset-mode", name: "asset-mode" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:mode",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.09,
+      patch: {
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+          },
+        },
+      },
+    }]);
+
+    expect(decision.continuation_mode).toBe("DECISION_SUMMARY");
+    expect(registry.projectContinuation(handle).mode).toBe("VERIFY_PENDING");
+  });
+
   test("returns only compact solver decision metadata instead of candidate payloads", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
@@ -442,6 +488,7 @@ describe("zero-waste correction loop reuse", () => {
     const before = registry.projectContinuation(handle);
     expect(before).toMatchObject({
       protocol: "lazydesigner-correction-continuation-v1",
+      mode: "CANDIDATE_CONTEXT",
       state: "READY",
       unresolved_count: 2,
       verification: { pending: false, risk: "MEDIUM" },
@@ -473,6 +520,7 @@ describe("zero-waste correction loop reuse", () => {
 
     const pending = registry.projectContinuation(handle);
     expect(pending.state).toBe("VERIFY_PENDING");
+    expect(pending.mode).toBe("VERIFY_PENDING");
     expect(pending.verification.target_discrepancy_codes).toEqual(["WIDTH_LOW"]);
     expect(pending.verification.stale_views).toEqual(["front"]);
     expect(pending.fresh_view_evidence).toEqual([
@@ -487,6 +535,7 @@ describe("zero-waste correction loop reuse", () => {
     registry.updateEvidence(handle, "verificationevidence:front-fresh", []);
     const after = registry.projectContinuation(handle);
     expect(after.state).toBe("READY");
+    expect(after.mode).toBe("PRUNED_READY");
     expect(after.unresolved.map((item) => item.code)).toEqual([
       "SHOULDER_CONTACT",
     ]);
