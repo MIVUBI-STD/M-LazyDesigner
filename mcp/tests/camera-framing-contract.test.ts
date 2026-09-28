@@ -36,8 +36,8 @@ describe("capture_model_views explicit framing contract", () => {
       "front_left_3q",
     ]);
     expect(selectModelViewsForEvidence(["rear_topology", "depth"]).views).toEqual([
-      "back",
       "left",
+      "back",
     ]);
     expect(selectModelViewsForEvidence(["underside"]).views).toEqual(["bottom"]);
   });
