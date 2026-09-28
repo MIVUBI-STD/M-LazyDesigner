@@ -40,6 +40,7 @@ export type CorrectionLoopRecord = {
   view_evidence_handles: Partial<Record<ModelView, VerificationEvidenceHandle>>;
   pending_target_discrepancy_codes: string[];
   pending_stale_views: ModelView[];
+  last_delivered_continuation: CorrectionLoopContinuation | null;
 };
 
 export type CorrectionContinuationMode =
@@ -81,10 +82,28 @@ export type CorrectionLoopContinuation = {
   };
 };
 
+export type CorrectionContinuationDelta = {
+  protocol: "lazydesigner-correction-continuation-delta-v1";
+  from_continuation_id: CorrectionLoopContinuation["continuation_id"];
+  to_continuation_id: CorrectionLoopContinuation["continuation_id"];
+  mode?: CorrectionLoopContinuation["mode"];
+  state?: CorrectionLoopContinuation["state"];
+  attempt?: CorrectionLoopContinuation["attempt"];
+  unresolved_count?: number;
+  unresolved_upsert?: CorrectionLoopContinuation["unresolved"];
+  resolved_discrepancy_codes?: string[];
+  unresolved_truncated?: boolean;
+  fresh_view_evidence_upsert?: CorrectionLoopContinuation["fresh_view_evidence"];
+  invalidated_evidence_handles?: VerificationEvidenceHandle[];
+  verification?: CorrectionLoopContinuation["verification"];
+};
+
 export type CorrectionContinuationDelivery = {
   continuation_id: CorrectionLoopContinuation["continuation_id"];
   cached: boolean;
+  delivery: "FULL" | "DELTA" | "CACHED";
   payload: CorrectionLoopContinuation | null;
+  delta: CorrectionContinuationDelta | null;
 };
 
 export type CorrectionLoopDecision = {
@@ -159,6 +178,74 @@ function fingerprintEvidence(
     .digest("hex");
 }
 
+function canonicalEqual(a: unknown, b: unknown): boolean {
+  return canonicalJson(a) === canonicalJson(b);
+}
+
+function correctionContinuationDelta(
+  previous: CorrectionLoopContinuation,
+  current: CorrectionLoopContinuation
+): CorrectionContinuationDelta {
+  const previousByCode = new Map(
+    previous.unresolved.map((item) => [item.code, item])
+  );
+  const currentByCode = new Map(
+    current.unresolved.map((item) => [item.code, item])
+  );
+  const unresolvedUpsert = current.unresolved.filter((item) => {
+    const prior = previousByCode.get(item.code);
+    return prior === undefined || !canonicalEqual(prior, item);
+  });
+  const resolvedCodes = previous.unresolved
+    .map((item) => item.code)
+    .filter((code) => !currentByCode.has(code));
+
+  const previousByView = new Map(
+    previous.fresh_view_evidence.map((item) => [item.view, item])
+  );
+  const currentByView = new Map(
+    current.fresh_view_evidence.map((item) => [item.view, item])
+  );
+  const evidenceUpsert = current.fresh_view_evidence.filter((item) => {
+    const prior = previousByView.get(item.view);
+    return prior === undefined || prior.handle !== item.handle;
+  });
+  const invalidatedEvidenceHandles = previous.fresh_view_evidence
+    .filter((item) => {
+      const next = currentByView.get(item.view);
+      return next === undefined || next.handle !== item.handle;
+    })
+    .map((item) => item.handle);
+
+  return {
+    protocol: "lazydesigner-correction-continuation-delta-v1",
+    from_continuation_id: previous.continuation_id,
+    to_continuation_id: current.continuation_id,
+    ...(previous.mode !== current.mode ? { mode: current.mode } : {}),
+    ...(previous.state !== current.state ? { state: current.state } : {}),
+    ...(previous.attempt !== current.attempt ? { attempt: current.attempt } : {}),
+    ...(previous.unresolved_count !== current.unresolved_count
+      ? { unresolved_count: current.unresolved_count }
+      : {}),
+    ...(unresolvedUpsert.length > 0 ? { unresolved_upsert: unresolvedUpsert } : {}),
+    ...(resolvedCodes.length > 0
+      ? { resolved_discrepancy_codes: resolvedCodes }
+      : {}),
+    ...(previous.unresolved_truncated !== current.unresolved_truncated
+      ? { unresolved_truncated: current.unresolved_truncated }
+      : {}),
+    ...(evidenceUpsert.length > 0
+      ? { fresh_view_evidence_upsert: evidenceUpsert }
+      : {}),
+    ...(invalidatedEvidenceHandles.length > 0
+      ? { invalidated_evidence_handles: [...new Set(invalidatedEvidenceHandles)] }
+      : {}),
+    ...(!canonicalEqual(previous.verification, current.verification)
+      ? { verification: current.verification }
+      : {}),
+  };
+}
+
 function correctionContinuationId(
   payload: Omit<CorrectionLoopContinuation, "continuation_id">
 ): CorrectionLoopContinuation["continuation_id"] {
@@ -186,6 +273,7 @@ export class CorrectionLoopRegistry {
       | "view_evidence_handles"
       | "pending_target_discrepancy_codes"
       | "pending_stale_views"
+      | "last_delivered_continuation"
     >
   ): CorrectionLoopHandle {
     const viewEvidenceHandles: Partial<
@@ -208,6 +296,7 @@ export class CorrectionLoopRegistry {
       view_evidence_handles: viewEvidenceHandles,
       pending_target_discrepancy_codes: [],
       pending_stale_views: [],
+      last_delivered_continuation: null,
     };
     const handle = (
       "correctionloop:" +
@@ -322,12 +411,48 @@ export class CorrectionLoopRegistry {
     handle: CorrectionLoopHandle,
     knownContinuationIds: readonly string[] = []
   ): CorrectionContinuationDelivery {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error(
+        "CORRECTION_LOOP_NOT_FOUND: handle expired or belongs to a previous Runtime generation."
+      );
+    }
+
     const payload = this.projectContinuation(handle);
-    const cached = knownContinuationIds.includes(payload.continuation_id);
+    if (knownContinuationIds.includes(payload.continuation_id)) {
+      record.last_delivered_continuation = structuredClone(payload);
+      return {
+        continuation_id: payload.continuation_id,
+        cached: true,
+        delivery: "CACHED",
+        payload: null,
+        delta: null,
+      };
+    }
+
+    const previous = record.last_delivered_continuation;
+    if (
+      previous &&
+      knownContinuationIds.includes(previous.continuation_id)
+    ) {
+      const delta = correctionContinuationDelta(previous, payload);
+      record.last_delivered_continuation = structuredClone(payload);
+      return {
+        continuation_id: payload.continuation_id,
+        cached: false,
+        delivery: "DELTA",
+        payload: null,
+        delta,
+      };
+    }
+
+    record.last_delivered_continuation = structuredClone(payload);
     return {
       continuation_id: payload.continuation_id,
-      cached,
-      payload: cached ? null : payload,
+      cached: false,
+      delivery: "FULL",
+      payload,
+      delta: null,
     };
   }
 
