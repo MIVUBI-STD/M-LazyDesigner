@@ -148,6 +148,107 @@ describe("zero-waste correction loop reuse", () => {
       source_handle: "verificationevidence:first",
       stale_views: ["front"],
       reusable_views: ["left"],
+      reusable_evidence: [
+        { view: "left", handle: "verificationevidence:first" },
+      ],
+      basis: "TARGETED_VIEW_PROVENANCE",
+    });
+  });
+
+  test("targeted evidence update preserves unrelated discrepancies and tracks per-view handles across rounds", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:first",
+      discrepancies: [
+        {
+          code: "WIDTH_LOW",
+          severity: "REVIEW",
+          summary: "Upper arms are slightly too narrow.",
+          views: ["front"],
+          evidence_targets: ["width"],
+        },
+        {
+          code: "SHOULDER_CONTACT",
+          severity: "REVIEW",
+          summary: "Shoulder contact requires separate review.",
+          views: ["left"],
+          evidence_targets: ["attachment"],
+        },
+      ],
+    });
+
+    const first = registry.planGeometryCorrection(handle, [{
+      id: "widen-arms",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+            anchor: "MIN",
+          },
+        },
+      },
+    }]);
+    expect(first.evidence_reuse?.reusable_evidence).toEqual([
+      { view: "left", handle: "verificationevidence:first" },
+    ]);
+
+    registry.updateEvidence(handle, "verificationevidence:front-second", []);
+
+    const afterUpdate = registry.get(handle);
+    expect(afterUpdate.discrepancies).toEqual([
+      {
+        code: "SHOULDER_CONTACT",
+        severity: "REVIEW",
+        summary: "Shoulder contact requires separate review.",
+        views: ["left"],
+        evidence_targets: ["attachment"],
+      },
+    ]);
+    expect(afterUpdate.view_evidence_handles).toMatchObject({
+      front: "verificationevidence:front-second",
+      left: "verificationevidence:first",
+    });
+
+    const second = registry.planGeometryCorrection(handle, [{
+      id: "fix-contact",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["SHOULDER_CONTACT"],
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "TRANSLATE",
+            delta: [0, 0, 0.25],
+          },
+        },
+      },
+    }]);
+
+    expect(second.evidence_reuse).toMatchObject({
+      stale_views: ["left"],
+      reusable_views: [],
       basis: "TARGETED_VIEW_PROVENANCE",
     });
   });
@@ -199,6 +300,7 @@ describe("zero-waste correction loop reuse", () => {
       source_handle: "verificationevidence:first",
       stale_views: ["front", "left"],
       reusable_views: [],
+      reusable_evidence: [],
       basis: "CONSERVATIVE_ALL_VIEWS",
     });
   });
