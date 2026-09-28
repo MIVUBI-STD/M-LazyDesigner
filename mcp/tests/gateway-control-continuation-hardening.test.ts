@@ -92,6 +92,39 @@ describe("LazyDesigner Control continuation hardening", () => {
     });
   });
 
+  test("direct canonical mutation capabilities never preserve stale evidence as NO_CHANGE", () => {
+    const cases = [
+      ["apply_texture", "TEXTURE_APPEARANCE"],
+      ["configure_material", "MATERIAL_RENDER"],
+      ["assign_texture_channel", "MATERIAL_RENDER"],
+      ["set_face_material_instance", "MATERIAL_RENDER"],
+      ["bulk_set_material_instances", "MATERIAL_RENDER"],
+      ["clear_material_instances", "MATERIAL_RENDER"],
+      ["manage_keyframes", "ANIMATION_MOTION"],
+      ["animation_graph_editor", "ANIMATION_MOTION"],
+      ["animation_timeline", "ANIMATION_MOTION"],
+      ["batch_keyframe_operations", "ANIMATION_MOTION"],
+      ["animation_copy_paste", "ANIMATION_MOTION"],
+    ] as const;
+
+    for (const [capability, staleScope] of cases) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: null,
+        phaseAfter: null,
+        projectUuid: "project-a",
+        succeeded: true,
+        result: { execution: "applied" },
+      });
+
+      expect(delta.freshness.basis, capability).not.toBe("NO_CHANGE");
+      expect(delta.freshness.stale, capability).toContain(staleScope);
+      expect(delta.invalidates.workspace_projection, capability).toBe(true);
+      expect(delta.invalidates.acceptance_gates, capability).toBe(true);
+      expect(delta.verification_class, capability).not.toBe("not_applicable");
+    }
+  });
+
   test("ordinary successful mutation continues without status reread", () => {
     const delta = buildControlDelta({
       capability: "manage_cubes",

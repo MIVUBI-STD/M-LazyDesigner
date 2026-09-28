@@ -5,6 +5,7 @@ import type {
 } from "../types";
 import {
   ALL_FRESHNESS_SCOPES,
+  ANIMATION_MOTION_MUTATIONS,
   HIERARCHY_OR_MOTION_STRUCTURE,
   MATERIAL_RENDER_MUTATIONS,
   SHAPE_FIELDS,
@@ -287,7 +288,7 @@ export function staleScopesForMutation(
   }
 
   if (domain === "ANIMATION") {
-    if (capability === "create_animation" || capability === "manage_animation_timeline") {
+    if (ANIMATION_MOTION_MUTATIONS.has(capability)) {
       return { stale: ["ANIMATION_MOTION"], precise: true };
     }
     if (capability === "manage_animation_controller") {

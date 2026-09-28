@@ -102,16 +102,22 @@ const RECEIPT_ONLY: readonly string[] = [
 const FOCUSED_READ: readonly string[] = [
   "create_project", "add_group", "modify_group", "reparent_element",
   "remove_element", "rename_element", "manage_locator", "manage_null_object",
-  "bone_rigging", "add_texture_group", "import_texture_set", "manage_material",
-  "manage_material_instances", "manage_render_profile",
+  "bone_rigging", "add_texture_group", "import_texture_set",
+  "create_pbr_material", "configure_material", "assign_texture_channel",
+  "save_material_config", "set_face_material_instance",
+  "bulk_set_material_instances", "clear_material_instances",
+  "manage_material", "manage_material_instances", "manage_render_profile",
   "manage_animation_controller", "manage_animation_effects", "manage_particle",
 ];
 
 const VISUAL: readonly string[] = [
   "manage_cubes", "duplicate_element", "capture_model_views", "create_texture",
+  "apply_texture",
   "paint_fill_tool", "draw_shape_tool", "gradient_tool", "copy_brush_tool",
   "texture_layer_management", "paint_with_brush", "eraser_tool",
   "paint_texture_transaction", "manage_uv_layout", "create_animation",
+  "manage_keyframes", "animation_graph_editor", "animation_timeline",
+  "batch_keyframe_operations", "animation_copy_paste",
   "manage_animation_timeline", "undo", "redo",
 ];
 
