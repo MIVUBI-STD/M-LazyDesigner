@@ -241,12 +241,12 @@ export class CorrectionLoopRegistry {
 
     const pending = record.pending_stale_views.length > 0;
     const state: CorrectionLoopContinuation["state"] =
-      record.attempt >= 2 && record.discrepancies.length > 0
-        ? "BLOCKED"
-        : pending
-          ? "VERIFY_PENDING"
-          : record.discrepancies.length === 0
-            ? "CLEAR"
+      pending
+        ? "VERIFY_PENDING"
+        : record.discrepancies.length === 0
+          ? "CLEAR"
+          : record.attempt >= 2
+            ? "BLOCKED"
             : "READY";
 
     return {
