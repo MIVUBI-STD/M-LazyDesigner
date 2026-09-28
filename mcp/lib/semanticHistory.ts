@@ -7,16 +7,6 @@ import {
 
 export type SemanticHistoryScope = CapabilitySemanticScope;
 
-type _LegacySemanticHistoryScope =
-  | "GEOMETRY_STRUCTURE"
-  | "UV_MAPPING"
-  | "TEXTURE_APPEARANCE"
-  | "MATERIAL_RENDER"
-  | "ANIMATION_MOTION"
-  | "ANIMATION_CONTROLLER"
-  | "ANIMATION_EFFECTS"
-  | "PARTICLE_SYSTEM";
-
 export type SemanticHistoryEffect = {
   stale: SemanticHistoryScope[];
   workspace_projection: boolean;

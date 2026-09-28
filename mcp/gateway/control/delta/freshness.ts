@@ -182,36 +182,11 @@ export function effectChangedFields(value: unknown): string[] {
   return cubeChangedFieldsFromResult(root);
 }
 
-export function geometryInvalidation(capability: string, result: unknown): ControlAuthoringDomain[] {
-  if (capability === "manage_cubes") {
-    const changedFields = effectChangedFields(result);
-    if (changedFields.length > 0) {
-      if (changedFields.some((field) => UV_FIELDS.has(field) || SHAPE_FIELDS.has(field))) {
-        return ["GEOMETRY", "TEXTURING", "ANIMATION"];
-      }
-      return ["GEOMETRY"];
-    }
-    return ["GEOMETRY", "TEXTURING", "ANIMATION"];
-  }
-  if (capability === "remove_element" || capability === "duplicate_element") {
-    return ["GEOMETRY", "TEXTURING", "ANIMATION"];
-  }
-  if (HIERARCHY_OR_MOTION_STRUCTURE.has(capability)) return ["GEOMETRY", "ANIMATION"];
-  return ["GEOMETRY"];
-}
-
-function semanticHistoryInvalidation(
-  result: unknown
-): {
-  authoring_domains: ControlAuthoringDomain[];
-  workspace_projection: boolean;
-  acceptance_gates: boolean;
-} | null {
-  const effect = semanticHistoryEffectFromResult(result);
-  if (!effect) return null;
-
+function authoringDomainsForScopes(
+  scopes: readonly ControlFreshnessScope[]
+): ControlAuthoringDomain[] {
   const domains = new Set<ControlAuthoringDomain>();
-  for (const scope of effect.stale) {
+  for (const scope of scopes) {
     if (scope === "GEOMETRY_STRUCTURE") domains.add("GEOMETRY");
     if (
       scope === "UV_MAPPING" ||
@@ -229,9 +204,40 @@ function semanticHistoryInvalidation(
       domains.add("ANIMATION");
     }
   }
+  return [...domains];
+}
+
+export function geometryInvalidation(
+  capability: string,
+  result: unknown
+): ControlAuthoringDomain[] {
+  if (capability === "manage_cubes") {
+    const changedFields = effectChangedFields(result);
+    const scopes =
+      changedFields.length > 0
+        ? cubeSemanticScopesFromChangedFields(changedFields)
+        : capabilityDefaultStaleScopes(capability);
+    return authoringDomainsForScopes(scopes);
+  }
+
+  const scopes = capabilityDefaultStaleScopes(capability);
+  return scopes.length > 0
+    ? authoringDomainsForScopes(scopes)
+    : ["GEOMETRY"];
+}
+
+function semanticHistoryInvalidation(
+  result: unknown
+): {
+  authoring_domains: ControlAuthoringDomain[];
+  workspace_projection: boolean;
+  acceptance_gates: boolean;
+} | null {
+  const effect = semanticHistoryEffectFromResult(result);
+  if (!effect) return null;
 
   return {
-    authoring_domains: [...domains],
+    authoring_domains: authoringDomainsForScopes(effect.stale),
     workspace_projection: effect.workspace_projection,
     acceptance_gates: effect.acceptance_gates,
   };
