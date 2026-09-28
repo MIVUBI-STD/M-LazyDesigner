@@ -64,6 +64,7 @@ export type SessionOutputHint =
 export type CodexSessionPolicyDecision = {
   schema: 1;
   proof_scope: "CLIENT_INTEGRATION_POLICY_ONLY";
+  optimization_target: "CODEX_ALLOWANCE_PER_ACCEPTED_TASK";
   compaction: SessionCompactionDecision;
   cache: SessionCacheDecision;
   reasoning: SessionReasoningHint;
@@ -212,6 +213,7 @@ export function evaluateCodexSessionPolicy(
   return {
     schema: 1,
     proof_scope: "CLIENT_INTEGRATION_POLICY_ONLY",
+    optimization_target: "CODEX_ALLOWANCE_PER_ACCEPTED_TASK",
     compaction,
     cache,
     reasoning,

@@ -20,6 +20,7 @@ describe("Codex session policy contract", () => {
     const result = evaluateCodexSessionPolicy(base);
     expect(result).toMatchObject({
       proof_scope: "CLIENT_INTEGRATION_POLICY_ONLY",
+      optimization_target: "CODEX_ALLOWANCE_PER_ACCEPTED_TASK",
       compaction: "KEEP_CONTEXT",
       cache: "REUSE_FULL_PREFIX",
       reasoning: "ECONOMY_WHEN_SUPPORTED",

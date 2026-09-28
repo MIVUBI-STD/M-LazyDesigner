@@ -6,7 +6,22 @@ This contract defines LazyDesigner-owned behavior that supports prompt-cache reu
 
 ## Objective
 
-Minimize total model usage per accepted task by keeping reusable context stable and moving volatile task state into a bounded dynamic tail.
+The primary production target is **Codex allowance consumed per accepted asset/task**, not OpenAI API invoice cost.
+
+Codex allowance does not expose a repository-owned exact pricing function. Treat it as an external budget whose consumption is influenced by model choice, task complexity, context volume, reasoning effort, tool work, and session length. LazyDesigner therefore optimizes controllable workload drivers while protecting accepted-result quality:
+
+```text
+minimum sufficient context
++ minimum necessary reasoning
++ minimum decision-changing visual evidence
++ minimum non-redundant tool work
++ bounded correction loops
+→ accepted result
+```
+
+API-style input/output/cached-token telemetry remains useful **only when the actual Codex/client surface supplies it**. It is optional measurement evidence, not the production accounting model and never a requirement for the zero-waste workflow.
+
+Keep reusable context stable and move volatile task state into a bounded dynamic tail.
 
 ```text
 CROSS-STAGE COMMON PREFIX CANDIDATE
@@ -83,9 +98,30 @@ bun run measure:continuation
 
 An upstream client that actually owns conversation state may use its native compaction mechanism at meaningful milestones. LazyDesigner Gateway/Runtime does not call a provider conversation API.
 
-## Compaction Cost Accounting
+## Codex Allowance Accounting
 
-Compaction is not free. End-to-end task usage must include every source-reported model event.
+Compaction is not free, but normal Codex usage optimization must not pretend that repository byte counts or API pricing equal the user's Codex allowance.
+
+For normal Codex operation, compare controllable workload drivers:
+
+```text
+task success / accepted result
+user correction count
+reasoning class transitions
+context-pressure trajectory
+compaction count
+tool calls
+visual capture count + selected view count
+dynamic payload bytes
+continuation-checkpoint bytes
+repeated/stale observation count
+```
+
+A change is an optimization only when accepted-result quality does not regress. Prefer direct before/after Codex usage observations from the user's actual Codex usage surface when available; otherwise report proxy improvements without converting them into invented tokens, credits, dollars, or percentages.
+
+### Optional token telemetry benchmark
+
+When the active Codex/client surface actually exposes source-provided token telemetry, end-to-end measurement may additionally include every model event.
 
 ```text
 model_events:
@@ -107,7 +143,7 @@ Use:
 bun run eval:astra-usage -- <normalized-usage.json>
 ```
 
-Quality PASS and successful completion are required before token savings can be claimed.
+This command is an **optional telemetry evaluator**, not the primary Codex allowance meter. Quality PASS and successful completion are required before any token comparison can be claimed. If Codex does not expose complete source telemetry, leave the token comparison unavailable and evaluate the workload proxies above instead.
 
 ## Development Context
 
@@ -177,9 +213,9 @@ Safety rules:
 
 A future client/controller that actually owns model invocation may map these decisions to provider-native cache, compaction, reasoning, and output controls. Until then, the evaluator is the tested handoff contract and must not be represented as active upstream execution.
 
-### GPT-6 Astra main-model profile
+### GPT-6 Astra in Codex
 
-When GPT-6 Astra is the owning client/model, preserve one model across the task and
+The intended deployment is **Codex using GPT-6 Astra as the main model**, not a custom paid API loop. Preserve one model across the task and
 change reasoning effort **per decision** rather than swapping models or rewriting the
 stable prefix:
 
@@ -197,8 +233,7 @@ The provider-owning client should prefer its native mid-conversation reasoning u
 mechanism when available so reasoning effort can change without rewriting the reusable
 prompt prefix. LazyDesigner does not call that provider API itself.
 
-For provider-native prompt caching, map the existing LazyDesigner structure rather than
-adding another cache/router layer:
+When the Codex client/runtime benefits from reusable prompt prefixes, map the existing LazyDesigner structure rather than adding another cache/router layer. Cache behavior is an efficiency opportunity, not a billing assumption:
 
 ```text
 stable common prefix
