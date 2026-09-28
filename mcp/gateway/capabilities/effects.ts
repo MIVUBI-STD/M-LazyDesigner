@@ -7,6 +7,10 @@ import {
   type BlockitAuthoringPhaseAffinity,
 } from "../runtime/projectAffinity";
 import type { JsonRecord } from "../protocol";
+import {
+  createProjectReceiptSchema,
+  phaseTransitionReceiptSchema,
+} from "../../lib/receipts/authorityTransition";
 
 export type GatewayEffectApplication = {
   effects: CapabilityEffects;
@@ -25,15 +29,15 @@ function isRecord(value: unknown): value is JsonRecord {
 }
 
 function createdProjectUuid(value: unknown): string | null {
-  if (!isRecord(value) || !isRecord(value.project)) return null;
-  const uuid = value.project.uuid;
-  return typeof uuid === "string" && uuid.trim() ? uuid.trim() : null;
+  const parsed = createProjectReceiptSchema.safeParse(value);
+  return parsed.success ? parsed.data.project.uuid : null;
 }
 
 function resultAuthoringPhase(value: unknown): BlockitAuthoringPhaseAffinity | null {
-  if (!isRecord(value)) return null;
+  const parsed = phaseTransitionReceiptSchema.safeParse(value);
+  if (!parsed.success) return null;
   try {
-    return normalizeAuthoringPhaseAffinity(value.phase);
+    return normalizeAuthoringPhaseAffinity(parsed.data.phase);
   } catch {
     return null;
   }
