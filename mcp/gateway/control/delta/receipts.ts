@@ -1,5 +1,6 @@
 import { isAnimationControllerReceipt } from "../../../lib/receipts/animationController";
 import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffects";
+import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materialInstances";
 import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
 
 export function record(value: unknown): Record<string, unknown> | null {
@@ -271,28 +272,7 @@ export function materialMutationReceiptComplete(value: unknown): boolean {
 }
 
 export function materialInstanceMutationReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (!["set", "bulk_set", "clear"].includes(String(candidate.operation))) {
-      return false;
-    }
-    if (
-      typeof candidate.face_count !== "number" ||
-      !Array.isArray(candidate.changes) ||
-      candidate.changes.length !== candidate.face_count
-    ) {
-      return false;
-    }
-    return candidate.changes.every((entry) => {
-      const change = record(entry);
-      return Boolean(
-        change &&
-        typeof change.cube_uuid === "string" &&
-        typeof change.cube_name === "string" &&
-        typeof change.face === "string" &&
-        typeof change.material_name === "string"
-      );
-    });
-  });
+  return resultCandidates(value).some(isMaterialInstanceMutationReceipt);
 }
 
 export function particleMutationReceiptComplete(value: unknown): boolean {

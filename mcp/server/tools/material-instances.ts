@@ -5,6 +5,7 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { resolveCoreCube } from "@/lib/coreIdentity";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { faceEnum, cubeIdOptionalSchema, cubeIdSchema } from "@/lib/zodObjects";
+import { materialInstanceMutationReceipt } from "@/lib/receipts/materialInstances";
 
 // ============================================================================
 // Material Instance Parameter Schemas
@@ -215,6 +216,7 @@ function materialInstanceMutationResult(
   result: ReturnType<typeof buildMaterialInstanceMutationSummary>,
   text: string
 ) {
+  materialInstanceMutationReceipt(result);
   return {
     content: [{ type: "text" as const, text }],
     structuredContent: result,
