@@ -19,6 +19,7 @@ import {
   cubeStateNeutral,
   particleTextureHandoffRequired,
   animationTimelineStateNeutral,
+  directAnimationStateNeutral,
   materialPersistenceOnly,
 } from "./receipts";
 
@@ -113,8 +114,18 @@ export function capabilityMutatesState(
     if (particleTextureHandoffRequired(result)) return false;
     return particleHasAuthoredEffect(result);
   }
-  if (capability === "manage_animation_timeline") {
+  if (
+    capability === "manage_animation_timeline" ||
+    capability === "animation_timeline"
+  ) {
     return !animationTimelineStateNeutral(result);
+  }
+  if (
+    (capability === "manage_keyframes" ||
+      capability === "animation_copy_paste") &&
+    directAnimationStateNeutral(capability, result)
+  ) {
+    return false;
   }
   if (capability === "manage_material" && materialPersistenceOnly(result)) {
     return false;

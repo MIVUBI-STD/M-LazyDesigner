@@ -315,6 +315,53 @@ describe("LazyDesigner Control continuation hardening", () => {
     }
   });
 
+  test("receipt-proven direct animation read/view actions preserve authored freshness", () => {
+    const cases = [
+      {
+        capability: "manage_keyframes",
+        result: {
+          action: "select",
+          animation: { uuid: "anim-a", name: "walk" },
+          bone: { uuid: "bone-a", name: "arm" },
+          channel: "rotation",
+          affected_count: 1,
+          affected_keyframes: [{ uuid: "kf-a", time: 0.5 }],
+        },
+      },
+      {
+        capability: "animation_copy_paste",
+        result: {
+          action: "copy",
+          scope: "animation_clipboard_only",
+          copied_keyframes: 3,
+        },
+      },
+      {
+        capability: "animation_timeline",
+        result: {
+          action: "set_time",
+          scope: "timeline_view_only",
+        },
+      },
+    ] as const;
+
+    for (const { capability, result } of cases) {
+      const delta = buildControlDelta({
+        capability,
+        phaseBefore: "animation",
+        phaseAfter: "animation",
+        projectUuid: "project-a",
+        succeeded: true,
+        result,
+      });
+      expect(delta.freshness.basis, capability).toBe("NO_CHANGE");
+      expect(delta.invalidates.authoring_domains, capability).toEqual([]);
+      expect(delta.invalidates.workspace_projection, capability).toBe(false);
+      expect(delta.invalidates.acceptance_gates, capability).toBe(false);
+      expect(delta.verification_class, capability).toBe("receipt_only");
+    }
+  });
+
   test("ordinary successful mutation continues without status reread", () => {
     const delta = buildControlDelta({
       capability: "manage_cubes",

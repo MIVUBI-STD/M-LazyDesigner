@@ -207,6 +207,24 @@ export function animationTimelineStateNeutral(value: unknown): boolean {
   });
 }
 
+export function directAnimationStateNeutral(
+  capability: string,
+  value: unknown
+): boolean {
+  return resultCandidates(value).some((candidate) => {
+    if (capability === "manage_keyframes") {
+      return candidate.action === "select";
+    }
+    if (capability === "animation_copy_paste") {
+      return (
+        candidate.action === "copy" &&
+        candidate.scope === "animation_clipboard_only"
+      );
+    }
+    return false;
+  });
+}
+
 export function materialPersistenceOnly(value: unknown): boolean {
   return resultCandidates(value).some(
     (candidate) =>
