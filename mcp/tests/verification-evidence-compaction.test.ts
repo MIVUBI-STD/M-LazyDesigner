@@ -76,4 +76,27 @@ describe("verification evidence compaction", () => {
     expect(JSON.stringify(compact)).not.toContain("base64");
     expect(registry.get(handle).result).toEqual(result);
   });
+
+  test("evidence invalidation and runtime clear make stale handles fail closed", () => {
+    const registry = new VerificationEvidenceRegistry();
+    const request: VerificationEvidenceRequest = {
+      domain: "GEOMETRY",
+      source: "capture_model_views",
+      verification_risk: "LOW",
+      views: ["front"],
+      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+      size: 256,
+      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+      scope_instance_ids: ["arm:0"],
+    };
+
+    const first = registry.put({ request, result: { revision: 1 } });
+    expect(registry.invalidate(first)).toBe(true);
+    expect(() => registry.get(first)).toThrow("VERIFICATION_EVIDENCE_NOT_FOUND");
+
+    const second = registry.put({ request, result: { revision: 2 } });
+    registry.clear();
+    expect(registry.size()).toBe(0);
+    expect(() => registry.get(second)).toThrow("VERIFICATION_EVIDENCE_NOT_FOUND");
+  });
 });
