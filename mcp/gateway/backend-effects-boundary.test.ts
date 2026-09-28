@@ -13,4 +13,32 @@ describe("Gateway capability effect boundary", () => {
     expect(backendSource).not.toContain('capability === "switch_authoring_phase"');
     expect(backendSource).not.toContain('capability !== "switch_authoring_phase"');
   });
+
+  test("runtime generation change hook fires only after a previously-ready session reconnects", () => {
+    const connectStart = backendSource.indexOf(
+      "private async connectFreshUnsafe"
+    );
+    const connectEnd = backendSource.indexOf(
+      "private async ensureCatalogUnsafe",
+      connectStart
+    );
+    const connectSource = backendSource.slice(connectStart, connectEnd);
+
+    expect(connectSource).toContain(
+      "const hadReadyRuntime = this.connection.session.hasBeenReady()"
+    );
+    expect(connectSource).toContain(
+      'this.connection.markReady({ catalogRefreshed: true })'
+    );
+    expect(connectSource).toContain("if (hadReadyRuntime)");
+    expect(connectSource).toContain("this.onRuntimeGenerationChange?.({");
+
+    expect(
+      connectSource.indexOf("this.onRuntimeGenerationChange?.({")
+    ).toBeGreaterThan(
+      connectSource.indexOf(
+        'this.connection.markReady({ catalogRefreshed: true })'
+      )
+    );
+  });
 });
