@@ -61,6 +61,47 @@ describe("LazyDesigner Control system-development intent", () => {
     );
   });
 
+  test("exact source and anchor-test paths outrank keyword heuristics", () => {
+    const sourcePath = resolveDevelopmentIntent(
+      "texture bug stack: mcp/server/tools/cubes.ts:418"
+    );
+    expect(sourcePath.domain).toBe("GEOMETRY");
+    expect(sourcePath.confidence).toBe("EXACT");
+    expect(sourcePath.matched_terms).toContain(
+      "path:mcp/server/tools/cubes.ts"
+    );
+
+    const anchorPath = resolveDevelopmentIntent(
+      "failure in mcp/tests/particle-tool-contract.test.ts"
+    );
+    expect(anchorPath.domain).toBe("PARTICLE");
+    expect(anchorPath.confidence).toBe("EXACT");
+  });
+
+  test("conflicting exact capability and source evidence fails ambiguous", () => {
+    const result = resolveDevelopmentIntent(
+      "manage_particle failed in mcp/server/tools/cubes.ts"
+    );
+    expect(result.domain).toBe("UNRESOLVED");
+    expect(result.confidence).toBe("AMBIGUOUS");
+    expect(result.context_strategy).toBe("BOUNDED_SYMBOL_MAP");
+    expect(result.matched_terms).toEqual(
+      expect.arrayContaining([
+        "manage_particle",
+        "path:mcp/server/tools/cubes.ts",
+      ])
+    );
+  });
+
+  test("multiple exact capabilities in one domain remain exact but preserve all owners", () => {
+    const result = resolveDevelopmentIntent(
+      "manage_keyframes and animation_timeline integration"
+    );
+    expect(result.domain).toBe("ANIMATION");
+    expect(result.confidence).toBe("EXACT");
+    expect(result.source_owners.length).toBeGreaterThanOrEqual(2);
+  });
+
   test("animation quality wording routes directly to animation quality owners", () => {
     const result = resolveDevelopmentIntent("animasi keyframe terlalu kaku");
     expect(result).toMatchObject({

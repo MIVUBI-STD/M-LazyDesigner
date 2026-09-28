@@ -1,7 +1,9 @@
 import { CAPABILITY_CORE_MANIFEST } from "../../lib/capabilities/manifest";
 import type { ControlSourceOwner } from "./types";
 import {
+  anchorTestForSourceOwner,
   authoringDomainForCapability,
+  listExplicitSourceOwners,
   sourceOwnerForCapability,
 } from "./sourceOwners";
 
@@ -172,11 +174,117 @@ function exactDevelopmentDomain(
   return null;
 }
 
-function exactCapabilityMatches(text: string): string[] {
+type ExactDevelopmentEvidence = {
+  domain: Exclude<ControlDevelopmentDomain, "UNRESOLVED">;
+  owner: ControlSourceOwner;
+  term: string;
+};
+
+function exactCapabilityEvidence(text: string): ExactDevelopmentEvidence[] {
   return [...CAPABILITY_CORE_MANIFEST.keys()]
-    .filter((capability) => exactDevelopmentDomain(capability) !== null)
     .filter((capability) => matches(text, capability))
-    .sort((a, b) => a.localeCompare(b));
+    .flatMap((capability) => {
+      const domain = exactDevelopmentDomain(capability);
+      if (!domain) return [];
+      return [{
+        domain,
+        owner: sourceOwnerForCapability(capability),
+        term: capability,
+      }];
+    });
+}
+
+function exactPathEvidence(text: string): ExactDevelopmentEvidence[] {
+  const evidence: ExactDevelopmentEvidence[] = [];
+
+  for (const [capability, owner] of Object.entries(listExplicitSourceOwners())) {
+    const domain = exactDevelopmentDomain(capability);
+    if (!domain) continue;
+    const anchorTest = anchorTestForSourceOwner(owner);
+    for (const path of [owner.source, anchorTest].filter(
+      (value): value is string => Boolean(value)
+    )) {
+      if (matches(text, path)) {
+        evidence.push({
+          domain,
+          owner,
+          term: `path:${path}`,
+        });
+      }
+    }
+  }
+
+  for (const rule of RULES) {
+    for (const owner of rule.owners()) {
+      const anchorTest = anchorTestForSourceOwner(owner);
+      for (const path of [owner.source, anchorTest].filter(
+        (value): value is string => Boolean(value)
+      )) {
+        if (matches(text, path)) {
+          evidence.push({
+            domain: rule.domain,
+            owner,
+            term: `path:${path}`,
+          });
+        }
+      }
+    }
+  }
+
+  return evidence;
+}
+
+function exactEvidenceResolution(
+  intent: string,
+  text: string
+): ControlDevelopmentResolution | null {
+  const evidence = [
+    ...exactCapabilityEvidence(text),
+    ...exactPathEvidence(text),
+  ];
+  if (evidence.length === 0) return null;
+
+  const domains = [...new Set(evidence.map((entry) => entry.domain))];
+  const owners = uniqueOwners(evidence.map((entry) => entry.owner)).slice(0, 8);
+  const matchedTerms = [...new Set(evidence.map((entry) => entry.term))].sort();
+  const specialistPaths = owners
+    .map((entry) => entry.specialist)
+    .filter((value): value is string => Boolean(value));
+
+  if (domains.length === 1) {
+    return {
+      task_class: "SYSTEM_DEVELOPMENT",
+      intent,
+      domain: domains[0],
+      confidence: "EXACT",
+      context_strategy: "DIRECT_SOURCE_OWNERS",
+      matched_terms: matchedTerms,
+      source_owners: owners,
+      required_context_paths: [
+        ...new Set([...BASE_CONTEXT, ...specialistPaths]),
+      ],
+      avoid_context_classes: [
+        "asset workspace history",
+        "unrelated authoring docs",
+        "unrelated Runtime schemas",
+      ],
+    };
+  }
+
+  return {
+    task_class: "SYSTEM_DEVELOPMENT",
+    intent,
+    domain: "UNRESOLVED",
+    confidence: "AMBIGUOUS",
+    context_strategy: "BOUNDED_SYMBOL_MAP",
+    matched_terms: matchedTerms,
+    source_owners: owners,
+    required_context_paths: [...BASE_CONTEXT],
+    avoid_context_classes: [
+      "asset workspace history",
+      "unrelated authoring docs",
+    ],
+  };
 }
 
 function baseResolution(intent: string): ControlDevelopmentResolution {
@@ -197,52 +305,8 @@ export function resolveDevelopmentIntent(intent: string): ControlDevelopmentReso
   const normalized = normalizedIntent(intent);
   if (!normalized) return baseResolution("");
 
-  const exactCapabilities = exactCapabilityMatches(normalized);
-  if (exactCapabilities.length === 1) {
-    const capability = exactCapabilities[0];
-    const domain = exactDevelopmentDomain(capability);
-    if (domain) {
-      const sourceOwner = sourceOwnerForCapability(capability);
-      return {
-        task_class: "SYSTEM_DEVELOPMENT",
-        intent: intent.trim(),
-        domain,
-        confidence: "EXACT",
-        context_strategy: "DIRECT_SOURCE_OWNERS",
-        matched_terms: [capability],
-        source_owners: [sourceOwner],
-        required_context_paths: [
-          ...new Set([
-            ...BASE_CONTEXT,
-            ...(sourceOwner.specialist ? [sourceOwner.specialist] : []),
-          ]),
-        ],
-        avoid_context_classes: [
-          "asset workspace history",
-          "unrelated authoring docs",
-          "unrelated Runtime schemas",
-        ],
-      };
-    }
-  }
-
-  if (exactCapabilities.length > 1) {
-    const owners = exactCapabilities.map(sourceOwnerForCapability);
-    return {
-      task_class: "SYSTEM_DEVELOPMENT",
-      intent: intent.trim(),
-      domain: "UNRESOLVED",
-      confidence: "AMBIGUOUS",
-      context_strategy: "BOUNDED_SYMBOL_MAP",
-      matched_terms: exactCapabilities,
-      source_owners: uniqueOwners(owners).slice(0, 8),
-      required_context_paths: [...BASE_CONTEXT],
-      avoid_context_classes: [
-        "asset workspace history",
-        "unrelated authoring docs",
-      ],
-    };
-  }
+  const exact = exactEvidenceResolution(intent.trim(), normalized);
+  if (exact) return exact;
 
   const scored = RULES.map((rule) => {
     const matched = rule.terms.filter((term) => matches(normalized, term));
