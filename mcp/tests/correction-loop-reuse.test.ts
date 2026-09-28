@@ -1121,7 +1121,7 @@ describe("zero-waste correction loop reuse", () => {
       },
     }]);
     expect(blocked.blocked_reason).toBe("EVIDENCE_RECOVERY_REQUIRED");
-    expect(blocked.attempt).toBe(1);
+    expect(blocked.attempt).toBe(0);
     expect(registry.projectContinuation(handle).attempt).toBe(0);
 
     registry.updateEvidence(
@@ -1139,6 +1139,45 @@ describe("zero-waste correction loop reuse", () => {
     expect(recovered.verification.recovery_required).toBe(false);
     expect(recovered.verification.recovery_reason).toBeNull();
     expect(recovered.mode).toBe("CANDIDATE_CONTEXT");
+  });
+
+  test("runtime generation invalidation marks every active loop for evidence recovery", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handles = ["a", "b"].map((suffix) =>
+      registry.start({
+        recipe_id: "asset-" + suffix,
+        base_recipe: { ...recipe(), id: "asset-" + suffix, name: "asset-" + suffix },
+        verification_request: {
+          domain: "GEOMETRY",
+          source: "capture_model_views",
+          verification_risk: "LOW",
+          views: ["front"],
+          views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+          size: 256,
+          size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+          scope_instance_ids: ["arms:0", "arms:1"],
+        },
+        verification_evidence_handle:
+          ("verificationevidence:generation-" + suffix) as any,
+        discrepancies: [{
+          code: "WIDTH_LOW_" + suffix,
+          severity: "REVIEW",
+          summary: "Width needs review.",
+          views: ["front"],
+          evidence_targets: ["width"],
+        }],
+      })
+    );
+
+    registry.invalidateRuntimeGeneration();
+
+    for (const handle of handles) {
+      expect(registry.projectContinuation(handle).verification).toMatchObject({
+        pending: true,
+        recovery_required: true,
+        recovery_reason: "RUNTIME_GENERATION_CHANGED",
+      });
+    }
   });
 
   test("runtime generation invalidation aborts an open continuation group", () => {
