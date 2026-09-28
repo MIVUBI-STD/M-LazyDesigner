@@ -1,7 +1,10 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import {
+  recordCurrentCapabilitySemanticHistoryEffect,
+  recordCurrentCapabilitySemanticHistoryEffectIfAdvanced,
+} from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { runPaintStroke } from "@/lib/paintStroke";
@@ -29,6 +32,18 @@ import {
   requirePixelsWithinTexture,
   requireTextureCoordinatesWithinBounds,
 } from "./paint-shared";
+
+function runSemanticNativePaintStroke(
+  capability: "eraser_tool" | "paint_with_brush",
+  stroke: () => void
+): void {
+  const historyIndexBefore = typeof Undo === "undefined" ? 0 : (Undo.index ?? 0);
+  runPaintStroke(stroke);
+  recordCurrentCapabilitySemanticHistoryEffectIfAdvanced(
+    capability,
+    historyIndexBefore
+  );
+}
 
 export const eraserToolParameters = z.object({
   texture_id: textureIdOptionalSchema,
@@ -171,7 +186,7 @@ export function registerPaintEraserTool(): void {
             });
     
             const first = coordinates[0];
-            runPaintStroke(() => {
+            runSemanticNativePaintStroke("eraser_tool", () => {
               getRuntimePainter().startPaintTool(
                 texture,
                 first.x,
@@ -345,7 +360,7 @@ export function registerPaintBrushTools(): void {
             ColorPanel.set(colorHex, false, false);
     
             const first = coordinates[0];
-            runPaintStroke(() => {
+            runSemanticNativePaintStroke("paint_with_brush", () => {
               getRuntimePainter().startPaintTool(
                 texture,
                 first.x,

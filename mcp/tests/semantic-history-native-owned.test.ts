@@ -47,6 +47,20 @@ describe("native-owned semantic history annotation", () => {
     }
   });
 
+  test("eraser and native brush paths use guarded semantic history", async () => {
+    const brush = await Bun.file("server/tools/paint-brush.ts").text();
+
+    expect(brush).toContain(
+      'runSemanticNativePaintStroke("eraser_tool"'
+    );
+    expect(brush).toContain(
+      'runSemanticNativePaintStroke("paint_with_brush"'
+    );
+    expect(brush).toContain(
+      "recordCurrentCapabilitySemanticHistoryEffectIfAdvanced"
+    );
+  });
+
   test("Painter and texture-set import use guarded native history annotation", async () => {
     const paint = await Bun.file("server/tools/paint-primitives.ts").text();
     const materials = await Bun.file("server/tools/texture-materials.ts").text();
