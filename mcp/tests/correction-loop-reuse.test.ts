@@ -326,6 +326,85 @@ describe("zero-waste correction loop reuse", () => {
     expect(decision.blocked_reason).toBe("CORRECTION_FAMILY_MISMATCH");
   });
 
+  test("returns only compact solver decision metadata instead of candidate payloads", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-summary",
+      base_recipe: { ...recipe(), id: "asset-summary", name: "asset-summary" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 384,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:summary",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are slightly too narrow.",
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [
+      {
+        id: "resize-a",
+        predicted_error: 0.08,
+        mutation_cost: 0.1,
+        risk: 0.12,
+        patch: {
+          correction_family: "RESIZE",
+          intent: {
+            target: { semantic_group: "upper_arm" },
+            operation: {
+              kind: "RESIZE_AXIS",
+              axis: "X",
+              mode: "MULTIPLY",
+              value: 1.03,
+            },
+          },
+        },
+      },
+      {
+        id: "resize-b",
+        predicted_error: 0.04,
+        mutation_cost: 0.08,
+        risk: 0.09,
+        patch: {
+          correction_family: "RESIZE",
+          intent: {
+            target: { semantic_group: "upper_arm" },
+            operation: {
+              kind: "RESIZE_AXIS",
+              axis: "X",
+              mode: "MULTIPLY",
+              value: 1.05,
+            },
+          },
+        },
+      },
+    ]);
+
+    expect(decision.state).toBe("CORRECTION_READY");
+    expect(decision.decision_summary).toEqual({
+      selected_candidate_id: "resize-b",
+      rejected_candidate_ids: ["resize-a"],
+      selected_metrics: {
+        predicted_error: 0.04,
+        mutation_cost: 0.08,
+        risk: 0.09,
+      },
+      solver_score: expect.any(Number),
+      candidate_count: 2,
+      candidate_budget: 2,
+    });
+    expect(JSON.stringify(decision.decision_summary)).not.toContain("geometry_operations");
+    expect(JSON.stringify(decision.decision_summary)).not.toContain("semantic_group");
+  });
+
   test("targeted evidence update preserves unrelated discrepancies and tracks per-view handles across rounds", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
