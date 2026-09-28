@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { CAPABILITY_CORE_MANIFEST } from "@/lib/capabilities/manifest";
 import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
@@ -48,6 +49,28 @@ describe("semantic Undo history coverage", () => {
     expect(mutationFiles.length).toBeGreaterThan(0);
     for (const exempt of SEMANTIC_HISTORY_EXEMPTIONS) {
       expect(mutationFiles, `stale semantic-history exemption: ${exempt}`).toContain(exempt);
+    }
+  });
+
+  test("capability-derived semantic annotations reference only canonical authored capabilities", async () => {
+    const files = await sourceFiles(TOOL_ROOT);
+    const referenced = new Set<string>();
+
+    for (const path of files) {
+      const source = await Bun.file(path).text();
+      for (const match of source.matchAll(
+        /recordCurrentCapabilitySemanticHistoryEffect(?:IfAdvanced)?\(\s*["']([^"']+)["']/g
+      )) {
+        referenced.add(match[1]!);
+      }
+    }
+
+    expect(referenced.size).toBeGreaterThan(0);
+    for (const capability of referenced) {
+      const entry = CAPABILITY_CORE_MANIFEST.get(capability);
+      expect(entry, capability).toBeDefined();
+      expect(entry?.stateClass, capability).toBeDefined();
+      expect(entry?.defaultStaleScopes, capability).toBeDefined();
     }
   });
 

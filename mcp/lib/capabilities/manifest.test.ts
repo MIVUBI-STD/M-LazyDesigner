@@ -196,6 +196,20 @@ describe("core capability manifest", () => {
     }
   });
 
+  test("every stateful capability declares explicit semantic stale-scope defaults", () => {
+    for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
+      if (entry.stateClass === undefined) continue;
+
+      expect(entry.defaultStaleScopes, capability).toBeDefined();
+
+      if (entry.stateClass === "persistence") {
+        expect(entry.defaultStaleScopes, capability).toEqual([]);
+      } else {
+        expect(entry.defaultStaleScopes?.length, capability).toBeGreaterThan(0);
+      }
+    }
+  });
+
   test("does not duplicate manifest keys", () => {
     const keys = [...CAPABILITY_CORE_MANIFEST.keys()];
     expect(new Set(keys).size).toBe(keys.length);
