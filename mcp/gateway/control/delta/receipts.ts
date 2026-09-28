@@ -1,3 +1,5 @@
+import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
+
 export function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -415,63 +417,7 @@ export function textureGroupReceiptComplete(value: unknown): boolean {
 }
 
 export function materialMutationReceiptComplete(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (!["create", "configure", "assign_channel", "import_texture_set"].includes(String(candidate.operation))) {
-      return false;
-    }
-    const material = record(candidate.material);
-    const channels = record(material?.channels);
-    const config = record(material?.config);
-    if (
-      !material ||
-      typeof material.uuid !== "string" ||
-      material.uuid.length === 0 ||
-      typeof material.name !== "string" ||
-      material.name.length === 0 ||
-      typeof material.is_material !== "boolean" ||
-      !channels ||
-      !config
-    ) {
-      return false;
-    }
-
-    const validChannel = (value: unknown): boolean => {
-      if (value === null) return true;
-      const channel = record(value);
-      return Boolean(
-        channel &&
-        typeof channel.uuid === "string" &&
-        channel.uuid.length > 0 &&
-        typeof channel.name === "string"
-      );
-    };
-
-    if (
-      !["color", "normal", "height", "mer"].every(
-        (key) =>
-          Object.prototype.hasOwnProperty.call(channels, key) &&
-          validChannel(channels[key])
-      )
-    ) {
-      return false;
-    }
-
-    return (
-      Array.isArray(config.color_value) &&
-      config.color_value.length === 4 &&
-      config.color_value.every(
-        (entry) => typeof entry === "number" && Number.isFinite(entry)
-      ) &&
-      Array.isArray(config.mer_value) &&
-      config.mer_value.length === 3 &&
-      config.mer_value.every(
-        (entry) => typeof entry === "number" && Number.isFinite(entry)
-      ) &&
-      typeof config.subsurface_value === "number" &&
-      Number.isFinite(config.subsurface_value) &&
-      typeof config.saved === "boolean"
-    );
-  });
+  return resultCandidates(value).some(isMaterialMutationReceipt);
 }
 
 export function materialInstanceMutationReceiptComplete(value: unknown): boolean {

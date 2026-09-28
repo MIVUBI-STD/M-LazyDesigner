@@ -6,6 +6,7 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { getChannelTextureInfo, isAbsoluteFilesystemPath } from "@/lib/util";
+import { materialMutationReceipt } from "@/lib/receipts/materialMutation";
 import {
   pbrChannelEnum,
   textureIdSchema,
@@ -522,10 +523,10 @@ export function registerTextureMaterialTools(): void {
               text: `Created PBR material "${textureGroup.name}" (${textureGroup.uuid}).`,
             },
           ],
-          structuredContent: {
+          structuredContent: materialMutationReceipt({
             operation: "create",
             material: materialState,
-          },
+          }),
         };
       },
     }, textureMaterialToolDocs[0].status);
@@ -666,10 +667,10 @@ export function registerTextureMaterialTools(): void {
               text: `Configured material "${textureGroup.name}".`,
             },
           ],
-          structuredContent: {
+          structuredContent: materialMutationReceipt({
             operation: "configure",
             material: materialContinuationState(textureGroup),
-          },
+          }),
         };
       },
     }, textureMaterialToolDocs[1].status);
@@ -814,11 +815,11 @@ export function registerTextureMaterialTools(): void {
             type: "text" as const,
             text: `Imported texture set from "${path}" as material "${createdGroup.name}" (uuid: ${createdGroup.uuid}).`,
           }],
-          structuredContent: {
-            operation: "import_texture_set" as const,
+          structuredContent: materialMutationReceipt({
+            operation: "import_texture_set",
             source_path: path,
             material: materialState,
-          },
+          }),
         };
       },
     }, textureMaterialToolDocs[4].status);
@@ -882,10 +883,10 @@ export function registerTextureMaterialTools(): void {
               text: `Assigned texture "${tex.name}" to ${channel} channel of material "${textureGroup.name}".`,
             },
           ],
-          structuredContent: {
+          structuredContent: materialMutationReceipt({
             operation: "assign_channel",
             material: materialContinuationState(textureGroup),
-          },
+          }),
         };
       },
     }, textureMaterialToolDocs[5].status);
