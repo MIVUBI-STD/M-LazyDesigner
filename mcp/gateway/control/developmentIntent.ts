@@ -135,14 +135,23 @@ function normalizedIntent(intent: string): string {
 
 function matches(text: string, term: string): boolean {
   const normalizedTerm = term.toLocaleLowerCase();
-  const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\function matches(text: string, term: string): boolean {
-  return text.includes(term.toLocaleLowerCase());
-}");
-  const pattern = new RegExp(
-    `(^|[^a-z0-9_])${escaped}(?=$|[^a-z0-9_])`,
-    "i"
-  );
-  return pattern.test(text);
+  let offset = 0;
+
+  while (offset <= text.length - normalizedTerm.length) {
+    const index = text.indexOf(normalizedTerm, offset);
+    if (index < 0) return false;
+
+    const before = index > 0 ? text[index - 1] : "";
+    const afterIndex = index + normalizedTerm.length;
+    const after = afterIndex < text.length ? text[afterIndex] : "";
+    const beforeIsWord = /[a-z0-9_]/i.test(before);
+    const afterIsWord = /[a-z0-9_]/i.test(after);
+
+    if (!beforeIsWord && !afterIsWord) return true;
+    offset = index + 1;
+  }
+
+  return false;
 }
 
 function baseResolution(intent: string): ControlDevelopmentResolution {
