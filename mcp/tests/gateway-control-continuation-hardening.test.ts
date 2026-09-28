@@ -362,6 +362,57 @@ describe("LazyDesigner Control continuation hardening", () => {
     }
   });
 
+  test("semantic Undo/Redo narrows freshness and domain invalidation when history evidence is complete", () => {
+    const materialUndo = buildControlDelta({
+      capability: "undo",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        semantic_effect: { stale: ["MATERIAL_RENDER"] },
+      },
+    });
+    expect(materialUndo.freshness).toMatchObject({
+      basis: "PRECISE_EFFECT",
+      stale: ["MATERIAL_RENDER"],
+    });
+    expect(materialUndo.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+
+    const geometryRedo = buildControlDelta({
+      capability: "redo",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        semantic_effect: {
+          stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
+        },
+      },
+    });
+    expect(geometryRedo.freshness.basis).toBe("PRECISE_EFFECT");
+    expect(geometryRedo.invalidates.authoring_domains).toEqual([
+      "GEOMETRY",
+      "ANIMATION",
+    ]);
+
+    const unknownUndo = buildControlDelta({
+      capability: "undo",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { semantic_effect: null },
+    });
+    expect(unknownUndo.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+    expect(unknownUndo.invalidates.authoring_domains).toEqual([
+      "GEOMETRY",
+      "TEXTURING",
+      "ANIMATION",
+    ]);
+  });
+
   test("receipt-proven direct animation read/view actions preserve authored freshness", () => {
     const cases = [
       {

@@ -177,6 +177,47 @@ export function geometryInvalidation(capability: string, result: unknown): Contr
   return ["GEOMETRY"];
 }
 
+function semanticHistoryInvalidationDomains(
+  result: unknown
+): ControlAuthoringDomain[] | null {
+  for (const candidate of resultCandidates(result)) {
+    const semanticEffect = record(candidate.semantic_effect);
+    if (!semanticEffect || !Array.isArray(semanticEffect.stale)) continue;
+
+    const scopes = semanticEffect.stale;
+    if (
+      scopes.length === 0 ||
+      !scopes.every((scope) =>
+        ALL_FRESHNESS_SCOPES.includes(scope as ControlFreshnessScope)
+      )
+    ) {
+      continue;
+    }
+
+    const domains = new Set<ControlAuthoringDomain>();
+    for (const scope of scopes as ControlFreshnessScope[]) {
+      if (scope === "GEOMETRY_STRUCTURE") domains.add("GEOMETRY");
+      if (
+        scope === "UV_MAPPING" ||
+        scope === "TEXTURE_APPEARANCE" ||
+        scope === "MATERIAL_RENDER"
+      ) {
+        domains.add("TEXTURING");
+      }
+      if (
+        scope === "ANIMATION_MOTION" ||
+        scope === "ANIMATION_CONTROLLER" ||
+        scope === "ANIMATION_EFFECTS" ||
+        scope === "PARTICLE_SYSTEM"
+      ) {
+        domains.add("ANIMATION");
+      }
+    }
+    return [...domains];
+  }
+  return null;
+}
+
 export function mutationInvalidation(
   capability: string,
   domain: ControlAuthoringDomain,
@@ -218,8 +259,12 @@ export function mutationInvalidation(
   const mutates = capabilityMutatesState(capability, succeeded, result);
   let affectedDomains: ControlAuthoringDomain[] = [];
   if (mutates) {
-    if (capability === "create_project" || capability === "undo" || capability === "redo") {
+    if (capability === "create_project") {
       affectedDomains = ["GEOMETRY", "TEXTURING", "ANIMATION"];
+    } else if (capability === "undo" || capability === "redo") {
+      affectedDomains =
+        semanticHistoryInvalidationDomains(result) ??
+        ["GEOMETRY", "TEXTURING", "ANIMATION"];
     } else if (domain === "GEOMETRY") affectedDomains = geometryInvalidation(capability, result);
     else if (domain === "TEXTURING") affectedDomains = ["TEXTURING"];
     else if (domain === "ANIMATION") affectedDomains = ["ANIMATION"];
