@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import { removeElementReceipt } from "@/lib/receipts/removeElement";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
@@ -139,6 +140,7 @@ export function registerRemoveElementTool(): void {
             }
             deleteElements.length = 0;
             Undo.finishEdit("Agent removed element");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
@@ -189,6 +191,7 @@ export function registerElementMutationTools(): void {
           try {
             dup = duplicateFaithfully(element, offset, newName);
             Undo.finishEdit("Agent duplicated element");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
@@ -228,6 +231,7 @@ export function registerElementMutationTools(): void {
             try {
               applyGroupRename(plan);
               Undo.finishEdit("Batch rename Groups");
+              recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
             } catch(error) {Undo.cancelEdit(true); Canvas.updateAll(); throw error;}
             Canvas.updateAll();
             return {content:[{type:"text" as const,text:`Renamed ${changes.length} Groups and synchronized ${plan.references.length} animation(s).`}], structuredContent:{execution:"applied",changes,affected_animations:plan.references.length,...(singleElement ? {element: elementContinuationState(singleElement)} : {})}};
@@ -254,6 +258,7 @@ export function registerElementMutationTools(): void {
           try {
             element.name = new_name;
             Undo.finishEdit("Agent renamed element");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();

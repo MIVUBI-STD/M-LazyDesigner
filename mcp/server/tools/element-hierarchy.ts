@@ -1,6 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
 import {
   addGroupReceipt,
   modifyGroupReceipt,
@@ -205,6 +206,7 @@ export function registerAddGroupTool(): void {
               created.length > 1 ? "Agent added groups" : "Agent added group",
               { outliner: true, groups: created }
             );
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
@@ -263,6 +265,7 @@ export function registerElementHierarchyTools(): void {
             try {
               translateDuplicatedSubtree(group, offset);
               Undo.finishEdit("Agent translated Group subtree");
+              recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
             } catch (error) {
               Undo.cancelEdit(true);
               Canvas.updateAll();
@@ -319,6 +322,7 @@ export function registerElementHierarchyTools(): void {
               ...(visibility !== undefined && !sameVisibility ? { visibility } : {}),
             });
             Undo.finishEdit("Agent modified group");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
@@ -379,6 +383,7 @@ export function registerElementHierarchyTools(): void {
           try {
             element.addTo(nextParent);
             Undo.finishEdit("Agent reparented element");
+            recordCurrentSemanticHistoryEffect(["GEOMETRY_STRUCTURE","ANIMATION_MOTION"]);
           } catch (error) {
             Undo.cancelEdit(true);
             Canvas.updateAll();
