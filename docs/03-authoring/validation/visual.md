@@ -475,9 +475,14 @@ correct WIDTH_HIGH
 
 Reuse is valid only when every current discrepancy needed for the reuse decision has
 explicit view provenance. Missing/partial provenance falls back to conservative
-recapture of the request views. Evidence reuse references the existing verification
-evidence handle; it does not create a second visual cache or mark unresolved
-discrepancies complete.
+recapture of the request views.
+
+The existing correction registry tracks the latest evidence handle **per view**. A fresh
+targeted verification replaces only the stale view handle and only the targeted
+discrepancy branch; unrelated discrepancies and unaffected view handles remain available
+for the next correction round. This is lifecycle bookkeeping inside the existing
+registry, not a second visual cache. A clear recaptured view may remain reusable even
+when it no longer has an active discrepancy.
 
 ## Adaptive Capture Resolution
 
