@@ -1,5 +1,6 @@
 import { isAnimationControllerReceipt } from "../../../lib/receipts/animationController";
 import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffects";
+import { isGroupMutationReceipt } from "../../../lib/receipts/groupMutation";
 import { isLocatorMutationReceipt } from "../../../lib/receipts/locatorMutation";
 import { isMaterialInstanceMutationReceipt } from "../../../lib/receipts/materialInstances";
 import { isMaterialMutationReceipt } from "../../../lib/receipts/materialMutation";
@@ -124,43 +125,9 @@ export function nativeIkControllerReceiptComplete(value: unknown): boolean {
 }
 
 export function groupReceiptComplete(capability: string, value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (candidate.execution !== "applied") return false;
-    if (capability === "add_group") {
-      return Array.isArray(candidate.groups) && candidate.groups.length > 0 &&
-        candidate.groups.every((entry) => {
-          const group = record(entry);
-          return Boolean(
-            group &&
-            typeof group.uuid === "string" &&
-            typeof group.name === "string" &&
-            Array.isArray(group.origin) &&
-            Array.isArray(group.rotation) &&
-            typeof group.visibility === "boolean" &&
-            typeof group.parent === "string"
-          );
-        });
-    }
-    if (capability === "modify_group") {
-      const group = record(candidate.group);
-      return Boolean(
-        group &&
-        typeof group.uuid === "string" &&
-        Array.isArray(group.origin) &&
-        Array.isArray(group.rotation) &&
-        typeof group.visibility === "boolean" &&
-        typeof group.parent === "string"
-      );
-    }
-    if (capability === "reparent_element") {
-      return (
-        typeof candidate.id === "string" &&
-        typeof candidate.parent === "string" &&
-        candidate.transform_policy === "preserve_local"
-      );
-    }
-    return false;
-  });
+  return resultCandidates(value).some((candidate) =>
+    isGroupMutationReceipt(capability, candidate)
+  );
 }
 
 export function particleTextureHandoffRequired(value: unknown): boolean {

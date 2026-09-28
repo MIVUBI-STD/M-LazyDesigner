@@ -1,6 +1,11 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import {
+  addGroupReceipt,
+  modifyGroupReceipt,
+  reparentElementReceipt,
+} from "@/lib/receipts/groupMutation";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreGroup } from "@/lib/coreIdentity";
@@ -207,11 +212,11 @@ export function registerAddGroupTool(): void {
           }
     
           Canvas.updateAll();
-          const result = {
+          const result = addGroupReceipt({
             execution: "applied" as const,
             groups: created.map(groupContinuationState),
             ...(groups ? {} : { group: groupContinuationState(created[0]) }),
-          };
+          });
           return {
             content: [
               {
@@ -328,13 +333,13 @@ export function registerElementHierarchyTools(): void {
                 text: `Modified Group ${group.name} (${group.uuid}); changed: ${changedFields.join(", ")}.`,
               },
             ],
-            structuredContent: {
+            structuredContent: modifyGroupReceipt({
               execution: "applied" as const,
               id: group.uuid,
               name: group.name,
               changed_fields: changedFields,
               group: groupContinuationState(group),
-            },
+            }),
           };
         },
       }, STATUS_STABLE);
@@ -390,7 +395,7 @@ export function registerElementHierarchyTools(): void {
                 text: `Reparented ${element.name} (${element.uuid}): ${previousParent === "root" ? "root" : previousParent.uuid} -> ${currentParent}. Local transform preserved.`,
               },
             ],
-            structuredContent: {
+            structuredContent: reparentElementReceipt({
               execution: "applied" as const,
               id: element.uuid,
               name: element.name,
@@ -398,7 +403,7 @@ export function registerElementHierarchyTools(): void {
                 previousParent === "root" ? "root" : previousParent.uuid,
               parent: currentParent,
               transform_policy: "preserve_local",
-            },
+            }),
           };
         },
       }, STATUS_EXPERIMENTAL);
