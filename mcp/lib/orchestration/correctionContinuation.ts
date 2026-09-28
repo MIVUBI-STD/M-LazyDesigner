@@ -43,6 +43,8 @@ export type CorrectionLoopContinuation = {
     domain: VerificationEvidenceRequest["domain"];
     source: VerificationEvidenceRequest["source"];
     risk: "LOW" | "MEDIUM" | "HIGH" | null;
+    recovery_required: boolean;
+    recovery_reason: "EVIDENCE_EXPIRED" | "RUNTIME_GENERATION_CHANGED" | null;
   };
 };
 
