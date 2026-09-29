@@ -27,7 +27,9 @@ describe("LazyDesigner Control status economy", () => {
   });
 
   test("search and describe do not perform metadata-only status rereads", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
+    const source = await Bun.file(
+      "gateway/handlers/registerCoreTools.ts"
+    ).text();
     const searchStart = source.indexOf("GATEWAY_TOOLS.searchCapabilities");
     const describeStart = source.indexOf("GATEWAY_TOOLS.describeCapability");
     const invokeStart = source.indexOf("GATEWAY_TOOLS.invokeCapability");
@@ -43,9 +45,13 @@ describe("LazyDesigner Control status economy", () => {
   });
 
   test("status reads remain explicit for orientation and canonical phase snapshot only", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
-    expect(source).toContain("await backend.getStatus()");
-    expect(source).toContain("capabilityNeedsPhaseSnapshot(capability)");
+    const [registration, executor] = await Promise.all([
+      Bun.file("gateway/handlers/registerCoreTools.ts").text(),
+      Bun.file("gateway/runtime/capabilityExecutor.ts").text(),
+    ]);
+    expect(registration).toContain("await backend.getStatus()");
+    expect(executor).toContain("capabilityNeedsPhaseSnapshot(capability)");
+    expect(executor).toContain("(await this.backend.getStatus())");
   });
 });
 
@@ -173,9 +179,10 @@ describe("LazyDesigner Control status projection economy", () => {
   });
 
   test("Gateway source uses the compact Control projection only at the AI-client boundary", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
-    expect(source).toContain("projectControlPacketForGateway(control)");
-    expect(source).toContain("control: gatewayControl");
+    const source = await Bun.file(
+      "gateway/handlers/registerCoreTools.ts"
+    ).text();
+    expect(source).toContain("control: projectControlPacketForGateway(control)");
     expect(source).not.toContain("structuredContent: { control }");
   });
 });
