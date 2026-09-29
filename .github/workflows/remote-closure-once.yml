@@ -5,7 +5,15 @@ on:
     branches:
       - Local
     paths:
+      - "mcp/**"
+      - ".agents/skills/lazydesigner-modelling/**"
+      - ".agents/skills/lazydesigner-texturing/**"
+      - ".agents/skills/lazydesigner-animation/**"
       - ".github/workflows/remote-closure-once.yml"
+
+concurrency:
+  group: remote-closure-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
