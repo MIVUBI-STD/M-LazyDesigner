@@ -1788,4 +1788,151 @@ describe("zero-waste correction loop reuse", () => {
     ).toBe("BLOCKING_PLATEAU_REQUIRES_NEW_EVIDENCE");
   });
 
+
+  test("structured observations enter correction only after evidence compilation", () => {
+    const registry = new CorrectionLoopRegistry();
+    const result = registry.startFromObservations({
+      recipe_id: "asset-observed",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:observed",
+      observations: [
+        {
+          code: "WIDTH_LOW",
+          criterion: "SILHOUETTE_PROPORTION",
+          severity: "REVIEW",
+          summary: "Upper arms read too narrow.",
+          evidence: {
+            current_evidence_ref: "visual:front:2",
+            reference_evidence_ref: "IMG_FRONT",
+            views: ["front"],
+            evidence_targets: ["width", "silhouette"],
+          },
+          cause_family: "SIZE_MISMATCH",
+        },
+        {
+          code: "UNVERIFIED_DETAIL",
+          criterion: "SECONDARY_GEOMETRY_DETAIL",
+          severity: "INFO",
+          summary: "Small trim may differ.",
+          evidence: {
+            current_evidence_ref: "visual:front:2",
+          },
+        },
+      ],
+    });
+
+    expect(result.handle).not.toBeNull();
+    expect(result.unverified).toEqual([
+      {
+        code: "UNVERIFIED_DETAIL",
+        reason: "REFERENCE_EVIDENCE_REQUIRED",
+      },
+    ]);
+
+    const continuation = registry.projectContinuation(result.handle!);
+    expect(continuation.unresolved).toHaveLength(1);
+    expect(continuation.unresolved[0]).toMatchObject({
+      code: "WIDTH_LOW",
+      quality_class: "PRIMARY_FORM",
+      owner: "GEOMETRY",
+      cause_family: "SIZE_MISMATCH",
+    });
+  });
+
+  test("observation update excludes unsupported claims from fresh correction evidence", () => {
+    const registry = new CorrectionLoopRegistry();
+    const started = registry.startFromObservations({
+      recipe_id: "asset-observed-update",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:obs-0",
+      observations: [{
+        code: "WIDTH_LOW",
+        criterion: "SILHOUETTE_PROPORTION",
+        severity: "REVIEW",
+        summary: "Arm width differs.",
+        evidence: {
+          current_evidence_ref: "visual:front:0",
+          reference_evidence_ref: "IMG_FRONT",
+          views: ["front"],
+          evidence_targets: ["width"],
+        },
+        cause_family: "SIZE_MISMATCH",
+      }],
+    });
+    const handle = started.handle!;
+    registry.planGeometryCorrection(handle, [{
+      id: "resize",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS",
+            axis: "X",
+            mode: "MULTIPLY",
+            value: 1.05,
+            anchor: "MIN",
+          },
+        },
+      },
+    }]);
+
+    const update = registry.updateEvidenceFromObservations(
+      handle,
+      "verificationevidence:obs-1",
+      [{
+        code: "WIDTH_LOW",
+        criterion: "SILHOUETTE_PROPORTION",
+        severity: "REVIEW",
+        summary: "Width still differs but current comparison lacks reference pairing.",
+        evidence: {
+          current_evidence_ref: "visual:front:1",
+          views: ["front"],
+          evidence_targets: ["width"],
+        },
+      }]
+    );
+
+    expect(update.applied).toBe(false);
+    expect(update.accepted_count).toBe(0);
+    expect(update.unverified).toEqual([
+      { code: "WIDTH_LOW", reason: "REFERENCE_EVIDENCE_REQUIRED" },
+    ]);
+    expect(registry.projectContinuation(handle)).toMatchObject({
+      state: "VERIFY_PENDING",
+      convergence: {
+        state: "PENDING_VERIFICATION",
+        target_discrepancy_codes: ["WIDTH_LOW"],
+      },
+      verification: {
+        pending: true,
+        target_discrepancy_codes: ["WIDTH_LOW"],
+      },
+    });
+  });
+
 });

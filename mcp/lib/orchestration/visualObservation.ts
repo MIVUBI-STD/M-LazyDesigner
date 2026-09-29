@@ -1,0 +1,280 @@
+import type {
+  MinecraftCauseFamily,
+  MinecraftQualityClass,
+  MinecraftQualityOwner,
+  VerificationDiscrepancy,
+} from "@/lib/orchestration/compactEvidence";
+import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
+
+export type VisualObservationCriterion =
+  | "REQUIRED_PART_COMPLETENESS"
+  | "UNSUPPORTED_EXTRA_PART"
+  | "TOPOLOGY_ATTACHMENT"
+  | "SILHOUETTE_PROPORTION"
+  | "DEPTH_LAYERING"
+  | "NEGATIVE_SPACE_CONTACT"
+  | "PIVOT_MOTION_READINESS"
+  | "SECONDARY_GEOMETRY_DETAIL"
+  | "TEXTURE_IDENTITY_MARKING"
+  | "TEXTURE_MATERIAL_REGION"
+  | "TEXTURE_MAPPED_CONTINUITY"
+  | "TEXTURE_PIXEL_READABILITY"
+  | "ANIMATION_POSE_SILHOUETTE"
+  | "ANIMATION_CONTACT"
+  | "ANIMATION_TIMING_PHASE"
+  | "ANIMATION_WEIGHT_TRANSFER"
+  | "ANIMATION_SECONDARY_MOTION";
+
+export type StructuredVisualObservation = {
+  code: string;
+  criterion: VisualObservationCriterion;
+  severity: VerificationDiscrepancy["severity"];
+  summary: string;
+  evidence: {
+    current_evidence_ref: string | null;
+    reference_evidence_ref?: string | null;
+    views?: ModelView[];
+    evidence_targets?: VisualEvidenceTarget[];
+    phase_or_time?: string | null;
+  };
+  /**
+   * Cause may be supplied only when separately supported by evidence.
+   * The compiler never derives cause from summary text.
+   */
+  cause_family?: MinecraftCauseFamily;
+};
+
+export type CompiledVisualObservation =
+  | {
+      state: "SUPPORTED";
+      discrepancy: VerificationDiscrepancy;
+    }
+  | {
+      state: "UNVERIFIED";
+      discrepancy: null;
+      reason:
+        | "CURRENT_EVIDENCE_REQUIRED"
+        | "REFERENCE_EVIDENCE_REQUIRED"
+        | "OBSERVATION_INVALID";
+    };
+
+type CriterionContract = {
+  quality_class: MinecraftQualityClass;
+  owner: MinecraftQualityOwner;
+  requires_reference: boolean;
+};
+
+const CRITERION_CONTRACT: Readonly<
+  Record<VisualObservationCriterion, CriterionContract>
+> = {
+  REQUIRED_PART_COMPLETENESS: {
+    quality_class: "REQUIRED_PART",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  UNSUPPORTED_EXTRA_PART: {
+    quality_class: "REQUIRED_PART",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  TOPOLOGY_ATTACHMENT: {
+    quality_class: "TOPOLOGY_ATTACHMENT",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  SILHOUETTE_PROPORTION: {
+    quality_class: "PRIMARY_FORM",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  DEPTH_LAYERING: {
+    quality_class: "PRIMARY_FORM",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  NEGATIVE_SPACE_CONTACT: {
+    quality_class: "NEGATIVE_SPACE_CONTACT",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  PIVOT_MOTION_READINESS: {
+    quality_class: "RIG_MOTION_READINESS",
+    owner: "RIG",
+    requires_reference: false,
+  },
+  SECONDARY_GEOMETRY_DETAIL: {
+    quality_class: "SECONDARY_DETAIL",
+    owner: "GEOMETRY",
+    requires_reference: true,
+  },
+  TEXTURE_IDENTITY_MARKING: {
+    quality_class: "TEXTURE_MATERIAL",
+    owner: "TEXTURE",
+    requires_reference: true,
+  },
+  TEXTURE_MATERIAL_REGION: {
+    quality_class: "TEXTURE_MATERIAL",
+    owner: "TEXTURE",
+    requires_reference: true,
+  },
+  TEXTURE_MAPPED_CONTINUITY: {
+    quality_class: "TEXTURE_MATERIAL",
+    owner: "TEXTURE",
+    requires_reference: false,
+  },
+  TEXTURE_PIXEL_READABILITY: {
+    quality_class: "TEXTURE_MATERIAL",
+    owner: "TEXTURE",
+    requires_reference: true,
+  },
+  ANIMATION_POSE_SILHOUETTE: {
+    quality_class: "ANIMATION_MOTION",
+    owner: "ANIMATION",
+    requires_reference: true,
+  },
+  ANIMATION_CONTACT: {
+    quality_class: "ANIMATION_MOTION",
+    owner: "ANIMATION",
+    requires_reference: false,
+  },
+  ANIMATION_TIMING_PHASE: {
+    quality_class: "ANIMATION_MOTION",
+    owner: "ANIMATION",
+    requires_reference: true,
+  },
+  ANIMATION_WEIGHT_TRANSFER: {
+    quality_class: "ANIMATION_MOTION",
+    owner: "ANIMATION",
+    requires_reference: true,
+  },
+  ANIMATION_SECONDARY_MOTION: {
+    quality_class: "ANIMATION_MOTION",
+    owner: "ANIMATION",
+    requires_reference: true,
+  },
+};
+
+function nonEmpty(value: string | null | undefined): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function causeCompatible(
+  owner: MinecraftQualityOwner,
+  cause: MinecraftCauseFamily
+): boolean {
+  if (cause === "UNKNOWN") return true;
+  if (cause === "MATERIAL_MISMATCH") return owner === "TEXTURE";
+  if (cause === "MOTION_MISMATCH") return owner === "ANIMATION";
+  if (cause === "PIVOT_MISMATCH") return owner === "RIG";
+  return owner === "GEOMETRY" || owner === "RIG";
+}
+
+/**
+ * Converts one explicit, evidence-backed visual observation into the existing
+ * correction discrepancy vocabulary.
+ *
+ * No NLP/prose inference happens here. Criterion selects the quality owner;
+ * cause remains evidence-owned and optional.
+ */
+export function compileStructuredVisualObservation(
+  input: StructuredVisualObservation
+): CompiledVisualObservation {
+  if (
+    !nonEmpty(input.code) ||
+    !nonEmpty(input.summary) ||
+    input.summary.trim().length > 240
+  ) {
+    return {
+      state: "UNVERIFIED",
+      discrepancy: null,
+      reason: "OBSERVATION_INVALID",
+    };
+  }
+
+  if (!nonEmpty(input.evidence.current_evidence_ref)) {
+    return {
+      state: "UNVERIFIED",
+      discrepancy: null,
+      reason: "CURRENT_EVIDENCE_REQUIRED",
+    };
+  }
+
+  const contract = CRITERION_CONTRACT[input.criterion];
+  if (
+    contract.requires_reference &&
+    !nonEmpty(input.evidence.reference_evidence_ref)
+  ) {
+    return {
+      state: "UNVERIFIED",
+      discrepancy: null,
+      reason: "REFERENCE_EVIDENCE_REQUIRED",
+    };
+  }
+
+  const cause = input.cause_family;
+  if (cause !== undefined && !causeCompatible(contract.owner, cause)) {
+    return {
+      state: "UNVERIFIED",
+      discrepancy: null,
+      reason: "OBSERVATION_INVALID",
+    };
+  }
+
+  return {
+    state: "SUPPORTED",
+    discrepancy: {
+      code: input.code.trim(),
+      severity: input.severity,
+      summary: input.summary.trim(),
+      quality_class: contract.quality_class,
+      owner: contract.owner,
+      ...(cause !== undefined ? { cause_family: cause } : {}),
+      ...(input.evidence.views?.length
+        ? { views: [...new Set(input.evidence.views)] }
+        : {}),
+      ...(input.evidence.evidence_targets?.length
+        ? {
+            evidence_targets: [
+              ...new Set(input.evidence.evidence_targets),
+            ],
+          }
+        : {}),
+    },
+  };
+}
+
+export function compileStructuredVisualObservations(
+  inputs: readonly StructuredVisualObservation[]
+): {
+  supported: VerificationDiscrepancy[];
+  unverified: Array<{
+    code: string;
+    reason: Exclude<
+      CompiledVisualObservation,
+      { state: "SUPPORTED" }
+    >["reason"];
+  }>;
+} {
+  const supported: VerificationDiscrepancy[] = [];
+  const unverified: Array<{
+    code: string;
+    reason:
+      | "CURRENT_EVIDENCE_REQUIRED"
+      | "REFERENCE_EVIDENCE_REQUIRED"
+      | "OBSERVATION_INVALID";
+  }> = [];
+
+  for (const input of inputs) {
+    const result = compileStructuredVisualObservation(input);
+    if (result.state === "SUPPORTED") {
+      supported.push(result.discrepancy);
+    } else {
+      unverified.push({
+        code: input.code,
+        reason: result.reason,
+      });
+    }
+  }
+
+  return { supported, unverified };
+}

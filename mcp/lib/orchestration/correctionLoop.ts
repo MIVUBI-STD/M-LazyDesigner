@@ -18,6 +18,10 @@ import {
 } from "@/lib/orchestration/compactEvidence";
 import type { ModelView } from "@/server/tools/camera";
 import {
+  compileStructuredVisualObservations,
+  type StructuredVisualObservation,
+} from "@/lib/orchestration/visualObservation";
+import {
   correctionContinuationDelta,
   correctionContinuationId,
   type CorrectionContinuationDelivery,
@@ -223,6 +227,51 @@ export class CorrectionLoopRegistry {
     if (!Number.isInteger(maxEntries) || maxEntries < 1 || maxEntries > 32) {
       throw new Error("Correction loop registry maxEntries must be 1..32.");
     }
+  }
+
+
+  startFromObservations(
+    input: Omit<
+      CorrectionLoopRecord,
+      | "discrepancies"
+      | "attempt"
+      | "evidence_fingerprint"
+      | "last_attempt_evidence_fingerprint"
+      | "last_attempt_target_snapshot"
+      | "convergence_state"
+      | "convergence_target_codes"
+      | "view_evidence_handles"
+      | "pending_target_discrepancy_codes"
+      | "pending_stale_views"
+      | "last_delivered_continuation"
+      | "continuation_group"
+      | "next_continuation_group_id"
+      | "evidence_recovery_required"
+      | "evidence_recovery_reason"
+    > & {
+      observations: readonly StructuredVisualObservation[];
+    }
+  ): {
+    handle: CorrectionLoopHandle | null;
+    unverified: ReturnType<
+      typeof compileStructuredVisualObservations
+    >["unverified"];
+  } {
+    const compiled = compileStructuredVisualObservations(
+      input.observations
+    );
+    if (compiled.supported.length === 0) {
+      return { handle: null, unverified: compiled.unverified };
+    }
+
+    const { observations: _observations, ...recordInput } = input;
+    return {
+      handle: this.start({
+        ...recordInput,
+        discrepancies: compiled.supported,
+      }),
+      unverified: compiled.unverified,
+    };
   }
 
   start(
@@ -574,6 +623,53 @@ export class CorrectionLoopRegistry {
         "RUNTIME_GENERATION_CHANGED"
       );
     }
+  }
+
+
+  updateEvidenceFromObservations(
+    handle: CorrectionLoopHandle,
+    evidenceHandle: VerificationEvidenceHandle,
+    observations: readonly StructuredVisualObservation[],
+    options: { recovered_views?: readonly ModelView[] } = {}
+  ): {
+    applied: boolean;
+    accepted_count: number;
+    unverified: ReturnType<
+      typeof compileStructuredVisualObservations
+    >["unverified"];
+  } {
+    const record = this.entries.get(handle);
+    if (!record) {
+      throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
+    }
+
+    const compiled = compileStructuredVisualObservations(observations);
+    const pendingTargets = new Set(
+      record.pending_target_discrepancy_codes
+    );
+    const unresolvedTargetClaim = compiled.unverified.some(
+      (entry) => pendingTargets.has(entry.code)
+    );
+
+    if (unresolvedTargetClaim) {
+      return {
+        applied: false,
+        accepted_count: compiled.supported.length,
+        unverified: compiled.unverified,
+      };
+    }
+
+    this.updateEvidence(
+      handle,
+      evidenceHandle,
+      compiled.supported,
+      options
+    );
+    return {
+      applied: true,
+      accepted_count: compiled.supported.length,
+      unverified: compiled.unverified,
+    };
   }
 
   updateEvidence(
