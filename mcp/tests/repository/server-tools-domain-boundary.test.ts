@@ -3,6 +3,11 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
+  "locators.ts": 'export * from "./geometry/locators";\n',
+  "export.ts": 'export * from "./io/export";\n',
+  "import.ts": 'export * from "./io/import";\n',
+  "history.ts": 'export * from "./state/history";\n',
+  "ui.ts": 'export * from "./interaction/ui";\n',
   "element-inspection.ts": 'export * from "./element/inspection";\n',
   "animation-effects.ts": 'export * from "./animation/effects";\n',
   "animation-inspection.ts": 'export * from "./animation/inspection";\n',
