@@ -28,6 +28,7 @@ import {
   cubeStateNeutral,
   particleTextureHandoffRequired,
   animationTimelineStateNeutral,
+  animationControllerResourceStateNeutral,
   directAnimationStateNeutral,
   materialPersistenceOnly,
 } from "./receipts";
@@ -154,6 +155,12 @@ export function capabilityMutatesState(
     capability === "animation_timeline"
   ) {
     return !animationTimelineStateNeutral(result);
+  }
+  if (
+    capability === "manage_animation_controller" &&
+    animationControllerResourceStateNeutral(result)
+  ) {
+    return false;
   }
   if (
     (capability === "manage_keyframes" ||

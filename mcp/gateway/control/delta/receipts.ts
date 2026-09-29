@@ -125,6 +125,17 @@ export function materialPersistenceReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isMaterialPersistenceReceipt);
 }
 
+export function animationControllerResourceStateNeutral(
+  value: unknown
+): boolean {
+  return resultCandidates(value).some((candidate) =>
+    candidate.execution === "applied" &&
+    candidate.action === "runtime_resource" &&
+    Object.prototype.hasOwnProperty.call(candidate, "write") &&
+    candidate.write === null
+  );
+}
+
 export function animationControllerReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isAnimationControllerReceipt);
 }

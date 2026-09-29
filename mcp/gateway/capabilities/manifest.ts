@@ -587,6 +587,13 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
       "resource_kind", "resource_source", "resource_output",
       "resource_operations", "max_content_length",
     ],
+    operationClass: "MUTATION",
+    verificationClass: "focused_read",
+    semantic: {
+      intents: ["edit client entity animation runtime wiring", "configure client entity molang animation bindings"],
+      nouns: ["client entity", "animation", "molang", "mapping", "runtime", "binding"],
+      verbs: ["edit", "configure", "set", "remove", "wire"],
+    },
   },
   {
     capability: "manage_animation_controller",
@@ -595,6 +602,13 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
       "resource_kind", "resource_source", "resource_output",
       "resource_controller", "resource_operations", "max_content_length",
     ],
+    operationClass: "MUTATION",
+    verificationClass: "focused_read",
+    semantic: {
+      intents: ["edit animation controller resource variables", "configure controller variable remap"],
+      nouns: ["animation", "controller", "resource", "variable", "remap"],
+      verbs: ["edit", "configure", "set", "remove"],
+    },
   },
 
   {
