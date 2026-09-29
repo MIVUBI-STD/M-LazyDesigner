@@ -1,6 +1,7 @@
 import {
   getCapabilityCoreManifestEntry,
   type CapabilityEffects,
+  type CapabilityDiscoveryMode,
   type CapabilityExecutionClass,
   type CapabilityLifecycle,
   type CapabilityLifecycleStage,
@@ -13,6 +14,7 @@ import {
 
 export type {
   CapabilityEffects,
+  CapabilityDiscoveryMode,
   CapabilityExecutionClass,
   CapabilityLifecycle,
   CapabilityLifecycleStage,
@@ -27,6 +29,7 @@ export type CapabilityMetadata = {
   searchAliases: readonly string[];
   effects: CapabilityEffects;
   lifecycle: CapabilityLifecycle;
+  discoveryMode: CapabilityDiscoveryMode;
   executionClass: CapabilityExecutionClass;
   operationClass: CapabilityOperationClass;
   stateClass: CapabilityStateClass | null;
@@ -58,6 +61,7 @@ export function getCapabilityMetadata(name: string): CapabilityMetadata {
     searchAliases: entry?.aliases ?? [],
     effects: entry?.effects ?? DEFAULT_EFFECTS,
     lifecycle: entry?.lifecycle ?? DEFAULT_LIFECYCLE,
+    discoveryMode: entry?.discoveryMode ?? "intent",
     executionClass: entry?.executionClass ?? "normal",
     operationClass: capabilityOperationClassByName(name),
     stateClass: entry?.stateClass ?? null,

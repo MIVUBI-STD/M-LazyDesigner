@@ -145,6 +145,63 @@ describe("capability discovery efficiency", () => {
     }
   });
 
+  test("consolidated legacy executors are exact-name-only in intent discovery", () => {
+    const exactOnly = [
+      "animation_copy_paste",
+      "animation_graph_editor",
+      "animation_timeline",
+      "manage_keyframes",
+      "batch_keyframe_operations",
+      "configure_material",
+      "create_pbr_material",
+      "assign_texture_channel",
+      "save_material_config",
+      "bulk_set_material_instances",
+      "clear_material_instances",
+      "set_face_material_instance",
+      "get_face_material_instances",
+      "list_material_instances",
+      "apply_texture",
+    ] as const;
+
+    for (const capability of exactOnly) {
+      expect(getCapabilityMetadata(capability).discoveryMode, capability)
+        .toBe("exact_only");
+    }
+
+    const definitions = getAllToolDefinitions();
+    const catalog = [...new Set(
+      (["geometry", "texturing", "animation"] as const).flatMap((phase) =>
+        getMcpSurfaceToolNames("bedrock_entity", phase)
+      )
+    )].map((name) => ({
+      name,
+      description: definitions[name].description,
+      annotations: definitions[name].annotations,
+    })) as BackendTool[];
+
+    expect(
+      searchCapabilityCatalog(catalog, "edit animation timeline keyframes", 8)
+        .map((entry) => entry.capability_id)
+    ).toContain("manage_animation_timeline");
+    expect(
+      searchCapabilityCatalog(catalog, "edit animation timeline keyframes", 8)
+        .map((entry) => entry.capability_id)
+    ).not.toContain("animation_timeline");
+
+    expect(
+      searchCapabilityCatalog(catalog, "configure pbr material", 8)
+        .map((entry) => entry.capability_id)
+    ).toContain("manage_material");
+    expect(
+      searchCapabilityCatalog(catalog, "configure pbr material", 8)
+        .map((entry) => entry.capability_id)
+    ).not.toContain("configure_material");
+
+    expect(searchCapabilityCatalog(catalog, "configure_material", 8)[0]?.capability_id)
+      .toBe("configure_material");
+  });
+
   test("selection helpers remain authoring support instead of animation surface", () => {
     for (const capability of ["select_all_of_type", "get_selection"]) {
       expect(classifyMcpToolPhase(capability, "elements")).toBe("geometry");

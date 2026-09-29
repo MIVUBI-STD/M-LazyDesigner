@@ -144,11 +144,13 @@ export function searchCapabilityCatalog(
           ],
       };
     })
-    .filter(({ tier, semantic, bm25, nearName }) =>
-      hasQuery
+    .filter(({ tool, tier, semantic, bm25, nearName }) => {
+      const metadata = getCapabilityMetadata(tool.name);
+      if (metadata.discoveryMode === "exact_only") return false;
+      return hasQuery
         ? semantic.matched || bm25 > 0 || nearName > 0
-        : tier !== "maintenance"
-    )
+        : tier !== "maintenance";
+    })
     .sort(
       (left, right) =>
         right.score - left.score ||

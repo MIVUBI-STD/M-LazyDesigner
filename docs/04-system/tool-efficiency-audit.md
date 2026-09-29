@@ -45,6 +45,26 @@ A longer internal implementation is acceptable when the public semantic route st
 
 Retained low-level executors behind consolidated tools are intentional implementation detail, not duplicate normal authoring surfaces.
 
+### Discovery exposure
+
+Support/compatibility executors that are fully subsumed by a canonical consolidated route use `discoveryMode=exact_only`.
+
+```text
+ordinary intent search
+→ canonical consolidated capability only
+
+exact legacy capability name
+→ compatibility executor remains directly discoverable
+```
+
+Current exact-name-only groups:
+- Animation primitives consolidated by `manage_animation_timeline`.
+- Material primitives consolidated by `manage_material`.
+- Material-instance primitives consolidated by `manage_material_instances`.
+- Legacy per-face `apply_texture`.
+
+Unique support capabilities remain normal intent-search candidates when they still own behavior not represented by the canonical consolidated route. This includes `bone_rigging` for IK/mirror, `duplicate_element`, `manage_null_object`, and conditional editor-state helpers.
+
 ### SUPPORT — capability retained but should not be the default route
 
 | Capability | Why support-only |
