@@ -172,7 +172,7 @@ describe("texture production discipline", () => {
     const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
     expect(skill).toContain("Geometry/UV capabilities remain callable for bounded upstream correction");
     expect(skill).toContain("must not borrow Cube mutation");
-    expect(skill).toContain("No Geometry↔Texturing phase switch");
+    expect(skill).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(skill).toContain("HANDOFF_REQUIRED");
     expect(skill).toContain("switch_authoring_phase");
     expect(skill).toContain("AUTHORING↔Animation");

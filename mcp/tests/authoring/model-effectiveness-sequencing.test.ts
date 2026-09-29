@@ -34,7 +34,7 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
     }
     expect(texturing).toContain("HANDOFF_REQUIRED");
     expect(animation).toContain("HANDOFF_REQUIRED");
-    expect(texturing).toContain("No Geometry↔Texturing phase switch");
+    expect(texturing).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(animation.toLowerCase().replaceAll("/", " ")).toContain("participating hierarchy pivots are suitable");
   });
 
@@ -52,7 +52,7 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
 
     expect(texturing).toMatch(/unlocked\/invalid UV\s+→ Geometry owner \+ bounded UV correction; no phase switch/);
     expect(texturing).toContain("Geometry/UV capabilities remain callable for bounded upstream correction");
-    expect(texturing).toContain("No Geometry↔Texturing phase switch");
+    expect(texturing).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(animation).toContain("Animation owns motion, not structural rig mutation");
     expect(animation).toContain("target_phase: geometry");
     expect(animation).not.toContain("tool_search");
