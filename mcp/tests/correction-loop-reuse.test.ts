@@ -1496,4 +1496,287 @@ describe("zero-waste correction loop reuse", () => {
     expect(decision.attempt).toBe(0);
   });
 
+
+  test("same-cause same-severity re-verification stops low-value repeat correction", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-plateau",
+      base_recipe: { ...recipe(), id: "asset-plateau", name: "asset-plateau" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:plateau-0",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Arms are too narrow.",
+        quality_class: "PRIMARY_FORM",
+        owner: "GEOMETRY",
+        cause_family: "SIZE_MISMATCH",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+    const candidate = {
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.08,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS" as const,
+            axis: "X" as const,
+            mode: "MULTIPLY" as const,
+            value: 1.03,
+            anchor: "MIN" as const,
+          },
+        },
+      },
+    };
+
+    expect(registry.planGeometryCorrection(handle, [candidate]).state).toBe(
+      "CORRECTION_READY"
+    );
+    registry.updateEvidence(handle, "verificationevidence:plateau-1", [{
+      code: "WIDTH_LOW",
+      severity: "REVIEW",
+      summary: "Arms remain too narrow.",
+      quality_class: "PRIMARY_FORM",
+      owner: "GEOMETRY",
+      cause_family: "SIZE_MISMATCH",
+      views: ["front"],
+      evidence_targets: ["width"],
+    }]);
+
+    const continuation = registry.projectContinuation(handle);
+    expect(continuation.convergence).toEqual({
+      state: "PLATEAU",
+      target_discrepancy_codes: ["WIDTH_LOW"],
+    });
+    expect(continuation.state).toBe("BLOCKED");
+    const retry = registry.planGeometryCorrection(handle, [candidate]);
+    expect(retry.blocked_reason).toBe("QUALITY_PLATEAU_NO_GAIN");
+    expect(retry.attempt).toBe(1);
+  });
+
+  test("severity reduction counts as demonstrated gain and permits one bounded continuation", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-improved",
+      base_recipe: { ...recipe(), id: "asset-improved", name: "asset-improved" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:improved-0",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "BLOCKING",
+        summary: "Primary width is materially wrong.",
+        quality_class: "PRIMARY_FORM",
+        owner: "GEOMETRY",
+        cause_family: "SIZE_MISMATCH",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+    const candidate = {
+      id: "resize",
+      predicted_error: 0.05,
+      mutation_cost: 0.08,
+      risk: 0.08,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS" as const,
+            axis: "X" as const,
+            mode: "MULTIPLY" as const,
+            value: 1.03,
+            anchor: "MIN" as const,
+          },
+        },
+      },
+    };
+
+    registry.planGeometryCorrection(handle, [candidate]);
+    registry.updateEvidence(handle, "verificationevidence:improved-1", [{
+      code: "WIDTH_LOW",
+      severity: "REVIEW",
+      summary: "Width improved; small mismatch remains.",
+      quality_class: "PRIMARY_FORM",
+      owner: "GEOMETRY",
+      cause_family: "SIZE_MISMATCH",
+      views: ["front"],
+      evidence_targets: ["width"],
+    }]);
+
+    expect(registry.projectContinuation(handle).convergence.state).toBe(
+      "IMPROVED"
+    );
+    expect(registry.planGeometryCorrection(handle, [candidate]).state).toBe(
+      "CORRECTION_READY"
+    );
+  });
+
+  test("new evidence changing the diagnosed cause breaks plateau and allows a new route", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-cause-change",
+      base_recipe: { ...recipe(), id: "asset-cause-change", name: "asset-cause-change" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "MEDIUM",
+        views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:cause-0",
+      discrepancies: [{
+        code: "ARM_MISMATCH",
+        severity: "REVIEW",
+        summary: "Arm position/form mismatch.",
+        quality_class: "PRIMARY_FORM",
+        owner: "GEOMETRY",
+        cause_family: "SIZE_MISMATCH",
+        views: ["front", "left"],
+        evidence_targets: ["width", "attachment"],
+      }],
+    });
+    const resizeCandidate = {
+      id: "resize",
+      predicted_error: 0.08,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["ARM_MISMATCH"],
+        correction_family: "RESIZE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: {
+            kind: "RESIZE_AXIS" as const,
+            axis: "X" as const,
+            mode: "MULTIPLY" as const,
+            value: 1.03,
+            anchor: "MIN" as const,
+          },
+        },
+      },
+    };
+    registry.planGeometryCorrection(handle, [resizeCandidate]);
+    registry.updateEvidence(handle, "verificationevidence:cause-1", [{
+      code: "ARM_MISMATCH",
+      severity: "REVIEW",
+      summary: "Fresh side evidence shows position, not size, owns the mismatch.",
+      quality_class: "PRIMARY_FORM",
+      owner: "GEOMETRY",
+      cause_family: "POSITION_MISMATCH",
+      views: ["left"],
+      evidence_targets: ["attachment"],
+    }]);
+
+    expect(registry.projectContinuation(handle).convergence.state).toBe(
+      "CAUSE_CHANGED"
+    );
+    const translate = registry.planGeometryCorrection(handle, [{
+      id: "translate",
+      predicted_error: 0.06,
+      mutation_cost: 0.08,
+      risk: 0.08,
+      patch: {
+        target_discrepancy_codes: ["ARM_MISMATCH"],
+        correction_family: "TRANSLATE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: { kind: "TRANSLATE", delta: [0.25, 0, 0] },
+        },
+      },
+    }]);
+    expect(translate.state).toBe("CORRECTION_READY");
+  });
+
+  test("blocking plateau never becomes acceptance and requires new evidence", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-blocking-plateau",
+      base_recipe: { ...recipe(), id: "asset-blocking-plateau", name: "asset-blocking-plateau" },
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "HIGH",
+        views: ["front", "left", "front_left_3q"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 512,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:block-0",
+      discrepancies: [{
+        code: "ATTACHMENT_BROKEN",
+        severity: "BLOCKING",
+        summary: "Arm attachment is broken.",
+        quality_class: "TOPOLOGY_ATTACHMENT",
+        owner: "GEOMETRY",
+        cause_family: "POSITION_MISMATCH",
+        views: ["front", "left"],
+        evidence_targets: ["attachment"],
+      }],
+    });
+    const candidate = {
+      id: "translate",
+      predicted_error: 0.05,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["ATTACHMENT_BROKEN"],
+        correction_family: "TRANSLATE" as const,
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: { kind: "TRANSLATE" as const, delta: [0.25, 0, 0] as [number, number, number] },
+        },
+      },
+    };
+    registry.planGeometryCorrection(handle, [candidate]);
+    registry.updateEvidence(handle, "verificationevidence:block-1", [{
+      code: "ATTACHMENT_BROKEN",
+      severity: "BLOCKING",
+      summary: "Attachment remains broken after correction.",
+      quality_class: "TOPOLOGY_ATTACHMENT",
+      owner: "GEOMETRY",
+      cause_family: "POSITION_MISMATCH",
+      views: ["front", "left"],
+      evidence_targets: ["attachment"],
+    }]);
+
+    expect(registry.projectContinuation(handle)).toMatchObject({
+      state: "BLOCKED",
+      convergence: { state: "PLATEAU" },
+    });
+    expect(
+      registry.planGeometryCorrection(handle, [candidate]).blocked_reason
+    ).toBe("BLOCKING_PLATEAU_REQUIRES_NEW_EVIDENCE");
+  });
+
 });

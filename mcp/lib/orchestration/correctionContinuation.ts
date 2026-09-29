@@ -43,6 +43,16 @@ export type CorrectionLoopContinuation = {
     views: ModelView[];
     evidence_targets: VisualEvidenceTarget[];
   } | null;
+  convergence: {
+    state:
+      | "UNASSESSED"
+      | "PENDING_VERIFICATION"
+      | "RESOLVED"
+      | "IMPROVED"
+      | "CAUSE_CHANGED"
+      | "PLATEAU";
+    target_discrepancy_codes: string[];
+  };
   unresolved: Array<{
     code: string;
     severity: VerificationDiscrepancy["severity"];
@@ -79,6 +89,7 @@ export type CorrectionContinuationDelta = {
   attempt?: CorrectionLoopContinuation["attempt"];
   unresolved_count?: number;
   quality_focus?: CorrectionLoopContinuation["quality_focus"];
+  convergence?: CorrectionLoopContinuation["convergence"];
   unresolved_upsert?: CorrectionLoopContinuation["unresolved"];
   resolved_discrepancy_codes?: string[];
   unresolved_truncated?: boolean;
@@ -150,6 +161,9 @@ export function correctionContinuationDelta(
       : {}),
     ...(!canonicalEqual(previous.quality_focus, current.quality_focus)
       ? { quality_focus: current.quality_focus }
+      : {}),
+    ...(!canonicalEqual(previous.convergence, current.convergence)
+      ? { convergence: current.convergence }
       : {}),
     ...(unresolvedUpsert.length > 0 ? { unresolved_upsert: unresolvedUpsert } : {}),
     ...(resolvedCodes.length > 0

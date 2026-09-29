@@ -39,6 +39,14 @@ type GeometryCorrectionPatch = {
   target_discrepancy_codes?: readonly string[];
 };
 
+type CorrectionConvergenceState =
+  | "UNASSESSED"
+  | "PENDING_VERIFICATION"
+  | "RESOLVED"
+  | "IMPROVED"
+  | "CAUSE_CHANGED"
+  | "PLATEAU";
+
 type CorrectionLoopRecord = {
   recipe_id: string;
   base_recipe: AuthoringRecipe;
@@ -48,6 +56,9 @@ type CorrectionLoopRecord = {
   attempt: 0 | 1 | 2;
   evidence_fingerprint: string;
   last_attempt_evidence_fingerprint: string | null;
+  last_attempt_target_snapshot: VerificationDiscrepancy[];
+  convergence_state: CorrectionConvergenceState;
+  convergence_target_codes: string[];
   view_evidence_handles: Partial<Record<ModelView, VerificationEvidenceHandle>>;
   pending_target_discrepancy_codes: string[];
   pending_stale_views: ModelView[];
@@ -105,6 +116,8 @@ type CorrectionLoopDecision = {
     | "CORRECTION_FAMILY_MISMATCH"
     | "CAUSAL_REPAIR_MISMATCH"
     | "CAUSE_REQUIRES_OWNER_ROUTE"
+    | "QUALITY_PLATEAU_NO_GAIN"
+    | "BLOCKING_PLATEAU_REQUIRES_NEW_EVIDENCE"
     | "EVIDENCE_RECOVERY_REQUIRED";
 };
 
@@ -140,6 +153,68 @@ function fingerprintEvidence(
     .digest("hex");
 }
 
+const CONVERGENCE_SEVERITY_RANK: Readonly<
+  Record<VerificationDiscrepancy["severity"], number>
+> = {
+  INFO: 0,
+  REVIEW: 1,
+  BLOCKING: 2,
+};
+
+function discrepancyDiagnosisIdentity(
+  item: VerificationDiscrepancy
+): string {
+  return JSON.stringify({
+    quality_class: item.quality_class ?? null,
+    owner: item.owner ?? null,
+    cause_family: item.cause_family ?? null,
+  });
+}
+
+function assessCorrectionConvergence(
+  before: readonly VerificationDiscrepancy[],
+  after: readonly VerificationDiscrepancy[],
+  targetCodes: readonly string[]
+): CorrectionConvergenceState {
+  if (targetCodes.length === 0 || before.length === 0) return "UNASSESSED";
+
+  const targets = new Set(targetCodes);
+  const beforeByCode = new Map(
+    before.filter((item) => targets.has(item.code)).map((item) => [item.code, item])
+  );
+  const afterByCode = new Map(
+    after.filter((item) => targets.has(item.code)).map((item) => [item.code, item])
+  );
+
+  if (beforeByCode.size === 0) return "UNASSESSED";
+  if ([...beforeByCode.keys()].every((code) => !afterByCode.has(code))) {
+    return "RESOLVED";
+  }
+
+  let improved = false;
+  let causeChanged = false;
+  for (const [code, prior] of beforeByCode) {
+    const current = afterByCode.get(code);
+    if (!current) continue;
+    if (
+      CONVERGENCE_SEVERITY_RANK[current.severity] <
+      CONVERGENCE_SEVERITY_RANK[prior.severity]
+    ) {
+      improved = true;
+    }
+    if (
+      discrepancyDiagnosisIdentity(current) !==
+      discrepancyDiagnosisIdentity(prior)
+    ) {
+      causeChanged = true;
+    }
+  }
+
+  if (improved) return "IMPROVED";
+  if (causeChanged) return "CAUSE_CHANGED";
+  return "PLATEAU";
+}
+
 export class CorrectionLoopRegistry {
   private readonly entries = new Map<CorrectionLoopHandle, CorrectionLoopRecord>();
   private scopeIdentity = "unbound:0";
@@ -156,6 +231,9 @@ export class CorrectionLoopRegistry {
       | "attempt"
       | "evidence_fingerprint"
       | "last_attempt_evidence_fingerprint"
+      | "last_attempt_target_snapshot"
+      | "convergence_state"
+      | "convergence_target_codes"
       | "view_evidence_handles"
       | "pending_target_discrepancy_codes"
       | "pending_stale_views"
@@ -183,6 +261,9 @@ export class CorrectionLoopRegistry {
         input.discrepancies
       ),
       last_attempt_evidence_fingerprint: null,
+      last_attempt_target_snapshot: [],
+      convergence_state: "UNASSESSED",
+      convergence_target_codes: [],
       view_evidence_handles: viewEvidenceHandles,
       pending_target_discrepancy_codes: [],
       pending_stale_views: [],
@@ -259,12 +340,13 @@ export class CorrectionLoopRegistry {
 
     const pending =
       record.pending_stale_views.length > 0 || record.evidence_recovery_required;
+    const plateau = record.convergence_state === "PLATEAU";
     const state: CorrectionLoopContinuation["state"] =
       pending
         ? "VERIFY_PENDING"
         : record.discrepancies.length === 0
           ? "CLEAR"
-          : record.attempt >= 2
+          : plateau || record.attempt >= 2
             ? "BLOCKED"
             : "READY";
     const mode: CorrectionLoopContinuation["mode"] =
@@ -272,7 +354,7 @@ export class CorrectionLoopRegistry {
         ? "VERIFY_PENDING"
         : record.discrepancies.length === 0
           ? "CLEAR"
-          : record.attempt >= 2
+          : plateau || record.attempt >= 2
             ? "BLOCKED"
             : record.attempt === 0
               ? "CANDIDATE_CONTEXT"
@@ -287,6 +369,10 @@ export class CorrectionLoopRegistry {
       state,
       unresolved_count: record.discrepancies.length,
       quality_focus: qualityFocus,
+      convergence: {
+        state: record.convergence_state,
+        target_discrepancy_codes: [...record.convergence_target_codes],
+      },
       unresolved,
       unresolved_truncated: record.discrepancies.length > unresolved.length,
       fresh_view_evidence: freshViewEvidence,
@@ -514,6 +600,19 @@ export class CorrectionLoopRegistry {
     }
 
     const incoming = [...structuredClone(discrepancies)];
+    const pendingTargetCodes = [...record.pending_target_discrepancy_codes];
+    if (pendingTargetCodes.length > 0) {
+      record.convergence_state = assessCorrectionConvergence(
+        record.last_attempt_target_snapshot,
+        incoming,
+        pendingTargetCodes
+      );
+      record.convergence_target_codes = pendingTargetCodes;
+    } else {
+      record.convergence_state = "UNASSESSED";
+      record.convergence_target_codes = [];
+    }
+
     if (record.pending_target_discrepancy_codes.length > 0) {
       const replaced = new Set(record.pending_target_discrepancy_codes);
       const retained = record.discrepancies.filter(
@@ -563,6 +662,22 @@ export class CorrectionLoopRegistry {
         attempt: record.attempt,
         verification_request: structuredClone(record.verification_request),
         blocked_reason: "EVIDENCE_RECOVERY_REQUIRED",
+      };
+    }
+
+    if (record.convergence_state === "PLATEAU") {
+      const plateauTargets = new Set(record.convergence_target_codes);
+      const plateauHasBlocking = record.discrepancies.some(
+        (item) => plateauTargets.has(item.code) && item.severity === "BLOCKING"
+      );
+      return {
+        handle,
+        state: "BLOCKED",
+        attempt: record.attempt,
+        verification_request: structuredClone(record.verification_request),
+        blocked_reason: plateauHasBlocking
+          ? "BLOCKING_PLATEAU_REQUIRES_NEW_EVIDENCE"
+          : "QUALITY_PLATEAU_NO_GAIN",
       };
     }
 
@@ -743,9 +858,16 @@ export class CorrectionLoopRegistry {
     record.base_recipe = structuredClone(nextRecipe);
     record.attempt = (record.attempt + 1) as 1 | 2;
     record.last_attempt_evidence_fingerprint = record.evidence_fingerprint;
+    record.last_attempt_target_snapshot = structuredClone(
+      reverificationDiscrepancies
+    );
     record.pending_target_discrepancy_codes = reverificationDiscrepancies.map(
       (item) => item.code
     );
+    record.convergence_state = "PENDING_VERIFICATION";
+    record.convergence_target_codes = [
+      ...record.pending_target_discrepancy_codes,
+    ];
     record.pending_stale_views = [...staleViews];
 
     return {
