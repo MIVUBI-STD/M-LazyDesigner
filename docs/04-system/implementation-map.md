@@ -213,6 +213,33 @@ mcp/server/tools/particle/fileTransaction.ts
 → Particle execution / inspection / filesystem transaction owners
 ```
 
+Additional canonical support domains:
+
+```text
+mcp/server/tools/geometry/locators.ts
+→ Locator lifecycle/mutation owner
+
+mcp/server/tools/inspection/camera.ts
+→ visual framing / screenshot inspection owner
+
+mcp/server/tools/validation/qualityIntelligence.ts
+mcp/server/tools/validation/qualityEvidenceRuntime.ts
+→ bounded Runtime quality/validation augmentation owners
+
+mcp/server/tools/io/export.ts
+mcp/server/tools/io/import.ts
+→ model IO owners
+
+mcp/server/tools/state/history.ts
+→ Undo/Redo/checkpoint state owner
+
+mcp/server/tools/interaction/ui.ts
+→ Blockbench interaction/UI tool owner
+
+mcp/server/tools/texture/renderProfile.ts
+→ render-profile resource owner
+```
+
 Representative focused owners:
 
 ```text
