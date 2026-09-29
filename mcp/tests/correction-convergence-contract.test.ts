@@ -30,8 +30,8 @@ describe("LazyDesigner correction convergence contract", () => {
 
     expect(geometry).toContain("local correction / convergence");
     expect(geometry).toContain("reuse fresh exact authored state");
-    expect(geometry).toContain("recapture affected view(s)");
-    expect(geometry).toContain("same causal correction failing twice without new evidence");
+    expect(geometry).toContain("recapture only affected evidence");
+    expect(geometry).toContain("same causal direction failing twice without new evidence");
   });
 
   test("texturing refreshes only stale evidence and does not guess a third variant", async () => {
