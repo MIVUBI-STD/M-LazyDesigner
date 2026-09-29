@@ -23,6 +23,16 @@ export function resolveTextureToolMaterial(reference: string): TextureGroup {
   );
 }
 
+export function resolvePbrMaterial(reference: string): TextureGroup {
+  const group = resolveTextureToolMaterial(reference);
+  if (group.is_material !== true) {
+    throw new Error(
+      `TextureGroup "${group.name}" is not a PBR material.`
+    );
+  }
+  return group;
+}
+
 export function materialContinuationState(group: TextureGroup) {
   const textures = group.getTextures();
   return {
