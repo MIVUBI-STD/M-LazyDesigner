@@ -14,7 +14,7 @@ import {
   textureInventoryEntry,
   textureProductionRole,
 } from "./texture-atlas";
-import { resolveTextureToolMaterial } from "./texture-materials";
+import { resolveTextureToolMaterial } from "./texture/materialState";
 
 
 
