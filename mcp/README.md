@@ -185,7 +185,12 @@ server/net.ts             Runtime HTTP/MCP transport + serialization
 server/runtime/           registration/surface/consolidation/phase/bootstrap
 server/tools/             authored Tool implementations
 server/resources/         Runtime Resources
-lib/                      schemas/metadata/readiness/factories/runtime helpers
+lib/                      shared/domain-pure helpers; root facades only where compatibility remains
+lib/authoring/            handoff readiness + validation semantics
+lib/bedrock/              Bedrock project identity + project semantics
+lib/product/              product identity
+lib/protocol/             resource/protocol helpers
+lib/runtime/              connection/affinity/fetch/lifecycle primitives
 ui/                       Blockbench UI implementation used by integration owner
 prompts/                  canonical runtime workflow + generated manifest
 build/                    build/docs/manifest tooling
