@@ -51,6 +51,22 @@ const LEGACY_ROOT_DOMAIN_FILES = new Set([
 
 const DOMAIN_PREFIX = /^(?:animation|geometry|particle|texture|uv)[A-Z].*\.ts$/;
 
+const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
+  "animationContactEvidence.ts":
+    'export * from "./animation/contactEvidence";\n',
+  "animationEasing.ts": 'export * from "./animation/easing";\n',
+  "animationPreviewState.ts":
+    'export * from "./animation/previewState";\n',
+  "geometryQuality.ts": 'export * from "./geometry/quality";\n',
+  "geometrySurfaceEvidence.ts":
+    'export * from "./geometry/surfaceEvidence";\n',
+  "particleResourceLayout.ts":
+    'export * from "./particle/resourceLayout";\n',
+  "textureBitmapRuntime.ts":
+    'export * from "./texture/bitmapRuntime";\n',
+  "texturePalette.ts": 'export * from "./texture/palette";\n',
+};
+
 describe("lib domain ownership ratchet", () => {
   test("migrated root paths stay compatibility-only wrappers", async () => {
     for (const [name, expected] of Object.entries(
@@ -85,8 +101,8 @@ describe("lib domain ownership ratchet", () => {
       (name) => !entries.has(name)
     );
 
-    // When a legacy root file is migrated, remove it from this allowlist in
-    // the same change. This makes the ratchet shrink rather than become stale.
+    // When a root compatibility path is finally retired, remove it from this
+    // allowlist in the same change so the permitted legacy surface only shrinks.
     expect(stale).toEqual([]);
   });
 });
