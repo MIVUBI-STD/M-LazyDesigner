@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   CAPABILITY_CORE_MANIFEST,
+  type CapabilitySemanticScope,
   capabilityPhaseByName,
   getCapabilityCoreManifestEntry,
 } from "./manifest";
@@ -127,7 +128,7 @@ describe("core capability manifest", () => {
   });
 
   test("state classes own coherent semantic stale-scope defaults", () => {
-    const allScopes = new Set([
+    const allScopes = new Set<CapabilitySemanticScope>([
       "GEOMETRY_STRUCTURE",
       "UV_MAPPING",
       "TEXTURE_APPEARANCE",
@@ -138,7 +139,7 @@ describe("core capability manifest", () => {
       "PARTICLE_SYSTEM",
     ]);
 
-    const exactByClass = new Map<string, readonly string[]>([
+    const exactByClass = new Map<string, readonly CapabilitySemanticScope[]>([
       ["uv", ["UV_MAPPING", "TEXTURE_APPEARANCE"]],
       ["texture_appearance", ["TEXTURE_APPEARANCE"]],
       ["texture_material", ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"]],
