@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { inspectAnimationParameters } from "@/server/tools/animation-inspection";
-import { captureScreenshotParameters } from "@/server/tools/camera";
+import { captureScreenshotParameters } from "@/server/tools/inspection/camera";
 import { elementInspectionToolDocs, inspectElementParameters } from "@/server/tools/element-inspection";
 import {
   filterByMaterialParameters,
