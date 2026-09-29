@@ -73,6 +73,33 @@ describe("server tool domain ownership", () => {
     expect(violations).toEqual([]);
   });
 
+  test("animation controller schema stays separate from executor/runtime wiring", async () => {
+    const schema = await Bun.file(
+      "server/tools/animation/controllerSchema.ts"
+    ).text();
+    const executor = await Bun.file("server/tools/animation-controller.ts").text();
+    const runtimeExtension = await Bun.file(
+      "server/runtime/extensions/animation/controllerNativeIntelligence.ts"
+    ).text();
+
+    expect(schema).toContain("manageAnimationControllerParameters");
+    expect(schema).toContain("ControllerMutationOperation");
+    expect(schema).not.toContain("createTool(");
+    expect(schema).not.toContain("Undo.");
+    expect(schema).not.toContain("/server/runtime");
+    expect(schema).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/animation/controllerSchema"'
+    );
+    expect(runtimeExtension).toContain(
+      'from "../../../tools/animation/controllerSchema"'
+    );
+    expect(runtimeExtension).not.toContain(
+      'from "../../../tools/animation-controller"'
+    );
+  });
+
   test("tool domain owners do not depend on higher Runtime composition", async () => {
     for (const domain of ["animation", "paint"] as const) {
       for (const file of await sourceFiles(`server/tools/${domain}`)) {
