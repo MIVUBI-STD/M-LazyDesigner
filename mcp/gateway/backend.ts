@@ -18,7 +18,7 @@ import {
   type CapabilitySummary,
   type CapabilitySearchContext,
   type JsonRecord,
-} from "./protocol";
+} from "./contracts/protocol";
 import {
   DEFAULT_RUNTIME_URL,
   createRuntimeSignature,
