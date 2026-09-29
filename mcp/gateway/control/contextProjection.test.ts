@@ -294,6 +294,16 @@ describe("Control stage semantic projection", () => {
       "torso",
       "front_leg",
     ]);
+    expect(context.asset_health).toMatchObject({
+      overall: "REVIEW",
+      stages: {
+        reference: "PASS",
+        geometry: "REVIEW",
+        uv_layout: "UNVERIFIED",
+        texturing: "UNVERIFIED",
+        animation: "UNVERIFIED",
+      },
+    });
     expect(context.reference_image_ids).toEqual(["geo-main"]);
     expect(context.current_user_delta).toBe(
       "make the legs slightly longer"

@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import { canonicalJson } from "../../lib/semantic/canonical";
+import {
+  buildAssetHealthSummary,
+  type AssetHealthSummary,
+} from "../../lib/assetHealth";
 import type { ControlAuthoringDomain } from "./types";
 import type { ControlWorkspaceProjection } from "./workspace";
 import type {
@@ -49,6 +53,7 @@ export type ControlStageContext = {
   requirements: ControlReferenceProjection["requirements"];
   semantic_facts: ControlStageSemanticFacts;
   decision_packet: ControlStageDecisionPacket;
+  asset_health: AssetHealthSummary;
   reference_document: string | null;
   reference_image_ids: string[];
   workspace: {
@@ -341,6 +346,11 @@ export function buildControlStageContext(input: {
     input.domain,
     input.reference
   );
+  const assetHealth = buildAssetHealthSummary({
+    domain: input.domain,
+    reference: input.reference,
+    workspace: input.workspace,
+  });
 
   const hashPayload = canonicalJson({
     type,
@@ -364,6 +374,7 @@ export function buildControlStageContext(input: {
     requirements: input.reference.requirements,
     semantic_facts: semanticFacts,
     decision_packet: decisionPacket,
+    asset_health: assetHealth,
     reference_document: referenceDocument,
     reference_image_ids: referenceImageIds,
     workspace: {

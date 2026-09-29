@@ -40,6 +40,19 @@ function fixture(overrides: Partial<ControlStageContext> = {}): ControlStageCont
       constraints: [],
     },
     decision_packet: {},
+    asset_health: {
+      overall: "REVIEW",
+      active_domain: "GEOMETRY",
+      stages: {
+        reference: "PASS",
+        geometry: "REVIEW",
+        uv_layout: "UNVERIFIED",
+        texturing: "UNVERIFIED",
+        animation: "UNVERIFIED",
+      },
+      blockers: [],
+      note: "fixture",
+    },
     reference_document: "GEOMETRY.md",
     reference_image_ids: ["IMG_FRONT", "IMG_SIDE", "IMG_TOP"],
     workspace: {
@@ -68,6 +81,7 @@ describe("Control stage-context headroom", () => {
     expect(projected.diagnostics.required_over_budget).toBe(false);
     expect(projected.context.current_user_delta).toBe(input.current_user_delta);
     expect(projected.context.requirements).toEqual(input.requirements);
+    expect(projected.context.asset_health).toEqual(input.asset_health);
     expect(projected.context.blocking_unknowns).toEqual([]);
     expect(projected.context.reference_image_ids).toEqual(input.reference_image_ids);
     expect(projected.context.workspace.next_step).toBe(input.workspace.next_step);

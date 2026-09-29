@@ -36,6 +36,7 @@ export type ProjectedControlStageContext = {
   blocking_unknowns: string[];
   requirements: ControlStageContext["requirements"];
   decision_packet?: ControlStageContext["decision_packet"];
+  asset_health: ControlStageContext["asset_health"];
   reference_image_ids: string[];
   workspace: {
     asset: string | null;
@@ -103,6 +104,7 @@ function requiredProjection(
     ...(hasDecisionPacket(context.decision_packet)
       ? { decision_packet: context.decision_packet }
       : {}),
+    asset_health: context.asset_health,
     // These IDs identify the stage-approved visual evidence set. Dropping them
     // based only on size can silently reduce reference fidelity.
     reference_image_ids: [...context.reference_image_ids],
