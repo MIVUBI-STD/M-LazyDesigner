@@ -24,6 +24,7 @@ export {
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import {
   materialContinuationState,
+  planMaterialChannelAssignment,
   resolveTextureToolMaterial,
 } from "@/server/tools/texture/materialState";
 export { resolveTextureToolMaterial } from "@/server/tools/texture/materialState";
@@ -596,22 +597,11 @@ export function registerTextureMaterialTools(): void {
         const textureGroup = resolveTextureToolMaterial(material);
         const tex = resolveAssignTextureChannelTexture(texture);
         const existingTextures = textureGroup.getTextures();
-        const resetTextures = existingTextures.filter(
-          (existing: Texture) =>
-            existing.pbr_channel === channel && existing.uuid !== tex.uuid
-        );
-        if (
-          tex.group === textureGroup.uuid &&
-          tex.pbr_channel === channel &&
-          resetTextures.length === 0
-        ) {
-          throw new Error(
-            `Texture "${tex.name}" is already the only ${channel} assignment on material "${textureGroup.name}"; no authored change is required.`
-          );
-        }
-        const undoTextures = [tex, ...resetTextures].filter(
-          (candidate, index, all) =>
-            all.findIndex((item) => item.uuid === candidate.uuid) === index
+        const { resetTextures, undoTextures } = planMaterialChannelAssignment(
+          textureGroup,
+          existingTextures,
+          tex,
+          channel
         );
   
         Undo.initEdit({
