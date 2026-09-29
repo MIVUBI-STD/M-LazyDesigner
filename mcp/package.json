@@ -61,6 +61,7 @@
     "dev:sync": "bun run prompts:build && bun run ./build --sourcemap --watch --sync",
     "build": "bun run prompts:build && bun run ./build --minify",
     "docs:build": "bun run ./build/docs.ts",
+    "generate:owned-artifacts": "bun run docs:build && bun run prompts:build && bun run generate:hybrid4-schemas",
     "docs:check": "bun run ./build/check-docs-freshness.ts",
     "docs:serve": "bun run docs/index.html",
     "docs": "bun run prompts:build && bun run docs:build && bun run docs:serve",
