@@ -141,6 +141,13 @@ export function verificationClassForResult(
     return fallback;
   }
 
+  if (
+    fallback === "not_applicable" &&
+    freshness.basis === "NO_CHANGE"
+  ) {
+    return "not_applicable";
+  }
+
   if (STATE_MUTATIONS.has(capability) && freshness.basis === "NO_CHANGE") {
     return "receipt_only";
   }

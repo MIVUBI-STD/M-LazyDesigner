@@ -214,6 +214,8 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
       "constraints",
       "include_implicit_stack_candidates",
     ],
+    operationClass: "CONTROL",
+    verificationClass: "not_applicable",
     semantic: {
       intents: ["plan uv layout", "pack uv islands", "fix uv overlap", "set texel density"],
       nouns: ["uv", "island", "atlas", "texel", "padding"],
@@ -229,6 +231,8 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_uv_layout",
     branch: { field: "operation", value: "apply" },
     schemaFields: ["operation", "plan_id", "expected_source_fingerprint"],
+    operationClass: "MUTATION",
+    verificationClass: "visual",
     semantic: {
       intents: ["apply uv plan", "commit uv layout"],
       nouns: ["uv", "layout", "plan"],

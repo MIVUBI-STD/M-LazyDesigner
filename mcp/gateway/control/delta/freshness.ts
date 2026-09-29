@@ -20,6 +20,8 @@ import {
   ALL_FRESHNESS_SCOPES,
   STATE_MUTATIONS,
 } from "./policy";
+import { manifestEntryForBranch } from "../../capabilities/manifest";
+import type { CapabilityBranchHint } from "../../capabilities/types";
 import {
   record,
   resultCandidates,
@@ -119,9 +121,18 @@ function semanticHistoryEffectFromResult(result: unknown): {
 export function capabilityMutatesState(
   capability: string,
   succeeded: boolean,
-  result: unknown
+  result: unknown,
+  branch?: CapabilityBranchHint
 ): boolean {
   if (!succeeded || !STATE_MUTATIONS.has(capability)) return false;
+  const branchOperationClass =
+    manifestEntryForBranch(capability, branch)?.operationClass;
+  if (
+    branchOperationClass &&
+    branchOperationClass !== "MUTATION"
+  ) {
+    return false;
+  }
   if (capability === "undo" || capability === "redo") {
     const semanticEffect = semanticHistoryEffectFromResult(result);
     if (semanticEffect && semanticEffect.stale.length === 0) return false;
@@ -239,7 +250,8 @@ export function mutationInvalidation(
   capability: string,
   domain: ControlAuthoringDomain,
   succeeded: boolean,
-  result: unknown
+  result: unknown,
+  branch?: CapabilityBranchHint
 ): ControlDelta["invalidates"] {
   if (succeeded && (capability === "undo" || capability === "redo")) {
     const historyInvalidation = semanticHistoryInvalidation(result);
@@ -278,7 +290,7 @@ export function mutationInvalidation(
     };
   }
 
-  const mutates = capabilityMutatesState(capability, succeeded, result);
+  const mutates = capabilityMutatesState(capability, succeeded, result, branch);
   let affectedDomains: ControlAuthoringDomain[] = [];
   if (mutates) {
     if (capability === "create_project") {
@@ -437,7 +449,8 @@ export function mutationFreshness(
   capability: string,
   domain: ControlAuthoringDomain,
   succeeded: boolean,
-  result: unknown
+  result: unknown,
+  branch?: CapabilityBranchHint
 ): ControlDelta["freshness"] {
   if (!succeeded) {
     return {
@@ -448,7 +461,7 @@ export function mutationFreshness(
     };
   }
 
-  const mutates = capabilityMutatesState(capability, true, result);
+  const mutates = capabilityMutatesState(capability, true, result, branch);
   if (!mutates) {
     return {
       basis: "NO_CHANGE",

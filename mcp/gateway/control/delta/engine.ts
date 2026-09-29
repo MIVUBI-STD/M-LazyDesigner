@@ -31,12 +31,19 @@ export function buildControlDelta(input: {
   if (input.capability === "create_project" && input.succeeded) changed.push("project_affinity");
 
   const authoringDomain = authoringDomainForCapability(input.capability);
-  const invalidates = mutationInvalidation(input.capability, authoringDomain, input.succeeded, input.result);
+  const invalidates = mutationInvalidation(
+    input.capability,
+    authoringDomain,
+    input.succeeded,
+    input.result,
+    input.branch
+  );
   const freshness = mutationFreshness(
     input.capability,
     authoringDomain,
     input.succeeded,
-    input.result
+    input.result,
+    input.branch
   );
   const revisionEvidence = input.succeeded
     ? authoritativeRevisionEvidence(input.capability, input.result)
