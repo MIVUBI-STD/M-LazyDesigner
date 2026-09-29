@@ -1,8 +1,3 @@
-import {
-  createMcpHandler,
-  isLegacyRequest,
-  WebStandardStreamableHTTPServerTransport
-} from "@modelcontextprotocol/server";
 import type { IncomingMessage, Server as NodeHttpServer, ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
 import {
@@ -18,17 +13,6 @@ import {
   sendNodeResponse,
   singleRequestHeader
 } from '@/server/httpBoundary'
-import {
-  registerToolsOnServer,
-  registerResourcesOnServer,
-  registerPromptsOnServer
-} from '@/lib/factories'
-import { createServer as createMcpServer } from '@/server/server'
-import { conformanceFixturesEnabled } from '@/server/conformanceFixtures'
-import {
-  DEFAULT_MCP_REGISTRATION_PROFILE,
-  type McpRegistrationProfile
-} from '@/lib/registrationProfile'
 import { createProductIdentity } from '@/lib/productIdentity'
 import {
   getActiveMcpAuthoringPhase,
@@ -57,9 +41,12 @@ import {
 import {
   isSuccessfulToolCallResponse,
   projectContextErrorBody,
-  readRequestEnvelope,
-  type SerializedWebResponse
+  readRequestEnvelope
 } from '@/server/requestProtocol'
+import {
+  handleStatelessMcpRequest,
+  sendSerializedWebResponse
+} from '@/server/mcpTransport'
 
 const INSTANCE_ID = crypto.randomUUID()
 const STARTUP_TIME = new Date().toISOString()
@@ -83,176 +70,6 @@ class RuntimeRequestAbandonedError extends Error {
   constructor () {
     super('Queued Runtime tool request was abandoned before execution.')
     this.name = 'RuntimeRequestAbandonedError'
-  }
-}
-
-/**
- * Handle one MCP HTTP request with request-owned server/transport state.
- *
- * The transport deliberately omits a session ID generator, so the SDK does not
- * create or require Mcp-Session-Id. Modern POST responses use SDK auto
- * representation (JSON or request-related SSE); standalone GET/session SSE is
- * still rejected by the outer HTTP route before this helper is called.
- */
-function createRequestServer (
-  phase: McpAuthoringPhase,
-  profile: McpRegistrationProfile,
-  phaseScoped: boolean
-) {
-  const requestServer = createMcpServer(phase, profile)
-  if (conformanceFixturesEnabled()) return requestServer
-
-  const scopedToolNames = phaseScoped
-    ? getMcpSurfaceToolNames(profile, phase)
-    : undefined
-  registerToolsOnServer(requestServer, scopedToolNames)
-  registerResourcesOnServer(requestServer)
-  registerPromptsOnServer(requestServer)
-  return requestServer
-}
-
-async function handleLegacyJsonMcpRequest (
-  webRequest: Request,
-  phase: McpAuthoringPhase,
-  profile: McpRegistrationProfile,
-  phaseScoped: boolean
-): Promise<Response> {
-  // The modern handler uses responseMode='auto' so ordinary calls stay JSON
-  // while related progress/log messages can upgrade the request to SSE. The
-  // legacy compatibility leg remains explicitly JSON below; SDK v2.0.0 does
-  // legacy 2025 stateless traffic and emits SSE instead. Keep this bounded
-  // official-SDK compatibility shim until that upstream behavior changes.
-  const requestServer = createRequestServer(phase, profile, phaseScoped)
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true
-  })
-  await requestServer.connect(transport)
-  try {
-    return await transport.handleRequest(webRequest)
-  } finally {
-    await requestServer.close()
-  }
-}
-
-async function handleStatelessMcpRequest (
-  webRequest: Request,
-  phase: McpAuthoringPhase = getActiveMcpAuthoringPhase(),
-  profile: McpRegistrationProfile = DEFAULT_MCP_REGISTRATION_PROFILE,
-  phaseScoped: boolean = false
-): Promise<SerializedWebResponse> {
-  // Modern 2026-07-28 traffic is owned by createMcpHandler. Legacy 2025 JSON
-  // remains a compatibility-only SDK shim because server v2.0.0 does not yet
-  // honor responseMode='json' for its built-in legacy fallback.
-  const modernHandler = createMcpHandler(
-    () => createRequestServer(phase, profile, phaseScoped),
-    {
-      legacy: 'reject',
-      responseMode: 'auto'
-    }
-  )
-
-  let deferModernClose = false
-  try {
-    const legacyRequest = await isLegacyRequest(webRequest)
-    const webResponse = legacyRequest
-      ? await handleLegacyJsonMcpRequest(webRequest, phase, profile, phaseScoped)
-      : await modernHandler.fetch(webRequest)
-
-    const responseHeaders: Record<string, string> = {}
-    webResponse.headers.forEach((value: string, key: string) => {
-      responseHeaders[key] = value
-    })
-
-    const contentType = webResponse.headers.get('content-type') || ''
-
-    // MCP 2026 Streamable HTTP may represent a POST response as either JSON or
-    // text/event-stream when related messages require streaming. The official
-    // modern SDK owns that choice. LazyDesigner buffers the finite response and
-    // forwards its exact content type; only the legacy compatibility leg is
-    // forced to JSON by handleLegacyJsonMcpRequest().
-    if (!contentType && webResponse.status !== 204 && webResponse.status !== 202) {
-      responseHeaders['content-type'] = 'application/json'
-    }
-
-    if (
-      !legacyRequest &&
-      contentType.includes('text/event-stream') &&
-      webResponse.body
-    ) {
-      deferModernClose = true
-      return {
-        status: webResponse.status,
-        headers: responseHeaders,
-        body: webResponse.body,
-        finalize: async () => {
-          await modernHandler.close()
-        }
-      }
-    }
-
-    return {
-      status: webResponse.status,
-      headers: responseHeaders,
-      body: await webResponse.text()
-    }
-  } finally {
-    if (!deferModernClose) await modernHandler.close()
-  }
-}
-
-async function sendSerializedWebResponse (
-  response: ServerResponse,
-  serialized: SerializedWebResponse,
-  closeConnection: boolean
-): Promise<void> {
-  if (typeof serialized.body === 'string') {
-    sendNodeResponse(
-      response,
-      serialized.status,
-      serialized.headers,
-      serialized.body,
-      closeConnection
-    )
-    await serialized.finalize?.()
-    return
-  }
-
-  if (response.headersSent || response.writableEnded) {
-    await serialized.finalize?.()
-    return
-  }
-
-  response.statusCode = serialized.status
-  for (const [key, value] of Object.entries(serialized.headers)) {
-    if (key.toLowerCase() === 'content-length') continue
-    response.setHeader(key, value)
-  }
-  if (closeConnection) response.setHeader('connection', 'close')
-
-  const reader = serialized.body.getReader()
-  let clientClosed = false
-  const cancelReader = () => {
-    clientClosed = true
-    void reader.cancel().catch(() => {})
-  }
-  response.once('close', cancelReader)
-
-  try {
-    while (!clientClosed && !response.writableEnded) {
-      const { value, done } = await reader.read()
-      if (done) break
-      if (value && value.byteLength > 0) {
-        const writable = response.write(Buffer.from(value))
-        if (!writable) {
-          await new Promise<void>((resolve) => response.once('drain', resolve))
-        }
-      }
-    }
-  } finally {
-    response.off('close', cancelReader)
-    if (!response.writableEnded && !response.destroyed) response.end()
-    await serialized.finalize?.()
   }
 }
 
