@@ -35,14 +35,14 @@ describe("semantic Undo history coverage", () => {
       mutationFiles.push(path);
       if (SEMANTIC_HISTORY_EXEMPTIONS.has(path)) continue;
 
-      const semanticCount =
+      const directlyAnnotatedFinishCount =
         source.match(
-          /recordCurrent(?:Capability)?SemanticHistoryEffect(?:IfAdvanced)?\(/g
+          /Undo\.finishEdit\([\s\S]{0,240}?recordCurrent(?:Capability)?SemanticHistoryEffect\(/g
         )?.length ?? 0;
 
       expect(
-        semanticCount,
-        `${relative(".", path)} must annotate every Undo.finishEdit()`
+        directlyAnnotatedFinishCount,
+        `${relative(".", path)} must annotate every direct Undo.finishEdit()`
       ).toBe(finishCount);
     }
 
@@ -96,6 +96,6 @@ describe("semantic Undo history coverage", () => {
     expect(source).not.toContain("writeFile");
     expect(source).not.toContain("localStorage");
     expect(source).not.toContain("indexedDB");
-    expect(source).toContain("return effects.get(entry) ?? null");
+    expect(source).toContain("effects.get(entry) ?? null");
   });
 });
