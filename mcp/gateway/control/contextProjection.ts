@@ -79,6 +79,11 @@ const GEOMETRY_PART_KEYS = [
   "attachment",
   "contact",
   "must_exist",
+  "uv_cohort",
+  "uv_identity_priority",
+  "uv_reuse_policy",
+  "uv_density_multiplier",
+  "uv_rotation_policy",
 ] as const;
 
 const ARTICULATION_KEYS = [

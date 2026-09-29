@@ -88,6 +88,10 @@ const reference: ControlReferenceProjection = {
         parent: "torso",
         motion: "ARTICULATED",
         evidence: "SUPPORTED",
+        uv_cohort: "limb",
+        uv_identity_priority: "LOW",
+        uv_reuse_policy: "ALLOW_REUSE",
+        uv_density_multiplier: 1,
         implementation_hint: "do not expose as a decision field",
       },
       {
@@ -95,6 +99,10 @@ const reference: ControlReferenceProjection = {
         role: "ANIMATION_ONLY",
         motion: "ARTICULATED",
         evidence: "SUPPORTED",
+        uv_cohort: "limb",
+        uv_identity_priority: "LOW",
+        uv_reuse_policy: "ALLOW_REUSE",
+        uv_density_multiplier: 1,
       },
       {
         id: "coat_marking",

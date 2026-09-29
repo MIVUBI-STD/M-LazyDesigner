@@ -57,4 +57,102 @@ describe("semantic UV planner", () => {
     const logo = result.placements.find((p) => p.id === "logo")!;
     expect([logo.x, logo.y, logo.width, logo.height, logo.locked]).toEqual([0,0,4,4,true]);
   });
+
+  test("identity-critical UV islands stay unique while low-priority symmetric regions may reuse", () => {
+    const result = planSemanticUv([
+      {
+        id: "face",
+        world_size: [4, 4],
+        cohort: "identity",
+        texel_density: 2,
+        identity_priority: "CRITICAL",
+        reuse_policy: "UNIQUE",
+        allow_rotation: false,
+      },
+      {
+        id: "shirt_logo",
+        world_size: [2, 2],
+        cohort: "identity",
+        identity_priority: "HIGH",
+        reuse_policy: "UNIQUE",
+      },
+      {
+        id: "arm_left",
+        world_size: [2, 6],
+        cohort: "cloth",
+        identity_priority: "LOW",
+      },
+      {
+        id: "arm_right",
+        world_size: [2, 6],
+        cohort: "cloth",
+        identity_priority: "LOW",
+        reuse_policy: "REQUIRE_REUSE",
+        share_with: "arm_left",
+      },
+    ], {
+      atlas_width: 32,
+      atlas_height: 32,
+      default_texel_density: 1,
+      padding: 1,
+    });
+
+    expect(result.complete).toBe(true);
+    expect(result.art_direction).toEqual({
+      unique_island_ids: ["face", "shirt_logo"],
+      required_reuse_island_ids: ["arm_right"],
+      high_priority_island_ids: ["face", "shirt_logo"],
+    });
+    const face = result.placements.find((entry) => entry.id === "face")!;
+    expect([face.width, face.height]).toEqual([8, 8]);
+    const left = result.placements.find((entry) => entry.id === "arm_left")!;
+    const right = result.placements.find((entry) => entry.id === "arm_right")!;
+    expect([right.x, right.y, right.width, right.height]).toEqual([
+      left.x,
+      left.y,
+      left.width,
+      left.height,
+    ]);
+  });
+
+  test("identity-unique islands reject accidental UV sharing", () => {
+    expect(() =>
+      planSemanticUv([
+        {
+          id: "face",
+          world_size: [4, 4],
+          cohort: "identity",
+          reuse_policy: "UNIQUE",
+          share_with: "head_side",
+        },
+        {
+          id: "head_side",
+          world_size: [4, 4],
+          cohort: "base",
+        },
+      ], {
+        atlas_width: 16,
+        atlas_height: 16,
+        default_texel_density: 1,
+      })
+    ).toThrow("identity-unique");
+  });
+
+  test("required reuse fails closed without an explicit source island", () => {
+    expect(() =>
+      planSemanticUv([
+        {
+          id: "symmetric_arm",
+          world_size: [2, 6],
+          cohort: "cloth",
+          reuse_policy: "REQUIRE_REUSE",
+        },
+      ], {
+        atlas_width: 16,
+        atlas_height: 16,
+        default_texel_density: 1,
+      })
+    ).toThrow("requires an explicit share_with owner");
+  });
+
 });

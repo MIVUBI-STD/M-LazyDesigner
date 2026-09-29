@@ -1,11 +1,16 @@
 import { packAtlasRects, type AtlasPlacement, type ReservedAtlasRect } from "@/lib/uv/maxRectsPlanner";
 
+export type SemanticUvIdentityPriority = "LOW" | "NORMAL" | "HIGH" | "CRITICAL";
+export type SemanticUvReusePolicy = "ALLOW_REUSE" | "UNIQUE" | "REQUIRE_REUSE";
+
 export type SemanticUvIsland = {
   id: string;
   world_size: readonly [number, number];
   cohort: string;
   texel_density?: number;
   allow_rotation?: boolean;
+  identity_priority?: SemanticUvIdentityPriority;
+  reuse_policy?: SemanticUvReusePolicy;
   share_with?: string;
   locked?: {
     x: number;
@@ -42,6 +47,13 @@ function pixelExtent(world: number, density: number): number {
   return Math.max(1, Math.ceil(positive(world, "UV world extent") * positive(density, "UV texel density")));
 }
 
+function identityPriority(value: SemanticUvIdentityPriority | undefined): number {
+  if (value === "CRITICAL") return 3;
+  if (value === "HIGH") return 2;
+  if (value === "NORMAL") return 1;
+  return 0;
+}
+
 function validateShareGraph(islands: readonly SemanticUvIsland[]): Map<string, SemanticUvIsland> {
   const byId = new Map<string, SemanticUvIsland>();
   for (const island of islands) {
@@ -50,6 +62,19 @@ function validateShareGraph(islands: readonly SemanticUvIsland[]): Map<string, S
     byId.set(island.id, island);
   }
   for (const island of islands) {
+    const reusePolicy = island.reuse_policy ?? "ALLOW_REUSE";
+    if (reusePolicy === "UNIQUE" && island.share_with) {
+      throw new Error(
+        "Semantic UV island " + island.id +
+          " is identity-unique and cannot share another UV region."
+      );
+    }
+    if (reusePolicy === "REQUIRE_REUSE" && !island.share_with) {
+      throw new Error(
+        "Semantic UV island " + island.id +
+          " requires an explicit share_with owner."
+      );
+    }
     if (!island.share_with) continue;
     const source = byId.get(island.share_with);
     if (!source) throw new Error("Semantic UV island " + island.id + " shares with missing island " + island.share_with + ".");
@@ -157,16 +182,28 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
     }
   }
 
-  const inputs = islands.filter((island) => !island.share_with && !lockedPlacementById.has(island.id)).map((island) => {
-    const size = islandPixelSize(island, options);
-    return {
-      id: island.id,
-      width: size[0],
-      height: size[1],
-      allow_rotation: island.allow_rotation,
-      cohort: island.cohort,
-    };
-  });
+  const inputs = islands
+    .filter(
+      (island) =>
+        !island.share_with && !lockedPlacementById.has(island.id)
+    )
+    .slice()
+    .sort(
+      (left, right) =>
+        identityPriority(right.identity_priority) -
+          identityPriority(left.identity_priority) ||
+        left.id.localeCompare(right.id)
+    )
+    .map((island) => {
+      const size = islandPixelSize(island, options);
+      return {
+        id: island.id,
+        width: size[0],
+        height: size[1],
+        allow_rotation: island.allow_rotation,
+        cohort: island.cohort,
+      };
+    });
 
   const packed = packAtlasRects(inputs, {
     width: options.atlas_width,
@@ -217,5 +254,28 @@ export function planSemanticUv(islands: readonly SemanticUvIsland[], options: Se
     incremental: affected !== null,
     affected_ids: affected ? [...affected].sort() : null,
     retained_ids: affected ? [...lockedPlacementById.keys()].filter((id) => !affected.has(id)).sort() : [],
+    art_direction: {
+      unique_island_ids: islands
+        .filter((island) => island.reuse_policy === "UNIQUE")
+        .map((island) => island.id)
+        .sort(),
+      required_reuse_island_ids: islands
+        .filter((island) => island.reuse_policy === "REQUIRE_REUSE")
+        .map((island) => island.id)
+        .sort(),
+      high_priority_island_ids: islands
+        .filter(
+          (island) =>
+            island.identity_priority === "HIGH" ||
+            island.identity_priority === "CRITICAL"
+        )
+        .sort(
+          (left, right) =>
+            identityPriority(right.identity_priority) -
+              identityPriority(left.identity_priority) ||
+            left.id.localeCompare(right.id)
+        )
+        .map((island) => island.id),
+    },
   };
 }

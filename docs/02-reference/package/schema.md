@@ -565,3 +565,18 @@ no field contains unsupported invented facts
 readiness is accurate
 package is understandable without the original ChatGPT transcript
 ```
+
+
+## Optional UV art-direction semantics
+
+When approved reference evidence materially distinguishes UV treatment for a semantic part, the part fact may include:
+
+```text
+uv_cohort
+uv_identity_priority = LOW | NORMAL | HIGH | CRITICAL
+uv_reuse_policy = ALLOW_REUSE | UNIQUE | REQUIRE_REUSE
+uv_density_multiplier
+uv_rotation_policy
+```
+
+Use these only when they change texture editability or identity fidelity. Typical examples are a face/logo/unique marking that must retain unique editable pixels, versus genuinely symmetric low-priority surfaces that may intentionally share UVs. These are art-direction constraints, not mandatory packing coordinates. Omit unsupported values; never classify every part ceremonially.
