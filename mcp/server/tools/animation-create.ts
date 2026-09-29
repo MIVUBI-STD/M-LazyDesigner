@@ -5,7 +5,7 @@ import { z } from "zod";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_STABLE } from "@/lib/constants";
-import { finiteAnimationVector3Schema } from "./animation-shared";
+import { finiteAnimationVector3Schema } from "./animation/shared";
 
 const bedrockParticleEffectSchema = z.object({
   effect: z
