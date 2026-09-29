@@ -100,6 +100,32 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("animation inspection schema stays separate from executor/runtime wiring", async () => {
+    const schema = await Bun.file(
+      "server/tools/animation/inspectionSchema.ts"
+    ).text();
+    const executor = await Bun.file("server/tools/animation-inspection.ts").text();
+    const runtimeContract = await Bun.file(
+      "server/runtime/animationRuntimeContracts.ts"
+    ).text();
+
+    expect(schema).toContain("inspectAnimationParameters");
+    expect(schema).not.toContain("createTool(");
+    expect(schema).not.toContain("Undo.");
+    expect(schema).not.toContain("/server/runtime");
+    expect(schema).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/animation/inspectionSchema"'
+    );
+    expect(runtimeContract).toContain(
+      'from "../tools/animation/inspectionSchema"'
+    );
+    expect(runtimeContract).not.toContain(
+      'from "../tools/animation-inspection"'
+    );
+  });
+
   test("create texture schema stays separate from executor/runtime wiring", async () => {
     const schema = await Bun.file(
       "server/tools/texture/createSchema.ts"
