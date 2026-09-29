@@ -20,6 +20,12 @@ Canonical AI context-loading contract:
 04-system/ai-context-loading.md
 ```
 
+Canonical source/module dependency boundary:
+
+```text
+04-system/module-boundaries.md
+```
+
 Use it when deciding which Docs, Skills, reference fields, or current-state evidence belong in the active context.
 
 ## Canonical Hierarchy
