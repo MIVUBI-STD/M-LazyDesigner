@@ -28,6 +28,10 @@ import {
   type AnimationQualityChannel,
   type AnimationQualityTrackInput,
 } from "@/lib/animationQuality";
+import {
+  analyzeAnimationCraftEvidence,
+  type AnimationCraftTrackInput,
+} from "@/lib/animationCraftEvidence";
 
 const wiredTools = new Set<string>();
 const CUBE_FACE_KEYS = ["north", "south", "east", "west", "up", "down"] as const;
@@ -415,6 +419,53 @@ function animationQualityRuntime(structuredContent: Record<string, unknown>) {
   });
 }
 
+
+function animationCraftRuntime(structuredContent: Record<string, unknown>) {
+  if (typeof Group === "undefined" || typeof BoneAnimator === "undefined") {
+    return {
+      state: "unavailable" as const,
+      reason: "authored_animation_runtime_unavailable" as const,
+    };
+  }
+  const animation = resolveAuthoredAnimationRuntime(structuredContent);
+  if (!animation) {
+    return {
+      state: "unavailable" as const,
+      reason: "authored_animation_not_resolved" as const,
+    };
+  }
+
+  const tracks: AnimationCraftTrackInput[] = [];
+  for (const animator of Object.values(animation.animators)) {
+    if (!(animator instanceof BoneAnimator)) continue;
+    const group = Group.all.find(
+      (candidate: Group) => candidate.uuid === animator.uuid
+    );
+
+    for (const channel of ["position", "rotation", "scale"] as const) {
+      const keyframes = ((animator[channel] as _Keyframe[] | undefined) ?? [])
+        .slice()
+        .sort((left, right) => left.time - right.time)
+        .map((keyframe) => ({
+          time: keyframe.time,
+          value: keyframe.getArray(0) as unknown[],
+        }));
+      if (keyframes.length === 0) continue;
+      tracks.push({
+        group_uuid: animator.uuid,
+        group_name: group?.name ?? animator.name,
+        channel,
+        keyframes,
+      });
+    }
+  }
+
+  return analyzeAnimationCraftEvidence({
+    length: animation.length,
+    tracks,
+  });
+}
+
 type ToolAugmentation = {
   field: string;
   read: (
@@ -492,5 +543,6 @@ export function wireAuthoringQualityIntelligence(): void {
   wireTool("inspect_animation", [
     { field: "root_motion", read: rootMotionRuntime },
     { field: "animation_quality", read: animationQualityRuntime },
+    { field: "animation_craft", read: animationCraftRuntime },
   ]);
 }
