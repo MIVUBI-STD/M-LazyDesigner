@@ -19,7 +19,7 @@ import { vector3Schema, axisEnum } from "@/lib/zodObjects";
 import {
   resolveAnimationRigGroup,
   toArrayVector3,
-} from "./animation-shared";
+} from "./animation/shared";
 
 export const boneRiggingParameters = z.object({
   action: z
