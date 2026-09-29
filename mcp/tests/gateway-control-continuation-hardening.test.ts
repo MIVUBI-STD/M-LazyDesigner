@@ -950,7 +950,9 @@ describe("LazyDesigner Control continuation hardening", () => {
   });
 
   test("gateway captures phase-before only when the canonical receipt owner requires it", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
+    const source = await Bun.file(
+      "gateway/runtime/capabilityExecutor.ts"
+    ).text();
     expect(source).toContain("capabilityNeedsPhaseSnapshot(capability)");
     expect(source).toContain("deriveControlReceipt");
     expect(source).toContain("phaseBefore,");
