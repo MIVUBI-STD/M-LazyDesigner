@@ -33,7 +33,6 @@ import {
   deriveControlReceipt,
 } from "./control/receipt";
 import { getCapabilityMetadata } from "../lib/capabilityMetadata";
-import { gatewayOrchestrationRecoveryState } from "./runtime/orchestrationRecoveryState";
 import {
   applyCapabilityGraphOutcome,
   capabilityBranchFromArguments,
@@ -86,6 +85,11 @@ type GatewayToolDefinition = {
     openWorldHint?: boolean;
   };
 };
+
+type GatewayToolHandler = (
+  args: JsonRecord,
+  context?: GatewayToolContext
+) => Promise<unknown>;
 
 const statusInput = z.object({
   adopt_active_project: z
