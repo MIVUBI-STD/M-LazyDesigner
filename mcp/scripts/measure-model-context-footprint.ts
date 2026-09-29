@@ -32,13 +32,13 @@ async function component(id: string, path: string): Promise<StaticComponent> {
 }
 
 function extractGatewayInstructions(source: string): string {
-  const start = source.indexOf("const GATEWAY_INSTRUCTIONS =");
-  const end = source.indexOf("\n\ntype GatewayToolDefinition", start);
-  if (start < 0 || end <= start) throw new Error("Gateway instructions block not found.");
-  const block = source.slice(start, end);
-  const match = block.match(/GATEWAY_INSTRUCTIONS\s*=\s*\n?\s*"([\s\S]*?)";/);
-  if (!match) throw new Error("Gateway instructions literal is not statically measurable.");
-  return JSON.parse(`"${match[1]!.replaceAll('"', '\\"')}"`);
+  const match = source.match(
+    /const GATEWAY_INSTRUCTIONS\s*=\s*"((?:\\.|[^"\\])*)";/
+  );
+  if (!match) {
+    throw new Error("Gateway instructions literal is not statically measurable.");
+  }
+  return JSON.parse(`"${match[1]}"`);
 }
 
 function fingerprint(parts: Array<{ id: string; sha256: string }>): string {
