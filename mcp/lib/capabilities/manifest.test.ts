@@ -138,7 +138,7 @@ describe("core capability manifest", () => {
       "PARTICLE_SYSTEM",
     ]);
 
-    const exactByClass = new Map([
+    const exactByClass = new Map<string, readonly string[]>([
       ["uv", ["UV_MAPPING", "TEXTURE_APPEARANCE"]],
       ["texture_appearance", ["TEXTURE_APPEARANCE"]],
       ["texture_material", ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"]],
@@ -148,7 +148,7 @@ describe("core capability manifest", () => {
       ["animation_effects", ["ANIMATION_EFFECTS"]],
       ["particle", ["PARTICLE_SYSTEM"]],
       ["persistence", []],
-    ] as const);
+    ]);
 
     for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
       if (!entry.stateClass) continue;
@@ -163,7 +163,7 @@ describe("core capability manifest", () => {
         continue;
       }
 
-      const expected = exactByClass.get(entry.stateClass as any);
+      const expected = exactByClass.get(entry.stateClass);
       if (expected) {
         expect(scopes.sort(), capability).toEqual([...expected].sort());
         continue;
