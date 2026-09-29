@@ -64,310 +64,98 @@ export type CapabilityCoreManifestEntry = {
   effects?: CapabilityEffects;
 };
 
-const PRIMARY: readonly string[] = [
-  "get_project_info", "inspect_elements", "capture_model_views", "export_model",
-  "undo", "redo", "switch_authoring_phase", "manage_cubes", "add_group",
-  "modify_group", "reparent_element", "remove_element", "rename_element",
-  "manage_locator", "create_texture", "list_textures", "get_texture",
-  "paint_fill_tool", "draw_shape_tool", "gradient_tool", "copy_brush_tool",
-  "texture_layer_management", "paint_with_brush", "eraser_tool",
-  "paint_texture_transaction", "manage_material", "manage_material_instances",
-  "manage_render_profile", "manage_uv_layout", "create_animation",
-  "inspect_animation", "manage_animation_timeline", "manage_animation_effects",
-  "manage_animation_controller", "inspect_particle", "manage_particle",
-];
-
-const MAINTENANCE: readonly string[] = [
-  "trigger_action", "emulate_clicks", "fill_dialog", "risky_eval", "from_geo_json",
-];
-
-const CORE_PHASE: readonly string[] = [
-  "create_project", "get_project_info", "inspect_elements", "capture_model_views",
-  "inspect_model_bounds", "export_model", "undo", "redo", "get_undo_stack",
-  "switch_authoring_phase", "list_textures",
-];
-
-const GEOMETRY_PHASE: readonly string[] = [
-  "add_group", "manage_cubes", "duplicate_element", "reparent_element",
-  "manage_locator", "manage_null_object", "modify_group", "remove_element",
-  "rename_element", "select_all_of_type", "get_selection", "bone_rigging",
-];
-
-const TEXTURING_PHASE: readonly string[] = [
-  "create_texture", "get_texture", "activate_texture", "apply_texture",
-  "add_texture_group", "create_pbr_material", "configure_material",
-  "list_materials", "get_material_info", "import_texture_set",
-  "assign_texture_channel", "save_material_config", "paint_fill_tool",
-  "draw_shape_tool", "gradient_tool", "color_picker_tool", "copy_brush_tool",
-  "eraser_tool", "paint_settings", "paint_with_brush", "create_brush_preset",
-  "load_brush_preset", "texture_selection", "texture_layer_management",
-  "paint_texture_transaction", "manage_material", "get_face_material_instances",
-  "set_face_material_instance", "list_material_instances",
-  "bulk_set_material_instances", "clear_material_instances",
-  "manage_material_instances", "manage_render_profile", "manage_uv_layout",
-  "filter_by_material",
-];
-
-const ANIMATION_PHASE: readonly string[] = [
-  "create_animation", "manage_keyframes", "animation_graph_editor",
-  "animation_timeline", "batch_keyframe_operations", "animation_copy_paste",
-  "inspect_animation", "manage_animation_timeline", "manage_animation_effects",
-  "manage_animation_controller", "inspect_particle", "manage_particle",
-];
-
-const CROSS_AUTHORING_STATE: readonly string[] = [
-  "create_project", "undo", "redo",
-];
-
-const GEOMETRY_STATE: readonly string[] = [
-  "manage_cubes", "add_group", "modify_group", "duplicate_element",
-  "reparent_element", "remove_element", "rename_element", "manage_locator",
-  "manage_null_object", "bone_rigging",
-];
-
-const UV_STATE: readonly string[] = ["manage_uv_layout"];
-
-const TEXTURE_APPEARANCE_STATE: readonly string[] = [
-  "create_texture", "apply_texture", "paint_fill_tool",
-  "draw_shape_tool", "gradient_tool", "copy_brush_tool", "paint_with_brush",
-  "eraser_tool", "texture_layer_management", "paint_texture_transaction",
-];
-
-const TEXTURE_MATERIAL_STATE: readonly string[] = [
-  "add_texture_group", "import_texture_set",
-];
-
-const MATERIAL_RENDER_STATE: readonly string[] = [
-  "create_pbr_material", "configure_material", "assign_texture_channel",
-  "set_face_material_instance", "bulk_set_material_instances",
-  "clear_material_instances", "manage_material", "manage_material_instances",
-  "manage_render_profile",
-];
-
-const ANIMATION_MOTION_STATE: readonly string[] = [
-  "create_animation", "manage_keyframes", "animation_graph_editor",
-  "animation_timeline", "batch_keyframe_operations", "animation_copy_paste",
-  "manage_animation_timeline",
-];
-
-const ANIMATION_CONTROLLER_STATE: readonly string[] = [
-  "manage_animation_controller",
-];
-
-const ANIMATION_EFFECTS_STATE: readonly string[] = [
-  "manage_animation_effects",
-];
-
-const PARTICLE_STATE: readonly string[] = ["manage_particle"];
-const PERSISTENCE_STATE: readonly string[] = ["save_material_config"];
-
-const FAST: readonly string[] = [
-  "get_project_info", "inspect_elements", "list_textures", "get_texture",
-  "inspect_animation", "inspect_particle", "get_undo_stack",
-];
-
-const HEAVY: readonly string[] = [
-  "capture_model_views", "paint_texture_transaction", "export_model",
-];
-
-const FOCUSED_READ: readonly string[] = [
-  "create_project", "switch_authoring_phase", "add_group", "modify_group", "reparent_element",
-  "remove_element", "rename_element", "manage_locator", "manage_null_object",
-  "bone_rigging", "add_texture_group", "import_texture_set",
-  "create_pbr_material", "configure_material", "assign_texture_channel",
-  "save_material_config", "set_face_material_instance",
-  "bulk_set_material_instances", "clear_material_instances",
-  "manage_material", "manage_material_instances", "manage_render_profile",
-  "manage_animation_controller", "manage_animation_effects", "manage_particle",
-];
-
-const VISUAL: readonly string[] = [
-  "manage_cubes", "duplicate_element", "capture_model_views", "create_texture",
-  "apply_texture",
-  "paint_fill_tool", "draw_shape_tool", "gradient_tool", "copy_brush_tool",
-  "texture_layer_management", "paint_with_brush", "eraser_tool",
-  "paint_texture_transaction", "manage_uv_layout", "create_animation",
-  "manage_keyframes", "animation_graph_editor", "animation_timeline",
-  "batch_keyframe_operations", "animation_copy_paste",
-  "manage_animation_timeline", "undo", "redo",
-];
-
-const ALIASES: Readonly<Record<string, readonly string[]>> = {
-  manage_cubes: [
-    "geometry create", "create cube", "create cubes", "cube batch",
-    "bedrock geometry", "geometry batch", "buat kubus",
-    "ubah ukuran kubus", "geser kubus",
-  ],
-  add_group: [
-    "create bone", "create bones", "add bone", "add bones",
-    "group batch", "bone batch",
-  ],
-  modify_group: [
-    "set pivot", "bone pivot", "group pivot", "move group",
-    "translate group", "ubah pivot", "geser tulang", "ubah posisi bone",
-  ],
-  reparent_element: [
-    "parent bone", "unparent bone", "reparent bone", "move parent", "change parent",
-  ],
-  manage_locator: [
-    "locator", "attachment point", "socket", "anchor point",
-    "titik attachment", "titik pegangan",
-  ],
-  bone_rigging: [
-    "inverse kinematics", "ik target", "ik controller", "ik root",
-    "ik source", "ik pole", "pole vector", "mirror bone", "rig mirror",
-  ],
-  apply_texture: [
-    "assign texture", "texture cube", "texture face", "map texture",
-  ],
-  paint_texture_transaction: [
-    "atomic paint", "exact pixel", "exact pixels", "revision protected paint",
-    "cat pixel tepat", "ubah pixel persis", "edit pixel presisi",
-  ],
-  manage_render_profile: [
-    "alpha cutout translucent", "render material",
-    "entity alphatest alphablend emissive",
-  ],
-  manage_uv_layout: [
-    "uv layout", "uv pack", "uv mapping", "texel density", "repack uv",
-    "pack islands", "atur uv", "rapikan uv",
-  ],
-  manage_animation_timeline: [
-    "animation properties", "native animation properties", "animation molang",
-    "rotation space", "tambah keyframe", "ubah keyframe", "atur timeline animasi",
-  ],
-  manage_animation_controller: [
-    "state machine", "nested controller", "blend curve", "transition curve",
-    "controller animasi", "state animasi", "transisi animasi",
-  ],
-  manage_animation_effects: [
-    "animation sound", "animation particle", "animation timeline event",
-    "suara animasi", "particle animasi", "efek animasi",
-  ],
-  inspect_particle: [
-    "inspect particle", "particle emitter", "snowstorm particle", "particle molang",
-  ],
-  manage_particle: [
-    "particle emitter", "bedrock particle", "snowstorm", "particle molang",
-    "buat particle", "ubah particle", "asap particle",
-  ],
-};
-
-const map = new Map<string, CapabilityCoreManifestEntry>();
-
-function patch(names: readonly string[], value: CapabilityCoreManifestEntry): void {
-  for (const name of names) {
-    map.set(name, { ...(map.get(name) ?? {}), ...value });
-  }
-}
-
-patch(PRIMARY, { tier: "primary" });
-patch(MAINTENANCE, { tier: "maintenance" });
-patch(CORE_PHASE, { phase: "core" });
-patch(GEOMETRY_PHASE, { phase: "geometry" });
-patch(TEXTURING_PHASE, { phase: "texturing" });
-patch(ANIMATION_PHASE, { phase: "animation" });
-patch(CROSS_AUTHORING_STATE, { stateClass: "cross_authoring" });
-patch(GEOMETRY_STATE, { stateClass: "geometry" });
-patch(UV_STATE, { stateClass: "uv" });
-patch(TEXTURE_APPEARANCE_STATE, { stateClass: "texture_appearance" });
-patch(TEXTURE_MATERIAL_STATE, { stateClass: "texture_material" });
-patch(MATERIAL_RENDER_STATE, { stateClass: "material_render" });
-patch(ANIMATION_MOTION_STATE, { stateClass: "animation_motion" });
-patch(ANIMATION_CONTROLLER_STATE, { stateClass: "animation_controller" });
-patch(ANIMATION_EFFECTS_STATE, { stateClass: "animation_effects" });
-patch(PARTICLE_STATE, { stateClass: "particle" });
-patch(PERSISTENCE_STATE, { stateClass: "persistence" });
-patch(CROSS_AUTHORING_STATE, {
-  defaultStaleScopes: [
-    "GEOMETRY_STRUCTURE",
-    "UV_MAPPING",
-    "TEXTURE_APPEARANCE",
-    "MATERIAL_RENDER",
-    "ANIMATION_MOTION",
-    "ANIMATION_CONTROLLER",
-    "ANIMATION_EFFECTS",
-    "PARTICLE_SYSTEM",
-  ],
-});
-patch(["manage_cubes", "duplicate_element", "remove_element"], {
-  defaultStaleScopes: [
-    "GEOMETRY_STRUCTURE",
-    "UV_MAPPING",
-    "TEXTURE_APPEARANCE",
-    "ANIMATION_MOTION",
-  ],
-});
-patch([
-  "add_group",
-  "modify_group",
-  "reparent_element",
-  "rename_element",
-  "manage_null_object",
-  "bone_rigging",
-], {
-  defaultStaleScopes: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
-});
-patch(["manage_locator"], {
-  defaultStaleScopes: ["GEOMETRY_STRUCTURE", "ANIMATION_EFFECTS"],
-});
-patch(UV_STATE, {
-  defaultStaleScopes: ["UV_MAPPING", "TEXTURE_APPEARANCE"],
-});
-patch(TEXTURE_APPEARANCE_STATE, {
-  defaultStaleScopes: ["TEXTURE_APPEARANCE"],
-});
-patch(TEXTURE_MATERIAL_STATE, {
-  defaultStaleScopes: ["TEXTURE_APPEARANCE", "MATERIAL_RENDER"],
-});
-patch(MATERIAL_RENDER_STATE, {
-  defaultStaleScopes: ["MATERIAL_RENDER"],
-});
-patch(ANIMATION_MOTION_STATE, {
-  defaultStaleScopes: ["ANIMATION_MOTION"],
-});
-patch(ANIMATION_CONTROLLER_STATE, {
-  defaultStaleScopes: ["ANIMATION_CONTROLLER"],
-});
-patch(ANIMATION_EFFECTS_STATE, {
-  defaultStaleScopes: ["ANIMATION_EFFECTS"],
-});
-patch(PARTICLE_STATE, {
-  defaultStaleScopes: ["PARTICLE_SYSTEM"],
-});
-patch(PERSISTENCE_STATE, { defaultStaleScopes: [] });
-patch(FAST, { executionClass: "fast" });
-patch(HEAVY, { executionClass: "heavy" });
-// Static defaults are conservative. receipt_only is result-driven in Control.
-patch(VISUAL, { verificationClass: "visual" });
-patch(FOCUSED_READ, { verificationClass: "focused_read" });
-
-for (const [name, aliases] of Object.entries(ALIASES)) {
-  map.set(name, { ...(map.get(name) ?? {}), aliases });
-}
-
-map.set("create_project", {
-  ...(map.get("create_project") ?? {}),
-  effects: {
-    projectAffinity: "adopt_created_project",
-    phaseAffinity: "preserve",
-    invalidateCatalog: true,
-  },
-});
-
-map.set("switch_authoring_phase", {
-  ...(map.get("switch_authoring_phase") ?? {}),
-  effects: {
-    projectAffinity: "preserve",
-    phaseAffinity: "update_from_result",
-    invalidateCatalog: true,
-  },
-});
+/**
+ * Canonical capability metadata declaration.
+ *
+ * Each capability is declared once. Search/routing, phase, semantic-state,
+ * verification, execution-cost and lifecycle projections read from this table
+ * instead of maintaining parallel membership lists.
+ *
+ * Omitted properties intentionally use the public defaults in
+ * capabilityMetadata.ts.
+ */
+export const CAPABILITY_DEFINITIONS = {
+  "activate_texture": { phase: "texturing" },
+  "add_group": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_MOTION"], verificationClass: "focused_read", aliases: ["create bone","create bones","add bone","add bones","group batch","bone batch"] },
+  "add_texture_group": { phase: "texturing", stateClass: "texture_material", defaultStaleScopes: ["TEXTURE_APPEARANCE","MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "animation_copy_paste": { phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual" },
+  "animation_graph_editor": { phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual" },
+  "animation_timeline": { phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual" },
+  "apply_texture": { phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual", aliases: ["assign texture","texture cube","texture face","map texture"] },
+  "assign_texture_channel": { phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "batch_keyframe_operations": { phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual" },
+  "bone_rigging": { phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_MOTION"], verificationClass: "focused_read", aliases: ["inverse kinematics","ik target","ik controller","ik root","ik source","ik pole","pole vector","mirror bone","rig mirror"] },
+  "bulk_set_material_instances": { phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "capture_model_views": { tier: "primary", phase: "core", executionClass: "heavy", verificationClass: "visual" },
+  "clear_material_instances": { phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "color_picker_tool": { phase: "texturing" },
+  "configure_material": { phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "copy_brush_tool": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "create_animation": { tier: "primary", phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual" },
+  "create_brush_preset": { phase: "texturing" },
+  "create_pbr_material": { phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "create_project": { phase: "core", stateClass: "cross_authoring", defaultStaleScopes: ["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","MATERIAL_RENDER","ANIMATION_MOTION","ANIMATION_CONTROLLER","ANIMATION_EFFECTS","PARTICLE_SYSTEM"], verificationClass: "focused_read", effects: {projectAffinity: "adopt_created_project",phaseAffinity: "preserve",invalidateCatalog: true} },
+  "create_texture": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "draw_shape_tool": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "duplicate_element": { phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"], verificationClass: "visual" },
+  "emulate_clicks": { tier: "maintenance" },
+  "eraser_tool": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "export_model": { tier: "primary", phase: "core", executionClass: "heavy" },
+  "fill_dialog": { tier: "maintenance" },
+  "filter_by_material": { phase: "texturing" },
+  "from_geo_json": { tier: "maintenance" },
+  "get_face_material_instances": { phase: "texturing" },
+  "get_material_info": { phase: "texturing" },
+  "get_project_info": { tier: "primary", phase: "core", executionClass: "fast" },
+  "get_selection": { phase: "geometry" },
+  "get_texture": { tier: "primary", phase: "texturing", executionClass: "fast" },
+  "get_undo_stack": { phase: "core", executionClass: "fast" },
+  "gradient_tool": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "import_texture_set": { phase: "texturing", stateClass: "texture_material", defaultStaleScopes: ["TEXTURE_APPEARANCE","MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "inspect_animation": { tier: "primary", phase: "animation", executionClass: "fast" },
+  "inspect_elements": { tier: "primary", phase: "core", executionClass: "fast" },
+  "inspect_model_bounds": { phase: "core" },
+  "inspect_particle": { tier: "primary", phase: "animation", executionClass: "fast", aliases: ["inspect particle","particle emitter","snowstorm particle","particle molang"] },
+  "list_material_instances": { phase: "texturing" },
+  "list_materials": { phase: "texturing" },
+  "list_textures": { tier: "primary", phase: "core", executionClass: "fast" },
+  "load_brush_preset": { phase: "texturing" },
+  "manage_animation_controller": { tier: "primary", phase: "animation", stateClass: "animation_controller", defaultStaleScopes: ["ANIMATION_CONTROLLER"], verificationClass: "focused_read", aliases: ["state machine","nested controller","blend curve","transition curve","controller animasi","state animasi","transisi animasi"] },
+  "manage_animation_effects": { tier: "primary", phase: "animation", stateClass: "animation_effects", defaultStaleScopes: ["ANIMATION_EFFECTS"], verificationClass: "focused_read", aliases: ["animation sound","animation particle","animation timeline event","suara animasi","particle animasi","efek animasi"] },
+  "manage_animation_timeline": { tier: "primary", phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual", aliases: ["animation properties","native animation properties","animation molang","rotation space","tambah keyframe","ubah keyframe","atur timeline animasi"] },
+  "manage_cubes": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"], verificationClass: "visual", aliases: ["geometry create","create cube","create cubes","cube batch","bedrock geometry","geometry batch","buat kubus","ubah ukuran kubus","geser kubus"] },
+  "manage_keyframes": { phase: "animation", stateClass: "animation_motion", defaultStaleScopes: ["ANIMATION_MOTION"], verificationClass: "visual" },
+  "manage_locator": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_EFFECTS"], verificationClass: "focused_read", aliases: ["locator","attachment point","socket","anchor point","titik attachment","titik pegangan"] },
+  "manage_material": { tier: "primary", phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "manage_material_instances": { tier: "primary", phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "manage_null_object": { phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_MOTION"], verificationClass: "focused_read" },
+  "manage_particle": { tier: "primary", phase: "animation", stateClass: "particle", defaultStaleScopes: ["PARTICLE_SYSTEM"], verificationClass: "focused_read", aliases: ["particle emitter","bedrock particle","snowstorm","particle molang","buat particle","ubah particle","asap particle"] },
+  "manage_render_profile": { tier: "primary", phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read", aliases: ["alpha cutout translucent","render material","entity alphatest alphablend emissive"] },
+  "manage_uv_layout": { tier: "primary", phase: "texturing", stateClass: "uv", defaultStaleScopes: ["UV_MAPPING","TEXTURE_APPEARANCE"], verificationClass: "visual", aliases: ["uv layout","uv pack","uv mapping","texel density","repack uv","pack islands","atur uv","rapikan uv"] },
+  "modify_group": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_MOTION"], verificationClass: "focused_read", aliases: ["set pivot","bone pivot","group pivot","move group","translate group","ubah pivot","geser tulang","ubah posisi bone"] },
+  "paint_fill_tool": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "paint_settings": { phase: "texturing" },
+  "paint_texture_transaction": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], executionClass: "heavy", verificationClass: "visual", aliases: ["atomic paint","exact pixel","exact pixels","revision protected paint","cat pixel tepat","ubah pixel persis","edit pixel presisi"] },
+  "paint_with_brush": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "redo": { tier: "primary", phase: "core", stateClass: "cross_authoring", defaultStaleScopes: ["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","MATERIAL_RENDER","ANIMATION_MOTION","ANIMATION_CONTROLLER","ANIMATION_EFFECTS","PARTICLE_SYSTEM"], verificationClass: "visual" },
+  "remove_element": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","ANIMATION_MOTION"], verificationClass: "focused_read" },
+  "rename_element": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_MOTION"], verificationClass: "focused_read" },
+  "reparent_element": { tier: "primary", phase: "geometry", stateClass: "geometry", defaultStaleScopes: ["GEOMETRY_STRUCTURE","ANIMATION_MOTION"], verificationClass: "focused_read", aliases: ["parent bone","unparent bone","reparent bone","move parent","change parent"] },
+  "risky_eval": { tier: "maintenance" },
+  "save_material_config": { phase: "texturing", stateClass: "persistence", defaultStaleScopes: [], verificationClass: "focused_read" },
+  "select_all_of_type": { phase: "geometry" },
+  "set_face_material_instance": { phase: "texturing", stateClass: "material_render", defaultStaleScopes: ["MATERIAL_RENDER"], verificationClass: "focused_read" },
+  "switch_authoring_phase": { tier: "primary", phase: "core", verificationClass: "focused_read", effects: {projectAffinity: "preserve",phaseAffinity: "update_from_result",invalidateCatalog: true} },
+  "texture_layer_management": { tier: "primary", phase: "texturing", stateClass: "texture_appearance", defaultStaleScopes: ["TEXTURE_APPEARANCE"], verificationClass: "visual" },
+  "texture_selection": { phase: "texturing" },
+  "trigger_action": { tier: "maintenance" },
+  "undo": { tier: "primary", phase: "core", stateClass: "cross_authoring", defaultStaleScopes: ["GEOMETRY_STRUCTURE","UV_MAPPING","TEXTURE_APPEARANCE","MATERIAL_RENDER","ANIMATION_MOTION","ANIMATION_CONTROLLER","ANIMATION_EFFECTS","PARTICLE_SYSTEM"], verificationClass: "visual" },
+} as const satisfies Readonly<Record<string, CapabilityCoreManifestEntry>>;
 
 export const CAPABILITY_CORE_MANIFEST: ReadonlyMap<
   string,
   CapabilityCoreManifestEntry
-> = map;
+> = new Map(Object.entries(CAPABILITY_DEFINITIONS));
 
 export function getCapabilityCoreManifestEntry(
   name: string
