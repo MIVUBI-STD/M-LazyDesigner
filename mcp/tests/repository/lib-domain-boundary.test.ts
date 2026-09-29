@@ -61,6 +61,13 @@ const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./animation/motionDynamics";\n',
   "animationPreviewState.ts":
     'export * from "./animation/previewState";\n',
+  "bedrockAnimationRuntimeResources.ts": 'export * from "./animation/bedrockRuntimeResources";\n',
+  "bedrockParticleBinding.ts": 'export * from "./particle/binding";\n',
+  "bedrockParticleDocument.ts": 'export * from "./particle/document";\n',
+  "bedrockParticleDocumentCore.ts": 'export * from "./particle/documentCore";\n',
+  "bedrockParticlePackGraph.ts": 'export * from "./particle/packGraph";\n',
+  "bedrockParticleSchemaCoverage.ts": 'export * from "./particle/schemaCoverage";\n',
+  "bedrockParticleSemantics.ts": 'export * from "./particle/semantics";\n',
   "geometryQuality.ts": 'export * from "./geometry/quality";\n',
   "geometrySurfaceEvidence.ts":
     'export * from "./geometry/surfaceEvidence";\n',
