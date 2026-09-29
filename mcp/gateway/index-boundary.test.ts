@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("./index.ts", import.meta.url), "utf8");
+const sessionSource = await readFile(
+  new URL("./session/state.ts", import.meta.url),
+  "utf8"
+);
 
 describe("Gateway index boundary", () => {
   test("does not hardcode transition capability names", () => {
@@ -23,40 +27,27 @@ describe("Gateway index boundary", () => {
   });
 
   test("projects status instead of spreading raw backend status", () => {
-    expect(source).toContain("projectGatewayStatus(status)");
+    expect(source).toContain("projectGatewayStatus(status, known_semantic_revisions)");
     expect(source).not.toContain("...status,\n          control");
   });
 
-  test("wires runtime generation changes into the shared orchestration recovery owner", () => {
-    expect(source).toContain("gatewayOrchestrationRecoveryState");
-    expect(source).toContain("onRuntimeGenerationChange");
-    expect(source).toContain(
-      "gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration()"
-    );
-    expect(source).toContain("executionState = null");
-    expect(source).toContain("capabilityFacts = seedCapabilityFacts({");
+  test("wires runtime generation changes through the session owner", () => {
+    expect(source).toContain("onRuntimeGenerationChange: () => session.onRuntimeGenerationChange()");
+    expect(sessionSource).toContain("gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration()");
+    expect(sessionSource).toContain("this.executionState = null");
+    expect(sessionSource).toContain("this.capabilityFacts = seedCapabilityFacts({");
     expect(source).not.toContain("new VerificationEvidenceRegistry()");
     expect(source).not.toContain("new CorrectionLoopRegistry()");
+    expect(sessionSource).not.toContain("new VerificationEvidenceRegistry()");
+    expect(sessionSource).not.toContain("new CorrectionLoopRegistry()");
   });
 
-  test("project affinity changes hard-reset orchestration state through the same synchronization boundary", () => {
-    const syncStart = source.indexOf("function synchronizeCapabilityFacts");
-    const syncEnd = source.indexOf(
-      "// Runtime resources and prompts are not proxied.",
-      syncStart
-    );
-    const syncSource = source.slice(syncStart, syncEnd);
-
-    expect(syncSource).toContain(
+  test("project affinity changes hard-reset orchestration state through the session boundary", () => {
+    expect(sessionSource).toContain(
       "gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid)"
     );
-    expect(syncSource).toContain("executionState = null");
-    expect(syncSource).toContain(
-      "gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid)"
-    );
-    expect(source).toContain(
-      "synchronizeCapabilityFacts(status.affinity.project_uuid)"
-    );
-    expect(source).toContain("synchronizeCapabilityFacts(receipt.projectUuid)");
+    expect(sessionSource).toContain("this.executionState = null");
+    expect(source).toContain("session.synchronizeProject(status.affinity.project_uuid)");
+    expect(source).toContain("session.synchronizeProject(receipt.projectUuid)");
   });
 });
