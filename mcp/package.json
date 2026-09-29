@@ -108,10 +108,11 @@
     "verify:build": "bun run build",
     "verify:surface-guards": "bun run measure:surface && bun run measure:phases",
     "report:mcp-efficiency": "bun run measure:mcp-efficiency",
-    "eval:golden-authoring": "bun test tests/golden-authoring-run-contract.test.ts tests/gateway-benchmark-trace-report.test.ts tests/golden-benchmark-session-runner.test.ts gateway/runtime/benchmarkTrace.test.ts",
+    "eval:golden-authoring": "bun test tests/golden-authoring-run-contract.test.ts tests/gateway-benchmark-trace-report.test.ts tests/golden-benchmark-session-runner.test.ts tests/golden-session-finalizer.test.ts gateway/runtime/benchmarkTrace.test.ts",
     "report:golden-authoring": "bun run ./scripts/evaluate-golden-authoring-runs.ts",
     "report:gateway-trace": "bun run ./scripts/summarize-gateway-benchmark-trace.ts",
-    "benchmark:golden-session": "bun run ./scripts/run-golden-benchmark-session.ts"
+    "benchmark:golden-session": "bun run ./scripts/run-golden-benchmark-session.ts",
+    "finalize:golden-session": "bun run ./scripts/finalize-golden-session.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
