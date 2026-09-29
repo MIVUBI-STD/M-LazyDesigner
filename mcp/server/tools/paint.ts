@@ -49,7 +49,7 @@ export {
   requirePixelsWithinTexture,
   requireTextureCoordinatesWithinBounds,
   texturePixelRectToUvTag,
-} from "./paint-shared";
+} from "./paint/shared";
 
 export const paintToolDocs: ToolSpec[] = [
   ...paintPrimitiveToolDocs,
