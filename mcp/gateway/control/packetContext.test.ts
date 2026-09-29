@@ -72,6 +72,13 @@ const reference: ControlReferenceProjection = {
   non_blocking_unknowns: [],
   documents: {},
   images: [],
+  semantic_facts: {
+    parts: [{ id: "seat", role: "GEOMETRY", motion: "STATIC" }],
+    articulation: [],
+    materials: [{ id: "wood", base_color: "brown" }],
+    animation_guidance: [],
+    constraints: [],
+  },
 };
 
 describe("task context identity", () => {
@@ -109,12 +116,46 @@ describe("task context identity", () => {
     const changed = taskContextId(
       snapshot,
       workspace,
-      { ...reference, fingerprint: "reference|two" },
+      {
+        ...reference,
+        semantic_facts: {
+          ...reference.semantic_facts!,
+          parts: [{ id: "seat", role: "GEOMETRY", motion: "ARTICULATED" }],
+        },
+      },
       "ASSET_AUTHORING",
       null,
       "delta|one"
     );
 
     expect(base).not.toBe(changed);
+  });
+
+  test("unrelated texture-only reference changes do not invalidate geometry task identity", () => {
+    const base = taskContextId(
+      snapshot,
+      workspace,
+      reference,
+      "ASSET_AUTHORING",
+      null,
+      "delta|one"
+    );
+    const changed = taskContextId(
+      snapshot,
+      workspace,
+      {
+        ...reference,
+        fingerprint: "reference|texture-only-change",
+        semantic_facts: {
+          ...reference.semantic_facts!,
+          materials: [{ id: "wood", base_color: "dark brown" }],
+        },
+      },
+      "ASSET_AUTHORING",
+      null,
+      "delta|one"
+    );
+
+    expect(changed).toBe(base);
   });
 });

@@ -2,13 +2,29 @@ import { createHash } from "node:crypto";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import type { ControlAuthoringDomain } from "./types";
 import type { ControlWorkspaceProjection } from "./workspace";
-import type { ControlReferenceProjection, ControlReferenceStage } from "./referencePackage";
-import { semanticDerivedArtifactStamp, type SemanticDerivedArtifactStamp } from "../development/semanticArtifact";
+import type {
+  ControlReferenceProjection,
+  ControlReferenceSemanticFacts,
+  ControlReferenceStage,
+  ControlReferenceStructuredFact,
+} from "./referencePackage";
+import {
+  semanticDerivedArtifactStamp,
+  type SemanticDerivedArtifactStamp,
+} from "../development/semanticArtifact";
 
 export type ControlContextType =
   | "GEOMETRY_CONTEXT"
   | "TEXTURE_CONTEXT"
   | "ANIMATION_CONTEXT";
+
+export type ControlStageSemanticFacts = {
+  parts: ControlReferenceStructuredFact[];
+  articulation: ControlReferenceStructuredFact[];
+  materials: ControlReferenceStructuredFact[];
+  animation_guidance: ControlReferenceStructuredFact[];
+  constraints: string[];
+};
 
 export type ControlStageContext = {
   context_type: ControlContextType | null;
@@ -23,6 +39,7 @@ export type ControlStageContext = {
   blocking_unknowns: string[];
   non_blocking_unknowns_relevant_to_stage: string[];
   requirements: ControlReferenceProjection["requirements"];
+  semantic_facts: ControlStageSemanticFacts;
   reference_document: string | null;
   reference_image_ids: string[];
   workspace: {
@@ -31,6 +48,14 @@ export type ControlStageContext = {
     gates: ControlWorkspaceProjection["gates"];
     next_step: string | null;
   };
+};
+
+const EMPTY_SEMANTIC_FACTS: ControlReferenceSemanticFacts = {
+  parts: [],
+  articulation: [],
+  materials: [],
+  animation_guidance: [],
+  constraints: [],
 };
 
 function contextType(domain: ControlAuthoringDomain | null): ControlContextType | null {
@@ -60,11 +85,111 @@ export function readinessForAuthoringDomain(
 function imagesForStage(
   stage: ControlReferenceStage | null,
   reference: ControlReferenceProjection
-): string[] {
+) {
   if (!stage) return [];
-  return reference.images
-    .filter((image) => image.used_by.includes(stage))
-    .map((image) => image.id);
+  return reference.images.filter((image) => image.used_by.includes(stage));
+}
+
+function stringField(
+  fact: ControlReferenceStructuredFact,
+  key: string
+): string | null {
+  const value = fact[key];
+  return typeof value === "string" ? value.trim().toUpperCase() : null;
+}
+
+function geometryParts(
+  parts: readonly ControlReferenceStructuredFact[]
+): ControlReferenceStructuredFact[] {
+  return parts.filter((part) => {
+    const role = stringField(part, "role");
+    return role !== "TEXTURE" && role !== "ANIMATION_ONLY" && role !== "OMIT";
+  });
+}
+
+function animationParts(
+  parts: readonly ControlReferenceStructuredFact[]
+): ControlReferenceStructuredFact[] {
+  return parts.filter((part) => {
+    const role = stringField(part, "role");
+    const motion = stringField(part, "motion");
+    return (
+      role === "ANIMATION_ONLY" ||
+      role === "EFFECT" ||
+      motion === "ARTICULATED" ||
+      motion === "FLEXIBLE"
+    );
+  });
+}
+
+export function semanticFactsForAuthoringDomain(
+  domain: ControlAuthoringDomain | null,
+  reference: ControlReferenceProjection
+): ControlStageSemanticFacts {
+  const facts = reference.semantic_facts ?? EMPTY_SEMANTIC_FACTS;
+
+  if (domain === "GEOMETRY") {
+    return {
+      parts: geometryParts(facts.parts),
+      articulation: facts.articulation,
+      materials: [],
+      animation_guidance: [],
+      constraints: facts.constraints,
+    };
+  }
+
+  if (domain === "TEXTURING") {
+    return {
+      parts: [],
+      articulation: [],
+      materials: facts.materials,
+      animation_guidance: [],
+      constraints: facts.constraints,
+    };
+  }
+
+  if (domain === "ANIMATION") {
+    return {
+      parts: animationParts(facts.parts),
+      articulation: facts.articulation,
+      materials: [],
+      animation_guidance: facts.animation_guidance,
+      constraints: facts.constraints,
+    };
+  }
+
+  return {
+    parts: [],
+    articulation: [],
+    materials: [],
+    animation_guidance: [],
+    constraints: facts.constraints,
+  };
+}
+
+export function stageReferenceSemanticFingerprint(
+  domain: ControlAuthoringDomain | null,
+  reference: ControlReferenceProjection
+): string {
+  const stage = referenceStage(domain);
+  const images = imagesForStage(stage, reference);
+  const payload = canonicalJson({
+    asset_name: reference.asset_name,
+    asset_kind: reference.asset_kind,
+    intent: reference.intent,
+    selected_profile: reference.selected_profile,
+    requirements: reference.requirements,
+    readiness: readinessForAuthoringDomain(domain, reference),
+    blocking_unknowns:
+      readinessForAuthoringDomain(domain, reference) === "BLOCKED"
+        ? reference.blocking_unknowns
+        : [],
+    non_blocking_unknowns: reference.non_blocking_unknowns,
+    document: stage ? reference.documents[stage] ?? null : null,
+    images,
+    semantic_facts: semanticFactsForAuthoringDomain(domain, reference),
+  });
+  return createHash("sha256").update(payload).digest("hex");
 }
 
 export function buildControlStageContext(input: {
@@ -77,23 +202,26 @@ export function buildControlStageContext(input: {
   const type = contextType(input.domain);
   const stageReadiness = readinessForAuthoringDomain(input.domain, input.reference);
   const referenceDocument = stage ? input.reference.documents[stage] ?? null : null;
-  const referenceImageIds = imagesForStage(stage, input.reference);
+  const referenceImages = imagesForStage(stage, input.reference);
+  const referenceImageIds = referenceImages.map((image) => image.id);
   const blockingUnknowns = stageReadiness === "BLOCKED"
     ? [...input.reference.blocking_unknowns]
     : [];
   const relevantNonBlocking = [...input.reference.non_blocking_unknowns];
+  const semanticFacts = semanticFactsForAuthoringDomain(
+    input.domain,
+    input.reference
+  );
+  const stageReferenceFingerprint = stageReferenceSemanticFingerprint(
+    input.domain,
+    input.reference
+  );
 
   const hashPayload = canonicalJson({
     type,
-    intent: input.reference.intent,
-    delta: input.currentUserDelta ?? null,
-    profile: input.reference.selected_profile,
-    reference: input.reference.fingerprint,
+    delta: input.currentUserDelta?.trim() || null,
+    stage_reference: stageReferenceFingerprint,
     workspace: input.workspace.fingerprint,
-    readiness: stageReadiness,
-    blockingUnknowns,
-    referenceDocument,
-    referenceImageIds,
   });
 
   return {
@@ -109,6 +237,7 @@ export function buildControlStageContext(input: {
     blocking_unknowns: blockingUnknowns,
     non_blocking_unknowns_relevant_to_stage: relevantNonBlocking,
     requirements: input.reference.requirements,
+    semantic_facts: semanticFacts,
     reference_document: referenceDocument,
     reference_image_ids: referenceImageIds,
     workspace: {

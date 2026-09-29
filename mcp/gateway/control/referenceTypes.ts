@@ -10,6 +10,25 @@ export type ControlProfile =
 export type ControlReferenceAssetKind = "MODEL" | "PARTICLE";
 export type ControlReferenceStage = "GEOMETRY" | "TEXTURE" | "ANIMATION";
 
+export type ControlReferenceFactValue =
+  | string
+  | number
+  | boolean
+  | string[];
+
+export type ControlReferenceStructuredFact = Record<
+  string,
+  ControlReferenceFactValue
+>;
+
+export type ControlReferenceSemanticFacts = {
+  parts: ControlReferenceStructuredFact[];
+  articulation: ControlReferenceStructuredFact[];
+  materials: ControlReferenceStructuredFact[];
+  animation_guidance: ControlReferenceStructuredFact[];
+  constraints: string[];
+};
+
 export type ControlReferenceProjection = {
   available: boolean;
   source_path: string | null;
@@ -58,6 +77,12 @@ export type ControlReferenceProjection = {
     used_by: ControlReferenceStage[];
     status: string | null;
   }>;
+  /**
+   * Decision-critical facts already owned by REFERENCE.json. Optional for
+   * compatibility with older callers; Control projects only the active-stage
+   * subset rather than retransmitting every semantic section.
+   */
+  semantic_facts?: ControlReferenceSemanticFacts;
   unavailable_reason?:
     | "REFERENCE_PATH_UNAVAILABLE"
     | "REFERENCE_NOT_FOUND"

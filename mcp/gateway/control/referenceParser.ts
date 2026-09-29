@@ -5,6 +5,7 @@ import type {
   ControlReferenceAssetKind,
   ControlReferenceProjection,
   ControlReferenceStage,
+  ControlReferenceStructuredFact,
 } from "./referenceTypes";
 
 type JsonRecord = Record<string, unknown>;
@@ -39,6 +40,40 @@ function stringList(value: unknown, limit = 16): string[] {
         .map((entry) => entry.trim())
         .slice(0, limit)
     : [];
+}
+
+function structuredFactList(
+  value: unknown,
+  entryLimit = 24,
+  fieldLimit = 16
+): ControlReferenceStructuredFact[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.slice(0, entryLimit).flatMap((entry) => {
+    const source = record(entry);
+    if (!source) return [];
+
+    const fact: ControlReferenceStructuredFact = {};
+    for (const [key, rawValue] of Object.entries(source).slice(0, fieldLimit)) {
+      const text = stringValue(rawValue);
+      if (text !== null) {
+        fact[key] = text;
+        continue;
+      }
+      if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+        fact[key] = rawValue;
+        continue;
+      }
+      if (typeof rawValue === "boolean") {
+        fact[key] = rawValue;
+        continue;
+      }
+      const list = stringList(rawValue, 12);
+      if (list.length > 0) fact[key] = list;
+    }
+
+    return Object.keys(fact).length > 0 ? [fact] : [];
+  });
 }
 
 function profileValue(value: unknown): ControlProfile | null {
@@ -105,6 +140,13 @@ export function emptyReference(
     non_blocking_unknowns: [],
     documents: {},
     images: [],
+    semantic_facts: {
+      parts: [],
+      articulation: [],
+      materials: [],
+      animation_guidance: [],
+      constraints: [],
+    },
     unavailable_reason: unavailableReason,
   };
 }
@@ -225,5 +267,12 @@ export function parseReferencePackage(
         : {}),
     },
     images,
+    semantic_facts: {
+      parts: structuredFactList(root.parts),
+      articulation: structuredFactList(root.articulation),
+      materials: structuredFactList(root.materials),
+      animation_guidance: structuredFactList(root.animation_guidance),
+      constraints: stringList(root.constraints, 24),
+    },
   };
 }

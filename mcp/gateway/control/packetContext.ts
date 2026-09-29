@@ -7,6 +7,7 @@ import type {
   ControlContextHandle,
   ControlSnapshot,
 } from "./types";
+import { stageReferenceSemanticFingerprint } from "./contextProjection";
 import { semanticRevisionForDependencies } from "../development/semanticDependencies";
 
 export type ControlContextDelivery = {
@@ -50,7 +51,10 @@ export function taskContextId(
           workspace:
             workspace.fingerprint ?? "no-workspace-state",
           reference:
-            reference.fingerprint ?? "no-reference-package",
+            stageReferenceSemanticFingerprint(
+              snapshot.authoring.domain,
+              reference
+            ),
           user_delta:
             currentUserDelta ?? "no-user-delta",
         };
@@ -119,5 +123,3 @@ export function filterContext(
     ),
   };
 }
-
-

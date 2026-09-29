@@ -53,6 +53,42 @@ describe("Control reference parser", () => {
           status: "ready",
         },
       ],
+      parts: [
+        {
+          id: "seat",
+          role: "GEOMETRY",
+          symmetry: "NONE",
+          motion: "STATIC",
+          evidence: "SUPPORTED",
+          nested_ignored: { unsafe: true },
+        },
+      ],
+      articulation: [
+        {
+          id: "seat_hinge",
+          motion: "RIGID",
+          pivot_region: "rear edge",
+          clearance: ["backrest", "frame"],
+        },
+      ],
+      materials: [
+        {
+          id: "wood",
+          affected_parts: ["seat", "backrest"],
+          base_color: "warm brown",
+        },
+      ],
+      animation_guidance: [
+        {
+          name: "fold",
+          type: "ONE_SHOT",
+          participants: ["seat"],
+        },
+      ],
+      constraints: [
+        "preserve seat opening",
+        "do not fill negative space",
+      ],
     });
 
     const result = parseReferencePackage(
@@ -76,6 +112,43 @@ describe("Control reference parser", () => {
       documents: {
         GEOMETRY: "geometry.md",
         TEXTURE: "texture.md",
+      },
+      semantic_facts: {
+        parts: [
+          {
+            id: "seat",
+            role: "GEOMETRY",
+            symmetry: "NONE",
+            motion: "STATIC",
+            evidence: "SUPPORTED",
+          },
+        ],
+        articulation: [
+          {
+            id: "seat_hinge",
+            motion: "RIGID",
+            pivot_region: "rear edge",
+            clearance: ["backrest", "frame"],
+          },
+        ],
+        materials: [
+          {
+            id: "wood",
+            affected_parts: ["seat", "backrest"],
+            base_color: "warm brown",
+          },
+        ],
+        animation_guidance: [
+          {
+            name: "fold",
+            type: "ONE_SHOT",
+            participants: ["seat"],
+          },
+        ],
+        constraints: [
+          "preserve seat opening",
+          "do not fill negative space",
+        ],
       },
     });
     expect(result?.images[0]?.used_by).toEqual(["GEOMETRY", "TEXTURE"]);
@@ -138,6 +211,13 @@ describe("Control reference parser", () => {
       selected_profile: null,
       documents: {},
       images: [],
+      semantic_facts: {
+        parts: [],
+        articulation: [],
+        materials: [],
+        animation_guidance: [],
+        constraints: [],
+      },
       unavailable_reason: "REFERENCE_NOT_FOUND",
     });
   });
