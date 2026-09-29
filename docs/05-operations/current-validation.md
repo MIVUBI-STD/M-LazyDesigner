@@ -29,23 +29,20 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Current proof matrix
 
-| Surface | Canonical proof | Current-head status |
+| Surface | Canonical proof | Status authority |
 | --- | --- | --- |
-| Repository policy / ownership | `verify:repository` | **MISSING for current Local head** |
-| Executable MCP source | `MCP Verify` | **MISSING for current Local head** |
-| Typecheck / Runtime regressions | `MCP Verify` / `verify:remote` | **MISSING for current Local head** |
-| Build + provenance artifact | full `MCP Verify` | **MISSING for current Local head** |
-| Local executable checkout | `LOCAL_CODE` runbook residue | historical evidence only |
-| Installed/native Blockbench behavior | `LIVE_BLOCKBENCH` runbook residue | historical evidence only |
-| Visual/reference acceptance | live bounded review | not current-head proven |
+| Repository policy / ownership | `Repository Verify` / `verify:repository` | exact-SHA GitHub Actions |
+| Executable MCP source | `MCP Verify` | exact-SHA GitHub Actions |
+| Typecheck / Runtime regressions | `MCP Verify` / `verify:remote` | exact-SHA GitHub Actions |
+| Build + provenance artifact | full `MCP Verify` | exact-SHA workflow + artifact provenance |
+| Local executable checkout | `LOCAL_CODE` runbook | matching local execution evidence |
+| Installed/native Blockbench behavior | `LIVE_BLOCKBENCH` runbook | matching live execution evidence |
+| Visual/reference acceptance | live bounded review | matching live review evidence |
 
-The latest REMOTE_GITHUB source-hardening commits currently have no matching
-GitHub Actions workflow run or commit status. Therefore the current `Local`
-head must **not** be described as typecheck PASS, test PASS, build PASS,
-remote-acceptance PASS, installed-runtime PASS, or visual PASS.
-
-Only completed successful proof on the same exact source SHA may raise a row
-above MISSING.
+This document does **not** mirror volatile workflow status. Read the current
+`Local` SHA and its GitHub Actions/check results directly before making a PASS,
+FAIL, MISSING, or historical-evidence claim. Only completed proof attached to
+that same exact source SHA is current-head evidence.
 
 ## Exact-SHA source acceptance
 
