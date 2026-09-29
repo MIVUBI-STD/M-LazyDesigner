@@ -14,7 +14,7 @@ import {
   animationIdOptionalSchema,
 } from "@/lib/zodObjects";
 import { captureModelViewsParameters } from "../tools/camera";
-import { inspectAnimationParameters } from "../tools/animation-inspection";
+import { inspectAnimationParameters } from "../tools/animation/inspectionSchema";
 import {
   animationCopyPasteParameters,
   animationGraphEditorParameters,
