@@ -301,7 +301,20 @@ evidence: SUPPORTED | PROVISIONAL | CONFLICTING | UNAVAILABLE
 
 ### `articulation`
 
-Use only when Geometry/Animation decisions depend on a joint/relationship. Record motion intent, pivot region, overlap/clearance constraints and risk; never invent final pivot coordinates.
+Use only when Geometry/Animation decisions depend on a joint/relationship. Record motion intent, pivot region, supported axis/bend direction, overlap/clearance/contact constraints and risk; never invent final pivot coordinates or motion limits.
+
+When the approved reference or explicit requirement materially supports them, articulation facts may also include compact rig semantics such as:
+
+```text
+preferred_axis
+bend_direction
+rotation_min
+rotation_max
+twist_policy
+contact_invariant
+```
+
+These fields are constraints, not defaults. Omit them when unsupported; never infer a generic humanoid/quadruped joint convention merely from the part name.
 
 ### `materials`
 

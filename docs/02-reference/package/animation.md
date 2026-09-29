@@ -276,6 +276,7 @@ knee overlap must survive expected stance bend
 jaw opening must not expose unintended side gaps
 wing fold must clear torso without detaching root
 mechanical hinge must rotate about the supported axis
+supported joint/hinge rotation limits must not be exceeded when explicitly evidenced
 ```
 
 Do not copy the entire rig-deformation profile into this document.
@@ -363,6 +364,8 @@ action silhouette
 weight direction
 support/contact
 joint bend direction
+preferred motion axis / supported rotation envelope when evidenced
+twist policy when constrained by the rig/reference
 joint closure/overlap
 head/torso counter-motion
 limb sequencing

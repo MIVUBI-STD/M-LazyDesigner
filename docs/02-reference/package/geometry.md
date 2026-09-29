@@ -224,10 +224,13 @@ May describe:
 participating semantic parts
 parent-child relationship
 pivot region
-axis intent
+axis intent / preferred axis when supported
+bend direction when reference-critical
+supported rotation envelope when explicitly evidenced
+twist policy when materially constrained
 overlap / coverage
 clearance
-attachment invariants
+attachment/contact invariants
 deformation risk
 ```
 
