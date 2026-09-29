@@ -17,6 +17,7 @@ server/tools/animation/shared.ts           canonical shared helpers
 server/tools/animation/controllerState.ts  canonical controller state helpers
 server/tools/animation/effectState.ts      canonical effect state helpers
 server/tools/animation/controllerSchema.ts  canonical controller input contract
+server/tools/animation/inspectionSchema.ts  canonical inspection input contract
 
 matching root paths                         compatibility re-export only
 ```
