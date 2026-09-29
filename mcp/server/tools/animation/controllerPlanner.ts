@@ -34,36 +34,6 @@ function resolveControllerState(
   });
 }
 
-function environment.resolveAnimation(reference: string): _Animation {
-  const items = (AnimationItem.all ?? []) as Array<_Animation | AnimationController>;
-  const animations = items.filter(
-    (item): item is _Animation => !isAnimationControllerItem(item)
-  );
-  return resolveUuidOrUniqueName(animations, reference, {
-    kind: "Animation",
-    notFoundHint:
-      "Pass an exact authored Animation UUID or unique exact Animation name; controller targets are not animation links.",
-  });
-}
-
-function environment.ensureControllerNameAvailable(
-  requestedName: string,
-  path: string,
-  excludeUuid?: string
-): void {
-  const collision = currentControllers().find(
-    (candidate) =>
-      candidate.uuid !== excludeUuid &&
-      (candidate.path || "") === path &&
-      candidate.name === requestedName
-  );
-  if (collision) {
-    throw new Error(
-      `AnimationController name "${requestedName}" already exists for the same file scope (${collision.uuid}). Use a unique exact name.`
-    );
-  }
-}
-
 function requireUniqueStateName(
   states: readonly ControllerStatePlan[],
   requestedName: string,
@@ -478,5 +448,4 @@ export function applyOperationToPlan(
     }
   }
 }
-
 
