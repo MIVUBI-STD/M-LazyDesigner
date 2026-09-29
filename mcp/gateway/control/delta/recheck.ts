@@ -52,6 +52,27 @@ function uvTargetFromResult(result: unknown): ControlDownstreamRecheck["target"]
   return undefined;
 }
 
+function materialRenderTargetFromResult(
+  result: unknown
+): ControlDownstreamRecheck["target"] | undefined {
+  for (const candidate of resultCandidates(result)) {
+    const changes = Array.isArray(candidate.changes) ? candidate.changes : [];
+    const faces = changes.flatMap((value) => {
+      const change = record(value);
+      return typeof change?.cube_uuid === "string" &&
+        typeof change.face === "string"
+        ? [{ cube_uuid: change.cube_uuid, face: change.face }]
+        : [];
+    });
+    if (!faces.length) continue;
+    return {
+      cube_ids: [...new Set(faces.map((entry) => entry.cube_uuid))],
+      faces,
+    };
+  }
+  return undefined;
+}
+
 export function downstreamRechecksForFreshness(input: {
   stale: readonly ControlFreshnessScope[];
   currentDomain: ControlAuthoringDomain;
@@ -66,7 +87,9 @@ export function downstreamRechecksForFreshness(input: {
       const target =
         scope === "UV_MAPPING" || scope === "TEXTURE_APPEARANCE"
           ? uvTargetFromResult(input.result)
-          : undefined;
+          : scope === "MATERIAL_RENDER"
+            ? materialRenderTargetFromResult(input.result)
+            : undefined;
       return {
         scope,
         domain: dependency.domain,

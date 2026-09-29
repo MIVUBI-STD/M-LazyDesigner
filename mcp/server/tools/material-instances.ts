@@ -495,7 +495,10 @@ export function registerMaterialInstanceTools() {
           "bulk_set",
           cubesToEdit,
           totalModified,
-          { assignment_count: assignments.length }
+          {
+            assignment_count: assignments.length,
+            changes: materialInstanceContinuationChanges(plannedChanges),
+          }
         );
         return materialInstanceMutationResult(
           result,
