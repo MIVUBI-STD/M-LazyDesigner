@@ -14,6 +14,10 @@
   "type": "module",
   "main": "dist/blockit_mcp.js",
   "scripts": {
+    "check": "bun run verify:repository && bun run typecheck && bun run typecheck:gateway",
+    "verify": "bun run verify:full",
+    "benchmark": "bun run verify:benchmarks",
+    "release": "bun run verify:release",
     "typecheck": "tsc --noEmit",
     "typecheck:gateway": "tsc -p gateway/tsconfig.json --noEmit",
     "typecheck:profile": "tsc --noEmit --extendedDiagnostics",
