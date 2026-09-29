@@ -14,6 +14,12 @@ function acceptedRun(): GoldenAuthoringDocument {
         source_sha: "1234567890abcdef1234567890abcdef12345678",
         proof_scope: "LIVE_BLOCKBENCH",
         model: "gpt-5.6-sol",
+        pipeline_provenance: {
+          reference_package_fingerprint: "a".repeat(64),
+          control_task_context_id: "task:1234567890abcdef1234",
+          runtime_build_identity: "runtime-build-accepted",
+          artifact_revision: "artifact-revision-accepted",
+        },
         quality_verdict: "PASS",
         accepted_result: true,
         user_corrections: 1,
@@ -96,6 +102,14 @@ describe("golden authoring accepted-result benchmark", () => {
     document.runs[0]!.quality_verdict = "UNVERIFIED";
     expect(() => validateGoldenAuthoringDocument(document)).toThrow(
       "cannot be accepted unless quality_verdict is PASS"
+    );
+  });
+
+  test("rejects accepted-result claims without complete end-to-end provenance", () => {
+    const document = acceptedRun();
+    document.runs[0]!.pipeline_provenance.runtime_build_identity = null;
+    expect(() => validateGoldenAuthoringDocument(document)).toThrow(
+      "requires complete Reference → Control → Runtime → artifact provenance"
     );
   });
 

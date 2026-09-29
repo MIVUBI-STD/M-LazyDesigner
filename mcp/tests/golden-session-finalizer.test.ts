@@ -18,6 +18,12 @@ function golden(): GoldenAuthoringDocument {
         source_sha: "1234567890abcdef1234567890abcdef12345678",
         proof_scope: "LIVE_BLOCKBENCH",
         model: null,
+        pipeline_provenance: {
+          reference_package_fingerprint: null,
+          control_task_context_id: null,
+          runtime_build_identity: null,
+          artifact_revision: null,
+        },
         quality_verdict: "UNVERIFIED",
         accepted_result: null,
         user_corrections: null,

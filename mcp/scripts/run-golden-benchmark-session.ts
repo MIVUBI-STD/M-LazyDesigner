@@ -92,6 +92,12 @@ export function buildGoldenRunDraft(input: {
         source_sha: input.sourceSha,
         proof_scope: "LIVE_BLOCKBENCH",
         model: null,
+        pipeline_provenance: {
+          reference_package_fingerprint: null,
+          control_task_context_id: null,
+          runtime_build_identity: null,
+          artifact_revision: null,
+        },
         quality_verdict: "UNVERIFIED",
         accepted_result: null,
         user_corrections: null,
@@ -153,7 +159,7 @@ async function finalizeSession(input: {
     `[LazyDesigner Benchmark] Session artifacts: ${input.paths.directory}`
   );
   console.error(
-    "[LazyDesigner Benchmark] Draft remains UNVERIFIED; add decision labels and acceptance evidence before claiming accepted-result efficiency."
+    "[LazyDesigner Benchmark] Draft remains UNVERIFIED; add complete Reference → Control → Runtime → artifact provenance, decision labels, and acceptance evidence before claiming accepted-result efficiency."
   );
 }
 

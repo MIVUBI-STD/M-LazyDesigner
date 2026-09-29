@@ -24,6 +24,12 @@ export type FinalGoldenSessionReport = {
   state: "ACCEPTED" | "INCOMPLETE";
   quality_verdict: "PASS" | "FAIL" | "UNVERIFIED";
   accepted_result: boolean | null;
+  pipeline_provenance: {
+    reference_package_fingerprint: string | null;
+    control_task_context_id: string | null;
+    runtime_build_identity: string | null;
+    artifact_revision: string | null;
+  };
   metrics: MetricSet | null;
 };
 
@@ -64,6 +70,15 @@ function validateAcceptedReport(
   if (!/^[0-9a-f]{40}$/.test(value.source_sha)) {
     throw new Error(`${label}.source_sha must be an exact 40-character Git SHA.`);
   }
+  if (
+    !value.pipeline_provenance ||
+    !value.pipeline_provenance.reference_package_fingerprint ||
+    !value.pipeline_provenance.control_task_context_id ||
+    !value.pipeline_provenance.runtime_build_identity ||
+    !value.pipeline_provenance.artifact_revision
+  ) {
+    throw new Error(`${label} must contain complete end-to-end pipeline provenance.`);
+  }
 }
 
 export function compareAcceptedGoldenSessions(input: {
@@ -75,6 +90,14 @@ export function compareAcceptedGoldenSessions(input: {
 
   if (input.baseline.task_id !== input.candidate.task_id) {
     throw new Error("Accepted-session comparison requires the same golden task_id.");
+  }
+  if (
+    input.baseline.pipeline_provenance.reference_package_fingerprint !==
+    input.candidate.pipeline_provenance.reference_package_fingerprint
+  ) {
+    throw new Error(
+      "Accepted-session comparison requires the same reference package fingerprint."
+    );
   }
 
   const metrics = Object.fromEntries(
@@ -101,7 +124,9 @@ export function compareAcceptedGoldenSessions(input: {
     task_id: input.baseline.task_id,
     baseline_source_sha: input.baseline.source_sha,
     candidate_source_sha: input.candidate.source_sha,
-    quality_gate: "BOTH_ACCEPTED_PASS",
+    reference_package_fingerprint:
+      input.baseline.pipeline_provenance.reference_package_fingerprint,
+    quality_gate: "BOTH_ACCEPTED_PASS_SAME_REFERENCE",
     metrics,
     rule:
       "This report presents per-metric deltas only. It does not compute a synthetic aggregate score or declare an overall winner.",

@@ -24,11 +24,19 @@ export type GoldenAcceptanceEvidence = {
   evidence_ref: string | null;
 };
 
+export type GoldenPipelineProvenance = {
+  reference_package_fingerprint: string | null;
+  control_task_context_id: string | null;
+  runtime_build_identity: string | null;
+  artifact_revision: string | null;
+};
+
 export type GoldenAuthoringRun = {
   task_id: string;
   source_sha: string;
   proof_scope: "LOCAL_CODE" | "LIVE_BLOCKBENCH";
   model: string | null;
+  pipeline_provenance: GoldenPipelineProvenance;
   quality_verdict: GoldenQualityVerdict;
   accepted_result: boolean | null;
   user_corrections: number | null;
@@ -77,6 +85,34 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
   }
   if (run.accepted_result !== null && typeof run.accepted_result !== "boolean") {
     throw new Error(`${prefix}.accepted_result must be boolean or null.`);
+  }
+
+  const provenance = run.pipeline_provenance;
+  if (!provenance || typeof provenance !== "object") {
+    throw new Error(`${prefix}.pipeline_provenance is required.`);
+  }
+  for (const field of [
+    "reference_package_fingerprint",
+    "control_task_context_id",
+    "runtime_build_identity",
+    "artifact_revision",
+  ] as const) {
+    const value = provenance[field];
+    if (value !== null && (typeof value !== "string" || value.trim().length === 0)) {
+      throw new Error(`${prefix}.pipeline_provenance.${field} must be null or a non-empty string.`);
+    }
+  }
+  if (
+    provenance.reference_package_fingerprint !== null &&
+    !/^[0-9a-f]{64}$/.test(provenance.reference_package_fingerprint)
+  ) {
+    throw new Error(`${prefix}.pipeline_provenance.reference_package_fingerprint must be a 64-character lowercase hex fingerprint.`);
+  }
+  if (
+    provenance.control_task_context_id !== null &&
+    !/^task:[0-9a-f]{20}$/.test(provenance.control_task_context_id)
+  ) {
+    throw new Error(`${prefix}.pipeline_provenance.control_task_context_id must be a Control task context id.`);
   }
 
   requireNonNegativeNullable(run.user_corrections, `${prefix}.user_corrections`);
@@ -129,6 +165,22 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
   if (run.accepted_result === true) {
     if (run.quality_verdict !== "PASS") {
       throw new Error(`${prefix} cannot be accepted unless quality_verdict is PASS.`);
+    }
+    if (
+      !run.pipeline_provenance.reference_package_fingerprint ||
+      !run.pipeline_provenance.control_task_context_id ||
+      !run.pipeline_provenance.runtime_build_identity ||
+      !run.pipeline_provenance.artifact_revision
+    ) {
+      throw new Error(
+        `${prefix} accepted result requires complete Reference → Control → Runtime → artifact provenance.`
+      );
+    }
+    if (!run.trace.some((event) => event.kind === "mutate")) {
+      throw new Error(`${prefix} accepted result requires at least one mutation trace event.`);
+    }
+    if (!run.trace.some((event) => event.kind === "verify")) {
+      throw new Error(`${prefix} accepted result requires at least one verification trace event.`);
     }
     if (run.trace.some((event) => event.required_for_decision === null)) {
       throw new Error(
@@ -199,6 +251,7 @@ export function summarizeGoldenAuthoringDocument(
       source_sha: run.source_sha,
       quality_verdict: run.quality_verdict,
       accepted_result: run.accepted_result,
+      pipeline_provenance: run.pipeline_provenance,
       metrics_available: accepted,
       metrics: {
         tool_calls_to_accepted_result: accepted ? run.trace.length : null,

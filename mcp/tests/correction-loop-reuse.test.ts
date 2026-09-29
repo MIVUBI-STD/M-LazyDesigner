@@ -907,13 +907,22 @@ describe("zero-waste correction loop reuse", () => {
       [{
         code: "WIDTH_LOW",
         severity: "REVIEW",
-        summary: "Width improved but remains too narrow.",
+        summary: "Width still differs after the first correction.",
         views: ["front"],
         evidence_targets: ["width"],
       }]
     );
-    expect(registry.planGeometryCorrection(handle, [candidate]).attempt).toBe(2);
-    expect(registry.projectContinuation(handle).state).toBe("VERIFY_PENDING");
+    const plateau = registry.planGeometryCorrection(handle, [candidate]);
+    expect(plateau.state).toBe("BLOCKED");
+    expect(plateau.blocked_reason).toBe("QUALITY_PLATEAU_NO_GAIN");
+    expect(registry.projectContinuation(handle)).toMatchObject({
+      state: "BLOCKED",
+      mode: "BLOCKED",
+      convergence: {
+        state: "PLATEAU",
+        target_discrepancy_codes: ["WIDTH_LOW"],
+      },
+    });
   });
 
   test("targeted evidence update preserves unrelated discrepancies and tracks per-view handles across rounds", () => {

@@ -142,4 +142,4 @@ usage/tool-call observations
 runtime/environment notes
 ```
 
-Compare implementation changes only against equivalent inputs and acceptance criteria. A prepared fixture or passing static test is not live visual/runtime proof.
+Compare implementation changes only against equivalent inputs and acceptance criteria. Accepted live benchmark runs must retain end-to-end provenance for the approved Reference Package fingerprint, Control task-context id, Runtime build identity, and resulting artifact revision. Baseline/candidate comparisons require the same Reference Package fingerprint; otherwise they are different authoring inputs and are not comparable efficiency experiments. A prepared fixture or passing static test is not live visual/runtime proof.

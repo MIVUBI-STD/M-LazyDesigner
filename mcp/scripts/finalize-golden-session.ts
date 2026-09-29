@@ -110,6 +110,7 @@ export function finalizeGoldenSession(input: {
     state: accepted ? "ACCEPTED" : "INCOMPLETE",
     quality_verdict: run.quality_verdict,
     accepted_result: run.accepted_result,
+    pipeline_provenance: run.pipeline_provenance,
     unresolved: {
       decision_labels: unresolvedDecisionLabels,
       acceptance_evidence: unresolvedAcceptanceEvidence,
@@ -120,7 +121,7 @@ export function finalizeGoldenSession(input: {
         : null,
     usage,
     rule:
-      "Final efficiency metrics exist only after exact-SHA accepted quality evidence and complete decision labels. Optional token telemetry must match the same task and source SHA.",
+      "Final efficiency metrics exist only after exact-SHA accepted quality evidence, complete end-to-end pipeline provenance, and complete decision labels. Optional token telemetry must match the same task and source SHA.",
   };
 }
 

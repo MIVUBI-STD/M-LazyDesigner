@@ -13,6 +13,12 @@ function accepted(sha: string, calls: number): FinalGoldenSessionReport {
     state: "ACCEPTED",
     quality_verdict: "PASS",
     accepted_result: true,
+    pipeline_provenance: {
+      reference_package_fingerprint: "b".repeat(64),
+      control_task_context_id: "task:abcdef1234567890abcd",
+      runtime_build_identity: "runtime-" + sha.slice(0, 8),
+      artifact_revision: "artifact-" + sha.slice(0, 8),
+    },
     metrics: {
       tool_calls_to_accepted_result: calls,
       decision_required_calls: calls - 1,
@@ -46,13 +52,28 @@ describe("accepted golden session comparison", () => {
       ),
     });
 
-    expect(report.quality_gate).toBe("BOTH_ACCEPTED_PASS");
+    expect(report.quality_gate).toBe("BOTH_ACCEPTED_PASS_SAME_REFERENCE");
     expect(
       report.metrics.tool_calls_to_accepted_result
         .delta_candidate_minus_baseline
     ).toBe(-2);
     expect(report).not.toHaveProperty("score");
     expect(report).not.toHaveProperty("winner");
+  });
+
+  test("rejects comparisons that changed the reference authority", () => {
+    const baseline = accepted(
+      "1234567890abcdef1234567890abcdef12345678",
+      5
+    );
+    const candidate = accepted(
+      "abcdef1234567890abcdef1234567890abcdef12",
+      3
+    );
+    candidate.pipeline_provenance.reference_package_fingerprint = "c".repeat(64);
+    expect(() =>
+      compareAcceptedGoldenSessions({ baseline, candidate })
+    ).toThrow("same reference package fingerprint");
   });
 
   test("rejects incomplete or cross-task comparisons", () => {
