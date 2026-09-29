@@ -19,7 +19,10 @@ import {
   capabilityBranchFromArguments,
   evaluateCapabilityPreconditions,
 } from "../capabilities/graph";
-import { manifestEntryForBranch } from "../capabilities/manifest";
+import {
+  manifestEntryForBranch,
+  nestedOperationClassForArguments,
+} from "../capabilities/manifest";
 import type { LocalCapabilityRegistry } from "../providers/registry";
 import type { GatewaySessionState } from "../session/state";
 import {
@@ -119,8 +122,12 @@ export class GatewayCapabilityExecutor {
         localResult !== null
           ? this.localCapabilities.readOnlyHint(capability) === true
           : runtimeInvocation!.readOnly;
+      const nestedOperationClass =
+        nestedOperationClassForArguments(capability, args);
       const branchReadOnly =
+        nestedOperationClass === "QUERY" ||
         manifestEntryForBranch(capability, branch)?.operationClass === "QUERY";
+      const branchControl = nestedOperationClass === "CONTROL";
       const effectiveReadOnly = readOnly || branchReadOnly;
 
       const succeeded = result.isError !== true;
@@ -159,7 +166,7 @@ export class GatewayCapabilityExecutor {
 
       const attachControlDelta = shouldAttachGatewayControlDelta(
         succeeded,
-        effectiveReadOnly
+        effectiveReadOnly || branchControl
       );
       const orchestration = attachControlDelta
         ? reduceControlExecutionState(

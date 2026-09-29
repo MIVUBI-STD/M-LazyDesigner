@@ -50,6 +50,7 @@ function recordFingerprints(
     operationClass: entry.operationClass ?? null,
     executionClass: entry.executionClass ?? null,
     verificationClass: entry.verificationClass ?? null,
+    nestedActions: entry.nestedActions ?? null,
   });
   const graph = semanticFingerprint({
     id: entry.id,

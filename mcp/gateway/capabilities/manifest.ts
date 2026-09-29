@@ -40,6 +40,7 @@ export type CapabilityBranchManifestEntry = {
   operationClass?: CapabilityOperationClass;
   executionClass?: "fast" | "normal" | "heavy";
   verificationClass?: "not_applicable" | "receipt_only" | "focused_read" | "visual";
+  nestedActions?: Readonly<Record<string, CapabilityOperationClass>>;
   graph?: CapabilityGraphSpec;
 };
 
@@ -463,6 +464,22 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "timeline" },
     schemaFields: ["operation", "animation_id", "action", "time", "length", "fps", "loop_mode", "range", "molang", "easing", "bone_ids"],
+    nestedActions: {
+      select: "CONTROL",
+      play: "CONTROL",
+      pause: "CONTROL",
+      stop: "CONTROL",
+      set_time: "CONTROL",
+      select_range: "CONTROL",
+      expand_bones: "CONTROL",
+      collapse_bones: "CONTROL",
+      set_length: "MUTATION",
+      set_fps: "MUTATION",
+      loop: "MUTATION",
+      set_anim_time_update: "MUTATION",
+      set_blend_weight: "MUTATION",
+      set_easing: "MUTATION",
+    },
     semantic: {
       intents: ["control animation timeline", "scrub animation", "play animation preview"],
       nouns: ["animation", "timeline", "playback", "time", "range"],
@@ -484,6 +501,11 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "copy_paste" },
     schemaFields: ["operation", "action", "source", "target"],
+    nestedActions: {
+      copy: "CONTROL",
+      paste: "MUTATION",
+      mirror_paste: "MUTATION",
+    },
     operationClass: "MUTATION",
     semantic: {
       intents: ["copy animation keyframes", "paste or mirror keyframes"],
@@ -750,4 +772,40 @@ export function manifestEntryForBranch(
     if (exact) return exact;
   }
   return entries.find((entry) => entry.branch === undefined) ?? null;
+}
+
+export function nestedOperationClassForArguments(
+  capability: string,
+  args: Record<string, unknown>
+): CapabilityOperationClass | null {
+  const discriminator = ["operation", "type", "mode", "resource_kind"]
+    .map((field) => ({ field, value: args[field] }))
+    .find((candidate) => typeof candidate.value === "string");
+  if (!discriminator) return null;
+  const entry = manifestEntryForBranch(capability, {
+    field: discriminator.field,
+    value: discriminator.value as string,
+  });
+  const action = typeof args.action === "string" ? args.action : null;
+  if (action && entry?.nestedActions?.[action]) {
+    return entry.nestedActions[action]!;
+  }
+  return entry?.operationClass ?? null;
+}
+
+export function nestedOperationClassForAction(
+  capability: string,
+  action: string
+): CapabilityOperationClass | null {
+  const classes = [
+    ...new Set(
+      manifestEntriesForCapability(capability)
+        .map((entry) => entry.nestedActions?.[action])
+        .filter(
+          (value): value is CapabilityOperationClass =>
+            typeof value === "string"
+        )
+    ),
+  ];
+  return classes.length === 1 ? classes[0]! : null;
 }

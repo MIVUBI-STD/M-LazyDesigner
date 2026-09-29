@@ -214,3 +214,17 @@ Search and full describe must project the same branch override. Branch operation
 Branch metadata may also override Execution Class and Verification Class when the branch is behaviorally homogeneous. Query branches can therefore be projected as fast/not-applicable even when their consolidated facade also owns mutations.
 
 Do not force an override onto a mixed branch. For example, `manage_animation_timeline(operation=timeline)` still contains both editor/timeline control and authored clip-property mutation actions, so receipt/result semantics remain authoritative there.
+
+When a mixed branch has a stable nested discriminator such as `action`, nested action semantics may live on that same branch entry. This does not create another routing layer or public tool.
+
+```text
+manage_animation_timeline(operation=timeline, action=set_time)
+→ CONTROL
+→ successful execution does not create authoring continuation
+
+manage_animation_timeline(operation=timeline, action=set_length)
+→ MUTATION
+→ normal receipt/freshness/verification path
+```
+
+Unknown nested actions fail closed and do not inherit a state-neutral classification.

@@ -18,6 +18,7 @@ import {
 } from "../../../lib/receipts/materialMutation";
 import { isVerifiedParticleWriteReceipt } from "../../../lib/receipts/particleMutation";
 import { isRenderProfileMutationReceipt } from "../../../lib/receipts/renderProfile";
+import { nestedOperationClassForAction } from "../../capabilities/manifest";
 import { isTextureGroupReceipt } from "../../../lib/receipts/textureGroup";
 import { isRemoveElementReceipt } from "../../../lib/receipts/removeElement";
 import { isAppliedRenameElementReceipt } from "../../../lib/receipts/renameElement";
@@ -73,27 +74,20 @@ export function particleTextureHandoffRequired(value: unknown): boolean {
   });
 }
 
-const STATE_NEUTRAL_ANIMATION_ACTIONS = new Set([
-  "select",
-  "play",
-  "pause",
-  "stop",
-  "set_time",
-  "select_range",
-  "expand_bones",
-  "collapse_bones",
-  "copy",
-]);
-
 export function animationTimelineStateNeutral(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     const action = typeof candidate.action === "string" ? candidate.action : null;
     const scope = typeof candidate.scope === "string" ? candidate.scope : null;
+    const operationClass =
+      action === null
+        ? null
+        : nestedOperationClassForAction("manage_animation_timeline", action);
     return (
       candidate.changed === false ||
       scope === "timeline_view_only" ||
       scope === "animation_clipboard_only" ||
-      (action !== null && STATE_NEUTRAL_ANIMATION_ACTIONS.has(action))
+      operationClass === "QUERY" ||
+      operationClass === "CONTROL"
     );
   });
 }
