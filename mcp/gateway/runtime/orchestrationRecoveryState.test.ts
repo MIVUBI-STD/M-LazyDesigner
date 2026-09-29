@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { AuthoringRecipe } from "@/lib/authoringRecipe/contracts";
+import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import { GatewayOrchestrationRecoveryState } from "./orchestrationRecoveryState";
 
 function recipe(): AuthoringRecipe {
@@ -30,19 +31,23 @@ function recipe(): AuthoringRecipe {
   };
 }
 
+function geometryRequest(): VerificationEvidenceRequest {
+  return {
+    domain: "GEOMETRY",
+    source: "capture_model_views",
+    verification_risk: "LOW",
+    views: ["front"],
+    views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+    size: 256,
+    size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+    scope_instance_ids: ["arms:0", "arms:1"],
+  };
+}
+
 describe("Gateway orchestration recovery state", () => {
   test("runtime generation invalidation clears evidence and marks active corrections for recovery", () => {
     const state = new GatewayOrchestrationRecoveryState();
-    const request = {
-      domain: "GEOMETRY" as const,
-      source: "capture_model_views" as const,
-      verification_risk: "LOW" as const,
-      views: ["front"] as const,
-      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
-      size: 256 as const,
-      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
-      scope_instance_ids: ["arms:0", "arms:1"],
-    };
+    const request = geometryRequest();
     const evidenceHandle = state.evidence.put({
       request,
       result: { revision: 1 },
@@ -103,16 +108,7 @@ describe("Gateway orchestration recovery state", () => {
 
   test("project affinity switch hard-resets all orchestration state and scopes new identities", () => {
     const state = new GatewayOrchestrationRecoveryState();
-    const request = {
-      domain: "GEOMETRY" as const,
-      source: "capture_model_views" as const,
-      verification_risk: "LOW" as const,
-      views: ["front"] as const,
-      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
-      size: 256 as const,
-      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
-      scope_instance_ids: ["arms:0", "arms:1"],
-    };
+    const request = geometryRequest();
 
     expect(state.synchronizeProjectAffinity("project-a")).toBe(false);
 
@@ -193,16 +189,7 @@ describe("Gateway orchestration recovery state", () => {
   });
 
   test("process restart creates a new handle namespace even for the same project and payload", () => {
-    const request = {
-      domain: "GEOMETRY" as const,
-      source: "capture_model_views" as const,
-      verification_risk: "LOW" as const,
-      views: ["front"] as const,
-      views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
-      size: 256 as const,
-      size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS" as const,
-      scope_instance_ids: ["arms:0", "arms:1"],
-    };
+    const request = geometryRequest();
 
     const firstProcess = new GatewayOrchestrationRecoveryState("process-a");
     const secondProcess = new GatewayOrchestrationRecoveryState("process-b");
