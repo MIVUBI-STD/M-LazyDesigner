@@ -46,5 +46,8 @@ jobs:
         with:
           bun-version-file: ".bun-version"
 
+      - name: Install exact lockfile
+        run: bun install --frozen-lockfile
+
       - name: Audit dependency advisories
         run: bun run security:audit
