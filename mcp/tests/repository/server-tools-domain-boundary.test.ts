@@ -3,6 +3,12 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
+  "element-inspection.ts": 'export * from "./element/inspection";\n',
+  "animation-effects.ts": 'export * from "./animation/effects";\n',
+  "animation-inspection.ts": 'export * from "./animation/inspection";\n',
+  "material-instances.ts": 'export * from "./texture/materialInstances";\n',
+  "paint-texture-transaction.ts": 'export * from "./paint/textureTransaction";\n',
+  "texture-material-validation.ts": 'export * from "./texture/materialValidation";\n',
   "camera.ts": 'export * from "./inspection/camera";\n',
   "render-profile.ts": 'export * from "./texture/renderProfile";\n',
   "quality-intelligence.ts": 'export * from "./validation/qualityIntelligence";\n',
