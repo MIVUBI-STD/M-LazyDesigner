@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { GatewayConnectionManager } from "./connectionManager";
+import { GatewayConnectionManager } from "./runtime/connectionManager";
 
 describe("GatewayConnectionManager", () => {
   test("does not inflate backoff while remaining offline", () => {
