@@ -9,11 +9,11 @@ import {
   effectiveTimelineScriptLines,
   normalizeEffectiveParticleScript,
   snapshotsEffectivelyEqual,
-} from "@/server/tools/animation-effect-state";
+} from "@/server/tools/animation/effectState";
 export {
   effectiveTimelineScriptLines,
   normalizeEffectiveParticleScript,
-} from "@/server/tools/animation-effect-state";
+} from "@/server/tools/animation/effectState";
 import { animationEffectsReceipt } from "@/lib/receipts/animationEffects";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
