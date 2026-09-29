@@ -100,6 +100,31 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("animation controller planner stays runtime-independent", async () => {
+    const planner = await Bun.file(
+      "server/tools/animation/controllerPlanner.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/animation-controller.ts"
+    ).text();
+
+    expect(planner).toContain("ControllerPlanningEnvironment");
+    expect(planner).toContain("applyOperationToPlan");
+    expect(planner).not.toContain("AnimationItem");
+    expect(planner).not.toContain("Undo.");
+    expect(planner).not.toContain("createTool(");
+    expect(planner).not.toContain("guid()");
+    expect(planner).not.toContain("/server/runtime");
+    expect(planner).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/animation/controllerPlanner"'
+    );
+    expect(executor).toContain("resolveAnimation: resolveAuthoredAnimation");
+    expect(executor).toContain("createId: () => guid()");
+    expect(executor.length).toBeLessThan(12000);
+  });
+
   test("animation inspection schema stays separate from executor/runtime wiring", async () => {
     const schema = await Bun.file(
       "server/tools/animation/inspectionSchema.ts"
