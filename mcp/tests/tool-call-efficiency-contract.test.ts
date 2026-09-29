@@ -49,7 +49,7 @@ describe("authoring tool-call efficiency contract", () => {
 
     expect(texturing).toContain("search_capabilities(limit=4)");
     expect(animation).toContain("known → gateway; unknown/stale → search_capabilities");
-    expect(modelling).toContain("same causal correction failing twice without new evidence → blocked");
+    expect(modelling).toContain("same causal direction failing twice without new evidence → blocked");
     expect(texturing).toContain("same texture-owned causal direction twice without new evidence → blocked");
     expect(source).toContain("same diagnosed cause twice");
     expect(source).toContain("blocked unless new decision-changing evidence exists");
