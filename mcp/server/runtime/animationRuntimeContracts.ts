@@ -65,7 +65,7 @@ const captureModelViewsWithAnimationBase = captureModelViewsParameters.extend({
 export const animationAwareCaptureModelViewsParameters =
   captureModelViewsWithAnimationBase.superRefine((request, ctx) => {
     const sampleCount = request.animation_preview?.times.length ?? 1;
-    if (request.views.length * sampleCount > 8) {
+    if (request.views && request.views.length * sampleCount > 8) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["animation_preview", "times"],
