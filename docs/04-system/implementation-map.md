@@ -206,6 +206,18 @@ manage_animation_controller
 
 ## Shared Runtime Libraries
 
+Canonical shared-library domains:
+
+```text
+mcp/lib/authoring/   handoff readiness + validator semantics
+mcp/lib/bedrock/     Bedrock project identity + authored project semantics
+mcp/lib/product/     LazyDesigner product identity
+mcp/lib/protocol/    MCP/resource URI helpers
+mcp/lib/runtime/     Runtime connection/affinity/fetch/lifecycle primitives
+```
+
+Root `mcp/lib/*.ts` files for migrated owners are compatibility re-export facades only; new code should target the canonical domain path.
+
 ```text
 mcp/lib/capabilityMetadata.ts   canonical tier/search aliases/declarative effects + Operation/State/Execution/Verification projection
 mcp/lib/assetDependencyGraph.ts canonical Dirty Scope → Domain + minimum downstream recheck projection
@@ -215,12 +227,12 @@ gateway/control/orchestration.ts
 → optional task_context_id + explicit CONTINUE/COMPLETE boundary
 → never replaces native per-tool Undo/rollback
 mcp/lib/authoringPhase.ts       semantic stage classification + AUTHORING/ANIMATION surface mapping
-mcp/lib/authoringReadiness.ts  canonical Animation handoff readiness
-mcp/lib/validationVerdict.ts   conservative Validator gate projection
+mcp/lib/authoring/authoringReadiness.ts  canonical Animation handoff readiness
+mcp/lib/authoring/validationVerdict.ts   conservative Validator gate projection
 mcp/lib/receipts/**             shared Runtime→Control mutation receipt contracts
 mcp/lib/semanticHistory.ts      ephemeral WeakMap semantic Undo/Redo effects
 mcp/lib/factories.ts           Tool/Resource/Prompt registration + canonical validation/result compaction
-mcp/lib/runtimeLifecycle.ts    runtime generation/lifecycle safety helpers
+mcp/lib/runtime/lifecycle.ts    runtime generation/lifecycle safety helpers
 ```
 
 Domain intelligence helpers under `mcp/lib/**` remain supporting implementation for the owning Tool family; they are not alternate public capabilities.
@@ -281,7 +293,7 @@ Control readiness
 → workspace/reference lifecycle orientation
 → never handoff authorization by itself
 
-mcp/lib/authoringReadiness.ts
+mcp/lib/authoring/authoringReadiness.ts
 → USER_APPROVED | AUTONOMOUS_VERIFIED
 → actual AUTHORING↔Animation readiness contract
 ```
