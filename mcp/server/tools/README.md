@@ -170,3 +170,34 @@ matching root migration paths         compatibility re-export only
 ```
 
 New Element implementation belongs under `server/tools/element/`, not at the tools root.
+
+
+## Geometry domain
+
+```text
+server/tools/geometry/cubes.ts    Cube authoring executor and Cube-specific validation
+server/tools/cubes.ts             compatibility re-export only
+```
+
+New Cube/geometry implementation belongs under `server/tools/geometry/`.
+
+## Project domain
+
+```text
+server/tools/project/project.ts   project creation/info/bounds owner
+server/tools/project.ts           compatibility re-export only
+```
+
+Project lifecycle logic belongs under `server/tools/project/`.
+
+## Particle domain
+
+```text
+server/tools/particle/manage.ts          particle capability executor
+server/tools/particle/inspection.ts      particle source/read/preview helpers
+server/tools/particle/fileTransaction.ts particle filesystem transaction owner
+
+matching root migration paths            compatibility re-export only
+```
+
+Particle authoring implementation belongs under `server/tools/particle/`; do not create additional root-level particle executors.
