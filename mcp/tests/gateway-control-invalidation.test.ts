@@ -1,6 +1,22 @@
 import { describe, expect, test } from "bun:test";
 import { buildControlDelta } from "@/gateway/control";
 
+function cubeEffect(changedFields: string[]) {
+  return {
+    changed_fields: changedFields,
+    center_delta: [0, 0, 0],
+    size_delta: [0, 0, 0],
+    origin_delta: [0, 0, 0],
+    rotation_delta: [0, 0, 0],
+    inflate_delta: 0,
+    uv_offset_delta: [0, 0],
+    mirror_uv_changed: false,
+    autouv_changed: false,
+    visibility_changed: false,
+    faces_changed: false,
+  };
+}
+
 describe("LazyDesigner Control minimum invalidation", () => {
   test("local cube transform does not reset unrelated Texture or Animation", () => {
     const delta = buildControlDelta({
@@ -10,9 +26,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
       projectUuid: "project-a",
       succeeded: true,
       result: {
-        geometry_effect: {
-          changed_fields: ["rotation", "origin"],
-        },
+        geometry_effect: cubeEffect(["rotation", "origin"]),
       },
     });
 
@@ -38,9 +52,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
       result: {
         effects: [
           {
-            geometry_effect: {
-              changed_fields: ["from", "to"],
-            },
+            geometry_effect: cubeEffect(["from", "to"]),
           },
         ],
       },
@@ -243,6 +255,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
       result: {
         execution: "applied",
         id: "group-a",
+        name: "arm",
         changed_fields: ["rotation"],
         group: {
           uuid: "group-a",
