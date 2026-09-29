@@ -16,6 +16,7 @@ Current migrated animation internals:
 server/tools/animation/shared.ts           canonical shared helpers
 server/tools/animation/controllerState.ts  canonical controller state helpers
 server/tools/animation/effectState.ts      canonical effect state helpers
+server/tools/animation/controllerSchema.ts  canonical controller input contract
 
 matching root paths                         compatibility re-export only
 ```
@@ -45,3 +46,16 @@ server/tools/paint/layerState.ts  canonical layer-state helpers
 
 matching root paths               compatibility re-export only
 ```
+
+
+## Tool contract split
+
+Large executors should not own schemas that are consumed independently by Runtime extensions. Prefer:
+
+```text
+<domain>/...Schema.ts   input/contract definition
+root tool executor      registration + native mutation
+runtime/extensions/*    post-registration augmentation consuming the schema directly
+```
+
+This prevents Runtime extensions from importing a large executor only to reuse its Zod contract.
