@@ -56,3 +56,35 @@ export function requireDistinctPbrChannelAssignments<
     channelByTexture.set(texture.uuid, channel);
   }
 }
+
+
+export function requireExplicitUniformMaterialSourceSwitch(
+  materialName: string,
+  activeChannels: readonly string[],
+  request: Readonly<{
+    color_texture?: string;
+    mer_texture?: string;
+    color_value?: readonly number[];
+    mer_value?: readonly number[];
+  }>
+): void {
+  if (
+    request.color_value !== undefined &&
+    request.color_texture === undefined &&
+    activeChannels.includes("color")
+  ) {
+    throw new Error(
+      `Material "${materialName}" already has a color texture. Send color_texture="none" with color_value so the uniform value is not silently ignored.`
+    );
+  }
+
+  if (
+    request.mer_value !== undefined &&
+    request.mer_texture === undefined &&
+    activeChannels.includes("mer")
+  ) {
+    throw new Error(
+      `Material "${materialName}" already has a MER texture. Send mer_texture="none" with mer_value so the uniform value is not silently ignored.`
+    );
+  }
+}
