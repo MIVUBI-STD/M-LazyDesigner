@@ -89,3 +89,21 @@ executor→ resolves Blockbench objects, opens Undo, applies plan, emits receipt
 ```
 
 The planner must not directly access Blockbench process globals, Undo, Gateway, or Runtime composition.
+
+
+Current animation batch planning owner:
+
+```text
+lib/animation/batchPlanning.ts
+  selection filtering
+  mirror/smooth eligibility
+  reverse time bounds
+  planned-time validation
+
+server/tools/animation-batch.ts
+  Timeline sampling
+  native keyframe mutation
+  Undo
+  preview/update
+  receipts
+```
