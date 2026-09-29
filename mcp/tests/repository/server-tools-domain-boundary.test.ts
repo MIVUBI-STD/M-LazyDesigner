@@ -3,6 +3,10 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
+  "element-shared.ts": 'export * from "./element/shared";\n',
+  "element-discovery.ts": 'export * from "./element/discovery";\n',
+  "element-hierarchy.ts": 'export * from "./element/hierarchy";\n',
+  "element-mutation.ts": 'export * from "./element/mutation";\n',
   "animation-rigging.ts": 'export * from "./animation/rigging";\n',
   "animation-batch.ts": 'export * from "./animation/batch";\n',
   "texture-atlas.ts": 'export * from "./texture/atlas";\n',
