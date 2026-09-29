@@ -172,6 +172,35 @@ describe("server tool domain ownership", () => {
     expect(executor.length).toBeLessThan(28000);
   });
 
+  test("texture material state stays separate from executor", async () => {
+    const state = await Bun.file(
+      "server/tools/texture/materialState.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/texture-materials.ts"
+    ).text();
+    const creator = await Bun.file(
+      "server/tools/texture-create.ts"
+    ).text();
+
+    expect(state).toContain("resolveTextureToolMaterial");
+    expect(state).toContain("materialContinuationState");
+    expect(state).not.toContain("createTool(");
+    expect(state).not.toContain("Undo.");
+    expect(state).not.toContain("/server/runtime");
+    expect(state).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/texture/materialState"'
+    );
+    expect(creator).toContain(
+      'from "./texture/materialState"'
+    );
+    expect(creator).not.toContain(
+      'from "./texture-materials"'
+    );
+  });
+
   test("texture material schemas stay separate from executor", async () => {
     const schema = await Bun.file(
       "server/tools/texture/materialSchema.ts"
