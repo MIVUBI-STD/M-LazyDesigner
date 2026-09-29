@@ -26,6 +26,25 @@ describe("Desktop security boundary", () => {
     expect(csp).not.toMatch(/https?:\/\/(?!ipc\.localhost)/);
   });
 
+  test("Tauri dependency surface excludes high-privilege plugins not required by the control plane", async () => {
+    const [cargo, packageJson] = await Promise.all([
+      source("../apps/desktop/src-tauri/Cargo.toml"),
+      source("../apps/desktop/package.json"),
+    ]);
+
+    for (const plugin of [
+      "tauri-plugin-shell",
+      "tauri-plugin-fs",
+      "tauri-plugin-http",
+      "tauri-plugin-process",
+      "tauri-plugin-opener",
+    ]) {
+      expect(cargo).not.toContain(plugin);
+      expect(packageJson).not.toContain(plugin);
+    }
+    expect(cargo).toContain('tauri = { version = "2", features = [] }');
+  });
+
   test("Desktop command surface delegates mutation to an exact managed-action allowlist", async () => {
     const [main, status] = await Promise.all([
       source("../apps/desktop/src-tauri/src/main.rs"),
