@@ -13,16 +13,18 @@ import {
   parseParticleDocument,
   serializeParticleDocument,
   type JsonValue,
-} from "@/lib/bedrockParticleDocument";
+} from "@/lib/particle/document";
 import {
   isCanonicalParticleTextureReference,
   particleTextureOutputMatchesReference,
-} from "@/lib/particleResourceLayout";
+} from "@/lib/particle/resourceLayout";
 import {
-  assertParticleSourceSnapshotMatches,
-  assertParticleWriteRevisionUnchanged,
-  captureParticleWriteRevision,
-} from "@/lib/particleWriteRevision";
+  allowParticleReplaceForExplicitSource,
+  particleSourceContentForOutput,
+  requireParticleFilesystem,
+  writeParticleArtifactsAtomically,
+  type PlannedParticleWrite,
+} from "@/server/tools/particle-file-transaction";
 
 const absoluteJsonPathSchema = z
   .string()
@@ -495,43 +497,6 @@ export const particleToolDocs: ToolSpec[] = [
   },
 ];
 
-type ParticleFilesystem = {
-  existsSync(path: string): boolean;
-  readFileSync(path: string, encoding: "utf8"): string;
-  writeFileSync(path: string, data: string): void;
-  statSync(path: string): { isFile(): boolean; size: number };
-  renameSync(oldPath: string, newPath: string): void;
-  unlinkSync(path: string): void;
-};
-
-type PlannedWrite = {
-  kind: "particle";
-  path: string;
-  content: string;
-  allow_replace: boolean;
-  expected_existing_content?: string;
-};
-
-type WriteReceipt = {
-  kind: PlannedWrite["kind"];
-  path: string;
-  byte_length: number;
-  replaced_existing: boolean;
-};
-
-function requireParticleFilesystem(reason: string): ParticleFilesystem {
-  // @ts-ignore - Blockbench desktop provides fs through requireNativeModule.
-  const fs = requireNativeModule("fs", {
-    message: reason,
-  }) as ParticleFilesystem | undefined;
-  if (!fs) {
-    throw new Error(
-      "File system access was denied. Pass inline source.content for reads or omit output paths to receive compiled JSON content."
-    );
-  }
-  return fs;
-}
-
 function assertGeneratedTextureReady(plan: ParticleTextureDependencyPlan | null): void {
   if (!plan || plan.source !== "generated" || plan.status !== "SATISFIED") return;
   const fs = requireParticleFilesystem(
@@ -577,29 +542,6 @@ function readParticleSource(
     source_path: path,
     source_content: content,
   };
-}
-
-function normalizePathIdentity(path: string): string {
-  let normalized = path
-    .replace(/\\/g, "/")
-    .replace(/\/{2,}/g, "/")
-    .replace(/\/$/, "");
-  if (/^[A-Za-z]:\//.test(normalized) || path.startsWith("\\\\")) {
-    normalized = normalized.toLowerCase();
-  }
-  return normalized;
-}
-
-function sourceContentForOutput(
-  sourcePath: string | null,
-  sourceContent: string | null,
-  outputPath: string
-): string | undefined {
-  return sourcePath !== null &&
-    sourceContent !== null &&
-    normalizePathIdentity(sourcePath) === normalizePathIdentity(outputPath)
-    ? sourceContent
-    : undefined;
 }
 
 function sliceWithoutSplittingSurrogatePair(
@@ -670,163 +612,6 @@ function assertNativeParticlePreviewAvailable(): void {
 function loadNativeParticlePreview(path: string, content: string): void {
   assertNativeParticlePreviewAvailable();
   Animator.loadParticleEmitter(path, content);
-}
-
-function uniqueSiblingPath(
-  fs: ParticleFilesystem,
-  targetPath: string,
-  label: "tmp" | "bak"
-): string {
-  for (let index = 0; index < 128; index += 1) {
-    const candidate = `${targetPath}.blockit-${label}-${process.pid}-${index}`;
-    if (!fs.existsSync(candidate)) return candidate;
-  }
-  throw new Error(
-    `Could not allocate a bounded temporary ${label} path beside ${targetPath}.`
-  );
-}
-
-function cleanupIfPresent(fs: ParticleFilesystem, path: string): void {
-  if (fs.existsSync(path)) fs.unlinkSync(path);
-}
-
-function writeArtifactsAtomically(plans: readonly PlannedWrite[]): WriteReceipt[] {
-  if (plans.length === 0) return [];
-  const pathIdentities = new Set<string>();
-  for (const plan of plans) {
-    const identity = normalizePathIdentity(plan.path);
-    if (pathIdentities.has(identity)) {
-      throw new Error(
-        `Multiple particle artifacts target the same output path: ${plan.path}.`
-      );
-    }
-    pathIdentities.add(identity);
-  }
-
-  const fs = requireParticleFilesystem(
-    `BlockIT requested write access for ${plans.length} validated Bedrock particle artifact${plans.length === 1 ? "" : "s"}`
-  );
-  const prepared = plans.map((plan) => {
-    const revision = captureParticleWriteRevision(fs, plan.path);
-    const existed = revision.existed;
-    if (existed && !plan.allow_replace) {
-      throw new Error(
-        `Refusing to replace existing ${plan.kind} file ${plan.path} without overwrite=true.`
-      );
-    }
-    assertParticleSourceSnapshotMatches(
-      revision,
-      plan.expected_existing_content,
-      plan.path,
-      plan.kind
-    );
-    return {
-      ...plan,
-      existed,
-      revision,
-      byte_length: Buffer.byteLength(plan.content, "utf8"),
-      temp_path: uniqueSiblingPath(fs, plan.path, "tmp"),
-      backup_path: existed ? uniqueSiblingPath(fs, plan.path, "bak") : null,
-      committed: false,
-      backup_moved: false,
-    };
-  });
-
-  try {
-    for (const item of prepared) {
-      fs.writeFileSync(item.temp_path, item.content);
-      const stat = fs.statSync(item.temp_path);
-      if (!stat.isFile() || stat.size !== item.byte_length) {
-        throw new Error(
-          `Temporary ${item.kind} write verification failed for ${item.path}: expected ${item.byte_length} bytes, got ${stat.isFile() ? stat.size : "a non-file target"}.`
-        );
-      }
-    }
-
-    for (const item of prepared) {
-      assertParticleWriteRevisionUnchanged(
-        fs,
-        item.path,
-        item.revision,
-        item.kind
-      );
-      if (item.existed && item.backup_path) {
-        fs.renameSync(item.path, item.backup_path);
-        item.backup_moved = true;
-      }
-      try {
-        fs.renameSync(item.temp_path, item.path);
-        item.committed = true;
-      } catch (error) {
-        if (
-          item.backup_moved &&
-          item.backup_path &&
-          fs.existsSync(item.backup_path)
-        ) {
-          fs.renameSync(item.backup_path, item.path);
-          item.backup_moved = false;
-        }
-        throw error;
-      }
-      const stat = fs.statSync(item.path);
-      if (!stat.isFile() || stat.size !== item.byte_length) {
-        throw new Error(
-          `Committed ${item.kind} write verification failed for ${item.path}: expected ${item.byte_length} bytes, got ${stat.isFile() ? stat.size : "a non-file target"}.`
-        );
-      }
-    }
-  } catch (error) {
-    const rollbackErrors: string[] = [];
-    for (const item of [...prepared].reverse()) {
-      try {
-        cleanupIfPresent(fs, item.temp_path);
-        if (item.committed) cleanupIfPresent(fs, item.path);
-        if (
-          item.backup_moved &&
-          item.backup_path &&
-          fs.existsSync(item.backup_path)
-        ) {
-          fs.renameSync(item.backup_path, item.path);
-          item.backup_moved = false;
-        }
-      } catch (rollbackError) {
-        rollbackErrors.push(
-          rollbackError instanceof Error
-            ? rollbackError.message
-            : String(rollbackError)
-        );
-      }
-    }
-    const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      rollbackErrors.length > 0
-        ? `${reason} Rollback also reported: ${rollbackErrors.join(" | ")}`
-        : reason
-    );
-  }
-
-  const receipts: WriteReceipt[] = prepared.map((item) => ({
-    kind: item.kind,
-    path: item.path,
-    byte_length: item.byte_length,
-    replaced_existing: item.existed,
-  }));
-  for (const item of prepared) {
-    if (item.backup_path) cleanupIfPresent(fs, item.backup_path);
-  }
-  return receipts;
-}
-
-function allowReplaceForExplicitSource(
-  sourcePath: string | null,
-  outputPath: string,
-  overwrite: boolean
-): boolean {
-  return (
-    overwrite === true ||
-    (sourcePath !== null &&
-      normalizePathIdentity(sourcePath) === normalizePathIdentity(outputPath))
-  );
 }
 
 export function registerParticleTools(): void {
@@ -910,25 +695,25 @@ export function registerParticleTools(): void {
           assertNativeParticlePreviewAvailable();
         }
 
-        const writePlans: PlannedWrite[] = [];
+        const writePlans: PlannedParticleWrite[] = [];
         if (output && artifactReady) {
           writePlans.push({
             kind: "particle",
             path: output.path,
             content: serialized,
-            allow_replace: allowReplaceForExplicitSource(
+            allow_replace: allowParticleReplaceForExplicitSource(
               base.source_path,
               output.path,
               output.overwrite === true
             ),
-            expected_existing_content: sourceContentForOutput(
+            expected_existing_content: particleSourceContentForOutput(
               base.source_path,
               base.source_content,
               output.path
             ),
           });
         }
-        const writes = artifactReady ? writeArtifactsAtomically(writePlans) : [];
+        const writes = artifactReady ? writeParticleArtifactsAtomically(writePlans) : [];
         const particleWrite = writes.find((entry) => entry.kind === "particle");
 
         let previewPath: string | null = null;
