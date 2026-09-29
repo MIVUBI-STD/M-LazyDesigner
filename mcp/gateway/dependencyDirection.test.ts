@@ -31,6 +31,15 @@ const ROOT_COMPATIBILITY_FILES = new Set(
   [...COMPATIBILITY_WRAPPERS].map((name) => `${name}.ts`)
 );
 
+const RUNTIME_COMPATIBILITY_WRAPPERS = new Set([
+  "connectionManager",
+  "reconnectPolicy",
+  "recovery",
+  "runtimeSession",
+  "projectAffinity",
+]);
+
+
 async function sourceFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const out: string[] = [];
@@ -119,6 +128,34 @@ describe("Gateway dependency direction", () => {
           )
         ) {
           violations.push(`${rel} -> ${request}`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  test("Gateway tests exercise canonical Runtime owners directly", async () => {
+    const entries = await readdir(ROOT, { withFileTypes: true });
+    const violations: string[] = [];
+
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith(".test.ts")) continue;
+      const file = join(ROOT, entry.name);
+      const source = await Bun.file(file).text();
+
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const targetRel = relative(
+          ROOT,
+          resolveRelative(file, request)
+        ).replace(/\\/g, "/");
+
+        if (
+          !targetRel.includes("/") &&
+          RUNTIME_COMPATIBILITY_WRAPPERS.has(targetRel)
+        ) {
+          violations.push(`${entry.name} -> ${request}`);
         }
       }
     }
