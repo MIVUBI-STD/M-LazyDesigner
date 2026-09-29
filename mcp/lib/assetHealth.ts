@@ -1,6 +1,8 @@
-import type { ControlAuthoringDomain } from "@/gateway/control/types";
-import type { ControlReferenceProjection } from "@/gateway/control/referenceTypes";
-import type { ControlWorkspaceProjection } from "@/gateway/control/workspace";
+export type AssetHealthDomain =
+  | "GEOMETRY"
+  | "TEXTURING"
+  | "ANIMATION"
+  | "CORE";
 
 export type AssetHealthStageState =
   | "PASS"
@@ -11,7 +13,7 @@ export type AssetHealthStageState =
 
 export type AssetHealthSummary = {
   overall: "READY" | "REVIEW" | "BLOCKED" | "INCOMPLETE";
-  active_domain: ControlAuthoringDomain | null;
+  active_domain: AssetHealthDomain | null;
   stages: {
     reference: AssetHealthStageState;
     geometry: AssetHealthStageState;
@@ -21,6 +23,30 @@ export type AssetHealthSummary = {
   };
   blockers: string[];
   note: string;
+};
+
+export type AssetHealthReferenceLike = {
+  available: boolean;
+  requirements: {
+    animation_required: boolean | null;
+  };
+  readiness: {
+    overall: string | null;
+    geometry: string | null;
+    texture: string | null;
+    animation: string | null;
+  };
+};
+
+export type AssetHealthWorkspaceLike = {
+  available: boolean;
+  gates: {
+    geometry: string | null;
+    uv_layout: string | null;
+    texturing: string | null;
+    animation: string | null;
+  };
+  blockers: string[];
 };
 
 function normalized(value: string | null | undefined): string {
@@ -34,17 +60,15 @@ function workspaceGateState(
   const gate = normalized(value);
   if (!gate || gate === "NOT_STARTED") return "UNVERIFIED";
   if (passValues.includes(gate)) return "PASS";
-  if (
-    gate === "BLOCKED" ||
-    gate === "FAILED" ||
-    gate === "FAIL"
-  ) return "BLOCKED";
+  if (gate === "BLOCKED" || gate === "FAILED" || gate === "FAIL") {
+    return "BLOCKED";
+  }
   return "REVIEW";
 }
 
 function referenceReadinessForDomain(
-  domain: ControlAuthoringDomain | null,
-  reference: ControlReferenceProjection
+  domain: AssetHealthDomain | null,
+  reference: AssetHealthReferenceLike
 ): string | null {
   if (domain === "GEOMETRY") return reference.readiness.geometry;
   if (domain === "TEXTURING") return reference.readiness.texture;
@@ -53,8 +77,8 @@ function referenceReadinessForDomain(
 }
 
 function referenceState(
-  domain: ControlAuthoringDomain | null,
-  reference: ControlReferenceProjection
+  domain: AssetHealthDomain | null,
+  reference: AssetHealthReferenceLike
 ): AssetHealthStageState {
   if (!reference.available) return "UNVERIFIED";
   const value = normalized(referenceReadinessForDomain(domain, reference));
@@ -63,10 +87,14 @@ function referenceState(
   return value ? "REVIEW" : "UNVERIFIED";
 }
 
+/**
+ * Pure lifecycle summary. It intentionally depends only on structural inputs so
+ * the shared lib layer never imports Gateway/Control ownership.
+ */
 export function buildAssetHealthSummary(input: {
-  domain: ControlAuthoringDomain | null;
-  reference: ControlReferenceProjection;
-  workspace: ControlWorkspaceProjection;
+  domain: AssetHealthDomain | null;
+  reference: AssetHealthReferenceLike;
+  workspace: AssetHealthWorkspaceLike;
 }): AssetHealthSummary {
   const animationRequired =
     input.reference.requirements.animation_required === true;

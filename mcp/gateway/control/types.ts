@@ -130,6 +130,23 @@ export type ControlDelta = {
   next_intent: string;
   verification_class: CapabilityVerificationClass;
   verification_scope: ControlVerificationScope | null;
+  downstream_recheck: {
+    required: Array<{
+      scope: ControlFreshnessScope;
+      domain: ControlAuthoringDomain;
+      action:
+        | "REVERIFY_GEOMETRY"
+        | "REVERIFY_UV_LAYOUT"
+        | "REVERIFY_MAPPED_TEXTURE"
+        | "REVERIFY_MATERIAL_RENDER"
+        | "REVERIFY_ANIMATION_MOTION"
+        | "REVERIFY_ANIMATION_CONTROLLER"
+        | "REVERIFY_ANIMATION_EFFECTS"
+        | "REVERIFY_PARTICLE_SYSTEM";
+      reason: string;
+    }>;
+    preserved_domains: ControlAuthoringDomain[];
+  };
   requires_status_refresh: boolean;
 };
 

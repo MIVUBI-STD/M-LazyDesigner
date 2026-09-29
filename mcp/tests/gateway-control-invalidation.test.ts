@@ -40,6 +40,11 @@ describe("LazyDesigner Control minimum invalidation", () => {
       "ANIMATION_MOTION",
     ]);
     expect(delta.freshness.fresh).toContain("TEXTURE_APPEARANCE");
+    expect(delta.downstream_recheck.required.map((entry) => entry.action)).toEqual([
+      "REVERIFY_ANIMATION_MOTION",
+      "REVERIFY_GEOMETRY",
+    ]);
+    expect(delta.downstream_recheck.preserved_domains).toEqual(["TEXTURING"]);
   });
 
   test("shape or UV-sensitive cube changes invalidate dependent Texture and Animation knowledge", () => {
@@ -71,6 +76,13 @@ describe("LazyDesigner Control minimum invalidation", () => {
     ]);
     expect(delta.freshness.fresh).toContain("MATERIAL_RENDER");
     expect(delta.freshness.fresh).toContain("ANIMATION_CONTROLLER");
+    expect(delta.downstream_recheck.required.map((entry) => entry.action)).toEqual([
+      "REVERIFY_ANIMATION_MOTION",
+      "REVERIFY_GEOMETRY",
+      "REVERIFY_MAPPED_TEXTURE",
+      "REVERIFY_UV_LAYOUT",
+    ]);
+    expect(delta.downstream_recheck.preserved_domains).toEqual([]);
   });
 
   test("hierarchy changes invalidate Geometry and Animation but preserve Texture by default", () => {
@@ -92,6 +104,11 @@ describe("LazyDesigner Control minimum invalidation", () => {
     ]);
     expect(delta.freshness.fresh).toContain("UV_MAPPING");
     expect(delta.freshness.fresh).toContain("TEXTURE_APPEARANCE");
+    expect(delta.downstream_recheck.required.map((entry) => entry.action)).toEqual([
+      "REVERIFY_ANIMATION_MOTION",
+      "REVERIFY_GEOMETRY",
+    ]);
+    expect(delta.downstream_recheck.preserved_domains).toEqual(["TEXTURING"]);
   });
 
   test("duplicated geometry invalidates Geometry plus dependent Texture and Animation evidence", () => {
@@ -122,6 +139,10 @@ describe("LazyDesigner Control minimum invalidation", () => {
         succeeded: true,
       });
       expect(delta.invalidates.authoring_domains, capability).toEqual(["TEXTURING"]);
+      expect(delta.downstream_recheck.preserved_domains).toEqual([
+        "GEOMETRY",
+        "ANIMATION",
+      ]);
     }
   });
 
@@ -138,6 +159,11 @@ describe("LazyDesigner Control minimum invalidation", () => {
       expect(delta.invalidates.authoring_domains).toEqual([]);
       expect(delta.freshness.basis).toBe("NO_CHANGE");
       expect(delta.verification_class).toBe("receipt_only");
+      expect(delta.downstream_recheck.required).toEqual([]);
+      expect(delta.downstream_recheck.preserved_domains).toEqual([
+        "TEXTURING",
+        "ANIMATION",
+      ]);
     }
   });
 

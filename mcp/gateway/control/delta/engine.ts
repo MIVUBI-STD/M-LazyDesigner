@@ -14,6 +14,7 @@ import {
   verificationScopeForResult,
 } from "./verification";
 import { particleTextureHandoffRequired } from "./receipts";
+import { downstreamRechecksForFreshness } from "./recheck";
 
 export function buildControlDelta(input: {
   capability: string;
@@ -49,6 +50,13 @@ export function buildControlDelta(input: {
     verificationClass,
     input.result
   );
+  const downstreamRecheck = downstreamRechecksForFreshness({
+    stale:
+      freshness.basis === "UNKNOWN_OUTCOME"
+        ? freshness.unknown
+        : freshness.stale,
+    currentDomain: authoringDomain,
+  });
   const particleTextureHandoff =
     input.succeeded &&
     input.capability === "manage_particle" &&
@@ -82,6 +90,7 @@ export function buildControlDelta(input: {
     next_intent: nextIntent,
     verification_class: verificationClass,
     verification_scope: verificationScope,
+    downstream_recheck: downstreamRecheck,
     requires_status_refresh: changed.length > 0,
   };
 }

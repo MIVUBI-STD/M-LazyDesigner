@@ -46,6 +46,10 @@ export function projectControlDeltaForGateway(delta: ControlDelta) {
     ...(delta.verification_scope !== null
       ? { verification_scope: delta.verification_scope }
       : {}),
+    ...(delta.downstream_recheck.required.length > 0 ||
+    delta.downstream_recheck.preserved_domains.length > 0
+      ? { downstream_recheck: delta.downstream_recheck }
+      : {}),
     requires_status_refresh: delta.requires_status_refresh,
   };
 }
