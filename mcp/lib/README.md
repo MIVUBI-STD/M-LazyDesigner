@@ -12,7 +12,8 @@
 | `geometry/` | geometry analysis/evidence helpers |
 | `texture/` | texture-domain helpers |
 | `rig/` | rig-domain helpers |
-| `particle/` | particle resource/layout helpers |
+| `particle/` | particle resource/layout/write-transaction helpers |
+| `uv/` | UV evidence and UV-domain helpers |
 | `orchestration/` | authoring orchestration primitives |
 | `receipts/` | shared mutation receipts |
 
