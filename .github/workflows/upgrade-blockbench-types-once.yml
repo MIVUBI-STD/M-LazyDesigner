@@ -1,4 +1,4 @@
-name: Upgrade Blockbench Types Once
+name: Patch Blockbench Type Transitves Once
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  upgrade:
+  patch:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:
@@ -32,14 +32,16 @@ jobs:
       - name: Install current lockfile
         run: bun install --frozen-lockfile
 
-      - name: Upgrade Blockbench types and pin patched transitives
+      - name: Pin patched transitive dependencies
         shell: bash
         run: |
           set -euo pipefail
-          bun add --dev blockbench-types@5.2.0
           bun -e '
             const path = "package.json";
             const pkg = await Bun.file(path).json();
+            if (pkg.devDependencies?.["blockbench-types"] !== "5.1.0") {
+              throw new Error("Expected blockbench-types to remain pinned at 5.1.0");
+            }
             pkg.overrides = {
               ...(pkg.overrides ?? {}),
               electron: "41.10.7",
@@ -59,7 +61,7 @@ jobs:
       - name: Verify runtime contracts
         run: bun run test:runtime
 
-      - name: Commit dependency update
+      - name: Commit dependency security closure
         working-directory: .
         shell: bash
         run: |
@@ -68,5 +70,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add mcp/package.json mcp/bun.lock
           git diff --cached --quiet && exit 0
-          git commit -m "chore(deps): close Blockbench type advisory chain"
+          git commit -m "chore(deps): patch Blockbench type transitive advisories"
           git push origin HEAD:Local
