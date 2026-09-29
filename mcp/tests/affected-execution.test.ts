@@ -163,6 +163,40 @@ describe("affected execution planner", () => {
     );
   });
 
+  test("gateway recovery source changes select their bounded recovery contracts", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/gateway/runtime/orchestrationRecoveryState.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.fallback_full_verify).toBe(false);
+    expect(plan.checks).toContain("PROJECT_GRAPH");
+    expect(plan.checks).toContain("TARGETED_TESTS");
+    expect(plan.targeted_tests).toEqual(
+      expect.arrayContaining([
+        "mcp/gateway/runtime/orchestrationRecoveryState.test.ts",
+        "mcp/gateway/index-boundary.test.ts",
+      ])
+    );
+    expect(plan.commands.some((command) =>
+      command.includes("gateway/runtime/orchestrationRecoveryState.test.ts")
+    )).toBe(true);
+  });
+
+  test("correction recovery source changes select correction and public-surface contracts", () => {
+    const plan = planAffectedExecution({
+      changedPaths: ["mcp/lib/orchestration/correctionLoop.ts"],
+      semanticImpact: impact(),
+    });
+
+    expect(plan.targeted_tests).toEqual(
+      expect.arrayContaining([
+        "mcp/tests/correction-loop-reuse.test.ts",
+        "mcp/tests/orchestration-public-surface.test.ts",
+      ])
+    );
+  });
+
   test("semantic core changes exercise the isolated compiler project", () => {
     const plan = planAffectedExecution({
       changedPaths: ["mcp/lib/semantic/canonical.ts"],
