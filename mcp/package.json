@@ -43,7 +43,7 @@
     "verify:closure": "bun run verify:repository && bun run verify:authoring && bun run docs:check",
     "verify:mcp": "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run verify:build",
     "verify:full": "bun run verify:repository && bun run verify:mcp",
-    "verify:release": "bun run verify:full",
+    "verify:release": "bun run security:audit && bun run verify:full",
     "eval:tool-discovery": "bun run ./scripts/evaluate-tool-discovery.ts",
     "verify:stateless-local": "bun run ./scripts/verify-stateless-local.ts",
     "verify:geometry-live": "bun run ./scripts/verify-geometry-live.ts",
@@ -84,7 +84,7 @@
     "eval:capability-intelligence": "bun run ./scripts/evaluate-capability-intelligence.ts",
     "test:capability-manifest": "bun test lib/capabilities/manifest.test.ts gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts",
     "test:gateway-structure": "bun test gateway/structure.test.ts gateway/dependencyDirection.test.ts gateway/control/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts gateway/runtime/operationQueue.test.ts gateway/runtime/affinityPolicy.test.ts",
-    "test:gateway-recovery": "bun test gateway/index-boundary.test.ts gateway/backend-effects-boundary.test.ts gateway/runtime/orchestrationRecoveryState.test.ts",
+    "test:gateway-recovery": "bun test gateway/index-boundary.test.ts gateway/backend-effects-boundary.test.ts gateway/runtime/orchestrationRecoveryState.test.ts gateway/runtime/faultInjection.contract.test.ts",
     "eval:decision-efficiency": "bun run ./scripts/evaluate-decision-efficiency.ts",
     "analyze:semantic-impact": "bun run ./scripts/analyze-semantic-impact.ts",
     "map:knowledge": "bun run ./scripts/build-knowledge-index.ts",
@@ -109,11 +109,13 @@
     "verify:build": "bun run build",
     "verify:surface-guards": "bun run measure:surface && bun run measure:phases",
     "report:mcp-efficiency": "bun run measure:mcp-efficiency",
-    "eval:golden-authoring": "bun test tests/golden-authoring-run-contract.test.ts tests/gateway-benchmark-trace-report.test.ts tests/golden-benchmark-session-runner.test.ts tests/golden-session-finalizer.test.ts gateway/runtime/benchmarkTrace.test.ts",
+    "eval:golden-authoring": "bun test tests/golden-authoring-run-contract.test.ts tests/gateway-benchmark-trace-report.test.ts tests/golden-benchmark-session-runner.test.ts tests/golden-session-finalizer.test.ts tests/golden-session-comparison.test.ts gateway/runtime/benchmarkTrace.test.ts",
     "report:golden-authoring": "bun run ./scripts/evaluate-golden-authoring-runs.ts",
     "report:gateway-trace": "bun run ./scripts/summarize-gateway-benchmark-trace.ts",
     "benchmark:golden-session": "bun run ./scripts/run-golden-benchmark-session.ts",
-    "finalize:golden-session": "bun run ./scripts/finalize-golden-session.ts"
+    "finalize:golden-session": "bun run ./scripts/finalize-golden-session.ts",
+    "compare:golden-sessions": "bun run ./scripts/compare-golden-sessions.ts",
+    "security:audit": "bun audit --audit-level=high"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
