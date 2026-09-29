@@ -16,6 +16,9 @@
     },
     {
       "path": "../tsconfig.gateway-shared.json"
+    },
+    {
+      "path": "../tsconfig.runtime-project.json"
     }
   ],
   "include": [
