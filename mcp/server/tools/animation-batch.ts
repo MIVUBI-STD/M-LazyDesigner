@@ -4,14 +4,22 @@
 import {
   countAnimationClipboardKeyframes,
   keyframeBelongsToAnimation,
+  planMirroredBatchKeyframes,
+  planSmoothedBatchKeyframes,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
+  reverseBatchTimeBounds,
+  selectBatchKeyframes,
 } from "@/lib/animation/batchPlanning";
 export {
   countAnimationClipboardKeyframes,
   keyframeBelongsToAnimation,
+  planMirroredBatchKeyframes,
+  planSmoothedBatchKeyframes,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
+  reverseBatchTimeBounds,
+  selectBatchKeyframes,
 } from "@/lib/animation/batchPlanning";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
@@ -69,40 +77,15 @@ export function registerAnimationBatchTools(): void {
           (kf) => keyframeBelongsToAnimation(kf, animation)
         );
   
-        let keyframes: _Keyframe[] = [];
-  
-        switch (selection) {
-          case "all":
-            keyframes = targetTimelineKeyframes;
-            break;
-  
-          case "selected":
-            keyframes = targetSelectedKeyframes;
-            break;
-  
-          case "range":
-            if (!range) {
-              throw new Error("Range required for range selection.");
-            }
-            keyframes = targetTimelineKeyframes.filter(
-              (kf) => kf.time >= range.start && kf.time <= range.end
-            );
-            break;
-  
-          case "pattern":
-            if (!pattern) {
-              throw new Error("Pattern required for pattern selection.");
-            }
-            keyframes = targetTimelineKeyframes.filter((kf) => {
-              const relativeTime = kf.time - pattern.offset;
-              return Math.abs(relativeTime % pattern.interval) < 0.001;
-            });
-            break;
-        }
-  
-        if (keyframes.length === 0) {
-          throw new Error("No keyframes found matching selection criteria.");
-        }
+        const keyframes = selectBatchKeyframes(
+          targetTimelineKeyframes,
+          targetSelectedKeyframes,
+          selection,
+          {
+            ...(range ? { range } : {}),
+            ...(pattern ? { pattern } : {}),
+          }
+        );
   
         if (operation === "mirror" && !parameters.mirror_axis) {
           throw new Error("Mirror axis required for mirror operation.");
@@ -114,15 +97,8 @@ export function registerAnimationBatchTools(): void {
           const replacedKeyframes: _Keyframe[] = [];
           const mirrorKeyframes =
             operation === "mirror"
-              ? keyframes.filter(
-                  (kf: _Keyframe) => kf.transform && kf.channel !== "scale"
-                )
+              ? planMirroredBatchKeyframes(keyframes)
               : [];
-          if (operation === "mirror" && mirrorKeyframes.length === 0) {
-            throw new Error(
-              "No position or rotation transform keyframes found matching selection criteria for mirror."
-            );
-          }
           if (operation === "offset" && parameters.offset_time !== undefined) {
             requireValidPlannedKeyframeTimes(
               keyframes.map(
@@ -415,9 +391,8 @@ export function registerAnimationBatchTools(): void {
         }
   
         if (operation === "reverse") {
-          const times = keyframes.map((kf: _Keyframe) => kf.time);
-          const startTime = Math.min(...times);
-          const endTime = Math.max(...times);
+          const { start: startTime, end: endTime } =
+            reverseBatchTimeBounds(keyframes.map((kf: _Keyframe) => kf.time));
   
           Undo.initEdit({
             keyframes,
@@ -461,14 +436,8 @@ export function registerAnimationBatchTools(): void {
         }
   
         if (operation === "smooth") {
-          const transformKeyframes = keyframes.filter(
-            (kf: _Keyframe) => kf.transform
-          );
-          if (!transformKeyframes.length) {
-            throw new Error(
-              "No transform keyframes found matching selection criteria for smooth."
-            );
-          }
+          const transformKeyframes =
+            planSmoothedBatchKeyframes(keyframes);
   
           Undo.initEdit({
             keyframes: transformKeyframes,
