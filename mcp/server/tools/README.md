@@ -122,3 +122,19 @@ server/tools/paint-selection-layers.ts
   UVEditor refresh
   layer execution/receipts
 ```
+
+
+Current material assignment planning:
+
+```text
+server/tools/texture/materialState.ts
+  assignment no-op detection
+  reset-channel planning
+  Undo texture-set planning
+
+server/tools/texture-materials.ts
+  native texture/group mutation
+  Undo
+  material refresh
+  receipts
+```
