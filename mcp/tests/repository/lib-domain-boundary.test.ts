@@ -52,6 +52,14 @@ const LEGACY_ROOT_DOMAIN_FILES = new Set([
 const DOMAIN_PREFIX = /^(?:animation|geometry|particle|texture|uv)[A-Z].*\.ts$/;
 
 describe("lib domain ownership ratchet", () => {
+  test("migrated root paths stay compatibility-only wrappers", async () => {
+    for (const [name, expected] of Object.entries(
+      MIGRATED_COMPATIBILITY_WRAPPERS
+    )) {
+      expect(await Bun.file(`lib/${name}`).text()).toBe(expected);
+    }
+  });
+
   test("new domain implementation does not accumulate at lib root", async () => {
     const entries = await readdir("lib", { withFileTypes: true });
     const rootDomainFiles = entries
