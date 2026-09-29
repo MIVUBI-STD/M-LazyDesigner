@@ -34,6 +34,7 @@ import {
   applyMaterialChannelAssignment,
   materialContinuationState,
   planMaterialChannelAssignment,
+  resolvePbrMaterial,
   resolveTextureToolMaterial,
 } from "@/server/tools/texture/materialState";
 export { resolveTextureToolMaterial } from "@/server/tools/texture/materialState";
@@ -375,7 +376,7 @@ export function registerTextureMaterialTools(): void {
         mer_value,
         subsurface_value,
       }) {
-        const textureGroup = resolveTextureToolMaterial(material);
+        const textureGroup = resolvePbrMaterial(material);
         const requests = [
           channelRequest("color", color_texture),
           channelRequest("normal", normal_texture),
@@ -483,7 +484,7 @@ export function registerTextureMaterialTools(): void {
       ...textureMaterialToolDocs[3],
       parameters: getMaterialInfoParameters,
       async execute({ material }) {
-        const textureGroup = resolveTextureToolMaterial(material);
+        const textureGroup = resolvePbrMaterial(material);
         const textures = textureGroup.getTextures();
   
         // Get compiled texture_set.json
@@ -612,7 +613,7 @@ export function registerTextureMaterialTools(): void {
       ...textureMaterialToolDocs[5],
       parameters: assignTextureChannelParameters,
       async execute({ material, texture, channel }) {
-        const textureGroup = resolveTextureToolMaterial(material);
+        const textureGroup = resolvePbrMaterial(material);
         const tex = resolveAssignTextureChannelTexture(texture);
         const plan = planExclusivePbrMaterialAssignment(
           runtimePbrTextureStates(),
@@ -674,7 +675,7 @@ export function registerTextureMaterialTools(): void {
       ...textureMaterialToolDocs[6],
       parameters: saveMaterialConfigParameters,
       async execute({ material }) {
-        const textureGroup = resolveTextureToolMaterial(material);
+        const textureGroup = resolvePbrMaterial(material);
         const filePath = textureGroup.material_config.getFilePath();
   
         if (!filePath) {
