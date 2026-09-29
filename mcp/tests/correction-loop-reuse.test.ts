@@ -266,6 +266,7 @@ describe("zero-waste correction loop reuse", () => {
             axis: "X" as const,
             mode: "MULTIPLY" as const,
             value,
+            anchor: "MIN" as const,
           },
         },
       },
@@ -530,7 +531,6 @@ describe("zero-waste correction loop reuse", () => {
       mode: "VERIFY_PENDING",
       state: "VERIFY_PENDING",
       attempt: 1,
-      unresolved_count: 1,
       verification: {
         pending: true,
         target_discrepancy_codes: ["WIDTH_LOW"],
