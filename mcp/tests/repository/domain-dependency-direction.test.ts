@@ -11,6 +11,65 @@ const DOMAIN_DIRS = [
   "lib/uv",
 ] as const;
 
+const LEGACY_ROOT_DOMAIN_IMPORTS = new Set([
+  "@/lib/animationContactEvidence",
+  "@/lib/animationControllerComposition",
+  "@/lib/animationCraftEvidence",
+  "@/lib/animationEasing",
+  "@/lib/animationMolangSemantics",
+  "@/lib/animationMotionDynamics",
+  "@/lib/animationPreviewState",
+  "@/lib/animationQuality",
+  "@/lib/bedrockAnimationRuntimeResources",
+  "@/lib/bedrockAnimationSemantics",
+  "@/lib/bedrockParticleBinding",
+  "@/lib/bedrockParticleDocument",
+  "@/lib/bedrockParticleDocumentCore",
+  "@/lib/bedrockParticlePackGraph",
+  "@/lib/bedrockParticleSchemaCoverage",
+  "@/lib/bedrockParticleSemantics",
+  "@/lib/blockbenchCubeObb",
+  "@/lib/boxUvLayout",
+  "@/lib/cubeAmbientOcclusion",
+  "@/lib/cubeAoRuntime",
+  "@/lib/facePixelMapping",
+  "@/lib/geometryQuality",
+  "@/lib/geometrySurfaceEvidence",
+  "@/lib/orientedBoxContact",
+  "@/lib/paintStroke",
+  "@/lib/paintTransaction",
+  "@/lib/paintTransactionPolicy",
+  "@/lib/particleResourceLayout",
+  "@/lib/particleWriteRevision",
+  "@/lib/pbrMaterialMembership",
+  "@/lib/renderedModelBounds",
+  "@/lib/rootMotionAnalysis",
+  "@/lib/textureAlphaSemantics",
+  "@/lib/textureBitmapRuntime",
+  "@/lib/textureColorEngine",
+  "@/lib/textureColorProfile",
+  "@/lib/textureComputePipeline",
+  "@/lib/textureComputeRequest",
+  "@/lib/textureDiagnosticReadContext",
+  "@/lib/textureEvidence",
+  "@/lib/textureEvidenceDelivery",
+  "@/lib/textureFrameMapping",
+  "@/lib/textureMaterialStatus",
+  "@/lib/textureOptimization",
+  "@/lib/texturePalette",
+  "@/lib/texturePbrContent",
+  "@/lib/texturePixelCraft",
+  "@/lib/textureProductionAlignment",
+  "@/lib/textureRenderProfile",
+  "@/lib/textureRevision",
+  "@/lib/textureSeamContinuity",
+  "@/lib/textureSurfacePattern",
+  "@/lib/textureTreatmentPlan",
+  "@/lib/textureVanillaKnowledge",
+  "@/lib/textureVariantPlan",
+  "@/lib/uvPhysicalEvidence",
+]);
+
 async function sourceFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -46,6 +105,25 @@ describe("domain dependency direction", () => {
             normalized.startsWith("@/server") ||
             normalized.startsWith("@/gateway")
           ) {
+            violations.push(
+              `${relative("lib", file).replace(/\\/g, "/")} -> ${request}`
+            );
+          }
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  test("canonical domain code does not depend on migrated root wrappers", async () => {
+    const violations: string[] = [];
+
+    for (const dir of DOMAIN_DIRS) {
+      for (const file of await sourceFiles(dir)) {
+        const source = await Bun.file(file).text();
+        for (const request of importsOf(source)) {
+          if (LEGACY_ROOT_DOMAIN_IMPORTS.has(request)) {
             violations.push(
               `${relative("lib", file).replace(/\\/g, "/")} -> ${request}`
             );
