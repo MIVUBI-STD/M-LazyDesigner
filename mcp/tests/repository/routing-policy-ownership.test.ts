@@ -6,17 +6,17 @@ async function source(path: string): Promise<string> {
 
 describe("Control routing policy ownership", () => {
   test("Gateway search default is sourced from canonical Control policy", async () => {
-    const [gateway, policy, barrel] = await Promise.all([
-      source("gateway/index.ts"),
+    const [registration, policy, barrel] = await Promise.all([
+      source("gateway/handlers/registerCoreTools.ts"),
       source("gateway/control/routingPolicy.ts"),
       source("gateway/control/index.ts"),
     ]);
 
     expect(policy).toContain("search_limit: 4");
     expect(barrel).toContain("CONTROL_ROUTING_POLICY");
-    expect(gateway).toContain("CONTROL_ROUTING_POLICY");
-    expect(gateway).toContain(".default(CONTROL_ROUTING_POLICY.search_limit)");
-    expect(gateway).not.toContain(".default(4)");
+    expect(registration).toContain("CONTROL_ROUTING_POLICY");
+    expect(registration).toContain(".default(CONTROL_ROUTING_POLICY.search_limit)");
+    expect(registration).not.toContain(".default(4)");
   });
 
   test("direct-first fallback policy remains bounded", async () => {
