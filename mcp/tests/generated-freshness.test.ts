@@ -51,6 +51,8 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
     scripts["prompts:build"] = "bun run ./fixture-generator.ts prompts";
     scripts["generate:hybrid4-schemas"] =
       "bun run ./fixture-generator.ts hybrid";
+    scripts["generate:owned-artifacts"] =
+      "bun run docs:build && bun run prompts:build && bun run generate:hybrid4-schemas";
     await Bun.write(join(root, "package.json"), JSON.stringify({ private: true, type: "module", scripts }));
     await copyFile(join(packageRoot, "build/check-docs-freshness.ts"), join(root, "build/check-docs-freshness.ts"));
     await Bun.write(join(root, "expected.json"), JSON.stringify(generated));
