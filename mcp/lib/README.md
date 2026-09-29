@@ -6,6 +6,11 @@
 
 | Directory | Owner |
 | --- | --- |
+| `authoring/` | authoring handoff readiness and validation semantics |
+| `bedrock/` | Bedrock project identity and authored project semantics |
+| `product/` | LazyDesigner product identity |
+| `protocol/` | MCP/resource protocol helpers |
+| `runtime/` | Runtime connection, affinity, fetch, and lifecycle primitives |
 | `semantic/` | semantic core and incremental semantic model |
 | `capabilities/` | canonical Runtime capability metadata |
 | `animation/` | animation-domain helpers |
@@ -21,7 +26,7 @@
 
 The root is **not** the preferred destination for new domain implementation.
 
-Existing animation/texture/geometry/UV/particle files at the root are legacy migration surfaces. New domain implementation belongs in its domain directory. The repository test `tests/repository/lib-domain-boundary.test.ts` prevents that legacy set from growing.
+Existing migrated root files are compatibility surfaces only; current canonical owners include `authoring/`, `bedrock/`, `product/`, `protocol/`, `runtime/`, and the existing authoring-domain directories. New domain implementation belongs in its domain directory. The repository test `tests/repository/lib-domain-boundary.test.ts` prevents that legacy set from growing.
 
 When a legacy root file is migrated:
 
