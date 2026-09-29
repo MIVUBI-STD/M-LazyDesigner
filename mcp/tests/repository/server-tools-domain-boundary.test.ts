@@ -100,6 +100,30 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("animation batch planning stays pure and executor-owned side effects stay outside", async () => {
+    const planner = await Bun.file(
+      "lib/animation/batchPlanning.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/animation-batch.ts"
+    ).text();
+
+    expect(planner).toContain("selectBatchKeyframes");
+    expect(planner).toContain("planMirroredBatchKeyframes");
+    expect(planner).toContain("planSmoothedBatchKeyframes");
+    expect(planner).toContain("reverseBatchTimeBounds");
+    expect(planner).not.toContain("Undo.");
+    expect(planner).not.toContain("Timeline.");
+    expect(planner).not.toContain("Animator.");
+    expect(planner).not.toContain("createTool(");
+    expect(planner).not.toContain("/server/");
+    expect(planner).not.toContain("/gateway/");
+
+    expect(executor).toContain("selectBatchKeyframes(");
+    expect(executor).toContain("Undo.initEdit");
+    expect(executor.length).toBeLessThan(28000);
+  });
+
   test("animation batch/keyframe/timeline schemas stay contract-only", async () => {
     for (const path of [
       "server/tools/animation/batchSchema.ts",
