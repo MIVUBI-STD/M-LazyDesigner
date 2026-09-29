@@ -16,8 +16,9 @@ Current migrated animation internals:
 server/tools/animation/shared.ts           canonical shared helpers
 server/tools/animation/controllerState.ts  canonical controller state helpers
 server/tools/animation/effectState.ts      canonical effect state helpers
-server/tools/animation/controllerSchema.ts  canonical controller input contract
-server/tools/animation/inspectionSchema.ts  canonical inspection input contract
+server/tools/animation/controllerSchema.ts   canonical controller input contract
+server/tools/animation/controllerPlanner.ts  runtime-independent mutation planning
+server/tools/animation/inspectionSchema.ts   canonical inspection input contract
 
 matching root paths                         compatibility re-export only
 ```
@@ -69,3 +70,16 @@ server/tools/texture/createSchema.ts   canonical create_texture input contract
 server/tools/texture-create.ts         executor + native mutation
 server/runtime/textureRuntimeContracts.ts consumes schema directly
 ```
+
+
+## Planning boundary
+
+Complex tools should keep deterministic mutation planning outside the native executor when practical.
+
+```text
+schema  → validates request shape
+planner → mutates an in-memory plan using injected Runtime dependencies
+executor→ resolves Blockbench objects, opens Undo, applies plan, emits receipt
+```
+
+The planner must not directly access Blockbench process globals, Undo, Gateway, or Runtime composition.
