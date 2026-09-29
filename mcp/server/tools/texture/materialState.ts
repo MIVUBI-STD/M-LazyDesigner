@@ -54,61 +54,51 @@ export function materialContinuationState(group: TextureGroup) {
   };
 }
 
-
-
-export type MaterialChannelTextureLike = {
+export type RuntimePbrTextureState = {
   uuid: string;
-  name: string;
   group: string;
   pbr_channel: string;
 };
 
-export function planMaterialChannelAssignment<
-  T extends MaterialChannelTextureLike
->(
-  material: Readonly<{ uuid: string; name: string }>,
-  existingTextures: readonly T[],
-  texture: T,
-  channel: string
-): Readonly<{
-  resetTextures: T[];
-  undoTextures: T[];
-}> {
-  const resetTextures = existingTextures.filter(
-    (existing) =>
-      existing.pbr_channel === channel && existing.uuid !== texture.uuid
-  );
-
-  if (
-    texture.group === material.uuid &&
-    texture.pbr_channel === channel &&
-    resetTextures.length === 0
-  ) {
-    throw new Error(
-      `Texture "${texture.name}" is already the only ${channel} assignment on material "${material.name}"; no authored change is required.`
-    );
-  }
-
-  const undoTextures = [texture, ...resetTextures].filter(
-    (candidate, index, all) =>
-      all.findIndex((item) => item.uuid === candidate.uuid) === index
-  );
-
-  return { resetTextures, undoTextures };
+export function runtimePbrTextureStates(): RuntimePbrTextureState[] {
+  return (Project?.textures ?? Texture.all).map((texture: Texture) => ({
+    uuid: texture.uuid,
+    group: texture.group || "",
+    pbr_channel: texture.pbr_channel || "color",
+  }));
 }
 
-
-export function applyMaterialChannelAssignment<
-  T extends MaterialChannelTextureLike
->(
-  material: Readonly<{ uuid: string }>,
-  texture: T,
-  channel: string,
-  resetTextures: readonly T[]
-): void {
-  for (const existing of resetTextures) {
-    existing.pbr_channel = "color";
+export function resolveRuntimeTextureByUuid(uuid: string): Texture {
+  const texture = (Project?.textures ?? Texture.all).find(
+    (candidate: Texture) => candidate.uuid === uuid
+  );
+  if (!texture) {
+    throw new Error(`Texture ${uuid} disappeared after material preflight.`);
   }
-  texture.group = material.uuid;
-  texture.pbr_channel = channel;
+  return texture;
+}
+
+export function materialGroupsByUuid(
+  uuids: readonly string[]
+): TextureGroup[] {
+  const ids = new Set(uuids.filter(Boolean));
+  return (TextureGroup.all ?? []).filter(
+    (group: TextureGroup) =>
+      ids.has(group.uuid) && group.is_material === true
+  );
+}
+
+export function applyPbrMembershipChanges(
+  changes: readonly {
+    uuid: string;
+    group: string;
+    pbr_channel: string;
+  }[]
+): Texture[] {
+  return changes.map((change) => {
+    const texture = resolveRuntimeTextureByUuid(change.uuid);
+    texture.group = change.group;
+    texture.pbr_channel = change.pbr_channel as Texture["pbr_channel"];
+    return texture;
+  });
 }
