@@ -54,6 +54,29 @@ describe("Runtime extension ownership", () => {
     expect(source).not.toContain('from "../tools/texture-alpha-runtime"');
   });
 
+  test("texture quality extension stays diagnostics-only", async () => {
+    const quality = await Bun.file(
+      "server/runtime/extensions/texture/quality.ts"
+    ).text();
+    const pipeline = await Bun.file(
+      "server/runtime/extensions.ts"
+    ).text();
+
+    expect(quality).toContain('runtimeDefinition("list_textures")');
+    expect(quality).not.toContain('runtimeDefinition("manage_material")');
+    expect(quality).not.toContain("planPbrMaterialConfiguration");
+    expect(quality).not.toContain("planExclusivePbrMaterialAssignment");
+    expect(quality).not.toContain("Undo.");
+    expect(quality).not.toContain("recordCurrentSemanticHistoryEffect");
+
+    expect(pipeline).toContain(
+      'id: "texture-quality",\n    targets: ["list_textures"]'
+    );
+    expect(pipeline).not.toContain(
+      'id: "texture-quality",\n    targets: ["list_textures", "manage_material"]'
+    );
+  });
+
   test("Runtime extensions stay below Gateway", async () => {
     for (const path of [
       "server/runtime/extensions/animation/nativeIntelligence.ts",
