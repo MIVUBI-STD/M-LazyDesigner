@@ -9,8 +9,10 @@
 | `semantic/` | semantic core and incremental semantic model |
 | `capabilities/` | canonical Runtime capability metadata |
 | `animation/` | animation-domain helpers |
+| `geometry/` | geometry analysis/evidence helpers |
 | `texture/` | texture-domain helpers |
 | `rig/` | rig-domain helpers |
+| `particle/` | particle resource/layout helpers |
 | `orchestration/` | authoring orchestration primitives |
 | `receipts/` | shared mutation receipts |
 
