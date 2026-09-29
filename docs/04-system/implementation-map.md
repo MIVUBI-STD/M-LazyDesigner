@@ -198,6 +198,21 @@ mcp/server/tools/element/shared.ts
 → canonical Element mutation/hierarchy/discovery/shared owners
 ```
 
+Additional canonical tool domains:
+
+```text
+mcp/server/tools/geometry/cubes.ts
+→ Cube authoring + Cube geometry/UV mutation owner
+
+mcp/server/tools/project/project.ts
+→ project creation/info/bounds owner
+
+mcp/server/tools/particle/manage.ts
+mcp/server/tools/particle/inspection.ts
+mcp/server/tools/particle/fileTransaction.ts
+→ Particle execution / inspection / filesystem transaction owners
+```
+
 Representative focused owners:
 
 ```text
@@ -345,7 +360,7 @@ Particle is Animation-specialist asset support, not a fourth authoring phase.
 
 ```text
 inspect_particle / manage_particle
-→ mcp/server/tools/particle.ts
+→ mcp/server/tools/particle/manage.ts
 
 particle bitmap authoring
 → existing Texturing capabilities
