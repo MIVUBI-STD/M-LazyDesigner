@@ -19,7 +19,7 @@ describe("UV Runtime registration readiness", () => {
     expect(sourceOwnerForCapability("manage_uv_layout")).toEqual({
       source: "mcp/server/runtime/uvLayoutService.ts",
       specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
-      test_owner: "mcp/tests/uv-registration-readiness.test.ts",
+      anchor_test: "mcp/tests/uv-registration-readiness.test.ts",
     });
     expect(GATEWAY_TOOL_NAMES).toEqual([
       "status",
