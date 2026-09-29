@@ -172,6 +172,28 @@ describe("server tool domain ownership", () => {
     expect(executor.length).toBeLessThan(28000);
   });
 
+  test("texture material schemas stay separate from executor", async () => {
+    const schema = await Bun.file(
+      "server/tools/texture/materialSchema.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/texture-materials.ts"
+    ).text();
+
+    expect(schema).toContain("createPbrMaterialParameters");
+    expect(schema).toContain("configureMaterialParameters");
+    expect(schema).toContain("assignTextureChannelParameters");
+    expect(schema).not.toContain("createTool(");
+    expect(schema).not.toContain("Undo.");
+    expect(schema).not.toContain("/server/runtime");
+    expect(schema).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/texture/materialSchema"'
+    );
+    expect(executor.length).toBeLessThan(26000);
+  });
+
   test("create texture schema stays separate from executor/runtime wiring", async () => {
     const schema = await Bun.file(
       "server/tools/texture/createSchema.ts"
