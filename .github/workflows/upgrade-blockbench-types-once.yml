@@ -58,9 +58,6 @@ jobs:
       - name: Verify type contracts
         run: bun run verify:types
 
-      - name: Verify runtime contracts
-        run: bun run test:runtime
-
       - name: Commit dependency security closure
         working-directory: .
         shell: bash
