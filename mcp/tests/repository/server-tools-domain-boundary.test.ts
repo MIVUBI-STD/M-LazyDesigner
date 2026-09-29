@@ -3,6 +3,13 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
+  "animation-rigging.ts": 'export * from "./animation/rigging";\n',
+  "animation-batch.ts": 'export * from "./animation/batch";\n',
+  "texture-atlas.ts": 'export * from "./texture/atlas";\n',
+  "paint-primitives.ts": 'export * from "./paint/primitives";\n',
+  "paint-brush.ts": 'export * from "./paint/brush";\n',
+  "paint-settings.ts": 'export * from "./paint/settings";\n',
+  "paint-selection-layers.ts": 'export * from "./paint/selectionLayers";\n',
   "animation-controller.ts": 'export * from "./animation/controller";\n',
   "animation-create.ts": 'export * from "./animation/create";\n',
   "animation-keyframes.ts": 'export * from "./animation/keyframes";\n',
