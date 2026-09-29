@@ -30,7 +30,6 @@ import {
   type McpRegistrationProfile
 } from '@/lib/registrationProfile'
 import { createProductIdentity } from '@/lib/productIdentity'
-import { getCapabilityMetadata } from '@/lib/capabilityMetadata'
 import {
   getActiveMcpAuthoringPhase,
   type McpAuthoringPhase
@@ -43,7 +42,6 @@ import {
 import {
   BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER,
   BLOCKIT_PROJECT_AFFINITY_HEADER,
-  normalizeAuthoringPhaseAffinity,
   normalizeProjectAffinityUuid
 } from '@/lib/runtimeAffinity'
 import {
@@ -56,6 +54,12 @@ import {
   getRuntimeProjectHealth,
   runWithRuntimeProjectAffinity
 } from '@/server/projectAffinity'
+import {
+  isSuccessfulToolCallResponse,
+  projectContextErrorBody,
+  readRequestEnvelope,
+  type SerializedWebResponse
+} from '@/server/requestProtocol'
 
 const INSTANCE_ID = crypto.randomUUID()
 const STARTUP_TIME = new Date().toISOString()
@@ -79,87 +83,6 @@ class RuntimeRequestAbandonedError extends Error {
   constructor () {
     super('Queued Runtime tool request was abandoned before execution.')
     this.name = 'RuntimeRequestAbandonedError'
-  }
-}
-
-function readRequestEnvelope (body: string): {
-  method: string | null
-  capability: string | null
-  targetAuthoringPhase: McpAuthoringPhase | null
-  id: string | number | null
-} {
-  try {
-    const parsed = JSON.parse(body) as unknown
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      return { method: null, capability: null, targetAuthoringPhase: null, id: null }
-    }
-    const record = parsed as {
-      method?: unknown
-      id?: unknown
-      params?: {
-        name?: unknown
-        arguments?: { target_phase?: unknown }
-      }
-    }
-    const capability =
-      record.method === 'tools/call' && typeof record.params?.name === 'string'
-        ? record.params.name
-        : null
-    const capabilityEffects = capability
-      ? getCapabilityMetadata(capability).effects
-      : null
-    let targetAuthoringPhase: McpAuthoringPhase | null = null
-    if (capabilityEffects?.phaseAffinity === 'update_from_result') {
-      try {
-        targetAuthoringPhase = normalizeAuthoringPhaseAffinity(
-          record.params?.arguments?.target_phase
-        )
-      } catch {
-        targetAuthoringPhase = null
-      }
-    }
-    return {
-      method: typeof record.method === 'string' ? record.method : null,
-      capability,
-      targetAuthoringPhase,
-      id:
-        typeof record.id === 'string' || typeof record.id === 'number'
-          ? record.id
-          : null
-    }
-  } catch {
-    return { method: null, capability: null, targetAuthoringPhase: null, id: null }
-  }
-}
-
-function projectContextErrorBody (
-  id: string | number | null,
-  message: string
-): string {
-  return JSON.stringify({
-    jsonrpc: '2.0',
-    error: { code: -32002, message },
-    id
-  })
-}
-
-interface SerializedWebResponse {
-  status: number
-  headers: Record<string, string>
-  body: string | ReadableStream<Uint8Array>
-  finalize?: () => Promise<void>
-}
-
-function isSuccessfulToolCallResponse (response: SerializedWebResponse): boolean {
-  if (response.status !== 200 || typeof response.body !== 'string') return false
-  try {
-    const parsed = JSON.parse(response.body) as {
-      error?: unknown
-      result?: { isError?: unknown }
-    }
-    return parsed.error === undefined && parsed.result?.isError !== true
-  } catch {
-    return false
   }
 }
 
