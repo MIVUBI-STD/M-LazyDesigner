@@ -6,7 +6,8 @@ export type BenchmarkTraceKind =
   | "describe"
   | "inspect"
   | "mutate"
-  | "verify";
+  | "verify"
+  | "recovery";
 
 export type BenchmarkTraceEvent = {
   schema: "lazydesigner-gateway-benchmark-trace-v1";
