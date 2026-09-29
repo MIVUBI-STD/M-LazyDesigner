@@ -100,6 +100,39 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("animation batch/keyframe/timeline schemas stay contract-only", async () => {
+    for (const path of [
+      "server/tools/animation/batchSchema.ts",
+      "server/tools/animation/keyframeSchema.ts",
+      "server/tools/animation/timelineSchema.ts",
+    ]) {
+      const schema = await Bun.file(path).text();
+      expect(schema).not.toContain("createTool(");
+      expect(schema).not.toContain("Undo.");
+      expect(schema).not.toContain("/server/runtime");
+      expect(schema).not.toContain("/gateway/");
+    }
+
+    const runtimeContract = await Bun.file(
+      "server/runtime/animationRuntimeContracts.ts"
+    ).text();
+    expect(runtimeContract).toContain(
+      'from "../tools/animation/batchSchema"'
+    );
+    expect(runtimeContract).toContain(
+      'from "../tools/animation/keyframeSchema"'
+    );
+    expect(runtimeContract).toContain(
+      'from "../tools/animation/timelineSchema"'
+    );
+    expect(runtimeContract).not.toContain(
+      'from "../tools/animation-keyframes"'
+    );
+    expect(runtimeContract).not.toContain(
+      'from "../tools/animation-timeline"'
+    );
+  });
+
   test("animation controller planner stays runtime-independent", async () => {
     const planner = await Bun.file(
       "server/tools/animation/controllerPlanner.ts"
