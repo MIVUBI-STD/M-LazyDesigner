@@ -5,11 +5,8 @@ const SHARED_ROOT_IMPLEMENTATIONS = new Set([
   "assetDependencyGraph.ts",
   "assetHealth.ts",
   "authoringPhase.ts",
-  "authoringReadiness.ts",
   "bedrockExportIntegrity.ts",
   "bedrockExportWritePolicy.ts",
-  "bedrockProjectIdentity.ts",
-  "bedrockProjectSemantics.ts",
   "blockbenchCompatibility.ts",
   "capabilityMetadata.ts",
   "constants.ts",
@@ -22,26 +19,19 @@ const SHARED_ROOT_IMPLEMENTATIONS = new Set([
   "minecraftStyleEvidence.ts",
   "molangQueryCatalog.ts",
   "molangSyntax.ts",
-  "productIdentity.ts",
   "promptContract.ts",
   "promptLoader.ts",
   "referenceCorrection.ts",
   "referenceCrossViewEvidence.ts",
   "registrationProfile.ts",
-  "resourceUri.ts",
-  "runtimeAffinity.ts",
-  "runtimeConnection.ts",
-  "runtimeFetch.ts",
-  "runtimeLifecycle.ts",
   "semanticHistory.ts",
   "surfaceManifest.ts",
   "util.ts",
-  "validationVerdict.ts",
   "zodObjects.ts",
 ]);
 
-const DOMAIN_WRAPPER =
-  /^export \* from "\.\/(?:animation|geometry|particle|texture|uv)\/[A-Za-z0-9_./-]+";\n$/;
+const CANONICAL_WRAPPER =
+  /^export \* from "\.\/(?:animation|authoring|bedrock|geometry|particle|product|protocol|runtime|texture|uv)\/[A-Za-z0-9_./-]+";\n$/;
 
 describe("lib root ownership", () => {
   test("root contains only declared shared implementations or compatibility wrappers", async () => {
@@ -51,7 +41,7 @@ describe("lib root ownership", () => {
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
       const source = await Bun.file(`lib/${entry.name}`).text();
-      if (DOMAIN_WRAPPER.test(source)) continue;
+      if (CANONICAL_WRAPPER.test(source)) continue;
       if (SHARED_ROOT_IMPLEMENTATIONS.has(entry.name)) continue;
       violations.push(entry.name);
     }
