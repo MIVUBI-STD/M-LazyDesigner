@@ -21,7 +21,7 @@ Do not create synonyms for style. Prefer the canonical term even when another wo
 | current semantic authoring position | **Stage** | `GEOMETRY`, `TEXTURING`, `ANIMATION`, `FINALIZATION` |
 | currently exposed Runtime capability family | **Runtime Surface** | `AUTHORING` or `ANIMATION` |
 | semantic specialist ownership | **Domain** | Geometry, Texturing, Animation, or Core ownership; not lifecycle position |
-| executable MCP operation | **Capability** | one discoverable/invocable operation |
+| executable MCP operation | **Capability** | one discoverable/invocable operation; its canonical Operation Class is QUERY, MUTATION, PREVIEW, EXPORT, CONTROL, VALIDATION, or UNKNOWN |
 | stable AI-client MCP boundary | **Gateway** | transport/catalog/recovery boundary; not workflow reasoning |
 | Blockbench-facing executor | **Runtime** | capability registration, validation and execution |
 | deterministic task/context projector | **Control** | intake, selection, projection, invalidation and continuation |
@@ -181,3 +181,20 @@ Stage cross-context semantics → authoring-stage-context.md
 source ownership              → implementation-map.md
 legacy serialized identifiers → compatibility-identifiers.md
 ~~~
+
+
+## Capability Operation Class
+
+Operation Class describes **what kind of action a Capability performs**, not which Stage owns it.
+
+~~~text
+QUERY       → read/inspect authored or Runtime state
+MUTATION    → changes authored/persisted state
+PREVIEW     → produces bounded visual evidence without becoming authored truth
+EXPORT      → writes requested output from current authored state
+CONTROL     → changes editor/workflow/control state rather than authored asset semantics
+VALIDATION  → evaluates a bounded technical contract
+UNKNOWN     → capability lacks canonical metadata; schema/ownership must not be assumed
+~~~
+
+Search may expose Operation Class together with the existing Verification Class and non-default Execution Class. This is intended to eliminate unnecessary `describe_capability` calls when the capability identity and arguments are already known. Operation Class does not replace MCP safety annotations, Dirty Scopes, receipts, or verification policy.

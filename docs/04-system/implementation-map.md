@@ -207,7 +207,7 @@ manage_animation_controller
 ## Shared Runtime Libraries
 
 ```text
-mcp/lib/capabilityMetadata.ts   canonical tier/search aliases/declarative effects
+mcp/lib/capabilityMetadata.ts   canonical tier/search aliases/declarative effects + Operation/State/Execution/Verification projection
 mcp/lib/assetDependencyGraph.ts canonical Dirty Scope → Domain + minimum downstream recheck projection
 
 gateway/control/orchestration.ts

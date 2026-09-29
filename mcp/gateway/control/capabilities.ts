@@ -1,4 +1,5 @@
 import type { CapabilitySummary } from "../protocol";
+import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
@@ -60,6 +61,7 @@ export function projectCapabilitiesForSearch(
   capabilities: readonly ControlCapabilitySummary[]
 ) {
   return capabilities.map((capability) => {
+    const metadata = getCapabilityMetadata(capability.capability_id);
     const flags = [
       ...(capability.read_only ? ["read_only" as const] : []),
       ...(capability.destructive ? ["destructive" as const] : []),
@@ -82,6 +84,13 @@ export function projectCapabilitiesForSearch(
         : {}),
       tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
+      operation_class: metadata.operationClass,
+      ...(metadata.verificationClass !== "not_applicable"
+        ? { verification_class: metadata.verificationClass }
+        : {}),
+      ...(metadata.executionClass !== "normal"
+        ? { execution_class: metadata.executionClass }
+        : {}),
       ...(flags.length > 0 ? { flags } : {}),
     };
   });

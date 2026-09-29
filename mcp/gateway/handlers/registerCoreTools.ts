@@ -361,6 +361,10 @@ export function registerCoreGatewayTools(
                   ? { annotations: tool.annotations }
                   : {}),
                 lifecycle: metadata.lifecycle,
+                operation_class: metadata.operationClass,
+                ...(metadata.stateClass !== null
+                  ? { state_class: metadata.stateClass }
+                  : {}),
                 execution_class: metadata.executionClass,
                 verification_class: metadata.verificationClass,
                 control: {

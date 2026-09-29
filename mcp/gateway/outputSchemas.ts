@@ -154,6 +154,22 @@ export const gatewaySearchCapabilitySchema = z
     predecessor: capabilityPredecessorSchema.optional(),
     tier: z.enum(["primary", "support", "experimental", "maintenance"]),
     authoring_domain: z.enum(["GEOMETRY", "TEXTURING", "ANIMATION", "CORE"]),
+    operation_class: z.enum([
+      "QUERY",
+      "MUTATION",
+      "PREVIEW",
+      "EXPORT",
+      "CONTROL",
+      "VALIDATION",
+      "UNKNOWN",
+    ]).optional(),
+    verification_class: z.enum([
+      "not_applicable",
+      "receipt_only",
+      "focused_read",
+      "visual",
+    ]).optional(),
+    execution_class: z.enum(["fast", "normal", "heavy"]).optional(),
     flags: z
       .array(z.enum(["read_only", "destructive", "idempotent"]))
       .optional(),

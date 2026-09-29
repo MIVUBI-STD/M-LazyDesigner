@@ -4,8 +4,11 @@ import {
   type CapabilityExecutionClass,
   type CapabilityLifecycle,
   type CapabilityLifecycleStage,
+  type CapabilityOperationClass,
+  type CapabilityStateClass,
   type CapabilityTier,
   type CapabilityVerificationClass,
+  capabilityOperationClassByName,
 } from "./capabilities/manifest";
 
 export type {
@@ -13,6 +16,8 @@ export type {
   CapabilityExecutionClass,
   CapabilityLifecycle,
   CapabilityLifecycleStage,
+  CapabilityOperationClass,
+  CapabilityStateClass,
   CapabilityTier,
   CapabilityVerificationClass,
 } from "./capabilities/manifest";
@@ -23,6 +28,8 @@ export type CapabilityMetadata = {
   effects: CapabilityEffects;
   lifecycle: CapabilityLifecycle;
   executionClass: CapabilityExecutionClass;
+  operationClass: CapabilityOperationClass;
+  stateClass: CapabilityStateClass | null;
   verificationClass: CapabilityVerificationClass;
 };
 
@@ -52,6 +59,8 @@ export function getCapabilityMetadata(name: string): CapabilityMetadata {
     effects: entry?.effects ?? DEFAULT_EFFECTS,
     lifecycle: entry?.lifecycle ?? DEFAULT_LIFECYCLE,
     executionClass: entry?.executionClass ?? "normal",
+    operationClass: capabilityOperationClassByName(name),
+    stateClass: entry?.stateClass ?? null,
     verificationClass: entry?.verificationClass ?? "not_applicable",
   };
 }

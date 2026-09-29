@@ -1018,6 +1018,8 @@ describe("BlockIT Gateway contract", () => {
       hint: "Create or update Bedrock cubes.",
       tier: "primary",
       authoring_domain: "GEOMETRY",
+      operation_class: "MUTATION",
+      verification_class: "visual",
       flags: ["destructive"],
     });
     expect(projected[1]).toEqual({
@@ -1025,6 +1027,8 @@ describe("BlockIT Gateway contract", () => {
       hint: "Inspect model elements.",
       tier: "primary",
       authoring_domain: "CORE",
+      operation_class: "QUERY",
+      execution_class: "fast",
       flags: ["read_only", "idempotent"],
     });
 
