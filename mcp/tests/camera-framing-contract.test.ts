@@ -89,7 +89,15 @@ describe("capture_model_views explicit framing contract", () => {
       "underside",
     ]);
     expect(result.views.length).toBeLessThanOrEqual(5);
-    expect(result.uncovered_targets).toContain("underside");
+    expect(new Set(result.views).size).toBe(result.views.length);
+    const covered = new Set(
+      result.coverage.flatMap((entry) => entry.targets)
+    );
+    const accounted = new Set([
+      ...covered,
+      ...result.uncovered_targets,
+    ]);
+    expect(accounted).toEqual(new Set(result.requested_targets));
   });
 
   test("prefers reference-paired views when information gain ties", () => {
