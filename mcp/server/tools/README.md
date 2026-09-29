@@ -44,7 +44,8 @@ Current migrated paint internals:
 
 ```text
 server/tools/paint/shared.ts      canonical paint helpers
-server/tools/paint/layerState.ts  canonical layer-state helpers
+server/tools/paint/layerState.ts           canonical layer-state helpers
+server/tools/paint/selectionLayerSchema.ts canonical selection/layer input contract
 
 matching root paths               compatibility re-export only
 ```
