@@ -62,7 +62,7 @@ describe("LazyDesigner Control source migration", () => {
     expect(next).toMatch(/Control|Gateway/i);
     expect(implementation).toContain("Canonical source: `mcp/gateway/control/`");
     expect(implementation).not.toMatch(/canonical source:\s*`mcp\/gateway\/navigator\//i);
-    expect(validation).toMatch(/Navigator active source path: removed/i);
+    expect(validation).toMatch(/retired Navigator source remains removed/i);
     expect(next).toMatch(/former `mcp\/gateway\/navigator\/` source is removed/i);
     expect(next).toMatch(/no alias/i);
   });

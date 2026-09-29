@@ -87,7 +87,7 @@ describe("repository workflow supply chain", () => {
     expect(releaseWorkflow).toContain("bun install --frozen-lockfile");
     expect(authoringWorkflow).toContain("bun install --frozen-lockfile");
     expect(authoringWorkflow).not.toContain("--production");
-    expect(repositoryWorkflow).not.toContain("bun install");
+    expect(repositoryWorkflow).toContain("bun install --frozen-lockfile");
   });
 
   test("MCP verification publishes only a read-only exact-SHA verified compatibility artifact", async () => {
