@@ -86,3 +86,19 @@ export function planMaterialChannelAssignment<
 
   return { resetTextures, undoTextures };
 }
+
+
+export function applyMaterialChannelAssignment<
+  T extends MaterialChannelTextureLike
+>(
+  material: Readonly<{ uuid: string }>,
+  texture: T,
+  channel: string,
+  resetTextures: readonly T[]
+): void {
+  for (const existing of resetTextures) {
+    existing.pbr_channel = "color";
+  }
+  texture.group = material.uuid;
+  texture.pbr_channel = channel;
+}
