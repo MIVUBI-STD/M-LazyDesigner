@@ -2,6 +2,7 @@ import type {
   CapabilityBranchHint,
   CapabilityFact,
 } from "./types";
+import type { CapabilityOperationClass } from "../../lib/capabilities/manifest";
 import {
   capabilitySemanticId,
   type CapabilitySemanticId,
@@ -36,6 +37,7 @@ export type CapabilityBranchManifestEntry = {
   branch?: CapabilityBranchHint;
   schemaFields?: readonly string[];
   semantic?: CapabilitySemanticSpec;
+  operationClass?: CapabilityOperationClass;
   graph?: CapabilityGraphSpec;
 };
 
@@ -158,6 +160,12 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "inspect_elements",
     branch: { field: "mode", value: "outline" },
     schemaFields: ["mode", "include_cubes", "max_depth", "max_nodes"],
+    operationClass: "QUERY",
+    semantic: {
+      intents: ["list model hierarchy", "show outliner tree", "inspect model outline"],
+      nouns: ["hierarchy", "outliner", "group", "bone", "cube"],
+      verbs: ["list", "show", "inspect", "outline"],
+    },
   },
   {
     capability: "inspect_elements",
@@ -326,37 +334,79 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "assign_channel" },
     schemaFields: ["operation", "material", "texture", "channel"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["assign texture channel", "set material texture channel"],
+      nouns: ["material", "texture", "channel", "normal", "mer", "height"],
+      verbs: ["assign", "set", "bind"],
+    },
   },
   {
     capability: "manage_material",
     branch: { field: "operation", value: "save" },
     schemaFields: ["operation", "material"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["save material config", "write texture set material"],
+      nouns: ["material", "config", "texture set", "file"],
+      verbs: ["save", "write", "persist"],
+    },
   },
 
   {
     capability: "manage_material_instances",
     branch: { field: "operation", value: "list" },
     schemaFields: ["operation", "include_usages", "usage_limit_per_instance"],
+    operationClass: "QUERY",
+    semantic: {
+      intents: ["list material instances", "show material instance usage"],
+      nouns: ["material", "instance", "usage"],
+      verbs: ["list", "show", "inspect"],
+    },
   },
   {
     capability: "manage_material_instances",
     branch: { field: "operation", value: "get" },
     schemaFields: ["operation", "cube_id", "faces"],
+    operationClass: "QUERY",
+    semantic: {
+      intents: ["get face material instance", "inspect cube material assignment"],
+      nouns: ["material", "instance", "cube", "face"],
+      verbs: ["get", "inspect", "read", "check"],
+    },
   },
   {
     capability: "manage_material_instances",
     branch: { field: "operation", value: "set" },
     schemaFields: ["operation", "cube_id", "material_name", "faces"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["set face material instance", "assign material instance to faces"],
+      nouns: ["material", "instance", "cube", "face"],
+      verbs: ["set", "assign", "apply"],
+    },
   },
   {
     capability: "manage_material_instances",
     branch: { field: "operation", value: "bulk_set" },
     schemaFields: ["operation", "assignments"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["bulk set material instances", "assign material instances to many cubes"],
+      nouns: ["material", "instance", "cubes", "faces", "assignments"],
+      verbs: ["bulk", "assign", "set"],
+    },
   },
   {
     capability: "manage_material_instances",
     branch: { field: "operation", value: "clear" },
     schemaFields: ["operation", "cube_id", "faces", "all_cubes"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["clear material instances", "remove face material assignments"],
+      nouns: ["material", "instance", "cube", "face"],
+      verbs: ["clear", "remove", "reset"],
+    },
   },
 
   ...["inspect", "bind", "set_slot", "assign", "unassign"].map((value) => ({
@@ -378,26 +428,56 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "keyframes" },
     schemaFields: ["operation", "animation_id", "action", "bone_name", "channel", "keyframes"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["edit animation keyframes", "add or remove keyframes"],
+      nouns: ["animation", "keyframe", "bone", "channel"],
+      verbs: ["edit", "add", "remove", "change"],
+    },
   },
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "graph" },
     schemaFields: ["operation", "animation_id", "bone_name", "channel", "axis", "action", "keyframe_range", "custom_curve"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["edit animation graph", "change keyframe easing", "edit bezier curve"],
+      nouns: ["animation", "graph", "easing", "bezier", "keyframe"],
+      verbs: ["edit", "ease", "curve", "interpolate"],
+    },
   },
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "timeline" },
     schemaFields: ["operation", "animation_id", "action", "time", "length", "fps", "loop_mode", "range", "molang", "easing", "bone_ids"],
+    operationClass: "CONTROL",
+    semantic: {
+      intents: ["control animation timeline", "scrub animation", "play animation preview"],
+      nouns: ["animation", "timeline", "playback", "time", "range"],
+      verbs: ["play", "pause", "stop", "scrub", "select"],
+    },
   },
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "batch" },
     schemaFields: ["operation", "animation_id", "batch_operation", "selection", "range", "pattern", "parameters"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["batch edit animation keyframes", "offset or scale keyframe timing"],
+      nouns: ["animation", "keyframes", "batch", "timing", "range"],
+      verbs: ["batch", "offset", "scale", "repeat"],
+    },
   },
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "copy_paste" },
     schemaFields: ["operation", "action", "source", "target"],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["copy animation keyframes", "paste or mirror keyframes"],
+      nouns: ["animation", "keyframes", "copy", "paste", "mirror"],
+      verbs: ["copy", "paste", "mirror"],
+    },
   },
   {
     capability: "manage_animation_timeline",
@@ -407,6 +487,12 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
       "anim_time_update", "blend_weight", "start_delay", "loop_delay",
       "override_previous_animation", "rotation_spaces",
     ],
+    operationClass: "MUTATION",
+    semantic: {
+      intents: ["edit animation clip properties", "set animation length fps loop or molang"],
+      nouns: ["animation", "clip", "length", "fps", "loop", "molang", "blend weight"],
+      verbs: ["set", "edit", "configure", "change"],
+    },
   },
 
   {

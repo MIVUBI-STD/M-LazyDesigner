@@ -47,6 +47,7 @@ function recordFingerprints(
     capability: entry.capability,
     branch: entry.branch ?? null,
     semantic: entry.semantic ?? null,
+    operationClass: entry.operationClass ?? null,
   });
   const graph = semanticFingerprint({
     id: entry.id,

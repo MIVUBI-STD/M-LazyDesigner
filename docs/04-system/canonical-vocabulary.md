@@ -198,3 +198,15 @@ UNKNOWN     → capability lacks canonical metadata; schema/ownership must not b
 ~~~
 
 Search may expose Operation Class together with the existing Verification Class and non-default Execution Class. This is intended to eliminate unnecessary `describe_capability` calls when the capability identity and arguments are already known. Operation Class does not replace MCP safety annotations, Dirty Scopes, receipts, or verification policy.
+
+For consolidated capabilities, a semantic branch may override the capability-level Operation Class when one facade mixes read/control/mutation behavior. Example:
+
+```text
+manage_material_instances(operation=list|get)
+→ QUERY
+
+manage_material_instances(operation=set|bulk_set|clear)
+→ MUTATION
+```
+
+Search and full describe must project the same branch override. Branch operation metadata participates in the semantic routing revision.

@@ -1,5 +1,6 @@
 import type { CapabilitySummary } from "../protocol";
 import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
+import { manifestEntryForBranch } from "../capabilities/manifest";
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
@@ -62,6 +63,12 @@ export function projectCapabilitiesForSearch(
 ) {
   return capabilities.map((capability) => {
     const metadata = getCapabilityMetadata(capability.capability_id);
+    const branchMetadata = manifestEntryForBranch(
+      capability.capability_id,
+      capability.branch
+    );
+    const operationClass =
+      branchMetadata?.operationClass ?? metadata.operationClass;
     const flags = [
       ...(capability.read_only ? ["read_only" as const] : []),
       ...(capability.destructive ? ["destructive" as const] : []),
@@ -84,7 +91,7 @@ export function projectCapabilitiesForSearch(
         : {}),
       tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
-      operation_class: metadata.operationClass,
+      operation_class: operationClass,
       ...(metadata.verificationClass !== "not_applicable"
         ? { verification_class: metadata.verificationClass }
         : {}),
