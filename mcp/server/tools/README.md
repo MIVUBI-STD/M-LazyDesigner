@@ -207,3 +207,36 @@ matching root migration paths            compatibility re-export only
 ```
 
 Particle authoring implementation belongs under `server/tools/particle/`; do not create additional root-level particle executors.
+
+
+## Root completion state
+
+The `server/tools/` root is intentionally reduced to registrar/facade entrypoints plus compatibility re-exports.
+
+Current non-trivial root entrypoints:
+
+```text
+animation.ts  Animation registrar/facade
+texture.ts    Texture registrar/facade
+paint.ts      Paint registrar/facade
+element.ts    Element registrar/facade
+```
+
+Canonical implementation domains now include:
+
+```text
+animation/
+texture/
+paint/
+element/
+geometry/
+project/
+particle/
+inspection/
+validation/
+io/
+state/
+interaction/
+```
+
+Do not move these four registrar facades into subfolders unless Runtime registration itself is redesigned. Do not add new full implementations at the tools root.
