@@ -23,6 +23,7 @@ export {
 } from "@/server/tools/texture/materialSchema";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import {
+  applyMaterialChannelAssignment,
   materialContinuationState,
   planMaterialChannelAssignment,
   resolveTextureToolMaterial,
@@ -610,14 +611,12 @@ export function registerTextureMaterialTools(): void {
         });
   
         try {
-          // Remove any existing texture from this channel in the group
-          resetTextures.forEach((existing: Texture) => {
-            existing.pbr_channel = "color"; // Reset to color
-          });
-  
-          // Assign the texture to the channel
-          tex.group = textureGroup.uuid;
-          tex.pbr_channel = channel;
+          applyMaterialChannelAssignment(
+            textureGroup,
+            tex,
+            channel,
+            resetTextures
+          );
   
           textureGroup.material_config.saved = false;
           textureGroup.updateMaterial();
