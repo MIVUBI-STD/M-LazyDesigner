@@ -1,6 +1,16 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
+import {
+  deriveMirroredRigName,
+  hasCaseInsensitiveRigNameCollision,
+  wouldCreateRigHierarchyCycle,
+} from "@/lib/rig/planning";
+export {
+  deriveMirroredRigName,
+  hasCaseInsensitiveRigNameCollision,
+  wouldCreateRigHierarchyCycle,
+} from "@/lib/rig/planning";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { boneRiggingReceipt } from "@/lib/receipts/boneRigging";
 import { createTool, type ToolSpec } from "@/lib/factories";
@@ -264,40 +274,6 @@ function nativeIkControllerState(controller: NullObject): NativeIkControllerStat
     ik_pole: runtime.ik_pole || null,
     lock_ik_target_rotation: controller.lock_ik_target_rotation === true,
   };
-}
-
-export function deriveMirroredRigName(name: string): string {
-  if (name.includes("left")) return name.replace("left", "right");
-  if (name.includes("right")) return name.replace("right", "left");
-  return `${name}_mirrored`;
-}
-export function hasCaseInsensitiveRigNameCollision(
-  groups: readonly { uuid: string; name: string }[],
-  requestedName: string,
-  excludeUuid?: string
-): boolean {
-  const normalizedName = requestedName.toLowerCase();
-  return groups.some(
-    (group) =>
-      group.uuid !== excludeUuid && group.name.toLowerCase() === normalizedName
-  );
-}
-export function wouldCreateRigHierarchyCycle(
-  targetUuid: string,
-  candidateParentUuid: string,
-  parentByUuid: ReadonlyMap<string, string | null>
-): boolean {
-  let currentUuid: string | null = candidateParentUuid;
-  const visited = new Set<string>();
-
-  while (currentUuid !== null) {
-    if (currentUuid === targetUuid) return true;
-    if (visited.has(currentUuid)) return true;
-    visited.add(currentUuid);
-    currentUuid = parentByUuid.get(currentUuid) ?? null;
-  }
-
-  return false;
 }
 
 export function registerBoneRiggingTool(): void {
