@@ -45,3 +45,108 @@ export function requireValidPlannedPasteChannelTimes(
     );
   });
 }
+
+
+export type BatchSelectionMode = "all" | "selected" | "range" | "pattern";
+
+export type BatchSelectionRange = Readonly<{
+  start: number;
+  end: number;
+}>;
+
+export type BatchSelectionPattern = Readonly<{
+  interval: number;
+  offset: number;
+}>;
+
+export function selectBatchKeyframes<T extends { time: number }>(
+  all: readonly T[],
+  selected: readonly T[],
+  selection: BatchSelectionMode,
+  options: Readonly<{
+    range?: BatchSelectionRange;
+    pattern?: BatchSelectionPattern;
+    tolerance?: number;
+  }> = {}
+): T[] {
+  const tolerance = options.tolerance ?? 0.001;
+  if (!Number.isFinite(tolerance) || tolerance <= 0) {
+    throw new Error("Batch selection tolerance must be finite and greater than 0.");
+  }
+
+  let result: T[];
+  switch (selection) {
+    case "all":
+      result = [...all];
+      break;
+    case "selected":
+      result = [...selected];
+      break;
+    case "range": {
+      const range = options.range;
+      if (!range) throw new Error("Range required for range selection.");
+      result = all.filter(
+        (keyframe) => keyframe.time >= range.start && keyframe.time <= range.end
+      );
+      break;
+    }
+    case "pattern": {
+      const pattern = options.pattern;
+      if (!pattern) throw new Error("Pattern required for pattern selection.");
+      if (!Number.isFinite(pattern.interval) || pattern.interval <= 0) {
+        throw new Error("Pattern interval must be finite and greater than 0.");
+      }
+      if (!Number.isFinite(pattern.offset)) {
+        throw new Error("Pattern offset must be finite.");
+      }
+      result = all.filter((keyframe) => {
+        const relativeTime = keyframe.time - pattern.offset;
+        return Math.abs(relativeTime % pattern.interval) < tolerance;
+      });
+      break;
+    }
+  }
+
+  if (result.length === 0) {
+    throw new Error("No keyframes found matching selection criteria.");
+  }
+  return result;
+}
+
+export function planMirroredBatchKeyframes<
+  T extends { transform?: unknown; channel?: unknown }
+>(keyframes: readonly T[]): T[] {
+  const mirrored = keyframes.filter(
+    (keyframe) => Boolean(keyframe.transform) && keyframe.channel !== "scale"
+  );
+  if (mirrored.length === 0) {
+    throw new Error(
+      "No position or rotation transform keyframes found matching selection criteria for mirror."
+    );
+  }
+  return mirrored;
+}
+
+export function planSmoothedBatchKeyframes<
+  T extends { transform?: unknown }
+>(keyframes: readonly T[]): T[] {
+  const smoothed = keyframes.filter((keyframe) => Boolean(keyframe.transform));
+  if (smoothed.length === 0) {
+    throw new Error(
+      "No transform keyframes found matching selection criteria for smooth."
+    );
+  }
+  return smoothed;
+}
+
+export function reverseBatchTimeBounds(
+  times: readonly number[]
+): Readonly<{ start: number; end: number }> {
+  if (times.length === 0 || !times.every(Number.isFinite)) {
+    throw new Error("Reverse planning requires at least one finite keyframe time.");
+  }
+  return {
+    start: Math.min(...times),
+    end: Math.max(...times),
+  };
+}
