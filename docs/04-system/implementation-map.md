@@ -151,23 +151,31 @@ mcp/server/tools/**
 mcp/server/tools/animation.ts
 → Animation facade only: ordered docs + compatibility re-exports + focused registrar aggregation
 
-mcp/server/tools/animation-create.ts
-mcp/server/tools/animation-keyframes.ts
+mcp/server/tools/animation/create.ts
+mcp/server/tools/animation/keyframes.ts
+mcp/server/tools/animation/timeline.ts
+mcp/server/tools/animation/controller*.ts
+mcp/server/tools/animation/*Schema.ts
+mcp/server/tools/animation/shared.ts
+→ canonical Animation capability/schema/helper owners
+
 mcp/server/tools/animation-rigging.ts
-mcp/server/tools/animation-timeline.ts
 mcp/server/tools/animation-batch.ts
-mcp/server/tools/animation-shared.ts
-→ focused Animation capability/schema/helper owners
+→ remaining root-level Animation implementations pending controlled migration
 
 mcp/server/tools/texture.ts
 → Texture facade only: ordered docs + compatibility re-exports + focused registrar aggregation
 
-mcp/server/tools/texture-create.ts
-mcp/server/tools/texture-read.ts
+mcp/server/tools/texture/create.ts
+mcp/server/tools/texture/read.ts
+mcp/server/tools/texture/assignment.ts
+mcp/server/tools/texture/*Schema.ts
+mcp/server/tools/texture/materialState.ts
+→ canonical Texture creation/read/assignment/schema/state owners
+
 mcp/server/tools/texture-atlas.ts
-mcp/server/tools/texture-assignment.ts
 mcp/server/tools/texture-materials.ts
-→ focused Texture creation/read/atlas/assignment/material owners
+→ remaining root-level Texture implementations pending controlled migration
 
 mcp/server/tools/paint.ts
 → Paint facade only: ordered docs + compatibility re-exports + focused registrar aggregation
