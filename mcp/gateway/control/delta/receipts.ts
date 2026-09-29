@@ -192,6 +192,7 @@ const CONTINUATION_RECEIPT_VALIDATORS: Readonly<
   configure_material: materialMutationReceiptComplete,
   assign_texture_channel: materialMutationReceiptComplete,
   import_texture_set: materialMutationReceiptComplete,
+  save_material_config: materialPersistenceReceiptComplete,
   manage_material_instances: materialInstanceMutationReceiptComplete,
   set_face_material_instance: materialInstanceMutationReceiptComplete,
   bulk_set_material_instances: materialInstanceMutationReceiptComplete,
