@@ -79,6 +79,8 @@ jobs:
         with:
           bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v${{ steps.bun-pin.outputs.version }}/bun-windows-x64-baseline.zip
       - run: bun install --frozen-lockfile
+      - name: Audit MCP dependency advisories
+        run: bun run security:audit
       - name: Test managed file transactions and Codex TOML on Windows
         run: bun test tests/managed-install.test.ts
       - name: Build the native Runtime bundle
