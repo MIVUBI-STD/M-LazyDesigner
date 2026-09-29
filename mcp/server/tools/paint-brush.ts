@@ -31,7 +31,7 @@ import {
   requirePaintCoordinates,
   requirePixelsWithinTexture,
   requireTextureCoordinatesWithinBounds,
-} from "./paint-shared";
+} from "./paint/shared";
 
 function runSemanticNativePaintStroke(
   capability: "eraser_tool" | "paint_with_brush",
