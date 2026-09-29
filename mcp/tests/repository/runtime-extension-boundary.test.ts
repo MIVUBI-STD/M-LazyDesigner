@@ -77,6 +77,24 @@ describe("Runtime extension ownership", () => {
     );
   });
 
+  test("texture authoring manage_material wrapper stays receipt-only", async () => {
+    const authoring = await Bun.file(
+      "server/runtime/extensions/texture/authoring.ts"
+    ).text();
+
+    expect(authoring).toContain('runtimeDefinition("manage_material")');
+    expect(authoring).toContain("originalManageMaterial");
+    expect(authoring).toContain(
+      "const result = await originalManageMaterial(args, context)"
+    );
+
+    expect(authoring).not.toContain("Undo.");
+    expect(authoring).not.toContain("planPbrMaterialConfiguration");
+    expect(authoring).not.toContain("planExclusivePbrMaterialAssignment");
+    expect(authoring).not.toContain("pbr_channel =");
+    expect(authoring).not.toContain(".group =");
+  });
+
   test("Runtime extensions stay below Gateway", async () => {
     for (const path of [
       "server/runtime/extensions/animation/nativeIntelligence.ts",
