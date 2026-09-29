@@ -147,13 +147,9 @@ describe("repository GitHub discipline", () => {
 
     expect(repository).toContain("bun run verify:repository");
     expect(authoring).toContain("bun run verify:authoring");
-    for (const gate of [
-      "bun run verify:types",
-      "bun run verify:contracts",
-      "bun run verify:benchmarks",
-      "bun run verify:surface-guards",
-      "bun run verify:build",
-    ]) expect(mcp).toContain(gate);
+    expect(mcp).toContain("bun run verify:affected");
+    expect(mcp).toContain("bun run verify:remote");
+    expect(mcp).toContain("Affected mode selects the minimum safe subset");
     expect(release).toContain("bun run verify:release");
     expect(authoring).toContain('"workspace/active/**"');
     expect(mcp).toContain('"!mcp/tests/repository/**"');

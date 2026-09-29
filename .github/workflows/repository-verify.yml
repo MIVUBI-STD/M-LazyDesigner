@@ -64,5 +64,8 @@ jobs:
         with:
           bun-version-file: ".bun-version"
 
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+
       - name: Verify repository routing and policy
         run: bun run verify:repository

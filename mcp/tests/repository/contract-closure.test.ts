@@ -11,13 +11,16 @@ describe("MCP dependency closure", () => {
     expect(packageJson.scripts["test:runtime"]).toBe("bun test tests/*.test.ts");
     expect(packageJson.scripts["verify:closure"]).toBe("bun run verify:repository && bun run verify:authoring && bun run docs:check");
     expect(packageJson.scripts["verify:closure"]).not.toContain("verify:mcp");
-    expect(packageJson.scripts["verify:mcp"]).toContain("bun run test:runtime");
-    expect(packageJson.scripts["verify:mcp"]).toContain("bun run verify:authoring");
-    expect(packageJson.scripts["verify:mcp"]).toContain("bun run benchmark:zero-waste-total");
-    expect(packageJson.scripts["verify:mcp"]).not.toContain("bun run benchmark:zero-waste-workflow");
+    expect(packageJson.scripts["verify:mcp"]).toBe(
+      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run verify:build"
+    );
+    expect(packageJson.scripts["verify:contracts"]).toContain("bun run test:runtime");
+    expect(packageJson.scripts["verify:contracts"]).toContain("bun run verify:authoring");
+    expect(packageJson.scripts["verify:benchmarks"]).toContain("bun run benchmark:zero-waste-total");
+    expect(packageJson.scripts["verify:benchmarks"]).not.toContain("bun run benchmark:zero-waste-workflow");
     expect(packageJson.scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
     expect(packageJson.scripts["verify:release"]).toBe("bun run verify:full");
-    expect(packageJson.scripts["verify:mcp"]).toContain("bun run docs:check");
+    expect(packageJson.scripts["verify:contracts"]).toContain("bun run docs:check");
   });
 
   test("generated docs and runtime prompt manifest share the same freshness gate", async () => {
