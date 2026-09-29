@@ -70,11 +70,20 @@ const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./particle/writeRevision";\n',
   "textureBitmapRuntime.ts":
     'export * from "./texture/bitmapRuntime";\n',
+  "textureAlphaSemantics.ts":
+    'export * from "./texture/alphaSemantics";\n',
+  "textureFrameMapping.ts":
+    'export * from "./texture/frameMapping";\n',
+  "textureMaterialStatus.ts":
+    'export * from "./texture/materialStatus";\n',
   "textureSeamContinuity.ts":
     'export * from "./texture/seamContinuity";\n',
   "textureSurfacePattern.ts":
     'export * from "./texture/surfacePattern";\n',
   "texturePalette.ts": 'export * from "./texture/palette";\n',
+  "textureRenderProfile.ts":
+    'export * from "./texture/renderProfile";\n',
+  "textureRevision.ts": 'export * from "./texture/revision";\n',
   "uvPhysicalEvidence.ts": 'export * from "./uv/physicalEvidence";\n',
 };
 
