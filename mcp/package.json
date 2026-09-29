@@ -127,5 +127,10 @@
     "blockbench-types": "5.1.0",
     "tinycolor2": "^1.6.0",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "electron": "41.10.7",
+    "postcss": "8.5.28",
+    "nanoid": "3.3.19"
   }
 }
