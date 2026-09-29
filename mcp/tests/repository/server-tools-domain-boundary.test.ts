@@ -8,6 +8,8 @@ const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./animation/controllerState";\n',
   "animation-effect-state.ts":
     'export * from "./animation/effectState";\n',
+  "paint-shared.ts": 'export * from "./paint/shared";\n',
+  "paint-layer-state.ts": 'export * from "./paint/layerState";\n',
 };
 
 const MIGRATED_TOOL_IMPORTS = new Set(
@@ -54,7 +56,9 @@ describe("server tool domain ownership", () => {
         const relativeLegacy =
           request === "./animation-shared" ||
           request === "./animation-controller-state" ||
-          request === "./animation-effect-state";
+          request === "./animation-effect-state" ||
+          request === "./paint-shared" ||
+          request === "./paint-layer-state";
         if (
           relativeLegacy ||
           MIGRATED_TOOL_IMPORTS.has(request)
@@ -69,12 +73,14 @@ describe("server tool domain ownership", () => {
     expect(violations).toEqual([]);
   });
 
-  test("animation domain owner does not depend on higher Runtime composition", async () => {
-    for (const file of await sourceFiles("server/tools/animation")) {
-      const source = await Bun.file(file).text();
-      for (const request of importsOf(source)) {
-        expect(request).not.toContain("/server/runtime");
-        expect(request).not.toContain("/gateway/");
+  test("tool domain owners do not depend on higher Runtime composition", async () => {
+    for (const domain of ["animation", "paint"] as const) {
+      for (const file of await sourceFiles(`server/tools/${domain}`)) {
+        const source = await Bun.file(file).text();
+        for (const request of importsOf(source)) {
+          expect(request).not.toContain("/server/runtime");
+          expect(request).not.toContain("/gateway/");
+        }
       }
     }
   });
