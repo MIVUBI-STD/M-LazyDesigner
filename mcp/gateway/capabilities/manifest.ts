@@ -302,10 +302,10 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "create" },
     schemaFields: [
-    verificationClass: "focused_read",
       "operation", "name", "color_texture", "normal_texture", "height_texture",
       "mer_texture", "color_value", "mer_value", "subsurface_value",
     ],
+    verificationClass: "focused_read",
     semantic: {
       intents: ["create pbr material", "new material"],
       nouns: ["material", "pbr", "normal", "mer", "height"],
@@ -320,10 +320,10 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "configure" },
     schemaFields: [
-    verificationClass: "focused_read",
       "operation", "material", "color_texture", "normal_texture", "height_texture",
       "mer_texture", "color_value", "mer_value", "subsurface_value",
     ],
+    verificationClass: "focused_read",
     semantic: {
       intents: ["configure material", "change pbr channels", "edit material"],
       nouns: ["material", "pbr", "normal", "mer", "height"],
