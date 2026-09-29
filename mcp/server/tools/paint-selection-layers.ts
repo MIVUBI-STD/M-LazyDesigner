@@ -15,6 +15,7 @@ export {
   textureSelectionParameters,
 } from "@/server/tools/paint/selectionLayerSchema";
 import { morphBinaryMaskRound } from "@/lib/texture/binaryMaskMorphology";
+import { ellipseSelectionPredicate, rectangleSelectionPredicate } from "@/lib/texture/selectionPlanning";
 import { getAndActivateTexture, resolvePaintTexture } from "@/lib/util";
 import {
   applyLayerMetadataBatchPlan,
@@ -190,11 +191,7 @@ export function registerPaintSelectionLayerTools(): void {
                     if (!coordinates) {
                       throw new Error("Coordinates required for rectangle selection.");
                     }
-                    const minX = Math.floor(Math.min(coordinates.x1, coordinates.x2));
-                    const maxX = Math.ceil(Math.max(coordinates.x1, coordinates.x2));
-                    const minY = Math.floor(Math.min(coordinates.y1, coordinates.y2));
-                    const maxY = Math.ceil(Math.max(coordinates.y1, coordinates.y2));
-                    applyMask((x, y) => x >= minX && x < maxX && y >= minY && y < maxY);
+                    applyMask(rectangleSelectionPredicate(coordinates));
                     break;
                   }
       
@@ -202,18 +199,7 @@ export function registerPaintSelectionLayerTools(): void {
                     if (!coordinates) {
                       throw new Error("Coordinates required for ellipse selection.");
                     }
-                    const centerX = (coordinates.x1 + coordinates.x2) / 2;
-                    const centerY = (coordinates.y1 + coordinates.y2) / 2;
-                    const radiusX = Math.abs(coordinates.x2 - coordinates.x1) / 2;
-                    const radiusY = Math.abs(coordinates.y2 - coordinates.y1) / 2;
-                    if (radiusX === 0 || radiusY === 0) {
-                      throw new Error("Ellipse selection requires non-zero width and height.");
-                    }
-                    applyMask((x, y) => {
-                      const dx = (x + 0.5 - centerX) / radiusX;
-                      const dy = (y + 0.5 - centerY) / radiusY;
-                      return dx * dx + dy * dy <= 1;
-                    });
+                    applyMask(ellipseSelectionPredicate(coordinates));
                     break;
                   }
       
