@@ -159,6 +159,30 @@ A meaningful pivot serves rotation center, joint/articulation, attachment, or pa
 
 Pivot-only correction changes origin without changing visible placement. Group pivot changes use exact identity and native transfer-origin semantics.
 
+## Lightweight Parametric Relationships
+
+Use existing Authoring Recipe relationships only when a stable semantic dependency is known from the design. The goal is predictable local regeneration, not a general procedural modeller.
+
+Supported high-value pattern:
+
+```text
+primary semantic mass changes
+→ existing anchor/symmetry relationship recompiles
+→ dependent placement follows
+→ incremental rebuild reports directly changed + constraint-propagated instances
+→ verify affected assembly views only
+```
+
+Examples:
+- a leg anchored to the seat edge follows a seat-width change;
+- a door/panel anchored to a body boundary follows that boundary;
+- an attachment centered on a parent mass follows parent extent changes;
+- symmetry relationships remain owned by the existing symmetry system.
+
+Do not create anchor constraints merely to make every coordinate parametric. Use them only for stable design relationships such as shared boundaries, attachment anchors, repeated semantic alignment, or required dependency preservation. A visual correction that should change only one independent part must not drag unrelated geometry through a convenience constraint.
+
+`constraint_propagated_instance_ids` in incremental rebuild evidence distinguishes dependent movement from directly authored changes. This is structural evidence only; the propagated result still requires affected-view visual verification.
+
 ## Primary vs Secondary Geometry
 
 Primary geometry is the minimum Cuboids plus **required primary hierarchy/pivots** that establish identity, global silhouette, primary volume, principal orientation, contact, and articulation. Secondary geometry adds only grounded silhouette refinement, attachment/layering, motion support, or visible detail after primary form passes.

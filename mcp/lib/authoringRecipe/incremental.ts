@@ -17,6 +17,7 @@ export type IncrementalRecipeRebuildPlan = {
   metadata_only_instance_ids: string[];
   preserved_instance_ids: string[];
   symmetry_changed_relation_ids: string[];
+  constraint_propagated_instance_ids: string[];
   metadata_fields_changed: Array<{
     instance_id: string;
     fields: string[];
@@ -35,6 +36,7 @@ export type IncrementalRecipeRebuildPlan = {
     preserved_count: number;
     metadata_only_count: number;
     symmetry_change_count: number;
+    constraint_propagated_count: number;
     native_affected_count: number;
     native_affected_ratio_of_next: number;
     affected_count: number;
@@ -83,6 +85,67 @@ function placementMetadataChanges(
     }
   }
   return fields;
+}
+
+
+function constraintPropagationChanges(
+  previousRecipe: AuthoringRecipe,
+  nextRecipe: AuthoringRecipe,
+  changedNativeIds: readonly string[]
+): string[] {
+  const changed = new Set(changedNativeIds);
+  const constrainedSources = new Set(
+    (nextRecipe.constraints ?? [])
+      .filter((constraint) => constraint.kind === "ANCHOR")
+      .map((constraint) => constraint.source_instance_id)
+  );
+  if (constrainedSources.size === 0) return [];
+
+  const previousPrototypeById = new Map(
+    previousRecipe.prototypes.map((entry) => [entry.id, entry])
+  );
+  const nextPrototypeById = new Map(
+    nextRecipe.prototypes.map((entry) => [entry.id, entry])
+  );
+  const previousPatternById = new Map(
+    previousRecipe.patterns.map((entry) => [entry.id, entry])
+  );
+  const nextPatternById = new Map(
+    nextRecipe.patterns.map((entry) => [entry.id, entry])
+  );
+
+  const nextCompiled = compileAuthoringRecipe(nextRecipe);
+  const propagated: string[] = [];
+
+  for (const instanceId of constrainedSources) {
+    if (!changed.has(instanceId)) continue;
+    const placement = nextCompiled.placements.find(
+      (entry) => entry.id === instanceId
+    );
+    if (!placement || placement.source_pattern_id.startsWith("symmetry:")) {
+      continue;
+    }
+
+    const previousPrototype = previousPrototypeById.get(
+      placement.prototype_id
+    );
+    const nextPrototype = nextPrototypeById.get(placement.prototype_id);
+    const previousPattern = previousPatternById.get(
+      placement.source_pattern_id
+    );
+    const nextPattern = nextPatternById.get(placement.source_pattern_id);
+
+    const ownPrototypeChanged =
+      JSON.stringify(previousPrototype) !== JSON.stringify(nextPrototype);
+    const ownPatternChanged =
+      JSON.stringify(previousPattern) !== JSON.stringify(nextPattern);
+
+    if (!ownPrototypeChanged && !ownPatternChanged) {
+      propagated.push(instanceId);
+    }
+  }
+
+  return propagated.sort();
 }
 
 function symmetryChanges(
@@ -200,6 +263,11 @@ export function planIncrementalRecipeRebuild(
   const semanticGroupChanged = metadataFieldsChanged.some((entry) =>
     entry.fields.includes("semantic_group")
   );
+  const constraintPropagated = constraintPropagationChanges(
+    previousRecipe,
+    nextRecipe,
+    upserts.map((entry) => entry.id)
+  );
   const nativeAffectedCount = upserts.length + removals.length;
   const affectedCount =
     nativeAffectedCount +
@@ -214,6 +282,7 @@ export function planIncrementalRecipeRebuild(
     metadata_only_instance_ids: metadataOnly,
     preserved_instance_ids: preserved,
     symmetry_changed_relation_ids: symmetry.changed_relation_ids,
+    constraint_propagated_instance_ids: constraintPropagated,
     metadata_fields_changed: metadataFieldsChanged,
     semantic_invalidation: {
       uv_mapping: semanticGroupChanged || symmetry.uv_mapping,
@@ -231,6 +300,7 @@ export function planIncrementalRecipeRebuild(
       preserved_count: preserved.length,
       metadata_only_count: metadataOnly.length,
       symmetry_change_count: symmetry.changed_relation_ids.length,
+      constraint_propagated_count: constraintPropagated.length,
       native_affected_count: nativeAffectedCount,
       native_affected_ratio_of_next:
         next.placements.length === 0
