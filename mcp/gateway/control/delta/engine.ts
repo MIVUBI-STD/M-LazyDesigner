@@ -66,6 +66,7 @@ export function buildControlDelta(input: {
         ? freshness.unknown
         : freshness.stale,
     currentDomain: authoringDomain,
+    result: input.result,
   });
   const particleTextureHandoff =
     input.succeeded &&

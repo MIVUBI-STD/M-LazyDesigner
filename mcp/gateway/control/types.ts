@@ -144,6 +144,11 @@ export type ControlDelta = {
         | "REVERIFY_ANIMATION_EFFECTS"
         | "REVERIFY_PARTICLE_SYSTEM";
       reason: string;
+      target?: {
+        cube_ids?: string[];
+        island_ids?: string[];
+        faces?: Array<{ cube_uuid: string; face: string | null }>;
+      };
     }>;
     preserved_domains: ControlAuthoringDomain[];
   };
