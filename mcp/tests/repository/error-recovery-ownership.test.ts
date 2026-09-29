@@ -27,11 +27,14 @@ describe("Gateway and Control recovery ownership", () => {
   });
 
   test("Gateway presentation delegates explicit retry safety to canonical recovery projection", async () => {
-    const gateway = await source("gateway/index.ts");
+    const [gateway, presentation] = await Promise.all([
+      source("gateway/index.ts"),
+      source("gateway/runtime/gatewayErrors.ts"),
+    ]);
 
-    expect(gateway).toContain("safeToRetry: error.safeToRetry");
-    expect(gateway).toContain("recoveryForGatewayError(");
-    expect(gateway).toContain("known.safeToRetry");
+    expect(presentation).toContain("safeToRetry: error.safeToRetry");
+    expect(presentation).toContain("recoveryForGatewayError(");
+    expect(presentation).toContain("known.safeToRetry");
     expect(gateway).toMatch(/never auto-retry an interrupted mutation/i);
     expect(gateway).not.toContain("autoRetry");
     expect(gateway).not.toContain("automaticRetry");
