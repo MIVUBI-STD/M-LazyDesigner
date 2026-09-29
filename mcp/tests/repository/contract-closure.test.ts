@@ -19,17 +19,30 @@ describe("MCP dependency closure", () => {
     expect(packageJson.scripts["verify:benchmarks"]).toContain("bun run benchmark:zero-waste-total");
     expect(packageJson.scripts["verify:benchmarks"]).not.toContain("bun run benchmark:zero-waste-workflow");
     expect(packageJson.scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
-    expect(packageJson.scripts["verify:release"]).toBe("bun run verify:full");
+    expect(packageJson.scripts["verify:release"]).toBe(
+      "bun run security:audit && bun run verify:full"
+    );
     expect(packageJson.scripts["verify:contracts"]).toContain("bun run docs:check");
   });
 
   test("generated docs and runtime prompt manifest share the same freshness gate", async () => {
     const freshness = await text("build/check-docs-freshness.ts");
+    const packageJson = JSON.parse(await text("package.json")) as {
+      scripts: Record<string, string>;
+    };
     expect(freshness).toContain('{ file: "api.json"');
     expect(freshness).toContain('{ file: "index.html"');
     expect(freshness).toContain('file: "../prompts/manifest.json"');
-    expect(freshness).toContain('runBuildScript("docs:build")');
-    expect(freshness).toContain('runBuildScript("prompts:build")');
+    expect(freshness).toContain('runBuildScript("generate:owned-artifacts")');
+    expect(packageJson.scripts["generate:owned-artifacts"]).toContain(
+      "bun run docs:build"
+    );
+    expect(packageJson.scripts["generate:owned-artifacts"]).toContain(
+      "bun run prompts:build"
+    );
+    expect(packageJson.scripts["generate:owned-artifacts"]).toContain(
+      "bun run generate:hybrid4-schemas"
+    );
   });
 
   test("documentation hierarchy keeps semantic owners separated", async () => {
