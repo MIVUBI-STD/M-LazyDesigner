@@ -31,11 +31,13 @@ import {
   type PbrMaterialTextureState,
 } from "@/lib/pbrMaterialMembership";
 import {
-  applyMaterialChannelAssignment,
+  applyPbrMembershipChanges,
   materialContinuationState,
-  planMaterialChannelAssignment,
+  materialGroupsByUuid,
   resolvePbrMaterial,
+  resolveRuntimeTextureByUuid,
   resolveTextureToolMaterial,
+  runtimePbrTextureStates,
 } from "@/server/tools/texture/materialState";
 export { resolveTextureToolMaterial } from "@/server/tools/texture/materialState";
 import {
@@ -61,40 +63,6 @@ export {
   requireMaterialConfigSavePostcondition,
 } from "@/server/tools/texture-material-validation";
 
-
-function runtimePbrTextureStates(): PbrMaterialTextureState[] {
-  return (Project?.textures ?? Texture.all).map((texture: Texture) => ({
-    uuid: texture.uuid,
-    group: texture.group || "",
-    pbr_channel: texture.pbr_channel || "color",
-  }));
-}
-
-function textureByUuid(uuid: string): Texture {
-  const texture = (Project?.textures ?? Texture.all).find(
-    (candidate: Texture) => candidate.uuid === uuid
-  );
-  if (!texture) throw new Error(`Texture ${uuid} disappeared after material preflight.`);
-  return texture;
-}
-
-function materialGroupsByUuid(uuids: readonly string[]): TextureGroup[] {
-  const ids = new Set(uuids.filter(Boolean));
-  return (TextureGroup.all ?? []).filter(
-    (group: TextureGroup) => ids.has(group.uuid) && group.is_material === true
-  );
-}
-
-function applyPbrMembershipChanges(
-  changes: readonly { uuid: string; group: string; pbr_channel: string }[]
-): Texture[] {
-  return changes.map((change) => {
-    const texture = textureByUuid(change.uuid);
-    texture.group = change.group;
-    texture.pbr_channel = change.pbr_channel as Texture["pbr_channel"];
-    return texture;
-  });
-}
 
 function refreshMaterialGroups(groups: readonly TextureGroup[]): void {
   for (const group of groups) {
@@ -407,7 +375,7 @@ export function registerTextureMaterialTools(): void {
         }
 
         const changedTextures = plan.changes.map((change) =>
-          textureByUuid(change.uuid)
+          resolveRuntimeTextureByUuid(change.uuid)
         );
         const affectedGroups = materialGroupsByUuid(plan.affected_group_uuids);
 
@@ -629,7 +597,7 @@ export function registerTextureMaterialTools(): void {
         }
 
         const changedTextures = plan.changes.map((change) =>
-          textureByUuid(change.uuid)
+          resolveRuntimeTextureByUuid(change.uuid)
         );
         const affectedGroups = materialGroupsByUuid(plan.affected_group_uuids);
 
