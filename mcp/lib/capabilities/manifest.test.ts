@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   CAPABILITY_CORE_MANIFEST,
+  CAPABILITY_DEFINITIONS,
   type CapabilitySemanticScope,
   capabilityPhaseByName,
   getCapabilityCoreManifestEntry,
@@ -8,6 +9,15 @@ import {
 import { getCapabilityMetadata } from "../capabilityMetadata";
 
 describe("core capability manifest", () => {
+  test("projects the public manifest from one declarative capability table", () => {
+    expect(CAPABILITY_CORE_MANIFEST.size).toBe(
+      Object.keys(CAPABILITY_DEFINITIONS).length
+    );
+    for (const [name, definition] of Object.entries(CAPABILITY_DEFINITIONS)) {
+      expect(CAPABILITY_CORE_MANIFEST.get(name), name).toBe(definition);
+    }
+  });
+
   test("preserves canonical tier, phase, execution and verification behavior", () => {
     expect(getCapabilityMetadata("manage_cubes")).toMatchObject({
       tier: "primary",
