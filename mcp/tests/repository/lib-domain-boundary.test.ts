@@ -117,6 +117,10 @@ const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
   "textureVanillaKnowledge.ts": 'export * from "./texture/vanillaKnowledge";\n',
   "textureVariantPlan.ts": 'export * from "./texture/variantPlan";\n',
   "textureDiagnosticReadContext.ts": 'export * from "./texture/diagnosticReadContext";\n',
+  "bedrockEntityRenderProfileBinding.ts": 'export * from "./texture/renderProfileBinding";\n',
+  "binaryMaskMorphology.ts": 'export * from "./texture/binaryMaskMorphology";\n',
+  "batchGroupRename.ts": 'export * from "./geometry/batchGroupRename";\n',
+  "modelQuality.ts": 'export * from "./geometry/modelQuality";\n',
 };
 
 describe("lib domain ownership ratchet", () => {
