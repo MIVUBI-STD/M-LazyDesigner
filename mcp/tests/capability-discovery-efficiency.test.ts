@@ -16,7 +16,7 @@ describe("capability discovery efficiency", () => {
     expect(getCapabilityMetadata("create_project")).toMatchObject({
       lifecycle: { stage: "active", replacement: null },
       executionClass: "normal",
-      verificationClass: "receipt_only",
+      verificationClass: "focused_read",
     });
     expect(getCapabilityMetadata("get_project_info")).toMatchObject({
       lifecycle: { stage: "active", replacement: null },
