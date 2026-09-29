@@ -4,6 +4,19 @@ LazyDesigner uses a stable MCP **Gateway** for normal AI-client connections and 
 
 Do **not** use an upstream hosted plugin as runtime authority for this repository. LazyDesigner source/builds come from this repository. The compatibility bundle filename remains `dist/blockit_mcp.js` until bundle/package identifier migration is explicitly mapped.
 
+## Developer Command Facade
+
+Use the stable facade first:
+
+```bash
+bun run check
+bun run verify
+bun run benchmark
+bun run release
+```
+
+Focused implementation commands remain namespaced; see `COMMANDS.md`. Do not treat every package script as an equivalent entrypoint.
+
 ## Build / Verify
 
 From `mcp/`:
