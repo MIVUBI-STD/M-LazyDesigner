@@ -190,3 +190,17 @@ Use narrower canonical scripts for narrower claims. Generated freshness uses its
 ## Completion Rule
 
 Remote completion = owner + direct dependents + regression intent aligned, with any genuine local/live residue stated accurately. Stop rather than inventing cleanup layers.
+
+
+## Developer Command Surface
+
+Default developer entrypoints are:
+
+```text
+check
+verify
+benchmark
+release
+```
+
+Use a namespaced command only when the affected owner requires narrower proof. Do not scan or invoke the full script catalog by default. Command taxonomy and namespace ownership are documented in `COMMANDS.md`.
