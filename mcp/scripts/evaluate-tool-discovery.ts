@@ -265,9 +265,17 @@ const TOOL_DISCOVERY_INTENT_GROUPS = [
     "adjust Bezier interpolation handles",
   ],
   [
-    "bone_rigging",
+    "reparent_element",
     "reparent this bone under another bone",
+  ],
+  [
+    "modify_group",
     "set the pivot of this animation bone",
+  ],
+  [
+    "bone_rigging",
+    "enable ik on this bone and set its target",
+    "mirror this bone across the x axis",
   ],
   [
     "manage_animation_timeline",

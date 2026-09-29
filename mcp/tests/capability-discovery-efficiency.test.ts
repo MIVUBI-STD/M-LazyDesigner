@@ -105,6 +105,30 @@ describe("capability discovery efficiency", () => {
     expect(getCapabilityMetadata("bone_rigging").searchAliases).toEqual(
       expect.arrayContaining(["inverse kinematics", "ik target", "mirror bone"])
     );
+
+    const tools = getAllToolDefinitions();
+    const catalog = getMcpSurfaceToolNames("bedrock_entity", "geometry").map(
+      (name) => ({
+        name,
+        description: tools[name].description,
+        annotations: tools[name].annotations,
+      })
+    ) as BackendTool[];
+
+    expect(searchCapabilityCatalog(catalog, "reparent this bone under another bone", 3)[0]?.capability_id)
+      .toBe("reparent_element");
+    expect(searchCapabilityCatalog(catalog, "set the pivot of this animation bone", 3)[0]?.capability_id)
+      .toBe("modify_group");
+    expect(searchCapabilityCatalog(catalog, "enable ik on this bone and set its target", 3)[0])
+      .toMatchObject({
+        capability_id: "bone_rigging",
+        branch: { field: "action", value: "set_ik" },
+      });
+    expect(searchCapabilityCatalog(catalog, "mirror this bone across the x axis", 3)[0])
+      .toMatchObject({
+        capability_id: "bone_rigging",
+        branch: { field: "action", value: "mirror" },
+      });
   });
 
   test("texture state and legacy helpers stay below semantic authoring tools", () => {

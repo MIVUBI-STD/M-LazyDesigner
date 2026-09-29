@@ -559,6 +559,43 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     },
   },
   {
+    capability: "bone_rigging",
+    branch: { field: "action", value: "set_ik" },
+    schemaFields: ["action", "bone_data"],
+    semantic: {
+      intents: ["configure bone inverse kinematics", "set ik target", "enable bone ik"],
+      nouns: ["bone", "ik", "target", "inverse kinematics"],
+      verbs: ["set", "enable", "configure", "target"],
+      excludes: ["create", "parent", "unparent", "delete", "rename", "pivot"],
+      examples: ["enable ik on this bone", "set the ik target for this bone"],
+    },
+  },
+  {
+    capability: "bone_rigging",
+    branch: { field: "action", value: "set_ik_controller" },
+    schemaFields: ["action", "bone_data"],
+    semantic: {
+      intents: ["configure native ik controller", "set ik pole", "set ik root"],
+      nouns: ["ik", "controller", "pole", "root", "target"],
+      verbs: ["configure", "set", "bind"],
+      excludes: ["create", "parent", "unparent", "delete", "rename", "pivot"],
+      examples: ["set the ik pole for this controller", "configure native ik root and target"],
+    },
+  },
+  {
+    capability: "bone_rigging",
+    branch: { field: "action", value: "mirror" },
+    schemaFields: ["action", "bone_data"],
+    semantic: {
+      intents: ["mirror bone rig", "mirror bone"],
+      nouns: ["bone", "rig", "mirror", "axis"],
+      verbs: ["mirror", "duplicate"],
+      excludes: ["create", "parent", "unparent", "delete", "rename", "pivot"],
+      examples: ["mirror this bone across x", "mirror the left bone to the right"],
+    },
+  },
+
+  {
     capability: "reparent_element",
     semantic: {
       intents: ["change hierarchy parent", "move element to bone", "reparent bone"],

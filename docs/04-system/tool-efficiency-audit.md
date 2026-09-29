@@ -97,7 +97,7 @@ rename      → rename_element
 set_pivot   → modify_group
 ```
 
-Normal routing should therefore prefer the canonical Geometry capability, especially where it offers batching or stronger continuation semantics. `bone_rigging` remains available for unique IK/mirror behavior and compatibility; no executor is removed.
+Normal routing should therefore prefer the canonical Geometry capability, especially where it offers batching or stronger continuation semantics. The semantic routing manifest now enforces this split: ordinary create/parent/unparent/delete/rename/pivot intents resolve to the canonical Geometry capability, while `bone_rigging` is semantically discoverable for `set_ik`, native IK-controller configuration, and `mirror`. The executor remains available for compatibility; no capability is removed.
 
 ## P2 batching candidates
 

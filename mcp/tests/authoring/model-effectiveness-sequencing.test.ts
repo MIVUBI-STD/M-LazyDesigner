@@ -50,7 +50,7 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
     ]);
 
-    expect(texturing).toMatch(/unlocked\/invalid UV\s+→ Geometry owner \+ bounded UV correction; no phase switch/);
+    expect(texturing).toMatch(/unlocked\/invalid UV\s+→ Geometry owner \+ bounded UV correction; no Runtime Surface switch/);
     expect(texturing).toContain("Geometry/UV capabilities remain callable for bounded upstream correction");
     expect(texturing).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(animation).toContain("Animation owns motion, not structural rig mutation");
