@@ -22,7 +22,7 @@ import {
   fullTextureRgba,
   rgbaToPngDataUrl,
 } from "@/lib/textureBitmapRuntime";
-import { createTextureParameters } from "../tools/texture";
+import { createTextureParameters } from "../tools/texture/createSchema";
 
 export const wiredCreateTextureParameters = z.union([
   createTextureParameters,
