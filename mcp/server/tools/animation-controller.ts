@@ -5,6 +5,17 @@ import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHist
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveUuidOrUniqueName } from "@/lib/coreIdentity";
+import {
+  controllerStateContinuation,
+  snapshotController,
+  validateFinalControllerPlan,
+  type ControllerAnimationLink,
+  type ControllerParticleEffect,
+  type ControllerPlan,
+  type ControllerSoundEffect,
+  type ControllerStatePlan,
+  type ControllerTransition,
+} from "@/server/tools/animation-controller-state";
 
 const nonEmptyAuthoredString = z
   .string()
@@ -340,56 +351,6 @@ export const animationControllerToolDocs: ToolSpec[] = [
   },
 ];
 
-type ControllerAnimationLink = {
-  uuid: string;
-  key: string;
-  animation: string;
-  blend_value: string | number;
-};
-
-type ControllerTransition = {
-  uuid: string;
-  target: string;
-  condition: string;
-};
-
-type ControllerSoundEffect = {
-  uuid: string;
-  effect: string;
-  file?: string;
-};
-
-type ControllerParticleEffect = {
-  uuid: string;
-  effect: string;
-  locator: string;
-  bind_to_actor: boolean;
-  pre_effect_script: string;
-  file?: string;
-};
-
-type ControllerStatePlan = {
-  uuid: string;
-  name: string;
-  animations: ControllerAnimationLink[];
-  transitions: ControllerTransition[];
-  sounds: ControllerSoundEffect[];
-  particles: ControllerParticleEffect[];
-  on_entry: string;
-  on_exit: string;
-  blend_transition: number;
-  blend_transition_curve?: Record<string, number>;
-  blend_via_shortest_path: boolean;
-};
-
-type ControllerPlan = {
-  uuid?: string;
-  name: string;
-  path: string;
-  initial_state: string;
-  states: ControllerStatePlan[];
-};
-
 type ControllerMutationOperation = z.infer<typeof controllerOperationSchema>;
 
 function requireBedrockControllerProject(): void {
@@ -449,51 +410,6 @@ function resolveAuthoredAnimation(reference: string): _Animation {
     notFoundHint:
       "Pass an exact authored Animation UUID or unique exact Animation name; controller targets are not animation links.",
   });
-}
-
-function cloneJsonArray<T>(value: readonly T[]): T[] {
-  return JSON.parse(JSON.stringify(value)) as T[];
-}
-
-function snapshotController(controller: AnimationController): ControllerPlan {
-  return {
-    uuid: controller.uuid,
-    name: controller.name,
-    path: controller.path || "",
-    initial_state: controller.initial_state || "",
-    states: controller.states.map((state) => {
-      const view = state as AnimationControllerState & {
-        animations: ControllerAnimationLink[];
-        transitions: ControllerTransition[];
-        sounds: ControllerSoundEffect[];
-        particles: ControllerParticleEffect[];
-        blend_transition_curve?: Record<string, number>;
-      };
-      return {
-        uuid: view.uuid,
-        name: view.name,
-        animations: view.animations.map((link) => ({
-          ...link,
-          // Preserve the authored typeof: numeric blend_value must not be
-          // silently rewritten to a string for states this batch never edits.
-          blend_value:
-            typeof link.blend_value === "number"
-              ? link.blend_value
-              : String(link.blend_value ?? ""),
-        })),
-        transitions: cloneJsonArray(view.transitions),
-        sounds: cloneJsonArray(view.sounds),
-        particles: cloneJsonArray(view.particles),
-        on_entry: view.on_entry || "",
-        on_exit: view.on_exit || "",
-        blend_transition: view.blend_transition || 0,
-        blend_transition_curve: view.blend_transition_curve
-          ? { ...view.blend_transition_curve }
-          : undefined,
-        blend_via_shortest_path: Boolean(view.blend_via_shortest_path),
-      };
-    }),
-  };
 }
 
 function ensureControllerNameAvailable(
@@ -584,44 +500,6 @@ function findParticleEffect(
 function normalizeBlendValue(value: string | number | undefined): string {
   if (value === undefined) return "";
   return typeof value === "number" ? String(value) : value;
-}
-
-function controllerStateContinuation(state: ControllerStatePlan) {
-  return {
-    uuid: state.uuid,
-    name: state.name,
-    on_entry: state.on_entry || null,
-    on_exit: state.on_exit || null,
-    blend_transition: state.blend_transition || 0,
-    blend_transition_curve: state.blend_transition_curve
-      ? { ...state.blend_transition_curve }
-      : null,
-    blend_via_shortest_path: state.blend_via_shortest_path,
-    animations: state.animations.map((link) => ({
-      uuid: link.uuid,
-      key: link.key,
-      animation_uuid: link.animation || null,
-      blend_value: link.blend_value,
-    })),
-    transitions: state.transitions.map((transition) => ({
-      uuid: transition.uuid,
-      target_uuid: transition.target,
-      condition: transition.condition,
-    })),
-    sounds: state.sounds.map((sound) => ({
-      uuid: sound.uuid,
-      effect: sound.effect,
-      ...(sound.file ? { file: sound.file } : {}),
-    })),
-    particles: state.particles.map((particle) => ({
-      uuid: particle.uuid,
-      effect: particle.effect,
-      locator: particle.locator || null,
-      bind_to_actor: particle.bind_to_actor,
-      pre_effect_script: particle.pre_effect_script || null,
-      ...(particle.file ? { file: particle.file } : {}),
-    })),
-  };
 }
 
 function applyOperationToPlan(
@@ -966,27 +844,6 @@ function applyOperationToPlan(
   }
 }
 
-function validateFinalPlan(plan: ControllerPlan): void {
-  if (!plan.states.length) {
-    throw new Error("AnimationController must contain at least one state.");
-  }
-  const initial = plan.states.find((state) => state.uuid === plan.initial_state);
-  if (!initial) {
-    throw new Error(
-      "AnimationController initial_state does not resolve to a retained state. Add/set an initial state in the same batch."
-    );
-  }
-  for (const state of plan.states) {
-    for (const transition of state.transitions) {
-      if (!plan.states.some((target) => target.uuid === transition.target)) {
-        throw new Error(
-          `Transition "${transition.uuid}" in state "${state.name}" targets a missing state.`
-        );
-      }
-    }
-  }
-}
-
 export function registerAnimationControllerTools(): void {
   createTool(
     animationControllerToolDocs[0].name,
@@ -1038,7 +895,7 @@ export function registerAnimationControllerTools(): void {
             removed
           );
         }
-        validateFinalPlan(plan);
+        validateFinalControllerPlan(plan);
 
         const controller =
           existingController ?? new AnimationController({ name: plan.name });
