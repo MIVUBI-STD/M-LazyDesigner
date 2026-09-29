@@ -27,7 +27,7 @@ import {
   resolveAnimationClip as resolveAnimation,
   resolveAnimationRigGroup as resolveRigGroup,
   toArrayVector3,
-} from "./animation-shared";
+} from "./animation/shared";
 
 export const batchKeyframeOperationsParameters = z
   .object({
