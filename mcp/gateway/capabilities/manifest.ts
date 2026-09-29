@@ -423,20 +423,67 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     },
   },
 
-  ...["inspect", "bind", "set_slot", "assign", "unassign"].map((value) => ({
+  {
     capability: "manage_render_profile",
-    branch: { field: "operation", value },
+    branch: { field: "operation", value: "inspect" },
     schemaFields: ["operation"],
-    ...(value === "bind"
-      ? {
-          semantic: {
-            intents: ["bind render profile", "set render material profile"],
-            nouns: ["render", "profile", "material", "alpha"],
-            verbs: ["bind", "set", "configure"],
-          },
-        }
-      : {}),
-  })),
+    operationClass: "QUERY",
+    executionClass: "fast",
+    verificationClass: "not_applicable",
+    semantic: {
+      intents: ["inspect render profile bindings", "read render material assignments"],
+      nouns: ["render", "profile", "material", "binding", "assignment"],
+      verbs: ["inspect", "read", "show", "check"],
+    },
+  },
+  {
+    capability: "manage_render_profile",
+    branch: { field: "operation", value: "bind" },
+    schemaFields: ["operation"],
+    operationClass: "MUTATION",
+    verificationClass: "focused_read",
+    semantic: {
+      intents: ["bind render profile", "set render material profile"],
+      nouns: ["render", "profile", "material", "alpha"],
+      verbs: ["bind", "set", "configure"],
+    },
+  },
+  {
+    capability: "manage_render_profile",
+    branch: { field: "operation", value: "set_slot" },
+    schemaFields: ["operation"],
+    operationClass: "MUTATION",
+    verificationClass: "focused_read",
+    semantic: {
+      intents: ["set render profile material slot", "configure client entity render slot"],
+      nouns: ["render", "profile", "material", "slot", "client entity"],
+      verbs: ["set", "configure", "assign"],
+    },
+  },
+  {
+    capability: "manage_render_profile",
+    branch: { field: "operation", value: "assign" },
+    schemaFields: ["operation"],
+    operationClass: "MUTATION",
+    verificationClass: "focused_read",
+    semantic: {
+      intents: ["assign render controller material", "assign render slot to bone pattern"],
+      nouns: ["render", "controller", "material", "slot", "bone"],
+      verbs: ["assign", "bind", "set"],
+    },
+  },
+  {
+    capability: "manage_render_profile",
+    branch: { field: "operation", value: "unassign" },
+    schemaFields: ["operation"],
+    operationClass: "MUTATION",
+    verificationClass: "focused_read",
+    semantic: {
+      intents: ["remove render controller material assignment", "unassign render slot"],
+      nouns: ["render", "controller", "material", "slot", "assignment"],
+      verbs: ["remove", "unassign", "clear"],
+    },
+  },
 
   {
     capability: "manage_animation_timeline",
