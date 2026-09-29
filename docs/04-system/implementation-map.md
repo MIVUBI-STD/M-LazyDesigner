@@ -102,7 +102,7 @@ mcp/gateway/contract.ts           capability/search/result public projections
 mcp/gateway/capabilityEffects.ts  declarative effect application
 mcp/gateway/controlReceipt.ts     project/phase receipt derivation
 mcp/gateway/recovery.ts           structured recovery semantics
-mcp/gateway/statusProjection.ts   normalized public status
+mcp/gateway/presentation/statusProjection.ts   normalized public status
 mcp/gateway/localCapabilities.ts  bounded read-only local provider registry
 mcp/gateway/projectAffinity.ts    project/phase affinity headers/contracts
 ```
@@ -141,8 +141,8 @@ mcp/server/runtime/extensions.ts
 → canonical Runtime extension composition order
 → explicit per-extension target manifest
 
-mcp/server/runtime/textureRuntimeContracts.ts
-mcp/server/runtime/animationRuntimeContracts.ts
+mcp/server/runtime/contracts/texture.ts
+mcp/server/runtime/contracts/animation.ts
 → domain-specific Runtime contract enrichment
 
 mcp/server/tools/**
