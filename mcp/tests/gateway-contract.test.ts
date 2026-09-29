@@ -20,7 +20,9 @@ import {
 describe("BlockIT Gateway contract", () => {
 
   test("search and describe omit echoed or derivable request metadata", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
+    const source = await Bun.file(
+      "gateway/handlers/registerCoreTools.ts"
+    ).text();
     const searchStart = source.indexOf("GATEWAY_TOOLS.searchCapabilities");
     const describeStart = source.indexOf("GATEWAY_TOOLS.describeCapability");
     const invokeStart = source.indexOf("GATEWAY_TOOLS.invokeCapability");
@@ -196,7 +198,9 @@ describe("BlockIT Gateway contract", () => {
   });
 
   test("describe capability exposes lifecycle semantics only on demand", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
+    const source = await Bun.file(
+      "gateway/handlers/registerCoreTools.ts"
+    ).text();
 
     expect(source).toContain("const metadata = getCapabilityMetadata(capability)");
     expect(source).toContain('detail === "full"');
@@ -1059,25 +1063,36 @@ describe("BlockIT Gateway contract", () => {
 
   test("stdio Gateway keeps discovery bounded and does not advertise unproxied Runtime surfaces", async () => {
     const packageJson = await Bun.file("package.json").json();
-    const source = await Bun.file("gateway/index.ts").text();
-    const backendSource = await Bun.file("gateway/backend.ts").text();
+    const [source, registration, executorSource, backendSource] =
+      await Promise.all([
+        Bun.file("gateway/index.ts").text(),
+        Bun.file("gateway/handlers/registerCoreTools.ts").text(),
+        Bun.file("gateway/runtime/capabilityExecutor.ts").text(),
+        Bun.file("gateway/backend.ts").text(),
+      ]);
 
     expect(packageJson.scripts.gateway).toBe("bun run ./gateway/index.ts");
     expect(source).toContain("serveStdio(() => buildGatewayServer()");
     expect(source).toContain("function buildGatewayServer(): McpServer");
     expect(source).not.toContain("new StdioServerTransport()");
-    expect(source.indexOf("const backend = new BlockitRuntimeBackend()")).toBeLessThan(
+    expect(source.indexOf("const backend = new BlockitRuntimeBackend(")).toBeLessThan(
       source.indexOf("function buildGatewayServer(): McpServer")
     );
-    expect(source).toContain("compactGatewayCapabilityStructuredContent");
-    expect(source).toContain("projectCapabilityInputSchema");
-    expect(source).toContain("inputSchema: projection.inputSchema");
-    expect(source).toContain("tool.outputSchema !== undefined");
-    expect(source).toContain("{ outputSchema: tool.outputSchema }");
-    expect(source).toContain(".default(CONTROL_ROUTING_POLICY.search_limit)");
+    expect(executorSource).toContain(
+      "compactGatewayCapabilityStructuredContent"
+    );
+    expect(registration).toContain("projectCapabilityInputSchema");
+    expect(registration).toContain("inputSchema: projection.inputSchema");
+    expect(registration).toContain("tool.outputSchema !== undefined");
+    expect(registration).toContain("{ outputSchema: tool.outputSchema }");
+    expect(registration).toContain(
+      ".default(CONTROL_ROUTING_POLICY.search_limit)"
+    );
     expect(backendSource).toMatch(/searchCapabilities\(\s*query: string,\s*limit: number = 4/);
     expect(source).toContain("Runtime resources and prompts are not proxied");
-    expect(source).not.toContain("structuredContent: { capability: tool }");
+    expect(registration).not.toContain(
+      "structuredContent: { capability: tool }"
+    );
     expect(source).not.toContain("registerResource(");
     expect(source).not.toContain("registerPrompt(");
     expect(source).not.toContain("console.log");
