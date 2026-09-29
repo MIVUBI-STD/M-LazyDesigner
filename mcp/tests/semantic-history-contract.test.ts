@@ -2,11 +2,12 @@ import { describe, expect, test } from "bun:test";
 import {
   isSemanticHistoryEffect,
   semanticHistoryEffectSchema,
+  type SemanticHistoryEffect,
 } from "@/lib/semanticHistory";
 
 describe("shared semantic history effect contract", () => {
   test("accepts canonical bounded stale scopes", () => {
-    const effect = {
+    const effect: SemanticHistoryEffect = {
       stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
       workspace_projection: true,
       acceptance_gates: true,
