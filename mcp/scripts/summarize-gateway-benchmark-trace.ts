@@ -41,7 +41,10 @@ function parseTrace(text: string): BenchmarkTraceEvent[] {
 
 function sum(values: readonly (number | null)[]): number | null {
   if (values.some((value) => value === null)) return null;
-  return values.reduce((total, value) => total + (value ?? 0), 0);
+  return values.reduce<number>(
+    (total, value) => total + (value ?? 0),
+    0
+  );
 }
 
 function count(
