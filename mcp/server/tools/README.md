@@ -35,3 +35,13 @@ server/runtime/extensions.ts           extension composition order
 ```
 
 Do not place new `*-native-intelligence` or post-registration wrapper logic in `server/tools`.
+
+
+Current migrated paint internals:
+
+```text
+server/tools/paint/shared.ts      canonical paint helpers
+server/tools/paint/layerState.ts  canonical layer-state helpers
+
+matching root paths               compatibility re-export only
+```
