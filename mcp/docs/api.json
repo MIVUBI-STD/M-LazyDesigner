@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-21T03:51:50.349Z",
+  "generatedAt": "2026-09-29T06:34:38.143Z",
   "semantic": {
     "semantic_revision_schema": 1,
     "revisions": {
@@ -677,7 +677,7 @@
     {
       "name": "capture_model_views",
       "title": "Capture Model Views",
-      "description": "Captures 1-5 deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Model and explicit framing require visible Cube geometry in the current Blockbench project. Returns observation only; no score/PASS/FAIL.",
+      "description": "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects views and 256/384/512 evidence resolution deterministically. Explicit size overrides automatic resolution; explicit views without evidence_targets retain 512×512. Returns observation only; no score/PASS/FAIL.",
       "status": "stable",
       "category": "Camera & Screenshots",
       "annotations": {
@@ -688,8 +688,7 @@
         "type": "object",
         "properties": {
           "size": {
-            "default": 512,
-            "description": "Square PNG pixels: 256 for a quick silhouette/pose check, 512 default for texture/reference detail, 32-64 for icons only. Prefer one relevant view; increase size only when details are unreadable.",
+            "description": "Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only.",
             "type": "integer",
             "minimum": 32,
             "maximum": 1024
@@ -700,6 +699,7 @@
             "type": "boolean"
           },
           "views": {
+            "description": "Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set.",
             "minItems": 1,
             "maxItems": 5,
             "type": "array",
@@ -715,8 +715,41 @@
                 "front_left_3q",
                 "front_right_3q"
               ]
-            },
-            "description": "One to five unique canonical model views to capture."
+            }
+          },
+          "evidence_targets": {
+            "description": "Current unanswered visual claim(s). When views is omitted, runtime deterministically selects canonical views that cover these targets.",
+            "minItems": 1,
+            "maxItems": 13,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "width",
+                "height",
+                "length",
+                "depth",
+                "silhouette",
+                "count",
+                "rear_topology",
+                "asymmetry",
+                "attachment",
+                "negative_space",
+                "layering",
+                "orientation",
+                "underside"
+              ]
+            }
+          },
+          "verification_risk": {
+            "default": "LOW",
+            "description": "Risk-aware evidence expansion. LOW keeps minimum useful views; MEDIUM adds one orthogonal view; HIGH ensures front/left/top core coverage when possible.",
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
           },
           "front_direction": {
             "type": "string",
@@ -822,7 +855,6 @@
           }
         },
         "required": [
-          "views",
           "front_direction"
         ]
       }

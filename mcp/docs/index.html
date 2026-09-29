@@ -180,7 +180,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Capture Model Views</p>
-      <p class="card-desc">Captures 1-5 deterministic labeled square PNG views (default 512×512; optional icon size) without changing the active editor camera. Model and explicit framing require visible Cube geometry in the current Blockbench project. Returns observation only; no score/PASS/FAIL.</p>
+      <p class="card-desc">Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects views and 256/384/512 evidence resolution deterministically. Explicit size overrides automatic resolution; explicit views without evidence_targets retain 512×512. Returns observation only; no score/PASS/FAIL.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -195,7 +195,7 @@ bun run docs:check
       <td class="col-name">size</td>
       <td class="col-type">integer</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Square PNG pixels: 256 for a quick silhouette/pose check, 512 default for texture/reference detail, 32-64 for icons only. Prefer one relevant view; increase size only when details are unreadable. <span class="param-meta">(default: <code>512</code>) [min: 32, max: 1024]</span></td>
+      <td class="col-desc">Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only. <span class="param-meta">[min: 32, max: 1024]</span></td>
     </tr><tr>
       <td class="col-name">highlight_missing_textures</td>
       <td class="col-type">boolean</td>
@@ -204,8 +204,18 @@ bun run docs:check
     </tr><tr>
       <td class="col-name">views</td>
       <td class="col-type">&quot;front&quot; | &quot;back&quot; | &quot;left&quot; | &quot;right&quot; | &quot;top&quot; | &quot;bottom&quot; | &quot;front_left_3q&quot; | &quot;front_right_3q&quot;[]</td>
-      <td><span class="param-required">required</span></td>
-      <td class="col-desc">One to five unique canonical model views to capture. <span class="param-meta">[minItems: 1, maxItems: 5]</span></td>
+      <td><span class="param-optional">optional</span></td>
+      <td class="col-desc">Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set. <span class="param-meta">[minItems: 1, maxItems: 5]</span></td>
+    </tr><tr>
+      <td class="col-name">evidence_targets</td>
+      <td class="col-type">&quot;width&quot; | &quot;height&quot; | &quot;length&quot; | &quot;depth&quot; | &quot;silhouette&quot; | &quot;count&quot; | &quot;rear_topology&quot; | &quot;asymmetry&quot; | &quot;attachment&quot; | &quot;negative_space&quot; | &quot;layering&quot; | &quot;orientation&quot; | &quot;underside&quot;[]</td>
+      <td><span class="param-optional">optional</span></td>
+      <td class="col-desc">Current unanswered visual claim(s). When views is omitted, runtime deterministically selects canonical views that cover these targets. <span class="param-meta">[minItems: 1, maxItems: 13]</span></td>
+    </tr><tr>
+      <td class="col-name">verification_risk</td>
+      <td class="col-type">&quot;LOW&quot; | &quot;MEDIUM&quot; | &quot;HIGH&quot;</td>
+      <td><span class="param-optional">optional</span></td>
+      <td class="col-desc">Risk-aware evidence expansion. LOW keeps minimum useful views; MEDIUM adds one orthogonal view; HIGH ensures front/left/top core coverage when possible. <span class="param-meta">(default: <code>&quot;LOW&quot;</code>)</span></td>
     </tr><tr>
       <td class="col-name">front_direction</td>
       <td class="col-type">&quot;+z&quot; | &quot;-z&quot;</td>
@@ -2550,7 +2560,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-09-21T03:51:50.349Z from Zod schemas
+        Generated 2026-09-29T06:34:38.143Z from Zod schemas
       </footer>
     </main>
   </div>
