@@ -3,6 +3,10 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
+  "camera.ts": 'export * from "./inspection/camera";\n',
+  "render-profile.ts": 'export * from "./texture/renderProfile";\n',
+  "quality-intelligence.ts": 'export * from "./validation/qualityIntelligence";\n',
+  "quality-evidence-runtime.ts": 'export * from "./validation/qualityEvidenceRuntime";\n',
   "cubes.ts": 'export * from "./geometry/cubes";\n',
   "project.ts": 'export * from "./project/project";\n',
   "particle.ts": 'export * from "./particle/manage";\n',
