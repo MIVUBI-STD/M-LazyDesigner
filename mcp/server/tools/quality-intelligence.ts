@@ -10,6 +10,7 @@ import {
 import { getAllToolDefinitions } from "@/lib/factories";
 import { analyzeGeometryHygiene } from "@/lib/geometryQuality";
 import { analyzeTextureColorProfile } from "@/lib/textureColorProfile";
+import { analyzeTexturePixelCraft } from "@/lib/texturePixelCraft";
 import {
   analyzeRootMotionTracks,
   type RootMotionTrackInput,
@@ -138,6 +139,98 @@ function textureColorProfileRuntime(
     }
     const pixels = ctx.getImageData(0, 0, width, height).data;
     return analyzeTextureColorProfile(pixels, width, height);
+  } catch {
+    return {
+      state: "unavailable" as const,
+      reason: "texture_pixel_read_failed" as const,
+    };
+  }
+}
+
+
+function texturePixelCraftRuntime(
+  structuredContent: Record<string, unknown>
+) {
+  if (typeof Texture === "undefined") {
+    return {
+      state: "unavailable" as const,
+      reason: "blockbench_texture_runtime_unavailable" as const,
+    };
+  }
+  const textureInfo = objectRecord(structuredContent.texture);
+  const uuid = typeof textureInfo?.uuid === "string" ? textureInfo.uuid : null;
+  const texture = uuid
+    ? Texture.all.find((candidate: Texture) => candidate.uuid === uuid)
+    : undefined;
+  if (!texture) {
+    return {
+      state: "unavailable" as const,
+      reason: "inspected_texture_not_resolved" as const,
+    };
+  }
+
+  try {
+    const ctx = texture.ctx;
+    const bitmapWidth = ctx?.canvas?.width ?? texture.width;
+    const bitmapHeight =
+      ctx?.canvas?.height ?? texture.display_height ?? texture.height;
+    if (
+      !ctx ||
+      !Number.isInteger(bitmapWidth) ||
+      !Number.isInteger(bitmapHeight) ||
+      bitmapWidth <= 0 ||
+      bitmapHeight <= 0
+    ) {
+      return {
+        state: "unavailable" as const,
+        reason: "texture_pixel_canvas_unavailable" as const,
+      };
+    }
+
+    const regionInfo = objectRecord(structuredContent.region);
+    const region =
+      regionInfo &&
+      ["x", "y", "width", "height"].every(
+        (key) =>
+          typeof regionInfo[key] === "number" &&
+          Number.isInteger(regionInfo[key])
+      )
+        ? {
+            x: regionInfo.x as number,
+            y: regionInfo.y as number,
+            width: regionInfo.width as number,
+            height: regionInfo.height as number,
+          }
+        : { x: 0, y: 0, width: bitmapWidth, height: bitmapHeight };
+
+    if (
+      region.x < 0 ||
+      region.y < 0 ||
+      region.width <= 0 ||
+      region.height <= 0 ||
+      region.x + region.width > bitmapWidth ||
+      region.y + region.height > bitmapHeight
+    ) {
+      return {
+        state: "unavailable" as const,
+        reason: "texture_evidence_region_invalid" as const,
+      };
+    }
+
+    const pixels = ctx.getImageData(
+      region.x,
+      region.y,
+      region.width,
+      region.height
+    ).data;
+    return {
+      ...analyzeTexturePixelCraft(
+        pixels,
+        region.width,
+        region.height
+      ),
+      source_region: region,
+    };
   } catch {
     return {
       state: "unavailable" as const,
@@ -539,6 +632,7 @@ export function wireAuthoringQualityIntelligence(): void {
   ]);
   wireTool("get_texture", [
     { field: "color_profile", read: textureColorProfileRuntime },
+    { field: "pixel_craft", read: texturePixelCraftRuntime },
   ]);
   wireTool("inspect_animation", [
     { field: "root_motion", read: rootMotionRuntime },
