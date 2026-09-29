@@ -35,7 +35,8 @@ describe("Gateway TypeScript project reference", () => {
     expect(pkg.scripts["verify:project-graph"]).toContain(
       "tsc -b tsconfig.project-graph.json"
     );
-    expect(pkg.scripts["verify:mcp"]).toContain("bun run verify:project-graph");
+    expect(pkg.scripts["verify:mcp"]).toContain("bun run verify:types");
+    expect(pkg.scripts["verify:types"]).toContain("bun run verify:project-graph");
     expect(workflow).toContain("bun run verify:project-graph");
   });
 });
