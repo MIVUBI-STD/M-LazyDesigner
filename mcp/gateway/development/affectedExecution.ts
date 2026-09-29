@@ -124,7 +124,43 @@ const CONTROL_DELTA_CONTRACT_TESTS = [
   "mcp/tests/control-texture-mutation-precision.test.ts",
 ] as const;
 
+const GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH: Readonly<
+  Record<string, readonly string[]>
+> = {
+  "mcp/gateway/backend.ts": [
+    "mcp/gateway/backend-effects-boundary.test.ts",
+    "mcp/gateway/index-boundary.test.ts",
+  ],
+  "mcp/gateway/runtime/backendContract.ts": [
+    "mcp/gateway/backend-effects-boundary.test.ts",
+  ],
+  "mcp/gateway/runtime/orchestrationRecoveryState.ts": [
+    "mcp/gateway/runtime/orchestrationRecoveryState.test.ts",
+    "mcp/gateway/index-boundary.test.ts",
+  ],
+  "mcp/gateway/index.ts": [
+    "mcp/gateway/index-boundary.test.ts",
+  ],
+  "mcp/lib/orchestration/correctionLoop.ts": [
+    "mcp/tests/correction-loop-reuse.test.ts",
+    "mcp/tests/orchestration-public-surface.test.ts",
+  ],
+  "mcp/lib/orchestration/correctionContinuation.ts": [
+    "mcp/tests/correction-loop-reuse.test.ts",
+    "mcp/tests/zero-waste-consolidation-contract.test.ts",
+  ],
+  "mcp/lib/orchestration/evidenceRegistry.ts": [
+    "mcp/tests/verification-evidence-compaction.test.ts",
+  ],
+  "mcp/gateway/control/continuationCheckpoint.ts": [
+    "mcp/tests/control-continuation-checkpoint.test.ts",
+  ],
+};
+
+
 function sharedContractTestsForPath(path: string): readonly string[] {
+  const recoveryContracts = GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH[path];
+  if (recoveryContracts) return recoveryContracts;
   if (path.startsWith("mcp/lib/receipts/")) {
     return RECEIPT_CONTRACT_TESTS_BY_PATH[path] ?? [];
   }
@@ -345,7 +381,7 @@ export function planAffectedExecution(input: {
 
   const targetedTests = uniqueSorted([
     ...input.semanticImpact.affected_anchor_tests.filter((path) =>
-      path.startsWith("mcp/tests/") && path.endsWith(".test.ts")
+      path.startsWith("mcp/") && path.endsWith(".test.ts")
     ),
     ...changedPaths.flatMap(sharedContractTestsForPath),
     ...(changedPaths.some(affectsGatewayOutputContracts)
