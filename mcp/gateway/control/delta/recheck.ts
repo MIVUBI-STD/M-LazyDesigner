@@ -73,6 +73,32 @@ function materialRenderTargetFromResult(
   return undefined;
 }
 
+function textureRegionTargetFromResult(
+  result: unknown
+): ControlDownstreamRecheck["target"] | undefined {
+  for (const candidate of resultCandidates(result)) {
+    const texture = record(candidate.texture);
+    const revision = record(candidate.revision);
+    const rect = candidate.affected_rect;
+    if (
+      typeof texture?.uuid === "string" &&
+      typeof revision?.after === "string" &&
+      Array.isArray(rect) &&
+      rect.length === 4 &&
+      rect.every(
+        (value) => typeof value === "number" && Number.isSafeInteger(value)
+      )
+    ) {
+      return {
+        texture_uuid: texture.uuid,
+        affected_rect: rect as [number, number, number, number],
+        revision: revision.after,
+      };
+    }
+  }
+  return undefined;
+}
+
 export function downstreamRechecksForFreshness(input: {
   stale: readonly ControlFreshnessScope[];
   currentDomain: ControlAuthoringDomain;
@@ -85,11 +111,14 @@ export function downstreamRechecksForFreshness(input: {
     .map((scope) => {
       const dependency = assetDependencyForScope(scope);
       const target =
-        scope === "UV_MAPPING" || scope === "TEXTURE_APPEARANCE"
+        scope === "UV_MAPPING"
           ? uvTargetFromResult(input.result)
-          : scope === "MATERIAL_RENDER"
-            ? materialRenderTargetFromResult(input.result)
-            : undefined;
+          : scope === "TEXTURE_APPEARANCE"
+            ? uvTargetFromResult(input.result) ??
+              textureRegionTargetFromResult(input.result)
+            : scope === "MATERIAL_RENDER"
+              ? materialRenderTargetFromResult(input.result)
+              : undefined;
       return {
         scope,
         domain: dependency.domain,

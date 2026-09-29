@@ -148,6 +148,9 @@ export type ControlDelta = {
         cube_ids?: string[];
         island_ids?: string[];
         faces?: Array<{ cube_uuid: string; face: string | null }>;
+        texture_uuid?: string;
+        affected_rect?: [number, number, number, number];
+        revision?: string;
       };
     }>;
     preserved_domains: ControlAuthoringDomain[];
