@@ -59,3 +59,12 @@ runtime/extensions/*    post-registration augmentation consuming the schema dire
 ```
 
 This prevents Runtime extensions from importing a large executor only to reuse its Zod contract.
+
+
+Current migrated texture contract:
+
+```text
+server/tools/texture/createSchema.ts   canonical create_texture input contract
+server/tools/texture-create.ts         executor + native mutation
+server/runtime/textureRuntimeContracts.ts consumes schema directly
+```
