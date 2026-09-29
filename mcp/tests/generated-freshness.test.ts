@@ -46,7 +46,13 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
     const scripts = Object.fromEntries(Object.keys(canonical).map((name) => [
       name, "bun run ./other-check.ts",
     ]));
-    for (const name of ["docs:check", "verify:mcp", "build"]) scripts[name] = canonical[name];
+    for (const name of [
+      "docs:check",
+      "verify:contracts",
+      "verify:mcp",
+      "verify:build",
+      "build",
+    ]) scripts[name] = canonical[name];
     scripts["docs:build"] = "bun run ./fixture-generator.ts docs";
     scripts["prompts:build"] = "bun run ./fixture-generator.ts prompts";
     scripts["generate:hybrid4-schemas"] =
@@ -131,9 +137,7 @@ describe("generated freshness before build", () => {
         const result = runScript(root, "docs:check");
         expect(result.status, result.output).toBe(1);
         expect(result.output).toContain(
-          stage === "hybrid"
-            ? "generate:hybrid4-schemas failed with exit code 7"
-            : `${stage}:build failed with exit code 7`
+          "generate:owned-artifacts failed with exit code 7"
         );
         expect(await snapshot(root)).toEqual(before);
       });
