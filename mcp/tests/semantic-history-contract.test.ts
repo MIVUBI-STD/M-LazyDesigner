@@ -10,7 +10,7 @@ describe("shared semantic history effect contract", () => {
       stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
       workspace_projection: true,
       acceptance_gates: true,
-    } as const;
+    };
 
     expect(isSemanticHistoryEffect(effect)).toBe(true);
     expect(semanticHistoryEffectSchema.parse(effect)).toEqual(effect);
