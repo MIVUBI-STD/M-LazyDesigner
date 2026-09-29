@@ -17,11 +17,13 @@ import { captureModelViewsParameters } from "../tools/camera";
 import { inspectAnimationParameters } from "../tools/animation/inspectionSchema";
 import {
   animationCopyPasteParameters,
-  animationGraphEditorParameters,
-  animationTimelineParameters,
   batchKeyframeOperationsParameters,
+} from "../tools/animation/batchSchema";
+import {
+  animationGraphEditorParameters,
   manageKeyframesParameters,
-} from "../tools/animation";
+} from "../tools/animation-keyframes";
+import { animationTimelineParameters } from "../tools/animation-timeline";
 
 type JsonRecord = Record<string, unknown>;
 
