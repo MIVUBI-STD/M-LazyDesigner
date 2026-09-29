@@ -53,6 +53,7 @@ import {
   importedTextureGroupName,
   isMinecraftTextureSetDocument,
   requireDistinctPbrChannelAssignments,
+  requireExplicitUniformMaterialSourceSwitch,
   requireMaterialConfigSavePostcondition,
 } from "@/server/tools/texture-material-validation";
 export {
@@ -345,6 +346,18 @@ export function registerTextureMaterialTools(): void {
         subsurface_value,
       }) {
         const textureGroup = resolvePbrMaterial(material);
+        requireExplicitUniformMaterialSourceSwitch(
+          textureGroup.name,
+          textureGroup.getTextures().map(
+            (texture: Texture) => texture.pbr_channel || "color"
+          ),
+          {
+            color_texture,
+            mer_texture,
+            color_value,
+            mer_value,
+          }
+        );
         const requests = [
           channelRequest("color", color_texture),
           channelRequest("normal", normal_texture),
