@@ -58,6 +58,18 @@ describe("Desktop security boundary", () => {
     expect(log).not.toContain("prompt");
   });
 
+  test("Desktop verify and draft-release both gate high-severity npm advisories", async () => {
+    const [verifyWorkflow, releaseWorkflow] = await Promise.all([
+      source("../.github/workflows/desktop-verify.yml"),
+      source("../.github/workflows/desktop-draft-release.yml"),
+    ]);
+
+    for (const workflow of [verifyWorkflow, releaseWorkflow]) {
+      expect(workflow).toContain("npm ci");
+      expect(workflow).toContain("npm audit --audit-level=high");
+    }
+  });
+
   test("diagnostic export explicitly excludes project, environment, TLS key and Codex config data", async () => {
     const diagnostics = await source(
       "../apps/desktop/src-tauri/src/diagnostics.rs"
