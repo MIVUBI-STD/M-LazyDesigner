@@ -12,7 +12,12 @@ server/runtime/          registration/surface/consolidation/phase/bootstrap
 server/tools/            Geometry/Texture/Animation/Particle implementations
 server/resources/        Runtime Resources
 server/prompts.ts        Runtime Prompt registration
-lib/                     shared schema/metadata/readiness/runtime helpers
+lib/                     shared/domain-pure implementation; root is compatibility/shared facade
+lib/authoring/           handoff readiness + validation semantics
+lib/bedrock/             Bedrock project identity + project semantics
+lib/product/             product identity
+lib/protocol/            MCP/resource protocol helpers
+lib/runtime/             Runtime connection/affinity/fetch/lifecycle primitives
 ui/                      Blockbench UI implementation details
 prompts/                 canonical prompt source + generated manifest
 build/                   build/docs/prompt generation
@@ -93,7 +98,7 @@ Canonical context policy:
 
 ## Capability Metadata / Effects
 
-`lib/capabilityMetadata.ts` owns capability tier/search/effects. Transport must not grow capability-name special cases when declarative metadata can own behavior.
+`lib/capabilityMetadata.ts` owns capability tier/search/effects. New shared implementations must prefer the narrow canonical subdomain under `lib/**`; do not add another root-level `lib/*.ts` owner when an existing domain fits. Transport must not grow capability-name special cases when declarative metadata can own behavior.
 
 `lib/authoringPhase.ts` owns Geometry/Texturing/Animation classification. Do not create a second capability/phase table in Control/Gateway/Plugin.
 
@@ -121,8 +126,8 @@ Keep request-owned MCP reconstruction stateless/lightweight. Surface changes inv
 Technical validation and approval remain distinct.
 
 ```text
-lib/authoringReadiness.ts  → USER_APPROVED | AUTONOMOUS_VERIFIED
-lib/validationVerdict.ts   → BLOCKED | REVIEW_REQUIRED | VALIDATOR_CLEAR
+lib/authoring/authoringReadiness.ts → USER_APPROVED | AUTONOMOUS_VERIFIED
+lib/authoring/validationVerdict.ts   → BLOCKED | REVIEW_REQUIRED | VALIDATOR_CLEAR
 ```
 
 `VALIDATOR_CLEAR`, internal quality PASS, tool/export success or numeric diagnostics never equal user approval/visual PASS. Control lifecycle readiness orients state; it does not authorize AUTHORING↔Animation by itself.
