@@ -108,6 +108,9 @@ jobs:
       - name: Install Desktop dependencies
         run: npm ci
 
+      - name: Audit Desktop npm dependencies
+        run: npm audit --audit-level=high
+
       - name: Verify Desktop source
         run: npm run verify:source
 
