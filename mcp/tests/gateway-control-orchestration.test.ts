@@ -15,7 +15,7 @@ function delta(
     source_owner: {
       source: "mcp/server/tools/cubes.ts",
       specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
-      test_owner: null,
+      anchor_test: null,
     },
     phase_before: "geometry",
     phase_after: "geometry",
