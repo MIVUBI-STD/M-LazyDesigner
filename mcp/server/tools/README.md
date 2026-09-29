@@ -19,6 +19,8 @@ server/tools/animation/timeline.ts           timeline executor
 server/tools/animation/controller.ts         controller executor
 server/tools/animation/rigging.ts            rigging executor
 server/tools/animation/batch.ts              batch executor
+server/tools/animation/effects.ts            animation effects executor
+server/tools/animation/inspection.ts         animation inspection executor
 server/tools/animation/shared.ts             shared helpers
 server/tools/animation/controllerState.ts    controller state helpers
 server/tools/animation/effectState.ts        effect state helpers
@@ -53,6 +55,7 @@ server/tools/paint/primitives.ts           primitive executor
 server/tools/paint/brush.ts                brush executor
 server/tools/paint/settings.ts             settings executor
 server/tools/paint/selectionLayers.ts      selection/layer executor
+server/tools/paint/textureTransaction.ts    texture transaction executor
 server/tools/paint/shared.ts               shared paint helpers
 server/tools/paint/layerState.ts           canonical layer-state helpers
 server/tools/paint/selectionLayerSchema.ts canonical selection/layer input contract
@@ -83,8 +86,10 @@ server/tools/texture/materialState.ts   canonical material lookup/state projecti
 server/tools/texture/create.ts         create executor + native mutation
 server/tools/texture/read.ts           read executor
 server/tools/texture/assignment.ts     assignment executor
-server/tools/texture/materials.ts      material executor
-server/tools/texture/atlas.ts          atlas/audit owner
+server/tools/texture/materials.ts          material executor
+server/tools/texture/materialInstances.ts   material-instance executor
+server/tools/texture/materialValidation.ts  material validation helpers
+server/tools/texture/atlas.ts               atlas/audit owner
 server/runtime/textureRuntimeContracts.ts consumes schema directly
 ```
 
@@ -162,6 +167,7 @@ server/tools/texture/materials.ts
 ```text
 server/tools/element.ts               facade / registrar aggregation
 server/tools/element/discovery.ts     discovery executor
+server/tools/element/inspection.ts    focused element inspection executor
 server/tools/element/hierarchy.ts     hierarchy/group executor
 server/tools/element/mutation.ts      rename/remove/duplicate executor
 server/tools/element/shared.ts        shared element helpers
