@@ -3,6 +3,9 @@ import { compileVerificationEvidenceRequests, type VerificationEvidenceRequest }
 import { VerificationEvidenceRegistry } from "@/lib/orchestration/evidenceRegistry";
 import {
   compactVerificationEvidence,
+  diagnoseMinecraftDiscrepancy,
+  minecraftQualityFocus,
+  prioritizeMinecraftDiscrepancies,
   type VerificationDiscrepancy,
 } from "@/lib/orchestration/compactEvidence";
 import type { VerificationTask } from "@/lib/orchestration/verificationPlan";
@@ -115,6 +118,8 @@ describe("verification evidence compaction", () => {
       quality_class: "REQUIRED_PART",
       owner: "GEOMETRY",
       cause_family: "MISSING_REQUIRED_PART",
+      repair_route: "ADD_MASS",
+      evidence_backed_cause: true,
       views: ["front", "left"],
       evidence_targets: ["silhouette"],
     });
@@ -143,6 +148,42 @@ describe("verification evidence compaction", () => {
       "UNCLASSIFIED"
     );
     expect(minecraftQualityFocus(prioritized)?.owner).toBe("UNKNOWN");
+    expect(minecraftQualityFocus(prioritized)?.repair_route).toBe(
+      "MORE_EVIDENCE"
+    );
+  });
+
+  test("causal diagnosis maps only explicit evidence-backed causes to repair routes", () => {
+    expect(
+      diagnoseMinecraftDiscrepancy({
+        code: "TORSO_WIDE",
+        severity: "REVIEW",
+        summary: "torso width differs from reference",
+        quality_class: "PRIMARY_FORM",
+        owner: "GEOMETRY",
+        cause_family: "SIZE_MISMATCH",
+      })
+    ).toEqual({
+      evidence_backed: true,
+      owner: "GEOMETRY",
+      cause_family: "SIZE_MISMATCH",
+      repair_route: "RESIZE",
+      needs_more_evidence: false,
+    });
+
+    expect(
+      diagnoseMinecraftDiscrepancy({
+        code: "AMBIGUOUS",
+        severity: "REVIEW",
+        summary: "leg looks wrong",
+      })
+    ).toEqual({
+      evidence_backed: false,
+      owner: "UNKNOWN",
+      cause_family: "UNKNOWN",
+      repair_route: "MORE_EVIDENCE",
+      needs_more_evidence: true,
+    });
   });
 
   test("evidence invalidation and runtime clear make stale handles fail closed", () => {

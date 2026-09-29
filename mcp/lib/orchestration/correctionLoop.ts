@@ -10,7 +10,12 @@ import {
 } from "@/lib/correctionSolver";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
-import {\n  minecraftQualityFocus,\n  prioritizeMinecraftDiscrepancies,\n  type VerificationDiscrepancy,\n} from "@/lib/orchestration/compactEvidence";
+import {
+  diagnoseMinecraftDiscrepancy,
+  minecraftQualityFocus,
+  prioritizeMinecraftDiscrepancies,
+  type VerificationDiscrepancy,
+} from "@/lib/orchestration/compactEvidence";
 import type { ModelView } from "@/server/tools/camera";
 import {
   correctionContinuationDelta,
@@ -98,6 +103,8 @@ type CorrectionLoopDecision = {
     | "NO_ELIGIBLE_CORRECTION"
     | "CANDIDATE_BUDGET_EXCEEDED"
     | "CORRECTION_FAMILY_MISMATCH"
+    | "CAUSAL_REPAIR_MISMATCH"
+    | "CAUSE_REQUIRES_OWNER_ROUTE"
     | "EVIDENCE_RECOVERY_REQUIRED";
 };
 
@@ -225,7 +232,11 @@ export class CorrectionLoopRegistry {
       }))
       .sort((a, b) => a.view.localeCompare(b.view));
 
-    const prioritizedDiscrepancies = prioritizeMinecraftDiscrepancies(\n      record.discrepancies\n    );\n    const qualityFocus = minecraftQualityFocus(prioritizedDiscrepancies);\n    const unresolved = prioritizedDiscrepancies.slice(0, 6).map((item) => ({
+    const prioritizedDiscrepancies = prioritizeMinecraftDiscrepancies(
+      record.discrepancies
+    );
+    const qualityFocus = minecraftQualityFocus(prioritizedDiscrepancies);
+    const unresolved = prioritizedDiscrepancies.slice(0, 6).map((item) => ({
       code: item.code,
       severity: item.severity,
       summary:
@@ -234,6 +245,9 @@ export class CorrectionLoopRegistry {
           : item.summary.slice(0, 157) + "...",
       views: [...(item.views ?? [])],
       evidence_targets: [...(item.evidence_targets ?? [])],
+      ...(item.quality_class ? { quality_class: item.quality_class } : {}),
+      ...(item.owner ? { owner: item.owner } : {}),
+      ...(item.cause_family ? { cause_family: item.cause_family } : {}),
     }));
 
     const pending =
@@ -265,6 +279,7 @@ export class CorrectionLoopRegistry {
       attempt: record.attempt,
       state,
       unresolved_count: record.discrepancies.length,
+      quality_focus: qualityFocus,
       unresolved,
       unresolved_truncated: record.discrepancies.length > unresolved.length,
       fresh_view_evidence: freshViewEvidence,
@@ -565,6 +580,50 @@ export class CorrectionLoopRegistry {
         verification_request: structuredClone(record.verification_request),
         blocked_reason: "REPEATED_FAILURE_WITHOUT_NEW_EVIDENCE",
       };
+    }
+
+    const prioritized = prioritizeMinecraftDiscrepancies(record.discrepancies);
+    const focus = prioritized[0] ?? null;
+    const diagnosis = focus ? diagnoseMinecraftDiscrepancy(focus) : null;
+
+    const targetedFocus = (candidate: CorrectionCandidate<GeometryCorrectionPatch>) => {
+      const codes = candidate.patch.target_discrepancy_codes;
+      return focus !== null && codes !== undefined && codes.includes(focus.code);
+    };
+
+    if (diagnosis?.evidence_backed) {
+      const executableRoute =
+        diagnosis.repair_route === "TRANSLATE" ||
+        diagnosis.repair_route === "RESIZE" ||
+        diagnosis.repair_route === "ROTATE" ||
+        diagnosis.repair_route === "LAYER_OFFSET";
+
+      if (!executableRoute && candidates.some(targetedFocus)) {
+        return {
+          handle,
+          state: "BLOCKED",
+          attempt: record.attempt,
+          verification_request: structuredClone(record.verification_request),
+          blocked_reason: "CAUSE_REQUIRES_OWNER_ROUTE",
+        };
+      }
+
+      if (
+        executableRoute &&
+        candidates.some(
+          (candidate) =>
+            targetedFocus(candidate) &&
+            candidate.patch.correction_family !== diagnosis.repair_route
+        )
+      ) {
+        return {
+          handle,
+          state: "BLOCKED",
+          attempt: record.attempt,
+          verification_request: structuredClone(record.verification_request),
+          blocked_reason: "CAUSAL_REPAIR_MISMATCH",
+        };
+      }
     }
 
     const budget = candidateBudget(record.verification_request);

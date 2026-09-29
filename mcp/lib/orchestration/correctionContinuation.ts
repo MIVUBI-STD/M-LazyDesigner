@@ -3,8 +3,10 @@ import { canonicalJson } from "@/lib/semantic/canonical";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import type {
+  MinecraftCauseFamily,
   MinecraftQualityClass,
   MinecraftQualityOwner,
+  MinecraftRepairRoute,
   VerificationDiscrepancy,
 } from "@/lib/orchestration/compactEvidence";
 import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
@@ -33,7 +35,9 @@ export type CorrectionLoopContinuation = {
     severity: VerificationDiscrepancy["severity"];
     quality_class: MinecraftQualityClass;
     owner: MinecraftQualityOwner;
-    cause_family: string | null;
+    cause_family: MinecraftCauseFamily;
+    repair_route: MinecraftRepairRoute;
+    evidence_backed_cause: boolean;
     views: ModelView[];
     evidence_targets: VisualEvidenceTarget[];
   } | null;
@@ -45,7 +49,7 @@ export type CorrectionLoopContinuation = {
     evidence_targets: VisualEvidenceTarget[];
     quality_class?: MinecraftQualityClass;
     owner?: MinecraftQualityOwner;
-    cause_family?: string;
+    cause_family?: MinecraftCauseFamily;
   }>;
   unresolved_truncated: boolean;
   fresh_view_evidence: Array<{

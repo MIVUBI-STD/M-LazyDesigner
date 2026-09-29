@@ -20,6 +20,33 @@ export type MinecraftQualityOwner =
   | "ANIMATION"
   | "UNKNOWN";
 
+export type MinecraftCauseFamily =
+  | "MISSING_REQUIRED_PART"
+  | "EXTRA_UNSUPPORTED_PART"
+  | "WRONG_ATTACHMENT"
+  | "POSITION_MISMATCH"
+  | "SIZE_MISMATCH"
+  | "ORIENTATION_MISMATCH"
+  | "LAYER_SEPARATION"
+  | "CONTACT_GAP"
+  | "PIVOT_MISMATCH"
+  | "MATERIAL_MISMATCH"
+  | "MOTION_MISMATCH"
+  | "UNKNOWN";
+
+export type MinecraftRepairRoute =
+  | "ADD_MASS"
+  | "REMOVE_MASS"
+  | "REATTACH"
+  | "TRANSLATE"
+  | "RESIZE"
+  | "ROTATE"
+  | "LAYER_OFFSET"
+  | "RIG_INSPECTION"
+  | "TEXTURE_EDIT"
+  | "ANIMATION_EDIT"
+  | "MORE_EVIDENCE";
+
 export type VerificationDiscrepancy = {
   code: string;
   severity: "INFO" | "REVIEW" | "BLOCKING";
@@ -32,7 +59,7 @@ export type VerificationDiscrepancy = {
    */
   quality_class?: MinecraftQualityClass;
   owner?: MinecraftQualityOwner;
-  cause_family?: string;
+  cause_family?: MinecraftCauseFamily;
 };
 
 export type CompactVerificationEvidence = {
@@ -64,6 +91,21 @@ const QUALITY_PRIORITY: Readonly<Record<MinecraftQualityClass, number>> = {
   UNCLASSIFIED: 7,
 };
 
+const CAUSE_REPAIR_ROUTE: Readonly<Record<MinecraftCauseFamily, MinecraftRepairRoute>> = {
+  MISSING_REQUIRED_PART: "ADD_MASS",
+  EXTRA_UNSUPPORTED_PART: "REMOVE_MASS",
+  WRONG_ATTACHMENT: "REATTACH",
+  POSITION_MISMATCH: "TRANSLATE",
+  SIZE_MISMATCH: "RESIZE",
+  ORIENTATION_MISMATCH: "ROTATE",
+  LAYER_SEPARATION: "LAYER_OFFSET",
+  CONTACT_GAP: "LAYER_OFFSET",
+  PIVOT_MISMATCH: "RIG_INSPECTION",
+  MATERIAL_MISMATCH: "TEXTURE_EDIT",
+  MOTION_MISMATCH: "ANIMATION_EDIT",
+  UNKNOWN: "MORE_EVIDENCE",
+};
+
 function qualityClassOf(
   discrepancy: VerificationDiscrepancy
 ): MinecraftQualityClass {
@@ -92,6 +134,27 @@ export function prioritizeMinecraftDiscrepancies(
     .map(({ item }) => item);
 }
 
+export function diagnoseMinecraftDiscrepancy(
+  discrepancy: VerificationDiscrepancy
+): {
+  evidence_backed: boolean;
+  owner: MinecraftQualityOwner;
+  cause_family: MinecraftCauseFamily;
+  repair_route: MinecraftRepairRoute;
+  needs_more_evidence: boolean;
+} {
+  const owner = discrepancy.owner ?? "UNKNOWN";
+  const cause = discrepancy.cause_family ?? "UNKNOWN";
+  const evidenceBacked = owner !== "UNKNOWN" && cause !== "UNKNOWN";
+  return {
+    evidence_backed: evidenceBacked,
+    owner,
+    cause_family: cause,
+    repair_route: evidenceBacked ? CAUSE_REPAIR_ROUTE[cause] : "MORE_EVIDENCE",
+    needs_more_evidence: !evidenceBacked,
+  };
+}
+
 export function minecraftQualityFocus(
   discrepancies: readonly VerificationDiscrepancy[]
 ): {
@@ -99,18 +162,23 @@ export function minecraftQualityFocus(
   severity: VerificationDiscrepancy["severity"];
   quality_class: MinecraftQualityClass;
   owner: MinecraftQualityOwner;
-  cause_family: string | null;
+  cause_family: MinecraftCauseFamily;
+  repair_route: MinecraftRepairRoute;
+  evidence_backed_cause: boolean;
   views: ModelView[];
   evidence_targets: VisualEvidenceTarget[];
 } | null {
   const focus = prioritizeMinecraftDiscrepancies(discrepancies)[0];
   if (!focus) return null;
+  const diagnosis = diagnoseMinecraftDiscrepancy(focus);
   return {
     code: focus.code,
     severity: focus.severity,
     quality_class: qualityClassOf(focus),
-    owner: focus.owner ?? "UNKNOWN",
-    cause_family: focus.cause_family?.trim() || null,
+    owner: diagnosis.owner,
+    cause_family: diagnosis.cause_family,
+    repair_route: diagnosis.repair_route,
+    evidence_backed_cause: diagnosis.evidence_backed,
     views: [...(focus.views ?? [])],
     evidence_targets: [...(focus.evidence_targets ?? [])],
   };

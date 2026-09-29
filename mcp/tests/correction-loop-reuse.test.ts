@@ -1399,4 +1399,101 @@ describe("zero-waste correction loop reuse", () => {
     expect(second.state).toBe("CORRECTION_READY");
     expect(second.attempt).toBe(2);
   });
+
+  test("evidence-backed cause rejects a mismatched repair family", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-causal",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0", "arms:1"],
+      },
+      verification_evidence_handle: "verificationevidence:causal",
+      discrepancies: [{
+        code: "WIDTH_LOW",
+        severity: "REVIEW",
+        summary: "Upper arms are too narrow.",
+        quality_class: "PRIMARY_FORM",
+        owner: "GEOMETRY",
+        cause_family: "SIZE_MISMATCH",
+        views: ["front"],
+        evidence_targets: ["width"],
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "translate-wrong-cause",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "TRANSLATE",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: { kind: "TRANSLATE", delta: [0.5, 0, 0] },
+        },
+      },
+    }]);
+
+    expect(decision.state).toBe("BLOCKED");
+    expect(decision.blocked_reason).toBe("CAUSAL_REPAIR_MISMATCH");
+    expect(decision.attempt).toBe(0);
+  });
+
+  test("structural causes stay on their owning route instead of being disguised as numeric edits", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "asset-structural",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:structural",
+      discrepancies: [{
+        code: "MISSING_HAND",
+        severity: "REVIEW",
+        summary: "Required hand is missing.",
+        quality_class: "REQUIRED_PART",
+        owner: "GEOMETRY",
+        cause_family: "MISSING_REQUIRED_PART",
+        views: ["front"],
+        evidence_targets: ["silhouette"],
+      }],
+    });
+
+    const decision = registry.planGeometryCorrection(handle, [{
+      id: "inflate-placeholder",
+      predicted_error: 0.1,
+      mutation_cost: 0.1,
+      risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["MISSING_HAND"],
+        correction_family: "LAYER_OFFSET",
+        intent: {
+          target: { semantic_group: "upper_arm" },
+          operation: { kind: "INFLATE", mode: "ADD", value: 0.25 },
+        },
+      },
+    }]);
+
+    expect(decision.state).toBe("BLOCKED");
+    expect(decision.blocked_reason).toBe("CAUSE_REQUIRES_OWNER_ROUTE");
+    expect(decision.attempt).toBe(0);
+  });
+
 });
