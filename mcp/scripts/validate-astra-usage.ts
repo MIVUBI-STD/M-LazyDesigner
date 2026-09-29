@@ -1,6 +1,6 @@
-type Verdict = "PASS" | "FAIL" | "UNVERIFIED";
-type Variant = "baseline" | "zero_waste";
-type TaskClass =
+export type Verdict = "PASS" | "FAIL" | "UNVERIFIED";
+export type Variant = "baseline" | "zero_waste";
+export type TaskClass =
   | "DIRECT"
   | "SCOPED_DISCOVERY"
   | "CONSTRUCTIVE_COMPONENT"
@@ -8,9 +8,9 @@ type TaskClass =
   | "ANIMATION"
   | "FULL_REFERENCE_DRIVEN";
 
-type NullableNumber = number | null;
+export type NullableNumber = number | null;
 
-type Usage = {
+export type Usage = {
   total_tokens: NullableNumber;
   input_tokens: NullableNumber;
   cached_input_tokens: NullableNumber;
@@ -18,7 +18,7 @@ type Usage = {
   reasoning_tokens: NullableNumber;
 };
 
-type ModelUsageEvent = Usage & {
+export type ModelUsageEvent = Usage & {
   kind: "response" | "compaction";
   event_id?: string;
   source?: string;
@@ -26,7 +26,7 @@ type ModelUsageEvent = Usage & {
   comparison_reusable_tokens?: NullableNumber;
 };
 
-type Calls = {
+export type Calls = {
   total: NullableNumber;
   search: NullableNumber;
   describe: NullableNumber;
@@ -36,7 +36,7 @@ type Calls = {
   recovery: NullableNumber;
 };
 
-type Performance = {
+export type Performance = {
   wall_time_ms: NullableNumber;
   accepted_result_ms: NullableNumber;
   model_latency_ms: NullableNumber;
@@ -45,7 +45,7 @@ type Performance = {
   tool_result_bytes: NullableNumber;
 };
 
-type UsageRun = {
+export type UsageRun = {
   task_id: string;
   task_class?: TaskClass;
   variant: Variant;
@@ -59,7 +59,7 @@ type UsageRun = {
   performance?: Performance;
 };
 
-type UsageDocument = {
+export type UsageDocument = {
   schema: string;
   proof_scope: string;
   source_sha: string | null;
