@@ -28,7 +28,7 @@ describe("context and payload cleanup", () => {
       "UNVERIFIED",
       "PASS",
       "BLOCKED",
-      "Same causal correction failing twice without new evidence",
+      "Same causal direction failing twice without new evidence",
       "geometry_effect",
       "Front PASS is not full 3D PASS",
       "UV Layout",
