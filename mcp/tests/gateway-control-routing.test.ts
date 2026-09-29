@@ -28,7 +28,7 @@ describe("LazyDesigner Control routing", () => {
     expect(sourceOwnerForCapability("manage_cubes")).toEqual({
       source: "mcp/server/tools/cubes.ts",
       specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
-      test_owner: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
+      anchor_test: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
     });
     expect(sourceOwnerForCapability("manage_locator").source).toBe("mcp/server/tools/locators.ts");
     expect(sourceOwnerForCapability("manage_null_object").source).toBe("mcp/server/tools/locators.ts");
@@ -40,7 +40,7 @@ describe("LazyDesigner Control routing", () => {
     expect(sourceOwnerForCapability("manage_render_profile")).toEqual({
       source: "mcp/server/tools/render-profile.ts",
       specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
-      test_owner: "mcp/tests/render-profile-binding.test.ts",
+      anchor_test: "mcp/tests/render-profile-binding.test.ts",
     });
     expect(sourceOwnerForCapability("manage_animation_controller").source).toBe("mcp/server/tools/animation-controller.ts");
 
@@ -60,7 +60,7 @@ describe("LazyDesigner Control routing", () => {
       const owner = sourceOwnerForCapability(capability);
       expect(await Bun.file(new URL(`../../${owner.source}`, import.meta.url)).exists(), owner.source).toBe(true);
       if (owner.specialist) expect(await Bun.file(new URL(`../../${owner.specialist}`, import.meta.url)).exists(), owner.specialist).toBe(true);
-      if (owner.test_owner) expect(await Bun.file(new URL(`../../${owner.test_owner}`, import.meta.url)).exists(), owner.test_owner).toBe(true);
+      if (owner.anchor_test) expect(await Bun.file(new URL(`../../${owner.anchor_test}`, import.meta.url)).exists(), owner.anchor_test).toBe(true);
     }
   });
 
