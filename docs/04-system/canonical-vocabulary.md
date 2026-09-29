@@ -30,7 +30,7 @@ Do not create synonyms for style. Prefer the canonical term even when another wo
 | normalized Codex/LazyDesigner handoff artifact | **Reference Package** | compact machine-readable handoff; required only when downstream handoff needs it |
 | current durable asset continuation | **Asset State** | current Stage/gates/next step for one asset |
 | result of a mutation | **Mutation Receipt** | structured evidence returned by an authored change |
-| semantically invalidated dependency | **Dirty Scope** | evidence that must be re-established after a material change |
+| semantically invalidated dependency | **Dirty Scope** | evidence that must be re-established after a material change; downstream ownership/recheck semantics come from the Asset Dependency Graph |
 | technical/evidence check | **Validation** | evaluates a bounded property; never implies user acceptance |
 | explicit human acceptance | **Approval** | user acceptance of the current revision |
 | permission to cross a gated boundary | **Transition Eligibility** | prerequisite result for Stage/Runtime Surface transition |
@@ -166,7 +166,7 @@ do not translate them into alternate internal names
 do not run status/search/describe as reassurance
 ~~~
 
-Control projects current state; Codex reasons once; Runtime executes; receipts and Dirty Scopes determine the minimum recheck.
+Control projects current state; Codex reasons once; Runtime executes; Mutation Receipts identify Dirty Scopes; the deterministic Asset Dependency Graph maps those scopes to the minimum downstream rechecks.
 
 ## Ownership
 

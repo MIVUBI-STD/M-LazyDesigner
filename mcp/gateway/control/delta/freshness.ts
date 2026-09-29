@@ -1,6 +1,7 @@
 import {
   capabilityDefaultStaleScopes,
 } from "../../../lib/capabilities/manifest";
+import { assetDomainsForScopes } from "../../../lib/assetDependencyGraph";
 import { isSemanticHistoryEffect } from "../../../lib/semanticHistory";
 import {
   cubeChangedFieldsFromResult,
@@ -171,31 +172,6 @@ export function effectChangedFields(value: unknown): string[] {
   return cubeChangedFieldsFromResult(root);
 }
 
-function authoringDomainsForScopes(
-  scopes: readonly ControlFreshnessScope[]
-): ControlAuthoringDomain[] {
-  const domains = new Set<ControlAuthoringDomain>();
-  for (const scope of scopes) {
-    if (scope === "GEOMETRY_STRUCTURE") domains.add("GEOMETRY");
-    if (
-      scope === "UV_MAPPING" ||
-      scope === "TEXTURE_APPEARANCE" ||
-      scope === "MATERIAL_RENDER"
-    ) {
-      domains.add("TEXTURING");
-    }
-    if (
-      scope === "ANIMATION_MOTION" ||
-      scope === "ANIMATION_CONTROLLER" ||
-      scope === "ANIMATION_EFFECTS" ||
-      scope === "PARTICLE_SYSTEM"
-    ) {
-      domains.add("ANIMATION");
-    }
-  }
-  return [...domains];
-}
-
 export function geometryInvalidation(
   capability: string,
   result: unknown
@@ -206,14 +182,14 @@ export function geometryInvalidation(
       changedFields.length > 0
         ? cubeSemanticScopesFromChangedFields(changedFields)
         : capabilityDefaultStaleScopes(capability);
-    return authoringDomainsForScopes(scopes);
+    return assetDomainsForScopes(scopes);
   }
 
   if (capability === "remove_element") {
     for (const candidate of resultCandidates(result)) {
       const removedRoot = record(candidate.removed_root);
       if (typeof removedRoot?.type === "string") {
-        return authoringDomainsForScopes(
+        return assetDomainsForScopes(
           removedElementSemanticScopes(removedRoot.type)
         );
       }
@@ -224,12 +200,12 @@ export function geometryInvalidation(
     for (const candidate of resultCandidates(result)) {
       const element = record(candidate.element);
       if (typeof element?.type === "string") {
-        return authoringDomainsForScopes(
+        return assetDomainsForScopes(
           renamedElementSemanticScopes(element.type)
         );
       }
       if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
-        return authoringDomainsForScopes(
+        return assetDomainsForScopes(
           renamedElementSemanticScopes("group")
         );
       }
@@ -238,7 +214,7 @@ export function geometryInvalidation(
 
   const scopes = capabilityDefaultStaleScopes(capability);
   return scopes.length > 0
-    ? authoringDomainsForScopes(scopes)
+    ? assetDomainsForScopes(scopes)
     : ["GEOMETRY"];
 }
 
@@ -253,7 +229,7 @@ function semanticHistoryInvalidation(
   if (!effect) return null;
 
   return {
-    authoring_domains: authoringDomainsForScopes(effect.stale),
+    authoring_domains: assetDomainsForScopes(effect.stale),
     workspace_projection: effect.workspace_projection,
     acceptance_gates: effect.acceptance_gates,
   };
