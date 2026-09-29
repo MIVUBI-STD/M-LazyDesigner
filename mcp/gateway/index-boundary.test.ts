@@ -10,6 +10,10 @@ const coreToolsSource = await readFile(
   new URL("./handlers/registerCoreTools.ts", import.meta.url),
   "utf8"
 );
+const executorSource = await readFile(
+  new URL("./runtime/capabilityExecutor.ts", import.meta.url),
+  "utf8"
+);
 
 describe("Gateway index boundary", () => {
   test("does not hardcode transition capability names", () => {
@@ -52,6 +56,11 @@ describe("Gateway index boundary", () => {
     );
     expect(sessionSource).toContain("this.executionState = null");
     expect(coreToolsSource).toContain("session.synchronizeProject(status.affinity.project_uuid)");
-    expect(source).toContain("session.synchronizeProject(receipt.projectUuid)");
+    expect(executorSource).toContain(
+      "this.session.synchronizeProject(receipt.projectUuid)"
+    );
+    expect(source).toContain(
+      "executor.invoke(capability, args, context)"
+    );
   });
 });
