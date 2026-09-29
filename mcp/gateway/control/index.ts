@@ -35,6 +35,8 @@ export type {
   ControlExecutionState,
   ControlNextAction,
   ControlNextActionKind,
+  ControlCohortBoundary,
+  ControlPendingVerification,
 } from "./orchestration";
 export { resolveDevelopmentIntent } from "./developmentIntent";
 export type {

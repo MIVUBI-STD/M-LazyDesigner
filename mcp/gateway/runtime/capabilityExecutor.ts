@@ -86,7 +86,11 @@ export class GatewayCapabilityExecutor {
     capability: string,
     args: JsonRecord,
     context?: GatewayToolContext,
-    enforceKnownBlockers: boolean = false
+    enforceKnownBlockers: boolean = false,
+    controlOptions?: {
+      taskContextId?: string | null;
+      cohortBoundary?: "CONTINUE" | "COMPLETE";
+    }
   ): Promise<unknown> {
     const startedAt = this.trace?.startedAt() ?? 0;
     try {
@@ -154,7 +158,11 @@ export class GatewayCapabilityExecutor {
       const orchestration = attachControlDelta
         ? reduceControlExecutionState(
             this.session.controlExecutionState,
-            controlDelta
+            controlDelta,
+            {
+              taskContextId: controlOptions?.taskContextId,
+              cohortBoundary: controlOptions?.cohortBoundary,
+            }
           )
         : null;
       if (orchestration) {

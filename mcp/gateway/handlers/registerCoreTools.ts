@@ -66,7 +66,11 @@ export type CoreGatewayRegistrationDeps = {
   invoke: (
     capability: string,
     args: JsonRecord,
-    context?: GatewayToolContext
+    context?: GatewayToolContext,
+    controlOptions?: {
+      taskContextId?: string | null;
+      cohortBoundary?: "CONTINUE" | "COMPLETE";
+    }
   ) => Promise<unknown>;
 };
 
@@ -144,6 +148,16 @@ const describeInput = z.object({
 const invokeInput = z.object({
   capability: z.string().min(1),
   arguments: z.record(z.string(), z.unknown()).default({}),
+  task_context_id: z
+    .string()
+    .min(1)
+    .max(160)
+    .optional()
+    .describe("Reuse the current Control task_context_id to group known mutations from one user intent."),
+  cohort_boundary: z
+    .enum(["CONTINUE", "COMPLETE"])
+    .default("COMPLETE")
+    .describe("CONTINUE defers verification for the same task_context_id; COMPLETE emits the merged cohort verification action."),
 });
 
 export function registerCoreGatewayTools(
@@ -414,8 +428,16 @@ export function registerCoreGatewayTools(
     },
     async (rawArgs, context) => {
       try {
-        const { capability, arguments: args } = invokeInput.parse(rawArgs);
-        return invoke(capability, args, context);
+        const {
+          capability,
+          arguments: args,
+          task_context_id,
+          cohort_boundary,
+        } = invokeInput.parse(rawArgs);
+        return invoke(capability, args, context, {
+          taskContextId: task_context_id,
+          cohortBoundary: cohort_boundary,
+        });
       } catch (error) {
         return gatewayErrorResult(error);
       }

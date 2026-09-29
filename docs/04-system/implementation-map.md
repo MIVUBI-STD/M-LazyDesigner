@@ -209,6 +209,11 @@ manage_animation_controller
 ```text
 mcp/lib/capabilityMetadata.ts   canonical tier/search aliases/declarative effects
 mcp/lib/assetDependencyGraph.ts canonical Dirty Scope → Domain + minimum downstream recheck projection
+
+gateway/control/orchestration.ts
+→ ephemeral per-task Verification Cohort accumulation
+→ optional task_context_id + explicit CONTINUE/COMPLETE boundary
+→ never replaces native per-tool Undo/rollback
 mcp/lib/authoringPhase.ts       semantic stage classification + AUTHORING/ANIMATION surface mapping
 mcp/lib/authoringReadiness.ts  canonical Animation handoff readiness
 mcp/lib/validationVerdict.ts   conservative Validator gate projection

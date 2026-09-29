@@ -30,6 +30,7 @@ Do not create synonyms for style. Prefer the canonical term even when another wo
 | normalized Codex/LazyDesigner handoff artifact | **Reference Package** | compact machine-readable handoff; required only when downstream handoff needs it |
 | current durable asset continuation | **Asset State** | current Stage/gates/next step for one asset |
 | result of a mutation | **Mutation Receipt** | structured evidence returned by an authored change |
+| related mutations from one user intent | **Verification Cohort** | optional task-scoped grouping that defers verification until the explicit cohort boundary; it does not replace native per-tool Undo transactions |
 | semantically invalidated dependency | **Dirty Scope** | evidence that must be re-established after a material change; downstream ownership/recheck semantics come from the Asset Dependency Graph |
 | technical/evidence check | **Validation** | evaluates a bounded property; never implies user acceptance |
 | explicit human acceptance | **Approval** | user acceptance of the current revision |
@@ -167,6 +168,8 @@ do not run status/search/describe as reassurance
 ~~~
 
 Control projects current state; Codex reasons once; Runtime executes; Mutation Receipts identify Dirty Scopes; the deterministic Asset Dependency Graph maps those scopes to the minimum downstream rechecks.
+
+For several already-known mutations that implement one user intent, reuse the current `task_context_id` and mark intermediate calls `cohort_boundary=CONTINUE`. Mark the final mutation `COMPLETE`. Control merges verification requirements and emits one cohort-end action. Do not use a Verification Cohort to hide uncertain mutation outcomes, Runtime Surface transitions, handoffs, or recovery boundaries.
 
 ## Ownership
 
