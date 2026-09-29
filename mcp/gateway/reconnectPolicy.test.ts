@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ReconnectPolicy } from "./reconnectPolicy";
+import { ReconnectPolicy } from "./runtime/reconnectPolicy";
 
 describe("ReconnectPolicy", () => {
   test("uses bounded exponential backoff and resets after success", () => {
