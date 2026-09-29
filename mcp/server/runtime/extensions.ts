@@ -45,7 +45,7 @@ export const RUNTIME_EXTENSION_PIPELINE: readonly RuntimeExtensionStep[] = Objec
   },
   {
     id: "texture-quality",
-    targets: ["list_textures", "manage_material"],
+    targets: ["list_textures"],
     apply: wireTextureQualityRuntime,
   },
   {
