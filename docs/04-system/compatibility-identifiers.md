@@ -11,6 +11,8 @@ protocol / persisted / install identity may not
 
 Do not bulk-replace `blockit` across the repository.
 
+Likewise, compatibility fields containing `phase` remain serialized as-is until an atomic protocol/settings migration. Human-facing and new semantic code use **Stage** for workflow position and **Runtime Surface** for capability exposure.
+
 ## Compatibility-Bound Identifiers
 
 These values remain stable until a dedicated migration updates every producer, consumer, persisted value and recovery path.
@@ -24,9 +26,9 @@ These values remain stable until a dedicated migration updates every producer, c
 | Runtime URL env prefix | `BLOCKIT_RUNTIME_*` | `mcp/gateway/backend.ts` | deployment/config compatibility |
 | Gateway queue env key | `BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH` | `mcp/gateway/backend.ts` | deployment/config compatibility |
 | project affinity header | `x-blockit-project-uuid` | `mcp/gateway/projectAffinity.ts` | Gateway↔Runtime protocol compatibility |
-| authoring phase header | `x-blockit-authoring-phase` | `mcp/gateway/projectAffinity.ts` | Gateway↔Runtime protocol compatibility |
+| authoring Stage affinity header (legacy serialized name) | `x-blockit-authoring-phase` | `mcp/gateway/projectAffinity.ts` | Gateway↔Runtime protocol compatibility; `phase` is compatibility wording only |
 | extended-family localStorage key | `blockit_mcp.extended_families_enabled` | `mcp/ui/settings.ts` | persisted user setting continuity |
-| authoring stage setting id | `mcp_authoring_phase` | `mcp/lib/authoringPhase.ts` | persisted Blockbench setting continuity |
+| authoring Stage setting id (legacy serialized name) | `mcp_authoring_phase` | `mcp/lib/authoringPhase.ts` | persisted Blockbench setting continuity; do not use `phase` as a new product concept |
 | extended-family setting id | `mcp_extended_families_enabled` | `mcp/lib/registrationProfile.ts` | persisted Blockbench setting continuity |
 
 Primary LazyDesigner Skill paths are **not** compatibility-bound. REFERENCE_PREPARATION, ASSET_AUTHORING, and PRODUCT_DEVELOPMENT primary Skills now use canonical `lazydesigner-*` identities; removed legacy paths must not return as aliases.

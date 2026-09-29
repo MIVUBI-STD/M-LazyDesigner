@@ -3,6 +3,7 @@
 Owns LazyDesigner system architecture details that are neither product policy nor asset-authoring policy.
 
 ```text
+canonical-vocabulary.md
 ai-context-loading.md
 authoring-stage-context.md
 tool-execution-paths.md
@@ -18,6 +19,9 @@ compatibility-identifiers.md
 ## Read order by question
 
 ```text
+Which exact term owns a concept, and which legacy names are compatibility-only?
+→ canonical-vocabulary.md
+
 What should the AI load for this task?
 → ai-context-loading.md
 

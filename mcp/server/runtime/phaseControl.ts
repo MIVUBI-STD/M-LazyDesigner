@@ -27,7 +27,7 @@ export function setMcpPhaseSwitchHandler(
 
 export function requestMcpPhaseSwitch(phase: McpAuthoringPhase): void {
   if (!phaseSwitchHandler) {
-    throw new Error("Runtime phase switching is unavailable; reload BlockIT.");
+    throw new Error("Runtime Stage/Surface switching is unavailable; reload LazyDesigner.");
   }
   phaseSwitchHandler(phase);
 }
@@ -37,7 +37,7 @@ export const phaseControlOutputSchema = phaseTransitionReceiptSchema;
 export const phaseControlToolDocs = {
   name: "switch_authoring_phase",
   description:
-    `Changes authoring focus in the same task. Geometry↔Texturing stays on the shared AUTHORING surface; AUTHORING↔Animation is the actual Runtime surface handoff. ${ANIMATION_HANDOFF_READINESS_RULE}`,
+    `Changes the Authoring Stage in the same task. Geometry↔Texturing stays on the shared AUTHORING Runtime Surface; AUTHORING↔Animation is the only Runtime Surface handoff. ${ANIMATION_HANDOFF_READINESS_RULE}`,
   parameters: z.object({
     target_phase: z.enum(["geometry", "texturing", "animation"]),
     reason: z.string().min(1),
@@ -59,7 +59,7 @@ export function registerPhaseControlTool(): void {
       outputSchema: phaseControlOutputSchema,
       async execute({ target_phase, reason, resume_from, readiness }) {
         if (!phaseSwitchHandler) {
-          throw new Error("Runtime phase switching is unavailable; reload BlockIT.");
+          throw new Error("Runtime Stage/Surface switching is unavailable; reload LazyDesigner.");
         }
         const previousPhase = getActiveMcpAuthoringPhase();
         const previousSurface = getMcpRuntimeSurface(previousPhase);
@@ -78,7 +78,7 @@ export function registerPhaseControlTool(): void {
           content: [
             {
               type: "text" as const,
-              text: `MCP authoring focus switched to ${target_phase}. Continue this task through Gateway.`,
+              text: `MCP Authoring Stage switched to ${target_phase}; Runtime Surface is ${targetSurface}. Continue this task through Gateway.`,
             },
           ],
           structuredContent: phaseTransitionReceipt({

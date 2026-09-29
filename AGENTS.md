@@ -165,7 +165,7 @@ Animation
 → AUTHORING↔Animation handoff through Gateway
 ```
 
-Geometry↔Texturing use the shared AUTHORING surface. Animation remains the Runtime phase handoff boundary.
+Geometry↔Texturing use the shared AUTHORING Runtime Surface. Animation remains the only Runtime Surface handoff boundary. In new prose and semantics use `Stage` for GEOMETRY/TEXTURING/ANIMATION; treat existing `phase` field/tool names as compatibility identifiers.
 
 Hot path:
 

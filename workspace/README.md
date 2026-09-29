@@ -51,7 +51,7 @@ Current model file
 Material handoff constraints (scale/front_direction/pose override when material)
 Current next step — one concrete step
 Known blocker(s), if any
-Current handoff state — only when phase reload/resume is pending
+Current handoff state — only when an AUTHORING↔ANIMATION Runtime Surface transition/resume is pending
 ```
 
 LazyDesigner uses one native Geometry authoring path; no modelling-strategy state is required.
@@ -81,15 +81,19 @@ Animation:
 
 `front_direction` means the canonical object front used by `capture_model_views`: `+z` or `-z`. Record it once when material and reuse it. Requested dimensions stay in Minecraft blocks plus resolved Blockbench units when resume-critical (`1 block = 16 Blockbench units`).
 
-When phase reload/resume is pending, keep only:
+When an AUTHORING↔ANIMATION Runtime Surface transition/resume is pending, keep only:
 
 ```text
-current_phase: <geometry|texturing|animation>
+current_stage: <GEOMETRY|TEXTURING|ANIMATION>
+current_surface: <AUTHORING|ANIMATION>
 completed_gate(s): <latest verified/approved gates only>
-target_phase: <next phase>
+target_stage: <GEOMETRY|TEXTURING|ANIMATION>
+target_surface: <AUTHORING|ANIMATION>
 resume_target: <current model/project + immediate target identifiers>
 blocker: <none|specific blocker>
 ```
+
+Do not persist `phase` as a new semantic concept. Existing protocol/settings fields containing `phase` are compatibility identifiers only.
 
 Do not turn README into a decision log, per-Cube plan, UUID registry, or tool transcript.
 
@@ -150,7 +154,7 @@ user names/continues asset
 → verify persisted prerequisite gate before mutation
 ```
 
-The Control + active specialist loading contract comes from root `AGENTS.md`; remembered Skill content is not sufficient. If stored target phase and live MCP phase disagree, reconcile through Gateway rather than broad-searching tools. Do not scan every active project when asset is known.
+The Control + active specialist loading contract comes from root `AGENTS.md`; remembered Skill content is not sufficient. If stored Stage/Surface and live MCP compatibility phase fields disagree, reconcile through Gateway rather than broad-searching tools. Do not scan every active project when asset is known.
 
 ## Reference Generator Boundary
 

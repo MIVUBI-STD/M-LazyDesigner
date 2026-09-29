@@ -11,7 +11,9 @@ USER
 ↓
 CHATGPT REFERENCE PREPARATION
 ↓
-REFERENCE PACKAGE
+REFERENCE EVIDENCE
+↓
+REFERENCE PACKAGE WHEN DOWNSTREAM HANDOFF IS REQUESTED
 ↓
 LAZYDESIGNER CONTROL
 ↓
@@ -54,13 +56,14 @@ The two classes may share Control as a front line, but they do not share the sam
 
 ## 2. Reference Preparation
 
-For asset work, ChatGPT resolves only the ambiguity needed before Codex authoring.
+For asset work, ChatGPT resolves only the ambiguity needed before Codex authoring. A Reference Package is a handoff artifact, not a mandatory output of standalone reference creation.
 
 ```text
 user intent / source evidence
 → requirement gate
 → approved visual authority when needed
-→ compact Reference Package
+→ standalone reference result, OR
+→ compact Reference Package when Codex/LazyDesigner handoff is requested
 ```
 
 Reference Preparation must not invent missing design facts. It uses one primary visual sheet by default and expands only when useful information would otherwise become unreadable.

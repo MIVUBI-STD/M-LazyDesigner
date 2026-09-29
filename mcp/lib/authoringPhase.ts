@@ -1,6 +1,7 @@
 import type { McpRegistrationFamily } from "@/lib/registrationProfile";
 import { capabilityPhaseByName } from "@/lib/capabilities/manifest";
 
+/** Compatibility-bound serialized setting ID. Product semantics use Stage + Runtime Surface. */
 export const MCP_AUTHORING_PHASE_SETTING_ID = "mcp_authoring_phase";
 export const MCP_HANDOFF_REQUIRED = "HANDOFF_REQUIRED";
 
@@ -10,6 +11,7 @@ export const MCP_AUTHORING_PHASES = [
   "animation",
 ] as const;
 
+/** Internal compatibility name. In product semantics this value is the Authoring Stage. */
 export type McpAuthoringPhase = (typeof MCP_AUTHORING_PHASES)[number];
 export type McpToolPhaseCategory = "core" | McpAuthoringPhase;
 export type McpRuntimeSurface = "AUTHORING" | "ANIMATION";
@@ -82,7 +84,7 @@ export function resolveMcpAuthoringPhase(value: unknown): McpAuthoringPhase {
   }
   if (isMcpAuthoringPhase(value)) return value;
   throw new Error(
-    `Invalid MCP Authoring Phase "${String(value)}". Expected geometry, texturing, or animation.`
+    `Invalid MCP Authoring Stage "${String(value)}". Expected geometry, texturing, or animation.`
   );
 }
 
@@ -143,14 +145,14 @@ export function buildMcpPhaseHandoffContract(
 ): string {
   if (getMcpRuntimeSurface(phase) === "AUTHORING") {
     return [
-      "## Authoring Focus / Handoff",
+      "## Authoring Stage / Surface Handoff",
       getMcpPhaseReadinessSummary(phase),
       "Geometry↔Texturing correction does not require HANDOFF_REQUIRED; use the semantic owner directly in AUTHORING.",
       `${MCP_HANDOFF_REQUIRED} is only AUTHORING↔ANIMATION through switch_authoring_phase via Gateway; continue the same task/chat with target_phase, reason, readiness, resume_from.`,
     ].join("\n\n");
   }
   return [
-    "## Phase Readiness / Handoff",
+    "## Stage / Surface Handoff",
     getMcpPhaseReadinessSummary(phase),
     "Keep target_phase, reason, readiness, resume_from.",
     `${MCP_HANDOFF_REQUIRED}: STOP Animation mutation routes, invoke switch_authoring_phase through Gateway, then continue the same task on the shared AUTHORING surface.`,
