@@ -100,9 +100,6 @@ export function correctionContinuationDelta(
   const previousByView = new Map(
     previous.fresh_view_evidence.map((item) => [item.view, item])
   );
-  const currentByView = new Map(
-    current.fresh_view_evidence.map((item) => [item.view, item])
-  );
   const evidenceUpsert = current.fresh_view_evidence.filter((item) => {
     const prior = previousByView.get(item.view);
     return prior === undefined || prior.handle !== item.handle;
