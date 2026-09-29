@@ -3,6 +3,11 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
+  "cubes.ts": 'export * from "./geometry/cubes";\n',
+  "project.ts": 'export * from "./project/project";\n',
+  "particle.ts": 'export * from "./particle/manage";\n',
+  "particle-inspection.ts": 'export * from "./particle/inspection";\n',
+  "particle-file-transaction.ts": 'export * from "./particle/fileTransaction";\n',
   "element-shared.ts": 'export * from "./element/shared";\n',
   "element-discovery.ts": 'export * from "./element/discovery";\n',
   "element-hierarchy.ts": 'export * from "./element/hierarchy";\n',
