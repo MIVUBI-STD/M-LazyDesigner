@@ -7,7 +7,7 @@ import { setBarItemValues } from "@/lib/util";
 import { generateTexturePalette, texturePaletteParameters } from "@/lib/texturePalette";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { axisEnum, brushModifierEnum, coordinateSchema } from "@/lib/zodObjects";
-import { getRuntimePainter } from "./paint-shared";
+import { getRuntimePainter } from "./paint/shared";
 
 export const paintSettingsParameters = z.object({
   texture_preview: z.object({
