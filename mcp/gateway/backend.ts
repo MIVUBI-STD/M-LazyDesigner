@@ -1,11 +1,13 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import {
-  BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER,
-  BLOCKIT_PROJECT_AFFINITY_HEADER,
   readRuntimeAuthoringPhase,
   readRuntimeProjectHealth,
   type BlockitAuthoringPhaseAffinity,
 } from "./runtime/projectAffinity";
+import {
+  buildRuntimeAffinityHeaders,
+  isCatalogFresh,
+} from "./runtime/backendState";
 import {
   resolveAuthoringPhaseAffinity,
   resolveProjectAffinity,
@@ -132,24 +134,18 @@ export class BlockitRuntimeBackend {
   }
 
   private hasFreshCatalog(now: number = Date.now()): boolean {
-    return Boolean(
-      this.client &&
-      this.connectedSignature &&
-      this.catalog.size > 0 &&
-      this.catalogValidatedAt > 0 &&
-      now - this.catalogValidatedAt <= this.catalogLeaseMs
-    );
+    return isCatalogFresh({
+      clientReady: Boolean(this.client),
+      connectedSignature: this.connectedSignature,
+      catalogCount: this.catalog.size,
+      catalogValidatedAt: this.catalogValidatedAt,
+      catalogLeaseMs: this.catalogLeaseMs,
+      now,
+    });
   }
 
   private runtimeRequestHeaders(): Headers {
-    const headers = new Headers();
-    if (this.projectUuid) {
-      headers.set(BLOCKIT_PROJECT_AFFINITY_HEADER, this.projectUuid);
-    }
-    if (this.authoringPhase) {
-      headers.set(BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER, this.authoringPhase);
-    }
-    return headers;
+    return buildRuntimeAffinityHeaders(this.projectUuid, this.authoringPhase);
   }
 
   private async probeHealth(): Promise<HealthProbe> {
