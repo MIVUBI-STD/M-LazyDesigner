@@ -69,6 +69,7 @@ Current migrated texture contract:
 ```text
 server/tools/texture/createSchema.ts    canonical create_texture input contract
 server/tools/texture/materialSchema.ts  canonical material input contracts
+server/tools/texture/materialState.ts   canonical material lookup/state projection
 server/tools/texture-create.ts         executor + native mutation
 server/runtime/textureRuntimeContracts.ts consumes schema directly
 ```
