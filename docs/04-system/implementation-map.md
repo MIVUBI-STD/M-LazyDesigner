@@ -160,9 +160,9 @@ mcp/server/tools/animation/*Schema.ts
 mcp/server/tools/animation/shared.ts
 → canonical Animation capability/schema/helper owners
 
-mcp/server/tools/animation-rigging.ts
-mcp/server/tools/animation-batch.ts
-→ remaining root-level Animation implementations pending controlled migration
+mcp/server/tools/animation/rigging.ts
+mcp/server/tools/animation/batch.ts
+→ canonical Animation rigging/batch owners
 
 mcp/server/tools/texture.ts
 → Texture facade only: ordered docs + compatibility re-exports + focused registrar aggregation
@@ -175,27 +175,27 @@ mcp/server/tools/texture/*Schema.ts
 mcp/server/tools/texture/materialState.ts
 → canonical Texture creation/read/assignment/material/schema/state owners
 
-mcp/server/tools/texture-atlas.ts
-→ remaining root-level Texture implementation pending controlled migration
+mcp/server/tools/texture/atlas.ts
+→ canonical Texture atlas owner
 
 mcp/server/tools/paint.ts
 → Paint facade only: ordered docs + compatibility re-exports + focused registrar aggregation
 
-mcp/server/tools/paint-primitives.ts
-mcp/server/tools/paint-brush.ts
-mcp/server/tools/paint-settings.ts
-mcp/server/tools/paint-selection-layers.ts
-mcp/server/tools/paint-shared.ts
-→ focused paint primitive/brush/settings/selection-layer/shared owners
+mcp/server/tools/paint/primitives.ts
+mcp/server/tools/paint/brush.ts
+mcp/server/tools/paint/settings.ts
+mcp/server/tools/paint/selectionLayers.ts
+mcp/server/tools/paint/shared.ts
+→ canonical Paint primitive/brush/settings/selection-layer/shared owners
 
 mcp/server/tools/element.ts
-→ Element facade only: ordered docs + compatibility re-exports + focused registrar aggregation
+→ Element facade only: ordered docs + focused registrar aggregation
 
-mcp/server/tools/element-mutation.ts
-mcp/server/tools/element-hierarchy.ts
-mcp/server/tools/element-discovery.ts
-mcp/server/tools/element-shared.ts
-→ focused element mutation/hierarchy/discovery/shared owners
+mcp/server/tools/element/mutation.ts
+mcp/server/tools/element/hierarchy.ts
+mcp/server/tools/element/discovery.ts
+mcp/server/tools/element/shared.ts
+→ canonical Element mutation/hierarchy/discovery/shared owners
 ```
 
 Representative focused owners:
