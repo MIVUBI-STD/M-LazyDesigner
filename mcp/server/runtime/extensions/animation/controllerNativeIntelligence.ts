@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
-import { manageAnimationControllerParameters } from "../../../tools/animation-controller";
+import { manageAnimationControllerParameters } from "../../../tools/animation/controllerSchema";
 import {
   getAllToolDefinitions,
   invalidateToolRegistrationRuntimeCaches,
