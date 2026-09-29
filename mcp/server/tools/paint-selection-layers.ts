@@ -15,7 +15,7 @@ import {
   preflightLayerMetadataBatch,
   resolveManagedTextureLayer,
   textureLayerContinuationState,
-} from "@/server/tools/paint-layer-state";
+} from "@/server/tools/paint/layerState";
 
 const textureLayerBlendModeEnum = z.enum([
   "default",
