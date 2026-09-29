@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { recoveryForGatewayError } from "./recovery";
+import { recoveryForGatewayError } from "./runtime/recovery";
 
 describe("gateway recovery semantics", () => {
   test("marks interrupted mutations as uncertain and non-retriable", () => {
