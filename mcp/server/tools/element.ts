@@ -5,29 +5,29 @@ import {
   elementMutationToolDocs,
   registerElementMutationTools,
   registerRemoveElementTool,
-} from "./element-mutation";
+} from "./element/mutation";
 export {
   duplicateElementParameters,
   removeElementParameters,
   renameElementParameters,
-} from "./element-mutation";
+} from "./element/mutation";
 
 import {
   elementHierarchyToolDocs,
   registerAddGroupTool,
   registerElementHierarchyTools,
-} from "./element-hierarchy";
+} from "./element/hierarchy";
 export {
   addGroupParameters,
   modifyGroupParameters,
   reparentElementParameters,
-} from "./element-hierarchy";
+} from "./element/hierarchy";
 
 import {
   elementDiscoveryToolDocs,
   registerElementDiscoveryTools,
   registerListOutlineTool,
-} from "./element-discovery";
+} from "./element/discovery";
 export {
   elementTypeEnum,
   filterByMaterialParameters,
@@ -35,7 +35,7 @@ export {
   getSelectionParameters,
   listOutlineParameters,
   selectAllOfTypeParameters,
-} from "./element-discovery";
+} from "./element/discovery";
 
 export {
   hasCaseInsensitiveGroupNameCollision,
