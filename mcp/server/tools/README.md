@@ -21,3 +21,17 @@ matching root paths                         compatibility re-export only
 ```
 
 Do not introduce a second routing/registry layer here. Registration remains owned by `server/runtime/registration.ts`; tool modules own implementation only.
+
+
+## Runtime augmentation boundary
+
+Tool implementation and Runtime augmentation are separate owners.
+
+```text
+server/tools/*                         base tool implementation / registration
+server/tools/<domain>/*                reusable tool-domain internals
+server/runtime/extensions/<domain>/*   post-registration Runtime augmentation
+server/runtime/extensions.ts           extension composition order
+```
+
+Do not place new `*-native-intelligence` or post-registration wrapper logic in `server/tools`.
