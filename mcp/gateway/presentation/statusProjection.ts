@@ -1,5 +1,5 @@
 import type { GatewayRuntimeStatus } from "../backend";
-import type { JsonRecord } from "../protocol";
+import type { JsonRecord } from "../contracts/protocol";
 import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS, type CapabilitySemanticCatalogRevisions } from "../capabilities/semanticRegistry";
 import { evaluateSemanticConsumerFreshness } from "../development/semanticFreshness";
 
