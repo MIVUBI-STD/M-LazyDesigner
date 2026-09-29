@@ -197,3 +197,68 @@ export function applyLayerMetadataBatchPlan<
     texture.layers.splice(update.target_index, 0, layer);
   }
 }
+
+
+export function requireLayerOpacityChange(
+  layer: ManagedTextureLayer,
+  opacity: number
+): void {
+  if (layer.opacity === opacity) {
+    throw new Error(
+      `Layer "${layer.name}" already has opacity ${opacity}%; no authored change is required.`
+    );
+  }
+}
+
+export function requireLayerBlendModeChange(
+  layer: ManagedTextureLayer,
+  blendMode: string
+): void {
+  if (layer.blend_mode === blendMode) {
+    throw new Error(
+      `Layer "${layer.name}" already uses blend mode ${blendMode}; no authored change is required.`
+    );
+  }
+}
+
+export function requireLayerMove(
+  texture: Texture,
+  layer: ManagedTextureLayer,
+  targetIndex: number
+): number {
+  if (targetIndex >= texture.layers.length) {
+    throw new Error(
+      `Target index ${targetIndex} is out of range for ${texture.layers.length} layers.`
+    );
+  }
+  const currentIndex = texture.layers.indexOf(layer);
+  if (currentIndex === targetIndex) {
+    throw new Error(
+      `Layer "${layer.name}" is already at index ${targetIndex}; no authored change is required.`
+    );
+  }
+  return currentIndex;
+}
+
+export function requireLayerRename(
+  texture: Texture,
+  layer: ManagedTextureLayer,
+  nextName: string
+): string {
+  if (layer.name === nextName) {
+    throw new Error(
+      `Layer already has the exact name "${nextName}"; no authored change is required.`
+    );
+  }
+  const collision = texture.layers.some(
+    (candidate) =>
+      candidate !== layer &&
+      candidate.name.toLowerCase() === nextName.toLowerCase()
+  );
+  if (collision) {
+    throw new Error(
+      `Layer name "${nextName}" collides case-insensitively inside texture "${texture.name}".`
+    );
+  }
+  return layer.name;
+}
