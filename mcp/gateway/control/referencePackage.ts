@@ -10,7 +10,9 @@ export type {
   ControlProfile,
   ControlReferenceAssetKind,
   ControlReferenceProjection,
+  ControlReferenceSemanticFacts,
   ControlReferenceStage,
+  ControlReferenceStructuredFact,
 } from "./referenceTypes";
 
 type CachedReference = {

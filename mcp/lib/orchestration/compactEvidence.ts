@@ -1,3 +1,4 @@
+import type { VerificationRisk } from "@/lib/orchestration/deltaVerification";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
@@ -46,6 +47,32 @@ export type MinecraftRepairRoute =
   | "TEXTURE_EDIT"
   | "ANIMATION_EDIT"
   | "MORE_EVIDENCE";
+
+export type MinecraftEvidenceNeed =
+  | {
+      action: "CAPTURE_VISUAL_EVIDENCE";
+      capability: "capture_model_views";
+      evidence_targets: VisualEvidenceTarget[];
+      verification_risk: VerificationRisk;
+      selection: "RUNTIME_MINIMUM_TARGET_COVERAGE";
+    }
+  | {
+      action: "INSPECT_RIG_STATE";
+      capability: "inspect_elements";
+    }
+  | {
+      action: "INSPECT_TEXTURE_STATE";
+      capability: "get_texture";
+    }
+  | {
+      action: "INSPECT_ANIMATION_STATE";
+      capability: "inspect_animation";
+    }
+  | {
+      action: "CLASSIFY_CAUSE";
+      capability: null;
+    }
+  | null;
 
 export type VerificationDiscrepancy = {
   code: string;
@@ -155,8 +182,45 @@ export function diagnoseMinecraftDiscrepancy(
   };
 }
 
+/**
+ * Selects the minimum existing evidence path needed to resolve an uncertain
+ * Minecraft discrepancy. Visual requests pass only evidence targets + risk;
+ * capture_model_views owns deterministic minimum view/resolution selection.
+ */
+export function selectMinecraftEvidenceNeed(
+  discrepancy: VerificationDiscrepancy,
+  verificationRisk: VerificationRisk = "LOW"
+): MinecraftEvidenceNeed {
+  const diagnosis = diagnoseMinecraftDiscrepancy(discrepancy);
+  if (diagnosis.evidence_backed) return null;
+
+  if (diagnosis.owner === "RIG") {
+    return { action: "INSPECT_RIG_STATE", capability: "inspect_elements" };
+  }
+  if (diagnosis.owner === "TEXTURE") {
+    return { action: "INSPECT_TEXTURE_STATE", capability: "get_texture" };
+  }
+  if (diagnosis.owner === "ANIMATION") {
+    return { action: "INSPECT_ANIMATION_STATE", capability: "inspect_animation" };
+  }
+
+  const targets = [...new Set(discrepancy.evidence_targets ?? [])];
+  if (targets.length > 0) {
+    return {
+      action: "CAPTURE_VISUAL_EVIDENCE",
+      capability: "capture_model_views",
+      evidence_targets: targets,
+      verification_risk: verificationRisk,
+      selection: "RUNTIME_MINIMUM_TARGET_COVERAGE",
+    };
+  }
+
+  return { action: "CLASSIFY_CAUSE", capability: null };
+}
+
 export function minecraftQualityFocus(
-  discrepancies: readonly VerificationDiscrepancy[]
+  discrepancies: readonly VerificationDiscrepancy[],
+  verificationRisk: VerificationRisk = "LOW"
 ): {
   code: string;
   severity: VerificationDiscrepancy["severity"];
@@ -165,6 +229,7 @@ export function minecraftQualityFocus(
   cause_family: MinecraftCauseFamily;
   repair_route: MinecraftRepairRoute;
   evidence_backed_cause: boolean;
+  evidence_need: MinecraftEvidenceNeed;
   views: ModelView[];
   evidence_targets: VisualEvidenceTarget[];
 } | null {
@@ -179,6 +244,7 @@ export function minecraftQualityFocus(
     cause_family: diagnosis.cause_family,
     repair_route: diagnosis.repair_route,
     evidence_backed_cause: diagnosis.evidence_backed,
+    evidence_need: selectMinecraftEvidenceNeed(focus, verificationRisk),
     views: [...(focus.views ?? [])],
     evidence_targets: [...(focus.evidence_targets ?? [])],
   };

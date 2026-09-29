@@ -4,6 +4,7 @@ import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePl
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import type {
   MinecraftCauseFamily,
+  MinecraftEvidenceNeed,
   MinecraftQualityClass,
   MinecraftQualityOwner,
   MinecraftRepairRoute,
@@ -38,6 +39,7 @@ export type CorrectionLoopContinuation = {
     cause_family: MinecraftCauseFamily;
     repair_route: MinecraftRepairRoute;
     evidence_backed_cause: boolean;
+    evidence_need: MinecraftEvidenceNeed;
     views: ModelView[];
     evidence_targets: VisualEvidenceTarget[];
   } | null;

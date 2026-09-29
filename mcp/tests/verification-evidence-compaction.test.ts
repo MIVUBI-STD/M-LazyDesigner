@@ -6,6 +6,7 @@ import {
   diagnoseMinecraftDiscrepancy,
   minecraftQualityFocus,
   prioritizeMinecraftDiscrepancies,
+  selectMinecraftEvidenceNeed,
   type VerificationDiscrepancy,
 } from "@/lib/orchestration/compactEvidence";
 import type { VerificationTask } from "@/lib/orchestration/verificationPlan";
@@ -120,6 +121,7 @@ describe("verification evidence compaction", () => {
       cause_family: "MISSING_REQUIRED_PART",
       repair_route: "ADD_MASS",
       evidence_backed_cause: true,
+      evidence_need: null,
       views: ["front", "left"],
       evidence_targets: ["silhouette"],
     });
@@ -151,6 +153,71 @@ describe("verification evidence compaction", () => {
     expect(minecraftQualityFocus(prioritized)?.repair_route).toBe(
       "MORE_EVIDENCE"
     );
+    expect(minecraftQualityFocus(prioritized)?.evidence_need).toEqual({
+      action: "CLASSIFY_CAUSE",
+      capability: null,
+    });
+  });
+
+  test("uncertain geometry asks runtime for minimum target-driven visual evidence", () => {
+    const discrepancy: VerificationDiscrepancy = {
+      code: "DEPTH_UNKNOWN",
+      severity: "REVIEW",
+      summary: "depth cause remains unresolved",
+      owner: "GEOMETRY",
+      evidence_targets: ["depth", "attachment"],
+    };
+
+    expect(selectMinecraftEvidenceNeed(discrepancy, "MEDIUM")).toEqual({
+      action: "CAPTURE_VISUAL_EVIDENCE",
+      capability: "capture_model_views",
+      evidence_targets: ["depth", "attachment"],
+      verification_risk: "MEDIUM",
+      selection: "RUNTIME_MINIMUM_TARGET_COVERAGE",
+    });
+    expect(minecraftQualityFocus([discrepancy], "MEDIUM")?.evidence_need).toEqual({
+      action: "CAPTURE_VISUAL_EVIDENCE",
+      capability: "capture_model_views",
+      evidence_targets: ["depth", "attachment"],
+      verification_risk: "MEDIUM",
+      selection: "RUNTIME_MINIMUM_TARGET_COVERAGE",
+    });
+  });
+
+  test("uncertain specialist-owned causes request focused existing inspection paths", () => {
+    expect(
+      selectMinecraftEvidenceNeed({
+        code: "PIVOT_UNKNOWN",
+        severity: "REVIEW",
+        summary: "pivot cause not yet proven",
+        owner: "RIG",
+      })
+    ).toEqual({
+      action: "INSPECT_RIG_STATE",
+      capability: "inspect_elements",
+    });
+    expect(
+      selectMinecraftEvidenceNeed({
+        code: "MATERIAL_UNKNOWN",
+        severity: "REVIEW",
+        summary: "material cause not yet proven",
+        owner: "TEXTURE",
+      })
+    ).toEqual({
+      action: "INSPECT_TEXTURE_STATE",
+      capability: "get_texture",
+    });
+    expect(
+      selectMinecraftEvidenceNeed({
+        code: "MOTION_UNKNOWN",
+        severity: "REVIEW",
+        summary: "motion cause not yet proven",
+        owner: "ANIMATION",
+      })
+    ).toEqual({
+      action: "INSPECT_ANIMATION_STATE",
+      capability: "inspect_animation",
+    });
   });
 
   test("causal diagnosis maps only explicit evidence-backed causes to repair routes", () => {

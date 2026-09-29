@@ -32,6 +32,14 @@ function fixture(overrides: Partial<ControlStageContext> = {}): ControlStageCont
       player_relative_scale: "VEHICLE_SCALE",
       animation_required: true,
     },
+    semantic_facts: {
+      parts: [],
+      articulation: [],
+      materials: [],
+      animation_guidance: [],
+      constraints: [],
+    },
+    decision_packet: {},
     reference_document: "GEOMETRY.md",
     reference_image_ids: ["IMG_FRONT", "IMG_SIDE", "IMG_TOP"],
     workspace: {

@@ -235,7 +235,14 @@ export class CorrectionLoopRegistry {
     const prioritizedDiscrepancies = prioritizeMinecraftDiscrepancies(
       record.discrepancies
     );
-    const qualityFocus = minecraftQualityFocus(prioritizedDiscrepancies);
+    const verificationRisk =
+      record.verification_request.domain === "GEOMETRY"
+        ? record.verification_request.verification_risk
+        : "LOW";
+    const qualityFocus = minecraftQualityFocus(
+      prioritizedDiscrepancies,
+      verificationRisk
+    );
     const unresolved = prioritizedDiscrepancies.slice(0, 6).map((item) => ({
       code: item.code,
       severity: item.severity,
