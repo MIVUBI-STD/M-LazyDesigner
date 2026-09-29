@@ -6,7 +6,6 @@ import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveUuidOrUniqueName } from "@/lib/coreIdentity";
 import {
   manageAnimationControllerParameters,
-  type ControllerMutationOperation,
 } from "@/server/tools/animation/controllerSchema";
 import {
   controllerStateContinuation,
