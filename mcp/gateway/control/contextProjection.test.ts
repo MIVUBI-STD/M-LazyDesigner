@@ -1,9 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
   buildControlStageContext,
+  decisionPacketForAuthoringDomain,
   semanticFactsForAuthoringDomain,
   stageReferenceSemanticFingerprint,
 } from "./contextProjection";
+import {
+  projectControlStageContextWithHeadroom,
+  serializedUtf8Bytes,
+} from "./contextHeadroom";
 import type { ControlReferenceProjection } from "./referenceTypes";
 import type { ControlWorkspaceProjection } from "./workspace";
 
@@ -75,12 +80,15 @@ const reference: ControlReferenceProjection = {
         role: "GEOMETRY",
         motion: "STATIC",
         evidence: "SUPPORTED",
+        tutorial_note: "verbose source-only prose should not reach Codex",
       },
       {
         id: "front_leg",
         role: "GEOMETRY",
+        parent: "torso",
         motion: "ARTICULATED",
         evidence: "SUPPORTED",
+        implementation_hint: "do not expose as a decision field",
       },
       {
         id: "blink",
@@ -98,8 +106,11 @@ const reference: ControlReferenceProjection = {
     articulation: [
       {
         id: "front_leg_joint",
+        parent: "torso",
+        child: "front_leg",
         pivot_region: "shoulder",
         risk: "joint gap",
+        prose_note: "not decision-critical",
       },
     ],
     materials: [
@@ -107,6 +118,7 @@ const reference: ControlReferenceProjection = {
         id: "coat",
         base_color: "brown",
         affected_parts: ["torso", "front_leg"],
+        unrelated_note: "omit",
       },
     ],
     animation_guidance: [
@@ -114,6 +126,8 @@ const reference: ControlReferenceProjection = {
         name: "walk",
         type: "LOOP",
         participants: ["front_leg"],
+        key_poses: ["contact", "passing"],
+        prose_note: "omit",
       },
     ],
     constraints: ["preserve slender leg silhouette"],
@@ -146,6 +160,46 @@ describe("Control stage semantic projection", () => {
     expect(animation.articulation).toHaveLength(1);
     expect(animation.materials).toEqual([]);
     expect(animation.animation_guidance).toHaveLength(1);
+  });
+
+  test("decision packet keeps Minecraft modelling decisions and removes source-only noise", () => {
+    const geometry = decisionPacketForAuthoringDomain("GEOMETRY", reference);
+    const texture = decisionPacketForAuthoringDomain("TEXTURING", reference);
+    const animation = decisionPacketForAuthoringDomain("ANIMATION", reference);
+
+    expect(geometry.parts).toEqual([
+      {
+        id: "torso",
+        role: "GEOMETRY",
+        motion: "STATIC",
+        evidence: "SUPPORTED",
+      },
+      {
+        id: "front_leg",
+        role: "GEOMETRY",
+        parent: "torso",
+        motion: "ARTICULATED",
+        evidence: "SUPPORTED",
+      },
+    ]);
+    expect(geometry.articulation?.[0]).toEqual({
+      id: "front_leg_joint",
+      parent: "torso",
+      child: "front_leg",
+      pivot_region: "shoulder",
+      risk: "joint gap",
+    });
+    expect(texture.materials?.[0]).toEqual({
+      id: "coat",
+      base_color: "brown",
+      affected_parts: ["torso", "front_leg"],
+    });
+    expect(animation.motion?.[0]).toEqual({
+      name: "walk",
+      type: "LOOP",
+      participants: ["front_leg"],
+      key_poses: ["contact", "passing"],
+    });
   });
 
   test("geometry fingerprint ignores texture-only fact changes", () => {
@@ -203,7 +257,7 @@ describe("Control stage semantic projection", () => {
     ).not.toBe(base);
   });
 
-  test("stage context carries the compact semantic projection", () => {
+  test("stage context carries internal facts plus the compact Codex decision packet", () => {
     const context = buildControlStageContext({
       domain: "GEOMETRY",
       reference,
@@ -216,9 +270,48 @@ describe("Control stage semantic projection", () => {
       "front_leg",
     ]);
     expect(context.semantic_facts.materials).toEqual([]);
+    expect(context.decision_packet.parts?.map((part) => part.id)).toEqual([
+      "torso",
+      "front_leg",
+    ]);
     expect(context.reference_image_ids).toEqual(["geo-main"]);
     expect(context.current_user_delta).toBe(
       "make the legs slightly longer"
     );
+  });
+
+  test("Gateway projection exposes compact decisions without retransmitting raw semantic facts", () => {
+    const context = buildControlStageContext({
+      domain: "GEOMETRY",
+      reference,
+      workspace,
+    });
+    const projected = projectControlStageContextWithHeadroom(context, 8192);
+
+    expect(projected.context.decision_packet?.parts?.map((part) => part.id)).toEqual([
+      "torso",
+      "front_leg",
+    ]);
+    expect("semantic_facts" in projected.context).toBe(false);
+    expect(
+      serializedUtf8Bytes(projected.context.decision_packet)
+    ).toBeLessThan(serializedUtf8Bytes(context.semantic_facts));
+  });
+
+  test("quality-critical decisions survive proxy headroom pressure", () => {
+    const context = buildControlStageContext({
+      domain: "GEOMETRY",
+      reference,
+      workspace,
+    });
+    const projected = projectControlStageContextWithHeadroom(context, 64);
+
+    expect(projected.context.decision_packet?.parts?.[1]).toMatchObject({
+      id: "front_leg",
+      parent: "torso",
+      motion: "ARTICULATED",
+    });
+    expect(projected.diagnostics.required_over_budget).toBe(true);
+    expect(projected.context.headroom_state).toBe("REQUIRED_OVER_BUDGET");
   });
 });

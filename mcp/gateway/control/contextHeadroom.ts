@@ -35,6 +35,7 @@ export type ProjectedControlStageContext = {
   stage_readiness: string | null;
   blocking_unknowns: string[];
   requirements: ControlStageContext["requirements"];
+  decision_packet?: ControlStageContext["decision_packet"];
   reference_image_ids: string[];
   workspace: {
     asset: string | null;
@@ -79,6 +80,12 @@ function projectionHash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
+function hasDecisionPacket(
+  packet: ControlStageContext["decision_packet"]
+): boolean {
+  return Object.keys(packet).length > 0;
+}
+
 function requiredProjection(
   context: ControlStageContext
 ): ProjectedControlStageContext {
@@ -93,6 +100,9 @@ function requiredProjection(
     stage_readiness: context.stage_readiness,
     blocking_unknowns: [...context.blocking_unknowns],
     requirements: context.requirements,
+    ...(hasDecisionPacket(context.decision_packet)
+      ? { decision_packet: context.decision_packet }
+      : {}),
     // These IDs identify the stage-approved visual evidence set. Dropping them
     // based only on size can silently reduce reference fidelity.
     reference_image_ids: [...context.reference_image_ids],

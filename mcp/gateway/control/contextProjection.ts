@@ -26,6 +26,14 @@ export type ControlStageSemanticFacts = {
   constraints: string[];
 };
 
+export type ControlStageDecisionPacket = {
+  parts?: ControlReferenceStructuredFact[];
+  articulation?: ControlReferenceStructuredFact[];
+  materials?: ControlReferenceStructuredFact[];
+  motion?: ControlReferenceStructuredFact[];
+  constraints?: string[];
+};
+
 export type ControlStageContext = {
   context_type: ControlContextType | null;
   context_hash: string;
@@ -40,6 +48,7 @@ export type ControlStageContext = {
   non_blocking_unknowns_relevant_to_stage: string[];
   requirements: ControlReferenceProjection["requirements"];
   semantic_facts: ControlStageSemanticFacts;
+  decision_packet: ControlStageDecisionPacket;
   reference_document: string | null;
   reference_image_ids: string[];
   workspace: {
@@ -57,6 +66,55 @@ const EMPTY_SEMANTIC_FACTS: ControlReferenceSemanticFacts = {
   animation_guidance: [],
   constraints: [],
 };
+
+const GEOMETRY_PART_KEYS = [
+  "id",
+  "role",
+  "parent",
+  "symmetry",
+  "motion",
+  "evidence",
+  "representation",
+  "depth",
+  "attachment",
+  "contact",
+  "must_exist",
+] as const;
+
+const ARTICULATION_KEYS = [
+  "id",
+  "parent",
+  "child",
+  "motion",
+  "pivot_region",
+  "axis",
+  "overlap",
+  "clearance",
+  "risk",
+  "evidence",
+] as const;
+
+const MATERIAL_KEYS = [
+  "id",
+  "name",
+  "base_color",
+  "surface",
+  "surface_character",
+  "affected_parts",
+  "emissive",
+  "pbr",
+  "evidence",
+] as const;
+
+const MOTION_KEYS = [
+  "name",
+  "type",
+  "purpose",
+  "participants",
+  "key_poses",
+  "contact_events",
+  "evidence",
+] as const;
 
 function contextType(domain: ControlAuthoringDomain | null): ControlContextType | null {
   if (domain === "GEOMETRY") return "GEOMETRY_CONTEXT";
@@ -122,6 +180,27 @@ function animationParts(
   });
 }
 
+function compactFact(
+  fact: ControlReferenceStructuredFact,
+  keys: readonly string[]
+): ControlReferenceStructuredFact {
+  const out: ControlReferenceStructuredFact = {};
+  for (const key of keys) {
+    const value = fact[key];
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+}
+
+function compactFacts(
+  facts: readonly ControlReferenceStructuredFact[],
+  keys: readonly string[]
+): ControlReferenceStructuredFact[] {
+  return facts
+    .map((fact) => compactFact(fact, keys))
+    .filter((fact) => Object.keys(fact).length > 0);
+}
+
 export function semanticFactsForAuthoringDomain(
   domain: ControlAuthoringDomain | null,
   reference: ControlReferenceProjection
@@ -165,6 +244,37 @@ export function semanticFactsForAuthoringDomain(
     animation_guidance: [],
     constraints: facts.constraints,
   };
+}
+
+export function decisionPacketForAuthoringDomain(
+  domain: ControlAuthoringDomain | null,
+  reference: ControlReferenceProjection
+): ControlStageDecisionPacket {
+  const facts = semanticFactsForAuthoringDomain(domain, reference);
+  const packet: ControlStageDecisionPacket = {};
+
+  if (domain === "GEOMETRY") {
+    const parts = compactFacts(facts.parts, GEOMETRY_PART_KEYS);
+    const articulation = compactFacts(facts.articulation, ARTICULATION_KEYS);
+    if (parts.length > 0) packet.parts = parts;
+    if (articulation.length > 0) packet.articulation = articulation;
+  } else if (domain === "TEXTURING") {
+    const materials = compactFacts(facts.materials, MATERIAL_KEYS);
+    if (materials.length > 0) packet.materials = materials;
+  } else if (domain === "ANIMATION") {
+    const parts = compactFacts(facts.parts, GEOMETRY_PART_KEYS);
+    const articulation = compactFacts(facts.articulation, ARTICULATION_KEYS);
+    const motion = compactFacts(facts.animation_guidance, MOTION_KEYS);
+    if (parts.length > 0) packet.parts = parts;
+    if (articulation.length > 0) packet.articulation = articulation;
+    if (motion.length > 0) packet.motion = motion;
+  }
+
+  if (facts.constraints.length > 0) {
+    packet.constraints = [...facts.constraints];
+  }
+
+  return packet;
 }
 
 export function stageReferenceSemanticFingerprint(
@@ -212,6 +322,10 @@ export function buildControlStageContext(input: {
     input.domain,
     input.reference
   );
+  const decisionPacket = decisionPacketForAuthoringDomain(
+    input.domain,
+    input.reference
+  );
   const stageReferenceFingerprint = stageReferenceSemanticFingerprint(
     input.domain,
     input.reference
@@ -238,6 +352,7 @@ export function buildControlStageContext(input: {
     non_blocking_unknowns_relevant_to_stage: relevantNonBlocking,
     requirements: input.reference.requirements,
     semantic_facts: semanticFacts,
+    decision_packet: decisionPacket,
     reference_document: referenceDocument,
     reference_image_ids: referenceImageIds,
     workspace: {
