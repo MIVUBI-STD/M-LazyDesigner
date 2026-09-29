@@ -1,5 +1,15 @@
-export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-export type JsonObject = { [key: string]: JsonValue };
+import {
+  assertJsonValue,
+  cloneJsonValue,
+  type JsonObject,
+  type JsonValue,
+} from "../jsonValue";
+export {
+  assertJsonValue,
+  cloneJsonValue,
+  type JsonObject,
+  type JsonValue,
+} from "../jsonValue";
 
 export const BEDROCK_PARTICLE_FORMAT_VERSION = "1.10.0";
 export const BEDROCK_PARTICLE_PRESETS = ["steady", "burst", "trail", "ambient", "collision_splash"] as const;
@@ -122,26 +132,11 @@ export const BEDROCK_PARTICLE_PRESET_REFERENCE: Record<BedrockParticlePreset, { 
   collision_splash: { description: "One-shot disc burst with collision expiry.", intended_use: "droplets, debris, splash" },
 };
 
-const isObject = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const object = (value: JsonValue | undefined): JsonObject | null => value !== undefined && value !== null && typeof value === "object" && !Array.isArray(value) ? value as JsonObject : null;
 const text = (value: JsonValue | undefined): string | null => typeof value === "string" ? value : null;
 
 export function isBedrockParticleIdentifier(value: string): boolean {
   return /^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(value);
-}
-export function assertJsonValue(value: unknown, path = "value"): asserts value is JsonValue {
-  if (value === null || typeof value === "string" || typeof value === "boolean") return;
-  if (typeof value === "number") { if (!Number.isFinite(value)) throw new Error(`${path} contains a non-finite number.`); return; }
-  if (Array.isArray(value)) { value.forEach((entry, i) => assertJsonValue(entry, `${path}[${i}]`)); return; }
-  if (isObject(value)) { for (const [key, entry] of Object.entries(value)) { if (entry === undefined) throw new Error(`${path}.${key} cannot be undefined.`); assertJsonValue(entry, `${path}.${key}`); } return; }
-  throw new Error(`${path} is not JSON-serializable.`);
-}
-export function cloneJsonValue<T extends JsonValue>(value: T): T {
-  if (value === null || typeof value !== "object") return value;
-  if (Array.isArray(value)) return value.map((entry) => cloneJsonValue(entry)) as T;
-  const copy: JsonObject = {};
-  for (const [key, entry] of Object.entries(value)) copy[key] = cloneJsonValue(entry);
-  return copy as T;
 }
 function effectOf(document: JsonObject): JsonObject {
   const effect = object(document.particle_effect);
