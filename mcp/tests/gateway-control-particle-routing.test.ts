@@ -19,7 +19,7 @@ describe("LazyDesigner Control particle routing", () => {
       expect(sourceOwnerForCapability(capability)).toEqual({
         source: "mcp/server/tools/particle.ts",
         specialist: ".agents/skills/lazydesigner-animation/SKILL.md",
-        test_owner: "mcp/tests/particle-tool-contract.test.ts",
+        anchor_test: "mcp/tests/particle-tool-contract.test.ts",
       });
     }
   });
