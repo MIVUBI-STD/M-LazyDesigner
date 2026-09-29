@@ -203,6 +203,27 @@ export function geometryInvalidation(
     return assetDomainsForScopes(scopes);
   }
 
+  if (capability === "modify_group") {
+    for (const candidate of resultCandidates(result)) {
+      if (
+        candidate.execution === "applied" &&
+        Array.isArray(candidate.changed_fields)
+      ) {
+        const fields = candidate.changed_fields.filter(
+          (field): field is string => typeof field === "string"
+        );
+        const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
+        if (fields.some((field) => field === "origin" || field === "rotation")) {
+          stale.push("ANIMATION_MOTION");
+        }
+        return {
+          stale,
+          precise: true,
+        };
+      }
+    }
+  }
+
   if (capability === "remove_element") {
     for (const candidate of resultCandidates(result)) {
       const removedRoot = record(candidate.removed_root);
@@ -343,7 +364,28 @@ export function geometryFreshnessScopes(
   if (capability === "remove_element") {
     for (const candidate of resultCandidates(result)) {
       const removedRoot = record(candidate.removed_root);
+      const removedCounts = record(candidate.removed_counts);
+      const affectedAnimations =
+        typeof candidate.affected_animations === "number"
+          ? candidate.affected_animations
+          : null;
       if (typeof removedRoot?.type === "string") {
+        if (
+          removedRoot.type === "group" &&
+          typeof removedCounts?.elements === "number"
+        ) {
+          const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
+          if (removedCounts.elements > 0) {
+            stale.push("UV_MAPPING", "TEXTURE_APPEARANCE");
+          }
+          if (affectedAnimations === null || affectedAnimations > 0) {
+            stale.push("ANIMATION_MOTION");
+          }
+          return {
+            stale,
+            precise: true,
+          };
+        }
         return {
           stale: removedElementSemanticScopes(removedRoot.type),
           precise: true,
@@ -362,9 +404,16 @@ export function geometryFreshnessScopes(
         };
       }
       if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
+        const affectedAnimations =
+          typeof candidate.affected_animations === "number"
+            ? candidate.affected_animations
+            : null;
         return {
-          stale: renamedElementSemanticScopes("group"),
-          precise: true,
+          stale:
+            affectedAnimations === 0
+              ? ["GEOMETRY_STRUCTURE"]
+              : renamedElementSemanticScopes("group"),
+          precise: affectedAnimations !== null,
         };
       }
     }
