@@ -154,7 +154,10 @@ export type ControlDelta = {
         animation_uuid?: string;
         bone_ids?: string[];
         channel?: string | null;
+        channels?: string[];
         time_range?: [number, number];
+        controller_uuid?: string;
+        state_ids?: string[];
       };
     }>;
     preserved_domains: ControlAuthoringDomain[];

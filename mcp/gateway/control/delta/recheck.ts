@@ -143,6 +143,77 @@ function animationMotionTargetFromResult(
   return undefined;
 }
 
+
+function animationEffectsTargetFromResult(
+  result: unknown
+): ControlDownstreamRecheck["target"] | undefined {
+  for (const candidate of resultCandidates(result)) {
+    const animation = record(candidate.animation);
+    const results = Array.isArray(candidate.results) ? candidate.results : [];
+    if (typeof animation?.uuid !== "string" || results.length === 0) continue;
+
+    const channels = [
+      ...new Set(
+        results
+          .map((value) => record(value)?.channel)
+          .filter((value): value is string => typeof value === "string")
+      ),
+    ];
+    const times = results
+      .map((value) => record(value)?.time)
+      .filter(
+        (value): value is number =>
+          typeof value === "number" && Number.isFinite(value)
+      );
+
+    return {
+      animation_uuid: animation.uuid,
+      ...(channels.length ? { channels } : {}),
+      ...(times.length
+        ? { time_range: [Math.min(...times), Math.max(...times)] as [number, number] }
+        : {}),
+    };
+  }
+  return undefined;
+}
+
+function animationControllerTargetFromResult(
+  result: unknown
+): ControlDownstreamRecheck["target"] | undefined {
+  for (const candidate of resultCandidates(result)) {
+    const controller = record(candidate.controller);
+    if (typeof controller?.uuid !== "string") continue;
+
+    const stateIds = new Set<string>();
+    if (Array.isArray(candidate.affected_states)) {
+      for (const value of candidate.affected_states) {
+        const state = record(value);
+        if (typeof state?.uuid === "string") stateIds.add(state.uuid);
+      }
+    }
+    const created = record(candidate.created);
+    if (Array.isArray(created?.states)) {
+      for (const value of created.states) {
+        const state = record(value);
+        if (typeof state?.uuid === "string") stateIds.add(state.uuid);
+      }
+    }
+    const removed = record(candidate.removed);
+    if (Array.isArray(removed?.states)) {
+      for (const value of removed.states) {
+        const state = record(value);
+        if (typeof state?.uuid === "string") stateIds.add(state.uuid);
+      }
+    }
+
+    return {
+      controller_uuid: controller.uuid,
+      ...(stateIds.size ? { state_ids: [...stateIds] } : {}),
+    };
+  }
+  return undefined;
+}
+
 export function downstreamRechecksForFreshness(input: {
   stale: readonly ControlFreshnessScope[];
   currentDomain: ControlAuthoringDomain;
@@ -164,7 +235,11 @@ export function downstreamRechecksForFreshness(input: {
               ? materialRenderTargetFromResult(input.result)
               : scope === "ANIMATION_MOTION"
                 ? animationMotionTargetFromResult(input.result)
-                : undefined;
+                : scope === "ANIMATION_CONTROLLER"
+                  ? animationControllerTargetFromResult(input.result)
+                  : scope === "ANIMATION_EFFECTS"
+                    ? animationEffectsTargetFromResult(input.result)
+                    : undefined;
       return {
         scope,
         domain: dependency.domain,
