@@ -15,7 +15,7 @@ import {
   type ControllerSoundEffect,
   type ControllerStatePlan,
   type ControllerTransition,
-} from "@/server/tools/animation-controller-state";
+} from "@/server/tools/animation/controllerState";
 
 const nonEmptyAuthoredString = z
   .string()
