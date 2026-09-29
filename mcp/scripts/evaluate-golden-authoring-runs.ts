@@ -159,7 +159,10 @@ function count(run: GoldenAuthoringRun, kind: GoldenTraceKind): number {
 
 function nullableSum(values: Array<number | null | undefined>): number | null {
   if (values.some((value) => value === null || value === undefined)) return null;
-  return values.reduce((sum, value) => sum + (value as number), 0);
+  return values.reduce<number>(
+    (sum, value) => sum + (value as number),
+    0
+  );
 }
 
 export function summarizeGoldenAuthoringDocument(
