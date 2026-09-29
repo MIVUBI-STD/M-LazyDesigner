@@ -1,5 +1,6 @@
 import {
   assetDependencyForScope,
+  type AssetDependencyDomain,
   type AssetDependencyRecheckAction,
 } from "../../../lib/assetDependencyGraph";
 import type {
@@ -40,7 +41,7 @@ export function downstreamRechecksForFreshness(input: {
     );
 
   const affectedDomains = new Set(required.map((entry) => entry.domain));
-  const all: ControlAuthoringDomain[] = [
+  const all: AssetDependencyDomain[] = [
     "GEOMETRY",
     "TEXTURING",
     "ANIMATION",

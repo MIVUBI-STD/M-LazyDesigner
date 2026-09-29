@@ -40,6 +40,17 @@ function delta(
       cube_uuids: ["cube-a"],
       framing: { min: [0, 0, 0], max: [4, 4, 4] },
     },
+    downstream_recheck: {
+      required: [
+        {
+          scope: "GEOMETRY_STRUCTURE",
+          domain: "GEOMETRY",
+          action: "REVERIFY_GEOMETRY",
+          reason: "Authored geometry structure changed.",
+        },
+      ],
+      preserved_domains: ["TEXTURING", "ANIMATION"],
+    },
     requires_status_refresh: false,
     ...patch,
   };
