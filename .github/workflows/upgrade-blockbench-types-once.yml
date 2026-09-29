@@ -13,7 +13,7 @@ permissions:
 jobs:
   upgrade:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     defaults:
       run:
         working-directory: mcp
@@ -32,14 +32,32 @@ jobs:
       - name: Install current lockfile
         run: bun install --frozen-lockfile
 
-      - name: Upgrade Blockbench type package
-        run: bun add --dev blockbench-types@5.2.0
+      - name: Upgrade Blockbench types and pin patched transitives
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun add --dev blockbench-types@5.2.0
+          bun -e '
+            const path = "package.json";
+            const pkg = await Bun.file(path).json();
+            pkg.overrides = {
+              ...(pkg.overrides ?? {}),
+              electron: "41.10.7",
+              postcss: "8.5.28",
+              nanoid: "3.3.19"
+            };
+            await Bun.write(path, JSON.stringify(pkg, null, 2) + "\n");
+          '
+          bun install
 
       - name: Audit high-severity advisories
         run: bun audit --audit-level=high
 
       - name: Verify type contracts
         run: bun run verify:types
+
+      - name: Verify runtime contracts
+        run: bun run test:runtime
 
       - name: Commit dependency update
         working-directory: .
@@ -50,5 +68,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add mcp/package.json mcp/bun.lock
           git diff --cached --quiet && exit 0
-          git commit -m "chore(deps): upgrade blockbench types security chain"
+          git commit -m "chore(deps): close Blockbench type advisory chain"
           git push origin HEAD:Local
