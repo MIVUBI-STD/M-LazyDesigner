@@ -72,6 +72,12 @@ const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./texture/bitmapRuntime";\n',
   "textureAlphaSemantics.ts":
     'export * from "./texture/alphaSemantics";\n',
+  "textureColorEngine.ts": 'export * from "./texture/colorEngine";\n',
+  "textureColorProfile.ts": 'export * from "./texture/colorProfile";\n',
+  "textureComputePipeline.ts": 'export * from "./texture/computePipeline";\n',
+  "textureComputeRequest.ts": 'export * from "./texture/computeRequest";\n',
+  "textureEvidence.ts": 'export * from "./texture/evidence";\n',
+  "textureEvidenceDelivery.ts": 'export * from "./texture/evidenceDelivery";\n',
   "textureFrameMapping.ts":
     'export * from "./texture/frameMapping";\n',
   "textureMaterialStatus.ts":
