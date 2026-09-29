@@ -70,9 +70,7 @@ async function checkDocsFreshness(): Promise<number> {
     originals.set(target.path, await Bun.file(target.path).text());
   }
 
-  await runBuildScript("docs:build");
-  await runBuildScript("prompts:build");
-  await runBuildScript("generate:hybrid4-schemas");
+  await runBuildScript("generate:owned-artifacts");
 
   const stale: string[] = [];
   for (const target of targets) {
