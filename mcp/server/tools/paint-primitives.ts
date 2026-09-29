@@ -23,7 +23,7 @@ import {
   normalizeTexturePixelRegion,
   requirePixelsWithinTexture,
   texturePixelRectToUvTag,
-} from "./paint-shared";
+} from "./paint/shared";
 
 function runSemanticPaintStroke(
   capability:
