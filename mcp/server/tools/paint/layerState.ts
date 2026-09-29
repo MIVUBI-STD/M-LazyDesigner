@@ -164,3 +164,36 @@ export function preflightLayerMetadataBatch<
 
   return { resolved, previous, visualChange, orderChange };
 }
+
+
+export type LayerMetadataBatchPlan<
+  TUpdate extends LayerMetadataBatchUpdate = LayerMetadataBatchUpdate
+> = ReturnType<typeof preflightLayerMetadataBatch<TUpdate>>;
+
+/**
+ * Apply only deterministic in-memory layer metadata/order changes.
+ * Undo, bitmap recomposition, project sync, UI refresh, and receipts remain
+ * executor-owned side effects.
+ */
+export function applyLayerMetadataBatchPlan<
+  TUpdate extends LayerMetadataBatchUpdate
+>(
+  texture: Texture,
+  plan: LayerMetadataBatchPlan<TUpdate>
+): void {
+  for (const { update, layer } of plan.resolved) {
+    if (update.name !== undefined) layer.name = update.name;
+    if (update.opacity !== undefined) layer.opacity = update.opacity;
+    if (update.blend_mode !== undefined) {
+      layer.blend_mode = update.blend_mode;
+    }
+  }
+
+  for (const { update, layer } of plan.resolved) {
+    if (update.target_index === undefined) continue;
+    const currentIndex = texture.layers.indexOf(layer);
+    if (currentIndex === update.target_index) continue;
+    texture.layers.remove(layer);
+    texture.layers.splice(update.target_index, 0, layer);
+  }
+}
