@@ -22,8 +22,8 @@ import {
 import {
   animationGraphEditorParameters,
   manageKeyframesParameters,
-} from "../tools/animation-keyframes";
-import { animationTimelineParameters } from "../tools/animation-timeline";
+} from "../tools/animation/keyframeSchema";
+import { animationTimelineParameters } from "../tools/animation/timelineSchema";
 
 type JsonRecord = Record<string, unknown>;
 
