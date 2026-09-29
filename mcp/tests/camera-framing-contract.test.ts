@@ -6,7 +6,7 @@ import {
   prepareOffscreenPreview,
   selectCaptureSizeForEvidence,
   selectModelViewsForEvidence,
-} from "@/server/tools/camera";
+} from "@/server/tools/inspection/camera";
 
 const baseInput = {
   views: ["front"],
