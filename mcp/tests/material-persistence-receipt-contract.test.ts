@@ -44,6 +44,8 @@ describe("shared material persistence receipt contract", () => {
 
     expect(producer).toContain("materialPersistenceReceipt({");
     expect(control).toContain("isMaterialPersistenceReceipt");
-    expect(control).toContain('case "save_material_config"');
+    expect(control).toContain(
+      "save_material_config: materialPersistenceReceiptComplete"
+    );
   });
 });
