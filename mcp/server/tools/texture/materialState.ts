@@ -44,3 +44,45 @@ export function materialContinuationState(group: TextureGroup) {
   };
 }
 
+
+
+export type MaterialChannelTextureLike = {
+  uuid: string;
+  name: string;
+  group: string;
+  pbr_channel: string;
+};
+
+export function planMaterialChannelAssignment<
+  T extends MaterialChannelTextureLike
+>(
+  material: Readonly<{ uuid: string; name: string }>,
+  existingTextures: readonly T[],
+  texture: T,
+  channel: string
+): Readonly<{
+  resetTextures: T[];
+  undoTextures: T[];
+}> {
+  const resetTextures = existingTextures.filter(
+    (existing) =>
+      existing.pbr_channel === channel && existing.uuid !== texture.uuid
+  );
+
+  if (
+    texture.group === material.uuid &&
+    texture.pbr_channel === channel &&
+    resetTextures.length === 0
+  ) {
+    throw new Error(
+      `Texture "${texture.name}" is already the only ${channel} assignment on material "${material.name}"; no authored change is required.`
+    );
+  }
+
+  const undoTextures = [texture, ...resetTextures].filter(
+    (candidate, index, all) =>
+      all.findIndex((item) => item.uuid === candidate.uuid) === index
+  );
+
+  return { resetTextures, undoTextures };
+}
