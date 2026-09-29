@@ -1,5 +1,19 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import {
+  animationEffectContinuationState,
+  animationEffectSameTime,
+  applyEffectPayload,
+  effectPointData,
+  effectPointSnapshot,
+  effectiveTimelineScriptLines,
+  normalizeEffectiveParticleScript,
+  snapshotsEffectivelyEqual,
+} from "@/server/tools/animation-effect-state";
+export {
+  effectiveTimelineScriptLines,
+  normalizeEffectiveParticleScript,
+} from "@/server/tools/animation-effect-state";
 import { animationEffectsReceipt } from "@/lib/receipts/animationEffects";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
@@ -136,111 +150,6 @@ function resolveAnimation(reference?: string) {
   });
 }
 
-function effectPointSnapshot(point: KeyframeDataPoint): EffectPointSnapshot {
-  return {
-    effect: typeof point.effect === "string" ? point.effect : "",
-    locator: typeof point.locator === "string" ? point.locator : "",
-    bind_to_actor: point.bind_to_actor !== false,
-    script: typeof point.script === "string" ? point.script : "",
-    file: typeof point.file === "string" ? point.file : "",
-  };
-}
-
-export function normalizeEffectiveParticleScript(script: string | null | undefined): string | null {
-  if (!script || !script.replace(/[\n\s;.]+/g, "")) return null;
-  return script.match(/;$/) ? script : `${script};`;
-}
-
-export function effectiveTimelineScriptLines(script: string | null | undefined): string[] {
-  if (typeof script !== "string") return [];
-  return script
-    .split("\n")
-    .filter((line) => Boolean(line.replace(/[\s;]/g, "")))
-    .map((line) => (line.match(/;\s*$/) || line.startsWith("/")) ? line : `${line};`);
-}
-
-function snapshotsEffectivelyEqual(
-  channel: AnimationEffectChannel,
-  left: EffectPointSnapshot,
-  right: EffectPointSnapshot
-): boolean {
-  if (channel === "timeline") {
-    return JSON.stringify(effectiveTimelineScriptLines(left.script)) ===
-      JSON.stringify(effectiveTimelineScriptLines(right.script));
-  }
-  if (left.effect !== right.effect || left.locator !== right.locator) return false;
-  if (channel === "sound") return true;
-  return (
-    left.bind_to_actor === right.bind_to_actor &&
-    normalizeEffectiveParticleScript(left.script) === normalizeEffectiveParticleScript(right.script)
-  );
-}
-
-function applyPayload(
-  channel: AnimationEffectChannel,
-  current: EffectPointSnapshot,
-  operation: z.infer<typeof animationEffectOperationSchema>
-): EffectPointSnapshot {
-  if (channel === "timeline") {
-    return { ...current, ...(operation.script !== undefined ? { script: operation.script } : {}) };
-  }
-  const next = {
-    ...current,
-    ...(operation.effect !== undefined ? { effect: operation.effect } : {}),
-    ...(operation.locator !== undefined ? { locator: operation.locator ?? "" } : {}),
-  };
-  if (channel === "particle") {
-    if (operation.bind_to_actor !== undefined) {
-      next.bind_to_actor = operation.bind_to_actor ?? true;
-    }
-    if (operation.pre_effect_script !== undefined) {
-      next.script = operation.pre_effect_script ?? "";
-    }
-  }
-  return next;
-}
-
-function pointData(channel: AnimationEffectChannel, snapshot: EffectPointSnapshot) {
-  if (channel === "timeline") return { script: snapshot.script };
-  if (channel === "sound") {
-    return { effect: snapshot.effect, locator: snapshot.locator, ...(snapshot.file ? { file: snapshot.file } : {}) };
-  }
-  return {
-    effect: snapshot.effect,
-    locator: snapshot.locator,
-    bind_to_actor: snapshot.bind_to_actor,
-    script: snapshot.script,
-    ...(snapshot.file ? { file: snapshot.file } : {}),
-  };
-}
-
-function sameTime(left: number, right: number): boolean {
-  return Math.abs(left - right) < 0.001;
-}
-
-function continuationState(channel: AnimationEffectChannel, keyframe: _Keyframe, dataPointIndex: number | null) {
-  const point = dataPointIndex === null ? keyframe.data_points[0] : keyframe.data_points[dataPointIndex];
-  const snapshot = point ? effectPointSnapshot(point) : null;
-  return {
-    channel,
-    keyframe_uuid: keyframe.uuid,
-    time: keyframe.time,
-    data_point_index: dataPointIndex,
-    ...(snapshot
-      ? channel === "timeline"
-        ? { script: snapshot.script }
-        : channel === "sound"
-          ? { effect: snapshot.effect, locator: snapshot.locator || null }
-          : {
-              effect: snapshot.effect,
-              locator: snapshot.locator || null,
-              bind_to_actor: snapshot.bind_to_actor === false ? false : null,
-              pre_effect_script: normalizeEffectiveParticleScript(snapshot.script),
-            }
-      : {}),
-  };
-}
-
 export function registerAnimationEffectTools() {
   createTool(
     animationEffectToolDocs[0].name,
@@ -288,7 +197,7 @@ export function registerAnimationEffectTools() {
         const targeted = new Set<string>();
 
         const keyframesAtTime = (channel: AnimationEffectChannel, time: number, excludeId?: string) =>
-          sim[channel].filter((keyframe) => keyframe.id !== excludeId && sameTime(keyframe.time, time));
+          sim[channel].filter((keyframe) => keyframe.id !== excludeId && animationEffectSameTime(keyframe.time, time));
         const findKeyframe = (channel: AnimationEffectChannel, uuid: string) =>
           sim[channel].find((keyframe) => keyframe.uuid === uuid);
         const findPoint = (channel: "particle" | "sound", uuid: string, index: number) => {
@@ -310,7 +219,7 @@ export function registerAnimationEffectTools() {
             if (collisions.length > 1) {
               throw new Error(`Effect operation ${index} found ambiguous ${operation.channel} keyframes at ${targetTime}.`);
             }
-            const snapshot = applyPayload(operation.channel, { effect: "", locator: "", bind_to_actor: true, script: "", file: "" }, operation);
+            const snapshot = applyEffectPayload(operation.channel, { effect: "", locator: "", bind_to_actor: true, script: "", file: "" }, operation);
             if (operation.channel === "timeline") {
               if (collisions.length) throw new Error(`Timeline add at ${targetTime} collides with an existing keyframe.`);
               sim.timeline.push({ id: `add:${index}`, uuid: null, channel: "timeline", time: targetTime, points: [{ id: `add:${index}:0`, snapshot }] });
@@ -345,8 +254,8 @@ export function registerAnimationEffectTools() {
               throw new Error(`Timeline update for "${operation.keyframe_uuid}" collides at ${nextTime}.`);
             }
             const current = keyframe.points[0].snapshot;
-            const next = applyPayload("timeline", current, operation);
-            if (sameTime(nextTime, keyframe.time) && snapshotsEffectivelyEqual("timeline", current, next)) {
+            const next = applyEffectPayload("timeline", current, operation);
+            if (animationEffectSameTime(nextTime, keyframe.time) && snapshotsEffectivelyEqual("timeline", current, next)) {
               throw new Error(`Timeline update for "${operation.keyframe_uuid}" is an effective no-op.`);
             }
             keyframe.time = nextTime;
@@ -365,8 +274,8 @@ export function registerAnimationEffectTools() {
           }
 
           const nextTime = snappedTime ?? found.keyframe.time;
-          const next = applyPayload(operation.channel, found.point.snapshot, operation);
-          if (sameTime(nextTime, found.keyframe.time)) {
+          const next = applyEffectPayload(operation.channel, found.point.snapshot, operation);
+          if (animationEffectSameTime(nextTime, found.keyframe.time)) {
             if (snapshotsEffectivelyEqual(operation.channel, found.point.snapshot, next)) {
               throw new Error(`${operation.channel} update for ${operation.keyframe_uuid}:${operation.data_point_index} is an effective no-op.`);
             }
@@ -399,16 +308,16 @@ export function registerAnimationEffectTools() {
             return found;
           };
           const findRuntimeAtTime = (channel: AnimationEffectChannel, time: number) =>
-            (((ensureEffects()[channel] as _Keyframe[] | undefined) ?? []).filter((keyframe) => sameTime(keyframe.time, time)));
+            (((ensureEffects()[channel] as _Keyframe[] | undefined) ?? []).filter((keyframe) => animationEffectSameTime(keyframe.time, time)));
           const writeSnapshot = (point: KeyframeDataPoint, channel: AnimationEffectChannel, snapshot: EffectPointSnapshot) => {
-            point.extend(pointData(channel, snapshot));
+            point.extend(effectPointData(channel, snapshot));
           };
 
           operations.forEach((operation, index) => {
             const snappedTime = plannedTimes[index];
             if (operation.operation === "add") {
               const targetTime = snappedTime!;
-              const snapshot = applyPayload(operation.channel, { effect: "", locator: "", bind_to_actor: true, script: "", file: "" }, operation);
+              const snapshot = applyEffectPayload(operation.channel, { effect: "", locator: "", bind_to_actor: true, script: "", file: "" }, operation);
               const effects = ensureEffects();
               // Same-time collision parity with particle/sound: merge into
               // the existing keyframe instead of stacking silent duplicates.
@@ -418,7 +327,7 @@ export function registerAnimationEffectTools() {
                   if (operation.script !== undefined) {
                     existingTimeline.data_points[0].script = operation.script;
                   }
-                  results.push(continuationState("timeline", existingTimeline, null));
+                  results.push(animationEffectContinuationState("timeline", existingTimeline, null));
                   return;
                 }
               }
@@ -428,13 +337,13 @@ export function registerAnimationEffectTools() {
                   const point = new KeyframeDataPoint(existingAtTime);
                   writeSnapshot(point, operation.channel, snapshot);
                   existingAtTime.data_points.push(point);
-                  results.push(continuationState(operation.channel, existingAtTime, existingAtTime.data_points.length - 1));
+                  results.push(animationEffectContinuationState(operation.channel, existingAtTime, existingAtTime.data_points.length - 1));
                   return;
                 }
               }
-              const keyframe = effects.addKeyframe({ channel: operation.channel, time: targetTime, data_points: [pointData(operation.channel, snapshot)] });
+              const keyframe = effects.addKeyframe({ channel: operation.channel, time: targetTime, data_points: [effectPointData(operation.channel, snapshot)] });
               if (!keyframe) throw new Error(`Could not create ${operation.channel} effect keyframe.`);
-              results.push(continuationState(operation.channel, keyframe, operation.channel === "timeline" ? null : 0));
+              results.push(animationEffectContinuationState(operation.channel, keyframe, operation.channel === "timeline" ? null : 0));
               return;
             }
 
@@ -447,7 +356,7 @@ export function registerAnimationEffectTools() {
               }
               if (snappedTime !== undefined) keyframe.time = snappedTime;
               if (operation.script !== undefined) keyframe.data_points[0].script = operation.script;
-              results.push(continuationState("timeline", keyframe, null));
+              results.push(animationEffectContinuationState("timeline", keyframe, null));
               return;
             }
 
@@ -477,16 +386,16 @@ export function registerAnimationEffectTools() {
               return;
             }
 
-            const next = applyPayload(operation.channel, effectPointSnapshot(point), operation);
-            if (snappedTime !== undefined && !sameTime(snappedTime, keyframe.time)) {
+            const next = applyEffectPayload(operation.channel, effectPointSnapshot(point), operation);
+            if (snappedTime !== undefined && !animationEffectSameTime(snappedTime, keyframe.time)) {
               if (keyframe.data_points.length === 1) keyframe.remove();
               else keyframe.data_points.splice(runtimeIndex, 1);
-              const moved = ensureEffects().addKeyframe({ channel: operation.channel, time: snappedTime, data_points: [pointData(operation.channel, next)] });
+              const moved = ensureEffects().addKeyframe({ channel: operation.channel, time: snappedTime, data_points: [effectPointData(operation.channel, next)] });
               if (!moved) throw new Error(`Could not move ${operation.channel} effect data point.`);
-              results.push(continuationState(operation.channel, moved, 0));
+              results.push(animationEffectContinuationState(operation.channel, moved, 0));
             } else {
               writeSnapshot(point, operation.channel, next);
-              results.push(continuationState(operation.channel, keyframe, keyframe.data_points.indexOf(point)));
+              results.push(animationEffectContinuationState(operation.channel, keyframe, keyframe.data_points.indexOf(point)));
             }
           });
 
