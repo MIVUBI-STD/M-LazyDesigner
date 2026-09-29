@@ -250,6 +250,25 @@ describe("server tool domain ownership", () => {
     expect(executor.length).toBeLessThan(28000);
   });
 
+  test("material channel apply stays transaction-free", async () => {
+    const state = await Bun.file(
+      "server/tools/texture/materialState.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/texture-materials.ts"
+    ).text();
+
+    expect(state).toContain("applyMaterialChannelAssignment");
+    expect(state).not.toContain("Undo.");
+    expect(state).not.toContain("Canvas.");
+    expect(state).not.toContain("updateMaterial()");
+    expect(state).not.toContain("createTool(");
+
+    expect(executor).toContain("applyMaterialChannelAssignment(");
+    expect(executor).toContain("textureGroup.updateMaterial()");
+    expect(executor).toContain("Undo.initEdit");
+  });
+
   test("material channel assignment planning stays side-effect free", async () => {
     const state = await Bun.file(
       "server/tools/texture/materialState.ts"
