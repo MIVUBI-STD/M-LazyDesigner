@@ -35,6 +35,7 @@ import {
   gatewayErrorResult,
   type GatewayToolContext,
 } from "../runtime/gatewayErrors";
+import type { BenchmarkTraceRecorder } from "../runtime/benchmarkTrace";
 
 type GatewayToolDefinition = {
   title: string;
@@ -61,6 +62,7 @@ export type CoreGatewayRegistrationDeps = {
   session: GatewaySessionState;
   surfaceProfile: GatewaySurfaceProfile;
   experimentalTools: () => readonly string[];
+  trace?: BenchmarkTraceRecorder | null;
   invoke: (
     capability: string,
     args: JsonRecord,
@@ -154,6 +156,7 @@ export function registerCoreGatewayTools(
     session,
     surfaceProfile,
     experimentalTools,
+    trace,
     invoke,
   } = deps;
   const registerGatewayTool = server.registerTool.bind(server) as unknown as (
@@ -248,6 +251,7 @@ export function registerCoreGatewayTools(
       },
     },
     async (rawArgs) => {
+      const startedAt = trace?.startedAt() ?? 0;
       try {
         const { query, limit } = searchInput.parse(rawArgs);
         const runtimeCapabilities = await backend.searchCapabilities(query, limit, {
@@ -261,7 +265,7 @@ export function registerCoreGatewayTools(
         const capabilities = projectCapabilitiesForSearch(
           decorateCapabilities(rawCapabilities)
         );
-        return {
+        const response = {
           content: [
             {
               type: "text" as const,
@@ -270,8 +274,26 @@ export function registerCoreGatewayTools(
           ],
           structuredContent: { capabilities },
         };
+        trace?.record({
+          startedAt,
+          kind: "search",
+          success: true,
+          result: response,
+          readOnly: true,
+          verificationClass: null,
+        });
+        return response;
       } catch (error) {
-        return gatewayErrorResult(error);
+        const response = gatewayErrorResult(error);
+        trace?.record({
+          startedAt,
+          kind: "search",
+          success: false,
+          result: response,
+          readOnly: true,
+          verificationClass: null,
+        });
+        return response;
       }
     }
   );
@@ -292,8 +314,11 @@ export function registerCoreGatewayTools(
       },
     },
     async (rawArgs) => {
+      const startedAt = trace?.startedAt() ?? 0;
+      let tracedCapability: string | null = null;
       try {
         const { capability, detail, branch } = describeInput.parse(rawArgs);
+        tracedCapability = capability;
         const tool =
           (await localCapabilities.describe(capability)) ??
           (await backend.describeCapability(capability));
@@ -337,7 +362,7 @@ export function registerCoreGatewayTools(
           detail,
           ...capabilityPayload,
         });
-        return {
+        const response = {
           content: [
             {
               type: "text" as const,
@@ -353,8 +378,28 @@ export function registerCoreGatewayTools(
             },
           },
         };
+        trace?.record({
+          startedAt,
+          kind: "describe",
+          capability: tracedCapability,
+          success: true,
+          result: response,
+          readOnly: true,
+          verificationClass: null,
+        });
+        return response;
       } catch (error) {
-        return gatewayErrorResult(error);
+        const response = gatewayErrorResult(error);
+        trace?.record({
+          startedAt,
+          kind: "describe",
+          capability: tracedCapability,
+          success: false,
+          result: response,
+          readOnly: true,
+          verificationClass: null,
+        });
+        return response;
       }
     }
   );
