@@ -81,7 +81,7 @@
     "benchmark:motion-recipe": "bun run ./scripts/benchmark-motion-recipe.ts",
     "benchmark:material-recipe": "bun run ./scripts/benchmark-material-recipe.ts",
     "benchmark:authoring-orchestration": "bun run ./scripts/benchmark-authoring-orchestration.ts",
-    "eval:capability-intelligence": "bun run ./scripts/evaluate-capability-intelligence.ts",
+    "eval:capability-intelligence": "bun run ./scripts/evaluate-capability-intelligence.ts && bun run audit:semantic-collisions",
     "test:capability-manifest": "bun test lib/capabilities/manifest.test.ts gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts",
     "test:gateway-structure": "bun test gateway/structure.test.ts gateway/dependencyDirection.test.ts gateway/control/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts gateway/runtime/operationQueue.test.ts gateway/runtime/affinityPolicy.test.ts",
     "test:gateway-recovery": "bun test gateway/index-boundary.test.ts gateway/backend-effects-boundary.test.ts gateway/runtime/orchestrationRecoveryState.test.ts gateway/runtime/faultInjection.contract.test.ts",
@@ -115,7 +115,8 @@
     "benchmark:golden-session": "bun run ./scripts/run-golden-benchmark-session.ts",
     "finalize:golden-session": "bun run ./scripts/finalize-golden-session.ts",
     "compare:golden-sessions": "bun run ./scripts/compare-golden-sessions.ts",
-    "security:audit": "bun audit --audit-level=high"
+    "security:audit": "bun audit --audit-level=high",
+    "audit:semantic-collisions": "bun run ./scripts/audit-capability-collisions.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",

@@ -171,4 +171,22 @@ Track these instead of source size:
 7. tools/list payload per phase;
 8. structured result payload retained in AI continuation context.
 
+## Semantic collision guard
+
+Canonical capability search aliases plus explicit semantic intents/examples are audited by `mcp/gateway/capabilities/collisionAudit.ts`.
+
+The hard gate rejects a normalized phrase fingerprint when more than one capability claims it. Word order and punctuation do not create a second meaning. Near-similar domain language remains diagnostic rather than a hard failure because legitimate read/write pairs can share nouns.
+
+Current particle ambiguity is intentionally split:
+
+```text
+inspect particle emitter / inspect particle molang
+→ inspect_particle
+
+author particle emitter / author particle molang
+→ manage_particle
+```
+
+The same principle applies to hierarchy routing: ordinary create/reparent/rename/pivot ownership remains canonical Geometry capability ownership; advanced IK/mirror remains `bone_rigging`.
+
 A reduction is valid only if quality, native semantics, validation, rollback, and authoring capability remain unchanged or improve.
