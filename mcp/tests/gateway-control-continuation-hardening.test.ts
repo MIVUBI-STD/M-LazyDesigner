@@ -3,6 +3,22 @@ import { buildControlDelta, projectControlDeltaForGateway } from "@/gateway/cont
 import { CAPABILITY_CORE_MANIFEST } from "@/lib/capabilities/manifest";
 import { STATE_MUTATIONS } from "@/gateway/control/delta/policy";
 
+function cubeEffect(changedFields: string[]) {
+  return {
+    changed_fields: changedFields,
+    center_delta: [0, 0, 0],
+    size_delta: [0, 0, 0],
+    origin_delta: [0, 0, 0],
+    rotation_delta: [0, 0, 0],
+    inflate_delta: 0,
+    uv_offset_delta: [0, 0],
+    mirror_uv_changed: false,
+    autouv_changed: false,
+    visibility_changed: false,
+    faces_changed: false,
+  };
+}
+
 describe("LazyDesigner Control continuation hardening", () => {
   test("capability manifest and Control mutation policy cannot silently drift apart", () => {
     const manifestNames = new Set(CAPABILITY_CORE_MANIFEST.keys());
@@ -137,7 +153,7 @@ describe("LazyDesigner Control continuation hardening", () => {
         modified: 1,
         before: { uuid: "cube-a" },
         after: { uuid: "cube-a" },
-        geometry_effect: { changed_fields: ["rotation"] },
+        geometry_effect: cubeEffect(["rotation"]),
         visual_scope: {
           cube_uuids: ["cube-a"],
           framing: { min: [-1, 0, -1], max: [1, 2, 1] },
@@ -162,7 +178,7 @@ describe("LazyDesigner Control continuation hardening", () => {
         succeeded: true,
         result: {
           execution: "applied",
-          geometry_effect: { changed_fields: [field] },
+          geometry_effect: cubeEffect([field]),
         },
       });
       expect(delta.freshness.stale, field).toEqual([
@@ -179,7 +195,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       succeeded: true,
       result: {
         execution: "applied",
-        geometry_effect: { changed_fields: ["visibility"] },
+        geometry_effect: cubeEffect(["visibility"]),
       },
     });
     expect(visibility.freshness.stale).toEqual([
@@ -335,6 +351,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       succeeded: true,
       result: {
         execution: "applied",
+        action: "updated",
         operation_count: 1,
         controller: {
           uuid: "controller-a",
@@ -427,6 +444,11 @@ describe("LazyDesigner Control continuation hardening", () => {
           {
             uuid: "state-a",
             name: "idle",
+            on_entry: null,
+            on_exit: null,
+            blend_transition: 0,
+            blend_transition_curve: null,
+            blend_via_shortest_path: false,
             animations: [],
             transitions: [],
             sounds: [],
@@ -755,7 +777,11 @@ describe("LazyDesigner Control continuation hardening", () => {
       projectUuid: "project-a",
       succeeded: true,
       result: {
-        semantic_effect: { stale: ["MATERIAL_RENDER"] },
+        semantic_effect: {
+          stale: ["MATERIAL_RENDER"],
+          workspace_projection: true,
+          acceptance_gates: true,
+        },
       },
     });
     expect(materialUndo.freshness).toMatchObject({
@@ -773,6 +799,8 @@ describe("LazyDesigner Control continuation hardening", () => {
       result: {
         semantic_effect: {
           stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
+          workspace_projection: true,
+          acceptance_gates: true,
         },
       },
     });
@@ -891,7 +919,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       succeeded: true,
       result: {
         execution: "applied",
-        geometry_effect: { changed_fields: ["rotation"] },
+        geometry_effect: cubeEffect(["rotation"]),
       },
     });
     const projected = projectControlDeltaForGateway(full);
