@@ -25,10 +25,10 @@ describe("Control support capability source ownership", () => {
         await Bun.file(new URL(`../../${owner.source}`, import.meta.url)).exists(),
         owner.source
       ).toBe(true);
-      if (owner.test_owner) {
+      if (owner.anchor_test) {
         expect(
-          await Bun.file(new URL(`../../${owner.test_owner}`, import.meta.url)).exists(),
-          owner.test_owner
+          await Bun.file(new URL(`../../${owner.anchor_test}`, import.meta.url)).exists(),
+          owner.anchor_test
         ).toBe(true);
       }
     }
