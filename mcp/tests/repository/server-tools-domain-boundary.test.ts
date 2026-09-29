@@ -250,7 +250,7 @@ describe("server tool domain ownership", () => {
     expect(executor.length).toBeLessThan(28000);
   });
 
-  test("material channel apply stays transaction-free", async () => {
+  test("canonical material state helpers stay transaction-free", async () => {
     const state = await Bun.file(
       "server/tools/texture/materialState.ts"
     ).text();
@@ -258,33 +258,19 @@ describe("server tool domain ownership", () => {
       "server/tools/texture-materials.ts"
     ).text();
 
-    expect(state).toContain("applyMaterialChannelAssignment");
+    expect(state).toContain("runtimePbrTextureStates");
+    expect(state).toContain("resolveRuntimeTextureByUuid");
+    expect(state).toContain("materialGroupsByUuid");
+    expect(state).toContain("applyPbrMembershipChanges");
+    expect(state).not.toContain("planMaterialChannelAssignment");
+    expect(state).not.toContain("applyMaterialChannelAssignment");
     expect(state).not.toContain("Undo.");
     expect(state).not.toContain("Canvas.");
     expect(state).not.toContain("updateMaterial()");
     expect(state).not.toContain("createTool(");
 
-    expect(executor).toContain("applyMaterialChannelAssignment(");
-    expect(executor).toContain("textureGroup.updateMaterial()");
-    expect(executor).toContain("Undo.initEdit");
-  });
-
-  test("material channel assignment planning stays side-effect free", async () => {
-    const state = await Bun.file(
-      "server/tools/texture/materialState.ts"
-    ).text();
-    const executor = await Bun.file(
-      "server/tools/texture-materials.ts"
-    ).text();
-
-    expect(state).toContain("planMaterialChannelAssignment");
-    expect(state).not.toContain("Undo.");
-    expect(state).not.toContain("Canvas.");
-    expect(state).not.toContain("createTool(");
-    expect(state).not.toContain("/server/runtime");
-    expect(state).not.toContain("/gateway/");
-
-    expect(executor).toContain("planMaterialChannelAssignment(");
+    expect(executor).toContain("applyPbrMembershipChanges(");
+    expect(executor).toContain("runtimePbrTextureStates()");
     expect(executor).toContain("Undo.initEdit");
   });
 
