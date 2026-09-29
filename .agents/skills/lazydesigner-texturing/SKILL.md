@@ -28,9 +28,9 @@ Use the active handoff facts directly. Load `docs/02-reference/pixel-art/texture
 No RP dev: opaque/cutout/blend/emissive; Texture variants asset-only.
 
 ## Entry / Correction
-**No Geometry↔Texturing phase switch.** AUTHORING↔Animation only: `HANDOFF_REQUIRED` + `switch_authoring_phase`.
+**No Geometry↔Texturing Runtime Surface switch.** AUTHORING↔Animation only: `HANDOFF_REQUIRED` + compatibility capability `switch_authoring_phase`.
 Entry: **Geometry APPROVED + UV Layout PASS**; final Box UV locked with `autouv=0`, no invalid/out-of-bounds/partial-overlap.
-unlocked/invalid UV → Geometry owner + bounded UV correction; no phase switch.
+unlocked/invalid UV → Geometry owner + bounded UV correction; no Runtime Surface switch.
 
 ## Direct Routing
 Reuse fresh state.

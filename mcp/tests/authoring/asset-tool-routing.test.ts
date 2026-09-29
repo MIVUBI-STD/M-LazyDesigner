@@ -53,9 +53,9 @@ describe("LazyDesigner asset routing", () => {
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
     ]);
 
-    expect(root).toContain("Geometry↔Texturing use the shared AUTHORING surface");
-    expect(root).toContain("Animation remains the Runtime phase handoff boundary");
-    expect(texturing).toContain("No Geometry↔Texturing phase switch");
+    expect(root).toContain("Geometry↔Texturing use the shared AUTHORING Runtime Surface");
+    expect(root).toContain("Animation remains the only Runtime Surface handoff boundary");
+    expect(texturing).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(animation).toContain("HANDOFF_REQUIRED");
     expect(animation).toContain("switch_authoring_phase");
   });

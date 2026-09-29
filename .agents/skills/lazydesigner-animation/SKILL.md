@@ -5,7 +5,7 @@ description: LazyDesigner Minecraft Bedrock Entity animation specialist.
 
 # LazyDesigner Bedrock Animation
 
-Use at `ACTIVE PHASE: ANIMATION` after Texturing approval + checkpoint + Animation Readiness Preflight when participating hierarchy/pivots are suitable.
+Use at `ACTIVE STAGE: ANIMATION` after Texturing approval + checkpoint + Animation Transition Eligibility when participating hierarchy/pivots are suitable.
 
 User-authorized autonomy replaces approval waits with verified checkpoints; never claim user approval.
 
