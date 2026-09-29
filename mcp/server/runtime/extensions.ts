@@ -1,9 +1,9 @@
 import { wireAnimationRuntimeContracts } from "./animationRuntimeContracts";
 import { wireAuthoringQualityIntelligence } from "../tools/quality-intelligence";
 import { wireAuthoringEvidenceRuntime } from "../tools/quality-evidence-runtime";
-import { wireTextureQualityRuntime } from "../tools/texture-quality-runtime";
-import { wireTextureAuthoringRuntime } from "../tools/texture-authoring-runtime";
-import { wireTextureAlphaRuntime } from "../tools/texture-alpha-runtime";
+import { wireTextureQualityRuntime } from "./extensions/texture/quality";
+import { wireTextureAuthoringRuntime } from "./extensions/texture/authoring";
+import { wireTextureAlphaRuntime } from "./extensions/texture/alpha";
 import { wireAnimationNativeIntelligence } from "./extensions/animation/nativeIntelligence";
 import { wireAnimationControllerNativeIntelligence } from "./extensions/animation/controllerNativeIntelligence";
 import { wireAnimationRuntimeResourceIntelligence } from "./extensions/animation/runtimeResourceIntelligence";
