@@ -6,6 +6,10 @@ const sessionSource = await readFile(
   new URL("./session/state.ts", import.meta.url),
   "utf8"
 );
+const coreToolsSource = await readFile(
+  new URL("./handlers/registerCoreTools.ts", import.meta.url),
+  "utf8"
+);
 
 describe("Gateway index boundary", () => {
   test("does not hardcode transition capability names", () => {
@@ -20,15 +24,15 @@ describe("Gateway index boundary", () => {
   });
 
   test("keeps capability discovery progressive and bounded", () => {
-    expect(source).toContain('.max(8)');
-    expect(source).toContain('z.enum(["input", "full"]).default("input")');
-    expect(source).toContain('detail === "full"');
-    expect(source).toContain('inputSchema: projection.inputSchema');
+    expect(coreToolsSource).toContain('.max(8)');
+    expect(coreToolsSource).toContain('z.enum(["input", "full"]).default("input")');
+    expect(coreToolsSource).toContain('detail === "full"');
+    expect(coreToolsSource).toContain('inputSchema: projection.inputSchema');
   });
 
   test("projects status instead of spreading raw backend status", () => {
-    expect(source).toContain("projectGatewayStatus(status, known_semantic_revisions)");
-    expect(source).not.toContain("...status,\n          control");
+    expect(coreToolsSource).toContain("projectGatewayStatus(status, known_semantic_revisions)");
+    expect(coreToolsSource).not.toContain("...status,\n          control");
   });
 
   test("wires runtime generation changes through the session owner", () => {
@@ -47,7 +51,7 @@ describe("Gateway index boundary", () => {
       "gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid)"
     );
     expect(sessionSource).toContain("this.executionState = null");
-    expect(source).toContain("session.synchronizeProject(status.affinity.project_uuid)");
+    expect(coreToolsSource).toContain("session.synchronizeProject(status.affinity.project_uuid)");
     expect(source).toContain("session.synchronizeProject(receipt.projectUuid)");
   });
 });
