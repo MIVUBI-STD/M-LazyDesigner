@@ -100,8 +100,35 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("create texture schema stays separate from executor/runtime wiring", async () => {
+    const schema = await Bun.file(
+      "server/tools/texture/createSchema.ts"
+    ).text();
+    const executor = await Bun.file("server/tools/texture-create.ts").text();
+    const runtimeContract = await Bun.file(
+      "server/runtime/textureRuntimeContracts.ts"
+    ).text();
+
+    expect(schema).toContain("createTextureParameters");
+    expect(schema).toContain("isDeterministicTextureSource");
+    expect(schema).not.toContain("createTool(");
+    expect(schema).not.toContain("Undo.");
+    expect(schema).not.toContain("/server/runtime");
+    expect(schema).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/texture/createSchema"'
+    );
+    expect(runtimeContract).toContain(
+      'from "../tools/texture/createSchema"'
+    );
+    expect(runtimeContract).not.toContain(
+      'from "../tools/texture"'
+    );
+  });
+
   test("tool domain owners do not depend on higher Runtime composition", async () => {
-    for (const domain of ["animation", "paint"] as const) {
+    for (const domain of ["animation", "paint", "texture"] as const) {
       for (const file of await sourceFiles(`server/tools/${domain}`)) {
         const source = await Bun.file(file).text();
         for (const request of importsOf(source)) {
