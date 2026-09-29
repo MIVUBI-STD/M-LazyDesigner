@@ -4,9 +4,9 @@ import { wireAuthoringEvidenceRuntime } from "../tools/quality-evidence-runtime"
 import { wireTextureQualityRuntime } from "../tools/texture-quality-runtime";
 import { wireTextureAuthoringRuntime } from "../tools/texture-authoring-runtime";
 import { wireTextureAlphaRuntime } from "../tools/texture-alpha-runtime";
-import { wireAnimationNativeIntelligence } from "../tools/animation-native-intelligence";
-import { wireAnimationControllerNativeIntelligence } from "../tools/animation-controller-native-intelligence";
-import { wireAnimationRuntimeResourceIntelligence } from "../tools/animation-runtime-resource-intelligence";
+import { wireAnimationNativeIntelligence } from "./extensions/animation/nativeIntelligence";
+import { wireAnimationControllerNativeIntelligence } from "./extensions/animation/controllerNativeIntelligence";
+import { wireAnimationRuntimeResourceIntelligence } from "./extensions/animation/runtimeResourceIntelligence";
 import { wireTextureRuntimeContracts } from "./textureRuntimeContracts";
 
 export type RuntimeExtensionStep = Readonly<{
