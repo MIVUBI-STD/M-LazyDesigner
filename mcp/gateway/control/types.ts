@@ -151,6 +151,10 @@ export type ControlDelta = {
         texture_uuid?: string;
         affected_rect?: [number, number, number, number];
         revision?: string;
+        animation_uuid?: string;
+        bone_ids?: string[];
+        channel?: string | null;
+        time_range?: [number, number];
       };
     }>;
     preserved_domains: ControlAuthoringDomain[];

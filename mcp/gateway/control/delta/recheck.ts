@@ -99,6 +99,50 @@ function textureRegionTargetFromResult(
   return undefined;
 }
 
+
+function animationMotionTargetFromResult(
+  result: unknown
+): ControlDownstreamRecheck["target"] | undefined {
+  for (const candidate of resultCandidates(result)) {
+    const animation = record(candidate.animation);
+    const bone = record(candidate.bone);
+    if (typeof animation?.uuid !== "string") continue;
+
+    if (
+      typeof bone?.uuid === "string" &&
+      Array.isArray(candidate.affected_keyframes)
+    ) {
+      const times = candidate.affected_keyframes
+        .map((value) => record(value)?.time)
+        .filter(
+          (value): value is number =>
+            typeof value === "number" && Number.isFinite(value)
+        );
+      if (times.length > 0) {
+        return {
+          animation_uuid: animation.uuid,
+          bone_ids: [bone.uuid],
+          channel:
+            typeof candidate.channel === "string"
+              ? candidate.channel
+              : null,
+          time_range: [Math.min(...times), Math.max(...times)],
+        };
+      }
+    }
+
+    if (
+      candidate.action === "properties" &&
+      Array.isArray(candidate.changed_fields)
+    ) {
+      return {
+        animation_uuid: animation.uuid,
+      };
+    }
+  }
+  return undefined;
+}
+
 export function downstreamRechecksForFreshness(input: {
   stale: readonly ControlFreshnessScope[];
   currentDomain: ControlAuthoringDomain;
@@ -118,7 +162,9 @@ export function downstreamRechecksForFreshness(input: {
               textureRegionTargetFromResult(input.result)
             : scope === "MATERIAL_RENDER"
               ? materialRenderTargetFromResult(input.result)
-              : undefined;
+              : scope === "ANIMATION_MOTION"
+                ? animationMotionTargetFromResult(input.result)
+                : undefined;
       return {
         scope,
         domain: dependency.domain,
