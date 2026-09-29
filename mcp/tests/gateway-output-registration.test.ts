@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 
 describe("Gateway typed output registration", () => {
   test("status, search and describe register output schemas while invoke remains dynamic", async () => {
-    const source = await Bun.file("gateway/index.ts").text();
+    const source = await Bun.file(
+      "gateway/handlers/registerCoreTools.ts"
+    ).text();
 
     for (const schema of [
       "gatewayStatusOutputSchema",
