@@ -27,3 +27,6 @@ runtime/extensions/texture/quality.ts
 ```
 
 Do not reintroduce a second mutation implementation in the Runtime extension layer.
+
+
+`authoring.ts` may wrap `manage_material` only to augment the returned authoring status/workflow receipt after calling the original executor. It must not plan or apply PBR membership mutations.
