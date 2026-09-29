@@ -122,7 +122,9 @@ describe("repository GitHub discipline", () => {
     expect(scripts["verify:authoring"]).toBe("bun test tests/authoring/*.test.ts");
     expect(scripts["test:runtime"]).toBe("bun test tests/*.test.ts");
     expect(scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
-    expect(scripts["verify:release"]).toBe("bun run verify:full");
+    expect(scripts["verify:release"]).toBe(
+      "bun run security:audit && bun run verify:full"
+    );
     expect(scripts["verify:mcp"]).toBe(
       "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run verify:build"
     );
