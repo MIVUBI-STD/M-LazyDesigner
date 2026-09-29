@@ -208,6 +208,27 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("texture selection geometry planning stays pure", async () => {
+    const planner = await Bun.file(
+      "lib/texture/selectionPlanning.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/paint-selection-layers.ts"
+    ).text();
+
+    expect(planner).toContain("rectangleSelectionPredicate");
+    expect(planner).toContain("ellipseSelectionPredicate");
+    expect(planner).not.toContain("Undo.");
+    expect(planner).not.toContain("Texture.");
+    expect(planner).not.toContain("UVEditor.");
+    expect(planner).not.toContain("createTool(");
+    expect(planner).not.toContain("/server/");
+    expect(planner).not.toContain("/gateway/");
+
+    expect(executor).toContain("rectangleSelectionPredicate(");
+    expect(executor).toContain("ellipseSelectionPredicate(");
+  });
+
   test("paint selection/layer schema stays separate from executor", async () => {
     const schema = await Bun.file(
       "server/tools/paint/selectionLayerSchema.ts"
