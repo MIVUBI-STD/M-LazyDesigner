@@ -139,3 +139,30 @@ Gateway owns only:
 - compact connection observability.
 
 Gateway does not own modelling, texturing, animation, particle, or other authoring knowledge. Capability semantics should progressively move to canonical Runtime metadata rather than capability-name special cases in Gateway.
+
+
+## Canonical Root Owners
+
+The Gateway root intentionally keeps only two non-test implementation entry owners:
+
+```text
+index.ts    public MCP stdio entrypoint and composition root
+backend.ts  Gateway ↔ Runtime backend adapter
+```
+
+Canonical subdomains own the rest:
+
+```text
+capabilities/  discovery, metadata, graph, effects
+contracts/     Gateway protocol + output schemas
+control/       context/routing/readiness projection
+development/   source-development planning/freshness
+experimental/  opt-in experimental surface
+handlers/      public tool registration/handlers
+presentation/  result/status projection and compaction
+providers/     Gateway-local capability providers
+runtime/       connection, queue, affinity, recovery, execution
+session/       session state
+```
+
+Root compatibility facades may remain temporarily for migrated imports, but new implementation must target the canonical subdomain.
