@@ -182,7 +182,7 @@ describe("BlockIT Gateway contract", () => {
         source_owner: {
           source: "mcp/server/tools/cubes.ts",
           specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
-          test_owner: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
+          anchor_test: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
         },
       },
     }]);
@@ -990,7 +990,7 @@ describe("BlockIT Gateway contract", () => {
           authoring_domain: "GEOMETRY",
           current_domain: false,
           eligibility: "AVAILABLE",
-          source_owner: { source: "x", specialist: null, test_owner: null },
+          source_owner: { source: "x", specialist: null, anchor_test: null },
         },
       },
       {
@@ -1004,7 +1004,7 @@ describe("BlockIT Gateway contract", () => {
           authoring_domain: "CORE",
           current_domain: false,
           eligibility: "AVAILABLE",
-          source_owner: { source: "y", specialist: null, test_owner: null },
+          source_owner: { source: "y", specialist: null, anchor_test: null },
         },
       },
     ] as any);
