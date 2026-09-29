@@ -107,3 +107,18 @@ server/tools/animation-batch.ts
   preview/update
   receipts
 ```
+
+
+Current paint selection planning owner:
+
+```text
+lib/texture/selectionPlanning.ts
+  rectangle geometry predicate
+  ellipse geometry predicate
+
+server/tools/paint-selection-layers.ts
+  selection matrix mutation
+  Undo
+  UVEditor refresh
+  layer execution/receipts
+```
