@@ -4,7 +4,7 @@ import { BlockitRuntimeBackend } from "./backend";
 import {
   GATEWAY_NAME,
   GATEWAY_VERSION,
-} from "./protocol";
+} from "./contracts/protocol";
 import { LocalCapabilityRegistry } from "./providers/registry";
 import { resolveGatewaySurfaceProfile } from "./experimental/hybridProfile";
 import { registerExperimentalHybrid4 } from "./experimental/hybridRegistration";
