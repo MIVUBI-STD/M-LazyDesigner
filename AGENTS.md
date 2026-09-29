@@ -224,7 +224,21 @@ current operations        → docs/05-operations/
 asset continuity          → workspace/active/<project>/README.md
 stable project facts      → CONTEXT.md
 GitHub execution          → GITHUB_RULES.md
-research                  → Experimental/
+research                  → experiments/
 ```
 
 Do not create duplicate navigation, review archives, decision logs, roadmaps, or parallel state systems.
+
+## Repository Top-Level Discipline
+
+Keep the root sparse and deterministic for Codex navigation.
+
+Allowed top-level domains are `.agents/`, `.github/`, `apps/`, `docs/`, `mcp/`, `workspace/`, and `experiments/`, plus repository-wide entrypoint/governance/toolchain files.
+
+Do not add top-level feature, generated, fixture, benchmark, archive, temporary, or per-asset directories. Put them under the canonical owner.
+
+Naming:
+- directories use lowercase kebab-case;
+- one semantic concept has one canonical name;
+- aliases exist only for compatibility and must be explicitly identified as such;
+- new documentation must extend an existing owner rather than create a parallel owner.
