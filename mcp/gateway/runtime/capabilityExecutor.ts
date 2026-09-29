@@ -26,12 +26,14 @@ import {
   traceMetaFromContext,
   type GatewayToolContext,
 } from "./gatewayErrors";
+import type { BenchmarkTraceRecorder } from "./benchmarkTrace";
 
 export class GatewayCapabilityExecutor {
   constructor(
     private readonly backend: BlockitRuntimeBackend,
     private readonly localCapabilities: LocalCapabilityRegistry,
-    private readonly session: GatewaySessionState
+    private readonly session: GatewaySessionState,
+    private readonly trace: BenchmarkTraceRecorder | null = null
   ) {}
 
   private directPreconditionBlockedResult(
@@ -86,6 +88,7 @@ export class GatewayCapabilityExecutor {
     context?: GatewayToolContext,
     enforceKnownBlockers: boolean = false
   ): Promise<unknown> {
+    const startedAt = this.trace?.startedAt() ?? 0;
     try {
       if (enforceKnownBlockers) {
         const blocked = this.directPreconditionBlockedResult(capability, args);
@@ -166,12 +169,27 @@ export class GatewayCapabilityExecutor {
       };
 
       if (result.structuredContent === undefined) {
-        return {
+        const response = {
           ...result,
           ...(attachControlDelta
             ? { structuredContent: { control_delta: gatewayControlDelta } }
             : {}),
         };
+        this.trace?.record({
+          startedAt,
+          kind:
+            capability === "capture_model_views"
+              ? "verify"
+              : readOnly
+                ? "inspect"
+                : "mutate",
+          capability,
+          success: succeeded,
+          result: response,
+          readOnly,
+          verificationClass: controlDelta.verification_class,
+        });
+        return response;
       }
 
       const compacted = compactGatewayCapabilityStructuredContent(
@@ -187,7 +205,7 @@ export class GatewayCapabilityExecutor {
         readOnly
       );
 
-      return {
+      const response = {
         ...result,
         content: compactedContent as typeof result.content,
         structuredContent:
@@ -207,8 +225,33 @@ export class GatewayCapabilityExecutor {
                   : {}),
               },
       };
+      this.trace?.record({
+        startedAt,
+        kind:
+          capability === "capture_model_views"
+            ? "verify"
+            : readOnly
+              ? "inspect"
+              : "mutate",
+        capability,
+        success: succeeded,
+        result: response,
+        readOnly,
+        verificationClass: controlDelta.verification_class,
+      });
+      return response;
     } catch (error) {
-      return gatewayErrorResult(error);
+      const response = gatewayErrorResult(error);
+      this.trace?.record({
+        startedAt,
+        kind: "recovery",
+        capability,
+        success: false,
+        result: response,
+        readOnly: null,
+        verificationClass: null,
+      });
+      return response;
     }
   }
 }
