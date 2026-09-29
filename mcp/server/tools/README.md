@@ -10,20 +10,23 @@
 - Retain a root compatibility re-export only when an existing import path may still be consumed externally or by older internal code.
 - Add migrated wrappers to the repository ownership test so compatibility paths cannot regain implementation logic.
 
-Current migrated animation internals:
+Canonical animation domain:
 
 ```text
-server/tools/animation/shared.ts           canonical shared helpers
-server/tools/animation/controllerState.ts  canonical controller state helpers
-server/tools/animation/effectState.ts      canonical effect state helpers
-server/tools/animation/batchSchema.ts        canonical batch/copy-paste input contracts
-server/tools/animation/controllerSchema.ts   canonical controller input contract
-server/tools/animation/keyframeSchema.ts      canonical keyframe/graph input contracts
-server/tools/animation/timelineSchema.ts      canonical timeline input contract
+server/tools/animation/create.ts            create executor
+server/tools/animation/keyframes.ts          keyframe executor
+server/tools/animation/timeline.ts           timeline executor
+server/tools/animation/controller.ts         controller executor
+server/tools/animation/rigging.ts            rigging executor
+server/tools/animation/batch.ts              batch executor
+server/tools/animation/shared.ts             shared helpers
+server/tools/animation/controllerState.ts    controller state helpers
+server/tools/animation/effectState.ts        effect state helpers
+server/tools/animation/*Schema.ts            independent input contracts
 server/tools/animation/controllerPlanner.ts  runtime-independent mutation planning
-server/tools/animation/inspectionSchema.ts   canonical inspection input contract
+server/tools/animation/inspectionSchema.ts   inspection contract
 
-matching root paths                         compatibility re-export only
+matching root migration paths                compatibility re-export only
 ```
 
 Do not introduce a second routing/registry layer here. Registration remains owned by `server/runtime/registration.ts`; tool modules own implementation only.
@@ -46,11 +49,15 @@ Do not place new `*-native-intelligence` or post-registration wrapper logic in `
 Current migrated paint internals:
 
 ```text
-server/tools/paint/shared.ts      canonical paint helpers
+server/tools/paint/primitives.ts           primitive executor
+server/tools/paint/brush.ts                brush executor
+server/tools/paint/settings.ts             settings executor
+server/tools/paint/selectionLayers.ts      selection/layer executor
+server/tools/paint/shared.ts               shared paint helpers
 server/tools/paint/layerState.ts           canonical layer-state helpers
 server/tools/paint/selectionLayerSchema.ts canonical selection/layer input contract
 
-matching root paths               compatibility re-export only
+matching root migration paths              compatibility re-export only
 ```
 
 
@@ -73,7 +80,11 @@ Current migrated texture contract:
 server/tools/texture/createSchema.ts    canonical create_texture input contract
 server/tools/texture/materialSchema.ts  canonical material input contracts
 server/tools/texture/materialState.ts   canonical material lookup/state projection
-server/tools/texture-create.ts         executor + native mutation
+server/tools/texture/create.ts         create executor + native mutation
+server/tools/texture/read.ts           read executor
+server/tools/texture/assignment.ts     assignment executor
+server/tools/texture/materials.ts      material executor
+server/tools/texture/atlas.ts          atlas/audit owner
 server/runtime/textureRuntimeContracts.ts consumes schema directly
 ```
 
@@ -100,7 +111,7 @@ lib/animation/batchPlanning.ts
   reverse time bounds
   planned-time validation
 
-server/tools/animation-batch.ts
+server/tools/animation/batch.ts
   Timeline sampling
   native keyframe mutation
   Undo
@@ -116,7 +127,7 @@ lib/texture/selectionPlanning.ts
   rectangle geometry predicate
   ellipse geometry predicate
 
-server/tools/paint-selection-layers.ts
+server/tools/paint/selectionLayers.ts
   selection matrix mutation
   Undo
   UVEditor refresh
@@ -138,9 +149,24 @@ lib/texture/pbrMaterialMembership.ts
   normal/height conflict rules
   no-op/change planning
 
-server/tools/texture-materials.ts
+server/tools/texture/materials.ts
   Undo
   native material refresh
   semantic history
   receipts
 ```
+
+
+## Element domain
+
+```text
+server/tools/element.ts               facade / registrar aggregation
+server/tools/element/discovery.ts     discovery executor
+server/tools/element/hierarchy.ts     hierarchy/group executor
+server/tools/element/mutation.ts      rename/remove/duplicate executor
+server/tools/element/shared.ts        shared element helpers
+
+matching root migration paths         compatibility re-export only
+```
+
+New Element implementation belongs under `server/tools/element/`, not at the tools root.
