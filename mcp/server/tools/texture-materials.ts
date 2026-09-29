@@ -23,6 +23,14 @@ export {
 } from "@/server/tools/texture/materialSchema";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import {
+  planExclusivePbrMaterialAssignment,
+  planPbrMaterialConfiguration,
+  requireExclusivePbrMaterialState,
+  type PbrMaterialChannel,
+  type PbrMaterialChannelRequest,
+  type PbrMaterialTextureState,
+} from "@/lib/pbrMaterialMembership";
+import {
   applyMaterialChannelAssignment,
   materialContinuationState,
   planMaterialChannelAssignment,
@@ -51,6 +59,68 @@ export {
   requireDistinctPbrChannelAssignments,
   requireMaterialConfigSavePostcondition,
 } from "@/server/tools/texture-material-validation";
+
+
+function runtimePbrTextureStates(): PbrMaterialTextureState[] {
+  return (Project?.textures ?? Texture.all).map((texture: Texture) => ({
+    uuid: texture.uuid,
+    group: texture.group || "",
+    pbr_channel: texture.pbr_channel || "color",
+  }));
+}
+
+function textureByUuid(uuid: string): Texture {
+  const texture = (Project?.textures ?? Texture.all).find(
+    (candidate: Texture) => candidate.uuid === uuid
+  );
+  if (!texture) throw new Error(`Texture ${uuid} disappeared after material preflight.`);
+  return texture;
+}
+
+function materialGroupsByUuid(uuids: readonly string[]): TextureGroup[] {
+  const ids = new Set(uuids.filter(Boolean));
+  return (TextureGroup.all ?? []).filter(
+    (group: TextureGroup) => ids.has(group.uuid) && group.is_material === true
+  );
+}
+
+function applyPbrMembershipChanges(
+  changes: readonly { uuid: string; group: string; pbr_channel: string }[]
+): Texture[] {
+  return changes.map((change) => {
+    const texture = textureByUuid(change.uuid);
+    texture.group = change.group;
+    texture.pbr_channel = change.pbr_channel as Texture["pbr_channel"];
+    return texture;
+  });
+}
+
+function refreshMaterialGroups(groups: readonly TextureGroup[]): void {
+  for (const group of groups) {
+    group.material_config.saved = false;
+    group.updateMaterial();
+  }
+}
+
+function requireMaterialGroupIntegrity(
+  groupUuids: readonly string[],
+  context: string
+): void {
+  const states = runtimePbrTextureStates();
+  for (const group of materialGroupsByUuid(groupUuids)) {
+    requireExclusivePbrMaterialState(states, group.uuid, `${context} "${group.name}"`);
+  }
+}
+
+function channelRequest(
+  channel: PbrMaterialChannel,
+  value: string | undefined
+): PbrMaterialChannelRequest | null {
+  if (value === undefined) return null;
+  if (value === "none") return { channel, texture_uuid: null };
+  const texture = resolveConfigureMaterialTexture(value);
+  return { channel, texture_uuid: texture.uuid };
+}
 
 // ============================================================================
 // Texture Tool Docs
@@ -306,112 +376,59 @@ export function registerTextureMaterialTools(): void {
         subsurface_value,
       }) {
         const textureGroup = resolveTextureToolMaterial(material);
-        const textures = textureGroup.getTextures();
-        const colorTexture =
-          color_texture !== undefined && color_texture !== "none"
-            ? resolveConfigureMaterialTexture(color_texture)
-            : undefined;
-        const normalTexture =
-          normal_texture !== undefined && normal_texture !== "none"
-            ? resolveConfigureMaterialTexture(normal_texture)
-            : undefined;
-        const heightTexture =
-          height_texture !== undefined && height_texture !== "none"
-            ? resolveConfigureMaterialTexture(height_texture)
-            : undefined;
-        const merTexture =
-          mer_texture !== undefined && mer_texture !== "none"
-            ? resolveConfigureMaterialTexture(mer_texture)
-            : undefined;
-        requireDistinctPbrChannelAssignments([
-          { channel: "color", texture: colorTexture },
-          { channel: "normal", texture: normalTexture },
-          { channel: "height", texture: heightTexture },
-          { channel: "mer", texture: merTexture },
-        ]);
-        const assignmentTextures = [
-          colorTexture,
-          normalTexture,
-          heightTexture,
-          merTexture,
-        ].filter((texture): texture is Texture => texture !== undefined);
-        const undoTextures = [...textures, ...assignmentTextures].filter(
-          (texture, index, all) =>
-            all.findIndex((candidate) => candidate.uuid === texture.uuid) === index
+        const requests = [
+          channelRequest("color", color_texture),
+          channelRequest("normal", normal_texture),
+          channelRequest("height", height_texture),
+          channelRequest("mer", mer_texture),
+        ].filter((request): request is PbrMaterialChannelRequest => request !== null);
+
+        const plan = planPbrMaterialConfiguration(
+          runtimePbrTextureStates(),
+          textureGroup.uuid,
+          requests,
+          `Material "${textureGroup.name}"`
         );
-  
+
+        const config = textureGroup.material_config;
+        const configChanged =
+          (color_value !== undefined &&
+            JSON.stringify(config.color_value) !== JSON.stringify(color_value)) ||
+          (mer_value !== undefined &&
+            JSON.stringify(config.mer_value) !== JSON.stringify(mer_value)) ||
+          (subsurface_value !== undefined &&
+            config.subsurface_value !== subsurface_value);
+
+        if (plan.changes.length === 0 && !configChanged) {
+          throw new Error(
+            `Material "${textureGroup.name}" already matches the requested configuration; no authored change is required.`
+          );
+        }
+
+        const changedTextures = plan.changes.map((change) =>
+          textureByUuid(change.uuid)
+        );
+        const affectedGroups = materialGroupsByUuid(plan.affected_group_uuids);
+
         Undo.initEdit({
-          texture_groups: [textureGroup],
-          textures: undoTextures,
+          texture_groups: affectedGroups,
+          textures: changedTextures,
         });
-  
+
         try {
-          // Handle color channel
-          if (color_texture === "none") {
-            textures
-              .filter((t: Texture) => t.pbr_channel === "color")
-              .forEach((t: Texture) => (t.group = ""));
-          } else if (colorTexture) {
-            textures
-              .filter((t: Texture) => t.pbr_channel === "color")
-              .forEach((t: Texture) => (t.pbr_channel = "color"));
-            colorTexture.group = textureGroup.uuid;
-            colorTexture.pbr_channel = "color";
-          }
-  
-          // Handle normal channel
-          if (normal_texture === "none") {
-            textures
-              .filter((t: Texture) => t.pbr_channel === "normal")
-              .forEach((t: Texture) => (t.group = ""));
-          } else if (normalTexture) {
-            normalTexture.group = textureGroup.uuid;
-            normalTexture.pbr_channel = "normal";
-          }
-  
-          // Handle height channel
-          if (height_texture === "none") {
-            textures
-              .filter((t: Texture) => t.pbr_channel === "height")
-              .forEach((t: Texture) => (t.group = ""));
-          } else if (heightTexture) {
-            heightTexture.group = textureGroup.uuid;
-            heightTexture.pbr_channel = "height";
-          }
-  
-          // Handle MER channel
-          if (mer_texture === "none") {
-            textures
-              .filter((t: Texture) => t.pbr_channel === "mer")
-              .forEach((t: Texture) => (t.group = ""));
-          } else if (merTexture) {
-            merTexture.group = textureGroup.uuid;
-            merTexture.pbr_channel = "mer";
-          }
-  
-          // Update uniform values
-          if (color_value) {
-            textureGroup.material_config.color_value = [
-              color_value[0],
-              color_value[1],
-              color_value[2],
-              color_value[3],
-            ];
-          }
-          if (mer_value) {
-            textureGroup.material_config.mer_value = [
-              mer_value[0],
-              mer_value[1],
-              mer_value[2],
-            ];
-          }
+          applyPbrMembershipChanges(plan.changes);
+          if (color_value !== undefined) config.color_value = [...color_value];
+          if (mer_value !== undefined) config.mer_value = [...mer_value];
           if (subsurface_value !== undefined) {
-            textureGroup.material_config.subsurface_value = subsurface_value;
+            config.subsurface_value = subsurface_value;
           }
-  
-          textureGroup.material_config.saved = false;
-          textureGroup.updateMaterial();
-  
+
+          refreshMaterialGroups(affectedGroups);
+          requireMaterialGroupIntegrity(
+            plan.affected_group_uuids,
+            "Configured material"
+          );
+
           Undo.finishEdit("Agent configured material");
           recordCurrentCapabilitySemanticHistoryEffect("configure_material");
         } catch (error) {
@@ -419,9 +436,9 @@ export function registerTextureMaterialTools(): void {
           Canvas.updateAll();
           throw error;
         }
-  
+
         Canvas.updateAll();
-  
+
         return {
           content: [
             {
@@ -597,30 +614,37 @@ export function registerTextureMaterialTools(): void {
       async execute({ material, texture, channel }) {
         const textureGroup = resolveTextureToolMaterial(material);
         const tex = resolveAssignTextureChannelTexture(texture);
-        const existingTextures = textureGroup.getTextures();
-        const { resetTextures, undoTextures } = planMaterialChannelAssignment(
-          textureGroup,
-          existingTextures,
-          tex,
-          channel
+        const plan = planExclusivePbrMaterialAssignment(
+          runtimePbrTextureStates(),
+          textureGroup.uuid,
+          tex.uuid,
+          channel as PbrMaterialChannel,
+          `Material "${textureGroup.name}"`
         );
-  
-        Undo.initEdit({
-          texture_groups: [textureGroup],
-          textures: undoTextures,
-        });
-  
-        try {
-          applyMaterialChannelAssignment(
-            textureGroup,
-            tex,
-            channel,
-            resetTextures
+        if (plan.changes.length === 0) {
+          throw new Error(
+            `Texture "${tex.name}" is already the exclusive ${channel} assignment on material "${textureGroup.name}"; no authored change is required.`
           );
-  
-          textureGroup.material_config.saved = false;
-          textureGroup.updateMaterial();
-  
+        }
+
+        const changedTextures = plan.changes.map((change) =>
+          textureByUuid(change.uuid)
+        );
+        const affectedGroups = materialGroupsByUuid(plan.affected_group_uuids);
+
+        Undo.initEdit({
+          texture_groups: affectedGroups,
+          textures: changedTextures,
+        });
+
+        try {
+          applyPbrMembershipChanges(plan.changes);
+          refreshMaterialGroups(affectedGroups);
+          requireMaterialGroupIntegrity(
+            plan.affected_group_uuids,
+            "Assigned material channel"
+          );
+
           Undo.finishEdit("Agent assigned texture channel");
           recordCurrentCapabilitySemanticHistoryEffect("assign_texture_channel");
         } catch (error) {
@@ -628,9 +652,9 @@ export function registerTextureMaterialTools(): void {
           Canvas.updateAll();
           throw error;
         }
-  
+
         Canvas.updateAll();
-  
+
         return {
           content: [
             {
