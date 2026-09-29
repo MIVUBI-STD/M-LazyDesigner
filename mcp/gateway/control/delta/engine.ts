@@ -4,6 +4,7 @@ import {
 } from "../sourceOwners";
 import type { ControlDelta } from "../types";
 import type { BlockitAuthoringPhaseAffinity } from "../../runtime/projectAffinity";
+import type { CapabilityBranchHint } from "../../capabilities/types";
 import {
   authoritativeRevisionEvidence,
   mutationFreshness,
@@ -18,6 +19,7 @@ import { downstreamRechecksForFreshness } from "./recheck";
 
 export function buildControlDelta(input: {
   capability: string;
+  branch?: CapabilityBranchHint;
   phaseBefore: BlockitAuthoringPhaseAffinity | null;
   phaseAfter: BlockitAuthoringPhaseAffinity | null;
   projectUuid: string | null;
@@ -41,6 +43,7 @@ export function buildControlDelta(input: {
     : {};
   const verificationClass = verificationClassForResult(
     input.capability,
+    input.branch,
     input.succeeded,
     freshness,
     input.result

@@ -1,4 +1,6 @@
 import { getCapabilityMetadata } from "../../../lib/capabilityMetadata";
+import { manifestEntryForBranch } from "../../capabilities/manifest";
+import type { CapabilityBranchHint } from "../../capabilities/types";
 import { cubeVisualScopeFromResult } from "../../../lib/receipts/cubeMutation";
 import type { ControlDelta, ControlVerificationScope } from "../types";
 import { STATE_MUTATIONS } from "./policy";
@@ -121,11 +123,14 @@ export function verificationScopeForResult(
 
 export function verificationClassForResult(
   capability: string,
+  branch: CapabilityBranchHint | undefined,
   succeeded: boolean,
   freshness: ControlDelta["freshness"],
   result: unknown
 ): ControlDelta["verification_class"] {
-  const fallback = getCapabilityMetadata(capability).verificationClass;
+  const fallback =
+    manifestEntryForBranch(capability, branch)?.verificationClass ??
+    getCapabilityMetadata(capability).verificationClass;
   if (!succeeded) return fallback;
 
   if (

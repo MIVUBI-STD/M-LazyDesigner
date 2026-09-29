@@ -19,6 +19,7 @@ import {
   capabilityBranchFromArguments,
   evaluateCapabilityPreconditions,
 } from "../capabilities/graph";
+import { manifestEntryForBranch } from "../capabilities/manifest";
 import type { LocalCapabilityRegistry } from "../providers/registry";
 import type { GatewaySessionState } from "../session/state";
 import {
@@ -100,6 +101,7 @@ export class GatewayCapabilityExecutor {
       }
 
       const traceMeta = traceMetaFromContext(context);
+      const branch = capabilityBranchFromArguments(args);
       const phaseBefore = capabilityNeedsPhaseSnapshot(capability)
         ? (await this.backend.getStatus()).affinity.authoring_phase
         : null;
@@ -117,6 +119,9 @@ export class GatewayCapabilityExecutor {
         localResult !== null
           ? this.localCapabilities.readOnlyHint(capability) === true
           : runtimeInvocation!.readOnly;
+      const branchReadOnly =
+        manifestEntryForBranch(capability, branch)?.operationClass === "QUERY";
+      const effectiveReadOnly = readOnly || branchReadOnly;
 
       const succeeded = result.isError !== true;
       const receipt = deriveControlReceipt(
@@ -144,6 +149,7 @@ export class GatewayCapabilityExecutor {
 
       const controlDelta = buildControlDelta({
         capability,
+        branch,
         phaseBefore: receipt.phaseBefore,
         phaseAfter: receipt.phaseAfter,
         projectUuid: receipt.projectUuid,
@@ -153,7 +159,7 @@ export class GatewayCapabilityExecutor {
 
       const attachControlDelta = shouldAttachGatewayControlDelta(
         succeeded,
-        readOnly
+        effectiveReadOnly
       );
       const orchestration = attachControlDelta
         ? reduceControlExecutionState(
@@ -188,13 +194,13 @@ export class GatewayCapabilityExecutor {
           kind:
             capability === "capture_model_views"
               ? "verify"
-              : readOnly
+              : effectiveReadOnly
                 ? "inspect"
                 : "mutate",
           capability,
           success: succeeded,
           result: response,
-          readOnly,
+          readOnly: effectiveReadOnly,
           verificationClass: controlDelta.verification_class,
         });
         return response;
@@ -210,7 +216,7 @@ export class GatewayCapabilityExecutor {
         result.structuredContent,
         result.content,
         controlDelta.verification_class,
-        readOnly
+        effectiveReadOnly
       );
 
       const response = {
@@ -238,13 +244,13 @@ export class GatewayCapabilityExecutor {
         kind:
           capability === "capture_model_views"
             ? "verify"
-            : readOnly
+            : effectiveReadOnly
               ? "inspect"
               : "mutate",
         capability,
         success: succeeded,
         result: response,
-        readOnly,
+        readOnly: effectiveReadOnly,
         verificationClass: controlDelta.verification_class,
       });
       return response;

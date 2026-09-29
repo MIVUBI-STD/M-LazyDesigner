@@ -210,3 +210,7 @@ manage_material_instances(operation=set|bulk_set|clear)
 ```
 
 Search and full describe must project the same branch override. Branch operation metadata participates in the semantic routing revision.
+
+Branch metadata may also override Execution Class and Verification Class when the branch is behaviorally homogeneous. Query branches can therefore be projected as fast/not-applicable even when their consolidated facade also owns mutations.
+
+Do not force an override onto a mixed branch. For example, `manage_animation_timeline(operation=timeline)` still contains both editor/timeline control and authored clip-property mutation actions, so receipt/result semantics remain authoritative there.

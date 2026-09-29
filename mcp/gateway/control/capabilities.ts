@@ -69,6 +69,10 @@ export function projectCapabilitiesForSearch(
     );
     const operationClass =
       branchMetadata?.operationClass ?? metadata.operationClass;
+    const verificationClass =
+      branchMetadata?.verificationClass ?? metadata.verificationClass;
+    const executionClass =
+      branchMetadata?.executionClass ?? metadata.executionClass;
     const flags = [
       ...(capability.read_only ? ["read_only" as const] : []),
       ...(capability.destructive ? ["destructive" as const] : []),
@@ -92,11 +96,11 @@ export function projectCapabilitiesForSearch(
       tier: capability.tier,
       authoring_domain: capability.control.authoring_domain,
       operation_class: operationClass,
-      ...(metadata.verificationClass !== "not_applicable"
-        ? { verification_class: metadata.verificationClass }
+      ...(verificationClass !== "not_applicable"
+        ? { verification_class: verificationClass }
         : {}),
-      ...(metadata.executionClass !== "normal"
-        ? { execution_class: metadata.executionClass }
+      ...(executionClass !== "normal"
+        ? { execution_class: executionClass }
         : {}),
       ...(flags.length > 0 ? { flags } : {}),
     };

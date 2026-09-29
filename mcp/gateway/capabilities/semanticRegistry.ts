@@ -48,6 +48,8 @@ function recordFingerprints(
     branch: entry.branch ?? null,
     semantic: entry.semantic ?? null,
     operationClass: entry.operationClass ?? null,
+    executionClass: entry.executionClass ?? null,
+    verificationClass: entry.verificationClass ?? null,
   });
   const graph = semanticFingerprint({
     id: entry.id,

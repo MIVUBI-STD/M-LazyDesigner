@@ -361,12 +361,15 @@ export function registerCoreGatewayTools(
                   ? { annotations: tool.annotations }
                   : {}),
                 lifecycle: metadata.lifecycle,
-                operation_class: semanticRecord?.operationClass ?? metadata.operationClass,
+                operation_class:
+                  semanticRecord?.operationClass ?? metadata.operationClass,
                 ...(metadata.stateClass !== null
                   ? { state_class: metadata.stateClass }
                   : {}),
-                execution_class: metadata.executionClass,
-                verification_class: metadata.verificationClass,
+                execution_class:
+                  semanticRecord?.executionClass ?? metadata.executionClass,
+                verification_class:
+                  semanticRecord?.verificationClass ?? metadata.verificationClass,
                 control: {
                   authoring_domain: authoringDomainForCapability(capability),
                   source_owner: sourceOwnerForCapability(capability),

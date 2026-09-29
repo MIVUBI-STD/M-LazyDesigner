@@ -38,6 +38,8 @@ export type CapabilityBranchManifestEntry = {
   schemaFields?: readonly string[];
   semantic?: CapabilitySemanticSpec;
   operationClass?: CapabilityOperationClass;
+  executionClass?: "fast" | "normal" | "heavy";
+  verificationClass?: "not_applicable" | "receipt_only" | "focused_read" | "visual";
   graph?: CapabilityGraphSpec;
 };
 
@@ -300,6 +302,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "create" },
     schemaFields: [
+    verificationClass: "focused_read",
       "operation", "name", "color_texture", "normal_texture", "height_texture",
       "mer_texture", "color_value", "mer_value", "subsurface_value",
     ],
@@ -317,6 +320,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "configure" },
     schemaFields: [
+    verificationClass: "focused_read",
       "operation", "material", "color_texture", "normal_texture", "height_texture",
       "mer_texture", "color_value", "mer_value", "subsurface_value",
     ],
@@ -334,6 +338,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "assign_channel" },
     schemaFields: ["operation", "material", "texture", "channel"],
+    verificationClass: "focused_read",
     operationClass: "MUTATION",
     semantic: {
       intents: ["assign texture channel", "set material texture channel"],
@@ -345,6 +350,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_material",
     branch: { field: "operation", value: "save" },
     schemaFields: ["operation", "material"],
+    verificationClass: "focused_read",
     operationClass: "MUTATION",
     semantic: {
       intents: ["save material config", "write texture set material"],
@@ -358,6 +364,8 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     branch: { field: "operation", value: "list" },
     schemaFields: ["operation", "include_usages", "usage_limit_per_instance"],
     operationClass: "QUERY",
+    executionClass: "fast",
+    verificationClass: "not_applicable",
     semantic: {
       intents: ["list material instances", "show material instance usage"],
       nouns: ["material", "instance", "usage"],
@@ -369,6 +377,8 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     branch: { field: "operation", value: "get" },
     schemaFields: ["operation", "cube_id", "faces"],
     operationClass: "QUERY",
+    executionClass: "fast",
+    verificationClass: "not_applicable",
     semantic: {
       intents: ["get face material instance", "inspect cube material assignment"],
       nouns: ["material", "instance", "cube", "face"],
@@ -380,6 +390,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     branch: { field: "operation", value: "set" },
     schemaFields: ["operation", "cube_id", "material_name", "faces"],
     operationClass: "MUTATION",
+    verificationClass: "focused_read",
     semantic: {
       intents: ["set face material instance", "assign material instance to faces"],
       nouns: ["material", "instance", "cube", "face"],
@@ -391,6 +402,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     branch: { field: "operation", value: "bulk_set" },
     schemaFields: ["operation", "assignments"],
     operationClass: "MUTATION",
+    verificationClass: "focused_read",
     semantic: {
       intents: ["bulk set material instances", "assign material instances to many cubes"],
       nouns: ["material", "instance", "cubes", "faces", "assignments"],
@@ -402,6 +414,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     branch: { field: "operation", value: "clear" },
     schemaFields: ["operation", "cube_id", "faces", "all_cubes"],
     operationClass: "MUTATION",
+    verificationClass: "focused_read",
     semantic: {
       intents: ["clear material instances", "remove face material assignments"],
       nouns: ["material", "instance", "cube", "face"],
@@ -450,7 +463,6 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "timeline" },
     schemaFields: ["operation", "animation_id", "action", "time", "length", "fps", "loop_mode", "range", "molang", "easing", "bone_ids"],
-    operationClass: "CONTROL",
     semantic: {
       intents: ["control animation timeline", "scrub animation", "play animation preview"],
       nouns: ["animation", "timeline", "playback", "time", "range"],
