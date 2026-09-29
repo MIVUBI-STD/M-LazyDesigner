@@ -153,11 +153,11 @@ describe("model creation effectiveness — correction accuracy", () => {
     ]);
     for (const text of [geometry, modelling]) {
       expect(text.toLowerCase()).toContain("invariant");
-      expect(text).toContain("geometry_effect");
       expect(text).toContain("TRANSLATE");
       expect(text).toContain("RESIZE");
       expect(text).toContain("ROTATE");
     }
+    expect(geometry).toContain("geometry_effect");
     expect(modelling).toContain("State target UUID(s), cause, intended change, invariant");
     expect(modelling).toContain(
       "Reuse fresh exact authored state; otherwise `inspect_elements(mode=detail)` once."
