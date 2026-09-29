@@ -12,6 +12,7 @@ import { registerCoreGatewayTools } from "./handlers/registerCoreTools";
 import { GatewaySessionState } from "./session/state";
 import type { GatewayToolContext } from "./runtime/gatewayErrors";
 import { GatewayCapabilityExecutor } from "./runtime/capabilityExecutor";
+import { BenchmarkTraceRecorder } from "./runtime/benchmarkTrace";
 
 const session = new GatewaySessionState();
 
@@ -19,10 +20,12 @@ const backend = new BlockitRuntimeBackend(undefined, undefined, {
   onRuntimeGenerationChange: () => session.onRuntimeGenerationChange(),
 });
 const localCapabilities = new LocalCapabilityRegistry();
+const benchmarkTrace = BenchmarkTraceRecorder.fromEnvironment();
 const executor = new GatewayCapabilityExecutor(
   backend,
   localCapabilities,
-  session
+  session,
+  benchmarkTrace
 );
 
 // Runtime resources and prompts are not proxied. Stable-four remains the
@@ -52,6 +55,7 @@ function buildGatewayServer(): McpServer {
     session,
     surfaceProfile,
     experimentalTools: () => registeredExperimentalTools,
+    trace: benchmarkTrace,
     invoke: (capability, args, context) =>
       executor.invoke(capability, args, context),
   });
@@ -78,6 +82,7 @@ async function shutdown(exitCode: number): Promise<void> {
   shuttingDown = true;
   try {
     await backend.close();
+    await benchmarkTrace.flush();
     await stdioHandle?.close();
   } finally {
     process.exit(exitCode);
