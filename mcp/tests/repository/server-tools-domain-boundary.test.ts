@@ -151,6 +151,27 @@ describe("server tool domain ownership", () => {
     );
   });
 
+  test("paint selection/layer schema stays separate from executor", async () => {
+    const schema = await Bun.file(
+      "server/tools/paint/selectionLayerSchema.ts"
+    ).text();
+    const executor = await Bun.file(
+      "server/tools/paint-selection-layers.ts"
+    ).text();
+
+    expect(schema).toContain("textureSelectionParameters");
+    expect(schema).toContain("textureLayerManagementParameters");
+    expect(schema).not.toContain("createTool(");
+    expect(schema).not.toContain("Undo.");
+    expect(schema).not.toContain("/server/runtime");
+    expect(schema).not.toContain("/gateway/");
+
+    expect(executor).toContain(
+      'from "@/server/tools/paint/selectionLayerSchema"'
+    );
+    expect(executor.length).toBeLessThan(28000);
+  });
+
   test("create texture schema stays separate from executor/runtime wiring", async () => {
     const schema = await Bun.file(
       "server/tools/texture/createSchema.ts"
