@@ -1,36 +1,11 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
-import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { animationIdOptionalSchema } from "@/lib/zodObjects";
+import { inspectAnimationParameters } from "@/server/tools/animation/inspectionSchema";
+export { inspectAnimationParameters } from "@/server/tools/animation/inspectionSchema";
 
-export const inspectAnimationParameters = z.object({
-  animation_id: animationIdOptionalSchema.describe(
-    "Exact Animation/AnimationController UUID or unique name; omit to use the selected AnimationItem."
-  ),
-  bone: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(
-      "Optional Group UUID or unique exact name. Use only for authored Animation bone/keyframe detail."
-    ),
-  state: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(
-      "Optional controller state UUID or unique exact name for focused state-machine detail."
-    ),
-  include_effect_keyframes: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      "Include full particle/sound/timeline effect keyframes; keep false for summary."
-    ),
-});
+
 
 export const animationInspectionToolDocs: ToolSpec[] = [
   {
