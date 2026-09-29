@@ -16,7 +16,10 @@ Current migrated animation internals:
 server/tools/animation/shared.ts           canonical shared helpers
 server/tools/animation/controllerState.ts  canonical controller state helpers
 server/tools/animation/effectState.ts      canonical effect state helpers
+server/tools/animation/batchSchema.ts        canonical batch/copy-paste input contracts
 server/tools/animation/controllerSchema.ts   canonical controller input contract
+server/tools/animation/keyframeSchema.ts      canonical keyframe/graph input contracts
+server/tools/animation/timelineSchema.ts      canonical timeline input contract
 server/tools/animation/controllerPlanner.ts  runtime-independent mutation planning
 server/tools/animation/inspectionSchema.ts   canonical inspection input contract
 
