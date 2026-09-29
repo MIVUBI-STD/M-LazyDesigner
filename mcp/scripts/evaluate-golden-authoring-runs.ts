@@ -13,7 +13,7 @@ export type GoldenTraceEvent = {
   index: number;
   kind: GoldenTraceKind;
   capability?: string;
-  required_for_decision: boolean;
+  required_for_decision: boolean | null;
   result_bytes?: number | null;
   latency_ms?: number | null;
 };
@@ -96,8 +96,13 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
     if (!["search", "describe", "inspect", "mutate", "verify", "recovery"].includes(event.kind)) {
       throw new Error(`${prefix}.trace[${eventIndex}].kind is invalid.`);
     }
-    if (typeof event.required_for_decision !== "boolean") {
-      throw new Error(`${prefix}.trace[${eventIndex}].required_for_decision must be boolean.`);
+    if (
+      event.required_for_decision !== null &&
+      typeof event.required_for_decision !== "boolean"
+    ) {
+      throw new Error(
+        `${prefix}.trace[${eventIndex}].required_for_decision must be boolean or null.`
+      );
     }
     if (event.result_bytes !== undefined) {
       requireNonNegativeNullable(event.result_bytes, `${prefix}.trace[${eventIndex}].result_bytes`);
@@ -124,6 +129,11 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
   if (run.accepted_result === true) {
     if (run.quality_verdict !== "PASS") {
       throw new Error(`${prefix} cannot be accepted unless quality_verdict is PASS.`);
+    }
+    if (run.trace.some((event) => event.required_for_decision === null)) {
+      throw new Error(
+        `${prefix} accepted result requires decision labels for every trace event.`
+      );
     }
     for (const criterion of task.acceptance) {
       const evidence = evidenceByCriterion.get(criterion)!;
@@ -174,10 +184,12 @@ export function summarizeGoldenAuthoringDocument(
     const task = taskById.get(run.task_id)!;
     const accepted = run.accepted_result === true && run.quality_verdict === "PASS";
     const redundantReadbacks = run.trace.filter(
-      (event) => event.kind === "inspect" && event.required_for_decision === false
+      (event) =>
+        event.kind === "inspect" &&
+        event.required_for_decision === false
     ).length;
     const decisionRequiredCalls = run.trace.filter(
-      (event) => event.required_for_decision
+      (event) => event.required_for_decision === true
     ).length;
 
     return {
