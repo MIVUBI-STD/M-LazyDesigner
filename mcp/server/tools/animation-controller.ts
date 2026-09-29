@@ -57,6 +57,36 @@ function resolveController(reference: string): AnimationController {
   });
 }
 
+function resolveAuthoredAnimation(reference: string): _Animation {
+  const items = (AnimationItem.all ?? []) as Array<_Animation | AnimationController>;
+  const animations = items.filter(
+    (item): item is _Animation => !isAnimationControllerItem(item)
+  );
+  return resolveUuidOrUniqueName(animations, reference, {
+    kind: "Animation",
+    notFoundHint:
+      "Pass an exact authored Animation UUID or unique exact Animation name; controller targets are not animation links.",
+  });
+}
+
+function ensureControllerNameAvailable(
+  requestedName: string,
+  path: string,
+  excludeUuid?: string
+): void {
+  const collision = currentControllers().find(
+    (candidate) =>
+      candidate.uuid !== excludeUuid &&
+      (candidate.path || "") === path &&
+      candidate.name === requestedName
+  );
+  if (collision) {
+    throw new Error(
+      `AnimationController name "${requestedName}" already exists for the same file scope (${collision.uuid}). Use a unique exact name.`
+    );
+  }
+}
+
 export function registerAnimationControllerTools(): void {
   createTool(
     animationControllerToolDocs[0].name,
