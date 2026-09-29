@@ -54,7 +54,11 @@ const DOMAIN_PREFIX = /^(?:animation|geometry|particle|texture|uv)[A-Z].*\.ts$/;
 const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
   "animationContactEvidence.ts":
     'export * from "./animation/contactEvidence";\n',
+  "animationControllerComposition.ts":
+    'export * from "./animation/controllerComposition";\n',
   "animationEasing.ts": 'export * from "./animation/easing";\n',
+  "animationMotionDynamics.ts":
+    'export * from "./animation/motionDynamics";\n',
   "animationPreviewState.ts":
     'export * from "./animation/previewState";\n',
   "geometryQuality.ts": 'export * from "./geometry/quality";\n',
@@ -62,9 +66,16 @@ const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "./geometry/surfaceEvidence";\n',
   "particleResourceLayout.ts":
     'export * from "./particle/resourceLayout";\n',
+  "particleWriteRevision.ts":
+    'export * from "./particle/writeRevision";\n',
   "textureBitmapRuntime.ts":
     'export * from "./texture/bitmapRuntime";\n',
+  "textureSeamContinuity.ts":
+    'export * from "./texture/seamContinuity";\n',
+  "textureSurfacePattern.ts":
+    'export * from "./texture/surfacePattern";\n',
   "texturePalette.ts": 'export * from "./texture/palette";\n',
+  "uvPhysicalEvidence.ts": 'export * from "./uv/physicalEvidence";\n',
 };
 
 describe("lib domain ownership ratchet", () => {
