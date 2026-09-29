@@ -385,7 +385,7 @@ export async function buildDevelopmentSymbolMap(
 
     const file: DevelopmentFileMap = {
       ...mapped,
-      test_owner: owner.test_owner,
+      test_owner: owner.anchor_test,
     };
 
     const wholeCandidate = { ...base, files: [...base.files, file] };
