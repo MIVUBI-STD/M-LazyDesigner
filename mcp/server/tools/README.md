@@ -124,17 +124,23 @@ server/tools/paint-selection-layers.ts
 ```
 
 
-Current material assignment planning:
+Current material state/membership ownership:
 
 ```text
 server/tools/texture/materialState.ts
-  assignment no-op detection
-  reset-channel planning
-  Undo texture-set planning
+  PBR material lookup/validation
+  runtime texture-state projection
+  material-group lookup
+  membership change application
+
+lib/texture/pbrMaterialMembership.ts
+  exclusive PBR membership planning
+  normal/height conflict rules
+  no-op/change planning
 
 server/tools/texture-materials.ts
-  native texture/group mutation
   Undo
-  material refresh
+  native material refresh
+  semantic history
   receipts
 ```
