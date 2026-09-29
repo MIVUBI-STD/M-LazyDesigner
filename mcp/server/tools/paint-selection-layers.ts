@@ -17,6 +17,7 @@ export {
 import { morphBinaryMaskRound } from "@/lib/texture/binaryMaskMorphology";
 import { getAndActivateTexture, resolvePaintTexture } from "@/lib/util";
 import {
+  applyLayerMetadataBatchPlan,
   layerContinuationState,
   preflightLayerMetadataBatch,
   resolveManagedTextureLayer,
@@ -279,20 +280,7 @@ export function registerPaintSelectionLayerTools(): void {
                   : { layers: plan.resolved.map(({ layer }) => layer) };
                 Undo.initEdit(undoAspects);
                 try {
-                  for (const { update, layer } of plan.resolved) {
-                    if (update.name !== undefined) layer.name = update.name;
-                    if (update.opacity !== undefined) layer.opacity = update.opacity;
-                    if (update.blend_mode !== undefined) {
-                      layer.blend_mode = update.blend_mode;
-                    }
-                  }
-                  for (const { update, layer } of plan.resolved) {
-                    if (update.target_index === undefined) continue;
-                    const currentIndex = texture.layers.indexOf(layer);
-                    if (currentIndex === update.target_index) continue;
-                    texture.layers.remove(layer);
-                    texture.layers.splice(update.target_index, 0, layer);
-                  }
+                  applyLayerMetadataBatchPlan(texture, plan);
 
                   if (plan.visualChange) {
                     texture.updateChangesAfterEdit();
