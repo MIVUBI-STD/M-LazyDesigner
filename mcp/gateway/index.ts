@@ -1,10 +1,7 @@
 import { serveStdio, type StdioServerHandle } from "@modelcontextprotocol/server/stdio";
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
-import {
-  BlockitRuntimeBackend,
-  GatewayBackendError,
-} from "./backend";
+import { BlockitRuntimeBackend } from "./backend";
 import {
   GATEWAY_NAME,
   GATEWAY_TOOLS,
@@ -28,10 +25,8 @@ import {
   decorateCapabilities,
   projectCapabilitiesForSearch,
   reduceControlExecutionState,
-  type ControlExecutionState,
 } from "./control";
 import { LocalCapabilityRegistry } from "./providers/registry";
-import { recoveryForGatewayError } from "./runtime/recovery";
 import { projectGatewayStatus } from "./statusProjection";
 import {
   capabilityNeedsPhaseSnapshot,
@@ -43,8 +38,6 @@ import {
   applyCapabilityGraphOutcome,
   capabilityBranchFromArguments,
   evaluateCapabilityPreconditions,
-  seedCapabilityFacts,
-  type CapabilityFactState,
 } from "./capabilities/graph";
 import {
   gatewayDescribeOutputSchema,
@@ -62,41 +55,19 @@ import {
   type GatewaySurfaceProfile,
 } from "./experimental/hybridProfile";
 import { registerExperimentalHybrid4 } from "./experimental/hybridRegistration";
+import { GatewaySessionState } from "./session/state";
+import {
+  gatewayErrorResult,
+  traceMetaFromContext,
+  type GatewayToolContext,
+} from "./runtime/gatewayErrors";
 
-let executionState: ControlExecutionState | null = null;
-let capabilityFacts: CapabilityFactState = seedCapabilityFacts({});
-let capabilityFactsProjectUuid: string | null = null;
+const session = new GatewaySessionState();
 
 const backend = new BlockitRuntimeBackend(undefined, undefined, {
-  onRuntimeGenerationChange: () => {
-    gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration();
-    executionState = null;
-    capabilityFacts = seedCapabilityFacts({
-      projectBound: capabilityFactsProjectUuid !== null,
-    });
-  },
+  onRuntimeGenerationChange: () => session.onRuntimeGenerationChange(),
 });
 const localCapabilities = new LocalCapabilityRegistry();
-
-function synchronizeCapabilityFacts(projectUuid: string | null): void {
-  const orchestrationProjectChanged =
-    gatewayOrchestrationRecoveryState.synchronizeProjectAffinity(projectUuid);
-  if (orchestrationProjectChanged) {
-    executionState = null;
-  }
-
-  if (projectUuid !== capabilityFactsProjectUuid) {
-    capabilityFactsProjectUuid = projectUuid;
-    capabilityFacts = seedCapabilityFacts({
-      projectBound: projectUuid !== null,
-    });
-    return;
-  }
-  capabilityFacts = {
-    ...capabilityFacts,
-    ...seedCapabilityFacts({ projectBound: projectUuid !== null }),
-  };
-}
 
 // Runtime resources and prompts are not proxied. Stable-four remains the
 // production default; Hybrid-4 is an explicit experimental startup profile.
@@ -115,102 +86,6 @@ type GatewayToolDefinition = {
     openWorldHint?: boolean;
   };
 };
-
-type GatewayToolContext = {
-  mcpReq?: {
-    _meta?: Record<string, unknown>;
-  };
-};
-
-type GatewayToolHandler = (
-  args: JsonRecord,
-  context?: GatewayToolContext
-) => Promise<unknown>;
-
-const TRACE_META_KEYS = ["traceparent", "tracestate", "baggage"] as const;
-
-function traceMetaFromContext(context?: GatewayToolContext): JsonRecord | undefined {
-  const source = context?.mcpReq?._meta;
-  if (!source) return undefined;
-
-  const traceMeta: JsonRecord = {};
-  for (const key of TRACE_META_KEYS) {
-    const value = source[key];
-    if (typeof value === "string" && value.length > 0 && value.length <= 8192) {
-      traceMeta[key] = value;
-    }
-  }
-  return Object.keys(traceMeta).length > 0 ? traceMeta : undefined;
-}
-
-function errorRecord(error: unknown): {
-  code: string;
-  message: string;
-  safeToRetry: boolean;
-  details: JsonRecord;
-} | null {
-  if (error instanceof GatewayBackendError) {
-    return {
-      code: error.code,
-      message: error.message,
-      safeToRetry: error.safeToRetry,
-      details: error.details,
-    };
-  }
-
-  if (!error || typeof error !== "object") return null;
-  const candidate = error as Record<string, unknown>;
-  if (typeof candidate.code !== "string") return null;
-  const details =
-    candidate.details &&
-    typeof candidate.details === "object" &&
-    !Array.isArray(candidate.details)
-      ? candidate.details as JsonRecord
-      : {};
-  return {
-    code: candidate.code,
-    message:
-      typeof candidate.message === "string"
-        ? candidate.message
-        : String(candidate.code),
-    safeToRetry: candidate.safeToRetry === true,
-    details,
-  };
-}
-
-function gatewayErrorResult(error: unknown) {
-  const known = errorRecord(error);
-  if (known) {
-    const recovery = recoveryForGatewayError(
-      known.code,
-      known.safeToRetry,
-      known.details
-    );
-    return {
-      isError: true,
-      content: [
-        { type: "text" as const, text: `${known.code}: ${known.message}` },
-      ],
-      structuredContent: {
-        code: known.code,
-        message: known.message,
-        ...known.details,
-        recovery,
-      },
-    };
-  }
-
-  const message = error instanceof Error ? error.message : String(error);
-  return {
-    isError: true,
-    content: [{ type: "text" as const, text: `GATEWAY_ERROR: ${message}` }],
-    structuredContent: {
-      code: "GATEWAY_ERROR",
-      message,
-      recovery: recoveryForGatewayError("GATEWAY_ERROR", false),
-    },
-  };
-}
 
 const statusInput = z.object({
   adopt_active_project: z
@@ -338,7 +213,7 @@ function buildGatewayServer(): McpServer {
       const status = adopt_active_project
         ? await backend.adoptActiveProject()
         : await backend.getStatus();
-      synchronizeCapabilityFacts(status.affinity.project_uuid);
+      session.synchronizeProject(status.affinity.project_uuid);
       const control = await buildControlPacket(status, {
         knownContextIds: known_context_ids,
         workspacePath: workspace_path,
@@ -397,7 +272,7 @@ registerGatewayTool(
     try {
       const { query, limit } = searchInput.parse(rawArgs);
       const runtimeCapabilities = await backend.searchCapabilities(query, limit, {
-        facts: capabilityFacts,
+        facts: session.facts,
       });
       const rawCapabilities = await localCapabilities.search(
         query,
@@ -549,7 +424,7 @@ function directPreconditionBlockedResult(
   const evaluation = evaluateCapabilityPreconditions(
     capability,
     branch,
-    capabilityFacts
+    session.facts
   );
   if (evaluation.eligibility !== "BLOCKED") return null;
 
@@ -617,16 +492,16 @@ async function invokeGatewayCapability(
     );
     if (
       receipt.projectUuid !== null &&
-      receipt.projectUuid !== capabilityFactsProjectUuid
+      receipt.projectUuid !== session.projectUuid
     ) {
-      synchronizeCapabilityFacts(receipt.projectUuid);
+      session.synchronizeProject(receipt.projectUuid);
     }
-    capabilityFacts = applyCapabilityGraphOutcome(
-      capabilityFacts,
+    session.replaceFacts(applyCapabilityGraphOutcome(
+      session.facts,
       capability,
       args,
       succeeded
-    );
+    ));
     const controlDelta = buildControlDelta({
       capability,
       phaseBefore: receipt.phaseBefore,
@@ -640,9 +515,9 @@ async function invokeGatewayCapability(
       readOnly
     );
     const orchestration = attachControlDelta
-      ? reduceControlExecutionState(executionState, controlDelta)
+      ? reduceControlExecutionState(session.controlExecutionState, controlDelta)
       : null;
-    if (orchestration) executionState = orchestration.state;
+    if (orchestration) session.controlExecutionState = orchestration.state;
     const gatewayControlDelta = {
       ...projectControlDeltaForGateway(controlDelta),
       ...(orchestration
