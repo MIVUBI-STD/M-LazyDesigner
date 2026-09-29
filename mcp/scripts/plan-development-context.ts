@@ -163,6 +163,11 @@ export async function buildDevelopmentContextPlan(input: {
     maxTokenProxy: input.knowledgeTokenBudget ?? 1200,
   });
 
+  const directOwnershipIsAuthoritative =
+    semanticImpact !== null &&
+    evidenceDomain !== null &&
+    effectiveRouting.context_strategy === "DIRECT_SOURCE_OWNERS";
+
   return {
     schema: 1,
     intent: effectiveRouting.intent,
@@ -182,15 +187,21 @@ export async function buildDevelopmentContextPlan(input: {
     read_targets: {
       source: uniqueSorted([
         ...routingSources,
-        ...(semanticImpact?.affected_sources ?? []),
+        ...(directOwnershipIsAuthoritative
+          ? []
+          : semanticImpact?.affected_sources ?? []),
       ]),
       anchor_tests: uniqueSorted([
         ...routingAnchorTests,
-        ...(semanticImpact?.affected_anchor_tests ?? []),
+        ...(directOwnershipIsAuthoritative
+          ? []
+          : semanticImpact?.affected_anchor_tests ?? []),
       ]),
       specialists: uniqueSorted([
         ...routingSpecialists,
-        ...(semanticImpact?.affected_specialists ?? []),
+        ...(directOwnershipIsAuthoritative
+          ? []
+          : semanticImpact?.affected_specialists ?? []),
       ]),
     },
   };
