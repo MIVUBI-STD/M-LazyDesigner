@@ -1,0 +1,54 @@
+name: Upgrade Blockbench Types Once
+
+on:
+  push:
+    branches:
+      - Local
+    paths:
+      - ".github/workflows/upgrade-blockbench-types-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: Local
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: ".bun-version"
+
+      - name: Install current lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Upgrade Blockbench type package
+        run: bun add --dev blockbench-types@5.2.0
+
+      - name: Audit high-severity advisories
+        run: bun audit --audit-level=high
+
+      - name: Verify type contracts
+        run: bun run verify:types
+
+      - name: Commit dependency update
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mcp/package.json mcp/bun.lock
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(deps): upgrade blockbench types security chain"
+          git push origin HEAD:Local
