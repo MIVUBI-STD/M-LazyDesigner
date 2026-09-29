@@ -136,7 +136,11 @@ const RULES: readonly Rule[] = [
 ];
 
 function normalizedIntent(intent: string): string {
-  return intent.trim().toLocaleLowerCase().replaceAll("\\", "/");
+  return intent
+    .trim()
+    .toLocaleLowerCase()
+    .replaceAll("\\", "/")
+    .replace(/\/{2,}/g, "/");
 }
 
 function matches(text: string, term: string): boolean {
