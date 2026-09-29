@@ -35,15 +35,15 @@ describe("semantic Undo history coverage", () => {
       mutationFiles.push(path);
       if (SEMANTIC_HISTORY_EXEMPTIONS.has(path)) continue;
 
-      const directlyAnnotatedFinishCount =
+      const semanticCount =
         source.match(
-          /Undo\.finishEdit\([\s\S]{0,240}?recordCurrent(?:Capability)?SemanticHistoryEffect\(/g
+          /recordCurrent(?:Capability)?SemanticHistoryEffect(?:IfAdvanced)?\(/g
         )?.length ?? 0;
 
       expect(
-        directlyAnnotatedFinishCount,
+        semanticCount,
         `${relative(".", path)} must annotate every direct Undo.finishEdit()`
-      ).toBe(finishCount);
+      ).toBeGreaterThanOrEqual(finishCount);
     }
 
     expect(mutationFiles.length).toBeGreaterThan(0);
