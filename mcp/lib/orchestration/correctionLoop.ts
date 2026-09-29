@@ -10,7 +10,7 @@ import {
 } from "@/lib/correctionSolver";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
-import type { VerificationDiscrepancy } from "@/lib/orchestration/compactEvidence";
+import {\n  minecraftQualityFocus,\n  prioritizeMinecraftDiscrepancies,\n  type VerificationDiscrepancy,\n} from "@/lib/orchestration/compactEvidence";
 import type { ModelView } from "@/server/tools/camera";
 import {
   correctionContinuationDelta,
@@ -225,7 +225,7 @@ export class CorrectionLoopRegistry {
       }))
       .sort((a, b) => a.view.localeCompare(b.view));
 
-    const unresolved = record.discrepancies.slice(0, 6).map((item) => ({
+    const prioritizedDiscrepancies = prioritizeMinecraftDiscrepancies(\n      record.discrepancies\n    );\n    const qualityFocus = minecraftQualityFocus(prioritizedDiscrepancies);\n    const unresolved = prioritizedDiscrepancies.slice(0, 6).map((item) => ({
       code: item.code,
       severity: item.severity,
       summary:

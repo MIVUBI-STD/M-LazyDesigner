@@ -77,6 +77,74 @@ describe("verification evidence compaction", () => {
     expect(registry.get(handle).result).toEqual(result);
   });
 
+  test("Minecraft quality critic prioritizes explicit structural causes without guessing from prose", () => {
+    const discrepancies: VerificationDiscrepancy[] = [
+      {
+        code: "DETAIL",
+        severity: "REVIEW",
+        summary: "small decorative difference",
+        quality_class: "SECONDARY_DETAIL",
+        owner: "GEOMETRY",
+      },
+      {
+        code: "LEG_MISSING",
+        severity: "REVIEW",
+        summary: "required leg absent in the approved reference comparison",
+        quality_class: "REQUIRED_PART",
+        owner: "GEOMETRY",
+        cause_family: "MISSING_REQUIRED_PART",
+        views: ["front", "left"],
+        evidence_targets: ["silhouette"],
+      },
+      {
+        code: "FREE_TEXT_ONLY",
+        severity: "REVIEW",
+        summary: "looks like something may be wrong",
+      },
+    ];
+
+    const prioritized = prioritizeMinecraftDiscrepancies(discrepancies);
+    expect(prioritized.map((item) => item.code)).toEqual([
+      "LEG_MISSING",
+      "DETAIL",
+      "FREE_TEXT_ONLY",
+    ]);
+    expect(minecraftQualityFocus(discrepancies)).toEqual({
+      code: "LEG_MISSING",
+      severity: "REVIEW",
+      quality_class: "REQUIRED_PART",
+      owner: "GEOMETRY",
+      cause_family: "MISSING_REQUIRED_PART",
+      views: ["front", "left"],
+      evidence_targets: ["silhouette"],
+    });
+  });
+
+  test("blocking severity still outranks lower-severity structural category", () => {
+    const prioritized = prioritizeMinecraftDiscrepancies([
+      {
+        code: "REQUIRED_REVIEW",
+        severity: "REVIEW",
+        summary: "required part mismatch",
+        quality_class: "REQUIRED_PART",
+        owner: "GEOMETRY",
+      },
+      {
+        code: "UNCLASSIFIED_BLOCKER",
+        severity: "BLOCKING",
+        summary: "explicit blocker from evidence producer",
+      },
+    ]);
+    expect(prioritized.map((item) => item.code)).toEqual([
+      "UNCLASSIFIED_BLOCKER",
+      "REQUIRED_REVIEW",
+    ]);
+    expect(minecraftQualityFocus(prioritized)?.quality_class).toBe(
+      "UNCLASSIFIED"
+    );
+    expect(minecraftQualityFocus(prioritized)?.owner).toBe("UNKNOWN");
+  });
+
   test("evidence invalidation and runtime clear make stale handles fail closed", () => {
     const registry = new VerificationEvidenceRegistry();
     const request: VerificationEvidenceRequest = {

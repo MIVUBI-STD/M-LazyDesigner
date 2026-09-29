@@ -2,8 +2,12 @@ import { createHash } from "node:crypto";
 import { canonicalJson } from "@/lib/semantic/canonical";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
-import type { VerificationDiscrepancy } from "@/lib/orchestration/compactEvidence";
-import type { ModelView } from "@/server/tools/camera";
+import type {
+  MinecraftQualityClass,
+  MinecraftQualityOwner,
+  VerificationDiscrepancy,
+} from "@/lib/orchestration/compactEvidence";
+import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
 
 export type CorrectionLoopHandle = `correctionloop:${string}`;
 
@@ -24,12 +28,24 @@ export type CorrectionLoopContinuation = {
   attempt: 0 | 1 | 2;
   state: "CLEAR" | "READY" | "VERIFY_PENDING" | "BLOCKED";
   unresolved_count: number;
+  quality_focus: {
+    code: string;
+    severity: VerificationDiscrepancy["severity"];
+    quality_class: MinecraftQualityClass;
+    owner: MinecraftQualityOwner;
+    cause_family: string | null;
+    views: ModelView[];
+    evidence_targets: VisualEvidenceTarget[];
+  } | null;
   unresolved: Array<{
     code: string;
     severity: VerificationDiscrepancy["severity"];
     summary: string;
     views: ModelView[];
-    evidence_targets: string[];
+    evidence_targets: VisualEvidenceTarget[];
+    quality_class?: MinecraftQualityClass;
+    owner?: MinecraftQualityOwner;
+    cause_family?: string;
   }>;
   unresolved_truncated: boolean;
   fresh_view_evidence: Array<{
@@ -56,6 +72,7 @@ export type CorrectionContinuationDelta = {
   state?: CorrectionLoopContinuation["state"];
   attempt?: CorrectionLoopContinuation["attempt"];
   unresolved_count?: number;
+  quality_focus?: CorrectionLoopContinuation["quality_focus"];
   unresolved_upsert?: CorrectionLoopContinuation["unresolved"];
   resolved_discrepancy_codes?: string[];
   unresolved_truncated?: boolean;
@@ -124,6 +141,9 @@ export function correctionContinuationDelta(
     ...(previous.attempt !== current.attempt ? { attempt: current.attempt } : {}),
     ...(previous.unresolved_count !== current.unresolved_count
       ? { unresolved_count: current.unresolved_count }
+      : {}),
+    ...(!canonicalEqual(previous.quality_focus, current.quality_focus)
+      ? { quality_focus: current.quality_focus }
       : {}),
     ...(unresolvedUpsert.length > 0 ? { unresolved_upsert: unresolvedUpsert } : {}),
     ...(resolvedCodes.length > 0
