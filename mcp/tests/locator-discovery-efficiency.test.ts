@@ -21,7 +21,9 @@ describe("Locator discovery efficiency", () => {
 
     const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
     expect(modelling).toContain("## Minimum Necessary Evidence");
-    expect(modelling).toContain("Reuse fresh exact authored state; otherwise `inspect_elements(mode=detail)` once.");
+    expect(modelling).toContain(
+      "inspect once only when current exact authored state is stale/unknown"
+    );
     expect(modelling).toContain("Do not inspect each newly created Cube after a successful deterministic batch.");
   });
 });
