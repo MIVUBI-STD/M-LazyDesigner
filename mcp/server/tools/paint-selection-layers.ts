@@ -20,6 +20,10 @@ import { getAndActivateTexture, resolvePaintTexture } from "@/lib/util";
 import {
   applyLayerMetadataBatchPlan,
   layerContinuationState,
+  requireLayerBlendModeChange,
+  requireLayerMove,
+  requireLayerOpacityChange,
+  requireLayerRename,
   preflightLayerMetadataBatch,
   resolveManagedTextureLayer,
   textureLayerContinuationState,
@@ -449,11 +453,7 @@ export function registerPaintSelectionLayerTools(): void {
 
               if (action === "set_opacity") {
                 const target = layer!;
-                if (target.opacity === opacity) {
-                  throw new Error(
-                    `Layer "${target.name}" already has opacity ${opacity}%; no authored change is required.`
-                  );
-                }
+                requireLayerOpacityChange(target, opacity!);
                 Undo.initEdit({ layers: [target] });
                 try {
                   target.opacity = opacity!;
@@ -479,11 +479,7 @@ export function registerPaintSelectionLayerTools(): void {
 
               if (action === "set_blend_mode") {
                 const target = layer!;
-                if (target.blend_mode === blend_mode) {
-                  throw new Error(
-                    `Layer "${target.name}" already uses blend mode ${blend_mode}; no authored change is required.`
-                  );
-                }
+                requireLayerBlendModeChange(target, blend_mode!);
                 Undo.initEdit({ layers: [target] });
                 try {
                   target.blend_mode = blend_mode!;
@@ -509,17 +505,11 @@ export function registerPaintSelectionLayerTools(): void {
 
               if (action === "move_layer") {
                 const target = layer!;
-                const currentIndex = texture.layers.indexOf(target);
-                if (target_index! >= texture.layers.length) {
-                  throw new Error(
-                    `Target index ${target_index} is out of range for ${texture.layers.length} layers.`
-                  );
-                }
-                if (currentIndex === target_index) {
-                  throw new Error(
-                    `Layer "${target.name}" is already at index ${target_index}; no authored change is required.`
-                  );
-                }
+                const currentIndex = requireLayerMove(
+                  texture,
+                  target,
+                  target_index!
+                );
                 Undo.initEdit({ textures: [texture] });
                 try {
                   texture.layers.remove(target);
@@ -547,22 +537,11 @@ export function registerPaintSelectionLayerTools(): void {
 
               if (action === "rename_layer") {
                 const target = layer!;
-                if (target.name === layer_name) {
-                  throw new Error(
-                    `Layer already has the exact name "${layer_name}"; no authored change is required.`
-                  );
-                }
-                const collision = texture.layers.some(
-                  (candidate) =>
-                    candidate !== target &&
-                    candidate.name.toLowerCase() === layer_name!.toLowerCase()
+                const previousName = requireLayerRename(
+                  texture,
+                  target,
+                  layer_name!
                 );
-                if (collision) {
-                  throw new Error(
-                    `Layer name "${layer_name}" collides case-insensitively inside texture "${texture.name}".`
-                  );
-                }
-                const previousName = target.name;
                 Undo.initEdit({ layers: [target] });
                 try {
                   target.name = layer_name!;
