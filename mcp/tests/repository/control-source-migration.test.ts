@@ -11,11 +11,16 @@ describe("LazyDesigner Control source migration", () => {
     expect(await Bun.file("gateway/navigator/index.ts").exists()).toBe(false);
     expect(await Bun.file("gateway/navigator").exists()).toBe(false);
 
-    const gateway = await text("gateway/index.ts");
-    expect(gateway).toContain('from "./control"');
+    const [gateway, registration, executor] = await Promise.all([
+      text("gateway/index.ts"),
+      text("gateway/handlers/registerCoreTools.ts"),
+      text("gateway/runtime/capabilityExecutor.ts"),
+    ]);
+    expect(registration).toContain('from "../control"');
+    expect(executor).toContain('from "../control"');
     expect(gateway).not.toContain('from "./navigator"');
-    expect(gateway).toContain("buildControlPacket");
-    expect(gateway).toContain("buildControlDelta");
+    expect(registration).toContain("buildControlPacket");
+    expect(executor).toContain("buildControlDelta");
   });
 
   test("canonical Control module exposes current protocol and no Navigator imports", async () => {
