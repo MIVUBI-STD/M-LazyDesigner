@@ -16,11 +16,16 @@ describe("LazyDesigner Control minimum invalidation", () => {
       },
     });
 
-    expect(delta.invalidates.authoring_domains).toEqual(["GEOMETRY"]);
+    expect(delta.invalidates.authoring_domains).toEqual([
+      "GEOMETRY",
+      "ANIMATION",
+    ]);
     expect(delta.freshness.basis).toBe("PRECISE_EFFECT");
-    expect(delta.freshness.stale).toEqual(["GEOMETRY_STRUCTURE"]);
+    expect(delta.freshness.stale).toEqual([
+      "GEOMETRY_STRUCTURE",
+      "ANIMATION_MOTION",
+    ]);
     expect(delta.freshness.fresh).toContain("TEXTURE_APPEARANCE");
-    expect(delta.freshness.fresh).toContain("ANIMATION_MOTION");
   });
 
   test("shape or UV-sensitive cube changes invalidate dependent Texture and Animation knowledge", () => {
@@ -193,6 +198,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
         id: "locator-a",
         name: "hand",
         type: "locator",
+        parent: { uuid: "bone-a", name: "arm" },
         changed_fields: ["position"],
         state: {
           uuid: "locator-a",
@@ -576,9 +582,9 @@ describe("LazyDesigner Control minimum invalidation", () => {
             mer: null,
           },
           config: {
-            color_value: null,
-            mer_value: null,
-            subsurface_value: null,
+            color_value: [1, 1, 1, 1],
+            mer_value: [0, 0, 0],
+            subsurface_value: 0,
             saved: true,
           },
         },
@@ -600,9 +606,12 @@ describe("LazyDesigner Control minimum invalidation", () => {
       result: {
         valid: true,
         artifact_ready: true,
+        source_path: null,
         wrote_to_path: "/rp/particles/mivubi_dust.particle.json",
         preview_path: null,
         preview_error: null,
+        byte_length: 512,
+        operation_count: 1,
         writes: [
           {
             kind: "particle",
