@@ -26,7 +26,8 @@ describe("semantic core TypeScript project boundary", () => {
     expect(pkg.scripts["verify:semantic-core"]).toContain(
       "tsc -b tsconfig.semantic-solution.json"
     );
-    expect(pkg.scripts["verify:mcp"]).toContain(
+    expect(pkg.scripts["verify:mcp"]).toContain("bun run verify:types");
+    expect(pkg.scripts["verify:types"]).toContain(
       "bun run verify:project-graph"
     );
   });
