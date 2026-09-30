@@ -46,7 +46,7 @@ semantic stage  TEXTURING → Runtime surface AUTHORING
 semantic stage  ANIMATION → Runtime surface ANIMATION
 ```
 
-`mcp/lib/authoringPhase.ts` is the single mapping owner. Geometry↔Texturing is a semantic-owner/focus change inside the same AUTHORING surface; only AUTHORING↔Animation is a true Runtime surface boundary.
+`mcp/lib/capabilities/authoringPhase.ts` is the single mapping owner. Geometry↔Texturing is a semantic-owner/focus change inside the same AUTHORING surface; only AUTHORING↔Animation is a true Runtime surface boundary.
 
 ### Product Development
 
@@ -272,14 +272,14 @@ mcp/lib/runtime/     Runtime connection/affinity/fetch/lifecycle primitives
 Root `mcp/lib/*.ts` files for migrated owners are compatibility re-export facades only; new code should target the canonical domain path.
 
 ```text
-mcp/lib/capabilityMetadata.ts   canonical tier/search aliases/declarative effects + Operation/State/Execution/Verification projection
+mcp/lib/capabilities/metadata.ts   canonical tier/search aliases/declarative effects + Operation/State/Execution/Verification projection
 mcp/lib/assetDependencyGraph.ts canonical Dirty Scope → Domain + minimum downstream recheck projection
 
 gateway/control/orchestration.ts
 → ephemeral per-task Verification Cohort accumulation
 → optional task_context_id + explicit CONTINUE/COMPLETE boundary
 → never replaces native per-tool Undo/rollback
-mcp/lib/authoringPhase.ts       semantic stage classification + AUTHORING/ANIMATION surface mapping
+mcp/lib/capabilities/authoringPhase.ts       semantic stage classification + AUTHORING/ANIMATION surface mapping
 mcp/lib/authoring/authoringReadiness.ts  canonical Animation handoff readiness
 mcp/lib/authoring/validationVerdict.ts   conservative Validator gate projection
 mcp/lib/receipts/**             shared Runtime→Control mutation receipt contracts
