@@ -42,7 +42,7 @@ type RegistrationFunction = () => void;
 
 export type McpSurfaceDescriptor = Readonly<{
   profile: McpRegistrationProfile;
-  phase: McpAuthoringStage;
+  stage: McpAuthoringStage;
   toolNames: readonly string[];
   toolNameSet: ReadonlySet<string>;
   count: number;
@@ -99,10 +99,10 @@ let profileSwitchHandler:
 const registeredFamilies = new Set<McpRegistrationFamily>();
 const toolRegistrationFamily = new Map<string, McpRegistrationFamily>();
 const catalogToolEnabled = new Map<string, boolean>();
-const phaseSurfaceCache = new Map<string, McpSurfaceDescriptor>();
+const stageSurfaceCache = new Map<string, McpSurfaceDescriptor>();
 
-function invalidatePhaseSurfaceCache(): void {
-  phaseSurfaceCache.clear();
+function invalidateStageSurfaceCache(): void {
+  stageSurfaceCache.clear();
 }
 
 function updateCatalogTool(
@@ -112,7 +112,7 @@ function updateCatalogTool(
 ): void {
   toolRegistrationFamily.set(toolName, family);
   catalogToolEnabled.set(toolName, enabled);
-  invalidatePhaseSurfaceCache();
+  invalidateStageSurfaceCache();
 }
 
 function registerFamily(family: McpRegistrationFamily): boolean {
@@ -131,16 +131,16 @@ function registerFamily(family: McpRegistrationFamily): boolean {
 
 function surfaceCacheKey(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringStage
+  stage: McpAuthoringStage
 ): string {
-  return `${profile}|${phase}`;
+  return `${profile}|${stage}`;
 }
 
 export function describeMcpSurfaceToolNames(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringStage
+  stage: McpAuthoringStage
 ): readonly string[] {
-  return getMcpSurfaceDescriptor(profile, phase).toolNames;
+  return getMcpSurfaceDescriptor(profile, stage).toolNames;
 }
 
 export function registerMcpProfile(
@@ -159,7 +159,7 @@ export function registerMcpProfile(
     catalogChanged = Object.keys(tools).length !== before || catalogChanged;
   }
 
-  if (catalogChanged) invalidatePhaseSurfaceCache();
+  if (catalogChanged) invalidateStageSurfaceCache();
 }
 
 export function getActiveMcpRegistrationProfile(): McpRegistrationProfile {
@@ -197,10 +197,10 @@ export function isCatalogToolEnabled(toolName: string): boolean {
  */
 export function getMcpSurfaceDescriptor(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringStage
+  stage: McpAuthoringStage
 ): McpSurfaceDescriptor {
-  const cacheKey = surfaceCacheKey(profile, phase);
-  const cached = phaseSurfaceCache.get(cacheKey);
+  const cacheKey = surfaceCacheKey(profile, stage);
+  const cached = stageSurfaceCache.get(cacheKey);
   if (cached) return cached;
 
   const allowedFamilies = new Set(getRegistrationFamilies(profile));
@@ -215,36 +215,36 @@ export function getMcpSurfaceDescriptor(
         return Boolean(
           family &&
             allowedFamilies.has(family) &&
-            isMcpToolExposedForPhase(toolName, family, phase)
+            isMcpToolExposedForStage(toolName, family, stage)
         );
       })
       .sort((a, b) => a.localeCompare(b))
   );
   const descriptor: McpSurfaceDescriptor = Object.freeze({
     profile,
-    phase,
+    stage,
     toolNames,
     toolNameSet: new Set(toolNames),
     count: toolNames.length,
   });
 
-  phaseSurfaceCache.set(cacheKey, descriptor);
+  stageSurfaceCache.set(cacheKey, descriptor);
   return descriptor;
 }
 
 export function getMcpSurfaceToolNames(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringStage
+  stage: McpAuthoringStage
 ): readonly string[] {
-  return getMcpSurfaceDescriptor(profile, phase).toolNames;
+  return getMcpSurfaceDescriptor(profile, stage).toolNames;
 }
 
 export function applyMcpToolSurface(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringStage
+  stage: McpAuthoringStage
 ): void {
-  setActiveMcpAuthoringStage(phase);
-  const exposed = getMcpSurfaceDescriptor(profile, phase).toolNameSet;
+  setActiveMcpAuthoringStage(stage);
+  const exposed = getMcpSurfaceDescriptor(profile, stage).toolNameSet;
 
   for (const [toolName, authoredEnabled] of catalogToolEnabled) {
     const tool = tools[toolName];
@@ -252,8 +252,8 @@ export function applyMcpToolSurface(
     tool.enabled = authoredEnabled && exposed.has(toolName);
   }
 
-  // Applying a phase/profile changes enabled-tool projection, not the canonical
-  // catalog descriptor. Keep phaseSurfaceCache warm and invalidate only the
+  // Applying a Stage/Profile changes enabled-tool projection, not the canonical
+  // catalog descriptor. Keep stageSurfaceCache warm and invalidate only the
   // enabled registration view consumed by direct Runtime clients.
   invalidateToolRegistrationRuntimeCaches();
 }
