@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readdir } from "node:fs/promises";
+import { join, relative } from "node:path";
 
 const WRAPPERS: Readonly<Record<string, string>> = {
   "lib/productIdentity.ts": 'export * from "./product/productIdentity";\n',
@@ -37,5 +39,76 @@ describe("canonical shared library ownership", () => {
     for (const path of CANONICAL_OWNERS) {
       expect(await Bun.file(path).exists()).toBe(true);
     }
+  });
+});
+
+const RETIRED_PRODUCTION_LIB_FACADES = new Set([
+  "productIdentity",
+  "resourceUri",
+  "validationVerdict",
+  "authoringReadiness",
+  "bedrockProjectIdentity",
+  "bedrockProjectSemantics",
+  "runtimeConnection",
+  "runtimeFetch",
+  "runtimeAffinity",
+  "runtimeLifecycle",
+  "capabilityMetadata",
+  "authoringPhase",
+  "registrationProfile",
+  "assetHealth",
+  "assetDependencyGraph",
+  "semanticHistory",
+  "elementSemanticScopes",
+  "textureBitmapRuntime",
+]);
+
+async function productionSourceFiles(dir: string): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const next = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await productionSourceFiles(next)));
+    } else if (
+      entry.isFile() &&
+      next.endsWith(".ts") &&
+      !next.endsWith(".test.ts") &&
+      !next.includes("/experimental/generated/")
+    ) {
+      files.push(next);
+    }
+  }
+  return files;
+}
+
+function moduleRequests(source: string): string[] {
+  return [...source.matchAll(
+    /(?:import[\s\S]*?from\s*|export\s+(?:\*|\{[\s\S]*?\})\s+from\s*)["']([^"']+)["']/g
+  )].map((match) => match[1]!);
+}
+
+describe("production lib facade retirement", () => {
+  test("production code does not reintroduce retired lib root facades", async () => {
+    const files = [
+      "index.ts",
+      ...(await productionSourceFiles("gateway")),
+      ...(await productionSourceFiles("plugin")),
+      ...(await productionSourceFiles("server")),
+    ];
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const source = await Bun.file(file).text();
+      for (const request of moduleRequests(source)) {
+        const match = request.match(/(?:^|\/)lib\/([A-Za-z0-9_-]+)$/);
+        if (!match || !RETIRED_PRODUCTION_LIB_FACADES.has(match[1]!)) continue;
+        violations.push(
+          `${relative(".", file).replace(/\\/g, "/")} -> ${request}`
+        );
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 });
