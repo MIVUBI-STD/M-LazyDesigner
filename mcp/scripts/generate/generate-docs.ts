@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { toolManifest, promptDocs, resourceDocs } from "./docs-manifest";
+import { toolManifest, promptDocs, resourceDocs } from "./internal/docs-manifest";
 import type { ToolSpec, PromptSpec, ResourceSpec } from "../../lib/factories";
 import { version } from "../../package.json";
 import { log } from "../../build/utils";
