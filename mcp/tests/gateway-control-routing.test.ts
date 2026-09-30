@@ -26,15 +26,15 @@ const status: GatewayRuntimeStatus = {
 describe("LazyDesigner Control routing", () => {
   test("known capabilities expose deterministic source, specialist and test owners", async () => {
     expect(sourceOwnerForCapability("manage_cubes")).toEqual({
-      source: "mcp/server/tools/cubes.ts",
+      source: "mcp/server/tools/geometry/cubes.ts",
       specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
       anchor_test: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
     });
-    expect(sourceOwnerForCapability("manage_locator").source).toBe("mcp/server/tools/locators.ts");
-    expect(sourceOwnerForCapability("manage_null_object").source).toBe("mcp/server/tools/locators.ts");
+    expect(sourceOwnerForCapability("manage_locator").source).toBe("mcp/server/tools/geometry/locators.ts");
+    expect(sourceOwnerForCapability("manage_null_object").source).toBe("mcp/server/tools/geometry/locators.ts");
     expect(sourceOwnerForCapability("activate_texture").source).toBe("mcp/server/tools/texture-assignment.ts");
-    expect(sourceOwnerForCapability("paint_fill_tool").source).toBe("mcp/server/tools/paint-primitives.ts");
-    expect(sourceOwnerForCapability("draw_shape_tool").source).toBe("mcp/server/tools/paint-primitives.ts");
+    expect(sourceOwnerForCapability("paint_fill_tool").source).toBe("mcp/server/tools/paint/primitives.ts");
+    expect(sourceOwnerForCapability("draw_shape_tool").source).toBe("mcp/server/tools/paint/primitives.ts");
     expect(sourceOwnerForCapability("paint_with_brush").source).toBe("mcp/server/tools/paint-brush.ts");
     expect(sourceOwnerForCapability("eraser_tool").source).toBe("mcp/server/tools/paint-brush.ts");
     expect(sourceOwnerForCapability("manage_render_profile")).toEqual({
@@ -42,7 +42,7 @@ describe("LazyDesigner Control routing", () => {
       specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
       anchor_test: "mcp/tests/render-profile-binding.test.ts",
     });
-    expect(sourceOwnerForCapability("manage_animation_controller").source).toBe("mcp/server/tools/animation-controller.ts");
+    expect(sourceOwnerForCapability("manage_animation_controller").source).toBe("mcp/server/tools/animation/controller.ts");
 
     for (const capability of [
       "manage_cubes",
@@ -68,7 +68,7 @@ describe("LazyDesigner Control routing", () => {
     const [result] = decorateCapabilities([
       { capability_id: "manage_cubes", description: "Create or update Bedrock cubes.", tier: "primary", read_only: false, destructive: true, idempotent: false },
     ], "GEOMETRY");
-    expect(result.control.source_owner.source).toBe("mcp/server/tools/cubes.ts");
+    expect(result.control.source_owner.source).toBe("mcp/server/tools/geometry/cubes.ts");
     expect(result.control.source_owner.specialist).toContain("lazydesigner-modelling");
     expect(result).not.toHaveProperty("inputSchema");
   });
