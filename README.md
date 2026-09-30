@@ -105,9 +105,10 @@ Static source/CI proof can establish routing, contracts, schemas, deterministic 
 .agents/skills/    task/domain specialists loaded only when relevant
 docs/              hierarchical canonical documentation; start at docs/README.md
 apps/desktop/      Tauri/Svelte/Rust desktop machine control plane
-mcp/               Blockbench MCP plugin/runtime/Gateway/Control/build/tests/generated API docs
+distribution/      product install/update/rollback/package authority
+mcp/               Runtime/Gateway plus package-scoped engineering support
 workspace/         persistent active/saved asset packages
-experiments/      bounded research only
+experiments/       bounded research only
 ```
 
 ## Repository Root Policy
@@ -116,7 +117,7 @@ The repository root is intentionally sparse. New top-level entries are allowed o
 
 - canonical entrypoints/governance (`README.md`, `AGENTS.md`, `CONTEXT.md`, contribution/security/license files);
 - repository-wide toolchain configuration (`.github/`, dotfiles);
-- durable product domains (`apps/`, `docs/`, `mcp/`, `workspace/`, `experiments/`).
+- durable product domains (`apps/`, `distribution/`, `docs/`, `mcp/`, `workspace/`, `experiments/`).
 
 Do not create top-level feature, temporary, generated, benchmark, fixture, archive, or project folders. Place them under the owning domain instead.
 
@@ -127,7 +128,7 @@ Naming contract:
 - one concept = one canonical name; compatibility aliases stay explicitly marked and temporary;
 - use `stage` for Geometry/Texturing/Animation semantics; legacy `phase` survives only where compatibility requires it.
 
-`experiments/` is non-authoritative research. Production source and active asset state must not depend on it.
+`distribution/` owns product packaging/install/update/rollback and may consume production artifacts; production Runtime/Gateway source must not depend on distribution. `experiments/` is non-authoritative research. Production source and active asset state must not depend on it.
 
 ## Development
 
