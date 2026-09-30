@@ -1,7 +1,7 @@
 import type { VerificationRisk } from "@/lib/orchestration/deltaVerification";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
-import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
+import type { ModelView, VisualEvidenceTarget } from "@/lib/reference/visualEvidence";
 
 export type MinecraftQualityClass =
   | "REQUIRED_PART"
