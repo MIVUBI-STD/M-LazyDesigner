@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { registerToolsOnServer } from "@/lib/factories";
-import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
-import { getMcpSurfaceToolNames } from "@/server/tools";
+import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
+import { getMcpSurfaceToolNames } from "@/server/runtime/registration";
 
 describe("P1.4 stateless Streamable HTTP ownership", () => {
   test("conformance fixture mode is process-local and bypasses the production catalog only in the harness", async () => {

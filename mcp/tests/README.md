@@ -10,6 +10,7 @@ tests/authoring/    authoring policy and workflow contracts
 tests/benchmark/    benchmark, golden-session, Hybrid evidence and efficiency contracts
 tests/development/  development routing, affected execution and semantic invalidation
 tests/live/         LIVE_BLOCKBENCH/local-runtime verification contracts
+tests/runtime/      executable Runtime/transport behavior contracts
 tests/fixtures/     deterministic test input only
 tests/*.test.ts     focused domain/runtime/integration regressions retained at package scope
 ```

@@ -4,16 +4,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:https";
 import type { AddressInfo } from "node:net";
-import { runtimeTlsPaths, DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
-import { runtimeFetch } from "../lib/runtimeFetch";
-import { setupRuntimeTls } from "../scripts/operations/setup-runtime-tls";
+import { runtimeTlsPaths, DEFAULT_RUNTIME_URL } from "../../lib/runtime/connection";
+import { runtimeFetch } from "../../lib/runtime/fetch";
+import { setupRuntimeTls } from "../../scripts/operations/setup-runtime-tls";
 import {
   ensureRuntimeTlsIdentity,
   renewRuntimeTlsIdentity,
   runtimeTlsStatus,
-} from "../distribution/runtime-tls";
-import createNetServer from "../server/net";
-import { BlockitRuntimeBackend } from "../gateway/backend";
+} from "../../distribution/runtime-tls";
+import createNetServer from "../../server/net";
+import { BlockitRuntimeBackend } from "../../gateway/runtime/backend";
 
 test("TLS paths are absolute and the production default is HTTPS", () => {
   expect(DEFAULT_RUNTIME_URL).toBe("https://127.0.0.1:3000/bb-mcp");

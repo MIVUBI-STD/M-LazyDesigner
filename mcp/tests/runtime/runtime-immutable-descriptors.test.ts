@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
   DEFAULT_MCP_REGISTRATION_PROFILE,
-} from "@/lib/registrationProfile";
+} from "@/lib/capabilities/registrationProfile";
 import {
   getMcpSurfaceDescriptor,
   getMcpSurfaceToolNames,
-} from "@/server/tools";
+} from "@/server/runtime/registration";
 import {
   buildMcpServerInstructions,
 } from "@/server/server";
