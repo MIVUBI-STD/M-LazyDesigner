@@ -1,9 +1,9 @@
 import {
   compactGatewayCapabilityStructuredContent,
   compactGatewayCapabilityContent,
-} from "../gateway/contract";
-import { projectCapabilityInputSchema } from "../gateway/schemaProjection";
-import { buildControlDelta, decorateCapabilities, projectCapabilitiesForSearch, projectControlDeltaForGateway } from "../gateway/control";
+} from "../../gateway/presentation/resultCompaction";
+import { projectCapabilityInputSchema } from "../../gateway/capabilities/schemaProjection";
+import { buildControlDelta, decorateCapabilities, projectCapabilitiesForSearch, projectControlDeltaForGateway } from "../../gateway/control";
 
 export type PayloadMeasurement = {
   name: string;

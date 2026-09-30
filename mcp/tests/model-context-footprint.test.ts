@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { measureModelContextFootprint } from "@/scripts/measure-model-context-footprint";
+import { measureModelContextFootprint } from "@/scripts/measure/measure-model-context-footprint";
 
 describe("model context static-prefix footprint", () => {
   test("measures repo-owned stable components separately from dynamic tail", async () => {

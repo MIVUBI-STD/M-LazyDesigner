@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { measureDescribePayloads } from "@/scripts/measure-describe-payloads";
+import { measureDescribePayloads } from "@/scripts/measure/measure-describe-payloads";
 
 describe("Gateway describe payload measurement", () => {
   test("ranks actual Runtime input schemas and measures declared branch projections", () => {

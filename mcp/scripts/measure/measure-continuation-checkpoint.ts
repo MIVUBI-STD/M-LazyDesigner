@@ -2,8 +2,8 @@ import {
   buildControlContinuationCheckpoint,
   buildControlDelta,
   buildControlPacket,
-} from "../gateway/control";
-import type { GatewayRuntimeStatus } from "../gateway/backend";
+} from "../../gateway/control";
+import type { GatewayRuntimeStatus } from "../../gateway/runtime/backend";
 
 const status: GatewayRuntimeStatus = {
   gateway: "ready",

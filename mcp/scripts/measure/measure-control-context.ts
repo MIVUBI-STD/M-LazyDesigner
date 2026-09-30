@@ -6,9 +6,9 @@ import {
   buildControlPacket,
   projectControlPacketForGatewayWithDiagnostics,
   type ControlPacket,
-} from "../gateway/control";
-import type { GatewayRuntimeStatus } from "../gateway/backend";
-import { projectGatewayStatus } from "../gateway/statusProjection";
+} from "../../gateway/control";
+import type { GatewayRuntimeStatus } from "../../gateway/runtime/backend";
+import { projectGatewayStatus } from "../../gateway/presentation/statusProjection";
 
 const status: GatewayRuntimeStatus = {
   gateway: "ready",

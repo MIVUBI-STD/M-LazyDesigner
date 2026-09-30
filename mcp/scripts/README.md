@@ -4,7 +4,7 @@ This directory contains **developer command implementations**, not production Ru
 
 ## Navigation
 
-`development/` is the first canonical script domain and owns development context/routing/affected-verification planning. Other script families remain flat until migrated atomically.
+`development/` owns development context/routing/affected-verification planning. `measure/` owns deterministic context/surface/payload measurements. Other script families remain flat until migrated atomically.
 
 Use the command namespace before opening a script:
 

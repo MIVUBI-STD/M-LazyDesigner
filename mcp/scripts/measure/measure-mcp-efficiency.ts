@@ -3,14 +3,14 @@ import { z } from "zod";
 import {
   getAllToolDefinitions,
   getEnabledToolDefinitions,
-} from "../lib/factories";
+} from "../../lib/factories";
 import {
   aggregateEfficiencyScores,
   scoreEfficiencyWorkflow,
   type EfficiencyDomain,
   type EfficiencyStep,
   type EfficiencyStepKind,
-} from "../lib/efficiencyScorecard";
+} from "../../lib/efficiencyScorecard";
 
 const SCORECARD_RUNTIME_PRIMITIVES = [
   "manage_cubes",

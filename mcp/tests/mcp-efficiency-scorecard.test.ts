@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runMcpEfficiencyScorecard } from "@/scripts/measure-mcp-efficiency";
+import { runMcpEfficiencyScorecard } from "@/scripts/measure/measure-mcp-efficiency";
 import { evaluateStaticDynamicTradeoff } from "@/lib/efficiencyScorecard";
 
 describe("MCP efficiency scorecard", () => {

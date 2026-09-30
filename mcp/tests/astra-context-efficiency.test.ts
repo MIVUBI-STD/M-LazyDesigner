@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   measureAstraContextPayloads,
   payloadMeasurement,
-} from "@/scripts/measure-astra-context";
+} from "@/scripts/measure/measure-astra-context";
 
 describe("Astra context efficiency measurement", () => {
   test("reports deterministic serialized payload reduction without claiming token counts", () => {

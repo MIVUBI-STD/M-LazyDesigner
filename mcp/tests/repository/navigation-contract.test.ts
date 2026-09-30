@@ -20,7 +20,7 @@ const MCP_TOP_LEVEL_DIRECTORIES = [
 
 const TRANSIENT_WORKTREE_DIRECTORIES = new Set(["dist", "node_modules", "coverage"]);
 
-const REQUIRED_SCRIPT_SUBDIRECTORIES = ["development"] as const;
+const REQUIRED_SCRIPT_SUBDIRECTORIES = ["development", "measure"] as const;
 
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
@@ -29,6 +29,7 @@ const REQUIRED_NAVIGATION_READMES = [
   "server/tools/README.md",
   "scripts/README.md",
   "scripts/development/README.md",
+  "scripts/measure/README.md",
   "tests/README.md",
   "docs/README.md",
 ] as const;
@@ -69,13 +70,17 @@ describe("repository navigation contract", () => {
 
     expect(subdirectories).toEqual([...REQUIRED_SCRIPT_SUBDIRECTORIES].sort());
 
-    const developmentScripts = (
-      await readdir("scripts/development", { withFileTypes: true })
-    )
-      .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
-      .map((entry) => entry.name);
+    const subdirectoryScripts = (
+      await Promise.all(
+        REQUIRED_SCRIPT_SUBDIRECTORIES.map(async (directory) =>
+          (await readdir(`scripts/${directory}`, { withFileTypes: true }))
+            .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+            .map((entry) => entry.name)
+        )
+      )
+    ).flat();
 
-    const invalid = [...rootScripts, ...developmentScripts]
+    const invalid = [...rootScripts, ...subdirectoryScripts]
       .filter((name) => !SCRIPT_NAME.test(name))
       .sort();
     expect(invalid).toEqual([]);
