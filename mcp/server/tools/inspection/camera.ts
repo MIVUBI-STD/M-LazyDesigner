@@ -6,43 +6,21 @@ import { captureScreenshot, captureAppScreenshot, imageContent } from "@/lib/blo
 import { readRenderedModelBounds, type RenderedModelBounds, type Vec3 } from "@/lib/geometry/renderedModelBounds";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { vector3Schema, projectionEnum } from "@/lib/schemas/common";
+import {
+  MODEL_VIEWS,
+  VISUAL_EVIDENCE_TARGETS,
+  type ModelView,
+  type VisualEvidenceResolution,
+  type VisualEvidenceRisk,
+  type VisualEvidenceTarget,
+} from "@/lib/reference/visualEvidence";
 
 const CAPTURE_SIZE = 512;
 const FRAME_PADDING = 0.12;
 const PERSPECTIVE_FOV = 45;
 
-const modelViewEnum = z.enum([
-  "front",
-  "back",
-  "left",
-  "right",
-  "top",
-  "bottom",
-  "front_left_3q",
-  "front_right_3q",
-]);
-
-export type ModelView = z.infer<typeof modelViewEnum>;
-
-const visualEvidenceTargetEnum = z.enum([
-  "width",
-  "height",
-  "length",
-  "depth",
-  "silhouette",
-  "count",
-  "rear_topology",
-  "asymmetry",
-  "attachment",
-  "negative_space",
-  "layering",
-  "orientation",
-  "underside",
-]);
-
-export type VisualEvidenceTarget = z.infer<typeof visualEvidenceTargetEnum>;
-export type VisualEvidenceRisk = "LOW" | "MEDIUM" | "HIGH";
-export type VisualEvidenceResolution = 256 | 384 | 512;
+const modelViewEnum = z.enum(MODEL_VIEWS);
+const visualEvidenceTargetEnum = z.enum(VISUAL_EVIDENCE_TARGETS);
 type FrontDirection = "+z" | "-z";
 type FramingInput =
   | { mode: "model" }
