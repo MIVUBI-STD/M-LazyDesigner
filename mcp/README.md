@@ -4,6 +4,25 @@ LazyDesigner uses a stable MCP **Gateway** for normal AI-client connections and 
 
 Do **not** use an upstream hosted plugin as runtime authority for this repository. LazyDesigner source/builds come from this repository. The compatibility bundle filename remains `dist/blockit_mcp.js` until bundle/package identifier migration is explicitly mapped.
 
+## Repository Lanes
+
+Within `mcp/`, source ownership is intentionally split by role:
+
+```text
+PRODUCTION
+  index.ts, server/, gateway/, lib/, plugin/, prompts/, macros/
+
+ENGINEERING
+  build/       deterministic artifact generation/watch only
+  scripts/     development, verification, measurement, benchmark and local operations
+  tests/       contract/integration/regression proof
+
+GENERATED / OUTPUT
+  dist/, generated API/docs artifacts
+```
+
+Production source must not import `scripts/`, `tests/`, repository-root `distribution/`, or `experiments/`. Engineering code may consume production source. Product install/update/rollback ownership lives at repository-root `../distribution/`.
+
 ## Developer Command Facade
 
 Use the stable facade first:
@@ -138,7 +157,7 @@ Normal authoring has no Standard/Extended choice. Internal `bedrock_entity | ext
 
 ## Local Development Loop
 
-`BLOCKIT_PLUGIN_PATH` remains a compatibility identifier. Configure it, or pass the destination after `--sync`, then run:
+`BLOCKIT_PLUGIN_PATH` remains a compatibility identifier. Configure it, or pass the destination as the optional `dev:sync` argument, then run:
 
 ```bash
 bun run dev:sync
@@ -175,7 +194,7 @@ These do not prove visual fidelity or accepted asset quality.
 
 ## Surface / Context Guard
 
-Static footprint guardrails are maintained by `scripts/measure-default-surface.ts` and `scripts/measure-phase-surfaces.ts`. Control payload diagnostics use `scripts/measure-control-context.ts`. They are not Authoring Efficiency proof.
+Static footprint guardrails are maintained by `scripts/measure/measure-default-surface.ts` and `scripts/measure/measure-stage-surfaces.ts`. Control payload diagnostics use `scripts/measure/measure-control-context.ts`. They are not Authoring Efficiency proof.
 
 Normal authoring loads one active specialist. Geometry may additionally load exactly one selected modelling profile. The shared Stage Context document is the canonical cross-stage semantic owner but is loaded only for a material cross-stage/approval/freshness/convergence/handoff ambiguity; it is not a routine second payload.
 
