@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "../gateway/experimental/hybridProfile";
+import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "../../gateway/experimental/hybridProfile";
 
 const root = resolve(import.meta.dir, "..");
 const apiPath = resolve(root, "docs/api.json");

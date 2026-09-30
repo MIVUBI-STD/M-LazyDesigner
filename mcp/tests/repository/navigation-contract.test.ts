@@ -20,7 +20,7 @@ const MCP_TOP_LEVEL_DIRECTORIES = [
 
 const TRANSIENT_WORKTREE_DIRECTORIES = new Set(["dist", "node_modules", "coverage"]);
 
-const REQUIRED_SCRIPT_SUBDIRECTORIES = ["benchmark", "development", "evaluate", "measure", "reporting", "verify"] as const;
+const REQUIRED_SCRIPT_SUBDIRECTORIES = ["audit", "benchmark", "development", "evaluate", "generate", "measure", "operations", "reporting", "verify"] as const;
 
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
@@ -28,10 +28,13 @@ const REQUIRED_NAVIGATION_READMES = [
   "server/runtime/README.md",
   "server/tools/README.md",
   "scripts/README.md",
+  "scripts/audit/README.md",
   "scripts/benchmark/README.md",
   "scripts/development/README.md",
   "scripts/evaluate/README.md",
+  "scripts/generate/README.md",
   "scripts/measure/README.md",
+  "scripts/operations/README.md",
   "scripts/reporting/README.md",
   "scripts/verify/README.md",
   "tests/README.md",
@@ -119,7 +122,13 @@ describe("repository navigation contract", () => {
           name === "compare-golden-sessions.ts" ||
           name === "finalize-golden-session.ts" ||
           name === "run-golden-benchmark-session.ts" ||
-          name === "summarize-gateway-benchmark-trace.ts"
+          name === "summarize-gateway-benchmark-trace.ts" ||
+          name === "audit-capability-collisions.ts" ||
+          name === "generate-hybrid4-schemas.ts" ||
+          name === "deploy-local.ts" ||
+          name === "serve-conformance-runtime.ts" ||
+          name === "setup-runtime-tls.ts" ||
+          name === "verified-build-artifact.ts"
       )
     ).toEqual([]);
   });

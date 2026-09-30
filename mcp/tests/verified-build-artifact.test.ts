@@ -9,7 +9,7 @@ import {
   fileSha256,
   verifyVerifiedBuildArtifact,
   writeVerifiedBuildProvenance,
-} from "@/scripts/verified-build-artifact";
+} from "@/scripts/operations/verified-build-artifact";
 
 describe("verified GitHub build artifact", () => {
   test("pins exact source SHA, bundle hash, embedded build identity, verifier and toolchain", async () => {

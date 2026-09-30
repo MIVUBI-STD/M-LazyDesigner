@@ -256,7 +256,7 @@ function affectsGatewayOutputContracts(path: string): boolean {
 function affectsHybrid4ExperimentalContracts(path: string): boolean {
   return (
     path.startsWith("mcp/gateway/experimental/") ||
-    path === "mcp/scripts/generate-hybrid4-schemas.ts" ||
+    path === "mcp/scripts/generate/generate-hybrid4-schemas.ts" ||
     path === "mcp/scripts/benchmark/benchmark-gateway-hot-path.ts" ||
     path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts" ||
     path === "mcp/tests/hybrid4-generated-schema.test.ts" ||

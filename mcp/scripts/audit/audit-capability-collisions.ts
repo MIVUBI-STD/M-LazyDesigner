@@ -1,4 +1,4 @@
-import { auditCapabilitySemanticCollisions } from "../gateway/capabilities/collisionAudit";
+import { auditCapabilitySemanticCollisions } from "../../gateway/capabilities/collisionAudit";
 
 const collisions = auditCapabilitySemanticCollisions();
 console.log(

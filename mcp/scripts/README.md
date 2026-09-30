@@ -4,7 +4,7 @@ This directory contains **developer command implementations**, not production Ru
 
 ## Navigation
 
-`development/` owns development context/routing/affected-verification planning. `measure/` owns deterministic context/surface/payload measurements. `benchmark/` owns deterministic benchmark implementations. `evaluate/` owns deterministic evaluation/policy harnesses. `reporting/` owns benchmark-session reporting/comparison/finalization. `verify/` owns focused local/live verification plus the shared live helper. Other script families remain flat until migrated atomically.
+`audit/` owns static audits. `benchmark/` owns deterministic benchmark implementations. `development/` owns development context/routing/affected-verification planning. `evaluate/` owns deterministic evaluation/policy harnesses. `generate/` owns generated schema/index tooling. `measure/` owns deterministic context/surface/payload measurements. `operations/` owns local deploy/setup/conformance/artifact operations. `reporting/` owns benchmark-session reporting/comparison/finalization. `verify/` owns focused local/live verification plus the shared live helper.
 
 Use the command namespace before opening a script:
 

@@ -6,7 +6,7 @@ import { createServer } from "node:https";
 import type { AddressInfo } from "node:net";
 import { runtimeTlsPaths, DEFAULT_RUNTIME_URL } from "../lib/runtimeConnection";
 import { runtimeFetch } from "../lib/runtimeFetch";
-import { setupRuntimeTls } from "../scripts/setup-runtime-tls";
+import { setupRuntimeTls } from "../scripts/operations/setup-runtime-tls";
 import {
   ensureRuntimeTlsIdentity,
   renewRuntimeTlsIdentity,
