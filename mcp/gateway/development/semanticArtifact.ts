@@ -6,7 +6,7 @@ import {
   evaluateSemanticFreshnessForDimensions,
   semanticRevisionStamp,
   type SemanticFreshnessReport,
-} from "./semanticFreshness";
+} from "../capabilities/semanticFreshness";
 import { semanticDependenciesForSurface } from "./semanticDependencyMatrix";
 
 export type SemanticDerivedArtifactKind =
