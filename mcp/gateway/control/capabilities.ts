@@ -4,7 +4,7 @@ import { manifestEntryForBranch } from "../capabilities/manifest";
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
-} from "./sourceOwners";
+} from "../development/sourceOwners";
 import type {
   ControlAuthoringDomain,
   ControlCapabilitySummary,
