@@ -23,8 +23,8 @@ These values remain stable until a dedicated migration updates every producer, c
 | production bundle path | `dist/blockit_mcp.js` | package/build/deploy owners | installed file/update continuity |
 | Blockbench plugin id | `blockit_mcp` | `mcp/index.ts` | installed plugin identity/reload continuity |
 | Gateway MCP server name | `blockit-gateway` | `mcp/gateway/contract.ts` | client/server identity continuity |
-| Runtime URL env prefix | `BLOCKIT_RUNTIME_*` | `mcp/gateway/backend.ts` | deployment/config compatibility |
-| Gateway queue env key | `BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH` | `mcp/gateway/backend.ts` | deployment/config compatibility |
+| Runtime URL env prefix | `BLOCKIT_RUNTIME_*` | `mcp/gateway/runtime/backend.ts` | deployment/config compatibility |
+| Gateway queue env key | `BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH` | `mcp/gateway/runtime/backend.ts` | deployment/config compatibility |
 | project affinity header | `x-blockit-project-uuid` | `mcp/gateway/projectAffinity.ts` | Gateway↔Runtime protocol compatibility |
 | authoring Stage affinity header (legacy serialized name) | `x-blockit-authoring-phase` | `mcp/gateway/projectAffinity.ts` | Gateway↔Runtime protocol compatibility; `phase` is compatibility wording only |
 | extended-family localStorage key | `blockit_mcp.extended_families_enabled` | `mcp/ui/settings.ts` | persisted user setting continuity |
