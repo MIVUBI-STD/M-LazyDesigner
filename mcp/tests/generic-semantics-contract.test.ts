@@ -37,7 +37,7 @@ describe("generic semantics narrowing contract", () => {
     expect(requireFiniteTranslatedElementVector3([1, 2, 3], [4, 5, 6], "test")).toEqual([5, 7, 9]);
     expect(() => requireFiniteTranslatedElementVector3([1e308, 0, 0], [1e308, 0, 0], "test")).toThrow("non-finite authored coordinate");
     const [mutation, shared] = await Promise.all([
-      source("server/tools/element-mutation.ts"),
+      source("server/tools/element/mutation.ts"),
       source("server/tools/element-shared.ts"),
     ]);
     expect(mutation).toContain("preflightFaithfulDuplicate(element, offset, newName)");
@@ -153,7 +153,7 @@ describe("generic semantics narrowing contract", () => {
   });
 
   test("raw per-face texture discovery is disabled for Bedrock single-texture authoring", async () => {
-    const elements = await source("server/tools/element-discovery.ts");
+    const elements = await source("server/tools/element/discovery.ts");
     const start = elements.indexOf('name: "filter_by_material"');
     const registration = elements.indexOf("elementDiscoveryToolDocs[3].status, false");
     expect(start).toBeGreaterThan(-1);
