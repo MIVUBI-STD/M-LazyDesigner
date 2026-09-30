@@ -4,8 +4,6 @@ import { readdir } from "node:fs/promises";
 const SHARED_ROOT_IMPLEMENTATIONS = new Set([
   "constants.ts",
   "factories.ts",
-  "util.ts",
-  "zodObjects.ts",
 ]);
 
 const CANONICAL_WRAPPER =
