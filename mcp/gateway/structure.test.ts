@@ -46,7 +46,7 @@ describe("Gateway structural ownership", () => {
 
   test("production composition imports canonical owner paths", async () => {
     const index = await Bun.file("gateway/index.ts").text();
-    const backend = await Bun.file("gateway/backend.ts").text();
+    const backend = await Bun.file("gateway/runtime/backend.ts").text();
     const contract = await Bun.file("gateway/contract.ts").text();
 
     expect(index).toContain('"./capabilities/schemaProjection"');
@@ -54,10 +54,10 @@ describe("Gateway structural ownership", () => {
     expect(index).toContain('"./providers/registry"');
     expect(index).toContain('"./runtime/recovery"');
 
-    expect(backend).toContain('"./runtime/projectAffinity"');
-    expect(backend).toContain('"./runtime/connectionManager"');
-    expect(backend).toContain('"./capabilities/effects"');
-    expect(backend).toContain('"./runtime/backendContract"');
+    expect(backend).toContain('"./projectAffinity"');
+    expect(backend).toContain('"./connectionManager"');
+    expect(backend).toContain('"../capabilities/effects"');
+    expect(backend).toContain('"./backendContract"');
 
     expect(contract).toContain('"./protocol"');
     expect(contract).toContain('"./resultCompaction"');
@@ -145,7 +145,7 @@ describe("Gateway structural ownership", () => {
   });
 
   test("backend delegates queue and affinity policy to runtime modules", async () => {
-    const backend = await Bun.file("gateway/backend.ts").text();
+    const backend = await Bun.file("gateway/runtime/backend.ts").text();
     expect(backend).toContain('from "./runtime/operationQueue"');
     expect(backend).toContain('from "./runtime/affinityPolicy"');
     expect(backend).not.toContain("private pendingOperations");
@@ -157,8 +157,8 @@ describe("Gateway structural ownership", () => {
   });
 
   test("Gateway protocol stays lower-level than capability engines", async () => {
-    const protocol = await Bun.file("gateway/protocol.ts").text();
-    expect(protocol).toContain('from "./capabilities/types"');
+    const protocol = await Bun.file("gateway/contracts/protocol.ts").text();
+    expect(protocol).toContain('from "../capabilities/types"');
     expect(protocol).not.toContain('from "./capabilities/intelligence"');
     expect(protocol).not.toContain('from "./capabilities/graph"');
     expect(protocol.split("\n").length).toBeLessThan(100);
