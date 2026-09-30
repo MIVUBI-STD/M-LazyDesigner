@@ -66,13 +66,13 @@ Do not expose compatibility residue as a second product name.
 
 ## Generated Documentation Boundary
 
-`mcp/build/docs.ts` still owns generated API HTML presentation and currently has stale pre-rename display strings in its generated template. `mcp/docs/api.json` / `mcp/docs/index.html` are generated outputs and must not be hand-edited.
+`mcp/scripts/generate/generate-docs.ts` owns generated API HTML presentation and currently has stale pre-rename display strings in its generated template. `mcp/docs/api.json` / `mcp/docs/index.html` are generated outputs and must not be hand-edited.
 
 Because the current context is `REMOTE_GITHUB` and canonical generated output requires `LOCAL_CODE` generator execution, treat this as one bounded source+generation residue:
 
 ```text
 LOCAL_CODE
-→ update generator presentation source
+→ update `mcp/scripts/generate/generate-docs.ts`
 → bun run docs:build
 → bun run docs:check
 → commit source + generated output together
