@@ -56,7 +56,7 @@ jobs:
       - name: Start source Runtime
         working-directory: mcp
         run: |
-          bun run ./scripts/serve-conformance-runtime.ts > /tmp/lazydesigner-conformance-runtime.log 2>&1 &
+          bun run ./scripts/operations/serve-conformance-runtime.ts > /tmp/lazydesigner-conformance-runtime.log 2>&1 &
           echo $! > /tmp/lazydesigner-conformance-runtime.pid
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:3333/bb-mcp/health >/dev/null; then
