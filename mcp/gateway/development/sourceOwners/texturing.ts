@@ -1,7 +1,7 @@
-import type { ControlSourceOwner } from "../../control/types";
-import { TEXTURING_PATH } from "../../control/contexts";
+import type { DevelopmentSourceOwner } from "../types";
+import { TEXTURING_PATH } from "../../context/authoring";
 
-export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
+export const TEXTURING_SOURCE_OWNERS: Record<string, DevelopmentSourceOwner> = {
   create_texture: {
     source: "mcp/server/tools/texture/create.ts",
     specialist: TEXTURING_PATH,
