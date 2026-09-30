@@ -1,0 +1,16 @@
+{
+  "name": "lazydesigner-workspace",
+  "private": true,
+  "scripts": {
+    "check": "bun run check:mcp && bun run check:desktop",
+    "check:mcp": "bun --cwd mcp run check",
+    "check:desktop": "npm --prefix apps/desktop run typecheck",
+    "verify": "bun run verify:mcp && bun run verify:desktop",
+    "verify:mcp": "bun --cwd mcp run verify",
+    "verify:desktop": "npm --prefix apps/desktop run verify:source",
+    "dev:mcp": "bun --cwd mcp run dev:sync",
+    "dev:desktop": "npm --prefix apps/desktop run dev:app",
+    "build:mcp": "bun --cwd mcp run build",
+    "build:desktop": "npm --prefix apps/desktop run build:app"
+  }
+}

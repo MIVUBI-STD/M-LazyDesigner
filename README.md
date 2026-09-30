@@ -133,9 +133,23 @@ Naming contract:
 
 LazyDesigner source/builds come from this repository; do not use an upstream hosted plugin as runtime authority for this repository. Legacy output filename `dist/blockit_mcp.js` remains during the controlled identifier/file migration.
 
-From `mcp/`:
+The repository root is the developer navigation facade; package-specific implementation commands remain owned by `mcp/package.json` and `apps/desktop/package.json`.
 
 ```bash
+bun run check
+bun run verify
+
+bun run dev:mcp
+bun run dev:desktop
+
+bun run build:mcp
+bun run build:desktop
+```
+
+For MCP-only work, the package-local commands remain available:
+
+```bash
+cd mcp
 bun install --frozen-lockfile
 bun run verify:full
 ```
