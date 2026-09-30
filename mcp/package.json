@@ -62,7 +62,7 @@
     "prompts:build": "bun run ./build/generate-manifest.ts",
     "dev": "bun run prompts:build && bun run ./build --sourcemap",
     "dev:watch": "bun run prompts:build && bun run ./build --sourcemap --watch",
-    "dev:sync": "bun run prompts:build && bun run ./build --sourcemap --watch --sync",
+    "dev:sync": "bun run ./scripts/operations/dev-sync.ts",
     "build": "bun run prompts:build && bun run ./build --minify",
     "docs:build": "bun run ./build/docs.ts",
     "generate:owned-artifacts": "bun run docs:build && bun run prompts:build && bun run generate:hybrid4-schemas",
