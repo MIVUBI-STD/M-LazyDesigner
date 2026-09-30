@@ -1,7 +1,7 @@
 import ts from "typescript";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { resolveDevelopmentIntent } from "../../gateway/control/developmentIntent";
+import { resolveDevelopmentIntent } from "../../gateway/development/intent";
 
 export const DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES = 6000;
 const MAX_SYMBOLS_PER_FILE = 24;
