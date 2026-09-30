@@ -72,9 +72,9 @@ test("undo and redo expose semantic effect only when every traversed entry is an
 
 test("Geometry producers use manifest scopes unless target-type evidence is more precise", async () => {
   const files = [
-    ["server/tools/element-hierarchy.ts", ["add_group", "modify_group", "reparent_element"]],
-    ["server/tools/element-mutation.ts", ["duplicate_element"]],
-    ["server/tools/locators.ts", ["manage_locator", "manage_null_object"]],
+    ["server/tools/element/hierarchy.ts", ["add_group", "modify_group", "reparent_element"]],
+    ["server/tools/element/mutation.ts", ["duplicate_element"]],
+    ["server/tools/geometry/locators.ts", ["manage_locator", "manage_null_object"]],
   ] as const;
 
   for (const [path, capabilities] of files) {
@@ -90,7 +90,7 @@ test("Geometry producers use manifest scopes unless target-type evidence is more
 });
 
 test("remove_element history derives scopes from the removed element type", async () => {
-  const source = await Bun.file("server/tools/element-mutation.ts").text();
+  const source = await Bun.file("server/tools/element/mutation.ts").text();
   expect(source).toContain("removedElementSemanticScopes(removedRoot.type)");
   expect(source).toContain("recordCurrentSemanticHistoryEffect(");
   expect(source).not.toContain(
@@ -99,7 +99,7 @@ test("remove_element history derives scopes from the removed element type", asyn
 });
 
 test("element identity history derives semantic scopes from target type", async () => {
-  const source = await Bun.file("server/tools/element-mutation.ts").text();
+  const source = await Bun.file("server/tools/element/mutation.ts").text();
   expect(source).toContain("removedElementSemanticScopes(removedRoot.type)");
   expect(source).toContain('renamedElementSemanticScopes("group")');
   expect(source).toContain(
