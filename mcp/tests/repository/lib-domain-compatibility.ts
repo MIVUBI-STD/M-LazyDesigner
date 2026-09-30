@@ -79,6 +79,24 @@ export const MIGRATED_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> =
   "modelQuality.ts": 'export * from "./geometry/modelQuality";\n',
 };
 
+export const CANONICAL_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
+  "productIdentity.ts": 'export * from "./product/productIdentity";\n',
+  "resourceUri.ts": 'export * from "./protocol/resourceUri";\n',
+  "validationVerdict.ts": 'export * from "./authoring/validationVerdict";\n',
+  "authoringReadiness.ts": 'export * from "./authoring/authoringReadiness";\n',
+  "bedrockProjectIdentity.ts": 'export * from "./bedrock/projectIdentity";\n',
+  "bedrockProjectSemantics.ts": 'export * from "./bedrock/projectSemantics";\n',
+  "runtimeConnection.ts": 'export * from "./runtime/connection";\n',
+  "runtimeFetch.ts": 'export * from "./runtime/fetch";\n',
+  "runtimeAffinity.ts": 'export * from "./runtime/affinity";\n',
+  "runtimeLifecycle.ts": 'export * from "./runtime/lifecycle";\n',
+};
+
+export const ALL_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
+  ...CANONICAL_COMPATIBILITY_WRAPPERS,
+  ...MIGRATED_COMPATIBILITY_WRAPPERS,
+};
+
 export const COMPATIBILITY_ROOT_DOMAIN_FILES = new Set(
   Object.keys(MIGRATED_COMPATIBILITY_WRAPPERS)
 );
