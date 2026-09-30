@@ -4,7 +4,7 @@ describe("animation module ownership", () => {
   test("rigging implementation lives outside the animation facade", async () => {
     const [facade, rigging, shared] = await Promise.all([
       Bun.file("server/tools/animation.ts").text(),
-      Bun.file("server/tools/animation-rigging.ts").text(),
+      Bun.file("server/tools/animation/rigging.ts").text(),
       Bun.file("server/tools/animation-shared.ts").text(),
     ]);
 
