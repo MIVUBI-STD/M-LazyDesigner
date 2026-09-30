@@ -1,9 +1,10 @@
 import { copyFile, rename, rm, stat } from "node:fs/promises";
 import { basename, dirname, isAbsolute, resolve } from "node:path";
+import { LEGACY_PLUGIN_PATH_ENV } from "../../compatibility/engineering-identifiers";
 import {
+  extractLegacyMcpBuildIdentity,
   LEGACY_MCP_BUNDLE_FILENAME,
-  LEGACY_PLUGIN_PATH_ENV,
-} from "../../compatibility/engineering-identifiers";
+} from "../../compatibility/build-artifact";
 
 const EXPECTED_PLUGIN_FILENAME = LEGACY_MCP_BUNDLE_FILENAME;
 const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../../dist", LEGACY_MCP_BUNDLE_FILENAME);
@@ -37,15 +38,7 @@ export function resolveDeployTarget(
   return resolve(rawTarget);
 }
 
-export function extractBuildIdentity(content: string): string {
-  const match = content.match(
-    /globalThis\.__BLOCKIT_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
-  );
-  if (!match) {
-    throw new Error("Built plugin is missing a valid embedded build_identity.");
-  }
-  return match[1];
-}
+export const extractBuildIdentity = extractLegacyMcpBuildIdentity;
 
 export async function deployArtifact(
   sourcePath: string,
