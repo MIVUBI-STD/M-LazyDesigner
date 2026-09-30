@@ -47,7 +47,7 @@ describe("LazyDesigner Control system-development intent", () => {
     });
     expect(uv.source_owners).toEqual([
       {
-        source: "mcp/server/runtime/uvLayoutService.ts",
+        source: "mcp/server/runtime/uv/layoutService.ts",
         specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
         anchor_test: "mcp/tests/uv-registration-readiness.test.ts",
       },
@@ -57,18 +57,18 @@ describe("LazyDesigner Control system-development intent", () => {
     expect(particle.domain).toBe("PARTICLE");
     expect(particle.confidence).toBe("EXACT");
     expect(particle.source_owners[0]?.source).toBe(
-      "mcp/server/tools/particle.ts"
+      "mcp/server/tools/particle/manage.ts"
     );
   });
 
   test("exact source and anchor-test paths outrank keyword heuristics", () => {
     const sourcePath = resolveDevelopmentIntent(
-      "texture bug stack: mcp/server/tools/cubes.ts:418"
+      "texture bug stack: mcp/server/tools/geometry/cubes.ts:418"
     );
     expect(sourcePath.domain).toBe("GEOMETRY");
     expect(sourcePath.confidence).toBe("EXACT");
     expect(sourcePath.matched_terms).toContain(
-      "path:mcp/server/tools/cubes.ts"
+      "path:mcp/server/tools/geometry/cubes.ts"
     );
 
     const windowsPath = resolveDevelopmentIntent(
@@ -86,7 +86,7 @@ describe("LazyDesigner Control system-development intent", () => {
 
   test("conflicting exact capability and source evidence fails ambiguous", () => {
     const result = resolveDevelopmentIntent(
-      "manage_particle failed in mcp/server/tools/cubes.ts"
+      "manage_particle failed in mcp/server/tools/geometry/cubes.ts"
     );
     expect(result.domain).toBe("UNRESOLVED");
     expect(result.confidence).toBe("AMBIGUOUS");
@@ -94,7 +94,7 @@ describe("LazyDesigner Control system-development intent", () => {
     expect(result.matched_terms).toEqual(
       expect.arrayContaining([
         "manage_particle",
-        "path:mcp/server/tools/cubes.ts",
+        "path:mcp/server/tools/geometry/cubes.ts",
       ])
     );
   });
@@ -116,8 +116,8 @@ describe("LazyDesigner Control system-development intent", () => {
       confidence: "STRONG",
       context_strategy: "DIRECT_SOURCE_OWNERS",
     });
-    expect(result.source_owners.some((entry) => entry.source === "mcp/lib/animationMotionDynamics.ts")).toBe(true);
-    expect(result.source_owners.some((entry) => entry.source === "mcp/lib/animationQuality.ts")).toBe(true);
+    expect(result.source_owners.some((entry) => entry.source === "mcp/lib/animation/motionDynamics.ts")).toBe(true);
+    expect(result.source_owners.some((entry) => entry.source === "mcp/lib/animation/quality.ts")).toBe(true);
     expect(result.required_context_paths).toContain(".agents/skills/lazydesigner-animation/SKILL.md");
   });
 
@@ -125,7 +125,7 @@ describe("LazyDesigner Control system-development intent", () => {
     const result = resolveDevelopmentIntent("dev:sync stale build setelah plugin reload");
     expect(result.domain).toBe("BUILD_SYNC");
     expect(result.source_owners.map((entry) => entry.source)).toEqual([
-      "mcp/build/index.ts", "mcp/build/watch-policy.ts", "mcp/scripts/deploy-local.ts",
+      "mcp/build/index.ts", "mcp/build/watch-policy.ts", "mcp/scripts/operations/deploy-local.ts",
     ]);
     expect(result.required_context_paths).not.toContain(".agents/skills/lazydesigner-modelling/SKILL.md");
   });
@@ -137,7 +137,7 @@ describe("LazyDesigner Control system-development intent", () => {
       expect(result.confidence, intent).toBe("STRONG");
       expect(result.source_owners.some((entry) => entry.source === "mcp/gateway/control/packet.ts"), intent).toBe(true);
       expect(result.source_owners.some((entry) => entry.source === "mcp/gateway/control/routingPolicy.ts"), intent).toBe(true);
-      expect(result.source_owners.some((entry) => entry.source === "mcp/gateway/control/delta.ts"), intent).toBe(true);
+      expect(result.source_owners.some((entry) => entry.source === "mcp/gateway/control/delta/engine.ts"), intent).toBe(true);
       expect(result.source_owners.some((entry) => entry.source.includes("gateway/navigator")), intent).toBe(false);
     }
   });
@@ -161,7 +161,7 @@ describe("LazyDesigner Control system-development intent", () => {
       expect(result.confidence, intent).toBe("STRONG");
       expect(
         result.source_owners.some((entry) =>
-          entry.source === "mcp/server/tools/animation-rigging.ts"
+          entry.source === "mcp/server/tools/animation/rigging.ts"
         ),
         intent
       ).toBe(true);
@@ -174,7 +174,7 @@ describe("LazyDesigner Control system-development intent", () => {
   test("particle development uses the focused particle capability owner", () => {
     const result = resolveDevelopmentIntent("particle snowstorm semantics");
     expect(result.domain).toBe("PARTICLE");
-    expect(result.source_owners[0]?.source).toBe("mcp/server/tools/particle.ts");
+    expect(result.source_owners[0]?.source).toBe("mcp/server/tools/particle/manage.ts");
     expect(result.source_owners[0]?.specialist).toBe(".agents/skills/lazydesigner-animation/SKILL.md");
   });
 
