@@ -35,6 +35,20 @@ The files below exist only to preserve older internal/external import paths duri
 | `gateway/control/capabilityManifest.ts` | `capabilityProjection.ts` |
 | `gateway/control/delta.ts` | `delta/engine.ts` + `delta/projection.ts` |
 
+## Current retirement state
+
+Repository guards now require active Gateway production code to import canonical owners directly. The listed wrappers are therefore **production-zero-caller compatibility paths** from the repository source perspective.
+
+Their remaining reason to exist is compatibility uncertainty outside active production imports:
+
+```text
+repository production callers  = 0 (guarded)
+local Gateway/Runtime proof     = still required before deletion
+supported external references   = must be checked before deletion
+```
+
+Do not re-audit source ownership during local cleanup; validate compatibility, then delete only wrappers whose external/runtime proof is clear.
+
 ## Removal rule
 
 Do not delete a wrapper only because repository production code no longer imports it. Remove it only after:

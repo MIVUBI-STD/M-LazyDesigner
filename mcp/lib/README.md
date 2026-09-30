@@ -61,6 +61,22 @@ Everything with a narrower semantic owner belongs in a canonical subdomain. Comp
 Compatibility facades `util.ts` and `zodObjects.ts` now have no production-source callers. They remain compatibility-only for bounded legacy/test/external import stability; production code is forbidden from importing them and must use the exact canonical owner under `core/`, `blockbench/`, `protocol/`, `texture/`, or `schemas/`.
 
 
+## Compatibility retirement state
+
+Active production source is guarded against the retired root facades listed by repository ownership tests. In particular, `util.ts` and `zodObjects.ts` are production-zero-caller compatibility surfaces.
+
+Deletion remains a separate compatibility action:
+
+```text
+canonical owner adopted
+→ production callers = 0
+→ local/runtime compatibility proof
+→ external reference check
+→ delete wrapper + registry entry
+```
+
+Do not preserve a wrapper merely because it existed historically, and do not delete it solely from remote source evidence.
+
 ### Factory boundary
 
 `factories.ts` intentionally remains cohesive. Tool, Resource, and Prompt registration share one request-owned MCP registry/cache lifecycle. Splitting it would require an additional shared registry/cache layer without reducing semantic ambiguity. Refactor it only when a concrete independent lifecycle or dependency boundary appears; file size alone is not sufficient reason.
