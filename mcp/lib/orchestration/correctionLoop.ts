@@ -16,7 +16,7 @@ import {
   prioritizeMinecraftDiscrepancies,
   type VerificationDiscrepancy,
 } from "@/lib/orchestration/compactEvidence";
-import type { ModelView } from "@/server/tools/camera";
+import type { ModelView } from "@/lib/reference/visualEvidence";
 import {
   compileStructuredVisualObservations,
   type StructuredVisualObservation,
