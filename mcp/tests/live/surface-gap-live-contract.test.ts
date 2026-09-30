@@ -7,7 +7,7 @@ import { readRenderedModelBounds } from "@/lib/renderedModelBounds";
 import { buildMcpServerInstructions } from "@/server/server";
 import { getMcpSurfaceToolNames } from "@/server/tools";
 import { cubeToolDocs } from "@/server/tools/cubes";
-import { PROTOCOL_VERSION, type JsonObject } from "../scripts/verify/live-e2e-common";
+import { PROTOCOL_VERSION, type JsonObject } from "../../scripts/verify/live-e2e-common";
 
 type Vec3 = [number, number, number];
 

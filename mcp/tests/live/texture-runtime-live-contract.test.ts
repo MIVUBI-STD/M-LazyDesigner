@@ -3,7 +3,7 @@ import { getAllToolDefinitions, tools } from "@/lib/factories";
 import { PAINT_TEXTURE_TRANSACTION_TOOL_NAME } from "@/lib/paintTransactionPolicy";
 import { getToolRegistrationFamily } from "@/server/tools";
 import { createProjectParameters } from "@/server/tools/project";
-import { TEXTURE_RUNTIME_PROJECT_INPUT } from "../scripts/verify/verify-texture-runtime-live";
+import { TEXTURE_RUNTIME_PROJECT_INPUT } from "../../scripts/verify/verify-texture-runtime-live";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();

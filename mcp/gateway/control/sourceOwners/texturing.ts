@@ -125,7 +125,7 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
   paint_texture_transaction: {
     source: "mcp/server/tools/paint/textureTransaction.ts",
     specialist: TEXTURING_PATH,
-    anchor_test: "mcp/tests/texture-runtime-live-contract.test.ts",
+    anchor_test: "mcp/tests/live/texture-runtime-live-contract.test.ts",
   },
   get_face_material_instances: {
     source: "mcp/server/tools/texture/materialInstances.ts",

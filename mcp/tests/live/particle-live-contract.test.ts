@@ -4,7 +4,7 @@ import {
   PARTICLE_LIVE_PROOF_KIND,
   PARTICLE_LIVE_REQUIRED_TOOLS,
   PARTICLE_LIVE_VISUAL_CLAIM,
-} from "../scripts/verify/verify-particle-live";
+} from "../../scripts/verify/verify-particle-live";
 
 describe("particle live verifier contract (source harness, not live proof)", () => {
   test("requires only the compact particle public surface and preserves proof boundaries", () => {
