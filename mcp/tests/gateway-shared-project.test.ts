@@ -11,12 +11,12 @@ describe("Gateway shared TypeScript project", () => {
     expect(config.compilerOptions.outDir).toBe(".cache/gateway-shared");
     expect(config.include).toEqual(
       expect.arrayContaining([
-        "lib/runtimeFetch.ts",
-        "lib/runtimeConnection.ts",
+        "lib/runtime/fetch.ts",
+        "lib/runtime/connection.ts",
         "lib/capabilityMetadata.ts",
         "lib/capabilities/manifest.ts",
         "lib/authoringPhase.ts",
-        "lib/registrationProfile.ts",
+        "lib/capabilities/registrationProfile.ts",
       ])
     );
   });
