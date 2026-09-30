@@ -15,15 +15,13 @@ This document defines the maintainability boundary for active LazyDesigner sourc
 ```text
 Core / shared contracts
         |
-        +--> Geometry
-        +--> UV
-        +--> Texture
-        +--> Rig
-        +--> Animation
-        +--> Particle
+        +--> Authoring lifecycle truth
+        +--> Reference evidence vocabulary
+        +--> Geometry / UV / Texture / Rig / Animation / Particle
+        +--> Authoring Recipe
                  |
                  v
-        Authoring application
+          Orchestration
                  |
                  v
               Runtime
@@ -35,29 +33,53 @@ Core / shared contracts
              AI client
 ```
 
-Dependencies must not point upward. Domain modules must not depend on Gateway or Control orchestration.
+Dependencies must not point upward.
+
+Key rules:
+
+```text
+authoring/       -X-> authoringRecipe/ or orchestration/
+authoringRecipe/ -X-> orchestration/
+orchestration/   -X-> server/ or gateway/
+
+orchestration/   -> authoringRecipe/ and shared domain contracts
+Runtime          -> lib/ domain contracts
+Gateway          -> Runtime/client contracts
+production       -X-> scripts/, tests/, root distribution/, experiments/
+```
+
+Product Control may consume bounded Gateway development projections, but repository-development intelligence is canonically owned by `mcp/gateway/development/`.
 
 ## Current physical owners
 
 ```text
 mcp/lib/semantic/        semantic core
 mcp/lib/capabilities/    canonical Runtime capability metadata
+mcp/lib/authoring/       lifecycle truth: health/readiness/validation/history
+mcp/lib/authoringRecipe/ declarative recipe semantics + bounded plan/apply lifecycle
+mcp/lib/reference/       reference/correction/visual-evidence shared vocabulary
 mcp/lib/animation/       animation domain helpers
+mcp/lib/geometry/        geometry analysis/evidence helpers
+mcp/lib/uv/              UV planning/evidence helpers
 mcp/lib/texture/         texture domain helpers
 mcp/lib/rig/             rig domain helpers
-mcp/lib/orchestration/   authoring orchestration helpers
+mcp/lib/particle/        particle domain helpers
+mcp/lib/orchestration/   cross-domain execution/verification/correction flow
 mcp/lib/receipts/        shared mutation receipt contracts
 
 mcp/server/tools/        authored capability implementations
 mcp/server/runtime/      Runtime registration, routing and lifecycle composition
 mcp/server/resources/    Runtime resources
 
-mcp/gateway/capabilities/ AI routing/search/schema projections
+mcp/gateway/capabilities/ AI routing/search/schema + semantic freshness core
 mcp/gateway/runtime/      Gateway-to-Runtime lifecycle and affinity
-mcp/gateway/control/      context/readiness/source ownership orchestration
+mcp/gateway/control/      product context/readiness/projection
+mcp/gateway/development/  repository-development diagnosis/impact/planning
+mcp/gateway/surface/      stable Gateway surface-profile contract
+mcp/gateway/experimental/ opt-in experimental implementation only
 mcp/gateway/providers/    leaf local providers
 mcp/gateway/presentation/ normalized AI-facing result/status projection
-mcp/gateway/contracts/     stable Gateway protocol/output contracts
+mcp/gateway/contracts/    stable Gateway protocol/output contracts
 ```
 
 ## Root `mcp/lib` policy
@@ -72,7 +94,7 @@ texture*    -> lib/texture/
 rig*        -> lib/rig/
 ```
 
-Geometry, UV and Particle currently have legacy root ownership that will be migrated incrementally. New implementation should prefer a dedicated domain directory when the ownership is unambiguous.
+Geometry, UV and Particle now have dedicated canonical domain directories. Their remaining root-level files are compatibility-only where explicitly registered by repository guards. New implementation belongs directly in the canonical domain directory.
 
 Do not create a generic `shared`, `common` or `helpers` dumping ground. A shared primitive must have at least two real owners and no domain-specific semantics.
 
@@ -111,7 +133,7 @@ Large files are not automatically wrong. A split is required when a file owns mu
 Priority review surfaces:
 
 - `server/net.ts`: transport, serialization, request context, generation and affinity should progressively become focused transport modules;
-- `gateway/backend.ts`: backend composition should delegate catalog cache, invocation, lifecycle, queue and affinity policy to focused owners.
+- `gateway/runtime/backend.ts`: backend composition should continue delegating catalog cache, invocation, lifecycle, queue and affinity policy to focused runtime owners. The root `gateway/backend.ts` path is compatibility-only.
 
 The facade may remain stable while implementation moves underneath it.
 
@@ -163,3 +185,26 @@ generated      machine-owned output; never hand-edited
 A compatibility path must never be documented as a canonical owner. Generated MCP API output under `mcp/docs/` is separate from durable product/system documentation under repository-root `docs/`.
 
 Repository tests enforce the stable MCP package navigation surface so new root folders or ambiguous unclassified top-level files require an intentional architecture change rather than accumulating silently.
+
+
+## Stable / experimental direction
+
+```text
+stable production source -> experimental implementation  forbidden as a static dependency
+experimental             -> stable contracts            allowed
+Gateway composition root -> experimental registration   allowed only via explicit lazy startup selection
+benchmark/evaluation      -> experimental               allowed
+```
+
+The stable Gateway profile contract lives under `mcp/gateway/surface/`. Experimental implementation lives under `mcp/gateway/experimental/` and is not a stable implementation owner.
+
+## Product / engineering direction
+
+```text
+engineering scripts/tests -> production source  allowed
+distribution              -> production artifacts allowed
+production source         -> engineering tooling forbidden
+production source         -> distribution forbidden
+```
+
+Build code may create deterministic artifacts and watch production inputs. Machine mutation, local deployment and live sync remain engineering operations.
