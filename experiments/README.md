@@ -4,13 +4,13 @@ Isolated workspace for bounded research and historical proposals that are **not*
 
 ## Current state
 
-There is no active production authority under `Experimental/`.
+There is no active production authority under `experiments/`.
 
 - Historical Navigator design context is retained in Git history only; there is no Navigator working-tree owner.
-- Particle Reference Authoring has been fully promoted out of `Experimental/` and now lives under `docs/02-reference/particle/` with its ChatGPT-side specialist at `.agents/skills/lazydesigner-particle-reference-authoring/`.
+- Particle Reference Authoring has been fully promoted out of `experiments/` and now lives under `docs/02-reference/particle/` with its ChatGPT-side specialist at `.agents/skills/lazydesigner-particle-reference-authoring/`.
 - Historical particle research remains available through Git history rather than a parallel working-tree owner.
 - The former active `mcp/gateway/navigator/` production path has been removed.
-- Canonical routing/context ownership now lives under `mcp/gateway/control/` with shared phase classification in `mcp/lib/authoringPhase.ts`.
+- Canonical product context/routing projection lives under `mcp/gateway/control/`; repository-development diagnosis/source ownership lives under `mcp/gateway/development/`; shared Stage classification lives in `mcp/lib/capabilities/authoringStage.ts`.
 
 ## Retired work
 
