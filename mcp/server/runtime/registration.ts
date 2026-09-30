@@ -5,13 +5,13 @@ import {
   getRegistrationFamilies,
   type McpRegistrationFamily,
   type McpRegistrationProfile,
-} from "@/lib/registrationProfile";
+} from "@/lib/capabilities/registrationProfile";
 import {
   getActiveMcpAuthoringPhase,
   isMcpToolExposedForPhase,
   setActiveMcpAuthoringPhase,
   type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
+} from "@/lib/capabilities/authoringPhase";
 import { registerCameraTools } from "../tools/inspection/camera";
 import { registerAnimationTools } from "../tools/animation";
 import { registerAnimationEffectTools } from "../tools/animation/effects";
