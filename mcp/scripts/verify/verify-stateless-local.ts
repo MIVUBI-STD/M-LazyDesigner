@@ -3,16 +3,16 @@ export {};
 import {
   getMcpSurfaceToolNames,
   registerMcpProfile,
-} from "@/server/tools";
+} from "@/server/runtime/registration";
 import {
   isMcpAuthoringPhase,
   type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
-import type { McpRegistrationProfile } from "@/lib/registrationProfile";
-import { PRODUCT_ID } from "@/lib/productIdentity";
+} from "@/lib/capabilities/authoringStage";
+import type { McpRegistrationProfile } from "@/lib/capabilities/registrationProfile";
+import { PRODUCT_ID } from "@/lib/product/productIdentity";
 
-import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../lib/runtimeConnection";
-import { runtimeFetch as fetch } from "../lib/runtimeFetch";
+import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../../lib/runtime/connection";
+import { runtimeFetch as fetch } from "../../lib/runtime/fetch";
 const DEFAULT_BUNDLE_PATH = "dist/blockit_mcp.js";
 const EXPECTED_PROFILE: McpRegistrationProfile = "bedrock_entity";
 const DEFAULT_PHASE: McpAuthoringPhase = "geometry";

@@ -4,7 +4,7 @@ import {
   PARTICLE_LIVE_PROOF_KIND,
   PARTICLE_LIVE_REQUIRED_TOOLS,
   PARTICLE_LIVE_VISUAL_CLAIM,
-} from "../scripts/verify-particle-live";
+} from "../scripts/verify/verify-particle-live";
 
 describe("particle live verifier contract (source harness, not live proof)", () => {
   test("requires only the compact particle public surface and preserves proof boundaries", () => {
@@ -18,7 +18,7 @@ describe("particle live verifier contract (source harness, not live proof)", () 
 
   test("prebuilds one math-driven create-patch-save-preview path", () => {
     const source = readFileSync(
-      new URL("../scripts/verify-particle-live.ts", import.meta.url),
+      new URL("../scripts/verify/verify-particle-live.ts", import.meta.url),
       "utf8"
     );
     expect(source).toContain("minecraft:particle_motion_parametric");
@@ -35,7 +35,7 @@ describe("particle live verifier contract (source harness, not live proof)", () 
       readFileSync(new URL("../package.json", import.meta.url), "utf8")
     ) as { scripts?: Record<string, string> };
     expect(pkg.scripts?.["verify:particle-live"]).toBe(
-      "bun run ./scripts/verify-particle-live.ts"
+      "bun run ./scripts/verify/verify-particle-live.ts"
     );
   });
 });

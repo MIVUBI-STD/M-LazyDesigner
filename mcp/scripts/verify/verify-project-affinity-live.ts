@@ -1,5 +1,5 @@
-import { BlockitRuntimeBackend } from "@/gateway/backend";
-import { readRuntimeProjectHealth } from "@/gateway/projectAffinity";
+import { BlockitRuntimeBackend } from "@/gateway/runtime/backend";
+import { readRuntimeProjectHealth } from "@/lib/runtime/affinity";
 import {
   expect,
   requireDisposableConsent,

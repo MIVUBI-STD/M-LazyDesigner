@@ -1,4 +1,4 @@
-import { PAINT_TEXTURE_TRANSACTION_TOOL_NAME } from "@/lib/paintTransactionPolicy";
+import { PAINT_TEXTURE_TRANSACTION_TOOL_NAME } from "@/lib/texture/paintTransactionPolicy";
 import {
   LiveMcpClient,
   expect,

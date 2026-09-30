@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("live authoring harness static contract", () => {
   test("shared live verifier source declares freshness, runtime identity, cost metrics, and stable fixture identities", async () => {
-    const helper = await source("scripts/live-e2e-common.ts");
+    const helper = await source("scripts/verify/live-e2e-common.ts");
     for (const contract of [
       "build_identity",
       "instance_id",
@@ -36,7 +36,7 @@ describe("live authoring harness static contract", () => {
   });
 
   test("Geometry uses current consolidated tools, preserves a thin per-face fixture, and hands Texturing the same shared AUTHORING session", async () => {
-    const geometry = await source("scripts/verify-geometry-live.ts");
+    const geometry = await source("scripts/verify/verify-geometry-live.ts");
     for (const tool of [
       "create_project",
       "add_group",
@@ -63,7 +63,7 @@ describe("live authoring harness static contract", () => {
   });
 
   test("Texturing prebuilds native UV/repack, thin per-face preservation, target-isolation, clipping and history acceptance without an AUTHORING bounce", async () => {
-    const texturing = await source("scripts/verify-texturing-live.ts");
+    const texturing = await source("scripts/verify/verify-texturing-live.ts");
     for (const contract of [
       "type: \"template\"",
       "pixel_density: 16",
@@ -99,7 +99,7 @@ describe("live authoring harness static contract", () => {
   });
 
   test("Animation proves A-vs-selected-B targeting and playback through the current consolidated surface", async () => {
-    const animation = await source("scripts/verify-animation-live.ts");
+    const animation = await source("scripts/verify/verify-animation-live.ts");
     for (const contract of [
       "create_animation",
       "inspect_animation",
@@ -124,7 +124,7 @@ describe("live authoring harness static contract", () => {
   });
 
   test("Persistence is a two-step native reopen proof instead of an open-project fallback", async () => {
-    const persistence = await source("scripts/verify-persistence-live.ts");
+    const persistence = await source("scripts/verify/verify-persistence-live.ts");
     for (const contract of [
       "--prepare",
       "--verify",
@@ -151,16 +151,16 @@ describe("live authoring harness static contract", () => {
       scripts: Record<string, string>;
     };
     expect(pkg.scripts["verify:geometry-live"]).toBe(
-      "bun run ./scripts/verify-geometry-live.ts"
+      "bun run ./scripts/verify/verify-geometry-live.ts"
     );
     expect(pkg.scripts["verify:texturing-live"]).toBe(
-      "bun run ./scripts/verify-texturing-live.ts"
+      "bun run ./scripts/verify/verify-texturing-live.ts"
     );
     expect(pkg.scripts["verify:animation-live"]).toBe(
-      "bun run ./scripts/verify-animation-live.ts"
+      "bun run ./scripts/verify/verify-animation-live.ts"
     );
     expect(pkg.scripts["verify:persistence-live"]).toBe(
-      "bun run ./scripts/verify-persistence-live.ts"
+      "bun run ./scripts/verify/verify-persistence-live.ts"
     );
     expect(pkg.scripts["verify:fixture-static"]).toBe(
       "bun test tests/authoring/current-workspace-fixture-static.test.ts"

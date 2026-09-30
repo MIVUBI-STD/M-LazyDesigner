@@ -1,9 +1,9 @@
-import { PRODUCT_ID } from "@/lib/productIdentity";
-import { BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER } from "../gateway/projectAffinity";
+import { PRODUCT_ID } from "@/lib/product/productIdentity";
+import { BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER } from "../../lib/runtime/affinity";
 
-export { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../lib/runtimeConnection";
-import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../lib/runtimeConnection";
-import { runtimeFetch as fetch } from "../lib/runtimeFetch";
+export { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../../lib/runtime/connection";
+import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../../lib/runtime/connection";
+import { runtimeFetch as fetch } from "../../lib/runtime/fetch";
 export const DEFAULT_BUNDLE_PATH = "dist/blockit_mcp.js";
 export const EXPECTED_PROFILES = new Set(["bedrock_entity", "extended"]);
 export const PROTOCOL_VERSION = "2025-06-18";

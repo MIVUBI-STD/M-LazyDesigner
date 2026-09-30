@@ -20,7 +20,7 @@ const MCP_TOP_LEVEL_DIRECTORIES = [
 
 const TRANSIENT_WORKTREE_DIRECTORIES = new Set(["dist", "node_modules", "coverage"]);
 
-const REQUIRED_SCRIPT_SUBDIRECTORIES = ["benchmark", "development", "measure"] as const;
+const REQUIRED_SCRIPT_SUBDIRECTORIES = ["benchmark", "development", "measure", "verify"] as const;
 
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
@@ -31,6 +31,7 @@ const REQUIRED_NAVIGATION_READMES = [
   "scripts/benchmark/README.md",
   "scripts/development/README.md",
   "scripts/measure/README.md",
+  "scripts/verify/README.md",
   "tests/README.md",
   "docs/README.md",
 ] as const;
@@ -108,7 +109,9 @@ describe("repository navigation contract", () => {
         (name) =>
           developmentRootFiles.has(name) ||
           name.startsWith("measure-") ||
-          name.startsWith("benchmark-")
+          name.startsWith("benchmark-") ||
+          name.startsWith("verify-") ||
+          name === "live-e2e-common.ts"
       )
     ).toEqual([]);
   });

@@ -32,7 +32,7 @@ describe("script entrypoint ownership", () => {
       }
     }
 
-    const helpers = new Set(["live-e2e-common.ts"]);
+    const helpers = new Set(["verify/live-e2e-common.ts"]);
     const unowned = files.filter(
       (name) => !referenced.has(name) && !helpers.has(name)
     );

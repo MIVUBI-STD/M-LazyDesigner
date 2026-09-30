@@ -4,7 +4,7 @@ This directory contains **developer command implementations**, not production Ru
 
 ## Navigation
 
-`development/` owns development context/routing/affected-verification planning. `measure/` owns deterministic context/surface/payload measurements. `benchmark/` owns deterministic benchmark implementations. Other script families remain flat until migrated atomically.
+`development/` owns development context/routing/affected-verification planning. `measure/` owns deterministic context/surface/payload measurements. `benchmark/` owns deterministic benchmark implementations. `verify/` owns focused local/live verification plus the shared live helper. Other script families remain flat until migrated atomically.
 
 Use the command namespace before opening a script:
 
@@ -30,4 +30,4 @@ production source → scripts     forbidden
 
 Do not place Runtime, Gateway, Blockbench mutation, authoring semantics, or reusable domain logic here. Put those under their canonical source owner and let a script call that owner.
 
-`live-e2e-common.ts` is the shared helper for live verification scripts; it is not a runnable command entrypoint.
+`verify/live-e2e-common.ts` is the shared helper for live verification scripts; it is not a runnable command entrypoint.

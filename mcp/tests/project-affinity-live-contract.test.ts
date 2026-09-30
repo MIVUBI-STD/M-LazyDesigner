@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-const scriptUrl = new URL("../scripts/verify-project-affinity-live.ts", import.meta.url);
+const scriptUrl = new URL("../scripts/verify/verify-project-affinity-live.ts", import.meta.url);
 
 describe("project-affinity live acceptance contract", () => {
   test("live verifier exercises two Gateway instances without inventing a new Runtime surface", async () => {
@@ -17,7 +17,7 @@ describe("project-affinity live acceptance contract", () => {
     expect(script).toContain("Promise.all([");
     expect(script).toContain("active_after_cross_gateway_calls");
     expect(packageJson.scripts["verify:project-affinity-live"]).toBe(
-      "bun run ./scripts/verify-project-affinity-live.ts"
+      "bun run ./scripts/verify/verify-project-affinity-live.ts"
     );
   });
 });

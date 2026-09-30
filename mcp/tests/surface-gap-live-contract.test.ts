@@ -7,7 +7,7 @@ import { readRenderedModelBounds } from "@/lib/renderedModelBounds";
 import { buildMcpServerInstructions } from "@/server/server";
 import { getMcpSurfaceToolNames } from "@/server/tools";
 import { cubeToolDocs } from "@/server/tools/cubes";
-import { PROTOCOL_VERSION, type JsonObject } from "../scripts/live-e2e-common";
+import { PROTOCOL_VERSION, type JsonObject } from "../scripts/verify/live-e2e-common";
 
 type Vec3 = [number, number, number];
 
@@ -124,7 +124,7 @@ describe("surface-gap live verifier contract (mock transport, not live proof)", 
     });
     const run = async (consent: boolean) => {
       const child = Bun.spawn([
-        process.execPath, "run", "scripts/verify-surface-gap-live.ts",
+        process.execPath, "run", "scripts/verify/verify-surface-gap-live.ts",
         ...(consent ? ["--confirm-disposable"] : []),
       ], {
         cwd: process.cwd(),

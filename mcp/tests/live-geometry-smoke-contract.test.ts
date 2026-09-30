@@ -7,13 +7,13 @@ async function source(path: string): Promise<string> {
 describe("live Geometry E2E verifier source contract", () => {
   test("requires explicit disposable consent and preserves proof boundaries", async () => {
     const [script, packageText] = await Promise.all([
-      source("scripts/verify-geometry-live.ts"),
+      source("scripts/verify/verify-geometry-live.ts"),
       source("package.json"),
     ]);
     const scripts = JSON.parse(packageText).scripts as Record<string, string>;
 
     expect(scripts["verify:geometry-live"]).toBe(
-      "bun run ./scripts/verify-geometry-live.ts"
+      "bun run ./scripts/verify/verify-geometry-live.ts"
     );
     expect(script).toContain("--confirm-disposable");
     expect(script).toContain("requireDisposableConsent();");
@@ -31,7 +31,7 @@ describe("live Geometry E2E verifier source contract", () => {
   });
 
   test("runs a bounded create-readback-render-mutate-undo-redo sequence through current consolidated tools", async () => {
-    const script = await source("scripts/verify-geometry-live.ts");
+    const script = await source("scripts/verify/verify-geometry-live.ts");
 
     const consent = script.indexOf("requireDisposableConsent();");
     const preflight = script.indexOf("await client.preflight();", consent);

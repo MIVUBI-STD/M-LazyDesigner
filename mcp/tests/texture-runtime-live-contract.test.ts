@@ -3,7 +3,7 @@ import { getAllToolDefinitions, tools } from "@/lib/factories";
 import { PAINT_TEXTURE_TRANSACTION_TOOL_NAME } from "@/lib/paintTransactionPolicy";
 import { getToolRegistrationFamily } from "@/server/tools";
 import { createProjectParameters } from "@/server/tools/project";
-import { TEXTURE_RUNTIME_PROJECT_INPUT } from "../scripts/verify-texture-runtime-live";
+import { TEXTURE_RUNTIME_PROJECT_INPUT } from "../scripts/verify/verify-texture-runtime-live";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -145,13 +145,13 @@ describe("texture runtime live acceptance contract", () => {
   });
 
   test("one disposable live verifier owns the end-to-end Blockbench boundary", async () => {
-    const script = await source("scripts/verify-texture-runtime-live.ts");
+    const script = await source("scripts/verify/verify-texture-runtime-live.ts");
     const pkg = JSON.parse(await source("package.json")) as {
       scripts?: Record<string, string>;
     };
 
     expect(pkg.scripts?.["verify:texture-runtime-live"]).toBe(
-      "bun run ./scripts/verify-texture-runtime-live.ts"
+      "bun run ./scripts/verify/verify-texture-runtime-live.ts"
     );
     for (const marker of [
       "project_uuid",
