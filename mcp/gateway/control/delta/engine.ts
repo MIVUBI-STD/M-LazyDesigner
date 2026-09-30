@@ -1,7 +1,7 @@
 import {
   authoringDomainForCapability,
   sourceOwnerForCapability,
-} from "../sourceOwners";
+} from "../../development/sourceOwners";
 import type { ControlDelta } from "../types";
 import type { BlockitAuthoringPhaseAffinity } from "../../runtime/projectAffinity";
 import type { CapabilityBranchHint } from "../../capabilities/types";
