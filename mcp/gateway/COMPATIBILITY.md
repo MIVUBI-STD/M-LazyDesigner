@@ -31,10 +31,21 @@ The files below exist only to preserve older internal/external import paths duri
 
 | Compatibility path | Canonical owner |
 | --- | --- |
-| `gateway/control/registry.ts` | `contexts.ts` + `sourceOwners.ts` |
+| `gateway/control/registry.ts` | `gateway/control/contexts.ts` + `gateway/development/sourceOwners.ts` |
 | `gateway/control/capabilityManifest.ts` | `capabilityProjection.ts` |
 | `gateway/control/delta.ts` | `delta/engine.ts` + `delta/projection.ts` |
 | `gateway/control/developmentIntent.ts` | `gateway/development/intent.ts` |
+| `gateway/control/sourceOwners.ts` | `gateway/development/sourceOwners.ts` |
+| `gateway/control/sourceOwners/**` | `gateway/development/sourceOwners/**` |
+
+## Development wrappers
+
+| Compatibility path | Canonical owner |
+| --- | --- |
+| `gateway/development/semanticFreshness.ts` | `gateway/capabilities/semanticFreshness.ts` |
+| product semantic dependency exports from `gateway/development/semanticDependencyMatrix.ts` | `gateway/capabilities/semanticDependencyMatrix.ts` |
+
+The development matrix file still owns engineering-only verification/check mapping; it re-exports product semantic dependency functions only for migration compatibility.
 
 ## Current retirement state
 
