@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 describe("Gateway hot-path benchmark boundary", () => {
   test("benchmark does not change the production four-tool client surface", async () => {
-    const protocol = await Bun.file("gateway/protocol.ts").text();
+    const protocol = await Bun.file("gateway/contracts/protocol.ts").text();
     const benchmark = await Bun.file("scripts/benchmark/benchmark-gateway-hot-path.ts").text();
 
     expect(protocol).toContain('status: "status"');
@@ -19,13 +19,14 @@ describe("Gateway hot-path benchmark boundary", () => {
     const scripts = JSON.parse(packageText).scripts as Record<string, string>;
 
     expect(profile).toContain("production_default: false");
-    expect(scripts["verify:experimental"]).toBe("bun run verify:hybrid-remote");
-    expect(scripts["verify:mcp"]).not.toContain("verify:experimental");
-    expect(scripts["verify:full"]).not.toContain("verify:experimental");
+    expect(scripts["verify:hybrid-remote"]).toBeDefined();
+    expect(scripts["verify:mcp"]).not.toContain("verify:hybrid-remote");
+    expect(scripts["verify:full"]).not.toContain("verify:hybrid-remote");
   });
 
   test("Hybrid-4 registration stays explicit, generated-schema-backed, and opt-in", async () => {
     const profile = await Bun.file("gateway/experimental/hybridProfile.ts").text();
+    const surfaceProfile = await Bun.file("gateway/surface/profile.ts").text();
     const gatewayIndex = await Bun.file("gateway/index.ts").text();
 
     expect(profile).toContain('production_default: false');
@@ -37,6 +38,6 @@ describe("Gateway hot-path benchmark boundary", () => {
     expect(gatewayIndex).not.toContain('from "./experimental/hybridRegistration"');
     expect(registration).toContain("fromJsonSchema");
     expect(registration).not.toContain("../server/");
-    expect(profile).toContain('DEFAULT_GATEWAY_SURFACE_PROFILE: GatewaySurfaceProfile =\n  "stable_four"');
+    expect(surfaceProfile).toContain('DEFAULT_GATEWAY_SURFACE_PROFILE: GatewaySurfaceProfile =\n  "stable_four"');
   });
 });
