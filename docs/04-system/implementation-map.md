@@ -98,15 +98,16 @@ mcp/gateway/runtime/backend.ts               Runtime adapter/catalog/queue/proje
 mcp/gateway/runtime/connectionManager.ts     demand-driven Runtime connection lifecycle
 mcp/gateway/runtime/runtimeSession.ts        Runtime session/generation counters
 mcp/gateway/runtime/reconnectPolicy.ts       bounded reconnect backoff
-mcp/gateway/contracts/protocol.ts            stable Gateway protocol/base types
-mcp/gateway/contracts/outputSchemas.ts       public output validation contracts
+mcp/gateway/contracts/protocol.ts            canonical Gateway protocol/base types
+mcp/gateway/contracts/outputSchemas.ts       canonical public output validation contracts
 mcp/gateway/capabilities/effects.ts          declarative capability effect application
 mcp/gateway/control/receipt.ts               project/phase receipt derivation
 mcp/gateway/runtime/recovery.ts              structured recovery semantics
 mcp/gateway/presentation/statusProjection.ts normalized public status
 mcp/gateway/presentation/resultCompaction.ts result/receipt compaction
 mcp/gateway/providers/registry.ts            bounded Gateway-local provider registry
-mcp/gateway/runtime/projectAffinity.ts       project/phase affinity headers/contracts
+mcp/gateway/runtime/projectAffinity.ts       Gateway compatibility facade for affinity contracts
+mcp/lib/runtime/affinity.ts                    canonical project/stage affinity headers/contracts
 ```
 
 Gateway owns client stability and Runtime recovery. It does not own Blockbench mutation implementations or authoring workflow reasoning.

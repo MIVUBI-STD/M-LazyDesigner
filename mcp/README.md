@@ -207,9 +207,9 @@ lib/runtime/              connection/affinity/fetch/lifecycle primitives
 ui/                       Blockbench UI implementation used by integration owner
 prompts/                  canonical runtime workflow + generated manifest
 build/                    build/docs/manifest tooling
-scripts/                  verification/deploy/measurement utilities
-tests/                    contract/integration regressions
-docs/                     generated Runtime API documentation
+scripts/                  developer command implementations; start at scripts/README.md
+tests/                    contract/integration regressions; start at tests/README.md
+docs/                     generated Runtime API output + non-authoritative engineering notes; see docs/README.md
 ```
 
 Detailed source ownership: `../docs/04-system/implementation-map.md`.

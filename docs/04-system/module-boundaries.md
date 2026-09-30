@@ -56,6 +56,8 @@ mcp/gateway/capabilities/ AI routing/search/schema projections
 mcp/gateway/runtime/      Gateway-to-Runtime lifecycle and affinity
 mcp/gateway/control/      context/readiness/source ownership orchestration
 mcp/gateway/providers/    leaf local providers
+mcp/gateway/presentation/ normalized AI-facing result/status projection
+mcp/gateway/contracts/     stable Gateway protocol/output contracts
 ```
 
 ## Root `mcp/lib` policy
@@ -144,3 +146,20 @@ This work does **not**:
 - introduce a second Runtime or Control system;
 - turn every domain into a plugin;
 - add abstraction without an ownership or dependency benefit.
+
+## Repository navigation contract
+
+Navigation is part of the architecture. Large source surfaces must expose a local `README.md` that answers only three questions: what belongs here, what does not belong here, and where the canonical owner is.
+
+Path status is explicit:
+
+```text
+canonical      implementation/source-of-truth
+entrypoint     composition or registrar boundary
+compatibility  temporary import/name preservation only
+generated      machine-owned output; never hand-edited
+```
+
+A compatibility path must never be documented as a canonical owner. Generated MCP API output under `mcp/docs/` is separate from durable product/system documentation under repository-root `docs/`.
+
+Repository tests enforce the stable MCP package navigation surface so new root folders or ambiguous unclassified top-level files require an intentional architecture change rather than accumulating silently.

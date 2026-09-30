@@ -43,7 +43,7 @@ When a legacy root file is migrated:
 
 The compatibility-wrapper registry is the only root-domain exception list. Do not create a second legacy/migration allowlist for the same paths.
 
-See `../docs/04-system/module-boundaries.md` for the full dependency and migration policy.
+See `../../docs/04-system/module-boundaries.md` for the full dependency and migration policy.
 
 
 ## Intentional root primitives

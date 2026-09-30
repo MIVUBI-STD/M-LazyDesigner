@@ -91,14 +91,16 @@ gateway/capabilities/  AI discovery, branch schemas, preconditions/effects
 gateway/runtime/       Runtime connection, affinity, recovery, session state
 gateway/providers/     optional Gateway-local capabilities
 gateway/control/       Control packets, context, freshness, orchestration
-protocol.ts            stable Gateway constants + base transport/search types
-resultCompaction.ts     AI-facing result/receipt compaction
-runtime/backend.ts     Runtime adapter/orchestration boundary
+contracts/protocol.ts             canonical Gateway protocol/base types
+contracts/outputSchemas.ts           canonical public output validation contracts
+presentation/resultCompaction.ts     canonical AI-facing result/receipt compaction
+presentation/statusProjection.ts     canonical normalized public status projection
+runtime/backend.ts                   canonical Runtime adapter/orchestration boundary
 index.ts               stable four-tool stdio composition root
 contract.ts            compatibility facade only
 ```
 
-Same-named files retained at the `gateway/` root for migrated modules are compatibility re-exports only. See `COMPATIBILITY.md` for the wrapper ledger and removal criteria.
+Same-named files retained at the `gateway/` root for migrated modules are compatibility re-exports only. They are navigation aliases, never implementation owners. New production imports must target the canonical subdirectory owner directly. See `COMPATIBILITY.md` for the wrapper ledger and removal criteria.
 
 ## Project / Tab Affinity
 
