@@ -431,7 +431,7 @@ Workspace state is not Runtime connection/session state and is not duplicated in
 ```text
 mcp/build/**         generated docs/prompt/build tooling
 mcp/scripts/**       verification/measurement/deploy harnesses
-mcp/distribution/**  managed distribution
+distribution/**      product-level managed distribution
 mcp/prompts/**       canonical Runtime prompt source + manifest
 mcp/tests/**         contract/integration regressions
 ```
@@ -487,7 +487,7 @@ apps/desktop/src-tauri/src/system_status.rs
 mcp/compatibility/blockbench.json
 → single Blockbench compatibility-policy owner
 
-mcp/distribution/
+distribution/
 → status / install / update / repair / recover / rollback implementation
 → package integrity / staging / transaction / immutable-version ownership
 ```
