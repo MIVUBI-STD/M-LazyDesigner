@@ -15,14 +15,14 @@ export function resolveDeployTarget(
   const positional = args.filter((arg) => arg !== "--");
   if (positional.length > 1) {
     throw new Error(
-      "Local deploy accepts exactly one destination path. Pass it as the only argument or set BLOCKIT_PLUGIN_PATH."
+      `Local deploy accepts exactly one destination path. Pass it as the only argument or set ${LEGACY_PLUGIN_PATH_ENV}.`
     );
   }
 
   const rawTarget = positional[0] ?? env[LEGACY_PLUGIN_PATH_ENV];
   if (!rawTarget) {
     throw new Error(
-      "Missing local Blockbench plugin destination. Pass an absolute path ending in ${EXPECTED_PLUGIN_FILENAME} or set ${LEGACY_PLUGIN_PATH_ENV}."
+      `Missing local Blockbench plugin destination. Pass an absolute path ending in ${EXPECTED_PLUGIN_FILENAME} or set ${LEGACY_PLUGIN_PATH_ENV}.`
     );
   }
   if (!isAbsolute(rawTarget)) {
