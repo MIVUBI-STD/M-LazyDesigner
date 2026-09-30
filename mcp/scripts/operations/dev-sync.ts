@@ -108,15 +108,15 @@ async function main(): Promise<void> {
     });
   };
 
+  const watcher = watch(resolve(import.meta.dir, "../../dist"), { persistent: true }, (_event, filename) => {
+    if (filename === LEGACY_MCP_BUNDLE_FILENAME) queueSync();
+  });
+
   const builder = spawn(
     process.platform === "win32" ? "bun.exe" : "bun",
     ["run", "dev:watch"],
     { cwd: resolve(import.meta.dir, "../.."), stdio: "inherit", env: process.env }
   );
-
-  const watcher = watch(resolve(import.meta.dir, "../../dist"), { persistent: true }, (_event, filename) => {
-    if (filename === LEGACY_MCP_BUNDLE_FILENAME) queueSync();
-  });
 
   const stop = () => {
     watcher.close();
