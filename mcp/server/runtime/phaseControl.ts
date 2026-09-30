@@ -8,7 +8,7 @@ import {
   getActiveMcpAuthoringPhase,
   getMcpRuntimeSurface,
   type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
+} from "@/lib/capabilities/authoringPhase";
 import {
   ANIMATION_HANDOFF_READINESS_RULE,
   animationHandoffReadinessSchema,
