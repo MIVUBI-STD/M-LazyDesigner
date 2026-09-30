@@ -1,4 +1,4 @@
-import { GATEWAY_TOOL_NAMES } from "../protocol";
+import { GATEWAY_TOOL_NAMES } from "../contracts/protocol";
 import {
   DEFAULT_GATEWAY_SURFACE_PROFILE,
   type GatewaySurfaceProfile,
