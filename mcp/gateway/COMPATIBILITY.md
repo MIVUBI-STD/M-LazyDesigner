@@ -34,6 +34,7 @@ The files below exist only to preserve older internal/external import paths duri
 | `gateway/control/registry.ts` | `contexts.ts` + `sourceOwners.ts` |
 | `gateway/control/capabilityManifest.ts` | `capabilityProjection.ts` |
 | `gateway/control/delta.ts` | `delta/engine.ts` + `delta/projection.ts` |
+| `gateway/control/developmentIntent.ts` | `gateway/development/intent.ts` |
 
 ## Current retirement state
 
