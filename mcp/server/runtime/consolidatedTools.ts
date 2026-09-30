@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTool, getAllToolDefinitions, tools, withToolBranch } from "@/lib/factories";
-import type { McpRegistrationFamily } from "@/lib/registrationProfile";
+import type { McpRegistrationFamily } from "@/lib/capabilities/registrationProfile";
 import {
   animationCopyPasteParameters,
   animationGraphEditorParameters,
