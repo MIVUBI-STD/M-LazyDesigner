@@ -1,8 +1,8 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { DEFAULT_BEDROCK_UV_RESOLUTION } from "../project";
-import { pbrChannelEnum } from "@/lib/zodObjects";
+import { DEFAULT_BEDROCK_UV_RESOLUTION } from "../project/project";
+import { pbrChannelEnum } from "@/lib/schemas/texture";
 
 export type TextureProductionRole =
   | "base_color_candidate"

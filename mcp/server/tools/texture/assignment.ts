@@ -9,8 +9,8 @@ import { resolveCoreCubeOrGroup, resolveCoreTexture } from "@/lib/core/identity"
 import {
   elementIdSchema,
   textureIdSchema,
-} from "@/lib/zodObjects";
-import { hasExactTextureGroupNameCollision } from "../texture-materials";
+} from "@/lib/schemas/ids";
+import { hasExactTextureGroupNameCollision } from "./materials";
 
 export const applyTextureParameters = z.object({
   id: elementIdSchema

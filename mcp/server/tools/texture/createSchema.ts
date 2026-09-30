@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { isAbsoluteFilesystemPath } from "@/lib/util";
+import { isAbsoluteFilesystemPath } from "@/lib/core/path";
+import { colorSchema } from "@/lib/schemas/common";
 import {
-  colorSchema,
   pbrChannelEnum,
   renderModeEnum,
   renderSidesEnum,
-  textureIdOptionalSchema,
-} from "@/lib/zodObjects";
+} from "@/lib/schemas/texture";
+import { textureIdOptionalSchema } from "@/lib/schemas/ids";
 
 export function isDeterministicTextureSource(value: string): boolean {
   if (value.startsWith("data:image/")) return true;
@@ -135,4 +135,3 @@ export const createTextureParameters = z
       path: ["group", "pbr_channel"],
     }
   );
-

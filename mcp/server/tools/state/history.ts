@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
-import { requireOpenProject } from "@/lib/util";
+import { requireOpenProject } from "@/lib/core/project";
 import {
   mergeSemanticHistoryEffects,
   recordSemanticHistoryEffect,
