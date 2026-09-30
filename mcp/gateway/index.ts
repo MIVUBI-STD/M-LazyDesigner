@@ -35,7 +35,15 @@ const executor = new GatewayCapabilityExecutor(
 const GATEWAY_INSTRUCTIONS =
   "LazyDesigner Gateway. Call status only when orientation is unknown or stale; reuse Control/context handles. Asset work: pass reference_package_path when available; Control supplies active-stage context and one Geometry profile. Source work: use task_mode=SYSTEM_DEVELOPMENT with concrete task_intent. Known capability: invoke directly. Unknown/stale capability: search; when search returns branch, pass it to describe so only that branch schema loads. Search eligibility: READY=usable, UNKNOWN=do not assume missing state, BLOCKED=resolve returned requires/predecessor before invoke. Real schema uncertainty: describe. For several known mutations in one user intent, reuse task_context_id with cohort_boundary=CONTINUE, then mark the final mutation COMPLETE so Control emits one merged verification action. After invoke, obey control_delta: receipt_only=no confirmation read; focused_read=inspect only if returned state is insufficient; visual=refresh only decision-changing visual evidence. Geometry/Texturing share AUTHORING; Animation is the Runtime handoff. Never auto-retry an interrupted mutation.";
 
-async function buildGatewayServer(): Promise<McpServer> {
+type ExperimentalHybridRegistrar = (input: {
+  server: McpServer;
+  profile: "hybrid_4_experimental";
+  invoke: (capability: string, args: Record<string, unknown>, context?: unknown) => Promise<unknown>;
+}) => string[];
+
+function buildGatewayServer(
+  experimentalRegistrar: ExperimentalHybridRegistrar | null
+): McpServer {
   const surfaceProfile = resolveGatewaySurfaceProfile(
     process.env.LAZYDESIGNER_GATEWAY_SURFACE_PROFILE
   );
@@ -63,10 +71,10 @@ async function buildGatewayServer(): Promise<McpServer> {
   });
 
   if (isExperimentalGatewaySurface(surfaceProfile)) {
-    const { registerExperimentalHybrid4 } = await import(
-      "./experimental/hybridRegistration"
-    );
-    registeredExperimentalTools = registerExperimentalHybrid4({
+    if (!experimentalRegistrar) {
+      throw new Error("Experimental Gateway profile selected without registrar.");
+    }
+    registeredExperimentalTools = experimentalRegistrar({
       server,
       profile: surfaceProfile,
       invoke: (capability, args, context) =>
@@ -101,8 +109,16 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => void shutdown(0));
   process.stdin.on("close", () => void shutdown(0));
 
-  const server = await buildGatewayServer();
-  stdioHandle = serveStdio(() => server, {
+  const requestedProfile = resolveGatewaySurfaceProfile(
+    process.env.LAZYDESIGNER_GATEWAY_SURFACE_PROFILE
+  );
+  const experimentalRegistrar: ExperimentalHybridRegistrar | null =
+    isExperimentalGatewaySurface(requestedProfile)
+      ? (await import("./experimental/hybridRegistration"))
+          .registerExperimentalHybrid4 as ExperimentalHybridRegistrar
+      : null;
+
+  stdioHandle = serveStdio(() => buildGatewayServer(experimentalRegistrar), {
     onerror: (error) => {
       console.error("[LazyDesigner Gateway] stdio:", error);
     },
