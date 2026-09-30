@@ -89,7 +89,7 @@ describe("AnimationController mutation closure", () => {
   });
 
   test("implementation preflights a plan then applies one native Undo transaction", async () => {
-    const controller = await source("server/tools/animation-controller.ts");
+    const controller = await source("server/tools/animation/controller.ts");
     expect(controller).toContain("applyOperationToPlan");
     expect(controller).toContain("validateFinalPlan(plan)");
     expect(controller).toContain("Undo.initEdit({ animation_controllers:");
@@ -105,7 +105,7 @@ describe("AnimationController mutation closure", () => {
   });
 
   test("mutation result returns final affected subgraphs without dumping untouched controller state", async () => {
-    const controller = await source("server/tools/animation-controller.ts");
+    const controller = await source("server/tools/animation/controller.ts");
     const start = controller.indexOf("function controllerStateContinuation");
     const end = controller.indexOf("function applyOperationToPlan", start);
     const continuation = controller.slice(start, end);
@@ -135,7 +135,7 @@ describe("AnimationController mutation closure", () => {
 
   test("controller mutation is one default capability, not a new registration profile", async () => {
     const [profile, controller] = await Promise.all([
-      source("lib/registrationProfile.ts"), source("server/tools/animation-controller.ts"),
+      source("lib/capabilities/registrationProfile.ts"), source("server/tools/animation/controller.ts"),
     ]);
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
     expect(profile).not.toContain("controller_profile");
