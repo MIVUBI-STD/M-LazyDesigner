@@ -1,6 +1,6 @@
-import { GatewayBackendError } from "../backend";
-import type { JsonRecord } from "../protocol";
-import { recoveryForGatewayError } from "../runtime/recovery";
+import { GatewayBackendError } from "./backendContract";
+import type { JsonRecord } from "../contracts/protocol";
+import { recoveryForGatewayError } from "./recovery";
 
 export type GatewayToolContext = {
   mcpReq?: {
