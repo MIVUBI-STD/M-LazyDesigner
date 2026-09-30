@@ -14,7 +14,7 @@ import {
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { elementIdSchema } from "@/lib/zodObjects";
-import { requireOpenProject } from "@/lib/util";
+import { requireOpenProject } from "@/lib/core/project";
 import { planGroupRename, applyGroupRename, type RenameAnimation } from "@/lib/batchGroupRename";
 import {
   continuationElementType,
