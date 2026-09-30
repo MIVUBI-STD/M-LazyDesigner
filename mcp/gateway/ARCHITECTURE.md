@@ -108,7 +108,7 @@ No background heartbeat, automatic confirmation read, duplicate catalog fetch, o
 
 ## Declarative capability effects
 
-Capability semantics that affect Gateway-owned state are declared in `mcp/lib/capabilityMetadata.ts`.
+Capability semantics that affect Gateway-owned state are declared in `mcp/lib/capabilities/metadata.ts`.
 
 ```text
 ordinary tool
@@ -125,7 +125,7 @@ phase-changing tool
 → invalidateCatalog: true
 ```
 
-`mcp/gateway/capabilityEffects.ts` is the single parser for these result receipts. Gateway backend code should consume that resolver rather than add new `if (capability === "...")` branches. This keeps future tools extensible through metadata instead of Gateway rewrites.
+`mcp/gateway/capabilities/effects.ts` is the single parser for these result receipts. Gateway backend code should consume that resolver rather than add new `if (capability === "...")` branches. This keeps future tools extensible through metadata instead of Gateway rewrites.
 
 ## Ownership boundary
 
@@ -153,11 +153,12 @@ runtime/backend.ts        Gateway ↔ Runtime backend adapter
 Canonical subdomains own the rest:
 
 ```text
-capabilities/  discovery, metadata, graph, effects
+capabilities/  discovery, metadata, graph, effects, semantic dependency/freshness core
 contracts/     Gateway protocol + output schemas
 control/       context/routing/readiness projection
-development/   source-development planning/freshness
-experimental/  opt-in experimental surface
+development/   repository-development diagnosis, impact and verification planning
+surface/       stable Gateway surface-profile contract
+experimental/  opt-in implementation loaded only for an explicit experimental profile
 handlers/      public tool registration/handlers
 presentation/  result/status projection and compaction
 providers/     Gateway-local capability providers
