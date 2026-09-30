@@ -4,8 +4,8 @@ import {
   SdkHttpError,
 } from "@modelcontextprotocol/client";
 import type { GatewayConnectionManager } from "./connectionManager";
-import type { BlockitAuthoringPhaseAffinity } from "./projectAffinity";
-import type { JsonRecord } from "../protocol";
+import type { BlockitAuthoringPhaseAffinity } from "../../lib/runtime/affinity";
+import type { JsonRecord } from "../contracts/protocol";
 
 export type GatewayBackendErrorCode =
   | "BACKEND_UNAVAILABLE"
