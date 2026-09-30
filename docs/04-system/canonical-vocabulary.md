@@ -1,6 +1,6 @@
 # LazyDesigner Canonical Vocabulary
 
-Updated: 2026-09-29
+Updated: 2026-09-30
 
 This file owns **product vocabulary only**. It prevents multiple names from describing the same concept and prevents one name from carrying unrelated meanings.
 
@@ -21,7 +21,10 @@ Do not create synonyms for style. Prefer the canonical term even when another wo
 | current semantic authoring position | **Stage** | `GEOMETRY`, `TEXTURING`, `ANIMATION`, `FINALIZATION` |
 | currently exposed Runtime capability family | **Runtime Surface** | `AUTHORING` or `ANIMATION` |
 | semantic specialist ownership | **Domain** | Geometry, Texturing, Animation, or Core ownership; not lifecycle position |
-| executable MCP operation | **Capability** | one discoverable/invocable operation; its canonical Operation Class is QUERY, MUTATION, PREVIEW, EXPORT, CONTROL, VALIDATION, or UNKNOWN |
+| executable semantic operation | **Capability** | one discoverable/invocable operation; its canonical Operation Class is QUERY, MUTATION, PREVIEW, EXPORT, CONTROL, VALIDATION, or UNKNOWN |
+| MCP implementation object | **Tool** | Runtime registration/validation/execution mechanism for a Capability; not the semantic identity itself |
+| Runtime registration grouping | **Family** | implementation grouping such as `animation`, `textures`, or `elements`; not Stage |
+| Runtime exposure compatibility mode | **Registration Profile** | `bedrock_entity` or `extended`; not Stage, quality level, or modelling strategy |
 | stable AI-client MCP boundary | **Gateway** | transport/catalog/recovery boundary; not workflow reasoning |
 | Blockbench-facing executor | **Runtime** | capability registration, validation and execution |
 | deterministic task/context projector | **Control** | intake, selection, projection, invalidation and continuation |
@@ -35,6 +38,50 @@ Do not create synonyms for style. Prefer the canonical term even when another wo
 | technical/evidence check | **Validation** | evaluates a bounded property; never implies user acceptance |
 | explicit human acceptance | **Approval** | user acceptance of the current revision |
 | permission to cross a gated boundary | **Transition Eligibility** | prerequisite result for Stage/Runtime Surface transition |
+
+## Capability vs Tool
+
+These are related but not interchangeable.
+
+~~~text
+Capability = semantic operation identity
+Tool       = MCP/Runtime implementation object
+~~~
+
+Example:
+
+~~~text
+manage_cubes
+→ Capability
+
+createTool(...), ToolSpec, Runtime registration
+→ Tool implementation
+~~~
+
+Use **Capability** when discussing what the AI can request or discover.
+Use **Tool** when discussing MCP registration, schema validation, execution objects, or Tool-specific implementation mechanics.
+
+## Profile vs Family
+
+~~~text
+Registration Profile
+→ decides which Runtime Families may be registered
+
+Family
+→ groups implementation/registration owners
+~~~
+
+A Profile is not a user-facing quality preset, Stage, Runtime Surface, or modelling strategy.
+A Family is not a Stage.
+
+Canonical source:
+
+~~~text
+Registration Profile → mcp/lib/capabilities/registrationProfile.ts
+Stage                → mcp/lib/capabilities/authoringStage.ts
+Runtime Surface      → mcp/lib/capabilities/authoringStage.ts
+Capability metadata  → mcp/lib/capabilities/manifest.ts
+~~~
 
 ## Stage vs Runtime Surface
 
