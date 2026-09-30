@@ -1,9 +1,9 @@
 import { VERSION } from "@/lib/constants";
-import type { McpRegistrationProfile } from "@/lib/registrationProfile";
+import type { McpRegistrationProfile } from "@/lib/capabilities/registrationProfile";
 import {
-  getActiveMcpAuthoringPhase,
-  type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
+  getActiveMcpAuthoringStage,
+  type McpAuthoringStage,
+} from "@/lib/capabilities/authoringStage";
 
 export const PRODUCT_ID = "lazydesigner-bedrock-entity-mcp";
 export const PRODUCT_NAME = "LazyDesigner — Bedrock Entity MCP";
@@ -25,7 +25,7 @@ export function createProductIdentity(
     name: PRODUCT_NAME,
     version: PRODUCT_VERSION,
     profile,
-    authoring_phase: authoringPhase,
+    authoring_phase: authoringStage,
     repository: PRODUCT_REPOSITORY,
   } as const;
 }
