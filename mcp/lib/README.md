@@ -14,6 +14,7 @@
 | `protocol/` | MCP/resource protocol helpers |
 | `runtime/` | Runtime connection, affinity, fetch, and lifecycle primitives |
 | `semantic/` | semantic core and incremental semantic model |
+| `schemas/` | shared domain-oriented Zod schemas |
 | `capabilities/` | canonical Runtime capability metadata, authoring phase, registration profile, and surface manifest |
 | `core/` | shared identity and JSON value primitives |
 | `blockbench/` | Blockbench compatibility policy projection |
@@ -51,9 +52,10 @@ Only these implementation owners are intentionally kept at `lib/` root:
 
 ```text
 factories.ts   MCP Tool/Resource/Prompt factories + registration/result primitives
-util.ts        shared Blockbench/runtime utility primitives
-zodObjects.ts  shared schema primitives
 constants.ts   tiny package constants
 ```
 
 Everything with a narrower semantic owner belongs in a canonical subdomain. Compatibility wrappers may remain temporarily but must contain only a re-export.
+
+
+Compatibility facades `util.ts` and `zodObjects.ts` remain only to avoid broad import churn. New code must import the canonical owner directly.
