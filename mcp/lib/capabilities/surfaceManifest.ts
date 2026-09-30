@@ -1,9 +1,9 @@
 import type { IMCPTool, IMCPPrompt, IMCPResource } from "@/types";
 import type { McpRegistrationProfile } from "./registrationProfile";
 import {
-  getActiveMcpAuthoringPhase,
-  type McpAuthoringPhase,
-} from "./authoringPhase";
+  getActiveMcpAuthoringStage,
+  type McpAuthoringStage,
+} from "./authoringStage";
 
 function sortedNames(values: Array<{ name: string }>): string[] {
   return values.map((value) => value.name).sort((a, b) => a.localeCompare(b));
@@ -32,7 +32,7 @@ export function createSurfaceManifest({
 
   return {
     profile,
-    authoring_phase: phase,
+    authoring_phase: stage,
     tools: {
       exposed_count: exposedTools.length,
       disabled_count: disabledTools.length,
