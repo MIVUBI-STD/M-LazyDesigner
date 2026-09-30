@@ -53,7 +53,7 @@ describe("shared authority-transition receipt contracts", () => {
   });
 
   test("Runtime producers and Gateway effect parsing share the same owners", async () => {
-    const projectSource = await Bun.file("server/tools/project.ts").text();
+    const projectSource = await Bun.file("server/tools/project/project.ts").text();
     const phaseSource = await Bun.file("server/runtime/phaseControl.ts").text();
     const effects = await Bun.file("gateway/capabilities/effects.ts").text();
 

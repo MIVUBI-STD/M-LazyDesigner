@@ -93,7 +93,7 @@ describe("shared particle mutation receipt contract", () => {
   });
 
   test("Runtime and Control share the particle receipt owner", async () => {
-    const producer = await Bun.file("server/tools/particle.ts").text();
+    const producer = await Bun.file("server/tools/particle/manage.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain(

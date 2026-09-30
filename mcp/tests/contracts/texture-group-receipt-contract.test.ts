@@ -50,7 +50,7 @@ describe("shared texture-group receipt contract", () => {
   });
 
   test("Runtime and Control share the texture-group receipt owner", async () => {
-    const producer = await Bun.file("server/tools/texture-assignment.ts").text();
+    const producer = await Bun.file("server/tools/texture/assignment.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain('from "@/lib/receipts/textureGroup"');

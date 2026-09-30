@@ -93,7 +93,7 @@ describe("shared bone-rigging receipt contract", () => {
   });
 
   test("Runtime and Control share the bone-rigging receipt owner", async () => {
-    const producer = await Bun.file("server/tools/animation-rigging.ts").text();
+    const producer = await Bun.file("server/tools/animation/rigging.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain('from "@/lib/receipts/boneRigging"');

@@ -84,7 +84,7 @@ describe("shared animation effects receipt contract", () => {
   });
 
   test("Runtime and Control share the same Animation Effects receipt owner", async () => {
-    const producer = await Bun.file("server/tools/animation-effects.ts").text();
+    const producer = await Bun.file("server/tools/animation/effects.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain(

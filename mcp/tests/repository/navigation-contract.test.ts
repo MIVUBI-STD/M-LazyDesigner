@@ -39,6 +39,7 @@ const REQUIRED_NAVIGATION_READMES = [
   "scripts/verify/README.md",
   "tests/README.md",
   "tests/benchmark/README.md",
+  "tests/contracts/README.md",
   "tests/development/README.md",
   "tests/live/README.md",
   "tests/runtime/README.md",

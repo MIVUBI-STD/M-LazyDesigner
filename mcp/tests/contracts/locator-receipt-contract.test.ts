@@ -99,7 +99,7 @@ describe("shared locator mutation receipt contract", () => {
     });
     expect(isLocatorMutationReceipt(receipt)).toBe(true);
 
-    const producer = await Bun.file("server/tools/locators.ts").text();
+    const producer = await Bun.file("server/tools/geometry/locators.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
     expect(producer).toContain('from "@/lib/receipts/locatorMutation"');
     expect(producer).toContain("const summary = locatorMutationReceipt({");

@@ -39,7 +39,7 @@ describe("shared material persistence receipt contract", () => {
   });
 
   test("direct save producer and Control share the persistence receipt owner", async () => {
-    const producer = await Bun.file("server/tools/texture-materials.ts").text();
+    const producer = await Bun.file("server/tools/texture/materials.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain("materialPersistenceReceipt({");

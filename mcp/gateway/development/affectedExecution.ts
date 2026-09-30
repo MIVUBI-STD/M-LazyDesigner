@@ -52,60 +52,60 @@ export const RECEIPT_CONTRACT_TESTS_BY_PATH: Readonly<
   Record<string, readonly string[]>
 > = {
   "mcp/lib/receipts/animationController.ts": [
-    "mcp/tests/animation-controller-receipt-contract.test.ts",
+    "mcp/tests/contracts/animation-controller-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/animationEffects.ts": [
-    "mcp/tests/animation-effects-receipt-contract.test.ts",
+    "mcp/tests/contracts/animation-effects-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/authorityTransition.ts": [
-    "mcp/tests/authority-transition-receipt-contract.test.ts",
+    "mcp/tests/contracts/authority-transition-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/boneRigging.ts": [
-    "mcp/tests/bone-rigging-receipt-contract.test.ts",
+    "mcp/tests/contracts/bone-rigging-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/cubeMutation.ts": [
-    "mcp/tests/cube-receipt-contract.test.ts",
+    "mcp/tests/contracts/cube-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/groupMutation.ts": [
-    "mcp/tests/group-receipt-contract.test.ts",
+    "mcp/tests/contracts/group-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/locatorMutation.ts": [
-    "mcp/tests/locator-receipt-contract.test.ts",
+    "mcp/tests/contracts/locator-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/materialInstances.ts": [
-    "mcp/tests/material-instances-receipt-contract.test.ts",
+    "mcp/tests/contracts/material-instances-receipt-contract.test.ts",
     TEXTURE_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/materialMutation.ts": [
-    "mcp/tests/material-receipt-contract.test.ts",
-    "mcp/tests/material-persistence-receipt-contract.test.ts",
+    "mcp/tests/contracts/material-receipt-contract.test.ts",
+    "mcp/tests/contracts/material-persistence-receipt-contract.test.ts",
     TEXTURE_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/particleMutation.ts": [
-    "mcp/tests/particle-receipt-contract.test.ts",
+    "mcp/tests/contracts/particle-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/removeElement.ts": [
-    "mcp/tests/remove-element-receipt-contract.test.ts",
+    "mcp/tests/contracts/remove-element-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/renameElement.ts": [
-    "mcp/tests/rename-element-receipt-contract.test.ts",
+    "mcp/tests/contracts/rename-element-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/renderProfile.ts": [
-    "mcp/tests/render-profile-receipt-contract.test.ts",
+    "mcp/tests/contracts/render-profile-receipt-contract.test.ts",
     TEXTURE_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/textureGroup.ts": [
-    "mcp/tests/texture-group-receipt-contract.test.ts",
+    "mcp/tests/contracts/texture-group-receipt-contract.test.ts",
     TEXTURE_CONTINUATION_TEST,
   ],
 };

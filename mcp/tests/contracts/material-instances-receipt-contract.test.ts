@@ -63,7 +63,7 @@ describe("shared material-instance receipt contract", () => {
   });
 
   test("Runtime funnel and Control use the same receipt owner", async () => {
-    const producer = await Bun.file("server/tools/material-instances.ts").text();
+    const producer = await Bun.file("server/tools/texture/materialInstances.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain(

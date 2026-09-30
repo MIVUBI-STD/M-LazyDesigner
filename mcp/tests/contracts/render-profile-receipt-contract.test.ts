@@ -113,7 +113,7 @@ describe("shared render-profile receipt contract", () => {
   });
 
   test("Runtime write funnel and Control share the Render Profile receipt owner", async () => {
-    const producer = await Bun.file("server/tools/render-profile.ts").text();
+    const producer = await Bun.file("server/tools/texture/renderProfile.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain(

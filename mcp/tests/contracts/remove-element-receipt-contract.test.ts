@@ -61,7 +61,7 @@ describe("shared remove-element receipt contract", () => {
   });
 
   test("Runtime and Control share the remove-element receipt owner", async () => {
-    const producer = await Bun.file("server/tools/element-mutation.ts").text();
+    const producer = await Bun.file("server/tools/element/mutation.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain('from "@/lib/receipts/removeElement"');

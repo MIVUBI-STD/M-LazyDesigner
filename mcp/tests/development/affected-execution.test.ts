@@ -97,16 +97,16 @@ describe("affected execution planner", () => {
 
     expect(plan.targeted_tests).toEqual(
       expect.arrayContaining([
-        "mcp/tests/material-receipt-contract.test.ts",
-        "mcp/tests/material-persistence-receipt-contract.test.ts",
+        "mcp/tests/contracts/material-receipt-contract.test.ts",
+        "mcp/tests/contracts/material-persistence-receipt-contract.test.ts",
         "mcp/tests/control-texture-mutation-precision.test.ts",
       ])
     );
     expect(plan.targeted_tests).not.toContain(
-      "mcp/tests/animation-controller-receipt-contract.test.ts"
+      "mcp/tests/contracts/animation-controller-receipt-contract.test.ts"
     );
     expect(plan.targeted_tests).not.toContain(
-      "mcp/tests/particle-receipt-contract.test.ts"
+      "mcp/tests/contracts/particle-receipt-contract.test.ts"
     );
   });
 
@@ -120,7 +120,7 @@ describe("affected execution planner", () => {
     expect(plan.checks).toContain("PROJECT_GRAPH");
     expect(plan.checks).toContain("TARGETED_TESTS");
     expect(plan.targeted_tests).toContain(
-      "mcp/tests/material-receipt-contract.test.ts"
+      "mcp/tests/contracts/material-receipt-contract.test.ts"
     );
     expect(plan.targeted_tests).toContain(
       "mcp/tests/gateway-control-continuation-hardening.test.ts"

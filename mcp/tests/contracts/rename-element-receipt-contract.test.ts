@@ -59,7 +59,7 @@ describe("shared rename-element receipt contract", () => {
   });
 
   test("Runtime and Control share the rename receipt owner", async () => {
-    const producer = await Bun.file("server/tools/element-mutation.ts").text();
+    const producer = await Bun.file("server/tools/element/mutation.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain('from "@/lib/receipts/renameElement"');

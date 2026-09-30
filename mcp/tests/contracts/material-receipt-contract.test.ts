@@ -81,7 +81,7 @@ describe("shared material mutation receipt contract", () => {
   });
 
   test("Runtime material producer uses the shared receipt owner", async () => {
-    const source = await Bun.file("server/tools/texture-materials.ts").text();
+    const source = await Bun.file("server/tools/texture/materials.ts").text();
     expect(source).toContain(
       'from "@/lib/receipts/materialMutation"'
     );
