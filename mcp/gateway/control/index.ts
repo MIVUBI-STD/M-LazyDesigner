@@ -38,11 +38,11 @@ export type {
   ControlCohortBoundary,
   ControlPendingVerification,
 } from "./orchestration";
-export { resolveDevelopmentIntent } from "./developmentIntent";
+export { resolveDevelopmentIntent } from "../development/intent";
 export type {
   ControlDevelopmentDomain,
   ControlDevelopmentResolution,
-} from "./developmentIntent";
+} from "../development/intent";
 export { CONTROL_ROUTING_POLICY } from "./routingPolicy";
 export type { ControlRoutingPolicy } from "./routingPolicy";
 export { contextForAuthoringDomain } from "./contexts";
