@@ -11,7 +11,7 @@ import {
   ensureRuntimeTlsIdentity,
   renewRuntimeTlsIdentity,
   runtimeTlsStatus,
-} from "../../distribution/runtime-tls";
+} from "../../../distribution/runtime-tls";
 import createNetServer from "../../server/net";
 import { BlockitRuntimeBackend } from "../../gateway/runtime/backend";
 
