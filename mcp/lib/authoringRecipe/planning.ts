@@ -106,3 +106,39 @@ export function chooseBoundedGeometryCorrection<T>(
 ) {
   return selectLowestCostCorrection(candidates, options);
 }
+
+
+export function selectRecipeRebuildExecutionStrategy(
+  rebuild: ReturnType<typeof planIncrementalRecipeRebuild>
+) {
+  const affected = rebuild.metrics.native_affected_count;
+  const ratio = rebuild.metrics.native_affected_ratio_of_next;
+
+  if (affected > 0) {
+    return {
+      strategy: "RECIPE" as const,
+      affected_native_instances: affected,
+      affected_ratio: ratio,
+      reason: "RECIPE_OWNED_INCREMENTAL" as const,
+    };
+  }
+
+  if (
+    rebuild.metrics.metadata_only_count > 0 ||
+    rebuild.metrics.symmetry_change_count > 0
+  ) {
+    return {
+      strategy: "METADATA_ONLY" as const,
+      affected_native_instances: 0,
+      affected_ratio: 0,
+      reason: "SEMANTIC_METADATA_ONLY" as const,
+    };
+  }
+
+  return {
+    strategy: "UNCHANGED" as const,
+    affected_native_instances: 0,
+    affected_ratio: 0,
+    reason: "NO_CHANGE" as const,
+  };
+}
