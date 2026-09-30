@@ -4,10 +4,10 @@ import {
   modifyCubeParameters,
   modifyCubesBatchParameters,
   placeCubeParameters,
-} from "@/server/tools/cubes";
+} from "@/server/tools/geometry/cubes";
 import { BoxUvCapacityError, packBoxUvOffsets } from "@/lib/boxUvLayout";
 import { requireFiniteTranslatedElementVector3 } from "@/server/tools/element";
-import { inspectElementParameters, requireFiniteInspectableVector3 } from "@/server/tools/element-inspection";
+import { inspectElementParameters, requireFiniteInspectableVector3 } from "@/server/tools/element/inspection";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -17,8 +17,8 @@ async function source(path: string): Promise<string> {
 // schemas without leaking Blockbench globals into other tests. Not live proof.
 const cubeRuntimeFixture = String.raw`
 import assert from "node:assert/strict";
-import { registerCubesTools } from "./server/tools/cubes.ts";
-import { registerElementInspectionTools } from "./server/tools/element-inspection.ts";
+import { registerCubesTools } from "./server/tools/geometry/cubes.ts";
+import { registerElementInspectionTools } from "./server/tools/element/inspection.ts";
 import { getAllToolDefinitions } from "./lib/factories.ts";
 class MockCube {
   static all = [];
@@ -91,7 +91,7 @@ describe("model creation effectiveness — correction accuracy", () => {
   });
 
   test("place_cube does not expose generic per-Cube texture selection", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     const start = cubes.indexOf("export const placeCubeParameters");
     const end = cubes.indexOf("export const modifyCubeParameters", start);
     const block = cubes.slice(start, end);
@@ -115,7 +115,7 @@ describe("model creation effectiveness — correction accuracy", () => {
   });
 
   test("batch Cube correction carries existing Box-UV authored state without a new tool", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     expect(cubes).toContain("update.uv_offset");
     expect(cubes).toContain("update.autouv");
     expect(cubes).toContain("update.mirror_uv");
@@ -131,7 +131,7 @@ describe("model creation effectiveness — correction accuracy", () => {
   });
 
   test("single-Cube correction returns current authored state plus structural effects", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     const effectStart = cubes.indexOf("function cubeGeometryEffect");
     const effectEnd = cubes.indexOf("type ModifyCubeRequest", effectStart);
     const geometryEffect = cubes.slice(effectStart, effectEnd);
