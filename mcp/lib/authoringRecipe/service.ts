@@ -12,10 +12,9 @@ import {
 import { AuthoringRecipePlanRegistry } from "@/lib/authoringRecipe/planRegistry";
 import { resolveSemanticIdentity } from "@/lib/authoringRecipe/semanticIdentity";
 import type { SemanticGeometryTarget } from "@/lib/authoringRecipe/semanticEdit";
-import { selectRecipeRebuildExecutionStrategy } from "@/lib/orchestration/executionStrategy";
 import { AuthoringEvidenceRegistry, type AuthoringEvidenceHandle } from "@/lib/authoringRecipe/evidenceRegistry";
 import { compactAuthoringApplyReceipt, compactSemanticIdentityResolution } from "@/lib/authoringRecipe/compactReceipt";
-import { summarizeAuthoringRecipeRebuild } from "@/lib/authoringRecipe/planning";
+import { selectRecipeRebuildExecutionStrategy, summarizeAuthoringRecipeRebuild } from "@/lib/authoringRecipe/planning";
 
 export {
   chooseBoundedGeometryCorrection,
