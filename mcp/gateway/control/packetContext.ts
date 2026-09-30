@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { canonicalJson } from "../../lib/semantic/canonical";
-import type { ControlDevelopmentResolution } from "./developmentIntent";
+import type { DevelopmentResolution } from "../development/intent";
 import type { ControlReferenceProjection } from "./referenceTypes";
 import type { ControlWorkspaceProjection } from "./workspace";
 import type {
@@ -28,7 +28,7 @@ export function taskContextId(
   workspace: ControlWorkspaceProjection,
   reference: ControlReferenceProjection,
   mode: ControlTaskMode,
-  development: ControlDevelopmentResolution | null,
+  development: DevelopmentResolution | null,
   currentUserDelta: string | null
 ): string {
   const payload =
