@@ -3,7 +3,7 @@ import {
   buildMaterialInstanceMutationSummary,
   isMaterialInstanceNameChange,
   materialInstanceContinuationChanges,
-} from "@/server/tools/material-instances";
+} from "@/server/tools/texture/materialInstances";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -68,7 +68,7 @@ describe("material-instance mutation result contract", () => {
   });
 
   test("set, bulk-set, and clear mutations return structured continuation receipts", async () => {
-    const implementation = await source("server/tools/material-instances.ts");
+    const implementation = await source("server/tools/texture/materialInstances.ts");
 
     expect(
       implementation.match(/buildMaterialInstanceMutationSummary\(/g)?.length ?? 0
@@ -93,7 +93,7 @@ describe("material-instance mutation result contract", () => {
   });
 
   test("destructive material-instance no-ops stop before Undo", async () => {
-    const implementation = await source("server/tools/material-instances.ts");
+    const implementation = await source("server/tools/texture/materialInstances.ts");
     const branches = [
       {
         start: "materialInstanceToolDocs[1].name",
