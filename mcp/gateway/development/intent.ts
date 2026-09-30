@@ -5,7 +5,7 @@ import {
   authoringDomainForCapability,
   listExplicitSourceOwners,
   sourceOwnerForCapability,
-} from "../control/sourceOwners";
+} from "./sourceOwners";
 
 export type ControlDevelopmentDomain =
   | "GEOMETRY"
