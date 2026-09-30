@@ -42,9 +42,9 @@
     "lib/runtime/fetch.ts",
     "lib/runtime/connection.ts",
     "lib/runtime/affinity.ts",
-    "lib/capabilityMetadata.ts",
+    "lib/capabilities/metadata.ts",
     "lib/capabilities/manifest.ts",
-    "lib/authoringPhase.ts",
-    "lib/registrationProfile.ts"
+    "lib/capabilities/authoringPhase.ts",
+    "lib/capabilities/registrationProfile.ts"
   ]
 }
