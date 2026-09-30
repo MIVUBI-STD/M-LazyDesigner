@@ -88,9 +88,11 @@ mcp/lib/capabilities/manifest.ts
 
 ```text
 gateway/capabilities/  AI discovery, branch schemas, preconditions/effects
+gateway/context/       neutral authoring-domain + specialist-path contract
 gateway/runtime/       Runtime connection, affinity, recovery, session state
 gateway/providers/     optional Gateway-local capabilities
-gateway/control/       Control packets, context, freshness, orchestration
+gateway/control/       product Control packets, context, readiness, projection
+gateway/development/   repository-development diagnosis/source ownership
 contracts/protocol.ts             canonical Gateway protocol/base types
 contracts/outputSchemas.ts           canonical public output validation contracts
 presentation/resultCompaction.ts     canonical AI-facing result/receipt compaction
