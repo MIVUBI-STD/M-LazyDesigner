@@ -7,8 +7,10 @@
 | Directory | Owner |
 | --- | --- |
 | `authoring/` | authoring handoff readiness and validation semantics |
-| `bedrock/` | Bedrock project identity and authored project semantics |
+| `bedrock/` | Bedrock project identity, Molang, export, and authored project semantics |
 | `product/` | LazyDesigner product identity |
+| `prompts/` | prompt contract and loading |
+| `reference/` | reference evidence, correction, and style interpretation |
 | `protocol/` | MCP/resource protocol helpers |
 | `runtime/` | Runtime connection, affinity, fetch, and lifecycle primitives |
 | `semantic/` | semantic core and incremental semantic model |
@@ -26,7 +28,7 @@
 
 The root is **not** the preferred destination for new domain implementation.
 
-Existing migrated root files are compatibility surfaces only; current canonical owners include `authoring/`, `bedrock/`, `product/`, `protocol/`, `runtime/`, and the existing authoring-domain directories. New domain implementation belongs in its domain directory. The repository test `tests/repository/lib-domain-boundary.test.ts` prevents that legacy set from growing.
+Existing migrated root files are compatibility surfaces only; current canonical owners include `authoring/`, `bedrock/`, `product/`, `prompts/`, `protocol/`, `reference/`, `runtime/`, and the existing domain directories. New domain implementation belongs in its domain directory. The repository test `tests/repository/lib-domain-boundary.test.ts` prevents that legacy set from growing.
 
 When a legacy root file is migrated:
 
