@@ -49,7 +49,7 @@ export { contextForAuthoringDomain } from "./contexts";
 export {
   authoringDomainForCapability,
   sourceOwnerForCapability,
-} from "./sourceOwners";
+} from "../development/sourceOwners";
 export type { ControlPacket, ControlContextDelivery, ControlTaskMode } from "./packet";
 export type { ControlWorkspaceProjection } from "./workspace";
 export type { ControlReferenceProjection, ControlProfile, ControlReferenceStage } from "./referencePackage";
