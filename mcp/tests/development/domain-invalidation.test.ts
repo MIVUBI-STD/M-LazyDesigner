@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { planAuthoringDomainInvalidation } from "../gateway/development/domainInvalidation";
+import { planAuthoringDomainInvalidation } from "../../gateway/development/domainInvalidation";
 
 describe("authoring domain invalidation", () => {
   test("classifies independent authoring domains without widening", () => {

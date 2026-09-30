@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { analyzeSemanticImpact } from "../gateway/development/impact";
-import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
-import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
+import { analyzeSemanticImpact } from "../../gateway/development/impact";
+import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
+import { listExplicitSourceOwners } from "../../gateway/control/sourceOwners";
 
 describe("semantic affected graph", () => {
   test("maps a source change to its canonical capability and anchor test", () => {

@@ -6,7 +6,7 @@ import { join } from "node:path";
 import {
   mapTypeScriptProgramFile,
   mapTypeScriptSource,
-} from "../scripts/development/build-development-symbol-map";
+} from "../../scripts/development/build-development-symbol-map";
 
 const tempDirs: string[] = [];
 

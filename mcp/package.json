@@ -22,7 +22,7 @@
     "typecheck:gateway": "tsc -p gateway/tsconfig.json --noEmit",
     "typecheck:profile": "tsc --noEmit --extendedDiagnostics",
     "test": "bun test",
-    "test:runtime": "bun test tests/*.test.ts tests/benchmark/*.test.ts tests/live/*.test.ts",
+    "test:runtime": "bun test tests/*.test.ts tests/benchmark/*.test.ts tests/development/*.test.ts tests/live/*.test.ts",
     "gateway": "bun run ./gateway/index.ts",
     "setup:tls": "bun run ./scripts/operations/setup-runtime-tls.ts",
     "measure:surface": "bun run ./scripts/measure/measure-default-surface.ts",

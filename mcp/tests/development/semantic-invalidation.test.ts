@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   planSemanticInvalidation,
   semanticInvalidationCommands,
-} from "../gateway/development/semanticInvalidation";
+} from "../../gateway/development/semanticInvalidation";
 
 describe("semantic invalidation planner", () => {
   test("routing-only change invalidates discovery without schema churn", () => {

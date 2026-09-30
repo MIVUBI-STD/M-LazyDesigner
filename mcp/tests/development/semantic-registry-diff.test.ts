@@ -4,7 +4,7 @@ import {
   capabilitySemanticCatalogRevisions,
   diffCapabilitySemanticRegistry,
   type CapabilitySemanticRecord,
-} from "../gateway/capabilities/semanticRegistry";
+} from "../../gateway/capabilities/semanticRegistry";
 
 function cloneRecord(
   record: CapabilitySemanticRecord

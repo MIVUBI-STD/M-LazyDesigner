@@ -3,10 +3,10 @@ import { readdir } from "node:fs/promises";
 import {
   planAffectedExecution,
   RECEIPT_CONTRACT_TESTS_BY_PATH,
-} from "../gateway/development/affectedExecution";
-import { buildAffectedExecutionPlan } from "../scripts/development/plan-affected-execution";
-import type { SemanticImpactReport } from "../gateway/development/impact";
-import { planSemanticInvalidation } from "../gateway/development/semanticInvalidation";
+} from "../../gateway/development/affectedExecution";
+import { buildAffectedExecutionPlan } from "../../scripts/development/plan-affected-execution";
+import type { SemanticImpactReport } from "../../gateway/development/impact";
+import { planSemanticInvalidation } from "../../gateway/development/semanticInvalidation";
 
 function impact(overrides: Partial<SemanticImpactReport> = {}): SemanticImpactReport {
   return {
