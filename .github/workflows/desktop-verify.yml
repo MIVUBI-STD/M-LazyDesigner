@@ -8,7 +8,7 @@ on:
       - "apps/desktop/**"
       - "mcp/compatibility/blockbench.json"
       - "distribution/**"
-      - "mcp/lib/runtimeFetch.ts"
+      - "mcp/lib/runtime/fetch.ts"
       - "mcp/tests/managed-install.test.ts"
       - ".github/workflows/desktop-verify.yml"
   workflow_dispatch:
