@@ -6,7 +6,6 @@ This directory owns deterministic evaluation and policy-analysis harnesses.
 evaluate-capability-intelligence.ts
 evaluate-codex-session-policy.ts
 evaluate-decision-efficiency.ts
-evaluate-golden-authoring-runs.ts
 evaluate-hybrid-promotion-policy.ts
 evaluate-routed-tool-loading.ts
 evaluate-tool-discovery.ts

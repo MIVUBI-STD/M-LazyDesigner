@@ -318,7 +318,7 @@ async function main(): Promise<void> {
   const path = process.argv[2];
   if (!path) {
     throw new Error(
-      "Usage: bun run eval:golden-authoring -- <golden-authoring-runs.json>"
+      "Usage: bun run report:golden-authoring -- <golden-authoring-runs.json>"
     );
   }
   const file = Bun.file(path);

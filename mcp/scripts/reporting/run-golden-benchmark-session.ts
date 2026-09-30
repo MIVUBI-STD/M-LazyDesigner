@@ -7,7 +7,7 @@ import {
 import type {
   GoldenAuthoringDocument,
   GoldenTraceEvent,
-} from "../evaluate/evaluate-golden-authoring-runs";
+} from "./evaluate-golden-authoring-runs";
 import type { BenchmarkTraceEvent } from "../../gateway/runtime/benchmarkTrace";
 
 type GoldenTask = (typeof goldenCorpus.tasks)[number];

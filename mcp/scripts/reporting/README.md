@@ -3,6 +3,7 @@
 This directory owns benchmark-session reporting, comparison, and finalization.
 
 ```text
+evaluate-golden-authoring-runs.ts
 summarize-gateway-benchmark-trace.ts
 run-golden-benchmark-session.ts
 finalize-golden-session.ts

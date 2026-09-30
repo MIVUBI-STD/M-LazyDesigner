@@ -110,7 +110,7 @@
     "verify:benchmarks": "bun run benchmark:zero-waste-total && bun run benchmark:parametric-authoring && bun run benchmark:semantic-uv && bun run benchmark:semantic-rig && bun run benchmark:motion-recipe && bun run benchmark:material-recipe && bun run benchmark:authoring-orchestration && bun run benchmark:semantic-invalidation-scope && bun run eval:golden-authoring",
     "verify:surface-guards": "bun run measure:surface && bun run measure:stages",
     "eval:golden-authoring": "bun test tests/golden-authoring-run-contract.test.ts tests/gateway-benchmark-trace-report.test.ts tests/golden-benchmark-session-runner.test.ts tests/golden-session-finalizer.test.ts tests/golden-session-comparison.test.ts gateway/runtime/benchmarkTrace.test.ts",
-    "report:golden-authoring": "bun run ./scripts/evaluate/evaluate-golden-authoring-runs.ts",
+    "report:golden-authoring": "bun run ./scripts/reporting/evaluate-golden-authoring-runs.ts",
     "report:gateway-trace": "bun run ./scripts/reporting/summarize-gateway-benchmark-trace.ts",
     "benchmark:golden-session": "bun run ./scripts/reporting/run-golden-benchmark-session.ts",
     "finalize:golden-session": "bun run ./scripts/reporting/finalize-golden-session.ts",

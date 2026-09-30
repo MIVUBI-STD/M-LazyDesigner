@@ -4,10 +4,10 @@ import {
 } from "../scripts/reporting/finalize-golden-session";
 import type {
   GoldenAuthoringDocument,
-} from "../scripts/evaluate-golden-authoring-runs";
+} from "../scripts/reporting/evaluate-golden-authoring-runs";
 import type {
   UsageDocument,
-} from "../scripts/validate-astra-usage";
+} from "../scripts/evaluate/validate-astra-usage";
 
 function golden(): GoldenAuthoringDocument {
   return {

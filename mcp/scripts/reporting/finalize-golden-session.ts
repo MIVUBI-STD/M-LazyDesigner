@@ -2,7 +2,7 @@ import {
   summarizeGoldenAuthoringDocument,
   validateGoldenAuthoringDocument,
   type GoldenAuthoringDocument,
-} from "../evaluate/evaluate-golden-authoring-runs";
+} from "./evaluate-golden-authoring-runs";
 import {
   effectiveTotalTokens,
   validateAstraUsageDocument,
