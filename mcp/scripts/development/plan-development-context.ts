@@ -11,7 +11,7 @@ import {
   anchorTestForSourceOwner,
   authoringDomainForCapability,
   listExplicitSourceOwners,
-} from "../../gateway/control/sourceOwners";
+} from "../../gateway/development/sourceOwners";
 import { resolveDevelopmentIntent } from "../../gateway/development/intent";
 import {
   buildDevelopmentSymbolMap,
