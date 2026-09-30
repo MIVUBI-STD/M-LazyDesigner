@@ -2,9 +2,9 @@ import {
   readRuntimeAuthoringPhase,
   readRuntimeProjectHealth,
   type BlockitAuthoringPhaseAffinity,
-} from "./projectAffinity";
+} from "../../lib/runtime/affinity";
 import { GatewayBackendError } from "./backendContract";
-import type { JsonRecord } from "../protocol";
+import type { JsonRecord } from "../contracts/protocol";
 
 export type AffinityResolution<T> = {
   value: T;
