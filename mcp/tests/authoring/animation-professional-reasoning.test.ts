@@ -119,7 +119,7 @@ describe("professional animation reasoning contract", () => {
     const [skill, policy, controller, effects] = await Promise.all([
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
       source("../docs/03-authoring/animation/standard.md"),
-      source("server/tools/animation-controller.ts"),
+      source("server/tools/animation/controller.ts"),
       source("server/tools/animation-effects.ts"),
     ]);
 
