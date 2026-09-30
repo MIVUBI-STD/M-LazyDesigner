@@ -46,37 +46,37 @@ describe("LazyDesigner Control source migration", () => {
     expect(testNames.some((name) => name.startsWith("gateway-control"))).toBe(true);
     expect(testNames.some((name) => name.startsWith("gateway-navigator"))).toBe(false);
 
-    expect(await Bun.file("scripts/measure-control-context.ts").exists()).toBe(true);
-    expect(await Bun.file("scripts/measure-navigator-context.ts").exists()).toBe(false);
+    expect(await Bun.file("scripts/measure/measure-control-context.ts").exists()).toBe(true);
+    expect(await Bun.file("scripts/measure/measure-navigator-context.ts").exists()).toBe(false);
 
     const packageJson = JSON.parse(await text("package.json")) as { scripts: Record<string, string> };
-    expect(packageJson.scripts["measure:control"]).toBe("bun run ./scripts/measure-control-context.ts");
+    expect(packageJson.scripts["measure:control"]).toBe("bun run ./scripts/measure/measure-control-context.ts");
     expect(packageJson.scripts["measure:navigator"]).toBeUndefined();
   });
 
-  test("source ownership docs point to canonical Control and keep Navigator retired", async () => {
+  test("architecture docs keep product Control and development ownership separate while Navigator stays retired", async () => {
     const [implementation, validation, next] = await Promise.all([
       text("../docs/04-system/implementation-map.md"),
       text("../docs/05-operations/current-validation.md"),
       text("../docs/05-operations/next-action.md"),
     ]);
 
-    for (const owner of [implementation, validation]) {
-      expect(owner).toContain("mcp/gateway/control/");
-    }
-    expect(next).toMatch(/Control|Gateway/i);
     expect(implementation).toContain("Canonical source: `mcp/gateway/control/`");
+    expect(implementation).toContain("Canonical source: `mcp/gateway/development/`");
+    expect(validation).toContain("mcp/gateway/control/");
+    expect(validation).toContain("mcp/gateway/development/");
+    expect(next).toMatch(/Control|Gateway/i);
     expect(implementation).not.toMatch(/canonical source:\s*`mcp\/gateway\/navigator\//i);
     expect(validation).toMatch(/retired Navigator source remains removed/i);
   });
 
   test("retired Navigator proposal stays out of the working tree", async () => {
-    const experimental = await text("../Experimental/README.md");
+    const experimental = await text("../experiments/README.md");
 
     expect(experimental).toContain("mcp/gateway/control/");
     expect(experimental).toMatch(/former active `mcp\/gateway\/navigator\/` production path has been removed/i);
     expect(experimental).toMatch(/Navigator design context is retained in Git history only/i);
-    expect(await Bun.file("../Experimental/blockit-navigator/README.md").exists()).toBe(false);
-    expect(await Bun.file("../Experimental/blockit-navigator").exists()).toBe(false);
+    expect(await Bun.file("../experiments/blockit-navigator/README.md").exists()).toBe(false);
+    expect(await Bun.file("../experiments/blockit-navigator").exists()).toBe(false);
   });
 });
