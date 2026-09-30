@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { DEFAULT_RUNTIME_URL, normalizeRuntimeUrl } from "../mcp/gateway/runtime/identity";
+import { LEGACY_MCP_BUNDLE_FILENAME } from "../mcp/compatibility/build-artifact";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
@@ -328,7 +329,7 @@ async function main(): Promise<void> {
     const manifest = await verifyPackage(source);
     const options: InstallOptions = previous?.options ?? {
       root, workspace: resolve(flags.get("--workspace") ?? join(homedir(), "BlockIT-Workspace")),
-      plugin: resolve(flags.get("--plugin-path") ?? join(root, "plugin", "blockit_mcp.js")),
+      plugin: resolve(flags.get("--plugin-path") ?? join(root, "plugin", LEGACY_MCP_BUNDLE_FILENAME)),
       config: resolve(flags.get("--config") ?? join(process.env.CODEX_HOME ?? join(homedir(), ".codex"), "config.toml")),
     };
     // Retain the candidate under installation ownership even when a downloaded ZIP is later removed.
