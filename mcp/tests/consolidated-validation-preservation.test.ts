@@ -45,7 +45,7 @@ describe("Consolidated capability validation preservation", () => {
 
   test("material consolidation stays routing-only for persistence receipts", async () => {
     const materialProducer = await Bun.file(
-      "server/tools/texture-materials.ts"
+      "server/tools/texture/materials.ts"
     ).text();
 
     expect(source).not.toContain('operation !== "save"');
