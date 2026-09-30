@@ -11,7 +11,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Managed resource dependency install failed.' }
   bun run build
   if ($LASTEXITCODE -ne 0) { throw 'Managed Runtime build failed.' }
-  bun run ./distribution/package.ts
+  bun run ../distribution/package.ts
   if ($LASTEXITCODE -ne 0) { throw 'Managed package build failed.' }
 } finally {
   Pop-Location
