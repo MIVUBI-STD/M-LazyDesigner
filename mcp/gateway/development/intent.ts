@@ -1,5 +1,5 @@
 import { CAPABILITY_CORE_MANIFEST } from "../../lib/capabilities/manifest";
-import type { ControlSourceOwner } from "../control/types";
+import type { DevelopmentSourceOwner } from "./types";
 import {
   anchorTestForSourceOwner,
   authoringDomainForCapability,
@@ -28,7 +28,7 @@ export type ControlDevelopmentResolution = {
     | "BOUNDED_SYMBOL_MAP"
     | "TARGETED_SEARCH";
   matched_terms: string[];
-  source_owners: ControlSourceOwner[];
+  source_owners: DevelopmentSourceOwner[];
   required_context_paths: string[];
   avoid_context_classes: string[];
 };
@@ -36,7 +36,7 @@ export type ControlDevelopmentResolution = {
 type Rule = {
   domain: Exclude<ControlDevelopmentDomain, "UNRESOLVED">;
   terms: readonly string[];
-  owners: () => ControlSourceOwner[];
+  owners: () => DevelopmentSourceOwner[];
 };
 
 const BASE_CONTEXT = ["AGENTS.md", "mcp/AGENTS.md"] as const;
@@ -45,9 +45,9 @@ const owner = (
   source: string,
   anchor_test: string | null = null,
   specialist: string | null = null
-): ControlSourceOwner => ({ source, specialist, anchor_test });
+): DevelopmentSourceOwner => ({ source, specialist, anchor_test });
 
-const uniqueOwners = (owners: readonly ControlSourceOwner[]): ControlSourceOwner[] => {
+const uniqueOwners = (owners: readonly DevelopmentSourceOwner[]): DevelopmentSourceOwner[] => {
   const seen = new Set<string>();
   return owners.filter((entry) => {
     const key = `${entry.source}|${entry.specialist ?? ""}|${anchorTestForSourceOwner(entry) ?? ""}`;
@@ -180,7 +180,7 @@ function exactDevelopmentDomain(
 
 type ExactDevelopmentEvidence = {
   domain: Exclude<ControlDevelopmentDomain, "UNRESOLVED">;
-  owner: ControlSourceOwner;
+  owner: DevelopmentSourceOwner;
   term: string;
 };
 
