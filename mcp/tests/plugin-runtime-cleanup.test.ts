@@ -130,7 +130,7 @@ describe("pre-local plugin runtime cleanup", () => {
   });
 
   test("dead prompt CDN and stateless session settings are removed", async () => {
-    const promptLoader = await source("lib/promptLoader.ts");
+    const promptLoader = await source("lib/prompts/loader.ts");
     const settings = await source("ui/settings.ts");
     const i18n = await source("ui/i18n.ts");
 
