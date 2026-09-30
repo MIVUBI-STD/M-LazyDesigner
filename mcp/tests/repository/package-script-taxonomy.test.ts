@@ -49,6 +49,20 @@ describe("package script taxonomy", () => {
 
     expect(violations).toEqual([]);
   });
+  test("developer commands use canonical Stage terminology", async () => {
+    const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
+      scripts?: Record<string, string>;
+    };
+    const scripts = packageJson.scripts ?? {};
+
+    expect(scripts["measure:stages"]).toBe(
+      "bun run ./scripts/measure-stage-surfaces.ts"
+    );
+    expect(scripts["measure:phases"]).toBeUndefined();
+    expect(await Bun.file("scripts/measure-stage-surfaces.ts").exists()).toBe(true);
+    expect(await Bun.file("scripts/measure-phase-surfaces.ts").exists()).toBe(false);
+  });
+
   test("script names do not duplicate the same command body", async () => {
     const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
       scripts?: Record<string, string>;

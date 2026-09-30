@@ -3,20 +3,20 @@ import type { AddressInfo } from "node:net";
 import {
   applyMcpToolSurface,
   getMcpSurfaceToolNames,
-} from "@/server/tools";
+} from "@/server/runtime/registration";
 import createNetServer from "@/server/net";
-import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
+import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
 import {
-  MCP_AUTHORING_PHASES,
-  type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
+  MCP_AUTHORING_STAGES,
+  type McpAuthoringStage,
+} from "@/lib/capabilities/authoringStage";
 
 const HOST = "127.0.0.1";
 const ENDPOINT = "/bb-mcp";
 const PROTOCOL_VERSION = "2025-06-18";
 const CATALOG_TOOL_COUNT = 54;
 
-const EXPECTED_PHASE_TOOL_COUNTS: Record<McpAuthoringPhase, number> = {
+const EXPECTED_STAGE_TOOL_COUNTS: Record<McpAuthoringStage, number> = {
   geometry: 47,
   texturing: 47,
   // Animation intentionally excludes create_project plus editor-selection helpers;
@@ -48,9 +48,9 @@ type ToolRow = {
   description_chars: number;
 };
 
-type PhaseMetrics = {
+type StageMetrics = {
   tool_count: number;
-  phase_owned_tool_count: number;
+  stage_owned_tool_count: number;
   initialize_instructions_chars: number;
   tools_list_response_chars: number;
   tools_array_chars: number;
@@ -66,8 +66,8 @@ type PhaseMetrics = {
   largest_tools: ToolRow[];
 };
 
-type MeasuredPhase = {
-  metrics: Omit<PhaseMetrics, "phase_owned_tool_count">;
+type MeasuredStage = {
+  metrics: Omit<StageMetrics, "stage_owned_tool_count">;
   tool_names: string[];
 };
 
@@ -102,16 +102,16 @@ async function postMcp(
   return { response, text, json };
 }
 
-async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
-  applyMcpToolSurface(DEFAULT_MCP_REGISTRATION_PROFILE, phase);
+async function measureStage(stage: McpAuthoringStage): Promise<MeasuredStage> {
+  applyMcpToolSurface(DEFAULT_MCP_REGISTRATION_PROFILE, stage);
   const expectedNames = getMcpSurfaceToolNames(
     DEFAULT_MCP_REGISTRATION_PROFILE,
-    phase
+    stage
   );
 
-  if (expectedNames.length !== EXPECTED_PHASE_TOOL_COUNTS[phase]) {
+  if (expectedNames.length !== EXPECTED_STAGE_TOOL_COUNTS[stage]) {
     throw new Error(
-      `${phase} source surface exposes ${expectedNames.length} tools; expected ${EXPECTED_PHASE_TOOL_COUNTS[phase]}.`
+      `${stage} source surface exposes ${expectedNames.length} tools; expected ${EXPECTED_STAGE_TOOL_COUNTS[stage]}.`
     );
   }
 
@@ -134,7 +134,7 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
 
     const address = server.address();
     if (!address || typeof address === "string") {
-      throw new Error(`Expected an IPv4 listener while measuring ${phase}.`);
+      throw new Error(`Expected an IPv4 listener while measuring ${stage}.`);
     }
     const tcpAddress = address as AddressInfo;
     const baseUrl = `http://${HOST}:${tcpAddress.port}`;
@@ -147,24 +147,24 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: {},
         clientInfo: {
-          name: `blockit-${phase}-surface-measurement`,
+          name: `blockit-${stage}-surface-measurement`,
           version: "1.0.0",
         },
       },
     });
     if (initialized.response.status !== 200) {
       throw new Error(
-        `${phase} initialize failed (${initialized.response.status}): ${initialized.text}`
+        `${stage} initialize failed (${initialized.response.status}): ${initialized.text}`
       );
     }
     if (initialized.json.result?.protocolVersion !== PROTOCOL_VERSION) {
       throw new Error(
-        `${phase} returned unexpected protocol version ${initialized.json.result?.protocolVersion ?? "missing"}.`
+        `${stage} returned unexpected protocol version ${initialized.json.result?.protocolVersion ?? "missing"}.`
       );
     }
     const instructions = initialized.json.result?.instructions ?? "";
-    if (!instructions.includes(`ACTIVE STAGE: ${phase.toUpperCase()}`)) {
-      throw new Error(`${phase} initialize lost its active-stage contract.`);
+    if (!instructions.includes(`ACTIVE STAGE: ${stage.toUpperCase()}`)) {
+      throw new Error(`${stage} initialize lost its active-stage contract.`);
     }
 
     const listed = await postMcp(
@@ -179,7 +179,7 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
     );
     if (listed.response.status !== 200 || listed.json.error) {
       throw new Error(
-        `${phase} tools/list failed: ${listed.json.error?.message ?? listed.text}`
+        `${stage} tools/list failed: ${listed.json.error?.message ?? listed.text}`
       );
     }
 
@@ -190,7 +190,7 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
     const expectedSorted = [...expectedNames].sort((a, b) => a.localeCompare(b));
     if (JSON.stringify(actualNames) !== JSON.stringify(expectedSorted)) {
       throw new Error(
-        `${phase} runtime tools/list diverged from the source-owned phase surface.`
+        `${stage} runtime tools/list diverged from the source-owned stage surface.`
       );
     }
 
@@ -248,40 +248,40 @@ async function measurePhase(phase: McpAuthoringPhase): Promise<MeasuredPhase> {
 }
 
 async function main(): Promise<void> {
-  const measured = {} as Record<McpAuthoringPhase, MeasuredPhase>;
-  for (const phase of MCP_AUTHORING_PHASES) {
-    measured[phase] = await measurePhase(phase);
+  const measured = {} as Record<McpAuthoringStage, MeasuredStage>;
+  for (const stage of MCP_AUTHORING_STAGES) {
+    measured[stage] = await measureStage(stage);
   }
 
-  const phaseSets = MCP_AUTHORING_PHASES.map(
-    (phase) => new Set(measured[phase].tool_names)
+  const stageSets = MCP_AUTHORING_STAGES.map(
+    (stage) => new Set(measured[stage].tool_names)
   );
-  const sharedAllPhaseTools = [...phaseSets[0]].filter((name) =>
-    phaseSets.slice(1).every((set) => set.has(name))
+  const sharedAllStageTools = [...stageSets[0]].filter((name) =>
+    stageSets.slice(1).every((set) => set.has(name))
   );
   const union = new Set(
-    MCP_AUTHORING_PHASES.flatMap((phase) => measured[phase].tool_names)
+    MCP_AUTHORING_STAGES.flatMap((stage) => measured[stage].tool_names)
   );
   if (union.size !== CATALOG_TOOL_COUNT) {
     throw new Error(
-      `Phase union exposes ${union.size} unique tools; expected the ${CATALOG_TOOL_COUNT}-tool callable catalog.`
+      `Stage union exposes ${union.size} unique tools; expected the ${CATALOG_TOOL_COUNT}-tool callable catalog.`
     );
   }
 
-  const phases = Object.fromEntries(
-    MCP_AUTHORING_PHASES.map((phase) => {
-      const metrics: PhaseMetrics = {
-        ...measured[phase].metrics,
-        phase_owned_tool_count:
-          measured[phase].metrics.tool_count - sharedAllPhaseTools.length,
+  const stages = Object.fromEntries(
+    MCP_AUTHORING_STAGES.map((stage) => {
+      const metrics: StageMetrics = {
+        ...measured[stage].metrics,
+        stage_owned_tool_count:
+          measured[stage].metrics.tool_count - sharedAllStageTools.length,
       };
-      return [phase, metrics];
+      return [stage, metrics];
     })
-  ) as Record<McpAuthoringPhase, PhaseMetrics>;
+  ) as Record<McpAuthoringStage, StageMetrics>;
 
-  const heaviestPhase = [...MCP_AUTHORING_PHASES].sort(
+  const heaviestStage = [...MCP_AUTHORING_STAGES].sort(
     (a, b) =>
-      phases[b].tools_list_response_chars - phases[a].tools_list_response_chars
+      stages[b].tools_list_response_chars - stages[a].tools_list_response_chars
   )[0];
 
   console.log(
@@ -289,12 +289,12 @@ async function main(): Promise<void> {
       {
         protocol_version: PROTOCOL_VERSION,
         callable_catalog_tool_count: CATALOG_TOOL_COUNT,
-        shared_core_tool_count: sharedAllPhaseTools.length,
-        shared_core_tools: sharedAllPhaseTools.sort((a, b) => a.localeCompare(b)),
-        heaviest_phase_by_tools_list_chars: heaviestPhase,
-        phases,
+        shared_core_tool_count: sharedAllStageTools.length,
+        shared_core_tools: sharedAllStageTools.sort((a, b) => a.localeCompare(b)),
+        heaviest_stage_by_tools_list_chars: heaviestStage,
+        stages,
         proof_note:
-          "Measures source-owned phase-filtered MCP tools/list over the real loopback transport; it is not installed-client token usage or Authoring Efficiency proof.",
+          "Measures source-owned stage-filtered MCP tools/list over the real loopback transport; it is not installed-client token usage or Authoring Efficiency proof.",
       },
       null,
       2
