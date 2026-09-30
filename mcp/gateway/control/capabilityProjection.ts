@@ -1,8 +1,8 @@
-import { classifyMcpToolPhaseByName } from "../../lib/authoringPhase";
+import { classifyMcpToolPhaseByName } from "../../lib/capabilities/authoringStage";
 import {
   getCapabilityMetadata,
   type CapabilityMetadata,
-} from "../../lib/capabilityMetadata";
+} from "../../lib/capabilities/metadata";
 import type { ControlAuthoringDomain } from "./types";
 
 export type ControlCapabilityProjection = CapabilityMetadata & {

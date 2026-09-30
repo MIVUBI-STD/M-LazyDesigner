@@ -1,8 +1,8 @@
 import {
   capabilityDefaultStaleScopes,
 } from "../../../lib/capabilities/manifest";
-import { assetDomainsForScopes } from "../../../lib/assetDependencyGraph";
-import { isSemanticHistoryEffect } from "../../../lib/semanticHistory";
+import { assetDomainsForScopes } from "../../../lib/authoring/assetDependencyGraph";
+import { isSemanticHistoryEffect } from "../../../lib/authoring/semanticHistory";
 import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
@@ -10,7 +10,7 @@ import {
 import {
   removedElementSemanticScopes,
   renamedElementSemanticScopes,
-} from "../../../lib/elementSemanticScopes";
+} from "../../../lib/authoring/elementSemanticScopes";
 import type {
   ControlAuthoringDomain,
   ControlDelta,

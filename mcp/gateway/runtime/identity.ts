@@ -1,4 +1,4 @@
-import { DEFAULT_RUNTIME_URL } from "../../lib/runtimeConnection";
+import { DEFAULT_RUNTIME_URL } from "../../lib/runtime/connection";
 
 export { DEFAULT_RUNTIME_URL };
 

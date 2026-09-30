@@ -3,7 +3,7 @@ import { canonicalJson } from "../../lib/semantic/canonical";
 import {
   buildAssetHealthSummary,
   type AssetHealthSummary,
-} from "../../lib/assetHealth";
+} from "../../lib/authoring/assetHealth";
 import type { ControlAuthoringDomain } from "./types";
 import type { ControlWorkspaceProjection } from "./workspace";
 import type {

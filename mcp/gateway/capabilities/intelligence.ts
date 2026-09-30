@@ -1,5 +1,5 @@
-import { classifyMcpToolPhaseByName } from "../../lib/authoringPhase";
-import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
+import { classifyMcpToolPhaseByName } from "../../lib/capabilities/authoringStage";
+import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
 import type { BackendTool } from "../protocol";
 import {
   CAPABILITY_BRANCH_MANIFEST,
@@ -263,4 +263,3 @@ export function listCapabilitySemantics(): readonly CapabilitySemanticEntry[] {
       ...(entry.semantic as CapabilitySemanticSpec),
     }));
 }
-

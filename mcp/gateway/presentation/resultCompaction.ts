@@ -1,4 +1,4 @@
-import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
+import type { CapabilityVerificationClass } from "../../lib/capabilities/metadata";
 import type { JsonRecord } from "../contracts/protocol";
 
 const CUBE_UV_CONTINUATION_FIELDS = new Set([

@@ -1,4 +1,4 @@
-import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
+import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
 import { resolveGatewayCapabilityEffects } from "../capabilities/effects";
 import type { BlockitAuthoringPhaseAffinity } from "../../lib/runtime/affinity";
 

@@ -1,11 +1,11 @@
 import {
   getCapabilityMetadata,
   type CapabilityEffects,
-} from "../../lib/capabilityMetadata";
+} from "../../lib/capabilities/metadata";
 import {
   normalizeAuthoringPhaseAffinity,
   type BlockitAuthoringPhaseAffinity,
-} from "../runtime/projectAffinity";
+} from "../../lib/runtime/affinity";
 import type { JsonRecord } from "../protocol";
 import {
   createProjectReceiptSchema,

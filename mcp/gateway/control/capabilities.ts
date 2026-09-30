@@ -1,5 +1,5 @@
 import type { CapabilitySummary } from "../protocol";
-import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
+import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
 import { manifestEntryForBranch } from "../capabilities/manifest";
 import {
   authoringDomainForCapability,

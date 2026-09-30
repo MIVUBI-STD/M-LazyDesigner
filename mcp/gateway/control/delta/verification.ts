@@ -1,4 +1,4 @@
-import { getCapabilityMetadata } from "../../../lib/capabilityMetadata";
+import { getCapabilityMetadata } from "../../../lib/capabilities/metadata";
 import { manifestEntryForBranch } from "../../capabilities/manifest";
 import type { CapabilityBranchHint } from "../../capabilities/types";
 import { cubeVisualScopeFromResult } from "../../../lib/receipts/cubeMutation";

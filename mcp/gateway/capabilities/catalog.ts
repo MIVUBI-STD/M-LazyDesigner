@@ -3,7 +3,7 @@ import {
   CAPABILITY_TIER_BOOST,
   getCapabilityMetadata,
   type CapabilityTier,
-} from "../../lib/capabilityMetadata";
+} from "../../lib/capabilities/metadata";
 import {
   bestSemanticMatchForTool,
   bm25CapabilityScores,

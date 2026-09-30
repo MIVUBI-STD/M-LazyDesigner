@@ -2,7 +2,7 @@ import {
   assetDependencyForScope,
   type AssetDependencyDomain,
   type AssetDependencyRecheckAction,
-} from "../../../lib/assetDependencyGraph";
+} from "../../../lib/authoring/assetDependencyGraph";
 import type {
   ControlAuthoringDomain,
   ControlFreshnessScope,

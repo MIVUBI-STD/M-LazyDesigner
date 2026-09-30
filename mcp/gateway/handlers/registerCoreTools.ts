@@ -28,7 +28,7 @@ import {
 } from "../capabilities/semanticRegistry";
 import { semanticDerivedArtifactStamp } from "../development/semanticArtifact";
 import { capabilitySemanticId } from "../../lib/semantic/identity";
-import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
+import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
 import type { GatewaySurfaceProfile } from "../experimental/hybridProfile";
 import type { GatewaySessionState } from "../session/state";
 import {
