@@ -32,7 +32,7 @@ import {
   resolveGatewayCapabilityEffects,
   validateGatewayCapabilityEffectReceipt,
 } from "../capabilities/effects";
-import { getCapabilityMetadata } from "../../lib/capabilityMetadata";
+import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
 import { runtimeFetch } from "../../lib/runtime/fetch";
 
 import {
