@@ -1,6 +1,6 @@
-import { ensureRuntimeTlsIdentity } from "../../distribution/runtime-tls";
+import { ensureRuntimeTlsIdentity } from "../../../distribution/runtime-tls";
 
-/** Compatibility wrapper for local development/tests; canonical ownership is distribution/runtime-tls.ts. */
+/** Compatibility wrapper for local development/tests; canonical ownership is root distribution/runtime-tls.ts. */
 export function setupRuntimeTls(): string {
   return ensureRuntimeTlsIdentity().cert;
 }
