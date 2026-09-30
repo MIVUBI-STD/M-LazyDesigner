@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import {
   indexMarkdownKnowledge,
   knowledgeIndexFingerprint,
-} from "../lib/semantic/knowledge";
+} from "../../lib/semantic/knowledge";
 
 const DEFAULT_SOURCES = [
   "prompts/bedrock_entity_workflow.md",

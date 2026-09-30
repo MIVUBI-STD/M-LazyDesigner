@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildDevelopmentContextPlan } from "../scripts/plan-development-context";
+import { buildDevelopmentContextPlan } from "../scripts/development/plan-development-context";
 
 describe("development context planner", () => {
   test("combines intent routing, bounded symbols and semantic impact", async () => {

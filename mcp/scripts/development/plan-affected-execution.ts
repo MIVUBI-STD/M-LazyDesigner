@@ -1,13 +1,13 @@
-import { analyzeSemanticImpact } from "../gateway/development/impact";
-import { planAffectedExecution } from "../gateway/development/affectedExecution";
-import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
-import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
+import { analyzeSemanticImpact } from "../../gateway/development/impact";
+import { planAffectedExecution } from "../../gateway/development/affectedExecution";
+import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
+import { listExplicitSourceOwners } from "../../gateway/control/sourceOwners";
 import {
   CAPABILITY_SEMANTIC_REGISTRY,
   diffCapabilitySemanticRegistry,
   type CapabilitySemanticRecord,
-} from "../gateway/capabilities/semanticRegistry";
-import { planSemanticInvalidation } from "../gateway/development/semanticInvalidation";
+} from "../../gateway/capabilities/semanticRegistry";
+import { planSemanticInvalidation } from "../../gateway/development/semanticInvalidation";
 import { readFile } from "node:fs/promises";
 
 export function buildAffectedExecutionPlan(

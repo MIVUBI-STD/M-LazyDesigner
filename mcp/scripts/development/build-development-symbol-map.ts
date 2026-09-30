@@ -1,7 +1,7 @@
 import ts from "typescript";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { resolveDevelopmentIntent } from "../gateway/control/developmentIntent";
+import { resolveDevelopmentIntent } from "../../gateway/control/developmentIntent";
 
 export const DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES = 6000;
 const MAX_SYMBOLS_PER_FILE = 24;
@@ -437,7 +437,7 @@ export async function buildDevelopmentSymbolMap(
 async function main() {
   const intent = process.argv.slice(2).join(" ").trim();
   if (!intent) {
-    throw new Error('Usage: bun run map:development -- "<development intent>"');
+    throw new Error('Usage: bun run generate:development-symbol-map -- "<development intent>"');
   }
   console.log(JSON.stringify(await buildDevelopmentSymbolMap(intent), null, 2));
 }

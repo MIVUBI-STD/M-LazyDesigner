@@ -1,6 +1,6 @@
-import { analyzeSemanticImpact } from "../gateway/development/impact";
-import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
-import { listExplicitSourceOwners } from "../gateway/control/sourceOwners";
+import { analyzeSemanticImpact } from "../../gateway/development/impact";
+import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
+import { listExplicitSourceOwners } from "../../gateway/control/sourceOwners";
 
 async function main() {
   const changedPaths = process.argv.slice(2).filter(Boolean);

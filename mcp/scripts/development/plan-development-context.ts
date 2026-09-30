@@ -1,18 +1,18 @@
 import { readFile } from "node:fs/promises";
-import { analyzeSemanticImpact } from "../gateway/development/impact";
+import { analyzeSemanticImpact } from "../../gateway/development/impact";
 import {
   indexMarkdownKnowledge,
   selectKnowledgeSections,
   type KnowledgeSelection,
-} from "../lib/semantic/knowledge";
-import { CAPABILITY_BRANCH_MANIFEST } from "../gateway/capabilities/manifest";
-import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../gateway/capabilities/semanticRegistry";
+} from "../../lib/semantic/knowledge";
+import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
+import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../../gateway/capabilities/semanticRegistry";
 import {
   anchorTestForSourceOwner,
   authoringDomainForCapability,
   listExplicitSourceOwners,
-} from "../gateway/control/sourceOwners";
-import { resolveDevelopmentIntent } from "../gateway/control/developmentIntent";
+} from "../../gateway/control/sourceOwners";
+import { resolveDevelopmentIntent } from "../../gateway/control/developmentIntent";
 import {
   buildDevelopmentSymbolMap,
   DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES,

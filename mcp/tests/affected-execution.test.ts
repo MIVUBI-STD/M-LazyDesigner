@@ -4,7 +4,7 @@ import {
   planAffectedExecution,
   RECEIPT_CONTRACT_TESTS_BY_PATH,
 } from "../gateway/development/affectedExecution";
-import { buildAffectedExecutionPlan } from "../scripts/plan-affected-execution";
+import { buildAffectedExecutionPlan } from "../scripts/development/plan-affected-execution";
 import type { SemanticImpactReport } from "../gateway/development/impact";
 import { planSemanticInvalidation } from "../gateway/development/semanticInvalidation";
 
@@ -347,4 +347,3 @@ describe("affected execution planner", () => {
     }
   });
 });
-

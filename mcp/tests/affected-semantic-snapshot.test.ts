@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildAffectedExecutionPlan } from "../scripts/plan-affected-execution";
+import { buildAffectedExecutionPlan } from "../scripts/development/plan-affected-execution";
 import { CAPABILITY_SEMANTIC_REGISTRY } from "../gateway/capabilities/semanticRegistry";
 
 describe("affected execution semantic snapshot integration", () => {

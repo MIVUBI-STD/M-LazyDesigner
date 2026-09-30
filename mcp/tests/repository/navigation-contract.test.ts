@@ -20,12 +20,15 @@ const MCP_TOP_LEVEL_DIRECTORIES = [
 
 const TRANSIENT_WORKTREE_DIRECTORIES = new Set(["dist", "node_modules", "coverage"]);
 
+const REQUIRED_SCRIPT_SUBDIRECTORIES = ["development"] as const;
+
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
   "lib/README.md",
   "server/runtime/README.md",
   "server/tools/README.md",
   "scripts/README.md",
+  "scripts/development/README.md",
   "tests/README.md",
   "docs/README.md",
 ] as const;
@@ -55,11 +58,26 @@ describe("repository navigation contract", () => {
   });
 
   test("developer scripts stay visibly taxonomized", async () => {
-    const scripts = (await readdir("scripts", { withFileTypes: true }))
+    const rootEntries = await readdir("scripts", { withFileTypes: true });
+    const rootScripts = rootEntries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+      .map((entry) => entry.name);
+    const subdirectories = rootEntries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+
+    expect(subdirectories).toEqual([...REQUIRED_SCRIPT_SUBDIRECTORIES].sort());
+
+    const developmentScripts = (
+      await readdir("scripts/development", { withFileTypes: true })
+    )
       .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
       .map((entry) => entry.name);
 
-    const invalid = scripts.filter((name) => !SCRIPT_NAME.test(name)).sort();
+    const invalid = [...rootScripts, ...developmentScripts]
+      .filter((name) => !SCRIPT_NAME.test(name))
+      .sort();
     expect(invalid).toEqual([]);
   });
 

@@ -3,11 +3,11 @@ import {
   CAPABILITY_SEMANTIC_REGISTRY,
   diffCapabilitySemanticRegistry,
   type CapabilitySemanticRecord,
-} from "../gateway/capabilities/semanticRegistry";
+} from "../../gateway/capabilities/semanticRegistry";
 import {
   planSemanticInvalidation,
   semanticInvalidationCommands,
-} from "../gateway/development/semanticInvalidation";
+} from "../../gateway/development/semanticInvalidation";
 
 async function main() {
   const beforePath = process.argv[2];
