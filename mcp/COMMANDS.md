@@ -40,11 +40,18 @@ verify:*      focused verification gates
 measure:*     static/context/surface measurements
 benchmark:*   benchmark implementations
 eval:*        evaluation harnesses
+analyze:*     bounded source/semantic analysis
 audit:*       static audits
 plan:*        deterministic execution planning
+generate:*    generated indexes/schemas/artifacts
 report:*      generated diagnostic reports
+compare:*     bounded result/session comparison
+finalize:*    result/session finalization
+snapshot:*    canonical diagnostic snapshots
 deploy:*      local/verified deployment
-generate:*    generated owned artifacts
+setup:*       local environment setup
+conformance:* conformance harness serving
+prompts:*     prompt artifact generation
 docs:*        documentation build/check/serve
 security:*    dependency/security audit
 ```

@@ -14,7 +14,46 @@ const ALLOWED_BARE_COMMANDS = new Set([
   "inspect",
 ]);
 
+const ALLOWED_NAMESPACES = new Set([
+  "analyze",
+  "audit",
+  "benchmark",
+  "compare",
+  "conformance",
+  "deploy",
+  "dev",
+  "docs",
+  "eval",
+  "finalize",
+  "generate",
+  "measure",
+  "plan",
+  "prompts",
+  "report",
+  "security",
+  "setup",
+  "snapshot",
+  "test",
+  "typecheck",
+  "verify",
+]);
+
 describe("package script taxonomy", () => {
+  test("namespaced scripts use the canonical command taxonomy", async () => {
+    const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
+      scripts?: Record<string, string>;
+    };
+    const invalid = Object.keys(packageJson.scripts ?? {})
+      .filter((name) => name.includes(":"))
+      .map((name) => name.split(":", 1)[0]!)
+      .filter((namespace) => !ALLOWED_NAMESPACES.has(namespace))
+      .sort();
+
+    expect(invalid).toEqual([]);
+    expect(packageJson.scripts?.["map:development"]).toBeUndefined();
+    expect(packageJson.scripts?.["map:knowledge"]).toBeUndefined();
+  });
+
   test("unnamespaced scripts are limited to stable developer facades", async () => {
     const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
       scripts?: Record<string, string>;
