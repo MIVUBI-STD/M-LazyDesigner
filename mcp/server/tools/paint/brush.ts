@@ -8,11 +8,11 @@ import {
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { runPaintStroke } from "@/lib/paintStroke";
+import { setBarItemValues } from "@/lib/blockbench/barItems";
 import {
   getAndActivateTexture,
   resolvePaintTexture,
-  setBarItemValues,
-} from "@/lib/util";
+} from "@/lib/texture/selection";
 import {
   blendModeEnum,
   brushSettingsSchema,
