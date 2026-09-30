@@ -5,7 +5,7 @@ on:
     branches: [Local]
     tags: ["blockit-v*"]
     paths:
-      - "mcp/distribution/**"
+      - "distribution/**"
       - "mcp/tests/managed-install.test.ts"
       - "mcp/gateway/**"
       - "mcp/server/**"
@@ -86,7 +86,7 @@ jobs:
       - name: Build the native Runtime bundle
         run: bun run build
       - name: Compile, install twice, and initialize packaged Gateway
-        run: bun run ./distribution/package.ts
+        run: bun run ../distribution/package.ts
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v6
         with:
           name: blockit-managed-windows-x64
