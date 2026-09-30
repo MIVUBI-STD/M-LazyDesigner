@@ -7,14 +7,16 @@ import {
 } from "../protocol";
 import { projectCapabilityInputSchema } from "../capabilities/schemaProjection";
 import {
-  authoringDomainForCapability,
-  sourceOwnerForCapability,
   buildControlPacket,
   projectControlPacketForGateway,
   CONTROL_ROUTING_POLICY,
   decorateCapabilities,
   projectCapabilitiesForSearch,
 } from "../control";
+import {
+  authoringDomainForCapability,
+  sourceOwnerForCapability,
+} from "../development/sourceOwners";
 import type { LocalCapabilityRegistry } from "../providers/registry";
 import { projectGatewayStatus } from "../statusProjection";
 import {
