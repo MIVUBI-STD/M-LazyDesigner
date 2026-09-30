@@ -1,4 +1,4 @@
-import type { McpAuthoringPhase } from "@/lib/capabilities/authoringStage";
+import type { McpAuthoringStage } from "@/lib/capabilities/authoringStage";
 
 const AUTHORING_WORKFLOW_SECTIONS = [
   "Minimum Necessary Evidence",
@@ -11,7 +11,7 @@ const AUTHORING_WORKFLOW_SECTIONS = [
 ] as const;
 
 export const BEDROCK_WORKFLOW_STAGE_SECTIONS: Record<
-  McpAuthoringPhase,
+  McpAuthoringStage,
   readonly string[]
 > = {
   geometry: AUTHORING_WORKFLOW_SECTIONS,
@@ -20,7 +20,7 @@ export const BEDROCK_WORKFLOW_STAGE_SECTIONS: Record<
 };
 
 export const BEDROCK_WORKFLOW_REQUIRED_SECTIONS: readonly string[] = [
-  ...new Set(Object.values(BEDROCK_WORKFLOW_PHASE_SECTIONS).flat()),
+  ...new Set(Object.values(BEDROCK_WORKFLOW_STAGE_SECTIONS).flat()),
 ];
 
 export function missingBedrockWorkflowSections(markdown: string): string[] {
