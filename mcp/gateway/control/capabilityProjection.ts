@@ -1,4 +1,4 @@
-import { classifyMcpToolPhaseByName } from "../../lib/capabilities/authoringStage";
+import { authoringDomainForCapability } from "../context/authoring";
 import {
   getCapabilityMetadata,
   type CapabilityMetadata,
@@ -18,18 +18,8 @@ export type ControlCapabilityProjection = CapabilityMetadata & {
 export function getControlCapabilityProjection(
   name: string
 ): ControlCapabilityProjection {
-  const phase = classifyMcpToolPhaseByName(name);
-  const authoringDomain: ControlAuthoringDomain =
-    phase === "geometry"
-      ? "GEOMETRY"
-      : phase === "texturing"
-        ? "TEXTURING"
-        : phase === "animation"
-          ? "ANIMATION"
-          : "CORE";
-
   return {
     ...getCapabilityMetadata(name),
-    authoringDomain,
+    authoringDomain: authoringDomainForCapability(name),
   };
 }
