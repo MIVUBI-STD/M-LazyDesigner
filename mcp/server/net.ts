@@ -13,7 +13,7 @@ import {
   sendNodeResponse,
   singleRequestHeader
 } from '@/server/httpBoundary'
-import { createProductIdentity } from '@/lib/productIdentity'
+import { createProductIdentity } from '@/lib/product/productIdentity'
 import {
   getActiveMcpAuthoringPhase,
   type McpAuthoringPhase
@@ -27,12 +27,12 @@ import {
   BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER,
   BLOCKIT_PROJECT_AFFINITY_HEADER,
   normalizeProjectAffinityUuid
-} from '@/lib/runtimeAffinity'
+} from '@/lib/runtime/affinity'
 import {
   RuntimeGenerationRetiredError,
   runRuntimeOperationExclusive,
   waitForRuntimeOperationDrain
-} from '@/lib/runtimeLifecycle'
+} from '@/lib/runtime/lifecycle'
 import {
   RuntimeProjectContextError,
   getRuntimeProjectHealth,
