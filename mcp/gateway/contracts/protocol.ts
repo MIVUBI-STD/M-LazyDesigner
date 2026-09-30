@@ -1,5 +1,5 @@
 import { version } from "../../package.json";
-import type { CapabilityTier } from "../../lib/capabilityMetadata";
+import type { CapabilityTier } from "../../lib/capabilities/metadata";
 import type {
   CapabilityBranchHint,
   CapabilityRoutingContext,
