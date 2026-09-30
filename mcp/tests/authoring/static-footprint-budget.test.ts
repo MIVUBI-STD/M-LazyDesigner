@@ -137,7 +137,7 @@ describe("static footprint budget", () => {
       source("server/tools/paint-brush.ts"),
       source("server/tools/paint-primitives.ts"),
       source("server/tools/paint-selection-layers.ts"),
-      source("server/tools/texture-read.ts"),
+      source("server/tools/texture/read.ts"),
     ]);
     const paint = [paintBrush, paintPrimitives, paintSelectionLayers].join("\n");
     expect((paint.match(/texture_id:\s*textureIdOptionalSchema/g) ?? []).length).toBeGreaterThanOrEqual(7);
