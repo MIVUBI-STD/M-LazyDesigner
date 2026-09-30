@@ -13,7 +13,7 @@ import type {
   BackendTool,
   CapabilitySearchContext,
   CapabilitySummary,
-} from "../protocol";
+} from "../contracts/protocol";
 
 export function classifyCapabilityTier(
   tool: BackendTool
