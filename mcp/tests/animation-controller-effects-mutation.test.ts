@@ -47,7 +47,7 @@ describe("animation controller state effect mutation", () => {
   });
 
   test("source mutates state-owned native effect arrays without a new tool family", async () => {
-    const source = await Bun.file("server/tools/animation-controller.ts").text();
+    const source = await Bun.file("server/tools/animation/controller.ts").text();
 
     for (const marker of [
       '"add_sound"',
