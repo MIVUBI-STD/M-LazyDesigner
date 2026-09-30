@@ -237,7 +237,7 @@ function affectsGatewayReplayShadow(path: string): boolean {
     path === "mcp/benchmarks/gatewayReplayCorpus.ts" ||
     path === "mcp/gateway/experimental/shadowRouting.ts" ||
     path === "mcp/scripts/benchmark/benchmark-gateway-replay-shadow.ts" ||
-    path === "mcp/scripts/evaluate-hybrid-promotion-policy.ts" ||
+    path === "mcp/scripts/evaluate/evaluate-hybrid-promotion-policy.ts" ||
     path === "mcp/tests/benchmark/gateway-replay-shadow-benchmark.test.ts" ||
     path === "mcp/tests/benchmark/hybrid-promotion-policy.test.ts" ||
     path === "mcp/gateway/experimental/hybridProfile.ts" ||
@@ -416,7 +416,7 @@ export function planAffectedExecution(input: {
     }
     if (checks.has("HYBRID4_EXPERIMENTAL_CONTRACTS")) {
       commands.push(
-        "bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts"
+        "bun test tests/benchmark/gateway-hot-path-strategy-benchmark.test.ts tests/benchmark/hybrid4-generated-schema.test.ts tests/benchmark/hybrid4-precondition-safety.test.ts"
       );
     }
     if (checks.has("AUTHORING_CONTRACTS")) {

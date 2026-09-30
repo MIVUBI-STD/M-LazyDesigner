@@ -83,10 +83,10 @@ describe("package script taxonomy", () => {
     const scripts = packageJson.scripts ?? {};
 
     expect(scripts["measure:stages"]).toBe(
-      "bun run ./scripts/measure-stage-surfaces.ts"
+      "bun run ./scripts/measure/measure-stage-surfaces.ts"
     );
     expect(scripts["measure:phases"]).toBeUndefined();
-    expect(await Bun.file("scripts/measure-stage-surfaces.ts").exists()).toBe(true);
+    expect(await Bun.file("scripts/measure/measure-stage-surfaces.ts").exists()).toBe(true);
     expect(await Bun.file("scripts/measure-phase-surfaces.ts").exists()).toBe(false);
   });
 
