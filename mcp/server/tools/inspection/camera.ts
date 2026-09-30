@@ -2,7 +2,7 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { captureScreenshot, captureAppScreenshot, imageContent } from "@/lib/util";
+import { captureScreenshot, captureAppScreenshot, imageContent } from "@/lib/blockbench/capture";
 import { readRenderedModelBounds, type RenderedModelBounds, type Vec3 } from "@/lib/renderedModelBounds";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { vector3Schema, projectionEnum } from "@/lib/zodObjects";
