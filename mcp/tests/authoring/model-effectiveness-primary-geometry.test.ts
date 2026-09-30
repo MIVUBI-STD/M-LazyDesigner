@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("model creation effectiveness — primary geometry", () => {
   test("Cube mutation results separate execution from visual acceptance", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     expect((cubes.match(/visual_verdict: \"not_evaluated\" as const/g) ?? []).length).toBe(3);
     expect((cubes.match(/execution: \"applied\" as const/g) ?? []).length).toBe(3);
     expect(cubes.toLowerCase()).toContain("reference fidelity was not evaluated");
