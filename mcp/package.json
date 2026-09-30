@@ -105,7 +105,6 @@
     "generate:hybrid4-schemas": "bun run ./scripts/generate-hybrid4-schemas.ts",
     "eval:hybrid-promotion-policy": "bun run ./scripts/evaluate-hybrid-promotion-policy.ts",
     "verify:hybrid-remote": "bun run benchmark:gateway-hot-path && bun run benchmark:gateway-replay-shadow && bun run eval:hybrid-promotion-policy && bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/gateway-replay-shadow-benchmark.test.ts tests/hybrid-promotion-policy.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts",
-    "verify:remote": "bun run verify:full",
     "verify:types": "bun run verify:project-graph && bun run typecheck && bun run typecheck:gateway && bun run audit:unused && bun run audit:unused:gateway",
     "verify:contracts": "bun run docs:check && bun run test:runtime && bun run verify:authoring && bun run test:gateway-structure && bun run test:gateway-recovery && bun run test:capability-manifest && bun run eval:capability-intelligence && bun run eval:decision-efficiency",
     "verify:benchmarks": "bun run benchmark:zero-waste-total && bun run benchmark:parametric-authoring && bun run benchmark:semantic-uv && bun run benchmark:semantic-rig && bun run benchmark:motion-recipe && bun run benchmark:material-recipe && bun run benchmark:authoring-orchestration && bun run benchmark:semantic-invalidation-scope && bun run eval:golden-authoring",
