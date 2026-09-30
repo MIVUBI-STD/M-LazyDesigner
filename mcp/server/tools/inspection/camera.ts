@@ -14,6 +14,12 @@ import {
   type VisualEvidenceRisk,
   type VisualEvidenceTarget,
 } from "@/lib/reference/visualEvidence";
+export type {
+  ModelView,
+  VisualEvidenceResolution,
+  VisualEvidenceRisk,
+  VisualEvidenceTarget,
+} from "@/lib/reference/visualEvidence";
 
 const CAPTURE_SIZE = 512;
 const FRAME_PADDING = 0.12;
