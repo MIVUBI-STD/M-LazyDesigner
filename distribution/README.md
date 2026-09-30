@@ -1,6 +1,6 @@
-# BlockIT Managed Distribution
+# LazyDesigner Managed Distribution
 
-The managed distribution installs a verified BlockIT Gateway executable, Blockbench plugin bundle, canonical authoring Skills/instructions, foundation references, workspace conventions, license/notices, and the BlockIT portion of Codex MCP configuration.
+The managed distribution installs a verified LazyDesigner Gateway executable, Blockbench plugin bundle, canonical authoring Skills/instructions, foundation references, workspace conventions, license/notices, and the LazyDesigner MCP entry in Codex configuration.
 
 It does not own user assets and does not create model history.
 
@@ -27,7 +27,7 @@ User assets remain under `workspace/active` or user-owned locations and never be
 
 The package is built from one exact source SHA and records file hashes plus Runtime `build_identity`. Normal Codex launch points at the versioned Gateway executable; Blockbench loads the managed `blockit_mcp.js`.
 
-BlockIT now has one native Geometry authoring path. Retired 3D-assisted/Hunyuan/PrimitiveAnything tooling is not part of the managed package or authoring contract.
+LazyDesigner has one native Geometry authoring path. Retired 3D-assisted/Hunyuan/PrimitiveAnything tooling is not part of the managed package or authoring contract.
 
 ## Safe activation and recovery
 
