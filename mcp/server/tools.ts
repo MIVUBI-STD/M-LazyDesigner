@@ -2,11 +2,11 @@
 /// <reference types="blockbench-types" />
 
 import { tools, prompts } from "@/lib/factories";
-import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
+import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
 import {
-  DEFAULT_MCP_AUTHORING_PHASE,
-  setActiveMcpAuthoringPhase,
-} from "@/lib/authoringPhase";
+  DEFAULT_MCP_AUTHORING_STAGE,
+  setActiveMcpAuthoringStage,
+} from "@/lib/capabilities/authoringStage";
 import { registerMcpProfile } from "./runtime/registration";
 
 export {
@@ -33,15 +33,17 @@ export {
 
 export {
   phaseControlToolDocs,
+  requestMcpStageSwitch,
+  setMcpStageSwitchHandler,
   requestMcpPhaseSwitch,
   setMcpPhaseSwitchHandler,
 } from "./runtime/phaseControl";
 
 // Build the canonical normal Bedrock catalog once at module load. Plugin startup
-// later narrows exposure to one profile + authoring phase without redefining tools.
+// later narrows exposure to one profile + Authoring Stage without redefining tools.
 registerMcpProfile(DEFAULT_MCP_REGISTRATION_PROFILE);
 
-// Keep a deterministic phase value for helpers/tests before plugin startup,
+// Keep a deterministic Stage value for helpers/tests before plugin startup,
 // without mutating authored enabled flags until applyMcpToolSurface is called.
 setActiveMcpAuthoringPhase(DEFAULT_MCP_AUTHORING_PHASE);
 
