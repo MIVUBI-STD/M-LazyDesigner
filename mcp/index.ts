@@ -96,9 +96,9 @@ async function initializeBlockItRuntime(
     return;
   }
 
-  let authoringPhase: McpAuthoringPhase;
+  let authoringStage: McpAuthoringStage;
   try {
-    authoringPhase = resolveMcpAuthoringPhase(
+    authoringStage = resolveMcpAuthoringStage(
       Settings.get(MCP_AUTHORING_PHASE_SETTING_ID)
     );
   } catch (error) {
@@ -111,7 +111,7 @@ async function initializeBlockItRuntime(
     return;
   }
 
-  applyMcpToolSurface(registrationProfile, authoringPhase);
+  applyMcpToolSurface(registrationProfile, authoringStage);
   setMcpPhaseSwitchHandler((targetPhase) => {
     if (!isRuntimeGenerationCurrent(generation)) return;
     const activeProfile = getActiveMcpRegistrationProfile();
