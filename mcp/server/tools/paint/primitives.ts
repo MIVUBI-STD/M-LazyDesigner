@@ -5,7 +5,8 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { runPaintStroke } from "@/lib/paintStroke";
 import { recordCurrentCapabilitySemanticHistoryEffectIfAdvanced } from "@/lib/semanticHistory";
-import { getAndActivateTexture, setBarItemValues } from "@/lib/blockbench/barItems";
+import { setBarItemValues } from "@/lib/blockbench/barItems";
+import { getAndActivateTexture } from "@/lib/texture/selection";
 import {
   blendModeEnum,
   brushSizeSchema,
