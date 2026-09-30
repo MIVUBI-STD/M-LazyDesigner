@@ -1,5 +1,5 @@
 import type { ControlPacket } from "./packet";
-import { anchorTestForSourceOwner } from "./sourceOwners";
+import { anchorTestForSourceOwner } from "../development/sourceOwners";
 import type { ControlDevelopmentResolution } from "../development/intent";
 import {
   DEFAULT_CONTROL_HEADROOM_POLICY,
