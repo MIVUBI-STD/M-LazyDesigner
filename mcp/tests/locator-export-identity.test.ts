@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { bedrockLocatorExportKey } from "@/server/tools/locators";
+import { bedrockLocatorExportKey } from "@/server/tools/geometry/locators";
 
 describe("Bedrock locator export identity", () => {
   test("Locator and Null Object names map to native Bedrock locator keys", () => {
@@ -11,7 +11,7 @@ describe("Bedrock locator export identity", () => {
   });
 
   test("create and parent-move preflight use parent-scoped exported keys", async () => {
-    const source = await Bun.file("server/tools/locators.ts").text();
+    const source = await Bun.file("server/tools/geometry/locators.ts").text();
     expect(source).toContain("function assertLocatorExportKeyAvailable(");
     expect(source).toContain("parent.children.find(");
     expect(source).toContain(
@@ -27,7 +27,7 @@ describe("Bedrock locator export identity", () => {
   });
 
   test("public locator schemas stay unchanged during correctness hardening", async () => {
-    const source = await Bun.file("server/tools/locators.ts").text();
+    const source = await Bun.file("server/tools/geometry/locators.ts").text();
     expect(source).toContain('action: z\n      .literal("create")');
     expect(source).toContain('action: z\n      .literal("update")');
     expect(source).toContain("export const manageLocatorParameters");
