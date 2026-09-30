@@ -119,7 +119,7 @@ describe("shared Cube mutation evidence contract", () => {
   });
 
   test("Runtime and Control share Cube evidence owners", async () => {
-    const producer = await Bun.file("server/tools/cubes.ts").text();
+    const producer = await Bun.file("server/tools/geometry/cubes.ts").text();
     const freshness = await Bun.file("gateway/control/delta/freshness.ts").text();
     const verification = await Bun.file("gateway/control/delta/verification.ts").text();
 
