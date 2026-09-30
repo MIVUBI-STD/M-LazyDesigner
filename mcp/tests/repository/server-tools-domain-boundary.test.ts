@@ -284,16 +284,16 @@ describe("server tool domain ownership", () => {
     }
 
     const runtimeContract = await Bun.file(
-      "server/runtime/animationRuntimeContracts.ts"
+      "server/runtime/contracts/animation.ts"
     ).text();
     expect(runtimeContract).toContain(
-      'from "../tools/animation/batchSchema"'
+      'from "../../tools/animation/batchSchema"'
     );
     expect(runtimeContract).toContain(
-      'from "../tools/animation/keyframeSchema"'
+      'from "../../tools/animation/keyframeSchema"'
     );
     expect(runtimeContract).toContain(
-      'from "../tools/animation/timelineSchema"'
+      'from "../../tools/animation/timelineSchema"'
     );
     expect(runtimeContract).not.toContain(
       'from "../tools/animation-keyframes"'
@@ -308,7 +308,7 @@ describe("server tool domain ownership", () => {
       "server/tools/animation/controllerPlanner.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/animation-controller.ts"
+      "server/tools/animation/controller.ts"
     ).text();
 
     expect(planner).toContain("ControllerPlanningEnvironment");
@@ -334,7 +334,7 @@ describe("server tool domain ownership", () => {
     ).text();
     const executor = await Bun.file("server/tools/animation/inspection.ts").text();
     const runtimeContract = await Bun.file(
-      "server/runtime/animationRuntimeContracts.ts"
+      "server/runtime/contracts/animation.ts"
     ).text();
 
     expect(schema).toContain("inspectAnimationParameters");
@@ -347,7 +347,7 @@ describe("server tool domain ownership", () => {
       'from "@/server/tools/animation/inspectionSchema"'
     );
     expect(runtimeContract).toContain(
-      'from "../tools/animation/inspectionSchema"'
+      'from "../../tools/animation/inspectionSchema"'
     );
     expect(runtimeContract).not.toContain(
       'from "../tools/animation-inspection"'
@@ -477,7 +477,7 @@ describe("server tool domain ownership", () => {
     ).text();
     const executor = await Bun.file("server/tools/texture/create.ts").text();
     const runtimeContract = await Bun.file(
-      "server/runtime/textureRuntimeContracts.ts"
+      "server/runtime/contracts/texture.ts"
     ).text();
 
     expect(schema).toContain("createTextureParameters");
@@ -491,7 +491,7 @@ describe("server tool domain ownership", () => {
       'from "@/server/tools/texture/createSchema"'
     );
     expect(runtimeContract).toContain(
-      'from "../tools/texture/createSchema"'
+      'from "../../tools/texture/createSchema"'
     );
     expect(runtimeContract).not.toContain(
       'from "../tools/texture"'
