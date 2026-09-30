@@ -1,7 +1,7 @@
-import type { GatewayRuntimeStatus } from "../backend";
+import type { GatewayRuntimeStatus } from "../runtime/backend";
 import {
   resolveDevelopmentIntent,
-  type ControlDevelopmentResolution,
+  type DevelopmentResolution,
 } from "../development/intent";
 import { contextForAuthoringDomain } from "./contexts";
 import { buildControlSnapshot } from "./snapshot";
@@ -50,7 +50,7 @@ export type ControlPacket = Omit<ControlSnapshot, "context" | "mode"> & {
   workspace: ControlWorkspaceSummary;
   reference: ControlReferenceSummary;
   stage_context: ControlStageContext | null;
-  development: ControlDevelopmentResolution | null;
+  development: DevelopmentResolution | null;
   context: ControlContextDelivery;
 };
 
