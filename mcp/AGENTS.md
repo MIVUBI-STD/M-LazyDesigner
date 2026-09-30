@@ -173,7 +173,7 @@ Typical final source gate from `mcp/`:
 
 ```bash
 bun install --frozen-lockfile
-bun run verify:full
+bun run verify
 ```
 
 Use narrower canonical scripts for narrower claims. Generated freshness uses its owning generator/checker.
