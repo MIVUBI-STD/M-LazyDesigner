@@ -120,15 +120,15 @@ describe("Control source-owner registry", () => {
 
   test("preserves representative ownership mappings", () => {
     expect(sourceOwnerForCapability("manage_cubes")).toMatchObject({
-      source: "mcp/server/tools/cubes.ts",
+      source: "mcp/server/tools/geometry/cubes.ts",
       specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
     });
     expect(sourceOwnerForCapability("manage_uv_layout")).toMatchObject({
-      source: "mcp/server/runtime/uvLayoutService.ts",
+      source: "mcp/server/runtime/uv/layoutService.ts",
       specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
     });
     expect(sourceOwnerForCapability("manage_animation_controller")).toMatchObject({
-      source: "mcp/server/tools/animation-controller.ts",
+      source: "mcp/server/tools/animation/controller.ts",
       specialist: ".agents/skills/lazydesigner-animation/SKILL.md",
     });
     expect(sourceOwnerForCapability("switch_authoring_phase")).toMatchObject({
