@@ -128,3 +128,7 @@ Control is internal to this stable Gateway boundary; it is not a second MCP serv
 ## Proof boundary
 
 Source structure and static contracts can prove ownership/routing semantics. Installed Runtime behavior, live Blockbench state, visual quality, and measured end-to-end usage reduction require later local/live evidence.
+
+## Development projection boundary
+
+Control may project bounded `SYSTEM_DEVELOPMENT` routing into client context, but repository-development diagnosis is canonically owned by `../development/`. Control must not duplicate development intent rules, semantic impact logic, or affected-execution planning.
