@@ -63,21 +63,39 @@ Clear bounded development changes go directly to the exact source owner.
 Canonical source: `mcp/gateway/control/`.
 
 ```text
-referencePackage.ts   compact Reference Package projection
-workspace.ts          Active Workspace projection
-contextProjection.ts  GEOMETRY/TEXTURE/ANIMATION stage projection
-packet.ts             task packet/readiness/context delivery
-registry.ts           content-addressed context handles + source ownership
-delta.ts              post-operation invalidation/control delta
-developmentIntent.ts  bounded SYSTEM_DEVELOPMENT routing
-snapshot.ts           Gateway/Runtime orientation
-capabilities.ts       capability decoration
-index.ts              canonical Control exports
+referencePackage.ts    compact Reference Package projection
+workspace.ts           Active Workspace projection
+contextProjection.ts   GEOMETRY/TEXTURE/ANIMATION Stage projection
+packet.ts              task packet/readiness/context delivery
+delta/                  post-operation invalidation/control delta
+snapshot.ts             Gateway/Runtime orientation
+capabilities.ts         capability decoration
+gatewayProjection.ts    bounded client-facing Control projection
+index.ts                canonical Control exports
 ```
 
-Control owns selection, projection and lifecycle orientation. It does not own Tool schemas, Runtime execution, live authored state, Skill prose or build execution.
+Control owns product context selection, projection and lifecycle orientation. It may project bounded `SYSTEM_DEVELOPMENT` results, but it does not own repository-development diagnosis, source-owner mappings, Tool schemas, Runtime execution, live authored state, Skill prose or build execution.
 
-For a capability without an exact `SOURCE_BY_CAPABILITY` mapping, Control falls back to `mcp/server/runtime/registration.ts` as the Runtime **surface owner** plus the matching specialist. It must not route development ownership to the legacy `mcp/server/tools.ts` compatibility facade or guess an implementation file.
+Compatibility paths `control/developmentIntent.ts`, `control/sourceOwners.ts`, `control/sourceOwners/**`, and `control/registry.ts` are not implementation owners.
+
+## Gateway Development Intelligence
+
+Canonical source: `mcp/gateway/development/`.
+
+```text
+intent.ts                    bounded SYSTEM_DEVELOPMENT intent routing
+sourceOwners.ts              capability → source/specialist/anchor lookup
+sourceOwners/                domain-specific source-owner maps
+impact.ts                    changed-path semantic blast radius
+semanticArtifact.ts          derived semantic artifact identity
+semanticDependencies.ts      owner dependency revisions
+semanticDependencyMatrix.ts  engineering verification/check mapping facade
+semanticFreshness.ts         compatibility facade to capability freshness core
+semanticInvalidation.ts      scoped invalidation planning
+affectedExecution.ts         affected execution/verification planning
+```
+
+For a capability without an exact source mapping, Development Intelligence falls back to `mcp/server/runtime/registration.ts` as the Runtime **surface owner** plus the matching specialist. It must not route ownership to legacy compatibility facades or guess an implementation file.
 
 ## Gateway
 
