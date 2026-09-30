@@ -82,7 +82,7 @@ describe("context and payload cleanup", () => {
     });
     expect(listOutlineParameters.safeParse({ max_nodes: 5001 }).success).toBe(false);
 
-    const elements = await source("server/tools/element-discovery.ts");
+    const elements = await source("server/tools/element/discovery.ts");
     const start = elements.indexOf("createTool(elementDiscoveryToolDocs[0].name");
     const end = elements.indexOf("createTool(elementDiscoveryToolDocs[1].name", start);
     const outline = elements.slice(start, end);
@@ -139,7 +139,7 @@ describe("context and payload cleanup", () => {
   });
 
   test("selection-only helper is not advertised as destructive model mutation", async () => {
-    const elements = await source("server/tools/element-discovery.ts");
+    const elements = await source("server/tools/element/discovery.ts");
     const start = elements.indexOf('name: "select_all_of_type"');
     const end = elements.indexOf('name: "filter_by_material"', start);
     const block = elements.slice(start, end);
