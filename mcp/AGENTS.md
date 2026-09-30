@@ -20,7 +20,7 @@ lib/protocol/            MCP/resource protocol helpers
 lib/runtime/             Runtime connection/affinity/fetch/lifecycle primitives
 ui/                      Blockbench UI implementation details
 prompts/                 canonical prompt source + generated manifest
-build/                   build/docs/prompt generation
+build/                   Runtime bundle/watch + prompt-manifest build input
 scripts/                 verification/measurement/deploy utilities
 tests/                   contract/integration regressions
 docs/                    generated API docs; never hand-edit generated entries
@@ -139,7 +139,7 @@ Load one active specialist per semantic owner; Geometry may add exactly one sele
 Generated outputs are not authority.
 
 ```text
-build/docs-manifest.ts → build/docs.ts → docs/api.json + docs/index.html
+scripts/generate/internal/docs-manifest.ts → scripts/generate/generate-docs.ts → docs/api.json + docs/index.html
 prompts/bedrock_entity_workflow.md → canonical generator → prompts/manifest.json
 ```
 
