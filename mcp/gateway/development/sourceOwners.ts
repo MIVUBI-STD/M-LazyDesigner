@@ -1,23 +1,24 @@
-import type { ControlAuthoringDomain, ControlSourceOwner } from "../control/types";
+import type { GatewayAuthoringDomain } from "../context/authoring";
+import type { DevelopmentSourceOwner } from "./types";
 import {
+  ANIMATION_PATH,
   MODELLING_PATH,
   TEXTURING_PATH,
-  ANIMATION_PATH,
-} from "../control/contexts";
-import { getControlCapabilityProjection } from "../control/capabilityProjection";
+  authoringDomainForCapability as resolveAuthoringDomainForCapability,
+} from "../context/authoring";
 import { GEOMETRY_SOURCE_OWNERS } from "./sourceOwners/geometry";
 import { TEXTURING_SOURCE_OWNERS } from "./sourceOwners/texturing";
 import { ANIMATION_SOURCE_OWNERS } from "./sourceOwners/animation";
 import { CORE_SOURCE_OWNERS } from "./sourceOwners/core";
 
-const SOURCE_BY_CAPABILITY: Readonly<Record<string, ControlSourceOwner>> = {
+const SOURCE_BY_CAPABILITY: Readonly<Record<string, DevelopmentSourceOwner>> = {
   ...GEOMETRY_SOURCE_OWNERS,
   ...TEXTURING_SOURCE_OWNERS,
   ...ANIMATION_SOURCE_OWNERS,
   ...CORE_SOURCE_OWNERS,
 };
 
-const DEFAULT_SOURCE_BY_DOMAIN: Record<ControlAuthoringDomain, ControlSourceOwner> = {
+const DEFAULT_SOURCE_BY_DOMAIN: Record<GatewayAuthoringDomain, DevelopmentSourceOwner> = {
   GEOMETRY: {
     source: "mcp/server/runtime/registration.ts",
     specialist: MODELLING_PATH,
@@ -46,17 +47,17 @@ const DEFAULT_SOURCE_BY_DOMAIN: Record<ControlAuthoringDomain, ControlSourceOwne
 
 export function authoringDomainForCapability(
   capability: string
-): ControlAuthoringDomain {
-  return getControlCapabilityProjection(capability).authoringDomain;
+): GatewayAuthoringDomain {
+  return resolveAuthoringDomainForCapability(capability);
 }
 
 export function anchorTestForSourceOwner(
-  owner: ControlSourceOwner
+  owner: DevelopmentSourceOwner
 ): string | null {
   return owner.anchor_test;
 }
 
-function canonicalSourceOwner(owner: ControlSourceOwner): ControlSourceOwner {
+function canonicalSourceOwner(owner: DevelopmentSourceOwner): DevelopmentSourceOwner {
   const anchorTest = anchorTestForSourceOwner(owner);
   return {
     source: owner.source,
@@ -68,7 +69,7 @@ function canonicalSourceOwner(owner: ControlSourceOwner): ControlSourceOwner {
 
 export function sourceOwnerForCapability(
   capability: string
-): ControlSourceOwner {
+): DevelopmentSourceOwner {
   return canonicalSourceOwner(
     SOURCE_BY_CAPABILITY[capability] ??
       DEFAULT_SOURCE_BY_DOMAIN[authoringDomainForCapability(capability)]
@@ -76,7 +77,7 @@ export function sourceOwnerForCapability(
 }
 
 export function listExplicitSourceOwners(): Readonly<
-  Record<string, ControlSourceOwner>
+  Record<string, DevelopmentSourceOwner>
 > {
   return Object.fromEntries(
     Object.entries(SOURCE_BY_CAPABILITY).map(([capability, owner]) => [
