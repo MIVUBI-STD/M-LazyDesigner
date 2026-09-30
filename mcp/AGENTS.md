@@ -204,3 +204,6 @@ release
 ```
 
 Use a namespaced command only when the affected owner requires narrower proof. Do not scan or invoke the full script catalog by default. Command taxonomy and namespace ownership are documented in `COMMANDS.md`.
+
+
+Canonical architecture vocabulary: `docs/04-system/terminology.md`.
