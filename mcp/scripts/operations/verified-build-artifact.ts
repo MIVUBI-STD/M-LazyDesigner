@@ -1,11 +1,14 @@
 import { isAbsolute, resolve } from "node:path";
 import {
   deployArtifact,
-  extractBuildIdentity,
   resolveDeployTarget,
 } from "./deploy-local";
+import {
+  extractLegacyMcpBuildIdentity,
+  LEGACY_MCP_BUNDLE_FILENAME,
+} from "../../compatibility/build-artifact";
 
-export const VERIFIED_BUNDLE_FILENAME = "blockit_mcp.js";
+export const VERIFIED_BUNDLE_FILENAME = LEGACY_MCP_BUNDLE_FILENAME;
 export const VERIFIED_PROVENANCE_FILENAME = "blockit-build-provenance.json";
 export const VERIFIED_REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
 export const VERIFIED_COMMAND = "bun run verify:mcp";
@@ -108,7 +111,7 @@ export async function writeVerifiedBuildProvenance(options: {
     bun_version: options.bun_version,
     bundle_filename: VERIFIED_BUNDLE_FILENAME,
     bundle_sha256: await fileSha256(bundlePath),
-    build_identity: extractBuildIdentity(bundleText),
+    build_identity: extractLegacyMcpBuildIdentity(bundleText),
   };
   const provenancePath = resolve(artifactDir, VERIFIED_PROVENANCE_FILENAME);
   await Bun.write(provenancePath, `${JSON.stringify(provenance, null, 2)}\n`);
@@ -155,7 +158,7 @@ export async function verifyVerifiedBuildArtifact(options: {
     actualHash === provenance.bundle_sha256,
     `Verified artifact bundle hash mismatch: artifact=${provenance.bundle_sha256}; actual=${actualHash}.`
   );
-  const actualIdentity = extractBuildIdentity(await Bun.file(bundlePath).text());
+  const actualIdentity = extractLegacyMcpBuildIdentity(await Bun.file(bundlePath).text());
   expectValue(
     actualIdentity === provenance.build_identity,
     `Verified artifact build identity mismatch: provenance=${provenance.build_identity}; bundle=${actualIdentity}.`
