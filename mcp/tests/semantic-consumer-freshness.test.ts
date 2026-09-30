@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   evaluateSemanticConsumerFreshness,
   semanticRefreshSurfaces,
-} from "../gateway/development/semanticFreshness";
+} from "../gateway/capabilities/semanticFreshness";
 
 const expected = {
   routing: "a".repeat(64),
