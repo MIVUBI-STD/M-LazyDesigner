@@ -39,6 +39,35 @@ Do not create synonyms for style. Prefer the canonical term even when another wo
 | explicit human acceptance | **Approval** | user acceptance of the current revision |
 | permission to cross a gated boundary | **Transition Eligibility** | prerequisite result for Stage/Runtime Surface transition |
 
+## Architecture Data-Shape Terms
+
+Use these terms consistently in source and documentation:
+
+| Term | Canonical meaning |
+| --- | --- |
+| **Manifest** | declarative source-owned facts or metadata; not mutable runtime state |
+| **Registry** | bounded keyed lookup/index over already-owned objects; it does not create a second semantic source |
+| **State** | current mutable process/session/project truth |
+| **Snapshot** | immutable observation of State at one point in time |
+| **Plan** | intended future work that has not executed yet |
+| **Receipt** | evidence describing completed execution or an authority transition |
+| **Projection** | reduced/derived view of canonical data for a specific consumer |
+| **Catalog** | searchable/readable collection exposed to a consumer; may be derived from a Manifest |
+
+Rules:
+
+~~~text
+Manifest → may project Catalog / Graph / Schema views
+Registry → indexes canonical objects; never owns a competing truth
+State → mutable current truth
+Snapshot → read-only captured State
+Plan → future intent
+Receipt → completed-work evidence
+Projection → consumer-specific reduction, never a second authority
+~~~
+
+Do not use `registry`, `store`, `manifest`, or `state` interchangeably merely because each may contain a Map/object internally.
+
 ## Capability vs Tool
 
 These are related but not interchangeable.
