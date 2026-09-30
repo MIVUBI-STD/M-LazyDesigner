@@ -182,7 +182,7 @@ describe("BlockIT Gateway contract", () => {
         current_domain: false,
         eligibility: "AVAILABLE",
         source_owner: {
-          source: "mcp/server/tools/cubes.ts",
+          source: "mcp/server/tools/geometry/cubes.ts",
           specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
           anchor_test: "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
         },
@@ -1046,7 +1046,7 @@ describe("BlockIT Gateway contract", () => {
   });
 
   test("phase handoff invalidates only backend state and explicitly keeps the client task alive", async () => {
-    const backendSource = await Bun.file("gateway/backend.ts").text();
+    const backendSource = await Bun.file("gateway/runtime/backend.ts").text();
     const backendContract = await Bun.file(
       "gateway/runtime/backendContract.ts"
     ).text();
@@ -1072,7 +1072,7 @@ describe("BlockIT Gateway contract", () => {
         Bun.file("gateway/index.ts").text(),
         Bun.file("gateway/handlers/registerCoreTools.ts").text(),
         Bun.file("gateway/runtime/capabilityExecutor.ts").text(),
-        Bun.file("gateway/backend.ts").text(),
+        Bun.file("gateway/runtime/backend.ts").text(),
       ]);
 
     expect(packageJson.scripts.gateway).toBe("bun run ./gateway/index.ts");
