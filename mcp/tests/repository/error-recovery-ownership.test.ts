@@ -7,7 +7,7 @@ async function source(path: string): Promise<string> {
 describe("Gateway and Control recovery ownership", () => {
   test("Gateway backend owns Runtime, catalog, project-affinity and interrupted-call recovery", async () => {
     const [backend, contract, queue] = await Promise.all([
-      source("gateway/backend.ts"),
+      source("gateway/runtime/backend.ts"),
       source("gateway/runtime/backendContract.ts"),
       source("gateway/runtime/operationQueue.ts"),
     ]);
