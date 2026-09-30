@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 const WRAPPERS: Readonly<Record<string,string>> = {
+  "gateway/backend.ts": 'export * from "./runtime/backend";\n',
   "gateway/protocol.ts": 'export * from "./contracts/protocol";\n',
   "gateway/outputSchemas.ts": 'export * from "./contracts/outputSchemas";\n',
   "gateway/resultCompaction.ts": 'export * from "./presentation/resultCompaction";\n',
