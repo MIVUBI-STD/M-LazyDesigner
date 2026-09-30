@@ -2,21 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 
 const SHARED_ROOT_IMPLEMENTATIONS = new Set([
-  "authoringPhase.ts",
-  "blockbenchCompatibility.ts",
-  "capabilityMetadata.ts",
   "constants.ts",
-  "coreIdentity.ts",
   "factories.ts",
-  "jsonValue.ts",
-  "registrationProfile.ts",
-  "surfaceManifest.ts",
   "util.ts",
   "zodObjects.ts",
 ]);
 
 const CANONICAL_WRAPPER =
-  /^export \* from "\.\/(?:animation|authoring|bedrock|capabilities|geometry|particle|product|prompts|protocol|reference|runtime|texture|uv)\/[A-Za-z0-9_./-]+";\n$/;
+  /^export \* from "\.\/(?:animation|authoring|bedrock|blockbench|capabilities|core|geometry|particle|product|prompts|protocol|reference|runtime|texture|uv)\/[A-Za-z0-9_./-]+";\n$/;
 
 describe("lib root ownership", () => {
   test("root contains only declared shared implementations or compatibility wrappers", async () => {
