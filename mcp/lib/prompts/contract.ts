@@ -1,4 +1,4 @@
-import type { McpAuthoringPhase } from "@/lib/authoringPhase";
+import type { McpAuthoringPhase } from "@/lib/capabilities/authoringStage";
 
 const AUTHORING_WORKFLOW_SECTIONS = [
   "Minimum Necessary Evidence",
@@ -10,7 +10,7 @@ const AUTHORING_WORKFLOW_SECTIONS = [
   "Texture Verify",
 ] as const;
 
-export const BEDROCK_WORKFLOW_PHASE_SECTIONS: Record<
+export const BEDROCK_WORKFLOW_STAGE_SECTIONS: Record<
   McpAuthoringPhase,
   readonly string[]
 > = {
