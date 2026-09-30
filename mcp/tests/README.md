@@ -13,6 +13,8 @@ tests/*.test.ts     focused domain/runtime/integration regressions retained at p
 
 For implementation work, run the smallest owning test first. Do not scan the entire test directory to discover source ownership; use `../../docs/04-system/implementation-map.md` first.
 
+When changed source paths are already known, use `bun run plan:affected -- <path> [...]` to resolve the anchor tests and shared contracts instead of manually scanning the flat top-level test set. `bun run verify:affected -- <path> [...]` executes that bounded plan.
+
 ## Naming
 
 Top-level test filenames use lowercase kebab-case and describe the behavior/contract being protected. A test must not become a second source-of-truth for product semantics: assert the canonical owner rather than copying large policy tables into test code.

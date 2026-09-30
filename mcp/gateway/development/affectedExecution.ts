@@ -196,17 +196,8 @@ function isRuntimeTypeScriptOutsideProjectGraph(path: string): boolean {
   );
 }
 
-const GATEWAY_SHARED_PROJECT_FILES = new Set([
-  "mcp/lib/runtime/fetch.ts",
-  "mcp/lib/runtime/connection.ts",
-  "mcp/lib/capabilities/metadata.ts",
-  "mcp/lib/capabilities/manifest.ts",
-  "mcp/lib/capabilities/authoringStage.ts",
-  "mcp/lib/capabilities/registrationProfile.ts",
-]);
-
 function affectsProjectGraph(path: string): boolean {
-  return isProjectGraphTypeScript(path) || GATEWAY_SHARED_PROJECT_FILES.has(path);
+  return isProjectGraphTypeScript(path);
 }
 
 function affectsDocs(path: string): boolean {

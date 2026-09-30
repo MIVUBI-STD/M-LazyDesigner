@@ -22,6 +22,15 @@ release    security + full release gate
 
 Normal Codex work should prefer these commands unless the affected owner requires a narrower command.
 
+For a bounded source change with known changed paths, prefer the affected route before a broad gate:
+
+```bash
+bun run plan:affected -- <changed-path> [...]
+bun run verify:affected -- <changed-path> [...]
+```
+
+This resolves canonical source ownership, anchor tests, shared contracts, project-graph checks, and domain invalidation from the changed paths. Use `verify`/full verification only when the planner requires it or for explicit final acceptance.
+
 ## Narrow command namespaces
 
 ```text
