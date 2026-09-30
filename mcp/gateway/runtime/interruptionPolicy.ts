@@ -1,4 +1,4 @@
-import type { BackendTool } from "../protocol";
+import type { BackendTool } from "../contracts/protocol";
 
 export type InterruptedCallClassification = {
   code: "BACKEND_CALL_INTERRUPTED" | "OUTCOME_UNKNOWN";
