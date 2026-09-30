@@ -45,7 +45,7 @@ describe("Desktop control-plane ownership", () => {
     for (const dependency of [
       '"apps/desktop/**"',
       '"mcp/compatibility/blockbench.json"',
-      '"mcp/distribution/**"',
+      '"distribution/**"',
     ]) expect(workflow).toContain(dependency);
   });
 
@@ -85,7 +85,7 @@ describe("Desktop control-plane ownership", () => {
     expect(pkgText).toContain("prepare:managed-resource");
     expect(pkgText).toContain("--config src-tauri/tauri.bundle.conf.json");
     expect(bundleConfig).toContain('"resources/managed/"');
-    expect(prep).toContain("bun run ./distribution/package.ts");
+    expect(prep).toContain("bun run ../distribution/package.ts");
     expect(prep).toContain("dist\\managed\\package");
     expect(prep).toContain("Managed bootstrap source SHA");
     expect(prep).toContain("Desktop source SHA");
