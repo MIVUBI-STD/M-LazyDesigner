@@ -34,6 +34,7 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
   try {
     for (const directory of [
       "build",
+      "scripts/verify",
       "docs",
       "prompts",
       "gateway/experimental/generated",
@@ -60,7 +61,10 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
     scripts["generate:owned-artifacts"] =
       "bun run docs:build && bun run prompts:build && bun run generate:hybrid4-schemas";
     await Bun.write(join(root, "package.json"), JSON.stringify({ private: true, type: "module", scripts }));
-    await copyFile(join(packageRoot, "build/check-docs-freshness.ts"), join(root, "build/check-docs-freshness.ts"));
+    await copyFile(
+      join(packageRoot, "scripts/verify/verify-generated-artifacts-fresh.ts"),
+      join(root, "scripts/verify/verify-generated-artifacts-fresh.ts")
+    );
     await Bun.write(join(root, "expected.json"), JSON.stringify(generated));
     await Bun.write(join(root, "other-check.ts"), 'await Bun.write("other-check-ran", "yes");\n');
     await Bun.write(join(root, "build/index.ts"), 'await Bun.write("build-ran", "yes");\n');
