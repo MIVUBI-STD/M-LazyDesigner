@@ -1,19 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
-
-const WRAPPERS: Readonly<Record<string, string>> = {
-  "lib/productIdentity.ts": 'export * from "./product/productIdentity";\n',
-  "lib/resourceUri.ts": 'export * from "./protocol/resourceUri";\n',
-  "lib/validationVerdict.ts": 'export * from "./authoring/validationVerdict";\n',
-  "lib/authoringReadiness.ts": 'export * from "./authoring/authoringReadiness";\n',
-  "lib/bedrockProjectIdentity.ts": 'export * from "./bedrock/projectIdentity";\n',
-  "lib/bedrockProjectSemantics.ts": 'export * from "./bedrock/projectSemantics";\n',
-  "lib/runtimeConnection.ts": 'export * from "./runtime/connection";\n',
-  "lib/runtimeFetch.ts": 'export * from "./runtime/fetch";\n',
-  "lib/runtimeAffinity.ts": 'export * from "./runtime/affinity";\n',
-  "lib/runtimeLifecycle.ts": 'export * from "./runtime/lifecycle";\n',
-};
+import {
+  CANONICAL_COMPATIBILITY_WRAPPERS,
+} from "./lib-domain-compatibility";
 
 const CANONICAL_OWNERS = [
   "lib/product/productIdentity.ts",
@@ -30,8 +20,10 @@ const CANONICAL_OWNERS = [
 
 describe("canonical shared library ownership", () => {
   test("migrated root paths remain compatibility-only facades", async () => {
-    for (const [path, expected] of Object.entries(WRAPPERS)) {
-      expect(await Bun.file(path).text()).toBe(expected);
+    for (const [name, expected] of Object.entries(
+      CANONICAL_COMPATIBILITY_WRAPPERS
+    )) {
+      expect(await Bun.file(`lib/${name}`).text()).toBe(expected);
     }
   });
 
@@ -42,28 +34,23 @@ describe("canonical shared library ownership", () => {
   });
 });
 
-const RETIRED_PRODUCTION_LIB_FACADES = new Set([
-  "productIdentity",
-  "resourceUri",
-  "validationVerdict",
-  "authoringReadiness",
-  "bedrockProjectIdentity",
-  "bedrockProjectSemantics",
-  "runtimeConnection",
-  "runtimeFetch",
-  "runtimeAffinity",
-  "runtimeLifecycle",
-  "capabilityMetadata",
-  "authoringPhase",
-  "registrationProfile",
-  "assetHealth",
-  "assetDependencyGraph",
-  "semanticHistory",
-  "elementSemanticScopes",
-  "textureBitmapRuntime",
-  "util",
-  "zodObjects",
-]);
+const RETIRED_PRODUCTION_LIB_FACADES = new Set(
+  [
+    ...Object.keys(CANONICAL_COMPATIBILITY_WRAPPERS).map((name) =>
+      name.replace(/\.ts$/, "")
+    ),
+    "capabilityMetadata",
+    "authoringPhase",
+    "registrationProfile",
+    "assetHealth",
+    "assetDependencyGraph",
+    "semanticHistory",
+    "elementSemanticScopes",
+    "textureBitmapRuntime",
+    "util",
+    "zodObjects",
+  ]
+);
 
 async function productionSourceFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
