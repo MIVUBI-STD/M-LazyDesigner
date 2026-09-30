@@ -4,7 +4,7 @@ import { materialInstanceMutationReceiptSchema } from "@/lib/receipts/materialIn
 
 describe("material-instance bounded continuation", () => {
   test("bulk material-instance receipt includes changed face evidence", async () => {
-    const source = await Bun.file("server/tools/material-instances.ts").text();
+    const source = await Bun.file("server/tools/texture/materialInstances.ts").text();
     expect(source).toContain(
       "changes: materialInstanceContinuationChanges(plannedChanges)"
     );
