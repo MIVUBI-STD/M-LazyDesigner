@@ -6,8 +6,13 @@ const SHARED_ROOT_IMPLEMENTATIONS = new Set([
   "factories.ts",
 ]);
 
-const CANONICAL_WRAPPER =
-  /^export \* from "\.\/(?:animation|authoring|bedrock|blockbench|capabilities|core|geometry|particle|product|prompts|protocol|reference|runtime|texture|uv)\/[A-Za-z0-9_./-]+";\n$/;
+const CANONICAL_REEXPORT =
+  /^export \* from "\.\/(?:animation|authoring|bedrock|blockbench|capabilities|core|geometry|particle|product|prompts|protocol|reference|runtime|schemas|texture|uv)\/[A-Za-z0-9_./-]+";$/;
+
+function isCanonicalFacade(source: string): boolean {
+  const lines = source.trim().split("\n").filter(Boolean);
+  return lines.length > 0 && lines.every((line) => CANONICAL_REEXPORT.test(line));
+}
 
 describe("lib root ownership", () => {
   test("root contains only declared shared implementations or compatibility wrappers", async () => {
@@ -17,7 +22,7 @@ describe("lib root ownership", () => {
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
       const source = await Bun.file(`lib/${entry.name}`).text();
-      if (CANONICAL_WRAPPER.test(source)) continue;
+      if (isCanonicalFacade(source)) continue;
       if (SHARED_ROOT_IMPLEMENTATIONS.has(entry.name)) continue;
       violations.push(entry.name);
     }
