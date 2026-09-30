@@ -16,16 +16,16 @@ import {
 } from "@/lib/authoring/authoringReadiness";
 
 let stageSwitchHandler:
-  | ((phase: McpAuthoringPhase) => void)
+  | ((stage: McpAuthoringStage) => void)
   | undefined;
 
 export function setMcpStageSwitchHandler(
-  handler: (phase: McpAuthoringPhase) => void
+  handler: (stage: McpAuthoringStage) => void
 ): void {
   stageSwitchHandler = handler;
 }
 
-export function requestMcpStageSwitch(phase: McpAuthoringPhase): void {
+export function requestMcpStageSwitch(stage: McpAuthoringStage): void {
   if (!stageSwitchHandler) {
     throw new Error("Runtime Stage/Surface switching is unavailable; reload LazyDesigner.");
   }
@@ -61,7 +61,7 @@ export function registerPhaseControlTool(): void {
         if (!stageSwitchHandler) {
           throw new Error("Runtime Stage/Surface switching is unavailable; reload LazyDesigner.");
         }
-        const previousPhase = getActiveMcpAuthoringPhase();
+        const previousStage = getActiveMcpAuthoringStage();
         const previousSurface = getMcpRuntimeSurface(previousStage);
         const targetSurface = getMcpRuntimeSurface(target_phase);
         const surfaceChanged = previousSurface !== targetSurface;
