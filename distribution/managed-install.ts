@@ -2,6 +2,10 @@ import { createHash, randomUUID } from "node:crypto";
 import { realpathSync } from "node:fs";
 import { lstat, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import {
+  extractLegacyMcpBuildIdentity,
+  LEGACY_MCP_BUNDLE_FILENAME,
+} from "../mcp/compatibility/build-artifact";
 
 export const REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
 // MSIX can expose one installation through logical and physical Windows paths.
@@ -20,7 +24,7 @@ const BEGIN = "# BEGIN BLOCKIT MANAGED";
 const END = "# END BLOCKIT MANAGED";
 
 export function allowedPackagePath(path: string): boolean {
-  return ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt"].includes(path)
+  return ["blockit.exe", LEGACY_MCP_BUNDLE_FILENAME, "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt"].includes(path)
     || SKILLS.some((skill) => path === `.agents/skills/${skill}/SKILL.md`)
     || path === "docs/03-authoring/finalization/standard.md";
 }
@@ -39,7 +43,7 @@ export function parseManifest(value: unknown): Manifest {
     paths.add(f.path.toLowerCase()); total += f.size;
   }
   if (total > 250_000_000) throw new Error("Package exceeds the installation size limit.");
-  for (const required of ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/03-authoring/finalization/standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)]) {
+  for (const required of ["blockit.exe", LEGACY_MCP_BUNDLE_FILENAME, "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/03-authoring/finalization/standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)]) {
     if (!paths.has(required.toLowerCase())) throw new Error(`Incomplete package: ${required}`);
   }
   return m;
@@ -98,8 +102,8 @@ export async function verifyPackage(directory: string): Promise<Manifest> {
     const info = await lstat(path);
     if (!info.isFile() || info.size !== file.size || await digestAt(path) !== file.sha256) throw new Error(`Package integrity failed: ${file.path}`);
   }
-  const plugin = (await readFile(join(directory, "blockit_mcp.js"))).toString();
-  if (plugin.match(/globalThis\.__BLOCKIT_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/)?.[1] !== m.build_identity) throw new Error("Plugin build identity does not match the package.");
+  const plugin = (await readFile(join(directory, LEGACY_MCP_BUNDLE_FILENAME))).toString();
+  if (extractLegacyMcpBuildIdentity(plugin) !== m.build_identity) throw new Error("Plugin build identity does not match the package.");
   return m;
 }
 
@@ -288,7 +292,7 @@ export async function rollbackStatus(root: string): Promise<RollbackStatus> {
 export async function installPackage(directory: string, options: InstallOptions, parseToml: (s: string) => any, adopt = false): Promise<{ source_sha: string; changed_files: number; transaction: string | null }> {
   const m = await verifyPackage(directory);
   for (const p of Object.values(options)) await requirePlainPath(p);
-  if (basename(options.plugin) !== "blockit_mcp.js") throw new Error("The plugin destination must be blockit_mcp.js.");
+  if (basename(options.plugin) !== LEGACY_MCP_BUNDLE_FILENAME) throw new Error(`The plugin destination must be ${LEGACY_MCP_BUNDLE_FILENAME}.`);
   const previous = await installedState(options.root);
   if (previous && JSON.stringify(previous.options) !== JSON.stringify(options)) throw new Error("Installation locations are already pinned; do not silently rebind them.");
   const version = join(options.root, "versions", m.source_sha);
@@ -310,7 +314,7 @@ export async function installPackage(directory: string, options: InstallOptions,
   };
   for (const f of m.files) {
     if (f.path === "blockit.exe" || f.path === "LICENSE" || f.path === "THIRD_PARTY_NOTICES.txt") continue;
-    const path = f.path === "blockit_mcp.js" ? options.plugin : join(options.workspace, f.path);
+    const path = f.path === LEGACY_MCP_BUNDLE_FILENAME ? options.plugin : join(options.workspace, f.path);
     const bytes = await readFile(join(version, f.path));
     if (f.path === "AGENTS.md") await plan(path, Buffer.from(managedBlock((await readOptional(path))?.toString() ?? "", bytes.toString())), true);
     else await plan(path, bytes);
