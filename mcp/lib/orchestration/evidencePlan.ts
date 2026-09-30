@@ -1,6 +1,6 @@
 import type { VerificationTask } from "@/lib/orchestration/verificationPlan";
 import type { VerificationRisk } from "@/lib/orchestration/deltaVerification";
-import type { ModelView } from "@/server/tools/camera";
+import type { ModelView } from "@/lib/reference/visualEvidence";
 
 export type VerificationEvidenceRequest =
   | {
