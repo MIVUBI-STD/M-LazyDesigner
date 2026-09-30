@@ -42,7 +42,7 @@ type RegistrationFunction = () => void;
 
 export type McpSurfaceDescriptor = Readonly<{
   profile: McpRegistrationProfile;
-  phase: McpAuthoringPhase;
+  phase: McpAuthoringStage;
   toolNames: readonly string[];
   toolNameSet: ReadonlySet<string>;
   count: number;
@@ -131,14 +131,14 @@ function registerFamily(family: McpRegistrationFamily): boolean {
 
 function surfaceCacheKey(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringPhase
+  phase: McpAuthoringStage
 ): string {
   return `${profile}|${phase}`;
 }
 
 export function describeMcpSurfaceToolNames(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringPhase
+  phase: McpAuthoringStage
 ): readonly string[] {
   return getMcpSurfaceDescriptor(profile, phase).toolNames;
 }
@@ -176,7 +176,7 @@ export function applyMcpRegistrationProfile(
   profile: McpRegistrationProfile
 ): void {
   registerMcpProfile(profile);
-  applyMcpToolSurface(profile, getActiveMcpAuthoringPhase());
+  applyMcpToolSurface(profile, getActiveMcpAuthoringStage());
   profileSwitchHandler?.(profile);
 }
 
@@ -197,7 +197,7 @@ export function isCatalogToolEnabled(toolName: string): boolean {
  */
 export function getMcpSurfaceDescriptor(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringPhase
+  phase: McpAuthoringStage
 ): McpSurfaceDescriptor {
   const cacheKey = surfaceCacheKey(profile, phase);
   const cached = phaseSurfaceCache.get(cacheKey);
@@ -234,16 +234,16 @@ export function getMcpSurfaceDescriptor(
 
 export function getMcpSurfaceToolNames(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringPhase
+  phase: McpAuthoringStage
 ): readonly string[] {
   return getMcpSurfaceDescriptor(profile, phase).toolNames;
 }
 
 export function applyMcpToolSurface(
   profile: McpRegistrationProfile,
-  phase: McpAuthoringPhase
+  phase: McpAuthoringStage
 ): void {
-  setActiveMcpAuthoringPhase(phase);
+  setActiveMcpAuthoringStage(phase);
   const exposed = getMcpSurfaceDescriptor(profile, phase).toolNameSet;
 
   for (const [toolName, authoredEnabled] of catalogToolEnabled) {
