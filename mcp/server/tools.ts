@@ -45,7 +45,7 @@ registerMcpProfile(DEFAULT_MCP_REGISTRATION_PROFILE);
 
 // Keep a deterministic Stage value for helpers/tests before plugin startup,
 // without mutating authored enabled flags until applyMcpToolSurface is called.
-setActiveMcpAuthoringPhase(DEFAULT_MCP_AUTHORING_PHASE);
+setActiveMcpAuthoringStage(DEFAULT_MCP_AUTHORING_STAGE);
 
 // Compatibility facade for existing imports. Runtime ownership lives under
 // server/runtime/*; callers should not need to know that internal split.
