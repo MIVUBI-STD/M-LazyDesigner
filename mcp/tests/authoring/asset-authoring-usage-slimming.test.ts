@@ -138,7 +138,7 @@ describe("pre-local asset-authoring usage slimming", () => {
   });
 
   test("Cube correction results avoid redundant state and identity copies", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     const singleStart = cubes.indexOf("const executeUpdateCube");
     const batchStart = cubes.indexOf("const executeBatchUpdateCubes", singleStart);
     const single = cubes.slice(singleStart, batchStart);
