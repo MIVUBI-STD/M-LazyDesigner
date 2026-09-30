@@ -56,4 +56,4 @@ Which legacy BlockIT identifier must remain stable during migration?
 AI load rule: use this domain for context loading, shared Stage Context, Tool execution-path/efficiency/integrity questions, Blockbench compatibility, Control/context routing, source ownership, Skill ownership, or compatibility-identifier questions. Do not use it as a substitute for product flow or authoring standards.
 
 
-Canonical architecture vocabulary: `docs/04-system/terminology.md`.
+Canonical architecture/product vocabulary: `canonical-vocabulary.md`. `terminology.md` is compatibility/navigation only.
