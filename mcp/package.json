@@ -111,7 +111,6 @@
     "verify:experimental": "bun run verify:hybrid-remote",
     "verify:build": "bun run build",
     "verify:surface-guards": "bun run measure:surface && bun run measure:phases",
-    "report:mcp-efficiency": "bun run measure:mcp-efficiency",
     "eval:golden-authoring": "bun test tests/golden-authoring-run-contract.test.ts tests/gateway-benchmark-trace-report.test.ts tests/golden-benchmark-session-runner.test.ts tests/golden-session-finalizer.test.ts tests/golden-session-comparison.test.ts gateway/runtime/benchmarkTrace.test.ts",
     "report:golden-authoring": "bun run ./scripts/evaluate-golden-authoring-runs.ts",
     "report:gateway-trace": "bun run ./scripts/summarize-gateway-benchmark-trace.ts",
