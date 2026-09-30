@@ -4,41 +4,41 @@ import type { ToolSpec } from "@/lib/factories";
 import {
   paintPrimitiveToolDocs,
   registerPaintPrimitiveTools,
-} from "./paint-primitives";
+} from "./paint/primitives";
 export {
   colorPickerToolParameters,
   copyBrushToolParameters,
   drawShapeToolParameters,
   gradientToolParameters,
   paintFillToolParameters,
-} from "./paint-primitives";
+} from "./paint/primitives";
 
 import {
   paintBrushToolDocs,
   registerPaintBrushTools,
   registerPaintEraserTool,
-} from "./paint-brush";
+} from "./paint/brush";
 export {
   createBrushPresetParameters,
   eraserToolParameters,
   loadBrushPresetParameters,
   paintWithBrushParameters,
-} from "./paint-brush";
+} from "./paint/brush";
 
 import {
   paintSettingsToolDoc,
   registerPaintSettingsTool,
-} from "./paint-settings";
-export { paintSettingsParameters } from "./paint-settings";
+} from "./paint/settings";
+export { paintSettingsParameters } from "./paint/settings";
 
 import {
   paintSelectionLayerToolDocs,
   registerPaintSelectionLayerTools,
-} from "./paint-selection-layers";
+} from "./paint/selectionLayers";
 export {
   textureLayerManagementParameters,
   textureSelectionParameters,
-} from "./paint-selection-layers";
+} from "./paint/selectionLayers";
 
 export {
   exactPixelBounds,

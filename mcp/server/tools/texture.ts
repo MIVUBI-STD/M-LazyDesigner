@@ -7,37 +7,37 @@ import {
   applyTextureToolDoc,
   registerTextureActivationTool,
   registerTextureAssignmentTools,
-} from "./texture-assignment";
+} from "./texture/assignment";
 export {
   activateTextureParameters,
   addTextureGroupParameters,
   applyTextureParameters,
-} from "./texture-assignment";
+} from "./texture/assignment";
 
 import {
   createTextureToolDoc,
   registerCreateTextureTool,
-} from "./texture-create";
+} from "./texture/create";
 export {
   createTextureParameters,
   isDeterministicTextureSource,
   runNativeTemplateEdit,
-} from "./texture-create";
+} from "./texture/create";
 
 import {
   getTextureToolDoc,
   listTexturesToolDoc,
   registerTextureReadTools,
-} from "./texture-read";
+} from "./texture/read";
 export {
   getTextureParameters,
   listTexturesParameters,
-} from "./texture-read";
+} from "./texture/read";
 
 import {
   registerTextureMaterialTools,
   textureMaterialToolDocs,
-} from "./texture-materials";
+} from "./texture/materials";
 export {
   assignTextureChannelParameters,
   configureMaterialParameters,
@@ -52,7 +52,7 @@ export {
   requireMaterialConfigSavePostcondition,
   resolveTextureToolMaterial,
   saveMaterialConfigParameters,
-} from "./texture-materials";
+} from "./texture/materials";
 
 export {
   UV_ATLAS_AUDIT_EXAMPLE_LIMIT,
@@ -68,7 +68,7 @@ export {
   type TextureProductionRole,
   type TextureRoleMetadata,
   type UvAtlasUsage,
-} from "./texture-atlas";
+} from "./texture/atlas";
 
 export const textureToolDocs: ToolSpec[] = [
   createTextureToolDoc,

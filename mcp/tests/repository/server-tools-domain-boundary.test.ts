@@ -84,6 +84,32 @@ describe("server tool domain ownership", () => {
     }
   });
 
+  test("registrar facades import canonical domain owners directly", async () => {
+    const facades = [
+      "server/tools/animation.ts",
+      "server/tools/texture.ts",
+      "server/tools/paint.ts",
+      "server/tools/element.ts",
+    ];
+
+    const violations: string[] = [];
+    for (const file of facades) {
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (
+          request.startsWith("./") &&
+          MIGRATED_TOOL_WRAPPERS.hasOwnProperty(
+            `${request.slice(2)}.ts`
+          )
+        ) {
+          violations.push(`${file} -> ${request}`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   test("animation production modules do not depend on migrated root wrappers", async () => {
     const files = await sourceFiles("server/tools");
     const violations: string[] = [];
@@ -116,7 +142,7 @@ describe("server tool domain ownership", () => {
     const schema = await Bun.file(
       "server/tools/animation/controllerSchema.ts"
     ).text();
-    const executor = await Bun.file("server/tools/animation-controller.ts").text();
+    const executor = await Bun.file("server/tools/animation/controller.ts").text();
     const runtimeExtension = await Bun.file(
       "server/runtime/extensions/animation/controllerNativeIntelligence.ts"
     ).text();
@@ -144,7 +170,7 @@ describe("server tool domain ownership", () => {
       "lib/animation/batchPlanning.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/animation-batch.ts"
+      "server/tools/animation/batch.ts"
     ).text();
 
     expect(planner).toContain("selectBatchKeyframes");
@@ -225,7 +251,7 @@ describe("server tool domain ownership", () => {
     const schema = await Bun.file(
       "server/tools/animation/inspectionSchema.ts"
     ).text();
-    const executor = await Bun.file("server/tools/animation-inspection.ts").text();
+    const executor = await Bun.file("server/tools/animation/inspection.ts").text();
     const runtimeContract = await Bun.file(
       "server/runtime/animationRuntimeContracts.ts"
     ).text();
@@ -252,7 +278,7 @@ describe("server tool domain ownership", () => {
       "lib/texture/selectionPlanning.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/paint-selection-layers.ts"
+      "server/tools/paint/selectionLayers.ts"
     ).text();
 
     expect(planner).toContain("rectangleSelectionPredicate");
@@ -273,7 +299,7 @@ describe("server tool domain ownership", () => {
       "server/tools/paint/selectionLayerSchema.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/paint-selection-layers.ts"
+      "server/tools/paint/selectionLayers.ts"
     ).text();
 
     expect(schema).toContain("textureSelectionParameters");
@@ -294,7 +320,7 @@ describe("server tool domain ownership", () => {
       "server/tools/texture/materialState.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/texture-materials.ts"
+      "server/tools/texture/materials.ts"
     ).text();
 
     expect(state).toContain("runtimePbrTextureStates");
@@ -318,10 +344,10 @@ describe("server tool domain ownership", () => {
       "server/tools/texture/materialState.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/texture-materials.ts"
+      "server/tools/texture/materials.ts"
     ).text();
     const creator = await Bun.file(
-      "server/tools/texture-create.ts"
+      "server/tools/texture/create.ts"
     ).text();
 
     expect(state).toContain("resolveTextureToolMaterial");
@@ -347,7 +373,7 @@ describe("server tool domain ownership", () => {
       "server/tools/texture/materialSchema.ts"
     ).text();
     const executor = await Bun.file(
-      "server/tools/texture-materials.ts"
+      "server/tools/texture/materials.ts"
     ).text();
 
     expect(schema).toContain("createPbrMaterialParameters");
@@ -368,7 +394,7 @@ describe("server tool domain ownership", () => {
     const schema = await Bun.file(
       "server/tools/texture/createSchema.ts"
     ).text();
-    const executor = await Bun.file("server/tools/texture-create.ts").text();
+    const executor = await Bun.file("server/tools/texture/create.ts").text();
     const runtimeContract = await Bun.file(
       "server/runtime/textureRuntimeContracts.ts"
     ).text();

@@ -5,7 +5,7 @@ import {
   animationCopyPasteToolDoc,
   batchKeyframeOperationsToolDoc,
   registerAnimationBatchTools,
-} from "./animation-batch";
+} from "./animation/batch";
 export {
   animationCopyPasteParameters,
   batchKeyframeOperationsParameters,
@@ -13,43 +13,43 @@ export {
   keyframeBelongsToAnimation,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
-} from "./animation-batch";
+} from "./animation/batch";
 import {
   createAnimationToolDoc,
   registerCreateAnimationTool,
-} from "./animation-create";
+} from "./animation/create";
 export {
   createAnimationParameters,
   normalizeBedrockAnimationName,
-} from "./animation-create";
+} from "./animation/create";
 import {
   animationGraphEditorToolDoc,
   manageKeyframesToolDoc,
   registerAnimationKeyframeTools,
-} from "./animation-keyframes";
+} from "./animation/keyframes";
 export {
   animationGraphEditorParameters,
   manageKeyframesParameters,
   resolveUniqueKeyframeMatchIndexes,
-} from "./animation-keyframes";
+} from "./animation/keyframes";
 import {
   boneRiggingToolDoc,
   registerBoneRiggingTool,
-} from "./animation-rigging";
+} from "./animation/rigging";
 export {
   boneRiggingParameters,
   deriveMirroredRigName,
   hasCaseInsensitiveRigNameCollision,
   wouldCreateRigHierarchyCycle,
-} from "./animation-rigging";
+} from "./animation/rigging";
 import {
   animationTimelineToolDoc,
   registerAnimationTimelineTool,
-} from "./animation-timeline";
+} from "./animation/timeline";
 export {
   animationTimelineParameters,
   normalizeAnimationMolangProperty,
-} from "./animation-timeline";
+} from "./animation/timeline";
 
 export const animationToolDocs: ToolSpec[] = [
   createAnimationToolDoc,

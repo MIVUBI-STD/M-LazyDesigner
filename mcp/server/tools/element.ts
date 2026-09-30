@@ -40,7 +40,7 @@ export {
 export {
   hasCaseInsensitiveGroupNameCollision,
   requireFiniteTranslatedElementVector3,
-} from "./element-shared";
+} from "./element/shared";
 
 export const elementToolDocs: ToolSpec[] = [
   elementMutationToolDocs[0],

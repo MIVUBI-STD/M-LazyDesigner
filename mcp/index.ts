@@ -6,8 +6,8 @@ import {
   applyMcpToolSurface,
   getActiveMcpRegistrationProfile,
   registerMcpProfile,
-  setMcpPhaseSwitchHandler,
-} from "@/server/tools";
+} from "@/server/runtime/registration";
+import { setMcpPhaseSwitchHandler } from "@/server/runtime/phaseControl";
 import {
   MCP_AUTHORING_PHASE_SETTING_ID,
   resolveMcpAuthoringStage,
@@ -141,7 +141,7 @@ async function initializeBlockItRuntime(
   if (!(await runtimeHost.start(generation))) return;
   if (!isRuntimeGenerationCurrent(generation)) return;
 
-  blockbenchIntegration.setupUi(registrationProfile, authoringPhase);
+  blockbenchIntegration.setupUi(registrationProfile, authoringStage);
   setupLocalDevAutoReload(generation, currentBuildIdentity());
 }
 
