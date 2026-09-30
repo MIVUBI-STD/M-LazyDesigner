@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, withInstallLock, type InstallOptions, type Manifest } from "../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
 test("installation identity survives native Windows path virtualization", async () => {
@@ -156,7 +156,7 @@ test("TOML preflight preserves quoted comments and multiline configuration", () 
 
 test("native availability probe distinguishes an open listener from a closed port", async () => {
   const { createServer } = await import("node:net");
-  const { probeLoopbackPort } = await import("../distribution/runtime-probe");
+  const { probeLoopbackPort } = await import("../../distribution/runtime-probe");
   const listener = createServer(socket => socket.destroy());
   await new Promise<void>((resolve, reject) => { listener.once("error", reject); listener.listen(0, "127.0.0.1", resolve); });
   const address = listener.address();
@@ -167,7 +167,7 @@ test("native availability probe distinguishes an open listener from a closed por
 });
 
 test("availability probe rejects non-local targets and invalid deadlines", async () => {
-  const { probeLoopbackPort } = await import("../distribution/runtime-probe");
+  const { probeLoopbackPort } = await import("../../distribution/runtime-probe");
   for (const host of ["example.com", "192.168.1.2", "127.bad", "0.0.0.0"]) {
     await assert.rejects(probeLoopbackPort(host, 3000), /Invalid loopback/);
   }
@@ -177,7 +177,7 @@ test("availability probe rejects non-local targets and invalid deadlines", async
 
 
 test("managed status exposes one desktop-ready machine health contract", async () => sandbox(async (_d, o) => {
-  const { buildManagedStatus } = await import("../distribution/status");
+  const { buildManagedStatus } = await import("../../distribution/status");
   let observedConfig: string | undefined;
   const status = await buildManagedStatus(
     o.root,
@@ -229,7 +229,7 @@ test("repair refuses to overwrite a user-modified managed file", async () => san
 
 
 test("Runtime TLS status is fail-closed for an absent disposable identity", async () => sandbox(async d => {
-  const { runtimeTlsStatus } = await import("../distribution/runtime-tls");
+  const { runtimeTlsStatus } = await import("../../distribution/runtime-tls");
   const directory = join(d, "tls");
   const status = runtimeTlsStatus(
     { ...process.env, BLOCKIT_TLS_DIR: directory },
