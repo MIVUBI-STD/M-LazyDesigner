@@ -1,4 +1,4 @@
-import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
+import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
 import { registerMcpProfile } from "./registration";
 
 let initialized = false;
