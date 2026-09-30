@@ -1,0 +1,142 @@
+import type {
+  CapabilitySemanticCatalogRevisions,
+} from "./semanticRegistry";
+import {
+  semanticRefreshSurfacesForDimensions,
+  type SemanticRefreshSurface,
+} from "./semanticDependencyMatrix";
+
+export type SemanticFreshnessDimension =
+  | "routing"
+  | "graph"
+  | "schema_projection"
+  | "aggregate";
+
+export type SemanticFreshnessStatus = "FRESH" | "STALE" | "MISSING";
+
+export type SemanticFreshnessReport = {
+  status: SemanticFreshnessStatus;
+  dimensions: Record<SemanticFreshnessDimension, SemanticFreshnessStatus>;
+  stale_dimensions: SemanticFreshnessDimension[];
+  missing_dimensions: SemanticFreshnessDimension[];
+};
+
+export const SEMANTIC_FRESHNESS_DIMENSIONS: readonly SemanticFreshnessDimension[] = [
+  "routing",
+  "graph",
+  "schema_projection",
+  "aggregate",
+];
+
+export function evaluateSemanticFreshness(
+  expected: CapabilitySemanticCatalogRevisions,
+  observed: Partial<CapabilitySemanticCatalogRevisions> | null | undefined
+): SemanticFreshnessReport {
+  const dimensions = {} as Record<
+    SemanticFreshnessDimension,
+    SemanticFreshnessStatus
+  >;
+  const staleDimensions: SemanticFreshnessDimension[] = [];
+  const missingDimensions: SemanticFreshnessDimension[] = [];
+
+  for (const dimension of SEMANTIC_FRESHNESS_DIMENSIONS) {
+    const actual = observed?.[dimension];
+    if (!actual) {
+      dimensions[dimension] = "MISSING";
+      missingDimensions.push(dimension);
+    } else if (actual === expected[dimension]) {
+      dimensions[dimension] = "FRESH";
+    } else {
+      dimensions[dimension] = "STALE";
+      staleDimensions.push(dimension);
+    }
+  }
+
+  return {
+    status:
+      missingDimensions.length > 0
+        ? "MISSING"
+        : staleDimensions.length > 0
+          ? "STALE"
+          : "FRESH",
+    dimensions,
+    stale_dimensions: staleDimensions,
+    missing_dimensions: missingDimensions,
+  };
+}
+
+export function evaluateSemanticFreshnessForDimensions(
+  expected: CapabilitySemanticCatalogRevisions,
+  observed: Partial<CapabilitySemanticCatalogRevisions> | null | undefined,
+  dimensions: readonly SemanticFreshnessDimension[]
+): SemanticFreshnessReport {
+  const scoped = new Set(dimensions);
+  const base = evaluateSemanticFreshness(expected, observed);
+  const scopedDimensions = Object.fromEntries(
+    SEMANTIC_FRESHNESS_DIMENSIONS.map((dimension) => [
+      dimension,
+      scoped.has(dimension) ? base.dimensions[dimension] : "FRESH",
+    ])
+  ) as Record<SemanticFreshnessDimension, SemanticFreshnessStatus>;
+  const stale = base.stale_dimensions.filter((dimension) => scoped.has(dimension));
+  const missing = base.missing_dimensions.filter((dimension) => scoped.has(dimension));
+
+  return {
+    status:
+      missing.length > 0
+        ? "MISSING"
+        : stale.length > 0
+          ? "STALE"
+          : "FRESH",
+    dimensions: scopedDimensions,
+    stale_dimensions: stale,
+    missing_dimensions: missing,
+  };
+}
+
+export function semanticRevisionStamp(
+  revisions: CapabilitySemanticCatalogRevisions
+): Readonly<{
+  semantic_revision_schema: 1;
+  revisions: CapabilitySemanticCatalogRevisions;
+}> {
+  return Object.freeze({
+    semantic_revision_schema: 1 as const,
+    revisions: { ...revisions },
+  });
+}
+
+export type SemanticConsumerFreshness = SemanticFreshnessReport & {
+  refresh_surfaces: SemanticRefreshSurface[];
+};
+
+export function semanticRefreshSurfaces(
+  report: SemanticFreshnessReport
+): SemanticRefreshSurface[] {
+  const affectedDimensions = [
+    ...report.stale_dimensions,
+    ...report.missing_dimensions,
+  ].filter(
+    (dimension): dimension is Exclude<SemanticFreshnessDimension, "aggregate"> =>
+      dimension !== "aggregate"
+  );
+
+  const refresh = semanticRefreshSurfacesForDimensions(affectedDimensions);
+  const aggregateOnly =
+    report.dimensions.aggregate !== "FRESH" &&
+    affectedDimensions.length === 0;
+
+  if (!aggregateOnly) return refresh;
+  return [...refresh, "SEMANTIC_MANIFEST"].sort((a, b) => a.localeCompare(b));
+}
+
+export function evaluateSemanticConsumerFreshness(
+  expected: CapabilitySemanticCatalogRevisions,
+  observed: Partial<CapabilitySemanticCatalogRevisions> | null | undefined
+): SemanticConsumerFreshness {
+  const report = evaluateSemanticFreshness(expected, observed);
+  return {
+    ...report,
+    refresh_surfaces: semanticRefreshSurfaces(report),
+  };
+}
