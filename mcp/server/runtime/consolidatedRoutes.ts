@@ -1,4 +1,4 @@
-import type { McpRegistrationFamily } from "@/lib/registrationProfile";
+import type { McpRegistrationFamily } from "@/lib/capabilities/registrationProfile";
 
 export const CONSOLIDATED_EXECUTOR_ROUTES = {
   inspect_elements: {
