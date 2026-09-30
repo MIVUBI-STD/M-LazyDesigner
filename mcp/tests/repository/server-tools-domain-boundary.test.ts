@@ -10,6 +10,18 @@ const MIGRATED_TOOL_WRAPPERS: Readonly<Record<string, string>> = {
   "ui.ts": 'export * from "./interaction/ui";\n',
   "element-inspection.ts": 'export * from "./element/inspection";\n',
   "animation-effects.ts": 'export * from "./animation/effects";\n',
+  "animation-native-intelligence.ts":
+    'export * from "../runtime/extensions/animation/nativeIntelligence";\n',
+  "animation-controller-native-intelligence.ts":
+    'export * from "../runtime/extensions/animation/controllerNativeIntelligence";\n',
+  "animation-runtime-resource-intelligence.ts":
+    'export * from "../runtime/extensions/animation/runtimeResourceIntelligence";\n',
+  "texture-authoring-runtime.ts":
+    'export * from "../runtime/extensions/texture/authoring";\n',
+  "texture-quality-runtime.ts":
+    'export * from "../runtime/extensions/texture/quality";\n',
+  "texture-alpha-runtime.ts":
+    'export * from "../runtime/extensions/texture/alpha";\n',
   "animation-inspection.ts": 'export * from "./animation/inspection";\n',
   "material-instances.ts": 'export * from "./texture/materialInstances";\n',
   "paint-texture-transaction.ts": 'export * from "./paint/textureTransaction";\n',
