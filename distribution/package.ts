@@ -1,6 +1,10 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { REPOSITORY, SKILLS, sha256, verifyPackage, type Manifest } from "./managed-install";
+import {
+  extractLegacyMcpBuildIdentity,
+  LEGACY_MCP_BUNDLE_FILENAME,
+} from "../mcp/compatibility/build-artifact";
 
 // Build output only. Never writes generated source or commits back to the repository.
 const repo = resolve(import.meta.dir, "..");
@@ -22,13 +26,12 @@ async function main(): Promise<void> {
   if (!/^[a-f0-9]{40}$/.test(sourceSha) || process.env.GITHUB_SHA && process.env.GITHUB_SHA !== sourceSha) throw new Error("Source SHA does not match the release checkout.");
   if (await run(["git", "status", "--porcelain", "--untracked-files=no"], repo)) throw new Error("Managed packages require a clean tracked checkout.");
   await rm(output, { recursive: true, force: true }); await mkdir(packageDir, { recursive: true });
-  const plugin = await readFile(join(repo, "mcp/dist/blockit_mcp.js"));
-  const buildIdentity = plugin.toString().match(/globalThis\.__BLOCKIT_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/)?.[1];
-  if (!buildIdentity) throw new Error("Build the verified Runtime first.");
+  const plugin = await readFile(join(repo, "mcp/dist", LEGACY_MCP_BUNDLE_FILENAME));
+  const buildIdentity = extractLegacyMcpBuildIdentity(plugin.toString());
   await run([process.execPath, "build", join(repo, "distribution/cli.ts"), "--compile", "--target=bun-windows-x64-baseline", "--outfile", join(packageDir, "blockit.exe")]);
   const smoke = JSON.parse(await run([join(packageDir, "blockit.exe"), "self-test"]));
   if (smoke.status !== "PASS" || smoke.platform !== "win32" || smoke.arch !== "x64") throw new Error("Compiled manager failed its platform smoke test.");
-  await writeFile(join(packageDir, "blockit_mcp.js"), plugin);
+  await writeFile(join(packageDir, LEGACY_MCP_BUNDLE_FILENAME), plugin);
   const sources = [
     "LICENSE",
     "workspace/README.md",
@@ -66,7 +69,7 @@ async function main(): Promise<void> {
   await verifyPackage(packageDir);
   // Execute the compiled installer against disposable paths, never the runner's user config.
   const smokeRoot = join(output, "smoke");
-  const smokeArgs = ["install", "--root", join(smokeRoot, "installed"), "--workspace", join(smokeRoot, "workspace"), "--plugin-path", join(smokeRoot, "plugins/blockit_mcp.js"), "--config", join(smokeRoot, "codex/config.toml"), "--package", packageDir];
+  const smokeArgs = ["install", "--root", join(smokeRoot, "installed"), "--workspace", join(smokeRoot, "workspace"), "--plugin-path", join(smokeRoot, "plugins", LEGACY_MCP_BUNDLE_FILENAME), "--config", join(smokeRoot, "codex/config.toml"), "--package", packageDir];
   const executable = join(packageDir, "blockit.exe");
   const smokeEnv = { ...process.env, BLOCKIT_TLS_DIR: join(smokeRoot, "tls") };
   const installed = JSON.parse(await run([executable, ...smokeArgs], join(repo, "mcp"), smokeEnv));
