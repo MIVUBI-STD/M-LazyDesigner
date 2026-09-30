@@ -1,7 +1,7 @@
 import { createPrivateKey, X509Certificate } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { runtimeTlsPaths } from "../mcp/lib/runtimeConnection";
+import { runtimeTlsPaths } from "../mcp/lib/runtime/connection";
 
 export type RuntimeTlsStatus = {
   ready: boolean;
