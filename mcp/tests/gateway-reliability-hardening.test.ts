@@ -62,7 +62,7 @@ describe("Gateway long-running reliability hardening", () => {
   });
 
   test("negotiated MCP era is retained for status diagnostics and cleared on disconnect", async () => {
-    const source = await Bun.file("gateway/backend.ts").text();
+    const source = await Bun.file("gateway/runtime/backend.ts").text();
 
     expect(source).toContain('versionNegotiation: { mode: "auto" }');
     expect(source).toContain("this.connectedProtocolEra = client.getProtocolEra() ?? null");
@@ -71,7 +71,7 @@ describe("Gateway long-running reliability hardening", () => {
   });
 
   test("connect, catalog and capability calls use MCP-native request timeouts", async () => {
-    const source = await Bun.file("gateway/backend.ts").text();
+    const source = await Bun.file("gateway/runtime/backend.ts").text();
     const backendContract = await Bun.file(
       "gateway/runtime/backendContract.ts"
     ).text();
