@@ -1,4 +1,4 @@
-import type { CapabilitySummary } from "../protocol";
+import type { CapabilitySummary } from "../contracts/protocol";
 import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
 import { manifestEntryForBranch } from "../capabilities/manifest";
 import {
