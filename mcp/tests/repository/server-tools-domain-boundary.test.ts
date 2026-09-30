@@ -90,6 +90,28 @@ function importsOf(source: string): string[] {
 }
 
 describe("server tool domain ownership", () => {
+
+  test("tools root contains only registrar facades or registered compatibility wrappers", async () => {
+    const allowedRegistrars = new Set([
+      "animation.ts",
+      "texture.ts",
+      "paint.ts",
+      "element.ts",
+    ]);
+    const rootFiles = (await readdir("server/tools", { withFileTypes: true }))
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+      .map((entry) => entry.name)
+      .sort();
+
+    const unexpected = rootFiles.filter(
+      (name) =>
+        !allowedRegistrars.has(name) &&
+        !Object.prototype.hasOwnProperty.call(MIGRATED_TOOL_WRAPPERS, name)
+    );
+
+    expect(unexpected).toEqual([]);
+  });
+
   test("migrated root tool paths remain compatibility-only wrappers", async () => {
     for (const [name, expected] of Object.entries(MIGRATED_TOOL_WRAPPERS)) {
       expect(await Bun.file(`server/tools/${name}`).text()).toBe(expected);
