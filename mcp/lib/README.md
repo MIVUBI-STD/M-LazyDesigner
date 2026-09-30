@@ -6,11 +6,12 @@
 
 | Directory | Owner |
 | --- | --- |
-| `authoring/` | authoring handoff readiness and validation semantics |
+| `authoring/` | lifecycle truth: health, readiness, validation, semantic history |
+| `authoringRecipe/` | declarative recipe semantics, planning, incremental rebuild, bounded plan/apply lifecycle |
 | `bedrock/` | Bedrock project identity, Molang, export, and authored project semantics |
 | `product/` | LazyDesigner product identity |
 | `prompts/` | prompt contract and loading |
-| `reference/` | reference evidence, correction, and style interpretation |
+| `reference/` | reference evidence, correction, visual-evidence vocabulary, and style interpretation |
 | `protocol/` | MCP/resource protocol helpers |
 | `runtime/` | Runtime connection, affinity, fetch, and lifecycle primitives |
 | `semantic/` | semantic core and incremental semantic model |
