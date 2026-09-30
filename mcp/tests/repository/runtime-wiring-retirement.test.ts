@@ -15,9 +15,9 @@ async function walk(root: string): Promise<string[]> {
 describe("retired runtime wiring paths", () => {
   test("canonical runtime extension owners replace retired wiring modules", async () => {
     expect(await Bun.file("server/runtime/extensions.ts").exists()).toBe(true);
-    expect(await Bun.file("server/runtime/animationRuntimeContracts.ts").exists()).toBe(true);
-    expect(await Bun.file("server/runtime/textureRuntimeContracts.ts").exists()).toBe(true);
-    expect(await Bun.file("server/tools/paint-texture-transaction.ts").exists()).toBe(true);
+    expect(await Bun.file("server/runtime/contracts/animation.ts").exists()).toBe(true);
+    expect(await Bun.file("server/runtime/contracts/texture.ts").exists()).toBe(true);
+    expect(await Bun.file("server/tools/paint/textureTransaction.ts").exists()).toBe(true);
   });
 
   test("active repository owners do not reference retired wiring filenames", async () => {
