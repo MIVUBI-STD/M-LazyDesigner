@@ -4,9 +4,9 @@ describe("element module ownership", () => {
   test("element facade aggregates focused owners only", async () => {
     const [facade, mutation, hierarchy, discovery, shared] = await Promise.all([
       Bun.file("server/tools/element.ts").text(),
-      Bun.file("server/tools/element-mutation.ts").text(),
-      Bun.file("server/tools/element-hierarchy.ts").text(),
-      Bun.file("server/tools/element-discovery.ts").text(),
+      Bun.file("server/tools/element/mutation.ts").text(),
+      Bun.file("server/tools/element/hierarchy.ts").text(),
+      Bun.file("server/tools/element/discovery.ts").text(),
       Bun.file("server/tools/element-shared.ts").text(),
     ]);
 
