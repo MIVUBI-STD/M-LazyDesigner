@@ -2,13 +2,13 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { optimizedAnimationTimelineParameters } from "../../animationRuntimeContracts";
 import {
   getAllToolDefinitions,
   invalidateToolRegistrationRuntimeCaches,
 } from "@/lib/factories";
-import { resolveCoreAnimation, resolveCoreGroup } from "@/lib/coreIdentity";
+import { resolveCoreAnimation, resolveCoreGroup } from "@/lib/core/identity";
 import {
   animationIdOptionalSchema,
   loopModeEnum,
@@ -16,11 +16,11 @@ import {
 import {
   analyzeAnimationMolangExpressions,
   type AnimationMolangExpressionInput,
-} from "@/lib/animationMolangSemantics";
+} from "@/lib/animation/molangSemantics";
 import {
   analyzeAnimationMotionDynamics,
   type AnimationMotionTrackInput,
-} from "@/lib/animationMotionDynamics";
+} from "@/lib/animation/motionDynamics";
 
 type JsonRecord = Record<string, unknown>;
 type RuntimeAnimationItem = _Animation | AnimationController;

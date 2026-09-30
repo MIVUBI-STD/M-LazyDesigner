@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentSemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentSemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { manageAnimationControllerParameters } from "../../../tools/animation/controllerSchema";
 import {
   getAllToolDefinitions,
@@ -10,7 +10,7 @@ import {
 import {
   normalizeControllerBlendCurve,
   wouldCreateControllerCompositionCycle,
-} from "@/lib/animationControllerComposition";
+} from "@/lib/animation/controllerComposition";
 
 type RuntimeAnimationItem = _Animation | AnimationController;
 type RuntimeControllerLink = {

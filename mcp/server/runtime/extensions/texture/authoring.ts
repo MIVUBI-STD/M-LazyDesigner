@@ -6,24 +6,24 @@ import {
   readTextureDiagnosticRegion,
   readTextureDiagnosticSample,
   textureDiagnosticReadMetrics,
-} from "@/lib/textureDiagnosticReadContext";
+} from "@/lib/texture/diagnosticReadContext";
 
 import { getAllToolDefinitions } from "@/lib/factories";
 import {
   faceLocalPixelSize,
   mapFaceLocalPixelToAtlasPixel,
   mapFaceUvToTexturePixels,
-} from "@/lib/facePixelMapping";
+} from "@/lib/uv/facePixelMapping";
 import {
   analyzeTextureSeamContinuity,
   type TextureSeamEdgeInput,
   type TextureSeamRgba,
-} from "@/lib/textureSeamContinuity";
+} from "@/lib/texture/seamContinuity";
 import {
   analyzePbrTextureContent,
   type PbrContentTextureInput,
-} from "@/lib/texturePbrContent";
-import { analyzeTextureMaterialStatus } from "@/lib/textureMaterialStatus";
+} from "@/lib/texture/pbrContent";
+import { analyzeTextureMaterialStatus } from "@/lib/texture/materialStatus";
 
 type RuntimeToolDefinition = {
   execute: (

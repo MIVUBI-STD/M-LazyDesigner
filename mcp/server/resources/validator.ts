@@ -2,7 +2,7 @@
 /// <reference types="blockbench-types" />
 
 import { createResource } from "@/lib/factories";
-import { deriveValidatorGateVerdict } from "@/lib/validationVerdict";
+import { deriveValidatorGateVerdict } from "@/lib/authoring/validationVerdict";
 
 interface ValidatorButton {
   name: string;

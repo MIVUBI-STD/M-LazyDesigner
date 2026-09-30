@@ -5,7 +5,7 @@ import {
   analyzeTextureProductionAlignment,
   type TextureProductionAlignmentInput,
   type TextureProductionAlignmentRole,
-} from "@/lib/textureProductionAlignment";
+} from "@/lib/texture/productionAlignment";
 
 type RuntimeToolDefinition = {
   execute: (

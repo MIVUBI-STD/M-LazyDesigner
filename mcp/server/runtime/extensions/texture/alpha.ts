@@ -1,10 +1,10 @@
 /// <reference types="blockbench-types" />
 
 import { getAllToolDefinitions } from "@/lib/factories";
-import { resolveCoreTexture } from "@/lib/coreIdentity";
-import { normalizeTextureEvidenceRegion } from "@/lib/textureEvidence";
-import { analyzeRenderAwareAlpha } from "@/lib/textureAlphaSemantics";
-import type { EntityRenderProfile } from "@/lib/textureRenderProfile";
+import { resolveCoreTexture } from "@/lib/core/identity";
+import { normalizeTextureEvidenceRegion } from "@/lib/texture/evidence";
+import { analyzeRenderAwareAlpha } from "@/lib/texture/alphaSemantics";
+import type { EntityRenderProfile } from "@/lib/texture/renderProfile";
 
 type RuntimeToolDefinition = {
   execute: (

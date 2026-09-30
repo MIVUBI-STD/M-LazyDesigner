@@ -3,7 +3,7 @@ import { z } from "zod";
 import { nativeAnimationControllerParameters } from "./controllerNativeIntelligence";
 import { getAllToolDefinitions, invalidateToolRegistrationRuntimeCaches } from "@/lib/factories";
 import { isAbsoluteFilesystemPath } from "@/lib/util";
-import { cloneJsonValue, type JsonObject, type JsonValue } from "@/lib/bedrockParticleDocument";
+import { cloneJsonValue, type JsonObject, type JsonValue } from "@/lib/particle/document";
 import {
   applyAnimationControllerVariableOperations,
   applyClientEntityAnimationRuntimeOperations,
@@ -16,7 +16,7 @@ import {
   serializeClientEntityDocument,
   validateClientEntityAnimationDependencies,
   type ClientEntityRuntimeEvidence,
-} from "@/lib/bedrockAnimationRuntimeResources";
+} from "@/lib/animation/bedrockRuntimeResources";
 
 const pathSchema=z.string().refine(isAbsoluteFilesystemPath,{message:"Path must be absolute."}).refine(v=>v.toLowerCase().endsWith(".json"),{message:"Runtime resource files must use .json."});
 const sourceSchema=z.object({path:pathSchema.optional(),content:z.string().min(2).optional()}).strict().superRefine((v,c)=>{if((v.path===undefined)===(v.content===undefined))c.addIssue({code:z.ZodIssueCode.custom,message:"Provide exactly one resource_source.path or resource_source.content."});});

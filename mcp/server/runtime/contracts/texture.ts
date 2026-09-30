@@ -5,23 +5,23 @@ import {
   getAllToolDefinitions,
   invalidateToolRegistrationRuntimeCaches,
 } from "@/lib/factories";
-import { resolveCoreTexture } from "@/lib/coreIdentity";
+import { resolveCoreTexture } from "@/lib/core/identity";
 import { imageContent } from "@/lib/util";
 import {
   buildTextureEvidenceSnapshot,
   focusedGetTextureParameters,
-} from "@/lib/textureEvidence";
-import { buildTextureEvidenceDeliveryMetadata } from "@/lib/textureEvidenceDelivery";
+} from "@/lib/texture/evidence";
+import { buildTextureEvidenceDeliveryMetadata } from "@/lib/texture/evidenceDelivery";
 import {
   createTextureVariantParameters,
   planTextureVariantFromBase,
   type TextureVariantSource,
-} from "@/lib/textureVariantPlan";
+} from "@/lib/texture/variantPlan";
 import { textureIdSchema } from "@/lib/zodObjects";
 import {
   fullTextureRgba,
   rgbaToPngDataUrl,
-} from "@/lib/textureBitmapRuntime";
+} from "@/lib/texture/bitmapRuntime";
 import { createTextureParameters } from "../../tools/texture/createSchema";
 
 export const wiredCreateTextureParameters = z.union([

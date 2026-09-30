@@ -7,8 +7,8 @@ import {
   withToolBranch,
   invalidateToolRegistrationRuntimeCaches,
 } from "@/lib/factories";
-import { resolveCoreAnimation } from "@/lib/coreIdentity";
-import { withTemporaryAnimationPreview } from "@/lib/animationPreviewState";
+import { resolveCoreAnimation } from "@/lib/core/identity";
+import { withTemporaryAnimationPreview } from "@/lib/animation/previewState";
 import {
   animationChannelEnum,
   animationIdOptionalSchema,

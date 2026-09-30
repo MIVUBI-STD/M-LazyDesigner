@@ -2,12 +2,12 @@ import { createResource, type ResourceSpec } from "@/lib/factories";
 import {
   TEXTURE_SURFACE_PATTERN_NAMES,
   TEXTURE_SURFACE_PATTERN_RECIPES,
-} from "@/lib/textureSurfacePattern";
-import { VANILLA_TEXTURE_KNOWLEDGE } from "@/lib/textureVanillaKnowledge";
+} from "@/lib/texture/surfacePattern";
+import { VANILLA_TEXTURE_KNOWLEDGE } from "@/lib/texture/vanillaKnowledge";
 import {
   VANILLA_ENTITY_RENDER_MATERIAL_CODES,
   inspectEntityRenderMaterialCode,
-} from "@/lib/textureRenderProfile";
+} from "@/lib/texture/renderProfile";
 
 const TOPICS = [
   "surface-patterns",
