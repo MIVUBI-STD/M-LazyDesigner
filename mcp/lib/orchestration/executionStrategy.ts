@@ -1,4 +1,3 @@
-import type { IncrementalRecipeRebuildPlan } from "@/lib/authoringRecipe/incremental";
 import type { AuthoringImpactPlan } from "@/lib/orchestration/authoringImpact";
 
 export type AuthoringExecutionStrategy =
@@ -102,38 +101,4 @@ export function selectAuthoringExecutionStrategy(
   };
 }
 
-export function selectRecipeRebuildExecutionStrategy(
-  rebuild: IncrementalRecipeRebuildPlan
-): ExecutionStrategyDecision {
-  const affected = rebuild.metrics.native_affected_count;
-  const nextCount = rebuild.metrics.next_cube_count;
-  const ratio = rebuild.metrics.native_affected_ratio_of_next;
-
-  if (affected > 0) {
-    return {
-      strategy: "RECIPE",
-      affected_native_instances: affected,
-      affected_ratio: ratio,
-      reason: "RECIPE_OWNED_INCREMENTAL",
-    };
-  }
-
-  if (
-    rebuild.metrics.metadata_only_count > 0 ||
-    rebuild.metrics.symmetry_change_count > 0
-  ) {
-    return {
-      strategy: "METADATA_ONLY",
-      affected_native_instances: 0,
-      affected_ratio: nextCount === 0 ? 0 : 0,
-      reason: "SEMANTIC_METADATA_ONLY",
-    };
-  }
-
-  return {
-    strategy: "UNCHANGED",
-    affected_native_instances: 0,
-    affected_ratio: 0,
-    reason: "NO_CHANGE",
-  };
-}
+export { selectRecipeRebuildExecutionStrategy } from "@/lib/authoringRecipe/planning";
