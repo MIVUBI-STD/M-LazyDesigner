@@ -4,7 +4,7 @@ import type {
   MinecraftQualityOwner,
   VerificationDiscrepancy,
 } from "@/lib/orchestration/compactEvidence";
-import type { ModelView, VisualEvidenceTarget } from "@/server/tools/camera";
+import type { ModelView, VisualEvidenceTarget } from "@/lib/reference/visualEvidence";
 
 export type VisualObservationCriterion =
   | "REQUIRED_PART_COMPLETENESS"
