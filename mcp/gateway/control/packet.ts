@@ -2,7 +2,7 @@ import type { GatewayRuntimeStatus } from "../backend";
 import {
   resolveDevelopmentIntent,
   type ControlDevelopmentResolution,
-} from "./developmentIntent";
+} from "../development/intent";
 import { contextForAuthoringDomain } from "./contexts";
 import { buildControlSnapshot } from "./snapshot";
 import {
