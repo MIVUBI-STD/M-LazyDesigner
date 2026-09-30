@@ -1,4 +1,4 @@
-import { GATEWAY_REPLAY_CORPUS } from "../../scripts/benchmark/fixtures/gateway-replay-corpus";
+import { GATEWAY_REPLAY_CORPUS } from "./fixtures/gateway-replay-corpus";
 import {
   hybrid4StaticSchemaBytes,
   shadowReplayCase,
