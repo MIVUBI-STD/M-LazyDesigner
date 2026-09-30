@@ -46,7 +46,7 @@ semantic stage  TEXTURING → Runtime surface AUTHORING
 semantic stage  ANIMATION → Runtime surface ANIMATION
 ```
 
-`mcp/lib/capabilities/authoringPhase.ts` is the single mapping owner. Geometry↔Texturing is a semantic-owner/focus change inside the same AUTHORING surface; only AUTHORING↔Animation is a true Runtime surface boundary.
+`mcp/lib/capabilities/authoringStage.ts` is the single mapping owner. Geometry↔Texturing is a semantic-owner/focus change inside the same AUTHORING surface; only AUTHORING↔Animation is a true Runtime surface boundary.
 
 ### Product Development
 
@@ -279,7 +279,7 @@ gateway/control/orchestration.ts
 → ephemeral per-task Verification Cohort accumulation
 → optional task_context_id + explicit CONTINUE/COMPLETE boundary
 → never replaces native per-tool Undo/rollback
-mcp/lib/capabilities/authoringPhase.ts       semantic stage classification + AUTHORING/ANIMATION surface mapping
+mcp/lib/capabilities/authoringStage.ts       semantic stage classification + AUTHORING/ANIMATION surface mapping
 mcp/lib/authoring/authoringReadiness.ts  canonical Animation handoff readiness
 mcp/lib/authoring/validationVerdict.ts   conservative Validator gate projection
 mcp/lib/receipts/**             shared Runtime→Control mutation receipt contracts
