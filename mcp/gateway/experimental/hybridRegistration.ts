@@ -1,5 +1,5 @@
 import { fromJsonSchema, type McpServer } from "@modelcontextprotocol/server";
-import type { JsonRecord } from "../protocol";
+import type { JsonRecord } from "../contracts/protocol";
 import {
   HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES,
   type GatewaySurfaceProfile,
