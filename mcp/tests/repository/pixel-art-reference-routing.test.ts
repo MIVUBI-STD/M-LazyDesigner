@@ -31,7 +31,7 @@ describe("pixel-art reference specialist ownership", () => {
   test("Pixel Art is not introduced as a LazyDesigner Control authoring domain", async () => {
     const [types, developmentIntent] = await Promise.all([
       source("gateway/control/types.ts"),
-      source("gateway/control/developmentIntent.ts"),
+      source("gateway/development/intent.ts"),
     ]);
 
     expect(types).not.toContain('"PIXEL_ART"');
