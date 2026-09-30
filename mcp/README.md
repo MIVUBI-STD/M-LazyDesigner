@@ -23,7 +23,7 @@ From `mcp/`:
 
 ```bash
 bun install --frozen-lockfile
-bun run verify:full
+bun run verify
 ```
 
 Verification is layered:
@@ -239,17 +239,3 @@ Do not bulk-rename them.
 Continuation → `../docs/05-operations/next-action.md`. Proof interpretation → `../docs/05-operations/current-validation.md`.
 
 Source/static success cannot prove installed Runtime freshness, live Gateway recovery, native Undo/playback/persistence, visual fidelity or measured whole-task savings unless those surfaces actually ran.
-
-
-## Developer command facade
-
-Use these stable commands for normal repository work:
-
-```text
-bun run check      fast source/repository validation
-bun run verify     full repository verification
-bun run benchmark  canonical benchmark suite
-bun run release    release verification + security audit
-```
-
-The detailed `verify:*`, `benchmark:*`, `measure:*`, and `eval:*` scripts remain implementation-level entry points for focused diagnosis. Do not make normal Codex workflows choose among the full internal script surface unless a targeted subsystem check is required.
