@@ -11,13 +11,13 @@ function sortedNames(values: Array<{ name: string }>): string[] {
 
 export function createSurfaceManifest({
   profile,
-  phase = getActiveMcpAuthoringPhase(),
+  stage = getActiveMcpAuthoringStage(),
   tools,
   resources,
   prompts,
 }: {
   profile: McpRegistrationProfile;
-  phase?: McpAuthoringPhase;
+  stage?: McpAuthoringStage;
   tools: Record<string, IMCPTool>;
   resources: Record<string, IMCPResource>;
   prompts: Record<string, IMCPPrompt>;
