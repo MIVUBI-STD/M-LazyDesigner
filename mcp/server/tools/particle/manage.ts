@@ -3,7 +3,7 @@ import { z } from "zod";
 import { particleMutationReceipt } from "@/lib/receipts/particleMutation";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { isAbsoluteFilesystemPath } from "@/lib/util";
+import { isAbsoluteFilesystemPath } from "@/lib/core/path";
 import {
   BEDROCK_PARTICLE_PRESETS,
   applyParticleOperations,
