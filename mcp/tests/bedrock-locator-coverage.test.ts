@@ -17,7 +17,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
     expect(manageLocatorParameters.safeParse({ action: "create", name: "muzzle", parent: "bone", position: [Infinity, 0, 0] }).success).toBe(false);
     expect(manageLocatorParameters.safeParse({ action: "update", id: "loc", rotation: [0, -Infinity, 0] }).success).toBe(false);
     expect(manageNullObjectParameters.safeParse({ action: "update", id: "null", position: [0, 0, Infinity] }).success).toBe(false);
-    const locatorSource = await source("server/tools/locators.ts");
+    const locatorSource = await source("server/tools/geometry/locators.ts");
     expect(locatorSource).toContain("finiteAuthoredVector3(");
     expect(locatorSource).toContain("locator.position,");
     expect(locatorSource).toContain("locator.rotation,");
@@ -36,7 +36,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
 
   test("Locator motion stays parent-driven rather than a second animation target system", async () => {
     const [locatorSource, animationSource] = await Promise.all([
-      source("server/tools/locators.ts"),
+      source("server/tools/geometry/locators.ts"),
       source("server/tools/animation-create.ts"),
     ]);
 
@@ -54,7 +54,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
 
   test("explicit parent targets are resolved before Undo and failures can roll back", async () => {
-    const locatorSource = await source("server/tools/locators.ts");
+    const locatorSource = await source("server/tools/geometry/locators.ts");
     const parent = locatorSource.indexOf("const parent = resolveParent(args.parent);");
     const undo = locatorSource.indexOf("Undo.initEdit({ elements: edited, outliner: true });");
     expect(parent).toBeGreaterThan(-1);
@@ -91,7 +91,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
 
   test("Null Object creation rejects duplicate exported keys before Undo", async () => {
-    const locatorSource = await source("server/tools/locators.ts");
+    const locatorSource = await source("server/tools/geometry/locators.ts");
     expect(locatorSource).toContain(
       'assertLocatorExportKeyAvailable(parent, "null_object", args.name)'
     );
@@ -101,7 +101,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
 
   test("Null Object geometry round-trip distinction is documented", async () => {
-    const locatorSource = await source("server/tools/locators.ts");
+    const locatorSource = await source("server/tools/geometry/locators.ts");
     expect(locatorSource).toContain("`_null_` locator entry");
     expect(locatorSource).toContain("IK fields remain Blockbench editor/animation state");
   });
