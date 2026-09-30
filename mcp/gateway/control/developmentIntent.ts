@@ -109,7 +109,7 @@ const RULES: readonly Rule[] = [
     owners: () => [
       owner("mcp/build/index.ts", "mcp/tests/developer-loop.test.ts"),
       owner("mcp/build/watch-policy.ts", "mcp/tests/developer-loop.test.ts"),
-      owner("mcp/scripts/deploy-local.ts", "mcp/tests/developer-loop.test.ts"),
+      owner("mcp/scripts/operations/deploy-local.ts", "mcp/tests/developer-loop.test.ts"),
     ],
   },
   {
