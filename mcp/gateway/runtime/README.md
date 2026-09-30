@@ -13,7 +13,7 @@ This folder owns the long-lived Gateway -> Blockbench Runtime connection boundar
 - `identity.ts` — Runtime URL validation + stable Runtime signature.
 - `interruptionPolicy.ts` — read-only vs mutation interruption retry classification.
 
-The same-named files at `gateway/` are compatibility re-exports only. Keep backend orchestration in `gateway/backend.ts`; do not place capability search/control logic here.
+The same-named files at `gateway/` are compatibility re-exports only. Keep backend orchestration in `gateway/runtime/backend.ts`; do not place capability search/control logic here.
 
 
 ## Orchestration recovery ownership
