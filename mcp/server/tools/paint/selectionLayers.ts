@@ -16,7 +16,7 @@ export {
 } from "./selectionLayerSchema";
 import { morphBinaryMaskRound } from "@/lib/texture/binaryMaskMorphology";
 import { ellipseSelectionPredicate, rectangleSelectionPredicate } from "@/lib/texture/selectionPlanning";
-import { getAndActivateTexture, resolvePaintTexture } from "@/lib/util";
+import { getAndActivateTexture, resolvePaintTexture } from "@/lib/texture/selection";
 import {
   applyLayerMetadataBatchPlan,
   layerContinuationState,
