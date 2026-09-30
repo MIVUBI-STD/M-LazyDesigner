@@ -36,7 +36,7 @@ describe("Geometry identity and duplication hardening", () => {
 
   test("duplicate_element delegates property fidelity to native duplication and supports anchors", async () => {
     const [source, shared] = await Promise.all([
-      Bun.file("server/tools/element-mutation.ts").text(),
+      Bun.file("server/tools/element/mutation.ts").text(),
       Bun.file("server/tools/element-shared.ts").text(),
     ]);
     const start = source.indexOf("createTool(elementMutationToolDocs[1].name");
@@ -55,8 +55,8 @@ describe("Geometry identity and duplication hardening", () => {
 
   test("Group creation preflights names and anchor rename retains its guard", async () => {
     const [hierarchy, mutation] = await Promise.all([
-      Bun.file("server/tools/element-hierarchy.ts").text(),
-      Bun.file("server/tools/element-mutation.ts").text(),
+      Bun.file("server/tools/element/hierarchy.ts").text(),
+      Bun.file("server/tools/element/mutation.ts").text(),
     ]);
 
     const addStart = hierarchy.indexOf("createTool(elementHierarchyToolDocs[0].name");
@@ -74,7 +74,7 @@ describe("Geometry identity and duplication hardening", () => {
   });
 
   test("public duplicate schema remains unchanged while runtime fidelity is hardened", async () => {
-    const source = await Bun.file("server/tools/element-mutation.ts").text();
+    const source = await Bun.file("server/tools/element/mutation.ts").text();
     const schemaStart = source.indexOf("export const duplicateElementParameters");
     const schemaEnd = source.indexOf("export const renameElementParameters", schemaStart);
     const schema = source.slice(schemaStart, schemaEnd);
