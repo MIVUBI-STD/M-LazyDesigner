@@ -3,6 +3,11 @@ import {
   DEFAULT_GATEWAY_SURFACE_PROFILE,
   type GatewaySurfaceProfile,
 } from "../surface/profile";
+export {
+  DEFAULT_GATEWAY_SURFACE_PROFILE,
+  resolveGatewaySurfaceProfile,
+  type GatewaySurfaceProfile,
+} from "../surface/profile";
 
 export const HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES = [
   "manage_cubes",
