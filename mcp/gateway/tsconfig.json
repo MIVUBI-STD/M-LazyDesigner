@@ -6,6 +6,6 @@
     "tsBuildInfoFile": "../.cache/gateway.tsbuildinfo",
     "types": ["bun"]
   },
-  "include": ["./**/*.ts", "../lib/capabilityMetadata.ts", "../lib/authoringPhase.ts", "../lib/registrationProfile.ts"],
+  "include": ["./**/*.ts", "../lib/capabilities/metadata.ts", "../lib/capabilities/authoringPhase.ts", "../lib/capabilities/registrationProfile.ts"],
   "exclude": ["./dist"]
 }
