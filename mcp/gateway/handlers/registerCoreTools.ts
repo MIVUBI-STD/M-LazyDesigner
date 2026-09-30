@@ -1,10 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
-import type { BlockitRuntimeBackend } from "../backend";
+import type { BlockitRuntimeBackend } from "../runtime/backend";
 import {
   GATEWAY_TOOLS,
   type JsonRecord,
-} from "../protocol";
+} from "../contracts/protocol";
 import { projectCapabilityInputSchema } from "../capabilities/schemaProjection";
 import {
   buildControlPacket,
@@ -18,12 +18,12 @@ import {
   sourceOwnerForCapability,
 } from "../development/sourceOwners";
 import type { LocalCapabilityRegistry } from "../providers/registry";
-import { projectGatewayStatus } from "../statusProjection";
+import { projectGatewayStatus } from "../presentation/statusProjection";
 import {
   gatewayDescribeOutputSchema,
   gatewaySearchOutputSchema,
   gatewayStatusOutputSchema,
-} from "../outputSchemas";
+} from "../contracts/outputSchemas";
 import {
   capabilityDescriptionRevision,
   semanticRecordForCapabilityBranch,
