@@ -58,7 +58,7 @@ constants.ts   tiny package constants
 Everything with a narrower semantic owner belongs in a canonical subdomain. Compatibility wrappers may remain temporarily but must contain only a re-export.
 
 
-Compatibility facades `util.ts` and `zodObjects.ts` remain only to avoid broad import churn. New code must import the canonical owner directly.
+Compatibility facades `util.ts` and `zodObjects.ts` now have no production-source callers. They remain compatibility-only for bounded legacy/test/external import stability; production code is forbidden from importing them and must use the exact canonical owner under `core/`, `blockbench/`, `protocol/`, `texture/`, or `schemas/`.
 
 
 ### Factory boundary

@@ -61,6 +61,8 @@ const RETIRED_PRODUCTION_LIB_FACADES = new Set([
   "semanticHistory",
   "elementSemanticScopes",
   "textureBitmapRuntime",
+  "util",
+  "zodObjects",
 ]);
 
 async function productionSourceFiles(dir: string): Promise<string[]> {
