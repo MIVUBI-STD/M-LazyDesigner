@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { GATEWAY_REPLAY_CORPUS } from "../../benchmarks/gatewayReplayCorpus";
+import { GATEWAY_REPLAY_CORPUS } from "../../scripts/benchmark/fixtures/gateway-replay-corpus";
 import {
   assertGatewayReplayShadow,
   benchmarkGatewayReplayShadow,
