@@ -7,7 +7,7 @@ import {
   sourceOwnerForCapability,
 } from "./sourceOwners";
 
-export type ControlDevelopmentDomain =
+export type DevelopmentDomain =
   | "GEOMETRY"
   | "TEXTURING"
   | "ANIMATION"
@@ -18,10 +18,10 @@ export type ControlDevelopmentDomain =
   | "RUNTIME"
   | "UNRESOLVED";
 
-export type ControlDevelopmentResolution = {
+export type DevelopmentResolution = {
   task_class: "SYSTEM_DEVELOPMENT";
   intent: string;
-  domain: ControlDevelopmentDomain;
+  domain: DevelopmentDomain;
   confidence: "EXACT" | "STRONG" | "AMBIGUOUS" | "UNRESOLVED";
   context_strategy:
     | "DIRECT_SOURCE_OWNERS"
@@ -33,8 +33,11 @@ export type ControlDevelopmentResolution = {
   avoid_context_classes: string[];
 };
 
+export type ControlDevelopmentDomain = DevelopmentDomain;
+export type ControlDevelopmentResolution = DevelopmentResolution;
+
 type Rule = {
-  domain: Exclude<ControlDevelopmentDomain, "UNRESOLVED">;
+  domain: Exclude<DevelopmentDomain, "UNRESOLVED">;
   terms: readonly string[];
   owners: () => DevelopmentSourceOwner[];
 };
@@ -166,7 +169,7 @@ function matches(text: string, term: string): boolean {
 
 function exactDevelopmentDomain(
   capability: string
-): Exclude<ControlDevelopmentDomain, "UNRESOLVED"> | null {
+): Exclude<DevelopmentDomain, "UNRESOLVED"> | null {
   if (capability === "manage_particle" || capability === "inspect_particle") {
     return "PARTICLE";
   }
@@ -179,7 +182,7 @@ function exactDevelopmentDomain(
 }
 
 type ExactDevelopmentEvidence = {
-  domain: Exclude<ControlDevelopmentDomain, "UNRESOLVED">;
+  domain: Exclude<DevelopmentDomain, "UNRESOLVED">;
   owner: DevelopmentSourceOwner;
   term: string;
 };
@@ -241,7 +244,7 @@ function exactPathEvidence(text: string): ExactDevelopmentEvidence[] {
 function exactEvidenceResolution(
   intent: string,
   text: string
-): ControlDevelopmentResolution | null {
+): DevelopmentResolution | null {
   const evidence = [
     ...exactCapabilityEvidence(text),
     ...exactPathEvidence(text),
@@ -291,7 +294,7 @@ function exactEvidenceResolution(
   };
 }
 
-function baseResolution(intent: string): ControlDevelopmentResolution {
+function baseResolution(intent: string): DevelopmentResolution {
   return {
     task_class: "SYSTEM_DEVELOPMENT",
     intent,
@@ -305,7 +308,7 @@ function baseResolution(intent: string): ControlDevelopmentResolution {
   };
 }
 
-export function resolveDevelopmentIntent(intent: string): ControlDevelopmentResolution {
+export function resolveDevelopmentIntent(intent: string): DevelopmentResolution {
   const normalized = normalizedIntent(intent);
   if (!normalized) return baseResolution("");
 
