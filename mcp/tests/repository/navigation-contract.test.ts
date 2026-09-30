@@ -18,6 +18,8 @@ const MCP_TOP_LEVEL_DIRECTORIES = [
   "ui",
 ] as const;
 
+const TRANSIENT_WORKTREE_DIRECTORIES = new Set(["dist", "node_modules", "coverage"]);
+
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
   "lib/README.md",
@@ -34,7 +36,12 @@ const SCRIPT_NAME =
 describe("repository navigation contract", () => {
   test("MCP package keeps one intentional top-level directory taxonomy", async () => {
     const directories = (await readdir(".", { withFileTypes: true }))
-      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+      .filter(
+        (entry) =>
+          entry.isDirectory() &&
+          !entry.name.startsWith(".") &&
+          !TRANSIENT_WORKTREE_DIRECTORIES.has(entry.name)
+      )
       .map((entry) => entry.name)
       .sort();
 
