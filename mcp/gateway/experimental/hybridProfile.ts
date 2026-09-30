@@ -1,4 +1,8 @@
 import { GATEWAY_TOOL_NAMES } from "../protocol";
+import {
+  DEFAULT_GATEWAY_SURFACE_PROFILE,
+  type GatewaySurfaceProfile,
+} from "../surface/profile";
 
 export const HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES = [
   "manage_cubes",
@@ -10,13 +14,6 @@ export const HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES = [
 export type Hybrid4ExperimentalCapability =
   (typeof HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES)[number];
 
-export type GatewaySurfaceProfile =
-  | "stable_four"
-  | "hybrid_4_experimental";
-
-export const DEFAULT_GATEWAY_SURFACE_PROFILE: GatewaySurfaceProfile =
-  "stable_four";
-
 export const HYBRID_4_EXPERIMENTAL_PROFILE = Object.freeze({
   id: "hybrid_4_experimental" as const,
   base_gateway_tools: [...GATEWAY_TOOL_NAMES],
@@ -25,19 +22,6 @@ export const HYBRID_4_EXPERIMENTAL_PROFILE = Object.freeze({
   registration_enabled: true,
   proof_status: "EXPERIMENTAL_REGISTERABLE" as const,
 });
-
-/**
- * Experimental selection remains exact and fail-closed. This resolver does not
- * make Hybrid-4 the default; registration is activated only when the exact
- * experimental profile is selected at Gateway startup.
- */
-export function resolveGatewaySurfaceProfile(
-  value: unknown
-): GatewaySurfaceProfile {
-  return value === "hybrid_4_experimental"
-    ? "hybrid_4_experimental"
-    : DEFAULT_GATEWAY_SURFACE_PROFILE;
-}
 
 export function gatewaySurfaceProjection(
   profile: GatewaySurfaceProfile = DEFAULT_GATEWAY_SURFACE_PROFILE
