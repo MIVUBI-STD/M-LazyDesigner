@@ -64,27 +64,15 @@ describe("package script taxonomy", () => {
 
     expect(invalid).toEqual([]);
   });
-  test("namespaced commands do not create cross-namespace one-hop aliases", async () => {
+  test("namespaced commands are executable owners, not one-hop aliases", async () => {
     const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
       scripts?: Record<string, string>;
     };
-    const violations: string[] = [];
-
-    for (const [name, command] of Object.entries(packageJson.scripts ?? {})) {
-      if (!name.includes(":")) continue;
-      const match = command.match(/^bun run ([A-Za-z0-9:_-]+)$/);
-      if (!match) continue;
-
-      const target = match[1]!;
-      const sourceNamespace = name.split(":", 1)[0]!;
-      const targetNamespace = target.includes(":")
-        ? target.split(":", 1)[0]!
-        : sourceNamespace;
-
-      if (sourceNamespace !== targetNamespace) {
-        violations.push(`${name} -> ${target}`);
-      }
-    }
+    const violations = Object.entries(packageJson.scripts ?? {})
+      .filter(([name]) => name.includes(":"))
+      .filter(([, command]) => /^bun run [A-Za-z0-9:_-]+$/.test(command))
+      .map(([name, command]) => `${name} -> ${command.slice("bun run ".length)}`)
+      .sort();
 
     expect(violations).toEqual([]);
   });
