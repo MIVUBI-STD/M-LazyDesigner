@@ -12,7 +12,7 @@ import {
   MCP_AUTHORING_PHASE_SETTING_ID,
   resolveMcpAuthoringPhase,
   type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
+} from "@/lib/capabilities/authoringPhase";
 import {
   claimRuntimeGeneration,
   isRuntimeGenerationCurrent,
@@ -22,7 +22,7 @@ import {
 import {
   BLOCKBENCH_MIN_VERSION,
   evaluateBlockbenchCompatibility,
-} from "@/lib/blockbenchCompatibility";
+} from "@/lib/blockbench/compatibility";
 import { getIcon } from "@/macros/getIcon" with { type: "macro" };
 import { normalizeRuntimeEndpoint } from "@/lib/runtime/connection";
 import {
