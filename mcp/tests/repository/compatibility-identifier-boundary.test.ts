@@ -8,8 +8,8 @@ describe("LazyDesigner compatibility identifier boundary", () => {
   test("install, protocol and persisted identifiers remain stable during presentation rename", async () => {
     const [pkgText, protocol, backend, affinity, settings, authoringPhase, profile, plugin, statusBar] = await Promise.all([
       source("package.json"),
-      source("gateway/protocol.ts"),
-      source("gateway/backend.ts"),
+      source("gateway/contracts/protocol.ts"),
+      source("gateway/runtime/backend.ts"),
       source("lib/runtimeAffinity.ts"),
       source("ui/settings.ts"),
       source("lib/authoringPhase.ts"),
@@ -37,7 +37,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
 
   test("human-facing Runtime, Gateway and UI language uses LazyDesigner or neutral compatibility language", async () => {
     const [backend, queue, affinity, settings, plugin, server, ui, panel, statusBar, readme] = await Promise.all([
-      source("gateway/backend.ts"),
+      source("gateway/runtime/backend.ts"),
       source("gateway/runtime/operationQueue.ts"),
       source("lib/runtimeAffinity.ts"),
       source("ui/settings.ts"),
