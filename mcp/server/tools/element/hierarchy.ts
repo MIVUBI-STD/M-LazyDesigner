@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import {
   addGroupReceipt,
   modifyGroupReceipt,
@@ -9,7 +9,7 @@ import {
 } from "@/lib/receipts/groupMutation";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
-import { resolveCoreGroup } from "@/lib/coreIdentity";
+import { resolveCoreGroup } from "@/lib/core/identity";
 import { elementIdSchema } from "@/lib/zodObjects";
 import { requireOpenProject } from "@/lib/core/project";
 import {

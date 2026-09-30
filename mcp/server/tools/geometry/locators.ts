@@ -2,10 +2,10 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { locatorMutationReceipt } from "@/lib/receipts/locatorMutation";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
-import { resolveCoreGroup } from "@/lib/coreIdentity";
+import { resolveCoreGroup } from "@/lib/core/identity";
 
 const finiteLocatorVector3Schema = z.tuple([
   z.number().finite(),

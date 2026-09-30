@@ -1,9 +1,9 @@
 /// <reference types="blockbench-types" />
 import { animationControllerReceipt } from "@/lib/receipts/animationController";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { resolveUuidOrUniqueName } from "@/lib/coreIdentity";
+import { resolveUuidOrUniqueName } from "@/lib/core/identity";
 import {
   manageAnimationControllerParameters,
 } from "./controllerSchema";

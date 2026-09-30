@@ -15,10 +15,10 @@ export {
   normalizeEffectiveParticleScript,
 } from "./effectState";
 import { animationEffectsReceipt } from "@/lib/receipts/animationEffects";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { resolveCoreAnimation } from "@/lib/coreIdentity";
+import { resolveCoreAnimation } from "@/lib/core/identity";
 import { animationIdOptionalSchema } from "@/lib/zodObjects";
 
 type AnimationEffectChannel = "particle" | "sound" | "timeline";

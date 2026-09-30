@@ -8,7 +8,7 @@ import {
   mergeSemanticHistoryEffects,
   recordSemanticHistoryEffect,
   type SemanticHistoryEffect,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 
 function historyStepsParameters(action: "undo" | "redo") {
   return z.object({

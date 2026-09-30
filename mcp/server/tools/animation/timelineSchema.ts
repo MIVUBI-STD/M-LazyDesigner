@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { animationEasingSchema } from "@/lib/animationEasing";
+import { animationEasingSchema } from "@/lib/animation/easing";
 import {
   animationIdOptionalSchema,
   loopModeEnum,
@@ -137,5 +137,4 @@ export const animationTimelineParameters = z
       });
     }
   });
-
 

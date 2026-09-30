@@ -7,7 +7,7 @@ import {
 } from "@/lib/receipts/authorityTransition";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_STABLE } from "@/lib/constants";
-import { readRenderedModelBounds } from "@/lib/renderedModelBounds";
+import { readRenderedModelBounds } from "@/lib/geometry/renderedModelBounds";
 
 export const DEFAULT_BEDROCK_UV_RESOLUTION = 128;
 

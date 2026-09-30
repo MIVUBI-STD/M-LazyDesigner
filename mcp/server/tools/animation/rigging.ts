@@ -11,7 +11,7 @@ export {
   hasCaseInsensitiveRigNameCollision,
   wouldCreateRigHierarchyCycle,
 } from "@/lib/rig/planning";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { boneRiggingReceipt } from "@/lib/receipts/boneRigging";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";

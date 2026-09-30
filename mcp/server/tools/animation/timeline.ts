@@ -1,11 +1,11 @@
 /// <reference types="blockbench-types" />
 
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { animationTimelineParameters } from "./timelineSchema";
 export { animationTimelineParameters } from "./timelineSchema";
-import { buildAnimationEasing } from "@/lib/animationEasing";
+import { buildAnimationEasing } from "@/lib/animation/easing";
 import {
   resolveAnimationClip,
   resolveAnimationRigGroup,

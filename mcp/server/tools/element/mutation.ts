@@ -4,18 +4,18 @@ import { z } from "zod";
 import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentSemanticHistoryEffect,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 import { removeElementReceipt } from "@/lib/receipts/removeElement";
 import { renameElementReceipt } from "@/lib/receipts/renameElement";
 import {
   removedElementSemanticScopes,
   renamedElementSemanticScopes,
-} from "@/lib/elementSemanticScopes";
+} from "@/lib/authoring/elementSemanticScopes";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { elementIdSchema } from "@/lib/zodObjects";
 import { requireOpenProject } from "@/lib/core/project";
-import { planGroupRename, applyGroupRename, type RenameAnimation } from "@/lib/batchGroupRename";
+import { planGroupRename, applyGroupRename, type RenameAnimation } from "@/lib/geometry/batchGroupRename";
 import {
   continuationElementType,
   duplicateFaithfully,

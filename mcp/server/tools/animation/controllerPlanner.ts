@@ -1,4 +1,4 @@
-import { resolveUuidOrUniqueName } from "@/lib/coreIdentity";
+import { resolveUuidOrUniqueName } from "@/lib/core/identity";
 import type { ControllerMutationOperation } from "./controllerSchema";
 import type {
   ControllerAnimationLink,
@@ -448,4 +448,3 @@ export function applyOperationToPlan(
     }
   }
 }
-

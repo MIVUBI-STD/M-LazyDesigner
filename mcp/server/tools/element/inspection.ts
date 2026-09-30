@@ -8,7 +8,7 @@ import {
   requireFiniteFaceUv,
   requirePositiveTextureMetric,
   type TexturePixelMetrics,
-} from "@/lib/facePixelMapping";
+} from "@/lib/uv/facePixelMapping";
 
 export { mapFaceUvToTexturePixels };
 

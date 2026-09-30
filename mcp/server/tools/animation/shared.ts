@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { resolveCoreAnimation, resolveCoreGroup } from "@/lib/coreIdentity";
+import { resolveCoreAnimation, resolveCoreGroup } from "@/lib/core/identity";
 
 export const finiteAnimationVector3Schema = z.array(z.number().finite()).length(3);
 

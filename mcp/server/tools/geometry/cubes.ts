@@ -9,12 +9,12 @@ import {
 import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentSemanticHistoryEffect,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { autoUvEnum, cubeSchema, faceEnum } from "@/lib/zodObjects";
 import { readRenderedCubeBounds } from "@/lib/geometry/renderedModelBounds";
 import { STATUS_STABLE } from "@/lib/constants";
-import { resolveCoreCube, resolveCoreGroup } from "@/lib/coreIdentity";
+import { resolveCoreCube, resolveCoreGroup } from "@/lib/core/identity";
 import { requireOpenProject } from "@/lib/util";
 import {
   hasFiniteCubeSpan,

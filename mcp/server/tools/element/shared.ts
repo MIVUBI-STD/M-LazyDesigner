@@ -1,7 +1,7 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { resolveCoreGroup, resolveCoreTexture } from "@/lib/coreIdentity";
+import { resolveCoreGroup, resolveCoreTexture } from "@/lib/core/identity";
 
 export const finiteElementVector3Schema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
 
