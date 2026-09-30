@@ -5,7 +5,10 @@ import { COMPATIBILITY_ROOT_DOMAIN_IMPORTS } from "./lib-domain-compatibility";
 
 const DOMAIN_DIRS = [
   "lib/animation",
+  "lib/authoring",
+  "lib/authoringRecipe",
   "lib/geometry",
+  "lib/orchestration",
   "lib/particle",
   "lib/rig",
   "lib/texture",
