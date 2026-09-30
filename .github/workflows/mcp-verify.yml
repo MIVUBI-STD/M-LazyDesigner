@@ -88,7 +88,7 @@ jobs:
       # bun run verify:authoring
       # bun run benchmark:semantic-invalidation-scope
       # bun run measure:surface
-      # bun run measure:phases
+      # bun run measure:stages
       # bun run build
       - name: Plan verification scope
         id: scope
@@ -150,7 +150,7 @@ jobs:
           if git worktree add --detach "$previous_worktree" "$BEFORE_SHA" >/dev/null 2>&1; then
             if (
               cd "$previous_worktree/mcp"
-              bun run ./scripts/snapshot-semantic-registry.ts
+              bun run ./scripts/development/snapshot-semantic-registry.ts
             ) > /tmp/mcp-previous-semantic-registry.json 2>/tmp/mcp-semantic-snapshot.err; then
               semantic_args=(
                 --previous-semantic-snapshot
@@ -196,15 +196,15 @@ jobs:
 
       - name: Run full verification
         if: steps.scope.outputs.mode == 'full'
-        # CI is a remote/static acceptance environment. verify:remote is the
-        # canonical alias for verify:full and intentionally excludes *:live gates.
-        run: bun run verify:remote
+        # CI is a remote/static acceptance environment. verify:full is the
+        # canonical source gate and intentionally excludes *:live gates.
+        run: bun run verify:full
 
       # Keep verified build artifacts only when the canonical full verifier ran.
       # Affected-only pushes intentionally avoid rebuilding unrelated bundles.
       - name: Record exact-SHA build provenance
         if: steps.scope.outputs.mode == 'full'
-        run: bun run ./scripts/verified-build-artifact.ts write-ci
+        run: bun run ./scripts/operations/verified-build-artifact.ts write-ci
 
       - name: Upload verified compatibility bundle
         if: steps.scope.outputs.mode == 'full'
