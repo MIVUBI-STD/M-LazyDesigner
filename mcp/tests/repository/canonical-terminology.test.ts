@@ -20,6 +20,11 @@ describe("canonical architecture terminology", () => {
     expect(manifest).not.toContain("phase?: McpTool");
   });
 
+  test("internal capability manifest never reintroduces phase metadata", async () => {
+    const manifest = await Bun.file("lib/capabilities/manifest.ts").text();
+    expect(manifest).not.toMatch(/\bphase\?:\s*McpTool/);
+  });
+
   test("canonical vocabulary remains the single terminology owner", async () => {
     const vocabulary = await Bun.file("../docs/04-system/canonical-vocabulary.md").text();
     expect(vocabulary).toContain("one concept → one canonical term");
