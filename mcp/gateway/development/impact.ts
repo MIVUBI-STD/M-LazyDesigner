@@ -1,5 +1,5 @@
 import type { ControlSourceOwner } from "../control/types";
-import { anchorTestForSourceOwner } from "../control/sourceOwners";
+import { anchorTestForSourceOwner } from "./sourceOwners";
 import type { CapabilityBranchManifestEntry } from "../capabilities/manifest";
 
 export type SemanticImpactReason =
