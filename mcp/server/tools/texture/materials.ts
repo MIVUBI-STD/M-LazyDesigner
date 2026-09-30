@@ -21,7 +21,7 @@ export {
   listMaterialsParameters,
   saveMaterialConfigParameters,
 } from "./materialSchema";
-import { resolveCoreTexture } from "@/lib/coreIdentity";
+import { resolveCoreTexture } from "@/lib/core/identity";
 import {
   planExclusivePbrMaterialAssignment,
   planPbrMaterialConfiguration,
@@ -29,7 +29,7 @@ import {
   type PbrMaterialChannel,
   type PbrMaterialChannelRequest,
   type PbrMaterialTextureState,
-} from "@/lib/pbrMaterialMembership";
+} from "@/lib/texture/pbrMaterialMembership";
 import {
   applyPbrMembershipChanges,
   materialContinuationState,
@@ -47,7 +47,7 @@ import {
 import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentCapabilitySemanticHistoryEffectIfAdvanced,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 import {
   hasExactTextureGroupNameCollision,
   importedTextureGroupName,

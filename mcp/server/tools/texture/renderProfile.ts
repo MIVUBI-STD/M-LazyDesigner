@@ -6,7 +6,7 @@ import { isAbsoluteFilesystemPath } from "@/lib/core/path";
 import {
   parseClientEntityDocument,
   serializeClientEntityDocument,
-} from "@/lib/bedrockParticleBinding";
+} from "@/lib/particle/binding";
 import {
   applyClientEntityRenderProfile,
   applyRenderControllerMaterialAssignment,
@@ -15,8 +15,8 @@ import {
   parseRenderControllerDocument,
   removeRenderControllerMaterialAssignment,
   serializeRenderControllerDocument,
-} from "@/lib/bedrockEntityRenderProfileBinding";
-import { ENTITY_RENDER_PROFILE_NAMES } from "@/lib/textureRenderProfile";
+} from "@/lib/texture/renderProfileBinding";
+import { ENTITY_RENDER_PROFILE_NAMES } from "@/lib/texture/renderProfile";
 
 const jsonPathSchema = z
   .string()

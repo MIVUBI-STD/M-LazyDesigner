@@ -3,7 +3,7 @@
 import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentSemanticHistoryEffect,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import {

@@ -4,8 +4,8 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { setBarItemValues } from "@/lib/blockbench/barItems";
-import { generateTexturePalette, texturePaletteParameters } from "@/lib/texturePalette";
-import { resolveCoreTexture } from "@/lib/coreIdentity";
+import { generateTexturePalette, texturePaletteParameters } from "@/lib/texture/palette";
+import { resolveCoreTexture } from "@/lib/core/identity";
 import { axisEnum, brushModifierEnum, coordinateSchema } from "@/lib/zodObjects";
 import { getRuntimePainter } from "./shared";
 

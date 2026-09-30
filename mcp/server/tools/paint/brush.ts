@@ -4,10 +4,10 @@ import { z } from "zod";
 import {
   recordCurrentCapabilitySemanticHistoryEffect,
   recordCurrentCapabilitySemanticHistoryEffectIfAdvanced,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { runPaintStroke } from "@/lib/paintStroke";
+import { runPaintStroke } from "@/lib/texture/paintStroke";
 import { setBarItemValues } from "@/lib/blockbench/barItems";
 import {
   getAndActivateTexture,

@@ -1,9 +1,9 @@
 /// <reference types="blockbench-types" />
 
 import { getAllToolDefinitions } from "@/lib/factories";
-import { analyzeAxisAlignedSurfaceEvidence } from "@/lib/geometrySurfaceEvidence";
-import { analyzeUvPhysicalEvidence, type UvPhysicalFaceInput } from "@/lib/uvPhysicalEvidence";
-import { analyzeAnimationCraftEvidence, type AnimationCraftTrackInput } from "@/lib/animationCraftEvidence";
+import { analyzeAxisAlignedSurfaceEvidence } from "@/lib/geometry/surfaceEvidence";
+import { analyzeUvPhysicalEvidence, type UvPhysicalFaceInput } from "@/lib/uv/physicalEvidence";
+import { analyzeAnimationCraftEvidence, type AnimationCraftTrackInput } from "@/lib/animation/craftEvidence";
 
 type JsonRecord = Record<string, unknown>;
 const FACE_KEYS = ["north", "south", "east", "west", "up", "down"] as const;

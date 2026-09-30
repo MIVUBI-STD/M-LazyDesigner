@@ -5,34 +5,34 @@ import {
   hasTextureDiagnosticRegion,
   isTextureDiagnosticBudgetExceeded,
   readTextureDiagnosticRegion,
-} from "@/lib/textureDiagnosticReadContext";
+} from "@/lib/texture/diagnosticReadContext";
 
 import { getAllToolDefinitions } from "@/lib/factories";
-import { analyzeGeometryHygiene } from "@/lib/geometryQuality";
-import { analyzeTextureColorProfile } from "@/lib/textureColorProfile";
-import { analyzeTexturePixelCraft } from "@/lib/texturePixelCraft";
+import { analyzeGeometryHygiene } from "@/lib/geometry/quality";
+import { analyzeTextureColorProfile } from "@/lib/texture/colorProfile";
+import { analyzeTexturePixelCraft } from "@/lib/texture/pixelCraft";
 import {
   analyzeRootMotionTracks,
   type RootMotionTrackInput,
-} from "@/lib/rootMotionAnalysis";
+} from "@/lib/animation/rootMotionAnalysis";
 import {
   analyzeRigGraph,
   summarizeSurfaceQualityWarnings,
-} from "@/lib/modelQuality";
+} from "@/lib/geometry/modelQuality";
 import {
   analyzeTextureOptimizationOpportunities,
   type TextureFacePatchInput,
   type TextureScanOmission,
-} from "@/lib/textureOptimization";
+} from "@/lib/texture/optimization";
 import {
   analyzeAnimationQuality,
   type AnimationQualityChannel,
   type AnimationQualityTrackInput,
-} from "@/lib/animationQuality";
+} from "@/lib/animation/quality";
 import {
   analyzeAnimationCraftEvidence,
   type AnimationCraftTrackInput,
-} from "@/lib/animationCraftEvidence";
+} from "@/lib/animation/craftEvidence";
 
 const wiredTools = new Set<string>();
 const CUBE_FACE_KEYS = ["north", "south", "east", "west", "up", "down"] as const;

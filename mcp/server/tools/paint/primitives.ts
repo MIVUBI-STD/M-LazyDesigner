@@ -3,8 +3,8 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { runPaintStroke } from "@/lib/paintStroke";
-import { recordCurrentCapabilitySemanticHistoryEffectIfAdvanced } from "@/lib/semanticHistory";
+import { runPaintStroke } from "@/lib/texture/paintStroke";
+import { recordCurrentCapabilitySemanticHistoryEffectIfAdvanced } from "@/lib/authoring/semanticHistory";
 import { setBarItemValues } from "@/lib/blockbench/barItems";
 import { getAndActivateTexture } from "@/lib/texture/selection";
 import {

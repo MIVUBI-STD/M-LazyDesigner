@@ -1,11 +1,11 @@
 /// <reference types="blockbench-types" />
 
 import { z } from "zod";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
 import { textureGroupReceipt } from "@/lib/receipts/textureGroup";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
-import { resolveCoreCubeOrGroup, resolveCoreTexture } from "@/lib/coreIdentity";
+import { resolveCoreCubeOrGroup, resolveCoreTexture } from "@/lib/core/identity";
 import {
   elementIdSchema,
   textureIdSchema,

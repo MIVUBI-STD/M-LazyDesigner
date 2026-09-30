@@ -1,27 +1,27 @@
 /// <reference types="blockbench-types" />
 
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
-import { bakeNativeCubeAo } from "@/lib/cubeAoRuntime";
+import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
+import { bakeNativeCubeAo } from "@/lib/geometry/cubeAoRuntime";
 import { imageContent } from "@/lib/protocol/imageContent";
 import { resolvePaintTexture } from "@/lib/texture/selection";
 import {
   applyPaintTransactionRgba,
   buildPaintTransactionReceipt,
   paintTransactionParameters,
-} from "@/lib/paintTransaction";
+} from "@/lib/texture/paintTransaction";
 import {
   PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
   requirePaintTransactionV1Target,
-} from "@/lib/paintTransactionPolicy";
-import { computeTextureRevision } from "@/lib/textureRevision";
-import { applyTextureComputePipeline } from "@/lib/textureComputePipeline";
-import { parseTextureComputeRequest } from "@/lib/textureComputeRequest";
+} from "@/lib/texture/paintTransactionPolicy";
+import { computeTextureRevision } from "@/lib/texture/revision";
+import { applyTextureComputePipeline } from "@/lib/texture/computePipeline";
+import { parseTextureComputeRequest } from "@/lib/texture/computeRequest";
 import {
   cropRgbaRect,
   fullTextureRgba,
   rgbaToPngDataUrl,
-} from "@/lib/textureBitmapRuntime";
+} from "@/lib/texture/bitmapRuntime";
 
 export const paintTextureTransactionToolDocs: ToolSpec = {
   name: PAINT_TEXTURE_TRANSACTION_TOOL_NAME,
@@ -392,4 +392,3 @@ export function registerPaintTextureTransactionTool(): void {
     paintTextureTransactionToolDocs.status
   );
 }
-
