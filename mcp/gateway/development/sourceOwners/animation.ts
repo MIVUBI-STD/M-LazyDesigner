@@ -1,7 +1,7 @@
-import type { ControlSourceOwner } from "../../control/types";
-import { ANIMATION_PATH } from "../../control/contexts";
+import type { DevelopmentSourceOwner } from "../types";
+import { ANIMATION_PATH } from "../../context/authoring";
 
-export const ANIMATION_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
+export const ANIMATION_SOURCE_OWNERS: Record<string, DevelopmentSourceOwner> = {
   create_animation: {
     source: "mcp/server/tools/animation/create.ts",
     specialist: ANIMATION_PATH,
