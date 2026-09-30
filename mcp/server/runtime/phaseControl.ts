@@ -13,7 +13,7 @@ import {
   ANIMATION_HANDOFF_READINESS_RULE,
   animationHandoffReadinessSchema,
   summarizeAnimationHandoffReadiness,
-} from "@/lib/authoringReadiness";
+} from "@/lib/authoring/authoringReadiness";
 
 let phaseSwitchHandler:
   | ((phase: McpAuthoringPhase) => void)
