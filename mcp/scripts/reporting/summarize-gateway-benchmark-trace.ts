@@ -1,7 +1,7 @@
 import type {
   BenchmarkTraceEvent,
   BenchmarkTraceKind,
-} from "../gateway/runtime/benchmarkTrace";
+} from "../../gateway/runtime/benchmarkTrace";
 
 function parseTrace(text: string): BenchmarkTraceEvent[] {
   const lines = text

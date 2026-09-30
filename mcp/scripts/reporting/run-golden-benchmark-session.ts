@@ -1,14 +1,14 @@
 import { mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import goldenCorpus from "../tests/fixtures/golden-task-cases.json";
+import goldenCorpus from "../../tests/fixtures/golden-task-cases.json";
 import {
   summarizeGatewayBenchmarkTrace,
 } from "./summarize-gateway-benchmark-trace";
 import type {
   GoldenAuthoringDocument,
   GoldenTraceEvent,
-} from "./evaluate-golden-authoring-runs";
-import type { BenchmarkTraceEvent } from "../gateway/runtime/benchmarkTrace";
+} from "../evaluate/evaluate-golden-authoring-runs";
+import type { BenchmarkTraceEvent } from "../../gateway/runtime/benchmarkTrace";
 
 type GoldenTask = (typeof goldenCorpus.tasks)[number];
 

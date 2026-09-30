@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   compareAcceptedGoldenSessions,
   type FinalGoldenSessionReport,
-} from "../scripts/compare-golden-sessions";
+} from "../scripts/reporting/compare-golden-sessions";
 
 function accepted(sha: string, calls: number): FinalGoldenSessionReport {
   return {

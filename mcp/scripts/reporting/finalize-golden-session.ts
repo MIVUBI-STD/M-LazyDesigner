@@ -2,14 +2,14 @@ import {
   summarizeGoldenAuthoringDocument,
   validateGoldenAuthoringDocument,
   type GoldenAuthoringDocument,
-} from "./evaluate-golden-authoring-runs";
+} from "../evaluate/evaluate-golden-authoring-runs";
 import {
   effectiveTotalTokens,
   validateAstraUsageDocument,
   type UsageDocument,
   type UsageRun,
   type Variant,
-} from "./validate-astra-usage";
+} from "../evaluate/validate-astra-usage";
 
 function matchingUsageRun(
   document: UsageDocument,

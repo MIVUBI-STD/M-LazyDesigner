@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   finalizeGoldenSession,
-} from "../scripts/finalize-golden-session";
+} from "../scripts/reporting/finalize-golden-session";
 import type {
   GoldenAuthoringDocument,
 } from "../scripts/evaluate-golden-authoring-runs";
