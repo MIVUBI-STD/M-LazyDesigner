@@ -1,4 +1,5 @@
 import { watch } from "node:fs";
+import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { deployArtifact, resolveDeployTarget } from "./deploy-local";
@@ -76,6 +77,7 @@ async function syncArtifact(target: string): Promise<void> {
 
 async function main(): Promise<void> {
   const target = resolveDeployTarget(Bun.argv.slice(2), process.env);
+  await mkdir(resolve(import.meta.dir, "../../dist"), { recursive: true });
   let syncing: Promise<void> | null = null;
   let pending = false;
 
