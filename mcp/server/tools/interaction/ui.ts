@@ -3,7 +3,7 @@
 import { z } from "zod";
 import type { FormResultValue } from "blockbench-types/generated/interface/form";
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { captureAppScreenshot } from "@/lib/util";
+import { captureAppScreenshot } from "@/lib/blockbench/capture";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { mouseButtonEnum, coordinateSchema } from "@/lib/zodObjects";
 
