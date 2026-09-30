@@ -64,7 +64,7 @@ describe("developer loop", () => {
       "prompts/bedrock_entity_workflow.md",
     ]);
 
-    expect(classifyWatchPath("server/tools/cubes.ts")).toBe("rebuild");
+    expect(classifyWatchPath("server/tools/geometry/cubes.ts")).toBe("rebuild");
     expect(classifyWatchPath("lib/factories.ts")).toBe("rebuild");
     expect(classifyWatchPath("ui/settings.ts")).toBe("rebuild");
     expect(classifyWatchPath("macros/getIcon.ts")).toBe("rebuild");
