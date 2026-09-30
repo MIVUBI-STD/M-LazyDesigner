@@ -242,3 +242,6 @@ Naming:
 - one semantic concept has one canonical name;
 - aliases exist only for compatibility and must be explicitly identified as such;
 - new documentation must extend an existing owner rather than create a parallel owner.
+
+
+Canonical architecture vocabulary: `docs/04-system/terminology.md`.
