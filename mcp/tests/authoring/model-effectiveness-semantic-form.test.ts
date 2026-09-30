@@ -105,7 +105,7 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
 
   test("semantic hardening stays in modelling judgement instead of self-reported MCP fields", async () => {
     const [cubes, profile] = await Promise.all([
-      source("server/tools/cubes.ts"),
+      source("server/tools/geometry/cubes.ts"),
       source("lib/registrationProfile.ts"),
     ]);
     const start = cubes.indexOf("export const placeCubeParameters");
