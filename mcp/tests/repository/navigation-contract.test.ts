@@ -86,6 +86,31 @@ describe("repository navigation contract", () => {
     expect(invalid).toEqual([]);
   });
 
+  test("migrated script domains cannot drift back to the scripts root", async () => {
+    const rootFiles = (await readdir("scripts", { withFileTypes: true }))
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name);
+
+    const developmentRootFiles = new Set([
+      "analyze-semantic-impact.ts",
+      "build-development-symbol-map.ts",
+      "build-knowledge-index.ts",
+      "plan-affected-execution.ts",
+      "plan-development-context.ts",
+      "plan-semantic-invalidation.ts",
+      "run-affected-execution.ts",
+      "snapshot-semantic-registry.ts",
+    ]);
+
+    expect(
+      rootFiles.filter(
+        (name) =>
+          developmentRootFiles.has(name) ||
+          name.startsWith("measure-")
+      )
+    ).toEqual([]);
+  });
+
   test("generated MCP docs declare their non-canonical role", async () => {
     const readme = await Bun.file("docs/README.md").text();
     expect(readme).toContain("not");
