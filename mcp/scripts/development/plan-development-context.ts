@@ -12,7 +12,7 @@ import {
   authoringDomainForCapability,
   listExplicitSourceOwners,
 } from "../../gateway/control/sourceOwners";
-import { resolveDevelopmentIntent } from "../../gateway/control/developmentIntent";
+import { resolveDevelopmentIntent } from "../../gateway/development/intent";
 import {
   buildDevelopmentSymbolMap,
   DEVELOPMENT_SYMBOL_MAP_PROXY_BYTES,
