@@ -5,6 +5,7 @@ const ALLOWED_TOP_LEVEL_DIRECTORIES = [
   ".agents",
   ".github",
   "apps",
+  "distribution",
   "docs",
   "experiments",
   "mcp",
