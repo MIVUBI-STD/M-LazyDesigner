@@ -2,7 +2,7 @@ import { copyFile, rename, rm, stat } from "node:fs/promises";
 import { basename, dirname, isAbsolute, resolve } from "node:path";
 
 const EXPECTED_PLUGIN_FILENAME = "blockit_mcp.js";
-const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../dist/blockit_mcp.js");
+const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../../dist/blockit_mcp.js");
 
 export function resolveDeployTarget(
   args: string[],
@@ -113,11 +113,11 @@ async function main(): Promise<void> {
   const target = resolveDeployTarget(Bun.argv.slice(2));
   const receipt = await deployArtifact(DEFAULT_ARTIFACT_PATH, target);
 
-  console.log("BlockIT local plugin deployed.");
+  console.log("LazyDesigner local plugin deployed.");
   console.log(`target: ${receipt.target}`);
   console.log(`build_identity: ${receipt.build_identity}`);
   console.log(
-    "Reload Blockbench/BlockIT, reconnect, then run the relevant live verifier. Its shared preflight owns freshness/runtime checks; use verify:stateless-local only for diagnosis when that preflight fails."
+    "Reload Blockbench/LazyDesigner, reconnect, then run the relevant live verifier. Its shared preflight owns freshness/runtime checks; use verify:stateless-local only for diagnosis when that preflight fails."
   );
 }
 
