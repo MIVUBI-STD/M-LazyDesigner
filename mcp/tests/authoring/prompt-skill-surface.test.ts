@@ -20,7 +20,7 @@ describe("Bedrock prompt and skill surface", () => {
       source("prompts/bedrock_entity_workflow.md"),
       source("prompts/manifest.json"),
       source("build/generate-manifest.ts"),
-      source("lib/promptLoader.ts"),
+      source("lib/prompts/loader.ts"),
     ]);
     const manifest = JSON.parse(manifestText) as {
       version: string;
@@ -53,7 +53,7 @@ describe("Bedrock prompt and skill surface", () => {
     ).toThrow("missing section(s)");
 
     const [loader, dialog, prompts] = await Promise.all([
-      source("lib/promptLoader.ts"),
+      source("lib/prompts/loader.ts"),
       source("ui/promptOverrideDialog.ts"),
       source("server/prompts.ts"),
     ]);
@@ -131,7 +131,7 @@ describe("Bedrock prompt and skill surface", () => {
 
   test("product-facing README uses LazyDesigner while compatibility bundle identity remains explicit", async () => {
     const [identity, readme] = await Promise.all([
-      source("lib/productIdentity.ts"),
+      source("lib/product/productIdentity.ts"),
       source("README.md"),
     ]);
     expect(identity).toContain('PRODUCT_NAME = "LazyDesigner — Bedrock Entity MCP"');
