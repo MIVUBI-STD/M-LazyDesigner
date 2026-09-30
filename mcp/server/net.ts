@@ -17,7 +17,7 @@ import { createProductIdentity } from '@/lib/product/productIdentity'
 import {
   getActiveMcpAuthoringPhase,
   type McpAuthoringPhase
-} from '@/lib/authoringPhase'
+} from '@/lib/capabilities/authoringPhase'
 import {
   getActiveMcpRegistrationProfile,
   getMcpSurfaceToolNames,
