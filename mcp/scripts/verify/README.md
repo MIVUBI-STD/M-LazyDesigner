@@ -19,3 +19,5 @@ verify-astra-usage-ready.ts
 ```
 
 Live verifiers prove installed/runtime behavior only when actually executed against the matching build. Repository/source structure alone must not be treated as live proof.
+
+`verify-generated-artifacts-fresh.ts` checks generator-owned docs, prompt manifest, and generated Hybrid-4 schema freshness without making those outputs authoritative over source.
