@@ -1,7 +1,7 @@
 import type { GatewayRuntimeStatus } from "../runtime/backend";
 import type { JsonRecord } from "../contracts/protocol";
 import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS, type CapabilitySemanticCatalogRevisions } from "../capabilities/semanticRegistry";
-import { evaluateSemanticConsumerFreshness } from "../development/semanticFreshness";
+import { evaluateSemanticConsumerFreshness } from "../capabilities/semanticFreshness";
 
 function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
