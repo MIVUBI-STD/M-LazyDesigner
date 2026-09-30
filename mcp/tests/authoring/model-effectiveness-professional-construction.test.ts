@@ -191,7 +191,7 @@ describe("model creation effectiveness — professional construction without pre
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
       source("../docs/03-authoring/animation/standard.md"),
-      source("server/tools/animation-rigging.ts"),
+      source("server/tools/animation/rigging.ts"),
       source("server/runtime/consolidatedTools.ts"),
     ]);
 
@@ -219,7 +219,7 @@ describe("model creation effectiveness — professional construction without pre
   test("professional samples never become callable presets, profiles, or fixture anatomy", async () => {
     const [profile, cubes, element, modelling, workflow] = await Promise.all([
       source("lib/registrationProfile.ts"),
-      source("server/tools/cubes.ts"),
+      source("server/tools/geometry/cubes.ts"),
       source("server/tools/element.ts"),
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
