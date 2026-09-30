@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 describe("Gateway hot-path benchmark boundary", () => {
   test("benchmark does not change the production four-tool client surface", async () => {
     const protocol = await Bun.file("gateway/protocol.ts").text();
-    const benchmark = await Bun.file("scripts/benchmark-gateway-hot-path.ts").text();
+    const benchmark = await Bun.file("scripts/benchmark/benchmark-gateway-hot-path.ts").text();
 
     expect(protocol).toContain('status: "status"');
     expect(protocol).toContain('searchCapabilities: "search_capabilities"');
@@ -33,7 +33,8 @@ describe("Gateway hot-path benchmark boundary", () => {
     expect(profile).toContain('proof_status: "EXPERIMENTAL_REGISTERABLE"');
     const registration = await Bun.file("gateway/experimental/hybridRegistration.ts").text();
     expect(gatewayIndex).toContain("resolveGatewaySurfaceProfile");
-    expect(gatewayIndex).toContain("registerExperimentalHybrid4");
+    expect(gatewayIndex).toContain("await import(\"./experimental/hybridRegistration\")");
+    expect(gatewayIndex).not.toContain('from "./experimental/hybridRegistration"');
     expect(registration).toContain("fromJsonSchema");
     expect(registration).not.toContain("../server/");
     expect(profile).toContain('DEFAULT_GATEWAY_SURFACE_PROFILE: GatewaySurfaceProfile =\n  "stable_four"');
