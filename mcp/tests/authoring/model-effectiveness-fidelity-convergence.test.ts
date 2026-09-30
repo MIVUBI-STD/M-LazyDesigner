@@ -49,7 +49,7 @@ describe("model creation effectiveness — fidelity convergence and evaluation i
   test("fidelity hardening adds no scorer, planner, runtime profile, or fixture-specific law", async () => {
     const [profile, cubes, modelling, workflow] = await Promise.all([
       source("lib/registrationProfile.ts"),
-      source("server/tools/cubes.ts"),
+      source("server/tools/geometry/cubes.ts"),
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
