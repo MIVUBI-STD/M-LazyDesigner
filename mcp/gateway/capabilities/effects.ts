@@ -6,7 +6,7 @@ import {
   normalizeAuthoringPhaseAffinity,
   type BlockitAuthoringPhaseAffinity,
 } from "../../lib/runtime/affinity";
-import type { JsonRecord } from "../protocol";
+import type { JsonRecord } from "../contracts/protocol";
 import {
   createProjectReceiptSchema,
   phaseTransitionReceiptSchema,
