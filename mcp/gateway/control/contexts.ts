@@ -7,10 +7,16 @@ import {
   type SemanticDependencyOwner,
 } from "../development/semanticDependencies";
 import type { ControlProfile } from "./referencePackage";
-
-export const MODELLING_PATH = ".agents/skills/lazydesigner-modelling/SKILL.md";
-export const TEXTURING_PATH = ".agents/skills/lazydesigner-texturing/SKILL.md";
-export const ANIMATION_PATH = ".agents/skills/lazydesigner-animation/SKILL.md";
+import {
+  ANIMATION_PATH,
+  MODELLING_PATH,
+  TEXTURING_PATH,
+} from "../context/authoring";
+export {
+  ANIMATION_PATH,
+  MODELLING_PATH,
+  TEXTURING_PATH,
+} from "../context/authoring";
 
 export const PROFILE_PATHS: Record<ControlProfile, string> = {
   PROP_FURNITURE: "docs/03-authoring/modelling/profiles/prop-furniture.md",
