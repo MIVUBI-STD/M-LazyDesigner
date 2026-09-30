@@ -1,10 +1,10 @@
-import type { BlockitRuntimeBackend } from "../backend";
-import type { JsonRecord } from "../protocol";
+import type { BlockitRuntimeBackend } from "./backend";
+import type { JsonRecord } from "../contracts/protocol";
 import {
   compactGatewayCapabilityContent,
   compactGatewayCapabilityStructuredContent,
   shouldAttachGatewayControlDelta,
-} from "../resultCompaction";
+} from "../presentation/resultCompaction";
 import {
   buildControlDelta,
   projectControlDeltaForGateway,
