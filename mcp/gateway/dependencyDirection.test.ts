@@ -194,6 +194,56 @@ describe("Gateway dependency direction", () => {
     expect(violations).toEqual([]);
   });
 
+  test("Development Intelligence cannot depend on Control", async () => {
+    const files = await sourceFiles(join(ROOT, "development"));
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const targetRel = relative(
+          ROOT,
+          resolveRelative(file, request)
+        ).replace(/\\/g, "/");
+        if (targetRel.startsWith("control/")) {
+          violations.push(
+            `${relative(ROOT, file).replace(/\\/g, "/")} -> ${request}`
+          );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  test("neutral Gateway context does not depend on Control or Development", async () => {
+    const contextDir = join(ROOT, "context");
+    const files = await sourceFiles(contextDir);
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const targetRel = relative(
+          ROOT,
+          resolveRelative(file, request)
+        ).replace(/\\/g, "/");
+        if (
+          targetRel.startsWith("control/") ||
+          targetRel.startsWith("development/")
+        ) {
+          violations.push(
+            `${relative(ROOT, file).replace(/\\/g, "/")} -> ${request}`
+          );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   test("providers remain leaf integrations, not runtime/control orchestrators", async () => {
     const files = (await sourceFiles(join(ROOT, "providers")));
     const violations: string[] = [];
