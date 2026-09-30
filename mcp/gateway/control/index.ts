@@ -40,6 +40,8 @@ export type {
 } from "./orchestration";
 export { resolveDevelopmentIntent } from "../development/intent";
 export type {
+  DevelopmentDomain,
+  DevelopmentResolution,
   ControlDevelopmentDomain,
   ControlDevelopmentResolution,
 } from "../development/intent";
