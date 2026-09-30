@@ -62,7 +62,7 @@ describe("LazyDesigner Control active contract", () => {
 
     expect(capability.control.authoring_domain).toBe("GEOMETRY");
     expect(capability.control.current_domain).toBe(true);
-    expect(capability.control.source_owner.source).toBe("mcp/server/tools/cubes.ts");
+    expect(capability.control.source_owner.source).toBe("mcp/server/tools/geometry/cubes.ts");
     expect(capability.control).not.toHaveProperty("owner");
     expect(capability.control).not.toHaveProperty("current_owner");
 
