@@ -1,7 +1,7 @@
-import type { ControlSourceOwner } from "../../control/types";
-import { MODELLING_PATH } from "../../control/contexts";
+import type { DevelopmentSourceOwner } from "../types";
+import { MODELLING_PATH } from "../../context/authoring";
 
-export const CORE_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
+export const CORE_SOURCE_OWNERS: Record<string, DevelopmentSourceOwner> = {
   create_project: {
     source: "mcp/server/tools/project/project.ts",
     specialist: null,
