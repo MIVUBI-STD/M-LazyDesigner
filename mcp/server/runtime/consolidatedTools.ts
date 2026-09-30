@@ -12,7 +12,7 @@ import {
   findElementsByCriteriaParameters,
   listOutlineParameters,
 } from "../tools/element";
-import { inspectElementParameters } from "../tools/element-inspection";
+import { inspectElementParameters } from "../tools/element/inspection";
 import {
   assignTextureChannelParameters,
   configureMaterialParameters,
@@ -25,7 +25,7 @@ import {
   getFaceMaterialInstancesParametersSchema,
   listMaterialInstancesParametersSchema,
   setFaceMaterialInstanceParametersSchema,
-} from "../tools/material-instances";
+} from "../tools/texture/materialInstances";
 import {
   getConsolidatedExecutor,
   getConsolidatedExecutors,
