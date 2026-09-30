@@ -33,7 +33,7 @@ separate ANIMATION surface. Canonical Control source is
 | --- | --- | --- |
 | Repository policy / ownership | `Repository Verify` / `verify:repository` | exact-SHA GitHub Actions |
 | Executable MCP source | `MCP Verify` | exact-SHA GitHub Actions |
-| Typecheck / Runtime regressions | `MCP Verify` / `verify:remote` | exact-SHA GitHub Actions |
+| Typecheck / Runtime regressions | `MCP Verify` / `verify:full` | exact-SHA GitHub Actions |
 | Build + provenance artifact | full `MCP Verify` | exact-SHA workflow + artifact provenance |
 | Local executable checkout | `LOCAL_CODE` runbook | matching local execution evidence |
 | Installed/native Blockbench behavior | `LIVE_BLOCKBENCH` runbook | matching live execution evidence |
@@ -53,14 +53,14 @@ push
 → exact-SHA check
 → affected planner
 → bounded verification when ownership is sufficient
-→ fail wide to verify:remote when bounded proof is insufficient
+→ fail wide to verify:full when bounded proof is insufficient
 
 workflow_dispatch / non-push
 → exact-SHA check
-→ verify:remote
+→ verify:full
 ```
 
-`verify:remote` aliases `verify:full` and intentionally excludes `*:live`
+`verify:full` aliases `verify:full` and intentionally excludes `*:live`
 gates. A green source workflow is remote/static execution proof only; it is not
 installed Runtime, native Blockbench, persistence, playback, or visual proof.
 
