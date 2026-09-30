@@ -16,11 +16,11 @@ from the exact current `Local` SHA and its GitHub Actions/check results:
 Local push
 → exact-SHA proof
 → affected verification when safe
-→ full verify:remote when bounded proof is insufficient
+→ full verify:full when bounded proof is insufficient
 
 manual/non-push
 → exact-SHA proof
-→ full verify:remote
+→ full verify:full
 ```
 
 Do not claim typecheck, Runtime/Gateway tests, build, remote acceptance,
