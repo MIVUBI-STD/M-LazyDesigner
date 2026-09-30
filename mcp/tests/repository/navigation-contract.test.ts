@@ -2,10 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 
 const MCP_TOP_LEVEL_DIRECTORIES = [
-  "benchmarks",
   "build",
   "compatibility",
-  "distribution",
   "docs",
   "gateway",
   "lib",
