@@ -29,7 +29,7 @@ import {
 import { semanticDerivedArtifactStamp } from "../development/semanticArtifact";
 import { capabilitySemanticId } from "../../lib/semantic/identity";
 import { getCapabilityMetadata } from "../../lib/capabilities/metadata";
-import type { GatewaySurfaceProfile } from "../experimental/hybridProfile";
+import type { GatewaySurfaceProfile } from "../surface/profile";
 import type { GatewaySessionState } from "../session/state";
 import {
   gatewayErrorResult,
