@@ -5,31 +5,31 @@ import {
 } from "@/lib/receipts/authorityTransition";
 import { createTool } from "@/lib/factories";
 import {
-  getActiveMcpAuthoringPhase,
+  getActiveMcpAuthoringStage,
   getMcpRuntimeSurface,
-  type McpAuthoringPhase,
-} from "@/lib/capabilities/authoringPhase";
+  type McpAuthoringStage,
+} from "@/lib/capabilities/authoringStage";
 import {
   ANIMATION_HANDOFF_READINESS_RULE,
   animationHandoffReadinessSchema,
   summarizeAnimationHandoffReadiness,
 } from "@/lib/authoring/authoringReadiness";
 
-let phaseSwitchHandler:
+let stageSwitchHandler:
   | ((phase: McpAuthoringPhase) => void)
   | undefined;
 
-export function setMcpPhaseSwitchHandler(
+export function setMcpStageSwitchHandler(
   handler: (phase: McpAuthoringPhase) => void
 ): void {
-  phaseSwitchHandler = handler;
+  stageSwitchHandler = handler;
 }
 
-export function requestMcpPhaseSwitch(phase: McpAuthoringPhase): void {
-  if (!phaseSwitchHandler) {
+export function requestMcpStageSwitch(phase: McpAuthoringPhase): void {
+  if (!stageSwitchHandler) {
     throw new Error("Runtime Stage/Surface switching is unavailable; reload LazyDesigner.");
   }
-  phaseSwitchHandler(phase);
+  stageSwitchHandler(stage);
 }
 
 export const phaseControlOutputSchema = phaseTransitionReceiptSchema;
@@ -58,11 +58,11 @@ export function registerPhaseControlTool(): void {
       ...phaseControlToolDocs,
       outputSchema: phaseControlOutputSchema,
       async execute({ target_phase, reason, resume_from, readiness }) {
-        if (!phaseSwitchHandler) {
+        if (!stageSwitchHandler) {
           throw new Error("Runtime Stage/Surface switching is unavailable; reload LazyDesigner.");
         }
         const previousPhase = getActiveMcpAuthoringPhase();
-        const previousSurface = getMcpRuntimeSurface(previousPhase);
+        const previousSurface = getMcpRuntimeSurface(previousStage);
         const targetSurface = getMcpRuntimeSurface(target_phase);
         const surfaceChanged = previousSurface !== targetSurface;
         const readinessSummary = readiness
@@ -72,7 +72,7 @@ export function registerPhaseControlTool(): void {
         // Apply the canonical Runtime surface/focus before returning the handoff
         // receipt. Gateway affinity follows this result; it does not own Runtime
         // tool exposure itself.
-        requestMcpPhaseSwitch(target_phase);
+        requestMcpStageSwitch(target_phase);
 
         return {
           content: [
@@ -101,3 +101,8 @@ export function registerPhaseControlTool(): void {
     true
   );
 }
+
+
+// Compatibility aliases for the serialized/public phase terminology.
+export const setMcpPhaseSwitchHandler = setMcpStageSwitchHandler;
+export const requestMcpPhaseSwitch = requestMcpStageSwitch;
