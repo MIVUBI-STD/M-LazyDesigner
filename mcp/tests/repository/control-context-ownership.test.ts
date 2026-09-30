@@ -72,8 +72,8 @@ describe("Control context ownership", () => {
     expect(modelling).toContain("current Reference Package");
     expect(projectionDoc).toContain("Control does not independently classify the asset");
   });
-  test("fallback source ownership points to the canonical Runtime surface owner", async () => {
-    const sourceOwners = await source("gateway/control/sourceOwners.ts");
+  test("development fallback source ownership points to the canonical Runtime surface owner", async () => {
+    const sourceOwners = await source("gateway/development/sourceOwners.ts");
 
     expect(sourceOwners).toContain('source: "mcp/server/runtime/registration.ts"');
     expect(sourceOwners).not.toContain('source: "mcp/server/tools.ts"');
