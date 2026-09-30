@@ -1,6 +1,6 @@
 # LazyDesigner Implementation Map
 
-Updated: 2026-09-18
+Updated: 2026-09-30
 
 This file maps **current source ownership only**. Product workflow belongs in `docs/01-product/flow.md`; AI context loading in `docs/04-system/ai-context-loading.md`; continuation/proof in `docs/05-operations/`.
 
@@ -93,18 +93,20 @@ invoke_capability
 Owners:
 
 ```text
-mcp/gateway/index.ts              stable public boundary + Control wiring
-mcp/gateway/backend.ts            Runtime adapter/catalog/queue/project affinity
-mcp/gateway/connectionManager.ts  demand-driven Runtime connection lifecycle
-mcp/gateway/runtimeSession.ts     Runtime session/generation counters
-mcp/gateway/reconnectPolicy.ts    bounded reconnect backoff
-mcp/gateway/contract.ts           capability/search/result public projections
-mcp/gateway/capabilityEffects.ts  declarative effect application
-mcp/gateway/controlReceipt.ts     project/phase receipt derivation
-mcp/gateway/recovery.ts           structured recovery semantics
-mcp/gateway/presentation/statusProjection.ts   normalized public status
-mcp/gateway/localCapabilities.ts  bounded read-only local provider registry
-mcp/gateway/projectAffinity.ts    project/phase affinity headers/contracts
+mcp/gateway/index.ts                         stable public boundary + Control wiring
+mcp/gateway/runtime/backend.ts               Runtime adapter/catalog/queue/project affinity
+mcp/gateway/runtime/connectionManager.ts     demand-driven Runtime connection lifecycle
+mcp/gateway/runtime/runtimeSession.ts        Runtime session/generation counters
+mcp/gateway/runtime/reconnectPolicy.ts       bounded reconnect backoff
+mcp/gateway/contracts/protocol.ts            stable Gateway protocol/base types
+mcp/gateway/contracts/outputSchemas.ts       public output validation contracts
+mcp/gateway/capabilities/effects.ts          declarative capability effect application
+mcp/gateway/control/receipt.ts               project/phase receipt derivation
+mcp/gateway/runtime/recovery.ts              structured recovery semantics
+mcp/gateway/presentation/statusProjection.ts normalized public status
+mcp/gateway/presentation/resultCompaction.ts result/receipt compaction
+mcp/gateway/providers/registry.ts            bounded Gateway-local provider registry
+mcp/gateway/runtime/projectAffinity.ts       project/phase affinity headers/contracts
 ```
 
 Gateway owns client stability and Runtime recovery. It does not own Blockbench mutation implementations or authoring workflow reasoning.
@@ -244,7 +246,7 @@ Representative focused owners:
 
 ```text
 manage_locator / manage_null_object
-→ mcp/server/tools/locators.ts
+→ mcp/server/tools/geometry/locators.ts
 
 manage_material_instances
 → material instances owner under mcp/server/tools/**
@@ -331,8 +333,8 @@ It does **not** mean replacing several implementations with a weaker generic imp
 ```text
 quality intelligence
 → bounded diagnostic evidence only
-→ `server/tools/quality-intelligence.ts`: hygiene / rig graph / color / optimization / root-motion / animation-quality diagnostics
-→ `server/tools/quality-evidence-runtime.ts`: deterministic surface-integrity / physical-UV / motion-craft evidence
+→ `server/tools/validation/qualityIntelligence.ts`: hygiene / rig graph / color / optimization / root-motion / animation-quality diagnostics
+→ `server/tools/validation/qualityEvidenceRuntime.ts`: deterministic surface-integrity / physical-UV / motion-craft evidence
 → both augment existing canonical read tools through the ordered `server/runtime/extensions.ts` pipeline
 → neither creates a second public capability catalog, approval system, or quality score
 
