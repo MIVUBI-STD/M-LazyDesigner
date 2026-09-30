@@ -13,7 +13,7 @@ function delta(
     capability: "manage_cubes",
     authoring_domain: "GEOMETRY",
     source_owner: {
-      source: "mcp/server/tools/cubes.ts",
+      source: "mcp/server/tools/geometry/cubes.ts",
       specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
       anchor_test: null,
     },
