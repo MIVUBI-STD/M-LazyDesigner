@@ -13,7 +13,7 @@ import {
 } from "@/lib/authoring/elementSemanticScopes";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { elementIdSchema } from "@/lib/zodObjects";
+import { elementIdSchema } from "@/lib/schemas/ids";
 import { requireOpenProject } from "@/lib/core/project";
 import { planGroupRename, applyGroupRename, type RenameAnimation } from "@/lib/geometry/batchGroupRename";
 import {

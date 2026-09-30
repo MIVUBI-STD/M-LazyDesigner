@@ -6,7 +6,8 @@ import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { setBarItemValues } from "@/lib/blockbench/barItems";
 import { generateTexturePalette, texturePaletteParameters } from "@/lib/texture/palette";
 import { resolveCoreTexture } from "@/lib/core/identity";
-import { axisEnum, brushModifierEnum, coordinateSchema } from "@/lib/zodObjects";
+import { axisEnum, coordinateSchema } from "@/lib/schemas/common";
+import { brushModifierEnum } from "@/lib/schemas/texture";
 import { getRuntimePainter } from "./shared";
 
 export const paintSettingsParameters = z.object({

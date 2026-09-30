@@ -5,7 +5,8 @@ import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/se
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { resolveCoreCube } from "@/lib/core/identity";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
-import { faceEnum, cubeIdOptionalSchema, cubeIdSchema } from "@/lib/zodObjects";
+import { faceEnum } from "@/lib/schemas/geometry";
+import { cubeIdOptionalSchema, cubeIdSchema } from "@/lib/schemas/ids";
 import { materialInstanceMutationReceipt } from "@/lib/receipts/materialInstances";
 
 // ============================================================================

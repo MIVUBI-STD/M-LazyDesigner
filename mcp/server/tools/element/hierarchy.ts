@@ -10,7 +10,7 @@ import {
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreGroup } from "@/lib/core/identity";
-import { elementIdSchema } from "@/lib/zodObjects";
+import { elementIdSchema } from "@/lib/schemas/ids";
 import { requireOpenProject } from "@/lib/core/project";
 import {
   assertBatchGroupNamesAvailable,

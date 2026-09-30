@@ -5,7 +5,7 @@ import type { FormResultValue } from "blockbench-types/generated/interface/form"
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { captureAppScreenshot } from "@/lib/blockbench/capture";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { mouseButtonEnum, coordinateSchema } from "@/lib/zodObjects";
+import { mouseButtonEnum, coordinateSchema } from "@/lib/schemas/common";
 
 // ============================================================================
 // UI Tool Parameter Schemas

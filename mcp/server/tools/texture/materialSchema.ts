@@ -1,9 +1,7 @@
 import { z } from "zod";
-import { isAbsoluteFilesystemPath } from "@/lib/util";
-import {
-  pbrChannelEnum,
-  textureIdSchema,
-} from "@/lib/zodObjects";
+import { isAbsoluteFilesystemPath } from "@/lib/core/path";
+import { pbrChannelEnum } from "@/lib/schemas/texture";
+import { textureIdSchema } from "@/lib/schemas/ids";
 
 export const createPbrMaterialParameters = z.object({
   name: z.string().min(1).describe("Non-empty material name."),
@@ -189,4 +187,3 @@ export const saveMaterialConfigParameters = z.object({
       "Material/texture group target to save; UUID preferred, exact name only when unique."
     ),
 });
-

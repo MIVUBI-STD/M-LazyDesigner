@@ -1,4 +1,4 @@
-import { getChannelTextureInfo } from "@/lib/util";
+import { getChannelTextureInfo } from "@/lib/texture/selection";
 
 export function resolveTextureToolMaterial(reference: string): TextureGroup {
   const uuidMatch = TextureGroup.all.find(

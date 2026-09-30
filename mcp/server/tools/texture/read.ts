@@ -5,7 +5,7 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreTexture } from "@/lib/core/identity";
 import { imageContent } from "@/lib/protocol/imageContent";
-import { textureIdOptionalSchema } from "@/lib/zodObjects";
+import { textureIdOptionalSchema } from "@/lib/schemas/ids";
 import {
   buildUvAtlasAudit,
   collectUvAtlasUsages,
