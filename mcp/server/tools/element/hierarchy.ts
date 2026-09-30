@@ -11,7 +11,7 @@ import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { resolveCoreGroup } from "@/lib/coreIdentity";
 import { elementIdSchema } from "@/lib/zodObjects";
-import { requireOpenProject } from "@/lib/util";
+import { requireOpenProject } from "@/lib/core/project";
 import {
   assertBatchGroupNamesAvailable,
   finiteElementVector3Schema,
