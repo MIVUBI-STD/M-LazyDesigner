@@ -15,7 +15,7 @@
 | `runtime/` | Runtime connection, affinity, fetch, and lifecycle primitives |
 | `semantic/` | semantic core and incremental semantic model |
 | `schemas/` | shared domain-oriented Zod schemas |
-| `capabilities/` | canonical Runtime capability metadata, authoring phase, registration profile, and surface manifest |
+| `capabilities/` | canonical Runtime capability metadata, Authoring Stage, registration profile, and surface manifest |
 | `core/` | shared identity and JSON value primitives |
 | `blockbench/` | Blockbench compatibility policy projection |
 | `animation/` | animation-domain helpers |
@@ -59,3 +59,8 @@ Everything with a narrower semantic owner belongs in a canonical subdomain. Comp
 
 
 Compatibility facades `util.ts` and `zodObjects.ts` remain only to avoid broad import churn. New code must import the canonical owner directly.
+
+
+### Factory boundary
+
+`factories.ts` intentionally remains cohesive. Tool, Resource, and Prompt registration share one request-owned MCP registry/cache lifecycle. Splitting it would require an additional shared registry/cache layer without reducing semantic ambiguity. Refactor it only when a concrete independent lifecycle or dependency boundary appears; file size alone is not sufficient reason.
