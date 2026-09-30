@@ -15,13 +15,13 @@
     "noUnusedParameters": true
   },
   "include": [
-    "lib/runtimeFetch.ts",
-    "lib/runtimeConnection.ts",
+    "lib/runtime/fetch.ts",
+    "lib/runtime/connection.ts",
     "lib/capabilityMetadata.ts",
     "lib/capabilities/manifest.ts",
     "lib/authoringPhase.ts",
     "lib/registrationProfile.ts",
-    "lib/runtimeAffinity.ts"
+    "lib/runtime/affinity.ts"
   ],
   "exclude": []
 }
