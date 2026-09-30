@@ -3,7 +3,7 @@ import { GATEWAY_REPLAY_CORPUS } from "../benchmarks/gatewayReplayCorpus";
 import {
   assertGatewayReplayShadow,
   benchmarkGatewayReplayShadow,
-} from "../scripts/benchmark-gateway-replay-shadow";
+} from "../scripts/benchmark/benchmark-gateway-replay-shadow";
 
 describe("Gateway remote replay shadow benchmark", () => {
   test("corpus covers all required remote decision states", () => {

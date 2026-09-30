@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   assertSemanticInvalidationBenchmark,
   benchmarkSemanticInvalidationScope,
-} from "../scripts/benchmark-semantic-invalidation-scope";
+} from "../scripts/benchmark/benchmark-semantic-invalidation-scope";
 
 describe("semantic invalidation scope benchmark", () => {
   test("scoped invalidation avoids broad work for isolated dimension changes", () => {

@@ -225,7 +225,7 @@ function affectsRepositoryContracts(path: string): boolean {
 
 function affectsGatewayHotPathBenchmark(path: string): boolean {
   return (
-    path === "mcp/scripts/benchmark-gateway-hot-path.ts" ||
+    path === "mcp/scripts/benchmark/benchmark-gateway-hot-path.ts" ||
     path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts" ||
     path === "mcp/gateway/experimental/hybridProfile.ts" ||
     path === "mcp/gateway/experimental/hybridRegistration.ts"
@@ -236,7 +236,7 @@ function affectsGatewayReplayShadow(path: string): boolean {
   return (
     path === "mcp/benchmarks/gatewayReplayCorpus.ts" ||
     path === "mcp/gateway/experimental/shadowRouting.ts" ||
-    path === "mcp/scripts/benchmark-gateway-replay-shadow.ts" ||
+    path === "mcp/scripts/benchmark/benchmark-gateway-replay-shadow.ts" ||
     path === "mcp/scripts/evaluate-hybrid-promotion-policy.ts" ||
     path === "mcp/tests/gateway-replay-shadow-benchmark.test.ts" ||
     path === "mcp/tests/hybrid-promotion-policy.test.ts" ||
@@ -257,7 +257,7 @@ function affectsHybrid4ExperimentalContracts(path: string): boolean {
   return (
     path.startsWith("mcp/gateway/experimental/") ||
     path === "mcp/scripts/generate-hybrid4-schemas.ts" ||
-    path === "mcp/scripts/benchmark-gateway-hot-path.ts" ||
+    path === "mcp/scripts/benchmark/benchmark-gateway-hot-path.ts" ||
     path === "mcp/tests/gateway-hot-path-strategy-benchmark.test.ts" ||
     path === "mcp/tests/hybrid4-generated-schema.test.ts" ||
     path === "mcp/tests/hybrid4-precondition-safety.test.ts" ||

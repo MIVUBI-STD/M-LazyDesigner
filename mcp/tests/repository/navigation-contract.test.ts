@@ -20,7 +20,7 @@ const MCP_TOP_LEVEL_DIRECTORIES = [
 
 const TRANSIENT_WORKTREE_DIRECTORIES = new Set(["dist", "node_modules", "coverage"]);
 
-const REQUIRED_SCRIPT_SUBDIRECTORIES = ["development", "measure"] as const;
+const REQUIRED_SCRIPT_SUBDIRECTORIES = ["benchmark", "development", "measure"] as const;
 
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
@@ -28,6 +28,7 @@ const REQUIRED_NAVIGATION_READMES = [
   "server/runtime/README.md",
   "server/tools/README.md",
   "scripts/README.md",
+  "scripts/benchmark/README.md",
   "scripts/development/README.md",
   "scripts/measure/README.md",
   "tests/README.md",
@@ -106,7 +107,8 @@ describe("repository navigation contract", () => {
       rootFiles.filter(
         (name) =>
           developmentRootFiles.has(name) ||
-          name.startsWith("measure-")
+          name.startsWith("measure-") ||
+          name.startsWith("benchmark-")
       )
     ).toEqual([]);
   });

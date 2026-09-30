@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runZeroWasteGoldenBenchmark } from "@/scripts/benchmark-zero-waste-golden";
+import { runZeroWasteGoldenBenchmark } from "@/scripts/benchmark/benchmark-zero-waste-golden";
 
 describe("Zero-Waste Golden projection benchmark", () => {
   test("all golden tasks reduce AI-client payload while preserving decision-critical semantics", () => {

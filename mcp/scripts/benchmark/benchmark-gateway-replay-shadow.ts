@@ -1,8 +1,8 @@
-import { GATEWAY_REPLAY_CORPUS } from "../benchmarks/gatewayReplayCorpus";
+import { GATEWAY_REPLAY_CORPUS } from "../../benchmarks/gatewayReplayCorpus";
 import {
   hybrid4StaticSchemaBytes,
   shadowReplayCase,
-} from "../gateway/experimental/shadowRouting";
+} from "../../gateway/experimental/shadowRouting";
 
 export function benchmarkGatewayReplayShadow() {
   const rows = GATEWAY_REPLAY_CORPUS.map(shadowReplayCase);

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runZeroWasteTotalContextBenchmark } from "@/scripts/benchmark-zero-waste-total-context";
+import { runZeroWasteTotalContextBenchmark } from "@/scripts/benchmark/benchmark-zero-waste-total-context";
 
 let reportPromise: ReturnType<typeof runZeroWasteTotalContextBenchmark> | null = null;
 function report() {

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   assertGatewayHotPathBenchmark,
   benchmarkGatewayHotPathStrategies,
-} from "../scripts/benchmark-gateway-hot-path";
+} from "../scripts/benchmark/benchmark-gateway-hot-path";
 import {
   HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES,
   gatewaySurfaceProjection,

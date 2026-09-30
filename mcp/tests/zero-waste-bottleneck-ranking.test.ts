@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { rankZeroWasteBottlenecks } from "@/scripts/benchmark-zero-waste-bottlenecks";
-import { runZeroWasteWorkflowBenchmark } from "@/scripts/benchmark-zero-waste-workflow";
+import { rankZeroWasteBottlenecks } from "@/scripts/benchmark/benchmark-zero-waste-bottlenecks";
+import { runZeroWasteWorkflowBenchmark } from "@/scripts/benchmark/benchmark-zero-waste-workflow";
 
 describe("Zero-Waste bottleneck ranking", () => {
   test("ranking reconciles exactly with workflow benchmark totals", () => {

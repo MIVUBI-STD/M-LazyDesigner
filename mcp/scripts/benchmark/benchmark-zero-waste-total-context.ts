@@ -1,12 +1,12 @@
-import { measureModelContextFootprint } from "./measure-model-context-footprint";
+import { measureModelContextFootprint } from "../measure/measure-model-context-footprint";
 import { runZeroWasteWorkflowBenchmark } from "./benchmark-zero-waste-workflow";
 import {
   buildControlContinuationCheckpoint,
   buildControlDelta,
   buildControlPacket,
   DEFAULT_CONTROL_HEADROOM_POLICY,
-} from "../gateway/control";
-import type { GatewayRuntimeStatus } from "../gateway/backend";
+} from "../../gateway/control";
+import type { GatewayRuntimeStatus } from "../../gateway/runtime/backend";
 
 function bytes(value: unknown): number {
   return new TextEncoder().encode(JSON.stringify(value)).byteLength;

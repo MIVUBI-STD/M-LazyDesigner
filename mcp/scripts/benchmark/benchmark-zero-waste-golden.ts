@@ -1,12 +1,12 @@
 import {
   compactGatewayCapabilityContent,
   compactGatewayCapabilityStructuredContent,
-} from "../gateway/contract";
+} from "../../gateway/presentation/resultCompaction";
 import {
   buildControlDelta,
   projectControlDeltaForGateway,
-} from "../gateway/control";
-import { projectCapabilityInputSchema } from "../gateway/schemaProjection";
+} from "../../gateway/control";
+import { projectCapabilityInputSchema } from "../../gateway/capabilities/schemaProjection";
 
 export type GoldenTaskResult = {
   task: string;

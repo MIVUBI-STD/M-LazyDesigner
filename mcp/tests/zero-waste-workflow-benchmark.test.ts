@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runZeroWasteWorkflowBenchmark } from "@/scripts/benchmark-zero-waste-workflow";
+import { runZeroWasteWorkflowBenchmark } from "@/scripts/benchmark/benchmark-zero-waste-workflow";
 
 describe("Zero-Waste workflow benchmark", () => {
   test("workflow optimization removes only non-decision calls and preserves quality gates", () => {

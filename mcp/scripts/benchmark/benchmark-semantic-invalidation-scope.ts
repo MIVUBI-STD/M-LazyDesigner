@@ -2,8 +2,8 @@ import {
   SEMANTIC_DEPENDENCY_MATRIX,
   semanticSurfacesAffectedByDimensions,
   type SemanticDependencySurface,
-} from "../gateway/development/semanticDependencyMatrix";
-import type { SemanticRevisionDimension } from "../gateway/capabilities/semanticRegistry";
+} from "../../gateway/development/semanticDependencyMatrix";
+import type { SemanticRevisionDimension } from "../../gateway/capabilities/semanticRegistry";
 
 export type SemanticInvalidationBenchmarkRow = {
   change: string;
