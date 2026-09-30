@@ -99,7 +99,7 @@ describe("texture production discipline", () => {
   });
 
   test("global UV audit is owned by list_textures instead of element inspection", async () => {
-    const textureSource = await source("server/tools/texture-read.ts");
+    const textureSource = await source("server/tools/texture/read.ts");
     const list = textureToolDocs.find((tool) => tool.name === "list_textures");
     expect(list).toBeDefined();
     expect(textureSource).toContain("buildUvAtlasAudit(");
