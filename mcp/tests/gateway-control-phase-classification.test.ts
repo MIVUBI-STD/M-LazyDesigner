@@ -25,7 +25,7 @@ describe("LazyDesigner Control canonical phase classification", () => {
 
   test("Control manifest owns phase projection without duplicate capability sets", async () => {
     const [sourceOwners, projection] = await Promise.all([
-      Bun.file("gateway/control/sourceOwners.ts").text(),
+      Bun.file("gateway/development/sourceOwners.ts").text(),
       Bun.file("gateway/control/capabilityProjection.ts").text(),
     ]);
     expect(projection).toContain("classifyMcpToolPhaseByName");
