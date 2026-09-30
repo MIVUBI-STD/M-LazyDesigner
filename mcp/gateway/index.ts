@@ -1,6 +1,6 @@
 import { serveStdio, type StdioServerHandle } from "@modelcontextprotocol/server/stdio";
 import { McpServer } from "@modelcontextprotocol/server";
-import { BlockitRuntimeBackend } from "./backend";
+import { BlockitRuntimeBackend } from "./runtime/backend";
 import {
   GATEWAY_NAME,
   GATEWAY_VERSION,
