@@ -1,4 +1,4 @@
-import type { RuntimeProjectHealth } from "@/lib/runtimeAffinity";
+import type { RuntimeProjectHealth } from "@/lib/runtime/affinity";
 
 export class RuntimeProjectContextError extends Error {
   constructor (

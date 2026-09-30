@@ -1,18 +1,18 @@
 import { z } from "zod";
 import { createPrompt, prompts } from "@/lib/factories";
-import { getPromptContent } from "@/lib/promptLoader";
+import { getPromptContent } from "@/lib/prompts/loader";
 import {
   BEDROCK_WORKFLOW_PHASE_SECTIONS,
   assertBedrockWorkflowSourceCompatible,
-} from "@/lib/promptContract";
+} from "@/lib/prompts/contract";
 import {
   buildMcpPhaseHandoffContract,
   buildMcpPhasePromptHeader,
   getActiveMcpAuthoringPhase,
   type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
-import { describeMcpSurfaceToolNames } from "@/server/tools";
-import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/registrationProfile";
+} from "@/lib/capabilities/authoringStage";
+import { describeMcpSurfaceToolNames } from "@/server/runtime/registration";
+import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
 
 const ANIMATION_RUNTIME_WORKFLOW = `## Animation Workflow
 

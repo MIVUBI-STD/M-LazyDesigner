@@ -1,8 +1,8 @@
-import { getCapabilityMetadata } from "@/lib/capabilityMetadata";
+import { getCapabilityMetadata } from "@/lib/capabilities/metadata";
 import {
   normalizeAuthoringPhaseAffinity,
-} from "@/lib/runtimeAffinity";
-import type { McpAuthoringPhase } from "@/lib/authoringPhase";
+} from "@/lib/runtime/affinity";
+import type { McpAuthoringPhase } from "@/lib/capabilities/authoringStage";
 
 export type RuntimeRequestEnvelope = {
   method: string | null;

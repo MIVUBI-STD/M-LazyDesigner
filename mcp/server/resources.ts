@@ -1,7 +1,7 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { createResource, resources } from "@/lib/factories";
-import { findByResourceId, makeResourceUri } from "@/lib/resourceUri";
+import { findByResourceId, makeResourceUri } from "@/lib/protocol/resourceUri";
 
 // Register projects resource using the factory pattern
 createResource("projects", {

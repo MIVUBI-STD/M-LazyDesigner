@@ -2,11 +2,11 @@ import {
   beginRuntimeGenerationTeardown,
   isRuntimeGenerationCurrent,
   markRuntimeGenerationState,
-} from "@/lib/runtimeLifecycle";
+} from "@/lib/runtime/lifecycle";
 import type { NetServer } from "@/server/net";
 import createNetServer from "@/server/net";
 import { setStatusBarState } from "@/ui/statusBar";
-import { runtimeTlsPaths } from "@/lib/runtimeConnection";
+import { runtimeTlsPaths } from "@/lib/runtime/connection";
 import { type NativeCrypto } from "@/plugin/profileIdentity";
 import {
   startRuntimeSessionLease,

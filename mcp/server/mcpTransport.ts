@@ -13,15 +13,15 @@ import {
 import {
   DEFAULT_MCP_REGISTRATION_PROFILE,
   type McpRegistrationProfile,
-} from "@/lib/registrationProfile";
+} from "@/lib/capabilities/registrationProfile";
 import {
   getActiveMcpAuthoringPhase,
   type McpAuthoringPhase,
-} from "@/lib/authoringPhase";
+} from "@/lib/capabilities/authoringStage";
 import { sendNodeResponse } from "@/server/httpBoundary";
 import { createServer as createMcpServer } from "@/server/server";
 import { conformanceFixturesEnabled } from "@/server/conformanceFixtures";
-import { getMcpSurfaceToolNames } from "@/server/tools";
+import { getMcpSurfaceToolNames } from "@/server/runtime/registration";
 import type { SerializedWebResponse } from "@/server/requestProtocol";
 
 function createRequestServer (

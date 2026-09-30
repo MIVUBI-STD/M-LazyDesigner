@@ -1,13 +1,13 @@
 import { createResource, type ResourceSpec } from "@/lib/factories";
-import { MOLANG_ANIMATION_MATH_SYMBOLS } from "@/lib/animationMolangSemantics";
+import { MOLANG_ANIMATION_MATH_SYMBOLS } from "@/lib/animation/molangSemantics";
 import {
   BEDROCK_PARTICLE_COMPONENT_REFERENCE,
   BEDROCK_PARTICLE_CURVE_REFERENCE,
   BEDROCK_PARTICLE_EVENT_REFERENCE,
   BEDROCK_PARTICLE_PRESET_REFERENCE,
-} from "@/lib/bedrockParticleDocument";
-import { BEDROCK_PARTICLE_SPECIAL_MOLANG_VARIABLES } from "@/lib/bedrockParticleSemantics";
-import { BEDROCK_PARTICLE_RESOURCE_LAYOUT } from "@/lib/particleResourceLayout";
+} from "@/lib/particle/document";
+import { BEDROCK_PARTICLE_SPECIAL_MOLANG_VARIABLES } from "@/lib/particle/semantics";
+import { BEDROCK_PARTICLE_RESOURCE_LAYOUT } from "@/lib/particle/resourceLayout";
 
 export const PARTICLE_REFERENCE_IDS = [
   "components",

@@ -1,13 +1,13 @@
 import { prompts, tools } from "@/lib/factories";
-import { initPromptLoader } from "@/lib/promptLoader";
+import { initPromptLoader } from "@/lib/prompts/loader";
 import {
   resolveMcpRegistrationProfile,
   type McpRegistrationProfile,
-} from "@/lib/registrationProfile";
-import type { McpAuthoringPhase } from "@/lib/authoringPhase";
+} from "@/lib/capabilities/registrationProfile";
+import type { McpAuthoringPhase } from "@/lib/capabilities/authoringStage";
 import { resources } from "@/server";
 import { registerReferenceModelsResource } from "@/server/resources";
-import { applyMcpRegistrationProfile } from "@/server/tools";
+import { applyMcpRegistrationProfile } from "@/server/runtime/registration";
 import {
   setupProjectNavigationSnapshot,
   teardownProjectNavigationSnapshot,

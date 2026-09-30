@@ -1,4 +1,4 @@
-import { isRuntimeGenerationCurrent } from "@/lib/runtimeLifecycle";
+import { isRuntimeGenerationCurrent } from "@/lib/runtime/lifecycle";
 import { getReloadableLazyDesignerPlugin } from "@/plugin/reload";
 
 type LocalDevFileWatcher = { close(): void };
