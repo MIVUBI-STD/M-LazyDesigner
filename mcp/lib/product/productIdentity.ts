@@ -18,7 +18,7 @@ export const PRODUCT_VERSION = VERSION;
 
 export function createProductIdentity(
   profile: McpRegistrationProfile,
-  authoringPhase: McpAuthoringPhase = getActiveMcpAuthoringPhase()
+  authoringStage: McpAuthoringStage = getActiveMcpAuthoringStage()
 ) {
   return {
     id: PRODUCT_ID,
