@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   evaluateSemanticFreshness,
   semanticRevisionStamp,
-} from "../gateway/development/semanticFreshness";
+} from "../gateway/capabilities/semanticFreshness";
 
 const revisions = {
   routing: "routing-v1",
