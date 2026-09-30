@@ -1,5 +1,5 @@
 import type { McpRegistrationFamily } from "./registrationProfile";
-import { capabilityPhaseByName } from "./manifest";
+import { capabilityStageByName } from "./manifest";
 
 /** Compatibility-bound serialized setting ID. Product semantics use Stage + Runtime Surface. */
 export const MCP_AUTHORING_PHASE_SETTING_ID = "mcp_authoring_phase";
@@ -50,7 +50,7 @@ const ANIMATION_EXCLUDED_CORE_TOOLS = new Set(["create_project"]);
 export function classifyMcpToolStageByName(
   toolName: string
 ): McpToolStageCategory | null {
-  return capabilityPhaseByName(toolName);
+  return capabilityStageByName(toolName);
 }
 
 export function getMcpRuntimeSurface(
