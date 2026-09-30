@@ -73,7 +73,7 @@ describe("model creation effectiveness — actual reference grounding", () => {
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
       source("../docs/03-authoring/validation/visual.md"),
       source("lib/registrationProfile.ts"),
-      source("server/tools/cubes.ts"),
+      source("server/tools/geometry/cubes.ts"),
     ]);
     expect(normalized(modelling)).toContain("similarity scores cannot justify `pass`");
     expect(normalized(validation)).toContain("none of these proves resemblance by itself");
