@@ -143,11 +143,11 @@ Gateway does not own modelling, texturing, animation, particle, or other authori
 
 ## Canonical Root Owners
 
-The Gateway root intentionally keeps only two non-test implementation entry owners:
+The Gateway root intentionally keeps one non-test implementation entry owner; the backend implementation lives under the Runtime integration domain:
 
 ```text
-index.ts    public MCP stdio entrypoint and composition root
-backend.ts  Gateway ↔ Runtime backend adapter
+index.ts                 public MCP stdio entrypoint and composition root
+runtime/backend.ts        Gateway ↔ Runtime backend adapter
 ```
 
 Canonical subdomains own the rest:
