@@ -3,7 +3,7 @@ import {
   summarizeGoldenAuthoringDocument,
   validateGoldenAuthoringDocument,
   type GoldenAuthoringDocument,
-} from "../scripts/evaluate-golden-authoring-runs";
+} from "../scripts/evaluate/evaluate-golden-authoring-runs";
 
 function acceptedRun(): GoldenAuthoringDocument {
   return {

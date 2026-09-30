@@ -64,8 +64,8 @@ function weightedMetric(
 
 describe("tool discovery eval", () => {
   test("separates raw semantic stress from phase-scoped routed spec loading", () => {
-    const raw = runEval<RawReport>("./scripts/evaluate-tool-discovery.ts");
-    const routed = runEval<RoutedReport>("./scripts/evaluate-routed-tool-loading.ts");
+    const raw = runEval<RawReport>("./scripts/evaluate/evaluate-tool-discovery.ts");
+    const routed = runEval<RoutedReport>("./scripts/evaluate/evaluate-routed-tool-loading.ts");
     const phaseReports = Object.values(routed.phase_reports);
 
     const routedMetrics = {

@@ -2,12 +2,12 @@ import {
   DEFAULT_MCP_AUTHORING_PHASE,
   MCP_AUTHORING_PHASES,
   classifyMcpToolPhase,
-} from "@/lib/authoringPhase";
+} from "@/lib/capabilities/authoringStage";
 import {
   applyMcpToolSurface,
   getMcpSurfaceToolNames,
   getToolRegistrationFamily,
-} from "@/server/tools";
+} from "@/server/runtime/registration";
 import {
   CODEX_TOOL_SEARCH_REFERENCE,
   TOOL_DISCOVERY_CASES,

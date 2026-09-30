@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   assertHybridPromotionPolicy,
   evaluateHybridPromotionPolicy,
-} from "../scripts/evaluate-hybrid-promotion-policy";
+} from "../scripts/evaluate/evaluate-hybrid-promotion-policy";
 import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "../gateway/experimental/hybridProfile";
 
 describe("Hybrid direct capability promotion policy", () => {

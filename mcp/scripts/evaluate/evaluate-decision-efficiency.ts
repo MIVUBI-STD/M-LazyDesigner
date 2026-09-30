@@ -15,7 +15,7 @@ import {
 import type {
   BackendTool,
   CapabilitySummary,
-} from "@/gateway/protocol";
+} from "@/gateway/contracts/protocol";
 
 type DecisionCase = {
   id: string;

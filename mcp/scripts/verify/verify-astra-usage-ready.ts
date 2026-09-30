@@ -1,4 +1,4 @@
-import { summarizeAstraUsage } from "../validate-astra-usage";
+import { summarizeAstraUsage } from "../evaluate/validate-astra-usage";
 
 const GOLDEN_PATH = "tests/fixtures/astra-live-golden-tasks.json";
 const TEMPLATE_PATH = "tests/fixtures/astra-usage-validation-template.json";

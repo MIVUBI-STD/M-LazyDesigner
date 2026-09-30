@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   summarizeAstraUsage,
   validateAstraUsageDocument,
-} from "@/scripts/validate-astra-usage";
+} from "@/scripts/evaluate/validate-astra-usage";
 
 describe("Astra usage validation contract", () => {
   test("checked-in template starts telemetry-unverified and cannot claim savings", async () => {

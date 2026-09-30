@@ -1,4 +1,4 @@
-import goldenCorpus from "../tests/fixtures/golden-task-cases.json";
+import goldenCorpus from "../../tests/fixtures/golden-task-cases.json";
 
 export type GoldenQualityVerdict = "PASS" | "FAIL" | "UNVERIFIED";
 export type GoldenTraceKind =

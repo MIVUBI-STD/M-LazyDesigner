@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { toolManifest } from "../build/docs-manifest";
-import { GATEWAY_REPLAY_CORPUS } from "../benchmarks/gatewayReplayCorpus";
+import { toolManifest } from "../../build/docs-manifest";
+import { GATEWAY_REPLAY_CORPUS } from "../../benchmarks/gatewayReplayCorpus";
 import {
   HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES,
-} from "../gateway/experimental/hybridProfile";
-import { shadowReplayCaseForDirectSet } from "../gateway/experimental/shadowRouting";
+} from "../../gateway/experimental/hybridProfile";
+import { shadowReplayCaseForDirectSet } from "../../gateway/experimental/shadowRouting";
 
 const MAX_DIRECT_TOOLS = 4;
 const MIN_SAVED_CLIENT_CALLS = 2;

@@ -1,8 +1,8 @@
 import "@/server/tools";
 import { getEnabledToolDefinitions } from "@/lib/factories";
-import { classifyMcpToolPhaseByName, type McpAuthoringPhase } from "@/lib/authoringPhase";
+import { classifyMcpToolPhaseByName, type McpAuthoringPhase } from "@/lib/capabilities/authoringStage";
 import { searchCapabilityCatalog } from "@/gateway/capabilities/catalog";
-import type { BackendTool } from "@/gateway/protocol";
+import type { BackendTool } from "@/gateway/contracts/protocol";
 import { projectCapabilitiesForSearch, decorateCapabilities } from "@/gateway/control";
 import { TOOL_DISCOVERY_CASES } from "./evaluate-tool-discovery";
 

@@ -24,7 +24,7 @@ describe("Astra local-measurement preflight", () => {
     expect(source).toContain("session_policy_command");
     expect(source).toContain("eval:session-policy");
     expect(pkg.scripts["eval:session-policy"]).toBe(
-      "bun run ./scripts/evaluate-codex-session-policy.ts"
+      "bun run ./scripts/evaluate/evaluate-codex-session-policy.ts"
     );
     expect(source).not.toContain("LIVE_BLOCKBENCH_PASS");
   });
