@@ -1,13 +1,13 @@
-import { wireAnimationRuntimeContracts } from "./animationRuntimeContracts";
-import { wireAuthoringQualityIntelligence } from "../tools/quality-intelligence";
-import { wireAuthoringEvidenceRuntime } from "../tools/quality-evidence-runtime";
+import { wireAnimationRuntimeContracts } from "./contracts/animation";
+import { wireAuthoringQualityIntelligence } from "../tools/validation/qualityIntelligence";
+import { wireAuthoringEvidenceRuntime } from "../tools/validation/qualityEvidenceRuntime";
 import { wireTextureQualityRuntime } from "./extensions/texture/quality";
 import { wireTextureAuthoringRuntime } from "./extensions/texture/authoring";
 import { wireTextureAlphaRuntime } from "./extensions/texture/alpha";
 import { wireAnimationNativeIntelligence } from "./extensions/animation/nativeIntelligence";
 import { wireAnimationControllerNativeIntelligence } from "./extensions/animation/controllerNativeIntelligence";
 import { wireAnimationRuntimeResourceIntelligence } from "./extensions/animation/runtimeResourceIntelligence";
-import { wireTextureRuntimeContracts } from "./textureRuntimeContracts";
+import { wireTextureRuntimeContracts } from "./contracts/texture";
 
 export type RuntimeExtensionStep = Readonly<{
   id: string;
