@@ -97,6 +97,38 @@ export const ALL_COMPATIBILITY_WRAPPERS: Readonly<Record<string, string>> = {
   ...MIGRATED_COMPATIBILITY_WRAPPERS,
 };
 
+export const STRUCTURAL_COMPATIBILITY_ROOT_FILES = new Set([
+  "assetDependencyGraph.ts",
+  "assetHealth.ts",
+  "authoringPhase.ts",
+  "bedrockExportIntegrity.ts",
+  "bedrockExportWritePolicy.ts",
+  "blockbenchCompatibility.ts",
+  "capabilityMetadata.ts",
+  "coreIdentity.ts",
+  "correctionSolver.ts",
+  "efficiencyScorecard.ts",
+  "elementSemanticScopes.ts",
+  "jsonValue.ts",
+  "minecraftStyleEvidence.ts",
+  "molangQueryCatalog.ts",
+  "molangSyntax.ts",
+  "promptContract.ts",
+  "promptLoader.ts",
+  "referenceCorrection.ts",
+  "referenceCrossViewEvidence.ts",
+  "registrationProfile.ts",
+  "semanticHistory.ts",
+  "surfaceManifest.ts",
+  "util.ts",
+  "zodObjects.ts",
+]);
+
+export const ALL_COMPATIBILITY_ROOT_FILES = new Set([
+  ...Object.keys(ALL_COMPATIBILITY_WRAPPERS),
+  ...STRUCTURAL_COMPATIBILITY_ROOT_FILES,
+]);
+
 export const COMPATIBILITY_ROOT_DOMAIN_FILES = new Set(
   Object.keys(MIGRATED_COMPATIBILITY_WRAPPERS)
 );
