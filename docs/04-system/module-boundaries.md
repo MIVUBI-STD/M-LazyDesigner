@@ -72,6 +72,7 @@ mcp/server/runtime/      Runtime registration, routing and lifecycle composition
 mcp/server/resources/    Runtime resources
 
 mcp/gateway/capabilities/ AI routing/search/schema + semantic freshness core
+mcp/gateway/context/      neutral authoring domain + specialist context paths
 mcp/gateway/runtime/      Gateway-to-Runtime lifecycle and affinity
 mcp/gateway/control/      product context/readiness/projection
 mcp/gateway/development/  repository-development diagnosis/impact/planning
