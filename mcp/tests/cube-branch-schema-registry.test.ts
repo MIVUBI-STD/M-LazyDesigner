@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 const source = await Bun.file(
-  new URL("../server/tools/cubes.ts", import.meta.url)
+  new URL("../server/tools/geometry/cubes.ts", import.meta.url)
 ).text();
 
 describe("manage_cubes branch schema registry", () => {
