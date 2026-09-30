@@ -9,7 +9,7 @@ describe("texture visual convergence contract", () => {
     const [skill, workflow, texture, camera] = await Promise.all([
       source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
       source("prompts/bedrock_entity_workflow.md"),
-      source("server/tools/texture-read.ts"),
+      source("server/tools/texture/read.ts"),
       source("server/tools/camera.ts"),
     ]);
 
