@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import { dirname, join } from "node:path";
 import { readFile, stat } from "node:fs/promises";
-import type { GatewayRuntimeStatus } from "../backend";
+import type { GatewayRuntimeStatus } from "../runtime/backend";
 
 export type ControlWorkspaceProjection = {
   available: boolean;
