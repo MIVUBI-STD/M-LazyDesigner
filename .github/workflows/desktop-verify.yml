@@ -7,7 +7,7 @@ on:
     paths:
       - "apps/desktop/**"
       - "mcp/compatibility/blockbench.json"
-      - "mcp/distribution/**"
+      - "distribution/**"
       - "mcp/lib/runtimeFetch.ts"
       - "mcp/tests/managed-install.test.ts"
       - ".github/workflows/desktop-verify.yml"
