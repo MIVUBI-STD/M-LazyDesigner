@@ -89,7 +89,7 @@ Current source implements:
 ASSET_AUTHORING / SYSTEM_DEVELOPMENT intake
 bounded context selection
 content-addressed context handles
-explicit capability source ownership
+bounded development projection
 semantic freshness scopes
 fail-closed unknown mutation outcomes
 control_delta continuation
@@ -128,6 +128,10 @@ When every traversed entry has known metadata, Control invalidates only the
 recorded freshness scopes and authoring domains; metadata-only/checkpoint
 history can preserve authored freshness. Missing metadata fails closed to
 all-scope conservative invalidation. No semantic history database is persisted.
+
+### Development Intelligence
+
+Repository-development intent routing, capability source ownership, changed-path impact and affected-execution planning are canonically owned by `mcp/gateway/development/`. Control may project bounded development results into status, but it is not the source-owner registry.
 
 ### Receipt / verification boundary
 
