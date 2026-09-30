@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("Locator discovery efficiency", () => {
   test("list_locator_elements stays identity-first while inspect_element owns detail", async () => {
-    const locators = await source("server/tools/locators.ts");
+    const locators = await source("server/tools/geometry/locators.ts");
     expect(locators).toContain("const locators = Locator.all.map(locatorSummary)");
     expect(locators).toContain("const nullObjects = NullObject.all.map(nullObjectSummary)");
     expect(locators).not.toContain("const locators = Locator.all.map(locatorState)");
