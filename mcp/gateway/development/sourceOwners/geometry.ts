@@ -1,7 +1,7 @@
-import type { ControlSourceOwner } from "../../control/types";
-import { MODELLING_PATH } from "../../control/contexts";
+import type { DevelopmentSourceOwner } from "../types";
+import { MODELLING_PATH } from "../../context/authoring";
 
-export const GEOMETRY_SOURCE_OWNERS: Record<string, ControlSourceOwner> = {
+export const GEOMETRY_SOURCE_OWNERS: Record<string, DevelopmentSourceOwner> = {
 
   manage_cubes: {
     source: "mcp/server/tools/geometry/cubes.ts",
