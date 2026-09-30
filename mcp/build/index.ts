@@ -11,6 +11,7 @@ import {
   type WatchAction,
 } from "./watch-policy";
 import { version } from "../package.json";
+import { LEGACY_MCP_BUNDLE_FILENAME } from "../compatibility/engineering-identifiers";
 
 const OUTPUT_DIR = "./dist";
 const entryFile = resolve("./index.ts");
@@ -92,7 +93,7 @@ async function buildPlugin(): Promise<boolean> {
   }
 
   const indexFile = join(OUTPUT_DIR, "index.js");
-  const mcpFile = join(OUTPUT_DIR, "blockit_mcp.js");
+  const mcpFile = join(OUTPUT_DIR, LEGACY_MCP_BUNDLE_FILENAME);
   const legacyMcpFile = join(OUTPUT_DIR, "mcp.js");
 
   if (await Bun.file(legacyMcpFile).exists()) {
@@ -102,7 +103,7 @@ async function buildPlugin(): Promise<boolean> {
 
   if (await Bun.file(indexFile).exists()) {
     await rename(indexFile, mcpFile);
-    log.step(`Renamed ${c.gray}index.js${c.reset} → ${c.cyan}blockit_mcp.js${c.reset}`);
+    log.step(`Renamed ${c.gray}index.js${c.reset} → ${c.cyan}${LEGACY_MCP_BUNDLE_FILENAME}${c.reset}`);
   }
 
   const mcpBunFile = Bun.file(mcpFile);
@@ -125,11 +126,11 @@ async function buildPlugin(): Promise<boolean> {
   log.step(`Embedded build identity ${c.gray}${buildIdentity}${c.reset}`);
 
   const indexMapFile = join(OUTPUT_DIR, "index.js.map");
-  const mcpMapFile = join(OUTPUT_DIR, "blockit_mcp.js.map");
+  const mcpMapFile = join(OUTPUT_DIR, `${LEGACY_MCP_BUNDLE_FILENAME}.map`);
 
   if (await Bun.file(indexMapFile).exists()) {
     await rename(indexMapFile, mcpMapFile);
-    log.step(`Renamed ${c.gray}index.js.map${c.reset} → ${c.cyan}blockit_mcp.js.map${c.reset}`);
+    log.step(`Renamed ${c.gray}index.js.map${c.reset} → ${c.cyan}${LEGACY_MCP_BUNDLE_FILENAME}.map${c.reset}`);
   }
 
   const readmeSource = resolve("./about.md");
