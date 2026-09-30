@@ -9,10 +9,8 @@ import {
   invalidateToolRegistrationRuntimeCaches,
 } from "@/lib/factories";
 import { resolveCoreAnimation, resolveCoreGroup } from "@/lib/core/identity";
-import {
-  animationIdOptionalSchema,
-  loopModeEnum,
-} from "@/lib/zodObjects";
+import { loopModeEnum } from "@/lib/schemas/animation";
+import { animationIdOptionalSchema } from "@/lib/schemas/ids";
 import {
   analyzeAnimationMolangExpressions,
   type AnimationMolangExpressionInput,

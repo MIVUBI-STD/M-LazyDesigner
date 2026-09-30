@@ -6,7 +6,7 @@ import {
   invalidateToolRegistrationRuntimeCaches,
 } from "@/lib/factories";
 import { resolveCoreTexture } from "@/lib/core/identity";
-import { imageContent } from "@/lib/util";
+import { imageContent } from "@/lib/protocol/imageContent";
 import {
   buildTextureEvidenceSnapshot,
   focusedGetTextureParameters,
@@ -17,7 +17,7 @@ import {
   planTextureVariantFromBase,
   type TextureVariantSource,
 } from "@/lib/texture/variantPlan";
-import { textureIdSchema } from "@/lib/zodObjects";
+import { textureIdSchema } from "@/lib/schemas/ids";
 import {
   fullTextureRgba,
   rgbaToPngDataUrl,

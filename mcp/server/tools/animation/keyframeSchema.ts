@@ -1,12 +1,13 @@
 import { z } from "zod";
 import {
   animationChannelEnum,
-  animationIdOptionalSchema,
-  axisWithAllEnum,
-  boneNameSchema,
   interpolationEnum,
-  timeRangeSchema,
-} from "@/lib/zodObjects";
+} from "@/lib/schemas/animation";
+import { axisWithAllEnum, timeRangeSchema } from "@/lib/schemas/common";
+import {
+  animationIdOptionalSchema,
+  boneNameSchema,
+} from "@/lib/schemas/ids";
 import { finiteAnimationVector3Schema } from "./shared";
 
 const molangTransformStringSchema = z
@@ -136,5 +137,4 @@ export const animationGraphEditorParameters = z.object({
       "Bezier left/right handle offsets for the axis or all axes ('custom' action only)."
     ),
 });
-
 

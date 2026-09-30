@@ -1,9 +1,7 @@
 import { z } from "zod";
 import { animationEasingSchema } from "@/lib/animation/easing";
-import {
-  animationIdOptionalSchema,
-  loopModeEnum,
-} from "@/lib/zodObjects";
+import { loopModeEnum } from "@/lib/schemas/animation";
+import { animationIdOptionalSchema } from "@/lib/schemas/ids";
 
 const animationTimelineRangeSchema = z
   .object({
@@ -137,4 +135,3 @@ export const animationTimelineParameters = z
       });
     }
   });
-

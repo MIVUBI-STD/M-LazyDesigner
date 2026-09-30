@@ -15,7 +15,7 @@ import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/se
 import { boneRiggingReceipt } from "@/lib/receipts/boneRigging";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { vector3Schema, axisEnum } from "@/lib/zodObjects";
+import { vector3Schema, axisEnum } from "@/lib/schemas/common";
 import {
   resolveAnimationRigGroup,
   toArrayVector3,

@@ -1,9 +1,6 @@
 import { z } from "zod";
-import {
-  animationChannelEnum,
-  axisEnum,
-  timeRangeSchema,
-} from "@/lib/zodObjects";
+import { animationChannelEnum } from "@/lib/schemas/animation";
+import { axisEnum, timeRangeSchema } from "@/lib/schemas/common";
 import { finiteAnimationVector3Schema } from "./shared";
 
 export const batchKeyframeOperationsParameters = z
@@ -185,5 +182,4 @@ export const animationCopyPasteParameters = z.object({
     });
   }
 });
-
 

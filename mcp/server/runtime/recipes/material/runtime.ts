@@ -3,7 +3,7 @@
 import type { TextureSourceRecipe } from "@/lib/texture/sourceComposer";
 import { compileNewTextureNativePlan } from "@/lib/texture/nativePlan";
 import { compileCreateTextureSourcePayload } from "@/lib/texture/createTextureAdapter";
-import { rgbaToPngDataUrl } from "@/lib/textureBitmapRuntime";
+import { rgbaToPngDataUrl } from "@/lib/texture/bitmapRuntime";
 
 export function compileBlockbenchProceduralTextureCreatePayload(
   name:string,

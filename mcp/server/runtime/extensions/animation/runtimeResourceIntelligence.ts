@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { nativeAnimationControllerParameters } from "./controllerNativeIntelligence";
 import { getAllToolDefinitions, invalidateToolRegistrationRuntimeCaches } from "@/lib/factories";
-import { isAbsoluteFilesystemPath } from "@/lib/util";
+import { isAbsoluteFilesystemPath } from "@/lib/core/path";
 import { cloneJsonValue, type JsonObject, type JsonValue } from "@/lib/particle/document";
 import {
   applyAnimationControllerVariableOperations,

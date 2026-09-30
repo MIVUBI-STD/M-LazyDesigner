@@ -9,10 +9,8 @@ import {
 } from "@/lib/factories";
 import { resolveCoreAnimation } from "@/lib/core/identity";
 import { withTemporaryAnimationPreview } from "@/lib/animation/previewState";
-import {
-  animationChannelEnum,
-  animationIdOptionalSchema,
-} from "@/lib/zodObjects";
+import { animationChannelEnum } from "@/lib/schemas/animation";
+import { animationIdOptionalSchema } from "@/lib/schemas/ids";
 import { captureModelViewsParameters } from "../../tools/inspection/camera";
 import { inspectAnimationParameters } from "../../tools/animation/inspectionSchema";
 import {

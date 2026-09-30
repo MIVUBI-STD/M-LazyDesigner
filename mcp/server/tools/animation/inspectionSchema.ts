@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { animationIdOptionalSchema } from "@/lib/zodObjects";
+import { animationIdOptionalSchema } from "@/lib/schemas/ids";
 
 export const inspectAnimationParameters = z.object({
   animation_id: animationIdOptionalSchema.describe(

@@ -19,7 +19,7 @@ import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/se
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { resolveCoreAnimation } from "@/lib/core/identity";
-import { animationIdOptionalSchema } from "@/lib/zodObjects";
+import { animationIdOptionalSchema } from "@/lib/schemas/ids";
 
 type AnimationEffectChannel = "particle" | "sound" | "timeline";
 type EffectPointSnapshot = {
