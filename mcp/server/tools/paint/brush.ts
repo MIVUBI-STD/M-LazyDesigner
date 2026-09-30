@@ -19,11 +19,10 @@ import {
   brushShapeEnum,
   brushSizeSchema,
   brushSoftnessSchema,
-  coordinateSchema,
-  hexColorSchema,
   opacitySchema,
-  textureIdOptionalSchema,
-} from "@/lib/zodObjects";
+} from "@/lib/schemas/texture";
+import { coordinateSchema, hexColorSchema } from "@/lib/schemas/common";
+import { textureIdOptionalSchema } from "@/lib/schemas/ids";
 import {
   exactPixelBounds,
   getRuntimePainter,

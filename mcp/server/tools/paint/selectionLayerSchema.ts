@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { textureIdOptionalSchema } from "@/lib/zodObjects";
+import { textureIdOptionalSchema } from "@/lib/schemas/ids";
 
 const textureLayerBlendModeEnum = z.enum([
   "default",
@@ -143,4 +143,3 @@ export const textureLayerManagementParameters = z.object({
     });
   }
 });
-

@@ -2,7 +2,7 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { captureAppScreenshot } from "@/lib/util";
+import { captureAppScreenshot } from "@/lib/blockbench/capture";
 import { STATUS_STABLE } from "@/lib/constants";
 
 export const fromGeoJsonParameters = z.object({

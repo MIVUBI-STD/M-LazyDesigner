@@ -10,15 +10,17 @@ import { getAndActivateTexture } from "@/lib/texture/selection";
 import {
   blendModeEnum,
   brushSizeSchema,
-  coordinateSchema,
   copyBrushModeEnum,
   drawShapeEnum,
   fillModeEnum,
-  hexColorSchema,
   opacitySchema,
+} from "@/lib/schemas/texture";
+import {
+  coordinateSchema,
+  hexColorSchema,
   requiredHexColorSchema,
-  textureIdOptionalSchema,
-} from "@/lib/zodObjects";
+} from "@/lib/schemas/common";
+import { textureIdOptionalSchema } from "@/lib/schemas/ids";
 import {
   getRuntimePainter,
   normalizeTexturePixelRegion,
