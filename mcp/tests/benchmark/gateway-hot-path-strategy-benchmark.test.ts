@@ -2,12 +2,12 @@ import { describe, expect, test } from "bun:test";
 import {
   assertGatewayHotPathBenchmark,
   benchmarkGatewayHotPathStrategies,
-} from "../scripts/benchmark/benchmark-gateway-hot-path";
+} from "../../scripts/benchmark/benchmark-gateway-hot-path";
 import {
   HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES,
   gatewaySurfaceProjection,
   resolveGatewaySurfaceProfile,
-} from "../gateway/experimental/hybridProfile";
+} from "../../gateway/experimental/hybridProfile";
 
 describe("Gateway four-tool vs hybrid hot-path benchmark", () => {
   test("report keeps the stable four-tool strategy as an explicit baseline", () => {

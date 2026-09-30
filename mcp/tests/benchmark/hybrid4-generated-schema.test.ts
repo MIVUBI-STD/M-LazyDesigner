@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "../gateway/experimental/hybridProfile";
-import { HYBRID_4_GENERATED_SCHEMAS } from "../gateway/experimental/generated/hybrid4Schemas";
+import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "../../gateway/experimental/hybridProfile";
+import { HYBRID_4_GENERATED_SCHEMAS } from "../../gateway/experimental/generated/hybrid4Schemas";
 
 describe("Hybrid-4 generated schema boundary", () => {
   test("generated direct schemas stay identical to canonical docs API schemas", async () => {

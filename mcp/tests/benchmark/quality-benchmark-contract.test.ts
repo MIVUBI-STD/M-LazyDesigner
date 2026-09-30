@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import benchmark from "./fixtures/quality-benchmark-cases.json";
+import benchmark from "../fixtures/quality-benchmark-cases.json";
 
 type BenchmarkCase = (typeof benchmark.cases)[number];
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { summarizeGatewayBenchmarkTrace } from "../scripts/reporting/summarize-gateway-benchmark-trace";
+import { summarizeGatewayBenchmarkTrace } from "../../scripts/reporting/summarize-gateway-benchmark-trace";
 
 const SHA = "1234567890abcdef1234567890abcdef12345678";
 

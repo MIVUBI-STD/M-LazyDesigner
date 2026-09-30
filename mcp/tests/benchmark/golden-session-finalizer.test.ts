@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   finalizeGoldenSession,
-} from "../scripts/reporting/finalize-golden-session";
+} from "../../scripts/reporting/finalize-golden-session";
 import type {
   GoldenAuthoringDocument,
-} from "../scripts/reporting/evaluate-golden-authoring-runs";
+} from "../../scripts/reporting/evaluate-golden-authoring-runs";
 import type {
   UsageDocument,
-} from "../scripts/evaluate/validate-astra-usage";
+} from "../../scripts/evaluate/validate-astra-usage";
 
 function golden(): GoldenAuthoringDocument {
   return {

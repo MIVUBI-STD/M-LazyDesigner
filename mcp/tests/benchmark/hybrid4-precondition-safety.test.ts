@@ -3,7 +3,7 @@ import {
   capabilityBranchFromArguments,
   evaluateCapabilityPreconditions,
   seedCapabilityFacts,
-} from "../gateway/capabilities/graph";
+} from "../../gateway/capabilities/graph";
 
 describe("Hybrid-4 direct precondition safety", () => {
   test("branch identity is derived from direct tool arguments", () => {

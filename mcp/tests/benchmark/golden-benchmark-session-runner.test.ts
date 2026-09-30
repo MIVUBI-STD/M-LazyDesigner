@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import goldenCorpus from "./fixtures/golden-task-cases.json";
+import goldenCorpus from "../fixtures/golden-task-cases.json";
 import {
   buildGoldenRunDraft,
   goldenSessionPaths,
-} from "../scripts/reporting/run-golden-benchmark-session";
+} from "../../scripts/reporting/run-golden-benchmark-session";
 
 const task = goldenCorpus.tasks.find(
   (entry) => entry.id === "golden-existing-model-correction"
