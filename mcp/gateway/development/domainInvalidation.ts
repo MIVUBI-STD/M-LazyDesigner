@@ -57,7 +57,7 @@ function isGlobalAuthoringOwner(path: string): boolean {
   return (
     value.startsWith("mcp/gateway/capabilities/") ||
     value.startsWith("mcp/lib/semantic/") ||
-    value === "mcp/lib/capabilitymetadata.ts" ||
+    value === "mcp/lib/capabilities/metadata.ts" ||
     value === "mcp/lib/capabilities/manifest.ts"
   );
 }

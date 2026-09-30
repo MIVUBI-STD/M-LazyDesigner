@@ -47,7 +47,7 @@ describe("affected execution planner", () => {
 
   test("selects runtime checks and exact owner tests for a bounded tool change", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/server/tools/cubes.ts"],
+      changedPaths: ["mcp/server/tools/geometry/cubes.ts"],
       semanticImpact: impact({
         affected_anchor_tests: [
           "mcp/tests/model-effectiveness-correction-accuracy.test.ts",
@@ -132,7 +132,7 @@ describe("affected execution planner", () => {
 
   test("semantic history changes run history and Control continuation contracts", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/lib/semanticHistory.ts"],
+      changedPaths: ["mcp/lib/authoring/semanticHistory.ts"],
       semanticImpact: impact(),
     });
 
@@ -210,7 +210,7 @@ describe("affected execution planner", () => {
   test("project-owned source uses one strict composite compiler graph", () => {
     for (const path of [
       "mcp/gateway/capabilities/catalog.ts",
-      "mcp/server/tools/cubes.ts",
+      "mcp/server/tools/geometry/cubes.ts",
       "mcp/lib/semantic/canonical.ts",
     ]) {
       const plan = planAffectedExecution({
@@ -294,7 +294,7 @@ describe("affected execution planner", () => {
 
   test("authoring domains stay scoped for a texture-only change", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/server/tools/textures.ts"],
+      changedPaths: ["mcp/server/tools/texture/create.ts"],
       semanticImpact: impact(),
     });
 
@@ -338,7 +338,7 @@ describe("affected execution planner", () => {
         semanticImpact: impact(),
       }),
       planAffectedExecution({
-        changedPaths: ["mcp/server/tools/cubes.ts"],
+        changedPaths: ["mcp/server/tools/geometry/cubes.ts"],
         semanticImpact: impact({ truncated: true }),
       }),
     ]) {
@@ -347,5 +347,4 @@ describe("affected execution planner", () => {
     }
   });
 });
-
 

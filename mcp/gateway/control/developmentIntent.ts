@@ -63,8 +63,8 @@ const RULES: readonly Rule[] = [
     terms: ["animation", "animasi", "keyframe", "timeline", "motion", "gerak", "stiff", "kaku", "controller", "easing", "playback"],
     owners: () => [
       sourceOwnerForCapability("manage_animation_timeline"),
-      owner("mcp/lib/animationMotionDynamics.ts", "mcp/tests/animation-native-intelligence.test.ts", ".agents/skills/lazydesigner-animation/SKILL.md"),
-      owner("mcp/lib/animationQuality.ts", "mcp/tests/quality-intelligence.test.ts", ".agents/skills/lazydesigner-animation/SKILL.md"),
+      owner("mcp/lib/animation/motionDynamics.ts", "mcp/tests/animation-native-intelligence.test.ts", ".agents/skills/lazydesigner-animation/SKILL.md"),
+      owner("mcp/lib/animation/quality.ts", "mcp/tests/quality-intelligence.test.ts", ".agents/skills/lazydesigner-animation/SKILL.md"),
       sourceOwnerForCapability("manage_animation_controller"),
       sourceOwnerForCapability("manage_animation_effects"),
     ],
@@ -92,14 +92,14 @@ const RULES: readonly Rule[] = [
     terms: ["particle", "particles", "partikel", "snowstorm"],
     owners: () => [
       sourceOwnerForCapability("manage_particle"),
-      owner("mcp/lib/bedrockParticleSemantics.ts", "mcp/tests/particle-advanced-semantics.test.ts"),
+      owner("mcp/lib/particle/semantics.ts", "mcp/tests/particle-advanced-semantics.test.ts"),
     ],
   },
   {
     domain: "PROJECT_AFFINITY",
     terms: ["affinity", "project binding", "project tab", "tab blockbench", "wrong project", "salah project", "project context"],
     owners: () => [
-      owner("mcp/gateway/backend.ts", "mcp/tests/project-affinity-gateway.test.ts"),
+      owner("mcp/gateway/runtime/backend.ts", "mcp/tests/project-affinity-gateway.test.ts"),
       owner("mcp/server/net.ts", "mcp/tests/project-affinity-runtime.test.ts"),
     ],
   },
@@ -118,10 +118,10 @@ const RULES: readonly Rule[] = [
     owners: () => [
       owner("mcp/gateway/control/packet.ts", "mcp/tests/gateway-control-active-contract.test.ts"),
       owner("mcp/gateway/control/routingPolicy.ts", "mcp/tests/gateway-control-routing.test.ts"),
-      owner("mcp/gateway/control/delta.ts", "mcp/tests/gateway-control-continuation-hardening.test.ts"),
+      owner("mcp/gateway/control/delta/engine.ts", "mcp/tests/gateway-control-continuation-hardening.test.ts"),
       owner("mcp/gateway/index.ts", "mcp/tests/gateway-contract.test.ts"),
-      owner("mcp/gateway/backend.ts", "mcp/tests/gateway-reliability-hardening.test.ts"),
-      owner("mcp/gateway/contract.ts", "mcp/tests/gateway-contract.test.ts"),
+      owner("mcp/gateway/runtime/backend.ts", "mcp/tests/gateway-reliability-hardening.test.ts"),
+      owner("mcp/gateway/contracts/protocol.ts", "mcp/tests/gateway-contract.test.ts"),
     ],
   },
   {
@@ -129,7 +129,7 @@ const RULES: readonly Rule[] = [
     terms: ["runtime", "blockbench api", "plugin lifecycle", "undo", "persistence", "native blockbench", "runtime error", "onload", "onunload"],
     owners: () => [
       owner("mcp/index.ts", "mcp/tests/plugin-runtime-cleanup.test.ts"),
-      owner("mcp/lib/runtimeLifecycle.ts", "mcp/tests/runtime-lifecycle.test.ts"),
+      owner("mcp/lib/runtime/lifecycle.ts", "mcp/tests/runtime-lifecycle.test.ts"),
       owner("mcp/server/server.ts", "mcp/tests/authoring-phase-surface.test.ts"),
     ],
   },

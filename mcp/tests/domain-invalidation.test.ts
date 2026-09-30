@@ -5,13 +5,13 @@ describe("authoring domain invalidation", () => {
   test("classifies independent authoring domains without widening", () => {
     expect(
       planAuthoringDomainInvalidation({
-        changedPaths: ["mcp/server/tools/textures.ts"],
+        changedPaths: ["mcp/server/tools/texture/create.ts"],
       }).domains
     ).toEqual(["TEXTURE_UV"]);
 
     expect(
       planAuthoringDomainInvalidation({
-        changedPaths: ["mcp/server/tools/particles.ts"],
+        changedPaths: ["mcp/server/tools/particle/manage.ts"],
       }).domains
     ).toEqual(["PARTICLE"]);
   });

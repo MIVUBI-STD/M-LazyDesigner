@@ -127,7 +127,7 @@ const CONTROL_DELTA_CONTRACT_TESTS = [
 const GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH: Readonly<
   Record<string, readonly string[]>
 > = {
-  "mcp/gateway/backend.ts": [
+  "mcp/gateway/runtime/backend.ts": [
     "mcp/gateway/backend-effects-boundary.test.ts",
     "mcp/gateway/index-boundary.test.ts",
   ],
@@ -164,7 +164,7 @@ function sharedContractTestsForPath(path: string): readonly string[] {
   if (path.startsWith("mcp/lib/receipts/")) {
     return RECEIPT_CONTRACT_TESTS_BY_PATH[path] ?? [];
   }
-  if (path === "mcp/lib/semanticHistory.ts") {
+  if (path === "mcp/lib/authoring/semanticHistory.ts") {
     return SEMANTIC_HISTORY_CONTRACT_TESTS;
   }
   if (
@@ -197,12 +197,12 @@ function isRuntimeTypeScriptOutsideProjectGraph(path: string): boolean {
 }
 
 const GATEWAY_SHARED_PROJECT_FILES = new Set([
-  "mcp/lib/runtimeFetch.ts",
-  "mcp/lib/runtimeConnection.ts",
-  "mcp/lib/capabilityMetadata.ts",
+  "mcp/lib/runtime/fetch.ts",
+  "mcp/lib/runtime/connection.ts",
+  "mcp/lib/capabilities/metadata.ts",
   "mcp/lib/capabilities/manifest.ts",
-  "mcp/lib/authoringPhase.ts",
-  "mcp/lib/registrationProfile.ts",
+  "mcp/lib/capabilities/authoringStage.ts",
+  "mcp/lib/capabilities/registrationProfile.ts",
 ]);
 
 function affectsProjectGraph(path: string): boolean {
@@ -256,7 +256,7 @@ function affectsGatewayReplayShadow(path: string): boolean {
 
 function affectsGatewayOutputContracts(path: string): boolean {
   return (
-    path === "mcp/gateway/outputSchemas.ts" ||
+    path === "mcp/gateway/contracts/outputSchemas.ts" ||
     path === "mcp/tests/gateway-output-schema.test.ts" ||
     path === "mcp/gateway/index.ts"
   );
