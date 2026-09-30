@@ -10,9 +10,9 @@ import {
 } from "@/server/tools";
 import {
   MCP_AUTHORING_PHASE_SETTING_ID,
-  resolveMcpAuthoringPhase,
-  type McpAuthoringPhase,
-} from "@/lib/capabilities/authoringPhase";
+  resolveMcpAuthoringStage,
+  type McpAuthoringStage,
+} from "@/lib/capabilities/authoringStage";
 import {
   claimRuntimeGeneration,
   isRuntimeGenerationCurrent,
