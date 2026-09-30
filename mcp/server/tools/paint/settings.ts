@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
-import { setBarItemValues } from "@/lib/util";
+import { setBarItemValues } from "@/lib/blockbench/barItems";
 import { generateTexturePalette, texturePaletteParameters } from "@/lib/texturePalette";
 import { resolveCoreTexture } from "@/lib/coreIdentity";
 import { axisEnum, brushModifierEnum, coordinateSchema } from "@/lib/zodObjects";
