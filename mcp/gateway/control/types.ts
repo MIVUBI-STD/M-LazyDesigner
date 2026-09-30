@@ -3,8 +3,10 @@ import type { CapabilityVerificationClass } from "../../lib/capabilityMetadata";
 import type { CapabilitySemanticScope } from "../../lib/capabilities/manifest";
 import type { BlockitAuthoringPhaseAffinity } from "../runtime/projectAffinity";
 import type { SemanticRevisionDimension } from "../capabilities/semanticRegistry";
+import type { GatewayAuthoringDomain } from "../context/authoring";
+import type { DevelopmentSourceOwner } from "../development/types";
 
-export type ControlAuthoringDomain = "GEOMETRY" | "TEXTURING" | "ANIMATION" | "CORE";
+export type ControlAuthoringDomain = GatewayAuthoringDomain;
 
 export type ControlFreshnessScope = CapabilitySemanticScope;
 
@@ -47,14 +49,7 @@ export type ControlContextHandle = {
   semantic_revision: string;
 };
 
-export type ControlSourceOwner = {
-  source: string;
-  specialist: string | null;
-  /** Canonical bounded regression anchor. This is not the full proof surface. */
-  anchor_test: string | null;
-  /** Omitted on explicit owners; FALLBACK means bounded orientation only. */
-  resolution?: "FALLBACK";
-};
+export type ControlSourceOwner = DevelopmentSourceOwner;
 
 export type ControlSystemState = "READY" | "DEGRADED" | "OFFLINE";
 
