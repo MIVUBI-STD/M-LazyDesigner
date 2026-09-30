@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
+import { ALL_COMPATIBILITY_ROOT_FILES } from "./lib-domain-compatibility";
 
 const SHARED_ROOT_IMPLEMENTATIONS = new Set([
   "constants.ts",
@@ -22,25 +23,29 @@ describe("lib root ownership", () => {
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
       const source = await Bun.file(`lib/${entry.name}`).text();
-      if (isCanonicalFacade(source)) continue;
       if (SHARED_ROOT_IMPLEMENTATIONS.has(entry.name)) continue;
+      if (isCanonicalFacade(source) && ALL_COMPATIBILITY_ROOT_FILES.has(entry.name)) continue;
       violations.push(entry.name);
     }
 
     expect(violations).toEqual([]);
   });
 
-  test("shared-root allowlist has no stale entries", async () => {
+  test("compatibility registry and shared-root allowlist have no stale entries", async () => {
     const existing = new Set(
       (await readdir("lib", { withFileTypes: true }))
         .filter((entry) => entry.isFile())
         .map((entry) => entry.name)
     );
 
-    const stale = [...SHARED_ROOT_IMPLEMENTATIONS].filter(
+    const staleShared = [...SHARED_ROOT_IMPLEMENTATIONS].filter(
+      (name) => !existing.has(name)
+    );
+    const staleCompatibility = [...ALL_COMPATIBILITY_ROOT_FILES].filter(
       (name) => !existing.has(name)
     );
 
-    expect(stale).toEqual([]);
+    expect(staleShared).toEqual([]);
+    expect(staleCompatibility).toEqual([]);
   });
 });
