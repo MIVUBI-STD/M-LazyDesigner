@@ -7,11 +7,11 @@ import {
   type McpRegistrationProfile,
 } from "@/lib/capabilities/registrationProfile";
 import {
-  getActiveMcpAuthoringPhase,
-  isMcpToolExposedForPhase,
-  setActiveMcpAuthoringPhase,
-  type McpAuthoringPhase,
-} from "@/lib/capabilities/authoringPhase";
+  getActiveMcpAuthoringStage,
+  isMcpToolExposedForStage,
+  setActiveMcpAuthoringStage,
+  type McpAuthoringStage,
+} from "@/lib/capabilities/authoringStage";
 import { registerCameraTools } from "../tools/inspection/camera";
 import { registerAnimationTools } from "../tools/animation";
 import { registerAnimationEffectTools } from "../tools/animation/effects";
