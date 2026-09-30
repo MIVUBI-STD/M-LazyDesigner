@@ -14,7 +14,9 @@
 | `protocol/` | MCP/resource protocol helpers |
 | `runtime/` | Runtime connection, affinity, fetch, and lifecycle primitives |
 | `semantic/` | semantic core and incremental semantic model |
-| `capabilities/` | canonical Runtime capability metadata |
+| `capabilities/` | canonical Runtime capability metadata, authoring phase, registration profile, and surface manifest |
+| `core/` | shared identity and JSON value primitives |
+| `blockbench/` | Blockbench compatibility policy projection |
 | `animation/` | animation-domain helpers |
 | `geometry/` | geometry analysis/evidence helpers |
 | `texture/` | texture-domain helpers |
@@ -41,3 +43,17 @@ When a legacy root file is migrated:
 The compatibility-wrapper registry is the only root-domain exception list. Do not create a second legacy/migration allowlist for the same paths.
 
 See `../docs/04-system/module-boundaries.md` for the full dependency and migration policy.
+
+
+## Intentional root primitives
+
+Only these implementation owners are intentionally kept at `lib/` root:
+
+```text
+factories.ts   MCP Tool/Resource/Prompt factories + registration/result primitives
+util.ts        shared Blockbench/runtime utility primitives
+zodObjects.ts  shared schema primitives
+constants.ts   tiny package constants
+```
+
+Everything with a narrower semantic owner belongs in a canonical subdomain. Compatibility wrappers may remain temporarily but must contain only a re-export.
