@@ -1,4 +1,4 @@
-import type { ControlSourceOwner } from "../control/types";
+import type { DevelopmentSourceOwner } from "./types";
 import { anchorTestForSourceOwner } from "./sourceOwners";
 import type { CapabilityBranchManifestEntry } from "../capabilities/manifest";
 
@@ -13,7 +13,7 @@ export type SemanticImpactEntry = {
   capability: string;
   semantic_ids: string[];
   reasons: SemanticImpactReason[];
-  source_owner: ControlSourceOwner | null;
+  source_owner: DevelopmentSourceOwner | null;
 };
 
 export type SemanticImpactReport = {
@@ -66,7 +66,7 @@ function addReason(
  */
 export function analyzeSemanticImpact(input: {
   changedPaths: readonly string[];
-  sourceOwners: Readonly<Record<string, ControlSourceOwner>>;
+  sourceOwners: Readonly<Record<string, DevelopmentSourceOwner>>;
   manifest: readonly CapabilityBranchManifestEntry[];
   maxCapabilities?: number;
 }): SemanticImpactReport {
@@ -154,7 +154,7 @@ export function analyzeSemanticImpact(input: {
 
   const owners = affectedCapabilities
     .map((entry) => entry.source_owner)
-    .filter((owner): owner is ControlSourceOwner => owner !== null);
+    .filter((owner): owner is DevelopmentSourceOwner => owner !== null);
 
   return {
     changed_paths: uniqueSorted(changed),
