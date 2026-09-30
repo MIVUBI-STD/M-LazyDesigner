@@ -93,7 +93,7 @@ gateway/providers/     optional Gateway-local capabilities
 gateway/control/       Control packets, context, freshness, orchestration
 protocol.ts            stable Gateway constants + base transport/search types
 resultCompaction.ts     AI-facing result/receipt compaction
-backend.ts             Runtime adapter/orchestration boundary
+runtime/backend.ts     Runtime adapter/orchestration boundary
 index.ts               stable four-tool stdio composition root
 contract.ts            compatibility facade only
 ```
