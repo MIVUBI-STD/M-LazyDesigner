@@ -3,7 +3,8 @@
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/semanticHistory";
 import { bakeNativeCubeAo } from "@/lib/cubeAoRuntime";
-import { imageContent, resolvePaintTexture } from "@/lib/util";
+import { imageContent } from "@/lib/protocol/imageContent";
+import { resolvePaintTexture } from "@/lib/texture/selection";
 import {
   applyPaintTransactionRgba,
   buildPaintTransactionReceipt,
