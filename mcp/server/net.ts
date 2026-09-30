@@ -15,9 +15,9 @@ import {
 } from '@/server/httpBoundary'
 import { createProductIdentity } from '@/lib/product/productIdentity'
 import {
-  getActiveMcpAuthoringPhase,
-  type McpAuthoringPhase
-} from '@/lib/capabilities/authoringPhase'
+  getActiveMcpAuthoringStage,
+  type McpAuthoringStage
+} from '@/lib/capabilities/authoringStage'
 import {
   getActiveMcpRegistrationProfile,
   getMcpSurfaceToolNames,
