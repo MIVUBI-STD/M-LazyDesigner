@@ -17,7 +17,7 @@ describe("LazyDesigner Control particle routing", () => {
   test("particle source ownership resolves directly to the focused particle implementation", () => {
     for (const capability of ["inspect_particle", "manage_particle"]) {
       expect(sourceOwnerForCapability(capability)).toEqual({
-        source: "mcp/server/tools/particle.ts",
+        source: "mcp/server/tools/particle/manage.ts",
         specialist: ".agents/skills/lazydesigner-animation/SKILL.md",
         anchor_test: "mcp/tests/particle-tool-contract.test.ts",
       });
