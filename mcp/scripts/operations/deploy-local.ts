@@ -1,8 +1,12 @@
 import { copyFile, rename, rm, stat } from "node:fs/promises";
 import { basename, dirname, isAbsolute, resolve } from "node:path";
+import {
+  LEGACY_MCP_BUNDLE_FILENAME,
+  LEGACY_PLUGIN_PATH_ENV,
+} from "../../compatibility/engineering-identifiers";
 
-const EXPECTED_PLUGIN_FILENAME = "blockit_mcp.js";
-const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../../dist/blockit_mcp.js");
+const EXPECTED_PLUGIN_FILENAME = LEGACY_MCP_BUNDLE_FILENAME;
+const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../../dist", LEGACY_MCP_BUNDLE_FILENAME);
 
 export function resolveDeployTarget(
   args: string[],
@@ -15,10 +19,10 @@ export function resolveDeployTarget(
     );
   }
 
-  const rawTarget = positional[0] ?? env.BLOCKIT_PLUGIN_PATH;
+  const rawTarget = positional[0] ?? env[LEGACY_PLUGIN_PATH_ENV];
   if (!rawTarget) {
     throw new Error(
-      "Missing local Blockbench plugin destination. Pass an absolute path ending in blockit_mcp.js or set BLOCKIT_PLUGIN_PATH."
+      "Missing local Blockbench plugin destination. Pass an absolute path ending in ${EXPECTED_PLUGIN_FILENAME} or set ${LEGACY_PLUGIN_PATH_ENV}."
     );
   }
   if (!isAbsolute(rawTarget)) {
