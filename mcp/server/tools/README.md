@@ -211,7 +211,7 @@ Particle authoring implementation belongs under `server/tools/particle/`; do not
 
 ## Root completion state
 
-The `server/tools/` root is intentionally reduced to registrar/facade entrypoints plus compatibility re-exports.
+The `server/tools/` root is intentionally reduced to registrar/facade entrypoints plus compatibility re-exports. Migrated root wrappers are no longer valid production import targets; repository guards require active server code to import canonical domain owners directly. Wrapper deletion still waits for the repository's local/runtime compatibility proof boundary.
 
 Current non-trivial root entrypoints:
 

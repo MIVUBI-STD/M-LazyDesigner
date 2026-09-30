@@ -84,6 +84,53 @@ describe("server tool domain ownership", () => {
     }
   });
 
+  test("production server code bypasses migrated tool wrappers", async () => {
+    const files = await sourceFiles("server");
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const normalizedFile = file.replace(/\\/g, "/");
+      if (
+        normalizedFile.startsWith("server/tools/") &&
+        MIGRATED_TOOL_WRAPPERS.hasOwnProperty(
+          normalizedFile.slice("server/tools/".length)
+        )
+      ) {
+        continue;
+      }
+
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        const aliasMatch = request.match(/^@\/server\/tools\/([^/]+)$/);
+        if (
+          aliasMatch &&
+          MIGRATED_TOOL_WRAPPERS.hasOwnProperty(`${aliasMatch[1]}.ts`)
+        ) {
+          violations.push(
+            `${relative("server", file).replace(/\\/g, "/")} -> ${request}`
+          );
+          continue;
+        }
+
+        const relativeMatch = request.match(
+          /^(?:\.\/|\.\.\/tools\/)([^/]+)$/
+        );
+        if (
+          relativeMatch &&
+          MIGRATED_TOOL_WRAPPERS.hasOwnProperty(
+            `${relativeMatch[1]}.ts`
+          )
+        ) {
+          violations.push(
+            `${relative("server", file).replace(/\\/g, "/")} -> ${request}`
+          );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   test("registrar facades import canonical domain owners directly", async () => {
     const facades = [
       "server/tools/animation.ts",
