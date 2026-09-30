@@ -307,7 +307,7 @@ lazydesigner-development-brief
 ### CONDITIONAL
 
 ```text
-bounded symbol map (`bun run map:development -- "<intent>"`)
+bounded symbol map (`bun run generate:development-symbol-map -- "<intent>"`)
   → only when exact owner routing is ambiguous/cross-owner and local source navigation would otherwise require broad reads
   → signatures/imports only; never a full-repository payload
 
