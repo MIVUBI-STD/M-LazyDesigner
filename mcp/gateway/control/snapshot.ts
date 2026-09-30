@@ -1,6 +1,6 @@
-import type { GatewayRuntimeStatus } from "../backend";
-import type { JsonRecord } from "../protocol";
-import { readRuntimeProjectHealth } from "../runtime/projectAffinity";
+import type { GatewayRuntimeStatus } from "../runtime/backend";
+import type { JsonRecord } from "../contracts/protocol";
+import { readRuntimeProjectHealth } from "../../lib/runtime/affinity";
 import type {
   ControlAuthoringDomain,
   ControlSnapshot,
