@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { renderProfileWriteReceiptSchema } from "@/lib/receipts/renderProfile";
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { isAbsoluteFilesystemPath } from "@/lib/util";
+import { isAbsoluteFilesystemPath } from "@/lib/core/path";
 import {
   parseClientEntityDocument,
   serializeClientEntityDocument,
