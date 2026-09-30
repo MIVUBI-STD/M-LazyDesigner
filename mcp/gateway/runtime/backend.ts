@@ -3,7 +3,7 @@ import {
   readRuntimeAuthoringPhase,
   readRuntimeProjectHealth,
   type BlockitAuthoringPhaseAffinity,
-} from "./projectAffinity";
+} from "../../lib/runtime/affinity";
 import {
   buildRuntimeAffinityHeaders,
   isCatalogFresh,

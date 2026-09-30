@@ -22,9 +22,10 @@ The files below exist only to preserve older internal/external import paths duri
 | `gateway/reconnectPolicy.ts` | `gateway/runtime/reconnectPolicy.ts` |
 | `gateway/recovery.ts` | `gateway/runtime/recovery.ts` |
 | `gateway/runtimeSession.ts` | `gateway/runtime/runtimeSession.ts` |
-| `gateway/projectAffinity.ts` | `gateway/runtime/projectAffinity.ts` |
+| `gateway/projectAffinity.ts` | `lib/runtime/affinity.ts` |
 | `gateway/localCapabilities.ts` | `gateway/providers/registry.ts` |
 | `gateway/vanillaEntityReference.ts` | `gateway/providers/vanillaEntityReference.ts` |
+| `gateway/runtime/projectAffinity.ts` | `lib/runtime/affinity.ts` |
 
 ## Control wrappers
 

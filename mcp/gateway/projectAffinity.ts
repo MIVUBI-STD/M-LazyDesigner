@@ -1,1 +1,1 @@
-export * from "./runtime/projectAffinity";
+export * from "../lib/runtime/affinity";

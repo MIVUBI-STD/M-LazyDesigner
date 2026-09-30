@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 const WRAPPERS: Readonly<Record<string, string>> = {
   "gateway/contract.ts":
-    'export * from "./protocol";\nexport * from "./resultCompaction";\nexport * from "./capabilities/catalog";\nexport * from "./runtime/identity";\nexport * from "./runtime/interruptionPolicy";\n',
+    'export * from "./contracts/protocol";\nexport * from "./presentation/resultCompaction";\nexport * from "./capabilities/catalog";\nexport * from "./runtime/identity";\nexport * from "./runtime/interruptionPolicy";\n',
   "gateway/controlReceipt.ts":
     'export * from "./control/receipt";\n',
   "gateway/capabilityManifest.ts":
@@ -24,7 +24,7 @@ const WRAPPERS: Readonly<Record<string, string>> = {
   "gateway/runtimeSession.ts":
     'export * from "./runtime/runtimeSession";\n',
   "gateway/projectAffinity.ts":
-    'export * from "./runtime/projectAffinity";\n',
+    'export * from "../lib/runtime/affinity";\n',
   "gateway/localCapabilities.ts":
     'export * from "./providers/registry";\n',
   "gateway/vanillaEntityReference.ts":
@@ -54,13 +54,13 @@ describe("Gateway structural ownership", () => {
     expect(index).toContain('"./providers/registry"');
     expect(index).toContain('"./runtime/recovery"');
 
-    expect(backend).toContain('"./projectAffinity"');
+    expect(backend).toContain('"../../lib/runtime/affinity"');
     expect(backend).toContain('"./connectionManager"');
     expect(backend).toContain('"../capabilities/effects"');
     expect(backend).toContain('"./backendContract"');
 
-    expect(contract).toContain('"./protocol"');
-    expect(contract).toContain('"./resultCompaction"');
+    expect(contract).toContain('"./contracts/protocol"');
+    expect(contract).toContain('"./presentation/resultCompaction"');
     expect(contract).toContain('"./capabilities/catalog"');
     expect(contract).toContain('"./runtime/identity"');
     expect(contract).toContain('"./runtime/interruptionPolicy"');
@@ -146,8 +146,8 @@ describe("Gateway structural ownership", () => {
 
   test("backend delegates queue and affinity policy to runtime modules", async () => {
     const backend = await Bun.file("gateway/runtime/backend.ts").text();
-    expect(backend).toContain('from "./runtime/operationQueue"');
-    expect(backend).toContain('from "./runtime/affinityPolicy"');
+    expect(backend).toContain('from "./operationQueue"');
+    expect(backend).toContain('from "./affinityPolicy"');
     expect(backend).not.toContain("private pendingOperations");
     expect(backend).not.toContain("private completedOperations");
     expect(backend).not.toContain(
@@ -177,7 +177,7 @@ describe("Gateway structural ownership", () => {
     expect(index).toContain('from "./control/receipt"');
     expect(index).not.toContain('from "./controlReceipt"');
     expect(receipt).toContain('from "../capabilities/effects"');
-    expect(receipt).toContain('from "../runtime/projectAffinity"');
+    expect(receipt).toContain('from "../../lib/runtime/affinity"');
   });
 
 });
