@@ -100,7 +100,7 @@ Canonical context policy:
 
 `lib/capabilities/metadata.ts` owns capability tier/search/effects. New shared implementations must prefer the narrow canonical subdomain under `lib/**`; do not add another root-level `lib/*.ts` owner when an existing domain fits. Transport must not grow capability-name special cases when declarative metadata can own behavior.
 
-`lib/capabilities/authoringPhase.ts` owns Geometry/Texturing/Animation classification. Do not create a second capability/phase table in Control/Gateway/Plugin.
+`lib/capabilities/authoringStage.ts` owns Geometry/Texturing/Animation Stage classification. Do not create a second capability/Stage table in Control/Gateway/Plugin.
 
 ## Runtime / Plugin Ownership
 
