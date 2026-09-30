@@ -1,6 +1,6 @@
 import type { ControlPacket } from "./packet";
 import { anchorTestForSourceOwner } from "../development/sourceOwners";
-import type { ControlDevelopmentResolution } from "../development/intent";
+import type { DevelopmentResolution } from "../development/intent";
 import {
   DEFAULT_CONTROL_HEADROOM_POLICY,
   normalizeControlHeadroomPolicy,
@@ -64,7 +64,7 @@ export function projectControlPacketForGatewayWithDiagnostics(
 }
 
 function projectDevelopmentForGateway(
-  development: ControlDevelopmentResolution
+  development: DevelopmentResolution
 ) {
   return {
     domain: development.domain,
