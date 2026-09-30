@@ -1,7 +1,7 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { VERSION } from "@/lib/constants";
-import { PRODUCT_ABOUT } from "@/lib/productIdentity";
+import { PRODUCT_ABOUT } from "@/lib/product/productIdentity";
 import {
   applyMcpToolSurface,
   getActiveMcpRegistrationProfile,
@@ -18,13 +18,13 @@ import {
   isRuntimeGenerationCurrent,
   markRuntimeGenerationState,
   type RuntimeGenerationClaim,
-} from "@/lib/runtimeLifecycle";
+} from "@/lib/runtime/lifecycle";
 import {
   BLOCKBENCH_MIN_VERSION,
   evaluateBlockbenchCompatibility,
 } from "@/lib/blockbenchCompatibility";
 import { getIcon } from "@/macros/getIcon" with { type: "macro" };
-import { normalizeRuntimeEndpoint } from "@/lib/runtimeConnection";
+import { normalizeRuntimeEndpoint } from "@/lib/runtime/connection";
 import {
   setupLocalDevAutoReload,
   stopLocalDevAutoReload,
@@ -34,7 +34,7 @@ import { BlockbenchIntegration } from "@/plugin/blockbenchIntegration";
 import {
   registerAuthoringRecipeOwnershipProperties,
   unregisterAuthoringRecipeOwnershipProperties,
-} from "@/server/runtime/authoringRecipeOwnership";
+} from "@/server/runtime/recipes/authoring/ownership";
 
 const runtimeHost = new RuntimeHost();
 const blockbenchIntegration = new BlockbenchIntegration();
