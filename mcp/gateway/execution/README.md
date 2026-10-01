@@ -28,3 +28,6 @@ runtime -X-> control
 ```
 
 Runtime owns connection/affinity/recovery/queue mechanics only. Do not place workflow orchestration back under `gateway/runtime/`.
+
+
+`orchestrationRecoveryState.ts` owns process/project-scoped verification evidence and correction-loop recovery across Runtime generation changes and project-affinity epochs.
