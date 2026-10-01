@@ -52,4 +52,20 @@ describe("texture render and material quality closure", () => {
     expect(runtime).toContain('color_texture="none"');
     expect(bootstrap).toContain("apply: wireTextureQualityRuntime");
   });
+  test("format-sensitive render profiles stay explicit in the texturing hot path", async () => {
+    const [skill, renderProfile] = await Promise.all([
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      source("../docs/03-authoring/texture/render-profile.md"),
+    ]);
+
+    expect(skill).toContain("Render-Format Guard");
+    expect(skill).toContain("entity_emissive");
+    expect(skill).toContain("TGA");
+    expect(skill).toContain("entity_emissive_layer");
+    expect(skill).toContain("layered-PNG");
+    expect(renderProfile).toContain("requires a TGA texture");
+    expect(renderProfile).toContain("two-layer PNG workflow");
+    expect(renderProfile).toContain("Blockbench preview boundary");
+  });
+
 });
