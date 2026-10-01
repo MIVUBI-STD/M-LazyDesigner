@@ -12,7 +12,7 @@ import {
 } from "./surface/profile";
 import { registerCoreGatewayTools } from "./handlers/registerCoreTools";
 import { GatewaySessionState } from "./session/state";
-import type { GatewayToolContext } from "./runtime/gatewayErrors";
+import type { GatewayToolContext } from "./execution/gatewayErrors";
 import { GatewayCapabilityExecutor } from "./execution/capabilityExecutor";
 import { BenchmarkTraceRecorder } from "./execution/benchmarkTrace";
 
