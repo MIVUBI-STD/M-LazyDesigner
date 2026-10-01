@@ -1,17 +1,18 @@
 # Gateway Execution
 
-Owns cross-layer capability invocation orchestration after a capability has already been selected.
+Owns capability invocation orchestration across Runtime, Control, capability policy, local providers, session state, and benchmark tracing.
 
-This domain may coordinate:
+```text
+capabilityExecutor.ts
+  Runtime invocation
+  precondition evaluation
+  Control receipt/delta projection
+  session fact updates
+  result compaction
+  trace recording
+```
 
-- Runtime invocation;
-- Control delta / receipt handling;
-- capability precondition graph updates;
-- session fact updates;
-- Gateway result compaction;
-- benchmark tracing.
-
-It does **not** own Runtime connection/recovery, Control policy, capability semantics, or session state.
+This domain is intentionally above `runtime/` and `control/`.
 
 Dependency direction:
 
@@ -19,10 +20,11 @@ Dependency direction:
 execution -> runtime
 execution -> control
 execution -> capabilities
-execution -> providers/session/presentation
+execution -> providers
+execution -> session
 
 runtime -X-> control
 runtime -X-> execution
 ```
 
-The former `gateway/runtime/capabilityExecutor.ts` path is compatibility-only.
+Do not move transport/reconnect state, authored state, or capability metadata ownership into this folder.
