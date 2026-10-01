@@ -1,8 +1,20 @@
 ---
 name: lazydesigner-modelling
-description: Mandatory LazyDesigner Bedrock Geometry and UV Layout specialist. Use with exactly one Control-delivered modelling profile from the current Reference Package when profile guidance materially improves the task.
+description: In-use LazyDesigner Asset Authoring specialist for Bedrock Geometry, hierarchy, rig foundation, pivots/locators, surfaces, UV Layout, geometry correction and verification. Do not use for texture styling, animation keyframes, MCP/plugin development, Blockbench runtime debugging, reference generation, or Skill-system maintenance.
 ---
 # LazyDesigner Bedrock Modelling
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: ASSET_AUTHORING
+CLASS: SPECIALIST
+OWNER: GEOMETRY_UV
+```
+
+Enter when the active Control stage owns Geometry, hierarchy, rig-readiness, pivots/locators, surfaces, or UV Layout. A poor visual result remains a Modelling problem unless bounded evidence proves a system/runtime defect. Do not inspect or patch LazyDesigner source from this Skill; emit a minimal `DEVELOPMENT_HANDOFF` and stop this owner when such evidence exists.
+
 
 User-authorized autonomy replaces approval waits with verified checkpoints; never claim user approval.
 
