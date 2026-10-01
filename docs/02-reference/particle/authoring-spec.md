@@ -244,7 +244,45 @@ Do not create an atlas, flipbook, or generated texture pipeline by default.
 
 Do not duplicate the same PNG solely to mirror child particle filenames; intentional shared texture references are valid when clear.
 
-## 10. Molang decision
+## 10. Appearance and temporal ownership
+
+Resolve billboard orientation and texture-time ownership before adding formulas:
+
+```text
+camera-facing soft sprite
+→ lookat/rotate billboard family
+
+velocity/direction-readable sprite
+→ direction-aligned billboard family
+
+static visual
+→ fixed UV region
+
+frame animation
+→ flipbook
+
+physical travel
+→ motion component, not flipbook
+```
+
+Choose `facing_camera_mode` from the visual role. Do not use a direction-aligned billboard merely because the particle moves, and do not force a camera-facing mode when the sprite must communicate travel heading.
+
+For flipbooks, explicitly decide:
+
+```text
+base_UV
+size_UV
+step_UV
+max_frame
+timing owner: frames_per_second | stretch_to_lifetime
+loop intent
+```
+
+`stretch_to_lifetime` makes particle lifetime the playback-duration owner. Otherwise `frames_per_second` owns nominal frame timing. Do not author both as competing timing intentions.
+
+Emitter activation remains emitter-owned. `activation_expression` controls whether emission is active and `expiration_expression` can terminate the emitter; neither should be used as a substitute for per-particle lifetime progression.
+
+## 11. Molang decision
 
 Use Molang only when a constant cannot express the intended behavior cleanly.
 
@@ -267,7 +305,7 @@ external/entity reactivity
 
 Do not add formulas merely because Molang is available.
 
-## 11. Snowstorm compatibility baseline
+## 12. Snowstorm compatibility baseline
 
 When Snowstorm/Wintersky preview is a target and authored launch magnitude matters, prefer:
 
@@ -278,7 +316,7 @@ minecraft:particle_initial_speed = scalar speed
 
 This is Snowstorm-targeted compatibility guidance, not a generic Bedrock prohibition on vector initial-speed forms.
 
-## 12. Authority order
+## 13. Authority order
 
 ```text
 explicit current user requirement
