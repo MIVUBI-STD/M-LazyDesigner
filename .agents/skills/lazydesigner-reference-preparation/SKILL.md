@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-reference-preparation
-description: ChatGPT-side reference-preparation authority. Resolve only vital missing requirements, route to the correct independent reference capability, confirm visual/model targets when material, and delegate pixel-art or particle/VFX work to their specialist fast paths.
+description: In-use ChatGPT reference-preparation router for LazyDesigner. Resolve only decision-changing requirements, select exactly the needed visual/pixel-art/particle branch, coordinate review, and package only when requested. Do not use for repository/plugin development, Blockbench mutation, or normal Codex asset-authoring stages.
 ---
 
 # LazyDesigner Reference Preparation
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: REFERENCE_PREPARATION
+CLASS: ROUTER
+OWNER: REFERENCE_CAPABILITY_SELECTION
+```
+
+Enter for preparing reference evidence before optional downstream authoring. Select only the branch that materially changes the next decision; do not preload siblings. Do not inspect or modify LazyDesigner implementation source because a reference result is weak. Proven system defects cross lanes through a bounded `DEVELOPMENT_HANDOFF`; ordinary reference-quality correction stays in this lane.
+
 
 Single ChatGPT-side orchestration authority for preparing references before optional downstream Codex/LazyDesigner authoring. It routes to existing canonical owners rather than duplicating them.
 
