@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-pixel-art-authoring
-description: ChatGPT-side specialist for deliberate grid-accurate pixel art authoring, reference conversion, Minecraft-native icons, object sprites, tile/pattern assets, and texture references with strict silhouette, edge-topology, palette, Minecraft-family, and handoff discipline.
+description: In-use Reference Preparation specialist for deliberate integer-grid pixel art, Minecraft-native icons, object sprites, tiles/patterns, reference conversion, and pixel texture references. Do not use for Blockbench atlas/UV mutation, model Geometry, particle runtime semantics, bone animation, or product development.
 ---
 
 # LazyDesigner Pixel Art Authoring
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: REFERENCE_PREPARATION
+CLASS: SPECIALIST
+OWNER: PIXEL_ART_REFERENCE
+```
+
+Enter for a standalone grid-authored pixel artifact or pixel reference dependency. Do not enter merely because a Blockbench texture should look pixel-styled; mapped atlas/UV/Painter work belongs to `lazydesigner-texturing`. Do not cross into product development because visual output needs correction.
+
 
 Canonical Reference Preparation specialist for standalone pixel-art tasks.
 
