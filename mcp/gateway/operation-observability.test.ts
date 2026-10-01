@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { BlockitRuntimeBackend } from "./backend";
+import { BlockitRuntimeBackend } from "./runtime/backend";
 
 describe("Gateway operation observability", () => {
   test("status exposes bounded queue and duration metrics without a second telemetry system", async () => {
