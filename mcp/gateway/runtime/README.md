@@ -20,3 +20,5 @@ The same-named files at `gateway/` are compatibility re-exports only. Keep the G
 
 Runtime detects replacement/reconnect boundaries and reports generation changes upward. Verification evidence, correction-loop recovery, project epochs, and continuation invalidation are owned by `../session/orchestrationRecoveryState.ts`, not by Runtime transport.
 
+
+Cross-layer capability invocation orchestration is not Runtime-owned. It lives in `../execution/`. The former `capabilityExecutor.ts` Runtime path is compatibility-only.
