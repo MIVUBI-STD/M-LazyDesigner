@@ -237,7 +237,7 @@ resume_stage
 
 ## Naming Rules
 
-Canonical LazyDesigner product-specific Skill names use prefix `lazydesigner-` plus a direct responsibility noun.
+Canonical LazyDesigner Skill names use prefix `lazydesigner-` plus a direct responsibility noun.
 
 ```text
 lazydesigner-reference-preparation
