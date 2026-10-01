@@ -135,4 +135,19 @@ describe("professional animation reasoning contract", () => {
     expect(skill).not.toContain("Existing-animation effect mutation");
     expect(skill).not.toContain("controller-state particle/sound mutation");
   });
+  test("activation intent separates raw motion from caller/controller ownership", async () => {
+    const [skill, policy] = await Promise.all([
+      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      source("../docs/03-authoring/animation/standard.md"),
+    ]);
+
+    expect(skill).toContain("activation: DIRECT | CONTROLLER_STATE | EXTERNAL_CALLER | PREVIEW_ONLY | UNRESOLVED");
+    expect(skill).toContain("Do not invent gameplay queries/events for unresolved activation");
+    expect(policy).toContain("## Activation Intent Gate");
+    expect(policy).toContain("Animations own raw motion data");
+    expect(policy).toContain("Animation controllers own state/transition composition");
+    expect(policy).toContain("PREVIEW_ONLY");
+    expect(policy).toContain("EXTERNAL_CALLER");
+  });
+
 });
