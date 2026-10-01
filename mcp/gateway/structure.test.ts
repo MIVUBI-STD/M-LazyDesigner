@@ -195,7 +195,7 @@ describe("Gateway structural ownership", () => {
   });
 
   test("Control receipt stays Control-owned", async () => {
-    const executor = await Bun.file("gateway/runtime/capabilityExecutor.ts").text();
+    const executor = await Bun.file("gateway/execution/capabilityExecutor.ts").text();
     const receipt = await Bun.file("gateway/control/receipt.ts").text();
     expect(executor).toContain('from "../control/receipt"');
     expect(executor).not.toContain('from "../controlReceipt"');
