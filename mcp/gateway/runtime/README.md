@@ -18,5 +18,5 @@ The same-named files at `gateway/` are compatibility re-exports only. Keep the G
 
 ## Runtime generation signal
 
-Runtime detects replacement/reconnect boundaries and reports generation changes upward. Verification evidence, correction-loop recovery, project epochs, and continuation invalidation are owned by `../execution/orchestrationRecoveryState.ts`, not by Runtime transport.
+Runtime detects replacement/reconnect boundaries and reports generation changes upward. Verification evidence, correction-loop recovery, project epochs, and continuation invalidation are owned by `../session/orchestrationRecoveryState.ts`, not by Runtime transport.
 
