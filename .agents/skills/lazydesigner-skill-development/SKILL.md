@@ -1,0 +1,154 @@
+---
+name: lazydesigner-skill-development
+description: Skill-system meta specialist for creating, auditing, refining, evaluating, consolidating, or retiring LazyDesigner Skills and their activation/routing semantics. Do not use for normal product source changes, asset/reference authoring, or to redefine product policy inside a Skill.
+---
+
+# LazyDesigner Skill Development
+
+## Activation Contract
+
+```text
+LANE: SKILL_SYSTEM
+DOMAIN: SKILL_ENGINEERING
+CLASS: META
+OWNER: SKILL_ACTIVATION_QUALITY
+```
+
+Use only when the deliverable is a LazyDesigner Skill or its activation, boundary, handoff, context-loading, evaluation, consolidation, or retirement behavior.
+
+Do not use this Skill merely because a repository task touches `.agents/skills/**` as a consequence of a real product-contract change. Durable product/system docs own semantics; this Skill aligns execution instructions to those owners.
+
+## Objective
+
+Optimize for **correct activation with minimum context**, not maximum instruction coverage.
+
+```text
+right lane
+→ right owner
+→ minimum Skill set
+→ correct handoff
+→ sufficient proof
+→ STOP
+```
+
+A Skill is successful when it changes agent behavior where needed and stays cold where it is irrelevant.
+
+## Required Evidence
+
+Before editing a Skill, classify the failure:
+
+```text
+ACTIVATION_FALSE_POSITIVE
+ACTIVATION_FALSE_NEGATIVE
+OWNER_OVERLAP
+LANE_LEAK
+DELEGATION_LEAK
+HANDOFF_AMBIGUITY
+DUPLICATED_POLICY
+CONTEXT_BLOAT
+MISSING_PROCEDURE
+STALE_INSTRUCTION
+EVAL_GAP
+UNKNOWN
+```
+
+Use the smallest evidence that can distinguish these. Do not rewrite a whole Skill because one prompt routes poorly.
+
+## Eval-Driven Procedure
+
+1. Name the intended lane, domain, class, and owner.
+2. Inspect the taxonomy and only the affected Skill(s).
+3. Establish representative evidence:
+   - **positive** prompt: should activate;
+   - **negative** prompt: should stay cold;
+   - **collision** prompt: superficially matches multiple owners but has one semantic owner.
+4. Identify the first wrong routing/instruction owner.
+5. Change the smallest complete surface, preferring:
+   - frontmatter description for discovery errors;
+   - Activation Contract for lane/owner/boundary errors;
+   - hot-path procedure for execution errors;
+   - deep reference/docs for durable detail.
+6. Recheck affected positive/negative/collision cases.
+7. Remove duplicated policy rather than adding another parallel rule.
+8. STOP when the intended behavior is covered at the available proof ceiling.
+
+## Progressive Disclosure
+
+```text
+frontmatter name + description
+→ Activation Contract
+→ hot-path procedure
+→ deep reference/docs only when the current decision needs them
+```
+
+The discovery description must be sufficient to reject obvious false activations without reading the entire Skill.
+
+Do not solve context pressure by fragmenting one coherent owner into many tiny Skills. Add a Skill only when the responsibility is independently reusable and has a distinct activation boundary.
+
+## Activation Classes
+
+```text
+ROUTER
+SPECIALIST
+DELEGATED
+META
+```
+
+Use the canonical meanings in `docs/04-system/skill-taxonomy.md`. Do not invent new classes without a demonstrated routing problem that the existing four cannot express.
+
+## Lane Discipline
+
+Normal lanes:
+
+```text
+IN_USE
+DEVELOPMENT
+SKILL_SYSTEM
+```
+
+Reference Preparation and Asset Authoring are IN_USE domains. Product Development is DEVELOPMENT. Skill engineering is SKILL_SYSTEM.
+
+A visual/reference/asset failure does not become DEVELOPMENT because the user suspects MCP/runtime. A runtime/public-contract failure does not become IN_USE because it occurred during authoring. Skill wording/routing failure does not become Product Development merely because Skills are stored in Git.
+
+## Handoff Discipline
+
+For a real system defect discovered during IN_USE work, preserve only:
+
+```text
+source_lane
+source_owner
+target_owner
+observed
+expected
+minimum_reproduction_or_evidence
+resume_stage
+```
+
+Then stop the IN_USE owner. Development returns control after the defect is fixed; it does not continue the asset automatically.
+
+## Anti-Overdevelopment
+
+Do not create a Skill registry service, graph engine, dynamic loader, database, parallel router, or new framework when `AGENTS.md`, Control, taxonomy, Skill metadata, and tests can express the boundary.
+
+Do not rename canonical Skills solely to encode lane prefixes. Prefer explicit activation metadata unless a real collision remains.
+
+Do not create separate author/evaluator/maintainer Skills until one combined Skill-development owner is proven insufficient.
+
+## Evaluation Corpus
+
+Use `mcp/tests/fixtures/skill-routing-cases.json` as a compact regression corpus for intended routing semantics. It is development/evaluation evidence, not runtime routing code and not a substitute for behavioral model evaluation.
+
+When adding a case, prefer one that closes a real ambiguity over many near-duplicates.
+
+## Completion
+
+Report separately:
+
+```text
+routing/Skill change implemented
+static contract/eval integrity proved
+behavioral model evaluation performed | not performed
+higher-context evidence still required | none
+```
+
+Static string tests prove repository consistency, not actual model behavior.
