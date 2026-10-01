@@ -36,7 +36,7 @@ import type { GatewaySessionState } from "../session/state";
 import {
   gatewayErrorResult,
   type GatewayToolContext,
-} from "../runtime/gatewayErrors";
+} from "../execution/gatewayErrors";
 import type { BenchmarkTraceRecorder } from "../execution/benchmarkTrace";
 
 type GatewayToolDefinition = {
