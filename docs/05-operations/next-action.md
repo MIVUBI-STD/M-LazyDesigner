@@ -29,24 +29,40 @@ for the exact current source SHA.
 
 ## Next REMOTE_GITHUB work
 
-Continue only work that improves source correctness or proof integrity without
-inventing execution evidence.
+The structural source-cleanup pass is complete for the current architecture.
 
-Priority order:
+Current canonical boundaries are now explicit:
 
-1. keep current-proof documentation compact and exact;
-2. audit semantic scope precision now that capability state, direct freshness and
-   Undo/Redo history share the same canonical scope ownership;
-3. keep affected verification bounded: production gates, experimental gates and
-   report-only tooling must remain distinct;
-4. extend exact development diagnosis only from authoritative evidence
-   (capability/source/anchor-test/changed-path), with keyword routing as fallback;
-5. migrate only remaining mutation receipts that still duplicate producer shape
-   checks; do not create schemas for capabilities that are not Runtime-registered;
-6. reduce remaining capability/source ownership duplication only through
-   parity-guarded projections, not a big-bang registry rewrite.
+```text
+lib domain truth
+→ Authoring Recipe
+→ Orchestration
+→ Runtime
+→ Gateway
 
-Do not add a second Control/router/profile/state system.
+Gateway:
+context/       neutral authoring context contract
+capabilities/  discovery/semantic capability truth
+control/       product context/readiness/projection
+development/   repository diagnosis/source ownership
+execution/     capability Runtime + Control coordination
+runtime/       transport/affinity/queue/recovery mechanics
+session/       process-local facts/continuation/recovery state
+surface/       stable client-surface profile
+experimental/  opt-in implementation only
+```
+
+Do not continue structural refactoring merely for appearance. Remaining compatibility wrappers are intentionally retained until matching local/live compatibility evidence exists.
+
+The next proof stage is deferred by current instruction:
+
+```text
+full source verification / CI  → deferred
+LOCAL_CODE                     → deferred
+LIVE_BLOCKBENCH                → deferred
+```
+
+Until proof is reactivated, limit REMOTE_GITHUB work to defects discovered from authoritative source evidence. Do not create new package splits, routers, registries, or migration frameworks.
 
 ## Runtime boundary
 
