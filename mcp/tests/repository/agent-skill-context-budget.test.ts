@@ -3,18 +3,22 @@ import { describe, expect, test } from "bun:test";
 const HOT_PATH_SKILLS = [
   {
     path: "../.agents/skills/lazydesigner-modelling/SKILL.md",
-    maxChars: 15000,
-    reference: "references/verification-uv-correction.md",
+    maxChars: 11000,
+    references: [
+      "references/verification.md",
+      "references/uv-layout.md",
+      "references/correction.md",
+    ],
   },
   {
     path: "../.agents/skills/lazydesigner-animation/SKILL.md",
     maxChars: 10000,
-    reference: "references/fidelity-correction-evidence.md",
+    references: ["references/fidelity-correction-evidence.md"],
   },
   {
     path: "../.agents/skills/lazydesigner-texturing/SKILL.md",
     maxChars: 10000,
-    reference: "references/fidelity-styling-verification.md",
+    references: ["references/fidelity-styling-verification.md"],
   },
 ] as const;
 
@@ -23,7 +27,7 @@ describe("agent skill context budget", () => {
     for (const skill of HOT_PATH_SKILLS) {
       const source = await Bun.file(skill.path).text();
       expect(source.length).toBeLessThan(skill.maxChars);
-      expect(source).toContain(skill.reference);
+      for (const reference of skill.references) expect(source).toContain(reference);
     }
   });
 });
