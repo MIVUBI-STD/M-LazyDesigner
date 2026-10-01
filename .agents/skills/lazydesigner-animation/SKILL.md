@@ -110,6 +110,7 @@ Locators are not direct animation targets in the current authoring path; a movin
 Before keys, define only applicable motion causes:
 
 ```text
+activation: DIRECT | CONTROLLER_STATE | EXTERNAL_CALLER | PREVIEW_ONLY | UNRESOLVED
 archetype + intent + duration/snapping
 primary driver + counter-motion + followers
 phase + contact/attachment invariants
@@ -118,7 +119,7 @@ causal event for sound/particle
 loop seam / neutral / controller handoff
 ```
 
-Archetypes are **not presets**. No universal FPS, duration, amplitude, phase, keyframe count, or Bezier target; do not use an animation quality score.
+Do not invent gameplay queries/events for unresolved activation. Archetypes are **not presets**. No universal FPS, duration, amplitude, phase, keyframe count, or Bezier target; do not use an animation quality score.
 
 Use authored poses for identity-critical action/contact/silhouette. Molang owns continuous/cyclic/reactive motion only when math is the real cause: `q.anim_time` for time-driven cycles, `q.modified_distance_moved` for travel phase, and `driver → delayed followers` for causal chains.
 
