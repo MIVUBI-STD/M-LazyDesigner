@@ -1,6 +1,6 @@
 # LazyDesigner AI Context Loading
 
-Updated: 2026-09-12
+Updated: 2026-10-01
 
 This document is the canonical contract for **what AI context to load for a task**. It exists to reduce broad reading, duplicate authority, and repeated context delivery without reducing decision quality.
 
@@ -338,6 +338,41 @@ Clear bounded changes go directly to the exact source owner. `lazydesigner-devel
 
 ---
 
+## 6. SKILL_SYSTEM
+
+### REQUIRED
+
+```text
+current Skill/routing/evaluation request
+docs/04-system/skill-taxonomy.md
+.agents/skills/lazydesigner-skill-development/SKILL.md
+only the affected Skill(s)
+```
+
+### CONDITIONAL
+
+```text
+mcp/tests/fixtures/skill-routing-cases.json
+  → activation/negative/collision regression is material
+matching durable product/reference/authoring doc
+  → only when the Skill must align to an existing semantic contract
+AGENTS.md
+  → root routing itself is being changed
+```
+
+### EXCLUDED
+
+```text
+PRODUCT_DEVELOPMENT Skills by default
+unaffected IN_USE specialists
+full docs corpus
+Runtime/source implementation unless current evidence proves the Skill problem is actually a product defect
+```
+
+Skill-system work changes execution guidance, not product truth. If evaluation exposes a product-contract defect, hand that defect to the canonical PRODUCT_DEVELOPMENT/doc owner instead of encoding a workaround in Skill prose.
+
+---
+
 ## Correction / Continuation Rule
 
 For an already-oriented task:
@@ -376,4 +411,5 @@ AI context loading is correct when:
 - sibling domains remain unloaded unless a proved dependency crosses the boundary;
 - operational history/status is not loaded as general knowledge;
 - repeated unchanged context is reused rather than resent;
+- Skill-system work loads only the meta-skill plus affected Skill(s), not Product Development or all IN_USE specialists;
 - no task uses `read all docs` as a normal boot step.
