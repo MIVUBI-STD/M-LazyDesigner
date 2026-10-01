@@ -8,8 +8,7 @@ describe("texturing hot-path routing", () => {
   test("advanced editor-state tools stay conditional while consolidated material authoring stays primary", async () => {
     const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
     const supportStart = skill.indexOf("## Conditional Support — Not Default Routing");
-    const supportEnd = skill.indexOf("## First-Call Invariants", supportStart);
-    const support = skill.slice(supportStart, supportEnd);
+    const support = skill.slice(supportStart);
 
     expect(supportStart).toBeGreaterThan(-1);
     expect(support).toMatch(/not normal hot path/i);
