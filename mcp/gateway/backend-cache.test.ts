@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { BlockitRuntimeBackend } from "./backend";
+import { BlockitRuntimeBackend } from "./runtime/backend";
 import type { BackendTool } from "./contract";
 
 function primeCatalog(backend: BlockitRuntimeBackend, tools: BackendTool[]): void {
