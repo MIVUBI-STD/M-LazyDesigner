@@ -20,7 +20,7 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 ## Modelling Specialist / Profile Contract
 
-This Skill is the compact Geometry/UV execution specialist. Durable Geometry policy belongs to `docs/03-authoring/modelling/standard.md`; asset-class guidance belongs to exactly one Control-selected profile under `docs/03-authoring/modelling/profiles/`.
+This Skill carries compact operational triggers for the Geometry/UV execution hot path. Durable Geometry policy belongs to `docs/03-authoring/modelling/standard.md`; asset-class guidance belongs to exactly one Control-selected profile under `docs/03-authoring/modelling/profiles/`.
 
 ```text
 Control → current intent/reference readiness → selected_profile
