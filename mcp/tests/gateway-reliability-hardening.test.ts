@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   BlockitRuntimeBackend,
   GatewayBackendError,
-} from "@/gateway/backend";
+} from "@/gateway/runtime/backend";
 
 const RUNTIME_URL = "http://127.0.0.1:3000/bb-mcp";
 
