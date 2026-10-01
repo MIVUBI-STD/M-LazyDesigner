@@ -38,14 +38,18 @@ const ROOT_COMPATIBILITY_FILES = new Set(
   [...COMPATIBILITY_WRAPPERS].map((name) => `${name}.ts`)
 );
 
-const RUNTIME_COMPATIBILITY_WRAPPERS = new Set([
-  "benchmarkTrace",
-  "orchestrationRecoveryState",
-  "capabilityExecutor",
+const ROOT_RUNTIME_COMPATIBILITY_WRAPPERS = new Set([
   "connectionManager",
   "reconnectPolicy",
   "recovery",
   "runtimeSession",
+  "projectAffinity",
+]);
+
+const RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS = new Set([
+  "benchmarkTrace",
+  "orchestrationRecoveryState",
+  "capabilityExecutor",
   "projectAffinity",
 ]);
 
@@ -170,8 +174,10 @@ describe("Gateway dependency direction", () => {
             ? targetRel.slice("runtime/".length)
             : null;
         if (
-          runtimeWrapper &&
-          RUNTIME_COMPATIBILITY_WRAPPERS.has(runtimeWrapper)
+          (!targetRel.includes("/") &&
+            ROOT_RUNTIME_COMPATIBILITY_WRAPPERS.has(targetRel)) ||
+          (runtimeWrapper &&
+            RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS.has(runtimeWrapper))
         ) {
           violations.push(`${entry.name} -> ${request}`);
         }
@@ -193,7 +199,7 @@ describe("Gateway dependency direction", () => {
           : null;
       if (
         runtimeStem &&
-        RUNTIME_COMPATIBILITY_WRAPPERS.has(runtimeStem)
+        RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS.has(runtimeStem)
       ) {
         continue;
       }
