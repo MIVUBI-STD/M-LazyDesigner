@@ -12,12 +12,12 @@ const HOT_PATH_SKILLS = [
   },
   {
     path: "../.agents/skills/lazydesigner-animation/SKILL.md",
-    maxChars: 10000,
+    maxChars: 9500,
     references: ["references/fidelity-correction-evidence.md"],
   },
   {
     path: "../.agents/skills/lazydesigner-texturing/SKILL.md",
-    maxChars: 10000,
+    maxChars: 9800,
     references: ["references/fidelity-styling-verification.md"],
   },
 ] as const;
