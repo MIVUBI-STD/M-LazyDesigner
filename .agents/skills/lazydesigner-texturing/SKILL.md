@@ -110,6 +110,10 @@ Face Coverage Ledger: `UNPAINTED | BASE_ONLY | STYLED | INTENTIONAL_FLAT | INTEN
 `states.varied` ≠ `STYLED`; `review.solid_color_faces` locates flat candidates, not failures.
 Variants: `list_textures.production_alignment.gate=ready`; `seam_continuity` (intra-Cube only; inspect cross-Cube contacts visually); `pbr_content`.
 
+## Render-Format Guard
+
+For format-sensitive profiles, load `render-profile.md`: `entity_emissive` requires TGA alpha semantics and `entity_emissive_layer` its layered-PNG contract. Pixels/Blockbench preview alone never prove Minecraft render behavior.
+
 ## Fidelity / Styling / Verification Deep Reference
 
 Load `references/fidelity-styling-verification.md` only when:
