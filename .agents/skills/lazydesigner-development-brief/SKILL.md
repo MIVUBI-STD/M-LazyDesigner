@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-development-brief
-description: Use only for complex LazyDesigner repository development when architecture, ownership, or success criteria remain materially ambiguous. Do not use for clear bounded/standard changes, self-contained optimization, audits, or normal asset authoring.
+description: Meta specialist for complex or ambiguous LazyDesigner product development only. Use when architecture, ownership, or success criteria prevent a reliable standard development contract. Do not use for bounded/standard changes, normal asset/reference authoring, or Skill-system maintenance.
 ---
 
 # LazyDesigner Development Brief
+
+## Activation Contract
+
+```text
+LANE: DEVELOPMENT
+DOMAIN: PRODUCT_DEVELOPMENT
+CLASS: META
+OWNER: COMPLEX_DEVELOPMENT_CONTRACT
+```
+
+Enter only when architecture, cross-owner ambiguity, unresolved success criteria, or a material unknown prevents a reliable Standard contract. Do not enter for bounded/standard maintenance, normal Reference Preparation or Asset Authoring, or Skill-system engineering. This Skill is not the default development entrypoint.
+
 
 Use only when root `AGENTS.md` cannot form a reliable Standard contract. `AGENTS.md` owns routing/boot/source precedence; `GITHUB_RULES.md` owns GitHub-first partitioning, delivery, proof, and higher-context handoff.
 
