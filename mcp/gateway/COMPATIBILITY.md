@@ -28,6 +28,7 @@ The files below exist only to preserve older internal/external import paths duri
 | `gateway/runtime/projectAffinity.ts` | `lib/runtime/affinity.ts` |
 | `gateway/runtime/capabilityExecutor.ts` | `gateway/execution/capabilityExecutor.ts` |
 | `gateway/runtime/benchmarkTrace.ts` | `gateway/execution/benchmarkTrace.ts` |
+| `gateway/runtime/orchestrationRecoveryState.ts` | `gateway/session/orchestrationRecoveryState.ts` |
 
 ## Control wrappers
 
