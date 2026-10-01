@@ -136,7 +136,7 @@ For held/worn, first-/third-person, coupled/uncoupled, or local state variants, 
 
 ## Production-Scale Entity Construction
 
-Large counts, rotated Cubes, per-face UV and Locators are valid when earned by visible/functional need. Locator = lightweight attachment/effect anchor. Visible Bounds = culling/export metadata only; animation extremes still need review.
+Large counts, rotated Cubes, per-face UV and Locators are valid when earned by visible/functional need. Locator = lightweight attachment/effect anchor. Native `visible_bounds_*` authoring remains a protected gap: review animation extremes/culling risk, but do not add or resize Geometry merely to fake visible-bounds metadata.
 
 ## Bedrock Compatibility Gate
 
