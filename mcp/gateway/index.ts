@@ -14,7 +14,7 @@ import { registerCoreGatewayTools } from "./handlers/registerCoreTools";
 import { GatewaySessionState } from "./session/state";
 import type { GatewayToolContext } from "./runtime/gatewayErrors";
 import { GatewayCapabilityExecutor } from "./execution/capabilityExecutor";
-import { BenchmarkTraceRecorder } from "./runtime/benchmarkTrace";
+import { BenchmarkTraceRecorder } from "./execution/benchmarkTrace";
 
 const session = new GatewaySessionState();
 
