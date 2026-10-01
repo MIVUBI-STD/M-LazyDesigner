@@ -114,7 +114,7 @@ Generated API docs and prompt manifests must never be hand-edited.
 
 ```text
 Gateway client surface        4 fixed tools
-Active phase-union catalog   54 tools
+Active Stage-union catalog   54 tools
 AUTHORING surface            47 tools
 Animation surface            18 tools
 ```
