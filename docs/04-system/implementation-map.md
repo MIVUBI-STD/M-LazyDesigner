@@ -97,7 +97,19 @@ affectedExecution.ts         affected execution/verification planning
 
 For a capability without an exact source mapping, Development Intelligence falls back to `mcp/server/runtime/registration.ts` as the Runtime **surface owner** plus the matching specialist. It must not route ownership to legacy compatibility facades or guess an implementation file.
 
+## Gateway Execution
+
+Canonical source: `mcp/gateway/execution/`.
+
+```text
+capabilityExecutor.ts  capability dispatch, precondition, Control receipt/delta,
+                       session fact updates, result compaction and trace hooks
+```
+
+Execution may coordinate Control and Runtime. Runtime transport must not depend back on execution.
+
 ## Gateway
+
 
 Public AI-client surface is fixed:
 
