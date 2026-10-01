@@ -10,7 +10,7 @@ export type RuntimeSessionSnapshot = {
 };
 
 /**
- * Process-local observability for the long-lived Gateway session. It carries no
+ * Process-local observability for the Gateway-to-Runtime connection session. It carries no
  * authored Blockbench state and is safe to reset whenever the Gateway process
  * itself restarts.
  */
