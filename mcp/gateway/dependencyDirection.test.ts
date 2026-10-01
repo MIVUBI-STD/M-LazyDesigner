@@ -153,6 +153,49 @@ describe("Gateway dependency direction", () => {
     expect(violations).toEqual([]);
   });
 
+  test("production code bypasses Runtime subdomain compatibility wrappers", async () => {
+    const files = await sourceFiles(ROOT);
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const rel = relative(ROOT, file).replace(/\\/g, "/");
+      const ownRuntimeWrapper =
+        rel.startsWith("runtime/") && rel.endsWith(".ts")
+          ? rel.slice("runtime/".length, -3)
+          : null;
+      if (
+        ownRuntimeWrapper &&
+        RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS.has(ownRuntimeWrapper)
+      ) {
+        continue;
+      }
+
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const targetRel = relative(
+          ROOT,
+          resolveRelative(file, request)
+        ).replace(/\\/g, "/");
+        const targetRuntimeWrapper =
+          targetRel.startsWith("runtime/")
+            ? targetRel.slice("runtime/".length)
+            : null;
+
+        if (
+          targetRuntimeWrapper &&
+          RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS.has(targetRuntimeWrapper)
+        ) {
+          violations.push(
+            `${rel} -> ${request}`
+          );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   test("Gateway tests exercise canonical Runtime owners directly", async () => {
     const entries = await readdir(ROOT, { withFileTypes: true });
     const violations: string[] = [];
