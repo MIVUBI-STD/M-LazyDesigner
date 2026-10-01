@@ -138,6 +138,10 @@ For held/worn, first-/third-person, coupled/uncoupled, or local state variants, 
 
 Large counts, rotated Cubes, per-face UV and Locators are valid when earned by visible/functional need. Locator = lightweight attachment/effect anchor. Visible Bounds = culling/export metadata only; animation extremes still need review.
 
+## Bedrock Compatibility Gate
+
+Before Geometry PASS, apply only relevant export hygiene from `docs/03-authoring/modelling/standard.md`: new bone names are stable/unique (prefer `snake_case`), root ownership is intentional, Box UV must not distort required fractional Geometry, and Locator scale inheritance is explicit when it differs from the default. Do not remodel or rename accepted structure merely to satisfy style conventions.
+
 ## Progressive Deep References
 
 Keep the hot path compact. Load exactly one deep reference when its decision becomes active:
