@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-animation
-description: LazyDesigner Minecraft Bedrock Entity animation specialist.
+description: In-use LazyDesigner Asset Authoring specialist for Minecraft Bedrock motion, keyframes, clip properties, artist-facing controllers/effects and playback verification after upstream approval. Do not use for structural rig mutation, Geometry/Texturing work, MCP/plugin development, runtime debugging, reference generation, or Skill maintenance.
 ---
 
 # LazyDesigner Bedrock Animation
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: ASSET_AUTHORING
+CLASS: SPECIALIST
+OWNER: ANIMATION_MOTION
+```
+
+Enter when the active Control stage owns motion, keyframes, clip state, artist-facing controller composition/effects, or playback evidence. Structural rig defects hand back to Geometry; they do not authorize mutation here. Runtime/tool defects require bounded evidence and a `DEVELOPMENT_HANDOFF`, not source debugging inside this Skill.
+
 
 Use at `ACTIVE STAGE: ANIMATION` after Texturing approval + checkpoint + Animation Transition Eligibility when participating hierarchy/pivots are suitable.
 
