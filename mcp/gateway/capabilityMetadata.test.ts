@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { getCapabilityMetadata } from "../lib/capabilityMetadata";
-import { searchCapabilityCatalog } from "./contract";
+import { getCapabilityMetadata } from "../lib/capabilities/metadata";
+import { searchCapabilityCatalog } from "./capabilities/catalog";
 import {
   decorateCapabilities,
   projectCapabilitiesForSearch,
-} from "./control";
+} from "./control/capabilities";
 
 const tool = (name: string, description = "") => ({
   name,
