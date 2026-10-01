@@ -73,7 +73,8 @@ mcp/server/resources/    Runtime resources
 
 mcp/gateway/capabilities/ AI routing/search/schema + semantic freshness core
 mcp/gateway/context/      neutral authoring domain + specialist context paths
-mcp/gateway/runtime/      Gateway-to-Runtime lifecycle and affinity
+mcp/gateway/execution/    capability execution orchestration above Runtime
+mcp/gateway/runtime/      Gateway-to-Runtime transport/lifecycle/affinity
 mcp/gateway/control/      product context/readiness/projection
 mcp/gateway/development/  repository-development diagnosis/impact/planning
 mcp/gateway/surface/      stable Gateway surface-profile contract
