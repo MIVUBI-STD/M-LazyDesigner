@@ -75,7 +75,7 @@ Historical audits, retired product paths, obsolete continuation, and old roadmap
 ```text
 Control                     front-line context/readiness/routing
 Gateway client surface      4 fixed tools
-Active phase-union catalog 54 tools
+Active Stage-union catalog 54 tools
 AUTHORING source surface   47 tools
 Animation source surface   18 tools
 ```
