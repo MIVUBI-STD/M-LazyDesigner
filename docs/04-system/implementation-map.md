@@ -304,7 +304,7 @@ Root `mcp/lib/*.ts` files for migrated owners are compatibility re-export facade
 
 ```text
 mcp/lib/capabilities/metadata.ts   canonical tier/search aliases/declarative effects + Operation/State/Execution/Verification projection
-mcp/lib/assetDependencyGraph.ts canonical Dirty Scope → Domain + minimum downstream recheck projection
+mcp/lib/authoring/assetDependencyGraph.ts canonical Dirty Scope → Domain + minimum downstream recheck projection
 
 gateway/control/orchestration.ts
 → ephemeral per-task Verification Cohort accumulation
@@ -314,7 +314,7 @@ mcp/lib/capabilities/authoringStage.ts       semantic stage classification + AUT
 mcp/lib/authoring/authoringReadiness.ts  canonical Animation handoff readiness
 mcp/lib/authoring/validationVerdict.ts   conservative Validator gate projection
 mcp/lib/receipts/**             shared Runtime→Control mutation receipt contracts
-mcp/lib/semanticHistory.ts      ephemeral WeakMap semantic Undo/Redo effects
+mcp/lib/authoring/semanticHistory.ts      ephemeral WeakMap semantic Undo/Redo effects
 mcp/lib/factories.ts           Tool/Resource/Prompt registration + canonical validation/result compaction
 mcp/lib/runtime/lifecycle.ts    runtime generation/lifecycle safety helpers
 ```
@@ -459,8 +459,11 @@ Workspace state is not Runtime connection/session state and is not duplicated in
 ## Build / Verification / Distribution
 
 ```text
-mcp/build/**         generated docs/prompt/build tooling
-mcp/scripts/**       verification/measurement/deploy harnesses
+mcp/build/**         Runtime bundle/watch + prompt-manifest build input
+mcp/scripts/generate/** generated docs/schema owners
+mcp/scripts/verify/** verification/freshness owners
+mcp/scripts/operations/** local deploy/setup/live-sync operations
+mcp/scripts/**       engineering/measurement/benchmark/reporting harnesses
 distribution/**      product-level managed distribution
 mcp/prompts/**       canonical Runtime prompt source + manifest
 mcp/tests/**         contract/integration regressions
