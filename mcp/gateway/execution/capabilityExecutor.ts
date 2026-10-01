@@ -30,7 +30,7 @@ import {
   traceMetaFromContext,
   type GatewayToolContext,
 } from "../runtime/gatewayErrors";
-import type { BenchmarkTraceRecorder } from "../runtime/benchmarkTrace";
+import type { BenchmarkTraceRecorder } from "./benchmarkTrace";
 
 export class GatewayCapabilityExecutor {
   constructor(
