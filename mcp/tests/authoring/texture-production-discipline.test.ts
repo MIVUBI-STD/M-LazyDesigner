@@ -62,8 +62,9 @@ describe("texture production discipline", () => {
     expect(provisional.height).toBe(16);
     expect(shape).toBeDefined();
     expect(brush).toBeDefined();
-    expect(skill).toContain("blank create_texture → explicit width+height from project UV");
-    expect(skill).toMatch(/provisional.*16×16.*blank/);
+    expect(skill).toContain("pass explicit width/height from the current project UV contract");
+    expect(skill).toContain("do not rely on omitted size");
+    expect(skill).toContain("16×16 blank default is compatibility/provisional behavior");
     expect(standard).toContain("create_texture(type=blank)");
     expect(standard).toContain("create_texture(type=template)");
     expect(standard).toContain("before Texture Styling");
