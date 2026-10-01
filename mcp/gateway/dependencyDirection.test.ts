@@ -39,6 +39,7 @@ const ROOT_COMPATIBILITY_FILES = new Set(
 );
 
 const RUNTIME_COMPATIBILITY_WRAPPERS = new Set([
+  "capabilityExecutor",
   "connectionManager",
   "reconnectPolicy",
   "recovery",
@@ -87,12 +88,14 @@ function layer(path: string):
   | "capabilities"
   | "runtime"
   | "providers"
+  | "execution"
   | "control" {
   const rel = relative(ROOT, path).replace(/\\/g, "/");
   const first = rel.split("/")[0];
   if (first === "capabilities") return "capabilities";
   if (first === "runtime") return "runtime";
   if (first === "providers") return "providers";
+  if (first === "execution") return "execution";
   if (first === "control") return "control";
   return "root";
 }
@@ -244,6 +247,26 @@ describe("Gateway dependency direction", () => {
           violations.push(
             `${relative(ROOT, file).replace(/\\/g, "/")} -> ${request}`
           );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  test("Runtime transport cannot depend on execution orchestration", async () => {
+    const files = await sourceFiles(join(ROOT, "runtime"));
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const rel = relative(ROOT, file).replace(/\\/g, "/");
+      if (rel === "runtime/capabilityExecutor.ts") continue;
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const target = layer(resolveRelative(file, request));
+        if (target === "execution") {
+          violations.push(`${rel} -> ${request}`);
         }
       }
     }
