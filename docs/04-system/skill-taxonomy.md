@@ -1,6 +1,6 @@
 # LazyDesigner Skill Taxonomy
 
-Updated: 2026-09-12
+Updated: 2026-10-01
 
 This file is the canonical classification for LazyDesigner Skills. It defines what kind of work each Skill belongs to and prevents asset-authoring instructions from being mixed with product-development instructions.
 
@@ -24,9 +24,23 @@ Cross-stage Geometry/Texturing/Animation context, evidence economy, convergence 
 REFERENCE_PREPARATION
 ASSET_AUTHORING
 PRODUCT_DEVELOPMENT
+SKILL_SYSTEM
 ```
 
 These categories are mutually exclusive as primary ownership. Another category is consulted only when materially required.
+
+## Activation Classes
+
+Every canonical Skill declares one activation class near the top of its `SKILL.md`:
+
+```text
+ROUTER      = selects the minimum specialist branch; does not absorb specialist ownership
+SPECIALIST  = performs one semantic domain's reusable procedure
+DELEGATED   = callable only from its named parent/router; not a top-level route
+META        = forms a development/Skill-system contract only when ambiguity actually requires it
+```
+
+Every Skill also declares `LANE`, `DOMAIN`, and `OWNER`. These declarations are routing metadata, not a second policy system. The durable category in this taxonomy remains authoritative.
 
 ## Canonical Asset Profile Vocabulary
 
@@ -170,6 +184,57 @@ clear bounded source/build/test change
 
 Asset-authoring and reference-authoring Skills are not loaded for normal product development unless the development task explicitly changes/evaluates those semantics.
 
+## 4. SKILL_SYSTEM
+
+Purpose: create, audit, refine, evaluate, consolidate, or retire LazyDesigner Skills and their activation/routing semantics without contaminating Product Development or normal IN_USE work.
+
+Execution owner: Codex Skill-engineering workflow.
+
+| Canonical path | Canonical name | Role |
+| --- | --- | --- |
+| `.agents/skills/lazydesigner-skill-development/SKILL.md` | `lazydesigner-skill-development` | Skill activation design, overlap/negative-trigger analysis, eval-corpus maintenance, progressive disclosure, and retirement/consolidation decisions |
+
+```text
+Skill create/refine/audit/evaluate/retire
+→ lazydesigner-skill-development
+→ current taxonomy + affected Skill only
+→ positive + negative + collision routing evidence
+→ smallest complete Skill change
+→ STOP
+```
+
+Do not route ordinary source/plugin changes here. Do not use this Skill to redefine product semantics: change the durable product/system owner first, then align the affected Skill. Do not use Product Development Skills merely because a `SKILL.md` file is source-controlled.
+
+### Lane-Crossing Contract
+
+```text
+IN_USE → DEVELOPMENT
+only after bounded evidence proves a system/runtime/public-contract defect
+→ DEVELOPMENT_HANDOFF
+→ exact Development owner
+→ return to originating stage after the defect is fixed
+
+IN_USE → SKILL_SYSTEM
+only when the defect is in Skill activation/instruction/evaluation itself
+
+DEVELOPMENT → IN_USE
+never automatic; a development fix restores capability but does not authorize asset continuation
+```
+
+A `DEVELOPMENT_HANDOFF` records only decision-changing evidence:
+
+```text
+source_lane
+source_owner
+target_owner
+observed
+expected
+minimum_reproduction_or_evidence
+resume_stage
+```
+
+“Maybe the tool/MCP/runtime is wrong” is not sufficient evidence.
+
 ## Naming Rules
 
 Canonical LazyDesigner product-specific Skill names use prefix `lazydesigner-` plus a direct responsibility noun.
@@ -207,6 +272,11 @@ ASSET_AUTHORING task
 
 PRODUCT_DEVELOPMENT task
 → do not load ASSET_AUTHORING or REFERENCE_PREPARATION Skills unless explicitly required by changed semantics
+
+SKILL_SYSTEM task
+→ load lazydesigner-skill-development + only affected Skill(s)
+→ do not preload Product Development or IN_USE Skills as execution owners
+→ consult durable docs only when the Skill must align to an existing semantic contract
 ```
 
 The Prompt Compiler receives only current intent, confirmed answers and still-valid approved decisions. Rejected/superseded directions are not active production context.
