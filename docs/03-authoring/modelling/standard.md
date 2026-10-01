@@ -376,6 +376,33 @@ Hierarchy exists for transform ownership, articulation, attachment, or useful or
 
 A required non-visible effect, hold, or attachment point that needs transform identity but no visible volume is **Locator intent**, not a hidden/placeholder Cube. When that attachment/reference point must move during animation, parent the Locator under the appropriate animated Group/Bone so it inherits that transform. Current animation authoring targets Group/Bone owners, not Locator elements directly.
 
+## Bedrock Export / Skeleton Hygiene
+
+These are compatibility guardrails, not reasons to redesign otherwise-correct Geometry.
+
+### Bone identity
+
+New Bedrock bone/Group names should be stable, unique, and `snake_case`. Animation files address bones by name, while LazyDesigner mutations should continue to prefer UUIDs when available. Do not rename an already accepted/external-facing hierarchy merely for style; rename only when ambiguity/invalid naming is a real compatibility problem and propagate references through the existing rename path.
+
+For a new independent entity hierarchy, prefer one intentional semantic root bone when a whole-asset transform/root animation capability is useful. Do not add an empty root as ceremony when an established template/attachment hierarchy already provides the correct parent contract.
+
+### Box UV compatibility
+
+Bedrock Box UV mapping is integer-oriented and native tooling can round fractional cube dimensions during mapping. Therefore:
+
+```text
+fractional Geometry is visually/structurally required
++ Box UV mapping would lose/stretch a face
+→ keep the Geometry
+→ use/verify per-face UV instead of resizing the model for UV convenience
+```
+
+Do not force valid fractional Geometry to whole-number dimensions solely to satisfy Box UV. When Box UV is retained, verify its native mapping before Texture Styling.
+
+### Locator inheritance
+
+A Locator follows its parent bone transform. Keep `ignore_inherited_scale=false` by default. Set it only when the attachment/effect point must inherit parent position/rotation while explicitly discarding parent scale. Treat that as attachment semantics, not a generic optimization.
+
 ## Completion Criteria
 
 Geometry is ready for UV/texture only when whole primary form passed visual review, representation choices match the visible 3D requirement, small/detail Geometry survived the guardrail challenge, dense cohorts survived the merge/remove challenge, major proportions/contacts are coherent, required surface relationships are intentional, material shared transforms have an owner, required primary hierarchy/pivots are established, each material rotation/pivot has a reason, Cuboid count is purposeful, no major geometry issue remains, and visual claims use fresh current-revision evidence.
