@@ -22,3 +22,15 @@ Runtime detects replacement/reconnect boundaries and reports generation changes 
 
 
 Cross-layer capability invocation orchestration is not Runtime-owned. It lives in `../execution/`. The former `capabilityExecutor.ts` Runtime path is compatibility-only.
+
+
+## Compatibility-only migrated paths
+
+```text
+capabilityExecutor.ts          -> ../execution/capabilityExecutor.ts
+benchmarkTrace.ts              -> ../execution/benchmarkTrace.ts
+orchestrationRecoveryState.ts  -> ../session/orchestrationRecoveryState.ts
+projectAffinity.ts             -> ../../lib/runtime/affinity.ts
+```
+
+Do not add implementation to these files.
