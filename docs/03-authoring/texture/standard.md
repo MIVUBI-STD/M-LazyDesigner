@@ -412,9 +412,8 @@ Requested texture scope is complete when:
 
 ## Related
 
-- [Geometry Standard](05-geometry-standard.md)
-- [Visual Validation](07-visual-validation.md)
-- [Current Validation](../knowledge/current-validation.md)
-- [Material Standard](10-material-standard.md)
-- [Render Profile Standard](11-render-profile-standard.md)
-- [Surface Pattern Standard](12-surface-pattern-standard.md)
+- [Geometry Standard](../modelling/standard.md)
+- [Visual Validation](../validation/visual.md)
+- [PBR Texture Set Standard](material.md)
+- [Render Profile Standard](render-profile.md)
+- [Surface Pattern Standard](surface-pattern.md)
