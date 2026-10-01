@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-mcp-development
-description: Specialist for LazyDesigner MCP public contracts: tools/resources/prompts, input schemas, result shapes, registration, annotations, Streamable HTTP transport, and MCP protocol behavior. Use when that client-facing boundary is the primary change; package invariants remain owned by mcp/AGENTS.md.
+description: Development specialist for client-visible LazyDesigner MCP contracts: tools/resources/prompts, schemas, result shapes, registration, annotations, Streamable HTTP transport, and protocol/session behavior. Do not use for visual asset defects, Blockbench-internal execution bugs, normal authoring, or Skill-system maintenance.
 ---
 
 # LazyDesigner MCP Development
+
+## Activation Contract
+
+```text
+LANE: DEVELOPMENT
+DOMAIN: PRODUCT_DEVELOPMENT
+CLASS: SPECIALIST
+OWNER: MCP_PUBLIC_CONTRACT
+```
+
+Enter only when the requested or evidenced change is client-visible MCP behavior. Do not enter merely because normal authoring uses MCP, a model looks wrong, Blockbench is mentioned, or a Skill needs maintenance. A correct MCP contract with incorrect Blockbench execution belongs to `lazydesigner-blockbench-development`.
+
 
 Own **client-visible MCP semantics**. The active development route defines goal/scope; `mcp/AGENTS.md` owns package-wide schema/runtime/result/docs/security rules. Do not repeat those rules here.
 
