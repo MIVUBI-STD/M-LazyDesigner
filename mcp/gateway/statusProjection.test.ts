@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { projectGatewayStatus } from "./statusProjection";
+import { projectGatewayStatus } from "./presentation/statusProjection";
 
 describe("projectGatewayStatus", () => {
   test("keeps stable runtime identity without exposing raw health", () => {
