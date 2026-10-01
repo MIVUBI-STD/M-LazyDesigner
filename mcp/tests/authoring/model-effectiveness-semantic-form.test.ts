@@ -26,7 +26,10 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
   });
 
   test("native Geometry stays quality-first without per-Cube planning or five-view capture ceremony", async () => {
-    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
+    const [modelling, verification] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-modelling/references/verification.md"),
+    ]);
 
     for (const term of [
       "Geometry Hot Path",
@@ -41,8 +44,8 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
     expect(modelling).toMatch(/`back`[^;]*rear topology\/asymmetry/);
     expect(modelling).toMatch(/`front_left_3q`[^.]*ambiguity[^.]*source-matched fidelity/);
     expect(modelling).toMatch(/bounded edits[^.]*affected views/);
-    expect(modelling).toContain("correspondence metadata only maps captures to canonical board slots");
-    expect(modelling).toContain("it is not a scorer and never creates visual PASS");
+    expect(verification).toContain("correspondence metadata only maps captures to canonical board slots");
+    expect(verification).toContain("it is not a scorer and never creates visual PASS");
   });
 
   test("small-detail budget stays texture-first while alpha carriers avoid micro-Cubes", async () => {
@@ -53,10 +56,10 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
       source("../docs/03-authoring/texture/standard.md"),
     ]);
 
-    expect(modelling).toContain("`<= 4 Blockbench units`");
     expect(modelling).toContain("PLANAR_CUTOUT_CARRIER");
-    expect(modelling).toContain("1 plane or 2 crossed planes");
-    expect(modelling).toContain("rather than a fixed ritual angle");
+    expect(geometry).toContain("`<= 4 Blockbench units`");
+    expect(geometry).toContain("CROSSED_PAIR");
+    expect(geometry).toContain("about 90° apart");
     expect(geometry).toContain("### Planar cutout carrier");
     expect(geometry).toContain("not a new modelling strategy or object preset");
     expect(geometry).toContain("Small-detail thresholds measure the visible feature, not incidental carrier thickness");
