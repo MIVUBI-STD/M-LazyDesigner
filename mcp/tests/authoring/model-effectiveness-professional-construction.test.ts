@@ -255,4 +255,15 @@ describe("model creation effectiveness — professional construction without pre
     expect(locators).toContain("ignore_inherited_scale");
   });
 
+  test("visible-bounds metadata remains a protected gap rather than a geometry workaround", async () => {
+    const [modelling, workflow] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("prompts/bedrock_entity_workflow.md"),
+    ]);
+
+    expect(modelling).toContain("Native `visible_bounds_*` authoring remains a protected gap");
+    expect(modelling).toContain("do not add or resize Geometry merely to fake visible-bounds metadata");
+    expect(workflow).toContain("Protected gaps remain TextureMesh direct authoring, visible bounds");
+  });
+
 });
