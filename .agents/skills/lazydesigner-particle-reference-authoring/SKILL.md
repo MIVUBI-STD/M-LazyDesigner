@@ -265,6 +265,10 @@ particle_initial_speed = scalar speed
 
 This is Snowstorm/Wintersky-targeted compatibility guidance, not a generic Bedrock prohibition.
 
+## Appearance / Timing Gate
+
+Before final JSON, resolve only what is material: billboard orientation follows visual role (camera-facing vs direction-aligned); static UV vs flipbook is explicit; flipbook timing has one owner (`frames_per_second` or `stretch_to_lifetime`); emitter `activation_expression` owns emission state, not living-particle age progression. Physical travel stays in motion components, never flipbook animation.
+
 ## Single-pass QA rule
 
 Near finalization, run only applicable `qa.md` gates once. After a targeted revision, rerun the causal QA gate; rerun package-integrity checks only when a package exists.
