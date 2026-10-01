@@ -88,7 +88,7 @@
     "eval:capability-intelligence": "bun run ./scripts/evaluate/evaluate-capability-intelligence.ts && bun run audit:semantic-collisions",
     "test:capability-manifest": "bun test lib/capabilities/manifest.test.ts gateway/capabilityIntelligence.test.ts gateway/capabilityGraph.test.ts gateway/capabilityManifest.test.ts",
     "test:gateway-structure": "bun test gateway/structure.test.ts gateway/dependencyDirection.test.ts gateway/development/sourceOwners.test.ts gateway/control/referenceParser.test.ts gateway/control/readiness.test.ts gateway/runtime/operationQueue.test.ts gateway/runtime/affinityPolicy.test.ts",
-    "test:gateway-recovery": "bun test gateway/index-boundary.test.ts gateway/backend-effects-boundary.test.ts gateway/execution/orchestrationRecoveryState.test.ts gateway/runtime/faultInjection.contract.test.ts",
+    "test:gateway-recovery": "bun test gateway/index-boundary.test.ts gateway/backend-effects-boundary.test.ts gateway/session/orchestrationRecoveryState.test.ts gateway/runtime/faultInjection.contract.test.ts",
     "eval:decision-efficiency": "bun run ./scripts/evaluate/evaluate-decision-efficiency.ts",
     "analyze:semantic-impact": "bun run ./scripts/development/analyze-semantic-impact.ts",
     "generate:knowledge-index": "bun run ./scripts/development/build-knowledge-index.ts",
