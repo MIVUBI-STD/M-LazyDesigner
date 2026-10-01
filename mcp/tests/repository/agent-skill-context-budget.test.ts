@@ -7,6 +7,24 @@ const ROUTER_SKILLS = [
   },
 ] as const;
 
+const REFERENCE_SPECIALIST_SKILLS = [
+  {
+    path: "../.agents/skills/lazydesigner-prompt-compiler/SKILL.md",
+    maxChars: 6000,
+    classMarker: "CLASS: DELEGATED",
+  },
+  {
+    path: "../.agents/skills/lazydesigner-pixel-art-authoring/SKILL.md",
+    maxChars: 11000,
+    classMarker: "CLASS: SPECIALIST",
+  },
+  {
+    path: "../.agents/skills/lazydesigner-particle-reference-authoring/SKILL.md",
+    maxChars: 11000,
+    classMarker: "CLASS: SPECIALIST",
+  },
+] as const;
+
 const HOT_PATH_SKILLS = [
   {
     path: "../.agents/skills/lazydesigner-modelling/SKILL.md",
@@ -35,6 +53,14 @@ describe("agent skill context budget", () => {
       const source = await Bun.file(skill.path).text();
       expect(source.length).toBeLessThan(skill.maxChars);
       expect(source).toContain("CLASS: ROUTER");
+    }
+  });
+
+  test("reference specialists stay bounded without forcing premature fragmentation", async () => {
+    for (const skill of REFERENCE_SPECIALIST_SKILLS) {
+      const source = await Bun.file(skill.path).text();
+      expect(source.length).toBeLessThan(skill.maxChars);
+      expect(source).toContain(skill.classMarker);
     }
   });
 
