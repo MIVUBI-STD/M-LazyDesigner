@@ -165,9 +165,13 @@ describe("Gateway dependency direction", () => {
           resolveRelative(file, request)
         ).replace(/\\/g, "/");
 
+        const runtimeWrapper =
+          targetRel.startsWith("runtime/")
+            ? targetRel.slice("runtime/".length)
+            : null;
         if (
-          !targetRel.includes("/") &&
-          RUNTIME_COMPATIBILITY_WRAPPERS.has(targetRel)
+          runtimeWrapper &&
+          RUNTIME_COMPATIBILITY_WRAPPERS.has(runtimeWrapper)
         ) {
           violations.push(`${entry.name} -> ${request}`);
         }
