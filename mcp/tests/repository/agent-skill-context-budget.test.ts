@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
+const ROUTER_SKILLS = [
+  {
+    path: "../.agents/skills/lazydesigner-reference-preparation/SKILL.md",
+    maxChars: 9000,
+  },
+] as const;
+
 const HOT_PATH_SKILLS = [
   {
     path: "../.agents/skills/lazydesigner-modelling/SKILL.md",
@@ -23,6 +30,14 @@ const HOT_PATH_SKILLS = [
 ] as const;
 
 describe("agent skill context budget", () => {
+  test("routing skills stay compact enough to classify before specialist loading", async () => {
+    for (const skill of ROUTER_SKILLS) {
+      const source = await Bun.file(skill.path).text();
+      expect(source.length).toBeLessThan(skill.maxChars);
+      expect(source).toContain("CLASS: ROUTER");
+    }
+  });
+
   test("hot-path specialist skills stay compact and lazy-load deep references", async () => {
     for (const skill of HOT_PATH_SKILLS) {
       const source = await Bun.file(skill.path).text();
