@@ -250,6 +250,7 @@ lazydesigner-animation
 lazydesigner-mcp-development
 lazydesigner-blockbench-development
 lazydesigner-development-brief
+lazydesigner-skill-development
 ```
 
 Avoid ambiguous names such as `core`, `manager`, `director`, `helper`, `builder`, `toolkit`, bare `runtime`, or `router` when Control owns routing.
