@@ -235,4 +235,24 @@ describe("model creation effectiveness — professional construction without pre
       expect(activeReasoning).not.toContain(fixture);
     }
   });
+  test("Bedrock export hygiene stays compatibility-aware without distorting valid Geometry", async () => {
+    const [modelling, geometry, hierarchy, locators] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../docs/03-authoring/modelling/standard.md"),
+      source("server/tools/element/hierarchy.ts"),
+      source("server/tools/geometry/locators.ts"),
+    ]);
+
+    expect(modelling).toContain("Bedrock Compatibility Gate");
+    expect(geometry).toContain("stable, unique, and `snake_case`");
+    expect(geometry).toContain("Do not add an empty root as ceremony");
+    expect(geometry).toContain("Do not force valid fractional Geometry to whole-number dimensions solely to satisfy Box UV");
+    expect(geometry).toContain("ignore_inherited_scale=false");
+    expect(geometry).toContain("discarding parent scale");
+
+    expect(hierarchy).toContain("Non-empty unique bone name.");
+    expect(hierarchy).toContain("use `root` for intentional root");
+    expect(locators).toContain("ignore_inherited_scale");
+  });
+
 });
