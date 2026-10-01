@@ -99,62 +99,9 @@ Child suffixes describe physical role (`_debris`, `_plume`, `_flash`), never rev
 
 ## Pixel Art Texture Intake
 
-When a texture is supplied by `lazydesigner-pixel-art-authoring`, treat it as **visual texture evidence/resource**, not as Particle behavior authority.
+Pixel Art supplies visual texture/frame evidence only; Particle owns emitter, lifecycle, motion, Molang, collision, events, and attachment semantics. Consume only decision-relevant texture facts (identity/dimensions/alpha/frame contract/style/provenance/blockers) and load `docs/02-reference/particle/texture-authoring.md` only when that boundary or texture compatibility is material.
 
-Accept only texture-facing facts that can change particle rendering:
-
-```text
-texture identity
-pixel dimensions
-alpha behavior
-frame count/order when animated
-frame dimensions when known
-visual loop intent
-color / emissive intent
-style_lock_id when relevant
-source/reference identity
-known blockers
-provenance class when provided
-```
-
-Preserve provenance:
-
-```text
-USER_REQUIREMENT
-REFERENCE_SUPPORTED
-EXISTING_STYLE_SUPPORTED
-PROVISIONAL
-```
-
-Do not promote `PROVISIONAL` visual choices into fixed runtime requirements.
-
-Never import from Pixel Art:
-
-```text
-spawn rate
-lifetime
-velocity
-emitter shape
-Molang
-collision
-event behavior
-locator semantics
-performance/FPS claims
-```
-
-Particle owns those decisions.
-
-Consumption rule:
-
-```text
-Pixel Art texture/frame asset
-→ validate texture path / alpha / frame contract for the effect
-→ bind visual resource to particle JSON
-→ preserve visual identity where compatible
-→ Particle owns emitter + lifecycle + motion + events
-```
-
-If the supplied pixel asset cannot satisfy a real particle requirement (for example required flipbook framing or alpha behavior), return only that bounded visual requirement to Pixel Art; do not load the entire Pixel Art corpus or redesign runtime semantics there.
+Do not promote `PROVISIONAL` visual choices into runtime requirements. If a supplied asset cannot satisfy the required alpha/frame/flipbook contract, return only that bounded visual requirement to Pixel Art rather than loading its full corpus.
 
 ## Context-budget rule
 
