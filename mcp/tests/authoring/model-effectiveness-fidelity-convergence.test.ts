@@ -10,28 +10,29 @@ function normalized(text: string): string {
 
 describe("model creation effectiveness — fidelity convergence and evaluation integrity", () => {
   test("local corrections require qualitative convergence rather than mutation activity", async () => {
-    const [modelling, workflow] = await Promise.all([
+    const [modelling, correction, workflow] = await Promise.all([
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-modelling/references/correction.md"),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
-    for (const text of [modelling, workflow]) {
+    for (const text of [correction, workflow]) {
       expect(text).toContain("IMPROVED | UNCHANGED | REGRESSED");
       const lower = normalized(text);
       expect(lower).toContain("regressed");
       expect(lower).toContain("same causal correction");
       expect(lower).toContain("blocked");
     }
-    expect(normalized(modelling)).toMatch(/without regression elsewhere/);
-    expect(normalized(modelling)).toMatch(/require.*`improved`/);
+    expect(normalized(modelling)).toContain("require `improved` without regression elsewhere");
+    expect(normalized(correction)).toMatch(/require.*`improved`/);
   });
 
   test("correction reuses fresh pre-correction evidence instead of recapturing ceremonially", async () => {
-    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
-    const modellingText = normalized(modelling);
+    const correction = await source("../.agents/skills/lazydesigner-modelling/references/correction.md");
+    const correctionText = normalized(correction);
 
-    expect(modellingText).toContain("reuse fresh affected pre-correction evidence");
-    expect(modellingText).toContain("capture before mutation only when none exists");
-    expect(modellingText).toContain("after mutation, recapture affected view(s)");
+    expect(correctionText).toContain("reuse fresh affected pre-correction evidence");
+    expect(correctionText).toContain("capture before mutation only when none exists");
+    expect(correctionText).toContain("after mutation, recapture affected view(s)");
   });
 
   test("model-facing evaluation remains evidence-bound and non-circular", async () => {
