@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-blockbench-development
-description: Specialist for LazyDesigner Blockbench runtime/plugin integration. Use when the primary problem is BBPlugin lifecycle, Blockbench globals/APIs, panels/dialogs/settings/actions, runtime permissions, Undo/Canvas/model mutation mechanics, event cleanup, or other behavior that must execute correctly inside Blockbench. Do not use for MCP protocol contracts, ordinary TypeScript/Bun implementation mechanics, reference generation, or Bedrock modelling decisions such as shape, proportions, Cuboid decomposition, texture art direction, or visual quality.
+description: Development specialist for LazyDesigner Blockbench runtime/plugin integration: lifecycle, Blockbench APIs/globals, UI, permissions, Undo/Canvas/model mutation mechanics, refresh and cleanup. Do not use for MCP public contracts, visual modelling judgement, normal asset/reference authoring, or Skill-system maintenance.
 ---
 
 # LazyDesigner Blockbench Development
+
+## Activation Contract
+
+```text
+LANE: DEVELOPMENT
+DOMAIN: PRODUCT_DEVELOPMENT
+CLASS: SPECIALIST
+OWNER: BLOCKBENCH_RUNTIME_EXECUTION
+```
+
+Enter only when bounded evidence points to Blockbench runtime/plugin execution, lifecycle, API, Undo, UI, permission, refresh, or cleanup behavior. Do not enter for a merely poor-looking asset, an MCP public-contract defect, or Skill maintenance. Visual failure without runtime evidence remains with the active IN_USE specialist.
+
 
 Own the **Blockbench runtime/plugin boundary** for LazyDesigner. This skill decides how an operation executes correctly inside Blockbench; it does not decide what a good model should look like.
 
