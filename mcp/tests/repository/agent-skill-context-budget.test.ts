@@ -29,5 +29,9 @@ describe("agent skill context budget", () => {
       expect(source.length).toBeLessThan(skill.maxChars);
       for (const reference of skill.references) expect(source).toContain(reference);
     }
+
+    const modelling = await Bun.file("../.agents/skills/lazydesigner-modelling/SKILL.md").text();
+    expect(modelling).not.toContain("verification-uv-correction.md");
+    expect(await Bun.file("../.agents/skills/lazydesigner-modelling/references/verification-uv-correction.md").exists()).toBe(false);
   });
 });
