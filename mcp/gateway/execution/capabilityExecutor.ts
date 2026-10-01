@@ -27,7 +27,7 @@ import {
   gatewayErrorResult,
   traceMetaFromContext,
   type GatewayToolContext,
-} from "../runtime/gatewayErrors";
+} from "./gatewayErrors";
 import type { BenchmarkTraceRecorder } from "./benchmarkTrace";
 
 export class GatewayCapabilityExecutor {
