@@ -99,122 +99,65 @@ Use `.agents/skills/lazydesigner-development-brief/SKILL.md` only when architect
 
 ### Skill System Work
 
-When the task creates, audits, refines, splits, merges, evaluates, or retires LazyDesigner Skills or their activation/routing semantics:
+Skill creation/audit/refinement/evaluation/retirement routes through `docs/04-system/skill-taxonomy.md` → `.agents/skills/lazydesigner-skill-development/SKILL.md` → only affected Skills/evidence. Do not use `lazydesigner-development-brief` for Skill maintenance.
 
-```text
-AGENTS.md
-→ docs/04-system/skill-taxonomy.md
-→ .agents/skills/lazydesigner-skill-development/SKILL.md
-→ only affected Skills + the smallest matching routing/eval evidence
-```
-
-Skill-system work is neither normal Product Development nor IN_USE authoring. Do not load `lazydesigner-development-brief` merely because a Skill file changes. If a Skill change would redefine product behavior, consult the durable product/system owner and change that contract first rather than hiding new policy inside a Skill.
-
-#### Lane crossing
-
-```text
-IN_USE visual/asset/reference defect
-→ stay with active IN_USE owner
-
-bounded evidence of MCP/runtime/plugin system defect
-→ DEVELOPMENT_HANDOFF
-→ exact DEVELOPMENT owner
-→ fix/prove only the system defect
-→ return to originating IN_USE stage; do not continue authoring automatically
-
-Skill/routing/evaluation defect
-→ SKILL_SYSTEM
-→ lazydesigner-skill-development
-```
-
-Suspicion such as “maybe MCP/tool/runtime” is not system-defect evidence. Cross-lane handoff must name observed behavior, expected behavior, the smallest reproduction/evidence, target owner, and `resume_stage`. Never use lane crossing to escape a difficult visual correction.
+Cross lane only with evidence: IN_USE defects stay with the active owner; proved MCP/runtime/plugin defects emit `DEVELOPMENT_HANDOFF` with observed/expected/minimum evidence, target owner and `resume_stage`; Skill-routing defects go to SKILL_SYSTEM. Suspicion alone is not evidence.
 
 ## Task Class After Context
 
 ### Reference Preparation
 
-Reference generation belongs in **ChatGPT** using `.agents/skills/lazydesigner-reference-preparation/SKILL.md`. Codex authoring consumes the actual user-approved/usable reference artifact or package; it does not recreate the reference workflow.
-
-Use `docs/02-reference/README.md` as the Reference domain index. First classify the required capability, then load only that branch:
+Reference generation belongs in **ChatGPT** through `.agents/skills/lazydesigner-reference-preparation/SKILL.md`; Codex consumes the approved/usable artifact rather than recreating that workflow. Use `docs/02-reference/README.md` and load only the selected branch:
 
 ```text
-smooth concept / turnaround / model reference
-→ image reference branch
-
-strict integer-grid icon / sprite / tile / pixel-art conversion
-→ .agents/skills/lazydesigner-pixel-art-authoring/SKILL.md
-→ docs/02-reference/pixel-art/
-
-Bedrock / Snowstorm particle or VFX artifact
-→ .agents/skills/lazydesigner-particle-reference-authoring/SKILL.md
-→ docs/02-reference/particle/
+smooth visual/model reference → image reference branch
+strict pixel icon/sprite/tile  → lazydesigner-pixel-art-authoring
+Bedrock/Snowstorm particle     → lazydesigner-particle-reference-authoring
 ```
 
-Generate only minimum useful evidence. For smooth image/model references, Sheet 01 is the identity/scale anchor; Sheet 02+ exists only for real information overflow. Do not force fixed turnaround boards or extra views when they do not reduce downstream uncertainty.
-
-Do not route an actual Blockbench atlas/UV/Painter task to Pixel Art merely because the desired texture is pixel-styled. Actual mapped texture production remains `lazydesigner-texturing`. Pixel Art may supply an approved image/style artifact to Texturing or a particle texture to Particle without taking over their ownership.
+Generate minimum useful evidence. Pixel Art does not own Blockbench atlas/UV/Painter mutation; mapped texture production remains `lazydesigner-texturing`.
 
 ### Asset Authoring
 
 LazyDesigner Control is the canonical routing/context authority. There is no separate asset-router Skill in the normal authoring path.
 
-Before an authoring mutation, use the current Control packet when orientation/context is unknown or materially stale:
-
 ```text
 current AGENTS.md
 → LazyDesigner Control
-→ active stage context + content-addressed required handles
+→ active stage context + required handles
 → exactly one active specialist
 
-Geometry / rig / pivots / UV Layout
-→ .agents/skills/lazydesigner-modelling/SKILL.md
-→ exactly one selected modelling profile when Control provides it
-
-Texture Atlas / Styling / PBR / Texture Verify
-→ .agents/skills/lazydesigner-texturing/SKILL.md
-
-Animation / motion
-→ .agents/skills/lazydesigner-animation/SKILL.md
+Geometry / rig / pivots / UV Layout → lazydesigner-modelling
+Texture Atlas / Styling / PBR      → lazydesigner-texturing
+Animation / motion                  → lazydesigner-animation
 ```
 
-Do not preload sibling specialists or all profiles. Load a new specialist only when semantic ownership changes. Reuse unchanged `known_context_ids` rather than retransmitting the same Skill/profile content.
+Do not preload sibling specialists or all profiles. Reuse unchanged `known_context_ids`; load another specialist only when semantic ownership changes.
 
-Control readiness is not user approval. Persisted Workspace lifecycle remains:
+Lifecycle remains:
 
 ```text
-Geometry
-→ author + verify
-→ Geometry APPROVED
-→ UV Layout PASS
-
-Texturing
-→ requires Geometry APPROVED + UV Layout PASS
-→ author + verify
+Geometry APPROVED + UV Layout PASS
 → Texturing APPROVED
-
-Animation
-→ requires valid upstream gates + Texturing APPROVED
-→ AUTHORING↔Animation handoff through Gateway
+→ Animation eligibility / AUTHORING↔Animation handoff when required
 ```
 
-Geometry↔Texturing use the shared AUTHORING Runtime Surface. Animation remains the only Runtime Surface handoff boundary. In new prose and semantics use `Stage` for GEOMETRY/TEXTURING/ANIMATION; treat existing `phase` field/tool names as compatibility identifiers.
+Geometry↔Texturing share the AUTHORING Runtime Surface; Animation is the Runtime Surface handoff boundary. Use `Stage` for GEOMETRY/TEXTURING/ANIMATION; existing `phase` identifiers remain compatibility names.
 
 Hot path:
 
 ```text
-approved Reference Package + current user delta
-→ Control active stage/context
-→ exact known Runtime capability
+approved reference + current delta
+→ Control stage/context
+→ exact known capability
 → mutate
-→ reuse returned state + control_delta
-→ minimum evidence that can change the verdict
+→ reuse returned state/control_delta
+→ minimum verdict-changing evidence
 ```
 
-Use `status` only when orientation is unknown/materially stale, after project/phase authority changes, or when Control explicitly requires reorientation. Search is fallback for unknown/stale capability identity; describe is fallback for real schema uncertainty. Do not use status/search/describe as progress-confirmation ceremony.
+Use status/search/describe only for stale/unknown orientation, capability identity, or real schema uncertainty—not progress ceremony. Normal asset authoring does not load repository history, source/tests/CI, or `lazydesigner-development-brief` unless bounded evidence proves a product/runtime defect.
 
-For normal asset authoring, do not automatically load repository continuation/history/all docs, scan source/tests/CI, or run development verifiers. Asset authoring is not software **Development**; do not route it through `lazydesigner-development-brief` unless repository/plugin behavior changes.
-
-At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`; do not load it during earlier authoring stages.
+At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`.
 
 ## GitHub Work
 
