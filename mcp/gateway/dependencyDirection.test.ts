@@ -47,6 +47,7 @@ const ROOT_RUNTIME_COMPATIBILITY_WRAPPERS = new Set([
 ]);
 
 const RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS = new Set([
+  "gatewayErrors",
   "benchmarkTrace",
   "orchestrationRecoveryState",
   "capabilityExecutor",
