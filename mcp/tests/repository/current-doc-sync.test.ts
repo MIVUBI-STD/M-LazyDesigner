@@ -36,23 +36,23 @@ describe("current developer-facing documentation sync", () => {
   });
 
   test("Runtime source counts stay aligned with developer readmes", async () => {
-    const [phaseMeasureSource, rootReadme, mcpReadme, gatewayReadme] = await Promise.all([
-      text("scripts/measure-phase-surfaces.ts"),
+    const [stageMeasureSource, rootReadme, mcpReadme, gatewayReadme] = await Promise.all([
+      text("scripts/measure/measure-stage-surfaces.ts"),
       text("../README.md"),
       text("README.md"),
       text("gateway/README.md"),
     ]);
 
-    const callableToolCount = sourceCount(phaseMeasureSource, /const CATALOG_TOOL_COUNT = (\d+);/, "callable catalog count");
-    const geometryToolCount = sourceCount(phaseMeasureSource, /geometry:\s*(\d+),/, "Geometry surface count");
-    const texturingToolCount = sourceCount(phaseMeasureSource, /texturing:\s*(\d+),/, "Texturing surface count");
-    const animationToolCount = sourceCount(phaseMeasureSource, /animation:\s*(\d+),/, "Animation surface count");
+    const callableToolCount = sourceCount(stageMeasureSource, /const CATALOG_TOOL_COUNT = (\d+);/, "callable catalog count");
+    const geometryToolCount = sourceCount(stageMeasureSource, /geometry:\s*(\d+),/, "Geometry surface count");
+    const texturingToolCount = sourceCount(stageMeasureSource, /texturing:\s*(\d+),/, "Texturing surface count");
+    const animationToolCount = sourceCount(stageMeasureSource, /animation:\s*(\d+),/, "Animation surface count");
 
     expect(geometryToolCount).toBe(texturingToolCount);
-    expectToolCount(rootReadme, "Active phase-union catalog", callableToolCount);
+    expectToolCount(rootReadme, "Active Stage-union catalog", callableToolCount);
     expectToolCount(rootReadme, "AUTHORING source surface", geometryToolCount);
     expectToolCount(rootReadme, "Animation source surface", animationToolCount);
-    expectToolCount(mcpReadme, "Active phase-union catalog", callableToolCount);
+    expectToolCount(mcpReadme, "Active Stage-union catalog", callableToolCount);
     expectToolCount(mcpReadme, "AUTHORING surface", geometryToolCount);
     expectToolCount(mcpReadme, "Animation surface", animationToolCount);
     expect(gatewayReadme).toMatch(new RegExp(`Runtime callable union\\s+${callableToolCount}`, "i"));
