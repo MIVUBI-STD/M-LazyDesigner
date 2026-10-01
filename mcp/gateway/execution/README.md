@@ -28,3 +28,6 @@ runtime -X-> execution
 ```
 
 Do not move transport/reconnect state, authored state, or capability metadata ownership into this folder.
+
+
+`gatewayErrors.ts` owns AI-facing error/result adaptation and trace metadata extraction for Gateway tool execution. Runtime owns backend error contracts and recovery policy inputs, not MCP result shaping.
