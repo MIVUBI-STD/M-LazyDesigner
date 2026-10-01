@@ -39,6 +39,7 @@ const ROOT_COMPATIBILITY_FILES = new Set(
 );
 
 const RUNTIME_COMPATIBILITY_WRAPPERS = new Set([
+  "benchmarkTrace",
   "orchestrationRecoveryState",
   "capabilityExecutor",
   "connectionManager",
