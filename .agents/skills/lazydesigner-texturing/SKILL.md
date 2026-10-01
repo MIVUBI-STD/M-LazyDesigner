@@ -1,8 +1,20 @@
 ---
 name: lazydesigner-texturing
-description: Mandatory LazyDesigner Bedrock Texture specialist.
+description: In-use LazyDesigner Asset Authoring specialist for Texture Atlas, mapped-surface styling, materials/PBR, alpha/emissive, variants, texture correction and verification after Geometry/UV readiness. Do not use for Geometry construction, animation, standalone pixel-art/reference generation, MCP/plugin development, runtime debugging, or Skill maintenance.
 ---
 # LazyDesigner Bedrock Texturing
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: ASSET_AUTHORING
+CLASS: SPECIALIST
+OWNER: TEXTURE_MATERIAL
+```
+
+Enter when the active Control stage owns mapped texture pixels, atlas styling, materials/PBR, alpha/emissive, variants, or Texture Verify. UV/Geometry defects use a bounded upstream authoring handoff; they do not authorize Cube mutation here. A weak visual result does not justify product-development source inspection without bounded system-defect evidence.
+
 
 Geometry/UV capabilities remain callable for bounded upstream correction; Texturing **must not borrow Cube mutation**.
 
