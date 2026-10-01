@@ -5,11 +5,9 @@ import {
   compactGatewayCapabilityStructuredContent,
   shouldAttachGatewayControlDelta,
 } from "../presentation/resultCompaction";
-import {
-  buildControlDelta,
-  projectControlDeltaForGateway,
-  reduceControlExecutionState,
-} from "../control";
+import { buildControlDelta } from "../control/delta/engine";
+import { projectControlDeltaForGateway } from "../control/delta/projection";
+import { reduceControlExecutionState } from "../control/orchestration";
 import {
   capabilityNeedsPhaseSnapshot,
   deriveControlReceipt,
