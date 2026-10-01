@@ -134,6 +134,7 @@ Load `references/fidelity-correction-evidence.md` only when:
 
 Hot-path invariants:
 - tool success never proves motion fidelity;
+- correction verdict is `IMPROVED | UNCHANGED | REGRESSED`; only improvement without supported regression is progress;
 - correct the highest-impact motion difference first and reject regressions;
 - reuse fresh evidence/context rather than screenshot-per-keyframe or inspect-per-mutation loops;
 - repeated correction in the same causal direction without new evidence must stop and become blocked.
