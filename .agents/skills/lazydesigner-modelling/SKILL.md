@@ -162,3 +162,7 @@ Hot-path invariants:
 
 ## Existing Assets / Shared Session
 Existing geometry is a baseline, not fidelity proof. Geometry owns shape/rig/UV; Texturing pixels/PBR. Geometry↔Texturing stays shared AUTHORING; `HANDOFF_REQUIRED` + `switch_authoring_phase` only for AUTHORING↔Animation.
+
+## Stage Exit
+
+Return only changed authored identities, current evidence freshness, blocking unknowns/upstream defect, and `READY_FOR_USER_REVIEW | BLOCKED | HANDOFF_REQUIRED`. Do not return the full Skill/profile/reference package as continuation state.
