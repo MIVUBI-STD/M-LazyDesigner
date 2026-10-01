@@ -1,21 +1,27 @@
 import { describe, expect, test } from "bun:test";
 import {
   GATEWAY_TOOL_NAMES,
+  type BackendTool,
+} from "@/gateway/contracts/protocol";
+import {
   classifyCapabilityTier,
-  classifyInterruptedCall,
+  searchCapabilityCatalog,
+} from "@/gateway/capabilities/catalog";
+import { classifyInterruptedCall } from "@/gateway/runtime/interruptionPolicy";
+import {
   compactGatewayCapabilityStructuredContent,
   compactGatewayCapabilityContent,
   shouldAttachGatewayControlDelta,
+} from "@/gateway/presentation/resultCompaction";
+import {
   createRuntimeSignature,
   normalizeRuntimeUrl,
-  searchCapabilityCatalog,
-  type BackendTool,
-} from "@/gateway/contract";
-import { projectCapabilitiesForSearch } from "@/gateway/control";
+} from "@/gateway/runtime/identity";
+import { projectCapabilitiesForSearch } from "@/gateway/control/capabilities";
 import {
   getCapabilityBranchFields,
   projectCapabilityInputSchema,
-} from "@/gateway/schemaProjection";
+} from "@/gateway/capabilities/schemaProjection";
 
 describe("BlockIT Gateway contract", () => {
 
@@ -981,7 +987,7 @@ describe("BlockIT Gateway contract", () => {
   });
 
   test("search projection preserves safety semantics with compact true-only flags", async () => {
-    const { projectCapabilitiesForSearch } = await import("@/gateway/control");
+    const { projectCapabilitiesForSearch } = await import("@/gateway/control/capabilities");
     const projected = projectCapabilitiesForSearch([
       {
         capability_id: "manage_cubes",
@@ -1071,16 +1077,17 @@ describe("BlockIT Gateway contract", () => {
       await Promise.all([
         Bun.file("gateway/index.ts").text(),
         Bun.file("gateway/handlers/registerCoreTools.ts").text(),
-        Bun.file("gateway/runtime/capabilityExecutor.ts").text(),
+        Bun.file("gateway/execution/capabilityExecutor.ts").text(),
         Bun.file("gateway/runtime/backend.ts").text(),
       ]);
 
     expect(packageJson.scripts.gateway).toBe("bun run ./gateway/index.ts");
-    expect(source).toContain("serveStdio(() => buildGatewayServer()");
-    expect(source).toContain("function buildGatewayServer(): McpServer");
+    expect(source).toContain("serveStdio(() => buildGatewayServer(experimentalRegistrar)");
+    expect(source).toContain("function buildGatewayServer(");
+    expect(source).toContain("experimentalRegistrar: ExperimentalHybridRegistrar | null");
     expect(source).not.toContain("new StdioServerTransport()");
     expect(source.indexOf("const backend = new BlockitRuntimeBackend(")).toBeLessThan(
-      source.indexOf("function buildGatewayServer(): McpServer")
+      source.indexOf("function buildGatewayServer(")
     );
     expect(executorSource).toContain(
       "compactGatewayCapabilityStructuredContent"
