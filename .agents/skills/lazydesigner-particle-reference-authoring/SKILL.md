@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-particle-reference-authoring
-description: ChatGPT-side specialist for creating Minecraft Bedrock/Snowstorm particle reference assets, textures, static preflight evidence, and clean delivery packages before optional Codex or MCP handoff.
+description: In-use Reference Preparation specialist for Minecraft Bedrock/Snowstorm particle JSON, particle textures, static preflight evidence, and requested delivery packages. Do not use for MCP implementation, Blockbench mutation, Animation-stage particle integration, or unrelated visual-reference work.
 ---
 
 # LazyDesigner Particle Reference Authoring
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: REFERENCE_PREPARATION
+CLASS: SPECIALIST
+OWNER: PARTICLE_REFERENCE_ARTIFACT
+```
+
+Enter for standalone Bedrock/Snowstorm particle-reference artifacts and their visual texture dependencies. Do not enter for Animation-stage integration or because a runtime particle tool is defective. Proven implementation defects require a bounded `DEVELOPMENT_HANDOFF`; authoring corrections remain here.
+
 
 Standalone specialist inside the canonical Reference Preparation domain for particle/VFX tasks. It is not an MCP subsystem and does not depend on image/model reference generation.
 
