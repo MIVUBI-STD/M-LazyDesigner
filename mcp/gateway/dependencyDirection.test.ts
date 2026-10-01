@@ -34,6 +34,10 @@ const CONTROL_COMPATIBILITY_WRAPPERS = new Set([
   "delta",
 ]);
 
+const DEVELOPMENT_COMPATIBILITY_WRAPPERS = new Set([
+  "semanticFreshness",
+]);
+
 const ROOT_COMPATIBILITY_FILES = new Set(
   [...COMPATIBILITY_WRAPPERS].map((name) => `${name}.ts`)
 );
@@ -145,6 +149,47 @@ describe("Gateway dependency direction", () => {
           CONTROL_COMPATIBILITY_WRAPPERS.has(
             targetRel.slice("control/".length)
           )
+        ) {
+          violations.push(`${rel} -> ${request}`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  test("production code bypasses Control compatibility wrappers", async () => {
+    const files = await sourceFiles(ROOT);
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const rel = relative(ROOT, file).replace(/\\/g, "/");
+      const ownControlWrapper =
+        rel.startsWith("control/") && rel.endsWith(".ts")
+          ? rel.slice("control/".length, -3)
+          : null;
+      if (
+        ownControlWrapper &&
+        CONTROL_COMPATIBILITY_WRAPPERS.has(ownControlWrapper)
+      ) {
+        continue;
+      }
+
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const targetRel = relative(
+          ROOT,
+          resolveRelative(file, request)
+        ).replace(/\\/g, "/");
+        const targetControlWrapper =
+          targetRel.startsWith("control/")
+            ? targetRel.slice("control/".length)
+            : null;
+
+        if (
+          targetControlWrapper &&
+          CONTROL_COMPATIBILITY_WRAPPERS.has(targetControlWrapper)
         ) {
           violations.push(`${rel} -> ${request}`);
         }
@@ -287,6 +332,47 @@ describe("Gateway dependency direction", () => {
 
     expect(source).toContain("../runtime/");
     expect(source).toContain("../control");
+  });
+
+  test("production code bypasses Development compatibility wrappers", async () => {
+    const files = await sourceFiles(ROOT);
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const rel = relative(ROOT, file).replace(/\\/g, "/");
+      const ownWrapper =
+        rel.startsWith("development/") && rel.endsWith(".ts")
+          ? rel.slice("development/".length, -3)
+          : null;
+      if (
+        ownWrapper &&
+        DEVELOPMENT_COMPATIBILITY_WRAPPERS.has(ownWrapper)
+      ) {
+        continue;
+      }
+
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const targetRel = relative(
+          ROOT,
+          resolveRelative(file, request)
+        ).replace(/\\/g, "/");
+        const targetWrapper =
+          targetRel.startsWith("development/")
+            ? targetRel.slice("development/".length)
+            : null;
+
+        if (
+          targetWrapper &&
+          DEVELOPMENT_COMPATIBILITY_WRAPPERS.has(targetWrapper)
+        ) {
+          violations.push(`${rel} -> ${request}`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   test("Development Intelligence cannot depend on Control", async () => {
