@@ -1,12 +1,14 @@
 {
-  "version": 1,
-  "purpose": "Development-only routing regression corpus. These cases express intended Skill activation and negative-routing boundaries; they are not runtime routing code.",
+  "version": 2,
+  "purpose": "Development-only routing regression corpus for positive, collision, and pressure cases. It expresses intended Skill activation/evidence boundaries; it is not runtime routing code or a substitute for model behavioral evaluation.",
   "cases": [
     {
       "id": "geometry-reference",
+      "kind": "positive",
       "prompt": "Build the chair geometry from the approved reference.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-modelling",
+      "decision_rule": "Geometry construction is ASSET_AUTHORING.",
       "forbidden_skills": [
         "lazydesigner-mcp-development",
         "lazydesigner-blockbench-development",
@@ -15,19 +17,49 @@
     },
     {
       "id": "visual-geometry-not-runtime",
+      "kind": "collision",
       "prompt": "The cubes were created successfully, but the chair silhouette is still wrong.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-modelling",
+      "decision_rule": "Successful mutation plus wrong form is visual judgement, not runtime failure.",
       "forbidden_skills": [
         "lazydesigner-blockbench-development",
         "lazydesigner-mcp-development"
       ]
     },
     {
+      "id": "suspected-mcp-without-evidence",
+      "kind": "pressure",
+      "prompt": "The model still looks wrong; maybe the MCP is the problem. Fix the tool if needed.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-modelling",
+      "decision_rule": "User suspicion does not prove a system defect.",
+      "required_evidence_for_lane_crossing": "Observed contract/runtime behavior that falsifies correct authoring execution.",
+      "forbidden_skills": [
+        "lazydesigner-mcp-development",
+        "lazydesigner-blockbench-development"
+      ]
+    },
+    {
+      "id": "geometry-tool-coordinate-defect",
+      "kind": "collision",
+      "prompt": "I sent exact from/to coordinates and the returned Blockbench cube is created with different coordinates every time.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-blockbench-development",
+      "decision_rule": "Correct intent with reproducibly wrong native mutation is runtime execution.",
+      "required_evidence_for_lane_crossing": "Exact input plus reproducible native-state mismatch.",
+      "forbidden_skills": [
+        "lazydesigner-modelling",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
       "id": "texture-flat",
+      "kind": "positive",
       "prompt": "The mapped wood texture looks too flat; improve the material read.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-texturing",
+      "decision_rule": "Mapped-surface visual styling belongs to Texturing.",
       "forbidden_skills": [
         "lazydesigner-modelling",
         "lazydesigner-mcp-development",
@@ -36,29 +68,86 @@
     },
     {
       "id": "uv-overlap-upstream",
+      "kind": "collision",
       "prompt": "Texture verification shows a UV overlap causing the visible defect.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-texturing",
       "allowed_handoff": "lazydesigner-modelling",
+      "decision_rule": "Texturing diagnoses mapped output; proved UV defect hands upstream within IN_USE.",
       "forbidden_skills": [
         "lazydesigner-mcp-development"
       ]
     },
     {
+      "id": "pixel-style-blockbench-atlas",
+      "kind": "collision",
+      "prompt": "Make the Blockbench atlas look like clean Minecraft pixel art on the mapped model.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-texturing",
+      "decision_rule": "Pixel-styled mapped atlas work remains Texturing, not standalone Pixel Art.",
+      "forbidden_skills": [
+        "lazydesigner-pixel-art-authoring",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
+      "id": "texture-tool-does-not-apply",
+      "kind": "pressure",
+      "prompt": "paint_texture_transaction reports success, but the target texture pixels remain unchanged with the same exact repro.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-blockbench-development",
+      "decision_rule": "Reproducible success-without-native-mutation is runtime execution failure.",
+      "required_evidence_for_lane_crossing": "Exact target/operation plus unchanged native texture state.",
+      "forbidden_skills": [
+        "lazydesigner-texturing",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
       "id": "animation-idle",
+      "kind": "positive",
       "prompt": "Create an idle animation using the approved rig.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-animation",
+      "decision_rule": "Motion/keyframes belong to Animation.",
       "forbidden_skills": [
         "lazydesigner-modelling",
         "lazydesigner-blockbench-development"
       ]
     },
     {
+      "id": "animation-bad-pivot",
+      "kind": "collision",
+      "prompt": "The arm motion is correct but rotates around the wrong pivot; the rig pivot is visibly misplaced.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-animation",
+      "allowed_handoff": "lazydesigner-modelling",
+      "decision_rule": "Animation owns diagnosis; structural pivot defect hands upstream to Geometry.",
+      "forbidden_skills": [
+        "lazydesigner-blockbench-development",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
+      "id": "animation-api-runtime-defect",
+      "kind": "pressure",
+      "prompt": "The same valid keyframe batch is accepted but no keyframes appear in Blockbench; direct inspection confirms the clip stayed unchanged.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-blockbench-development",
+      "decision_rule": "Accepted request with reproducibly unchanged native animation state is runtime execution.",
+      "required_evidence_for_lane_crossing": "Accepted operation plus unchanged native clip state.",
+      "forbidden_skills": [
+        "lazydesigner-animation",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
       "id": "blockbench-undo-defect",
+      "kind": "positive",
       "prompt": "The cube mutation succeeds but Undo does not restore the previous Blockbench state.",
       "lane": "DEVELOPMENT",
       "expected_skill": "lazydesigner-blockbench-development",
+      "decision_rule": "Undo mechanics are Blockbench runtime ownership.",
       "forbidden_skills": [
         "lazydesigner-modelling",
         "lazydesigner-development-brief"
@@ -66,9 +155,35 @@
     },
     {
       "id": "mcp-result-contract",
+      "kind": "positive",
       "prompt": "The MCP structuredContent result no longer matches the advertised public schema.",
       "lane": "DEVELOPMENT",
       "expected_skill": "lazydesigner-mcp-development",
+      "decision_rule": "Client-visible result/schema mismatch is MCP public-contract ownership.",
+      "forbidden_skills": [
+        "lazydesigner-blockbench-development",
+        "lazydesigner-modelling"
+      ]
+    },
+    {
+      "id": "mcp-vs-runtime-collision",
+      "kind": "collision",
+      "prompt": "The public tool schema is correct and validation passes, but the matching Blockbench operation mutates the wrong element.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-blockbench-development",
+      "decision_rule": "Correct public contract plus wrong native operation routes to Blockbench Development.",
+      "forbidden_skills": [
+        "lazydesigner-mcp-development",
+        "lazydesigner-modelling"
+      ]
+    },
+    {
+      "id": "runtime-vs-mcp-collision",
+      "kind": "collision",
+      "prompt": "The Blockbench operation is correct when invoked internally, but MCP rejects an input that the advertised schema says is valid.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-mcp-development",
+      "decision_rule": "Correct native execution plus wrong public acceptance semantics routes to MCP Development.",
       "forbidden_skills": [
         "lazydesigner-blockbench-development",
         "lazydesigner-modelling"
@@ -76,29 +191,59 @@
     },
     {
       "id": "complex-dev-ambiguity",
+      "kind": "positive",
       "prompt": "Redesign the cross-owner architecture; ownership and acceptance are still unresolved.",
       "lane": "DEVELOPMENT",
       "expected_skill": "lazydesigner-development-brief",
+      "decision_rule": "Materially unresolved cross-owner architecture requires the meta development contract.",
       "forbidden_skills": [
         "lazydesigner-modelling",
         "lazydesigner-texturing"
       ]
     },
     {
-      "id": "reference-router",
-      "prompt": "Prepare the minimum useful reference evidence for this new Minecraft prop.",
-      "lane": "IN_USE",
-      "expected_skill": "lazydesigner-reference-preparation",
+      "id": "clear-dev-no-meta",
+      "kind": "pressure",
+      "prompt": "Update this known MCP schema field and its matching regression test; the owner and expected result are already clear.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-mcp-development",
+      "decision_rule": "Clear bounded/standard development must not invoke development-brief ceremony.",
       "forbidden_skills": [
         "lazydesigner-development-brief",
         "lazydesigner-blockbench-development"
       ]
     },
     {
+      "id": "reference-router",
+      "kind": "positive",
+      "prompt": "Prepare the minimum useful reference evidence for this new Minecraft prop.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-reference-preparation",
+      "decision_rule": "Reference capability selection belongs to the Reference Preparation router.",
+      "forbidden_skills": [
+        "lazydesigner-development-brief",
+        "lazydesigner-blockbench-development"
+      ]
+    },
+    {
+      "id": "reference-vs-modelling",
+      "kind": "collision",
+      "prompt": "Before building anything in Blockbench, turn these photos into the minimum reference needed for a model.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-reference-preparation",
+      "decision_rule": "Preparing evidence before Blockbench authoring is Reference Preparation, not Modelling.",
+      "forbidden_skills": [
+        "lazydesigner-modelling",
+        "lazydesigner-development-brief"
+      ]
+    },
+    {
       "id": "pixel-icon",
+      "kind": "positive",
       "prompt": "Create a strict 16x16 Minecraft-native pixel icon from this reference.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-pixel-art-authoring",
+      "decision_rule": "Standalone integer-grid icon authoring belongs to Pixel Art.",
       "forbidden_skills": [
         "lazydesigner-texturing",
         "lazydesigner-mcp-development"
@@ -106,41 +251,86 @@
     },
     {
       "id": "particle-reference",
+      "kind": "positive",
       "prompt": "Author a blue flame Bedrock particle JSON and its texture as a standalone reference artifact.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-particle-reference-authoring",
+      "decision_rule": "Standalone particle artifact authoring belongs to Particle Reference.",
       "forbidden_skills": [
         "lazydesigner-animation",
         "lazydesigner-mcp-development"
       ]
     },
     {
+      "id": "particle-animation-integration",
+      "kind": "collision",
+      "prompt": "Bind the approved particle effect to this animation timeline and controller cue.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-animation",
+      "decision_rule": "Animation-stage effect integration is Animation, not standalone particle reference authoring.",
+      "forbidden_skills": [
+        "lazydesigner-particle-reference-authoring",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
       "id": "prompt-compiler-delegated",
+      "kind": "positive",
       "prompt": "Normalize the confirmed reference requirements into one clean production brief.",
       "lane": "IN_USE",
       "expected_skill": "lazydesigner-prompt-compiler",
       "activation": "DELEGATED",
       "parent_skill": "lazydesigner-reference-preparation",
+      "decision_rule": "Prompt Compiler is a delegated Reference Preparation helper.",
       "forbidden_skills": [
         "lazydesigner-development-brief"
       ]
     },
     {
+      "id": "generic-rewrite-not-compiler",
+      "kind": "pressure",
+      "prompt": "Rewrite this README paragraph to sound clearer.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "NONE",
+      "decision_rule": "Generic rewriting is not LazyDesigner Prompt Compiler activation.",
+      "forbidden_skills": [
+        "lazydesigner-prompt-compiler",
+        "lazydesigner-development-brief"
+      ]
+    },
+    {
       "id": "skill-maintenance",
+      "kind": "positive",
       "prompt": "Refine the modelling Skill so visual failures stop activating runtime development.",
       "lane": "SKILL_SYSTEM",
       "expected_skill": "lazydesigner-skill-development",
+      "decision_rule": "Skill activation/instruction maintenance belongs to SKILL_SYSTEM.",
       "forbidden_skills": [
         "lazydesigner-development-brief",
         "lazydesigner-blockbench-development"
       ]
     },
     {
-      "id": "suspected-mcp-without-evidence",
-      "prompt": "The model still looks wrong; maybe the MCP is the problem.",
-      "lane": "IN_USE",
-      "expected_skill": "lazydesigner-modelling",
+      "id": "skill-file-product-change",
+      "kind": "collision",
+      "prompt": "The product contract changed: update the MCP behavior and then align its Skill instructions.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-mcp-development",
+      "allowed_handoff": "lazydesigner-skill-development",
+      "decision_rule": "Product semantics change first at the product owner; Skill alignment is downstream.",
       "forbidden_skills": [
+        "lazydesigner-development-brief"
+      ]
+    },
+    {
+      "id": "skill-audit-not-product-dev",
+      "kind": "pressure",
+      "prompt": "Audit all LazyDesigner Skill descriptions for overlap and false activation; do not change runtime behavior.",
+      "lane": "SKILL_SYSTEM",
+      "expected_skill": "lazydesigner-skill-development",
+      "decision_rule": "Skill routing audit is not Product Development.",
+      "forbidden_skills": [
+        "lazydesigner-development-brief",
         "lazydesigner-mcp-development",
         "lazydesigner-blockbench-development"
       ]
