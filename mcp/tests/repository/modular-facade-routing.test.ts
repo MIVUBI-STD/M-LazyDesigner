@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { sourceOwnerForCapability } from "@/gateway/control";
+import { sourceOwnerForCapability } from "@/gateway/development/sourceOwners";
 
 describe("modular tool facade routing", () => {
   test("concrete capabilities route to focused implementation owners", () => {
