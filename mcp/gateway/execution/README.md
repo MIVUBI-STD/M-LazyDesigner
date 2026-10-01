@@ -32,6 +32,8 @@ Runtime owns connection/affinity/recovery/queue mechanics only. Do not place wor
 
 `orchestrationRecoveryState.ts` owns process/project-scoped verification evidence and correction-loop recovery across Runtime generation changes and project-affinity epochs.
 
+`benchmarkTrace.ts` owns optional Gateway call telemetry for benchmark/evaluation runs; it is execution observability, not Runtime transport.
+
 
 ## Project-affinity isolation
 
