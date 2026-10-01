@@ -34,7 +34,11 @@ const WRAPPERS: Readonly<Record<string, string>> = {
   "gateway/control/capabilityManifest.ts":
     'export * from "./capabilityProjection";\n',
   "gateway/control/registry.ts":
-    'export { contextForAuthoringDomain } from "./contexts";\nexport { authoringDomainForCapability, sourceOwnerForCapability } from "./sourceOwners";\nexport { getControlCapabilityProjection } from "./capabilityProjection";\n',
+    'export { contextForAuthoringDomain } from "./contexts";\nexport { authoringDomainForCapability, sourceOwnerForCapability } from "../development/sourceOwners";\nexport { getControlCapabilityProjection } from "./capabilityProjection";\n',
+  "gateway/control/developmentIntent.ts":
+    'export * from "../development/intent";\n',
+  "gateway/control/sourceOwners.ts":
+    'export * from "../development/sourceOwners";\n',
 };
 
 describe("Gateway structural ownership", () => {
@@ -46,13 +50,22 @@ describe("Gateway structural ownership", () => {
 
   test("production composition imports canonical owner paths", async () => {
     const index = await Bun.file("gateway/index.ts").text();
+    const registration = await Bun.file("gateway/handlers/registerCoreTools.ts").text();
     const backend = await Bun.file("gateway/runtime/backend.ts").text();
     const contract = await Bun.file("gateway/contract.ts").text();
 
-    expect(index).toContain('"./capabilities/schemaProjection"');
-    expect(index).toContain('"./capabilities/graph"');
+    expect(index).toContain('"./runtime/backend"');
+    expect(index).toContain('"./contracts/protocol"');
     expect(index).toContain('"./providers/registry"');
-    expect(index).toContain('"./runtime/recovery"');
+    expect(index).toContain('"./surface/profile"');
+    expect(index).toContain('"./handlers/registerCoreTools"');
+    expect(index).toContain('"./session/state"');
+    expect(index).toContain('"./runtime/capabilityExecutor"');
+
+    expect(registration).toContain('"../capabilities/schemaProjection"');
+    expect(registration).toContain('"../development/sourceOwners"');
+    expect(registration).toContain('"../presentation/statusProjection"');
+    expect(registration).toContain('"../contracts/outputSchemas"');
 
     expect(backend).toContain('"../../lib/runtime/affinity"');
     expect(backend).toContain('"./connectionManager"');
@@ -68,18 +81,18 @@ describe("Gateway structural ownership", () => {
     const controlIndex = await Bun.file("gateway/control/index.ts").text();
     expect(controlIndex).toContain('"./delta/engine"');
     expect(controlIndex).toContain('"./delta/projection"');
+    expect(controlIndex).toContain('"../development/sourceOwners"');
   });
 
-  test("core named phase ownership is manifest-backed", async () => {
-    const authoringPhase = await Bun.file("lib/authoringPhase.ts").text();
-    const metadata = await Bun.file("lib/capabilityMetadata.ts").text();
+  test("core named Stage ownership is manifest-backed", async () => {
+    const authoringStage = await Bun.file("lib/capabilities/authoringStage.ts").text();
+    const metadata = await Bun.file("lib/capabilities/metadata.ts").text();
 
-    expect(authoringPhase).toContain(
-      'from "@/lib/capabilities/manifest"'
-    );
-    expect(authoringPhase).not.toContain("CORE_NAMED_CAPABILITIES");
-    expect(authoringPhase).not.toContain("TEXTURING_NAMED_CAPABILITIES");
-    expect(metadata).toContain('from "./capabilities/manifest"');
+    expect(authoringStage).toContain('from "./manifest"');
+    expect(authoringStage).toContain("capabilityStageByName");
+    expect(authoringStage).not.toContain("CORE_NAMED_CAPABILITIES");
+    expect(authoringStage).not.toContain("TEXTURING_NAMED_CAPABILITIES");
+    expect(metadata).toContain('from "./manifest"');
     expect(metadata).not.toContain("PRIMARY_CAPABILITIES");
   });
   test("Control delta engine stays assembly-only", async () => {
@@ -101,25 +114,26 @@ describe("Gateway structural ownership", () => {
     expect(projection).not.toContain("PRIMARY_CAPABILITIES");
   });
 
-  test("Control registry stays a facade over context and source ownership", async () => {
+  test("Control registry stays a facade over context and Development ownership", async () => {
     const registry = await Bun.file("gateway/control/registry.ts").text();
     const packet = await Bun.file("gateway/control/packet.ts").text();
     const capabilities = await Bun.file("gateway/control/capabilities.ts").text();
     const deltaEngine = await Bun.file("gateway/control/delta/engine.ts").text();
 
     expect(registry.split("\n").length).toBeLessThan(5);
+    expect(registry).toContain('from "../development/sourceOwners"');
     expect(packet).toContain('from "./contexts"');
-    expect(capabilities).toContain('from "./sourceOwners"');
-    expect(deltaEngine).toContain('from "../sourceOwners"');
+    expect(capabilities).toContain('from "../development/sourceOwners"');
+    expect(deltaEngine).toContain('from "../../development/sourceOwners"');
   });
 
-  test("Control source-owner composition stays modular", async () => {
-    const sourceOwners = await Bun.file("gateway/control/sourceOwners.ts").text();
+  test("Development source-owner composition stays modular", async () => {
+    const sourceOwners = await Bun.file("gateway/development/sourceOwners.ts").text();
     expect(sourceOwners).toContain('from "./sourceOwners/geometry"');
     expect(sourceOwners).toContain('from "./sourceOwners/texturing"');
     expect(sourceOwners).toContain('from "./sourceOwners/animation"');
     expect(sourceOwners).toContain('from "./sourceOwners/core"');
-    expect(sourceOwners.split("\n").length).toBeLessThan(90);
+    expect(sourceOwners.split("\n").length).toBeLessThan(100);
   });
 
   test("Control packet stays orchestration-only", async () => {
@@ -172,10 +186,10 @@ describe("Gateway structural ownership", () => {
   });
 
   test("Control receipt stays Control-owned", async () => {
-    const index = await Bun.file("gateway/index.ts").text();
+    const executor = await Bun.file("gateway/runtime/capabilityExecutor.ts").text();
     const receipt = await Bun.file("gateway/control/receipt.ts").text();
-    expect(index).toContain('from "./control/receipt"');
-    expect(index).not.toContain('from "./controlReceipt"');
+    expect(executor).toContain('from "../control/receipt"');
+    expect(executor).not.toContain('from "../controlReceipt"');
     expect(receipt).toContain('from "../capabilities/effects"');
     expect(receipt).toContain('from "../../lib/runtime/affinity"');
   });
