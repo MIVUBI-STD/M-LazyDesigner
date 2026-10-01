@@ -22,6 +22,7 @@ const REQUIRED_SCRIPT_SUBDIRECTORIES = ["audit", "benchmark", "development", "ev
 
 const REQUIRED_NAVIGATION_READMES = [
   "gateway/README.md",
+  "gateway/session/README.md",
   "gateway/execution/README.md",
   "gateway/context/README.md",
   "gateway/experimental/README.md",
