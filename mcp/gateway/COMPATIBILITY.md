@@ -27,6 +27,7 @@ The files below exist only to preserve older internal/external import paths duri
 | `gateway/vanillaEntityReference.ts` | `gateway/providers/vanillaEntityReference.ts` |
 | `gateway/runtime/projectAffinity.ts` | `lib/runtime/affinity.ts` |
 | `gateway/runtime/capabilityExecutor.ts` | `gateway/execution/capabilityExecutor.ts` |
+| `gateway/runtime/benchmarkTrace.ts` | `gateway/execution/benchmarkTrace.ts` |
 
 ## Control wrappers
 
