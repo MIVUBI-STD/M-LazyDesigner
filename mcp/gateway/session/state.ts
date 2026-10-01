@@ -3,7 +3,7 @@ import {
   seedCapabilityFacts,
   type CapabilityFactState,
 } from "../capabilities/graph";
-import { gatewayOrchestrationRecoveryState } from "../execution/orchestrationRecoveryState";
+import { gatewayOrchestrationRecoveryState } from "./orchestrationRecoveryState";
 
 export class GatewaySessionState {
   private executionState: ControlExecutionState | null = null;
