@@ -1,4 +1,4 @@
-import type { ControlExecutionState } from "../control";
+import type { ControlExecutionState } from "../control/orchestration";
 import {
   seedCapabilityFacts,
   type CapabilityFactState,
