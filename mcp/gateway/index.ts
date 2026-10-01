@@ -13,7 +13,7 @@ import {
 import { registerCoreGatewayTools } from "./handlers/registerCoreTools";
 import { GatewaySessionState } from "./session/state";
 import type { GatewayToolContext } from "./runtime/gatewayErrors";
-import { GatewayCapabilityExecutor } from "./runtime/capabilityExecutor";
+import { GatewayCapabilityExecutor } from "./execution/capabilityExecutor";
 import { BenchmarkTraceRecorder } from "./runtime/benchmarkTrace";
 
 const session = new GatewaySessionState();
