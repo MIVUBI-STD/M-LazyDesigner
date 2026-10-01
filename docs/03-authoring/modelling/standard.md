@@ -382,6 +382,6 @@ Geometry is ready for UV/texture only when whole primary form passed visual revi
 
 ## Related
 
-- [Modelling Workflow](03-modelling-workflow.md)
-- [Visual Validation](07-visual-validation.md)
-- [Current Flow](../knowledge/flow.md)
+- [Authoring Workflow](../workflow.md)
+- [Visual Validation](../validation/visual.md)
+- [Product Flow](../../01-product/flow.md)
