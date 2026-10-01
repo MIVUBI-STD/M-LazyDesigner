@@ -1,9 +1,21 @@
 ---
 name: lazydesigner-prompt-compiler
-description: ChatGPT-side prompt normalization skill for LazyDesigner Reference Preparation. Converts incomplete/casual user input plus confirmed answers into one clean production brief without inventing requirements.
+description: Delegated-only helper inside LazyDesigner Reference Preparation. Normalize current user intent, confirmed answers, and approved decisions into one clean production brief without inventing requirements. Do not route here independently for generic rewriting, repository development, or normal asset authoring.
 ---
 
 # LazyDesigner Prompt Compiler
+
+## Activation Contract
+
+```text
+LANE: IN_USE
+DOMAIN: REFERENCE_PREPARATION
+CLASS: DELEGATED
+OWNER: REFERENCE_PROMPT_NORMALIZATION
+```
+
+Enter only when delegated by `lazydesigner-reference-preparation` because normalization materially helps. This is not a top-level router, generic writing Skill, product-development Skill, or authoring-stage specialist.
+
 
 This Skill runs only inside ChatGPT-side Reference Preparation. Its purpose is to prevent weak, fragmented, casual, typo-heavy, or contaminated conversation context from becoming the direct generation prompt.
 
