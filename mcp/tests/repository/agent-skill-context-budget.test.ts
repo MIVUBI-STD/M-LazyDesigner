@@ -20,7 +20,7 @@ const REFERENCE_SPECIALIST_SKILLS = [
   },
   {
     path: "../.agents/skills/lazydesigner-particle-reference-authoring/SKILL.md",
-    maxChars: 11000,
+    maxChars: 10000,
     classMarker: "CLASS: SPECIALIST",
   },
 ] as const;
