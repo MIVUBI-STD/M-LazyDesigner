@@ -98,38 +98,31 @@ Rules:
 
 ## Rig / Clip / Controller Budget
 
-Keep three budgets distinct:
+Keep rig, clip, and controller as separate budgets:
+`rig = transform/attachment/deformation capability | clip = motion/pose inventory | controller = state/transition/blend composition`.
 
-```text
-rig → transform / attachment / deformation capability
-clip → authored motion / pose inventory
-controller → state / transition / blend composition
-```
+Reuse existing semantic owners first. More clips/controllers do not justify hierarchy growth. If the requested motion exposes a missing pivot, parent, attachment, clearance, or deformation capability, hand off to Geometry instead of compensating with denser keys/controller complexity.
 
-New clips and controller states reuse existing semantic owners unless playback/reference evidence exposes a missing structural capability. Do not request hierarchy growth merely because animation or controller count grows.
-
-Presentation contexts may use different transforms, clips, or local geometry branches while preserving the same base rig when that rig remains semantically sufficient.
-
-If a requested motion cannot be expressed cleanly with the existing pivot/parent/clearance relationships, hand off to Geometry; do not compensate with denser keys or controller complexity.
-
-Locators are not direct animation targets in the current authoring path. A moving attachment/reference Locator must inherit motion from its parent Group/Bone; wrong parent ownership is a Geometry blocker.
+Locators are not direct animation targets in the current authoring path; a moving Locator inherits motion from the correct parent Group/Bone. Wrong parent ownership is a Geometry blocker.
 
 ## Motion Design Contract
 
-Before keys define only applicable facts (no foot-plant/gameplay contract for an unrelated mechanical loop):
+Before keys, define only applicable motion causes:
+
 ```text
 archetype + intent + duration/snapping
 primary driver + counter-motion + followers
 phase + contact/attachment invariants
-support/flight/impact events + center-of-mass path + foot plant/release times
 authored-key vs Molang ownership
-external query/variable caller semantics + units/default/reset/direction
 causal event for sound/particle
-loop seam or neutral/controller handoff
+loop seam / neutral / controller handoff
 ```
 
-Archetypes are not presets. No universal FPS, duration, amplitude, phase, keyframe count, or Bezier target. Do not use an animation quality score.
-Author the smallest judgeable motion cohort first. Validate its contact and curves before propagating followers. Dense baked samples need a specific interpolation/export reason; mathematical offline generation or many keys does not prove advanced motion. Record what visible behavior each Molang expression owns, not merely that math exists.
+Archetypes are **not presets**. No universal FPS, duration, amplitude, phase, keyframe count, or Bezier target; do not use an animation quality score.
+
+Use authored poses for identity-critical action/contact/silhouette. Molang owns continuous/cyclic/reactive motion only when math is the real cause: `q.anim_time` for time-driven cycles, `q.modified_distance_moved` for travel phase, and `driver → delayed followers` for causal chains.
+
+For action/weight when applicable: `anticipation → action/impact → follow-through → recovery`. Author the smallest judgeable cohort first; validate contact/curves before propagating followers. Dense keys or mathematical generation never prove advanced motion.
 
 ## Fidelity / Correction / Evidence Deep Reference
 
