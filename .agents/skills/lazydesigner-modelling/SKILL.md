@@ -114,7 +114,7 @@ transform ownership + required attachment/contact target/invariant
 evidence state
 ```
 
-A semantic label never authorizes coordinates. No orphan/filler Cube; `PROVISIONAL` placement never verifies it.
+A semantic label never authorizes coordinates. No orphan/filler Cube; `PROVISIONAL` placement never verifies it. Material `UNRESOLVED` → `BLOCKED`.
 
 Canonical representation vocabulary is:
 `SOLID_CUBOID | PLANE_LIKE | PLANAR_CUTOUT_CARRIER | LAYERED_SURFACE | SEGMENTED_FORM | TEXTURE | OMIT`.
@@ -123,7 +123,7 @@ The durable eligibility rules live in `docs/03-authoring/modelling/standard.md`;
 Transform ownership is decided before rotation values:
 - local rigid orientation may be **Cube-owned**;
 - shared orientation/attachment/articulation is **Group/Bone-owned**;
-- pivot role is `MASS_CENTER | ATTACHMENT | JOINT | PARENT_TRANSFORM`;
+- pivot role is `MASS_CENTER | ATTACHMENT | JOINT | PARENT_TRANSFORM`; attachment/joint pivot owns the shared relation when that relation is material;
 - primary mass state is `AXIS_ALIGNED | ROTATED | UNRESOLVED`.
 
 AABB overlap, hierarchy, or numeric touching is not contact proof. Visible material slope may require rotation; do not use detail/extra Cubes to compensate for wrong mass placement.
@@ -154,10 +154,11 @@ bounded local correction / convergence / evidence recovery
 ```
 
 Hot-path invariants:
-- tool success, bounds, hierarchy, validators, or similarity scores cannot justify visual `PASS`;
-- fix the largest structural difference first and reject material cross-view regression;
+- **Difference-First Reference Fidelity Verdict**: Tool success, bounds, hierarchy, validators, or similarity scores cannot justify `PASS`;
+- fix the largest structural difference first and reject material cross-view regression; overlap alone never proves correctness;
 - production UV starts only after **user Geometry APPROVED**;
 - correction must reuse fresh state/evidence, require `IMPROVED` without regression elsewhere, never auto-retry `UNKNOWN_OUTCOME`, and the same causal correction failing twice without new evidence becomes `BLOCKED`.
+- primary PASS precedes identity-weighted secondary geometry; successful placement is execution evidence only, never visual acceptance.
 
 ## Existing Assets / Shared Session
 Existing geometry is a baseline, not fidelity proof. Geometry owns shape/rig/UV; Texturing pixels/PBR. Geometry↔Texturing stays shared AUTHORING; `HANDOFF_REQUIRED` + `switch_authoring_phase` only for AUTHORING↔Animation.
