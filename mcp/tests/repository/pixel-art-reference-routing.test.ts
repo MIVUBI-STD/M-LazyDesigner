@@ -68,4 +68,21 @@ describe("pixel-art reference specialist ownership", () => {
       expect(text.trim().length).toBeGreaterThan(0);
     }
   });
+  test("Pixel Art delivery preserves authored grid fidelity and native-size readability", async () => {
+    const [skill, qa, scaling, delivery] = await Promise.all([
+      source("../.agents/skills/lazydesigner-pixel-art-authoring/SKILL.md"),
+      source("../docs/02-reference/pixel-art/qa.md"),
+      source("../docs/02-reference/pixel-art/resolution-scaling.md"),
+      source("../docs/02-reference/pixel-art/delivery.md"),
+    ]);
+
+    expect(skill).toContain("native-size readability outranks zoomed-in prettiness");
+    expect(qa).toContain("100% target scale");
+    expect(qa).toContain("integer nearest-neighbor enlargement");
+    expect(scaling).toContain("Avoid smooth interpolation");
+    expect(scaling).toContain("rebuild or clean the clusters at the target grid");
+    expect(delivery).toContain("smooth-resize residue");
+    expect(delivery).toContain("canvas/grid dimensions");
+  });
+
 });
