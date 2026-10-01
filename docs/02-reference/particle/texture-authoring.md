@@ -374,6 +374,42 @@ generated concept/image
 
 Never use a presentation sheet directly as a production atlas.
 
+## Pixel Art texture intake boundary
+
+When a texture/frame asset comes from `lazydesigner-pixel-art-authoring`, treat it as visual resource evidence only.
+
+Consume only texture-facing facts that can change rendering:
+
+```text
+texture identity
+pixel dimensions
+alpha behavior
+frame count/order
+frame dimensions when known
+visual loop intent
+color/emissive intent
+style_lock_id when relevant
+source/reference identity
+known blockers
+provenance class
+```
+
+Never import Particle behavior from Pixel Art:
+
+```text
+spawn rate
+lifetime
+velocity
+emitter shape
+Molang
+collision
+event behavior
+locator semantics
+performance/FPS claims
+```
+
+Preserve `USER_REQUIREMENT | REFERENCE_SUPPORTED | EXISTING_STYLE_SUPPORTED | PROVISIONAL`. If the supplied visual asset cannot satisfy a real particle texture requirement (for example frame layout, alpha behavior, gutter, or flipbook framing), return only that bounded visual requirement to Pixel Art; Particle retains emitter/lifecycle/motion/event ownership.
+
 ## 27. Texture QA checklist
 
 ```text
