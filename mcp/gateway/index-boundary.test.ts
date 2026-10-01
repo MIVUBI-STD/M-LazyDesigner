@@ -11,7 +11,7 @@ const coreToolsSource = await readFile(
   "utf8"
 );
 const executorSource = await readFile(
-  new URL("./runtime/capabilityExecutor.ts", import.meta.url),
+  new URL("./execution/capabilityExecutor.ts", import.meta.url),
   "utf8"
 );
 
