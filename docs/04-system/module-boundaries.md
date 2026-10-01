@@ -44,7 +44,7 @@ orchestration/   -X-> server/ or gateway/
 
 orchestration/   -> authoringRecipe/ and shared domain contracts
 Runtime          -> lib/ domain contracts
-Gateway          -> Runtime/client contracts
+Gateway execution -> Runtime + Control + capability/session contracts
 production       -X-> scripts/, tests/, root distribution/, experiments/
 ```
 
