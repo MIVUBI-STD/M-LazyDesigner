@@ -197,15 +197,30 @@ describe("Gateway dependency direction", () => {
         const resolved = resolveRelative(file, request);
         const targetLayer = layer(resolved);
 
-        if (targetLayer === "control") {
+        if (
+          targetLayer === "control" ||
+          targetLayer === "execution"
+        ) {
           violations.push(
-            `${relative(ROOT, file)} [${owner}] -> ${request} [control]`
+            `${relative(ROOT, file)} [${owner}] -> ${request} [${targetLayer}]`
           );
         }
       }
     }
 
     expect(violations).toEqual([]);
+  });
+
+  test("execution is the only cross-layer Runtime + Control coordinator", async () => {
+    const files = await sourceFiles(join(ROOT, "execution"));
+    expect(files.length).toBeGreaterThan(0);
+
+    const source = (await Promise.all(
+      files.map((file) => Bun.file(file).text())
+    )).join("\n");
+
+    expect(source).toContain("../runtime/");
+    expect(source).toContain("../control");
   });
 
   test("Development Intelligence cannot depend on Control", async () => {
