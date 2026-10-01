@@ -162,8 +162,30 @@ experimental/  opt-in implementation loaded only for an explicit experimental pr
 handlers/      public tool registration/handlers
 presentation/  result/status projection and compaction
 providers/     Gateway-local capability providers
-runtime/       connection, queue, affinity, recovery, execution
+execution/     capability dispatch + Control/capability/session orchestration
+runtime/       connection, queue, affinity and recovery mechanics
 session/       session state
 ```
 
 Root compatibility facades may remain temporarily for migrated imports, but new implementation must target the canonical subdomain.
+
+
+## Execution boundary
+
+Execution sits above Runtime transport.
+
+```text
+handlers
+  ↓
+execution/capabilityExecutor.ts
+  ├─ Control receipt/delta
+  ├─ capability preconditions/effects
+  ├─ local provider dispatch
+  ├─ session facts
+  └─ runtime/backend.ts
+
+runtime/
+  = transport, affinity, queue, reconnect, recovery
+```
+
+Runtime must not depend on Control or execution orchestration. The former `runtime/capabilityExecutor.ts` path is compatibility-only.
