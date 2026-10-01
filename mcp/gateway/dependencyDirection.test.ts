@@ -91,6 +91,7 @@ function layer(path: string):
   | "runtime"
   | "providers"
   | "execution"
+  | "session"
   | "control" {
   const rel = relative(ROOT, path).replace(/\\/g, "/");
   const first = rel.split("/")[0];
@@ -98,6 +99,7 @@ function layer(path: string):
   if (first === "runtime") return "runtime";
   if (first === "providers") return "providers";
   if (first === "execution") return "execution";
+  if (first === "session") return "session";
   if (first === "control") return "control";
   return "root";
 }
@@ -269,6 +271,26 @@ describe("Gateway dependency direction", () => {
         const target = layer(resolveRelative(file, request));
         if (target === "execution") {
           violations.push(`${rel} -> ${request}`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  test("Session state cannot depend on execution or Runtime transport", async () => {
+    const files = await sourceFiles(join(ROOT, "session"));
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const source = await Bun.file(file).text();
+      for (const request of importsOf(source)) {
+        if (!request.startsWith(".")) continue;
+        const target = layer(resolveRelative(file, request));
+        if (target === "execution" || target === "runtime") {
+          violations.push(
+            `${relative(ROOT, file).replace(/\\/g, "/")} -> ${request}`
+          );
         }
       }
     }
