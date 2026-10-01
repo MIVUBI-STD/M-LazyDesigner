@@ -30,9 +30,9 @@ describe("model creation effectiveness — fidelity convergence and evaluation i
     const correction = await source("../.agents/skills/lazydesigner-modelling/references/correction.md");
     const correctionText = normalized(correction);
 
-    expect(correctionText).toContain("reuse fresh affected pre-correction evidence");
-    expect(correctionText).toContain("capture before mutation only when none exists");
-    expect(correctionText).toContain("after mutation, recapture affected view(s)");
+    expect(correctionText).toContain("reuse fresh exact authored state");
+    expect(correctionText).toContain("recapture only targeted stale views");
+    expect(correctionText).toContain("after mutation, recapture only affected evidence");
   });
 
   test("model-facing evaluation remains evidence-bound and non-circular", async () => {
