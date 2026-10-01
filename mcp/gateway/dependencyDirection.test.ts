@@ -301,7 +301,16 @@ describe("Gateway dependency direction", () => {
 
     for (const file of files) {
       const rel = relative(ROOT, file).replace(/\\/g, "/");
-      if (rel === "runtime/capabilityExecutor.ts") continue;
+      const runtimeStem =
+        rel.startsWith("runtime/") && rel.endsWith(".ts")
+          ? rel.slice("runtime/".length, -3)
+          : null;
+      if (
+        runtimeStem &&
+        RUNTIME_SUBDOMAIN_COMPATIBILITY_WRAPPERS.has(runtimeStem)
+      ) {
+        continue;
+      }
       const source = await Bun.file(file).text();
       for (const request of importsOf(source)) {
         if (!request.startsWith(".")) continue;
