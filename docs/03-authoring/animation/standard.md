@@ -72,6 +72,24 @@ loop seam or neutral / controller handoff
 
 Reasoning archetypes may include `PROCEDURAL_LAYER`, `LOOP_ORGANIC`, `LOCOMOTION`, `ACTION`, `MECHANICAL`, `HOLD_POSE`, `IDLE_VARIANT`, `FIRST_PERSON_ACTION`, and `THIRD_PERSON_ACTION`. These are not presets.
 
+## Activation Intent Gate
+
+Before production authoring, identify how the motion is intended to become active:
+
+```text
+ALWAYS_ON / DIRECT
+CONTROLLER_STATE
+EXTERNAL_CALLER
+PREVIEW_ONLY
+UNRESOLVED
+```
+
+Animations own raw motion data. Animation controllers own state/transition composition; external gameplay/entity logic may own caller conditions. Do not hide an unresolved trigger by inventing a query/event inside the clip.
+
+Asset-only authoring may still create a requested clip when its external caller is intentionally out of scope, but record that activation as `EXTERNAL_CALLER` or `UNRESOLVED`. `PREVIEW_ONLY` is valid for review/reference clips not yet intended for runtime activation.
+
+When controller composition is requested, use the minimum state/transition logic required by known artist-facing preview/composition intent. Unknown gameplay conditions remain external/unverified.
+
 ## Native Bedrock Clip Semantics
 
 Treat non-transform clip state as first-class authored semantics:
