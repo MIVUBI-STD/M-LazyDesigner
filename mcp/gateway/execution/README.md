@@ -1,18 +1,17 @@
 # Gateway Execution
 
-Owns Gateway-side capability execution orchestration between client-facing handlers, Control, capability semantics, local providers, session state, and the Runtime backend.
+Owns cross-layer capability invocation orchestration after a capability has already been selected.
 
-```text
-capabilityExecutor.ts
-  precondition evaluation
-  Runtime/local capability dispatch
-  Control receipt/delta integration
-  session fact updates
-  result compaction
-  benchmark trace hooks
-```
+This domain may coordinate:
 
-This domain is above the Runtime transport layer.
+- Runtime invocation;
+- Control delta / receipt handling;
+- capability precondition graph updates;
+- session fact updates;
+- Gateway result compaction;
+- benchmark tracing.
+
+It does **not** own Runtime connection/recovery, Control policy, capability semantics, or session state.
 
 Dependency direction:
 
@@ -20,16 +19,10 @@ Dependency direction:
 execution -> runtime
 execution -> control
 execution -> capabilities
-execution -> providers
-execution -> session
+execution -> providers/session/presentation
 
-runtime -X-> execution
 runtime -X-> control
+runtime -X-> execution
 ```
 
-Runtime owns connection/affinity/recovery/queue mechanics only. Do not place workflow orchestration back under `gateway/runtime/`.
-
-
-
-`benchmarkTrace.ts` owns optional Gateway call telemetry for benchmark/evaluation runs; it is execution observability, not Runtime transport.
-
+The former `gateway/runtime/capabilityExecutor.ts` path is compatibility-only.
