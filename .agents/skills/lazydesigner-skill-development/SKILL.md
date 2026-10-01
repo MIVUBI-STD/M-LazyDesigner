@@ -60,15 +60,16 @@ Use the smallest evidence that can distinguish these. Do not rewrite a whole Ski
 2. Inspect the taxonomy and only the affected Skill(s).
 3. Establish representative evidence:
    - **positive** prompt: should activate;
-   - **negative** prompt: should stay cold;
-   - **collision** prompt: superficially matches multiple owners but has one semantic owner.
+   - **collision** prompt: superficially matches multiple owners but has one semantic owner;
+   - **pressure** prompt: wording/user preference pushes toward the wrong owner but evidence does not justify it;
+   - **no-skill** case when no LazyDesigner Skill should activate at all.
 4. Identify the first wrong routing/instruction owner.
 5. Change the smallest complete surface, preferring:
    - frontmatter description for discovery errors;
    - Activation Contract for lane/owner/boundary errors;
    - hot-path procedure for execution errors;
    - deep reference/docs for durable detail.
-6. Recheck affected positive/negative/collision cases.
+6. Recheck affected positive/collision/pressure/no-skill cases.
 7. Remove duplicated policy rather than adding another parallel rule.
 8. STOP when the intended behavior is covered at the available proof ceiling.
 
@@ -138,7 +139,7 @@ Do not create separate author/evaluator/maintainer Skills until one combined Ski
 
 Use `mcp/tests/fixtures/skill-routing-cases.json` as a compact regression corpus for intended routing semantics. It is development/evaluation evidence, not runtime routing code and not a substitute for behavioral model evaluation.
 
-When adding a case, prefer one that closes a real ambiguity over many near-duplicates.
+When adding a case, prefer one that closes a real ambiguity over many near-duplicates. `expected_skill: NONE` is valid when the correct behavior is to keep all LazyDesigner Skills cold.
 
 ## Completion
 
