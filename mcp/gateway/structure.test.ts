@@ -45,6 +45,8 @@ const WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "../execution/benchmarkTrace";\n',
   "gateway/runtime/orchestrationRecoveryState.ts":
     'export * from "../session/orchestrationRecoveryState";\n',
+  "gateway/runtime/gatewayErrors.ts":
+    'export * from "../execution/gatewayErrors";\n',
   "gateway/runtime/projectAffinity.ts":
     'export * from "../../lib/runtime/affinity";\n',
 };
