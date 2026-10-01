@@ -99,8 +99,9 @@ Rules:
 Requested atlas size/density are constraints; never silently enlarge; return to Geometry/UV if detail cannot fit.
 
 ## First Call
-`blank create_texture → explicit width+height from project UV`; **not omit blank Atlas size**.
-`create_texture`: provisional **16×16 blank**; **128×128 default, 256×256 opt-in**. Approved atlas/density takes precedence; reuse its UUID.
+For production blank-atlas creation, pass explicit width/height from the current project UV contract; **do not rely on omitted size**. The Runtime's 16×16 blank default is compatibility/provisional behavior, not a production sizing recommendation.
+
+New production authoring normally targets the approved atlas/density contract; absent stronger project authority, logical **128×128 default, 256×256 opt-in** remains policy. Reuse an already-approved atlas UUID instead of recreating it.
 
 ## Workplan / Coverage
 material cohorts; palette roles `BASE | SHADOW | HIGHLIGHT | ACCENT/IDENTITY`; form/contact/occlusion/edge/identity/detail.
