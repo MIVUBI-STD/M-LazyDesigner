@@ -1,6 +1,6 @@
 # LazyDesigner Implementation Map
 
-Updated: 2026-09-30
+Updated: 2026-10-01
 
 This file maps **current source ownership only**. Product workflow belongs in `docs/01-product/flow.md`; AI context loading in `docs/04-system/ai-context-loading.md`; continuation/proof in `docs/05-operations/`.
 
@@ -26,6 +26,7 @@ There is one authoring system. Supporting docs/Skills/QA may project or interpre
 ```text
 .agents/skills/lazydesigner-reference-preparation/SKILL.md
 .agents/skills/lazydesigner-prompt-compiler/SKILL.md
+.agents/skills/lazydesigner-pixel-art-authoring/SKILL.md
 .agents/skills/lazydesigner-particle-reference-authoring/SKILL.md
 ```
 
@@ -57,6 +58,15 @@ complex cross-owner design          → lazydesigner-development-brief
 ```
 
 Clear bounded development changes go directly to the exact source owner.
+
+### Skill System
+
+```text
+Skill activation / routing / evaluation / consolidation
+→ lazydesigner-skill-development
+```
+
+This owner changes Skill execution guidance and evaluation semantics only. It does not replace durable product/system policy or Product Development owners.
 
 ## Control
 
