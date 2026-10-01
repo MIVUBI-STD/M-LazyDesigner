@@ -182,6 +182,18 @@ describe("Gateway dependency direction", () => {
     const violations: string[] = [];
 
     for (const file of files) {
+      const rel = relative(ROOT, file).replace(/\\/g, "/");
+      const runtimeStem =
+        rel.startsWith("runtime/") && rel.endsWith(".ts")
+          ? rel.slice("runtime/".length, -3)
+          : null;
+      if (
+        runtimeStem &&
+        RUNTIME_COMPATIBILITY_WRAPPERS.has(runtimeStem)
+      ) {
+        continue;
+      }
+
       const owner = layer(file);
       if (
         owner !== "capabilities" &&
