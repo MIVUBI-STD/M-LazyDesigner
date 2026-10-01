@@ -60,7 +60,7 @@ describe("Gateway structural ownership", () => {
     expect(index).toContain('"./surface/profile"');
     expect(index).toContain('"./handlers/registerCoreTools"');
     expect(index).toContain('"./session/state"');
-    expect(index).toContain('"./runtime/capabilityExecutor"');
+    expect(index).toContain('"./execution/capabilityExecutor"');
 
     expect(registration).toContain('"../capabilities/schemaProjection"');
     expect(registration).toContain('"../development/sourceOwners"');
@@ -156,6 +156,15 @@ describe("Gateway structural ownership", () => {
     expect(parser).toContain("function profileValue");
     expect(parser).not.toContain("readFile");
     expect(parser).not.toContain("stat(");
+  });
+
+  test("Gateway execution stays above Runtime transport", async () => {
+    const executor = await Bun.file("gateway/execution/capabilityExecutor.ts").text();
+    expect(executor).toContain('from "../runtime/backend"');
+    expect(executor).toContain('from "../control"');
+    expect(executor).toContain('from "../capabilities/graph"');
+    expect(executor).toContain('from "../providers/registry"');
+    expect(executor).toContain('from "../session/state"');
   });
 
   test("backend delegates queue and affinity policy to runtime modules", async () => {
