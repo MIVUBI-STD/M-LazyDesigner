@@ -29,6 +29,7 @@ The files below exist only to preserve older internal/external import paths duri
 | `gateway/runtime/capabilityExecutor.ts` | `gateway/execution/capabilityExecutor.ts` |
 | `gateway/runtime/benchmarkTrace.ts` | `gateway/execution/benchmarkTrace.ts` |
 | `gateway/runtime/orchestrationRecoveryState.ts` | `gateway/session/orchestrationRecoveryState.ts` |
+| `gateway/runtime/gatewayErrors.ts` | `gateway/execution/gatewayErrors.ts` |
 
 ## Control wrappers
 
