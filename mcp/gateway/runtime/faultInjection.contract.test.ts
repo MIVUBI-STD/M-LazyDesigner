@@ -4,7 +4,7 @@ import { recoveryForGatewayError } from "./recovery";
 import { resolveProjectAffinity } from "./affinityPolicy";
 import { GatewayOperationQueue } from "./operationQueue";
 import { GatewayBackendError } from "./backendContract";
-import type { BackendTool } from "../protocol";
+import type { BackendTool } from "../contracts/protocol";
 
 function tool(readOnly: boolean): BackendTool {
   return {
