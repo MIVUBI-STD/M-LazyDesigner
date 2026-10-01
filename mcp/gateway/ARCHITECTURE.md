@@ -162,9 +162,9 @@ experimental/  opt-in implementation loaded only for an explicit experimental pr
 handlers/      public tool registration/handlers
 presentation/  result/status projection and compaction
 providers/     Gateway-local capability providers
-execution/     capability dispatch + Control/capability/session orchestration
+execution/     capability dispatch, error/result adaptation, benchmark trace
 runtime/       connection, queue, affinity and recovery mechanics
-session/       session state
+session/       process-local facts, continuation and orchestration recovery state
 ```
 
 Root compatibility facades may remain temporarily for migrated imports, but new implementation must target the canonical subdomain.
@@ -183,6 +183,15 @@ execution/capabilityExecutor.ts
   ├─ local provider dispatch
   ├─ session facts
   └─ runtime/backend.ts
+
+execution/gatewayErrors.ts
+  = AI-facing error/result adaptation + trace metadata
+
+execution/benchmarkTrace.ts
+  = opt-in benchmark telemetry writer
+
+session/orchestrationRecoveryState.ts
+  = process/project-scoped verification/correction recovery state
 
 runtime/
   = transport, affinity, queue, reconnect, recovery
