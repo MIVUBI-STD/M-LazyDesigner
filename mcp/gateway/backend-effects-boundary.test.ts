@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-const backendSource = await Bun.file(new URL("./backend.ts", import.meta.url)).text();
+const backendSource = await Bun.file(new URL("./runtime/backend.ts", import.meta.url)).text();
 
 describe("Gateway capability effect boundary", () => {
   test("backend routes affinity changes through declarative metadata", () => {
