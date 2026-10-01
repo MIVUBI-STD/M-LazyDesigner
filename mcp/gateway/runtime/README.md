@@ -30,6 +30,7 @@ Cross-layer capability invocation orchestration is not Runtime-owned. It lives i
 capabilityExecutor.ts          -> ../execution/capabilityExecutor.ts
 benchmarkTrace.ts              -> ../execution/benchmarkTrace.ts
 orchestrationRecoveryState.ts  -> ../session/orchestrationRecoveryState.ts
+gatewayErrors.ts                -> ../execution/gatewayErrors.ts
 projectAffinity.ts             -> ../../lib/runtime/affinity.ts
 ```
 
