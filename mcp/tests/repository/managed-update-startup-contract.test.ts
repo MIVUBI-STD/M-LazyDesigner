@@ -7,7 +7,7 @@ async function source(path: string): Promise<string> {
 describe("managed startup update contract", () => {
   test("managed releases publish a lightweight digest-verifiable manifest beside the full package", async () => {
     const [packager, workflow] = await Promise.all([
-      source("distribution/package.ts"),
+      source("../distribution/package.ts"),
       source("../.github/workflows/managed-distribution.yml"),
     ]);
 
@@ -17,7 +17,7 @@ describe("managed startup update contract", () => {
   });
 
   test("check-update is read-only and separated from full package download", async () => {
-    const cli = await source("distribution/cli.ts");
+    const cli = await source("../distribution/cli.ts");
     const checkStart = cli.indexOf("async function checkUpdate()");
     const fetchStart = cli.indexOf("async function fetchRelease()", checkStart);
     expect(checkStart).toBeGreaterThanOrEqual(0);
