@@ -97,6 +97,38 @@ Use when requirement and owner are clear but work exceeds bounded maintenance. F
 
 Use `.agents/skills/lazydesigner-development-brief/SKILL.md` only when architecture, cross-owner ambiguity, unresolved success criteria, or a material unknown prevents a reliable standard contract. A clear optimization request does not become Complex merely because quality or efficiency matters.
 
+### Skill System Work
+
+When the task creates, audits, refines, splits, merges, evaluates, or retires LazyDesigner Skills or their activation/routing semantics:
+
+```text
+AGENTS.md
+→ docs/04-system/skill-taxonomy.md
+→ .agents/skills/lazydesigner-skill-development/SKILL.md
+→ only affected Skills + the smallest matching routing/eval evidence
+```
+
+Skill-system work is neither normal Product Development nor IN_USE authoring. Do not load `lazydesigner-development-brief` merely because a Skill file changes. If a Skill change would redefine product behavior, consult the durable product/system owner and change that contract first rather than hiding new policy inside a Skill.
+
+#### Lane crossing
+
+```text
+IN_USE visual/asset/reference defect
+→ stay with active IN_USE owner
+
+bounded evidence of MCP/runtime/plugin system defect
+→ DEVELOPMENT_HANDOFF
+→ exact DEVELOPMENT owner
+→ fix/prove only the system defect
+→ return to originating IN_USE stage; do not continue authoring automatically
+
+Skill/routing/evaluation defect
+→ SKILL_SYSTEM
+→ lazydesigner-skill-development
+```
+
+Suspicion such as “maybe MCP/tool/runtime” is not system-defect evidence. Cross-lane handoff must name observed behavior, expected behavior, the smallest reproduction/evidence, target owner, and `resume_stage`. Never use lane crossing to escape a difficult visual correction.
+
 ## Task Class After Context
 
 ### Reference Preparation
