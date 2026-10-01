@@ -103,7 +103,9 @@ Canonical source: `mcp/gateway/execution/`.
 
 ```text
 capabilityExecutor.ts  capability dispatch, precondition, Control receipt/delta,
-                       session fact updates, result compaction and trace hooks
+                       session fact updates and result compaction
+gatewayErrors.ts        AI-facing execution error/result adaptation
+benchmarkTrace.ts       opt-in execution benchmark trace writer
 ```
 
 Execution may coordinate Control and Runtime. Runtime transport must not depend back on execution.
@@ -126,7 +128,10 @@ Owners:
 mcp/gateway/index.ts                         stable public boundary + Control wiring
 mcp/gateway/runtime/backend.ts               Runtime adapter/catalog/queue/project affinity
 mcp/gateway/runtime/connectionManager.ts     demand-driven Runtime connection lifecycle
-mcp/gateway/runtime/runtimeSession.ts        Runtime session/generation counters
+mcp/gateway/runtime/runtimeSession.ts        Runtime connection/session observability
+mcp/gateway/session/state.ts                  process-local capability facts + Control continuation
+mcp/gateway/session/orchestrationRecoveryState.ts
+                                               verification/correction recovery + project epoch
 mcp/gateway/runtime/reconnectPolicy.ts       bounded reconnect backoff
 mcp/gateway/contracts/protocol.ts            canonical Gateway protocol/base types
 mcp/gateway/contracts/outputSchemas.ts       canonical public output validation contracts
