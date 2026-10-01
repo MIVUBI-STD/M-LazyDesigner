@@ -322,7 +322,7 @@ describe("Gateway dependency direction", () => {
     expect(violations).toEqual([]);
   });
 
-  test("execution is the only cross-layer Runtime + Control coordinator", async () => {
+  test("execution owns capability Runtime + Control coordination", async () => {
     const files = await sourceFiles(join(ROOT, "execution"));
     expect(files.length).toBeGreaterThan(0);
 
