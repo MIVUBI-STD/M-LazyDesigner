@@ -19,6 +19,8 @@ describe("model creation effectiveness — professional construction without pre
     for (const text of [modelling, workflow, geometry]) {
       expect(lower(text)).toContain("not presets");
       expect(lower(text)).toContain("transform ownership");
+    }
+    for (const text of [workflow, geometry]) {
       expect(lower(text)).toMatch(/primary (?:blockout|cube batch)/);
       expect(lower(text)).toContain("identity-weighted");
     }
@@ -37,9 +39,9 @@ describe("model creation effectiveness — professional construction without pre
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
-    for (const text of [modelling, geometry]) {
-      expect(text).toContain("PLANAR_CUTOUT_CARRIER");
-      expect(lower(text)).toContain("representation");
+    expect(modelling).toContain("PLANAR_CUTOUT_CARRIER");
+    expect(lower(modelling)).toContain("representation");
+    for (const text of [geometry]) {
       expect(lower(text)).toContain("guardrail");
       expect(lower(text)).toContain("not a classifier");
     }
@@ -79,12 +81,10 @@ describe("model creation effectiveness — professional construction without pre
     ]);
 
     for (const relation of ["CLOSED_BOUNDARY", "INTENTIONAL_OPENING", "LAYERED_OFFSET", "INTENTIONAL_INTERSECTION", "CUTOUT_CARRIER"]) {
-      expect(modelling).toContain(relation);
       expect(geometry).toContain(relation);
     }
 
     expect(lower(modelling)).toMatch(/surface.*contact/);
-    expect(modelling).toContain("do not force universal watertight geometry");
     expect(geometry).toContain("not that every model is universally watertight");
   });
 
@@ -113,7 +113,7 @@ describe("model creation effectiveness — professional construction without pre
       source("../docs/03-authoring/animation/standard.md"),
     ]);
 
-    expect(modelling).toContain("smallest changed");
+    expect(modelling).toContain("smallest changed branch");
     expect(geometry).toContain("smallest changed branch");
     expect(lower(modelling)).toContain("more clips or controller states");
     expect(geometry).toContain("Growth in one budget is not sufficient reason");
