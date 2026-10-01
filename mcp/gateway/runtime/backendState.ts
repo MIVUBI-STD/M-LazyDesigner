@@ -2,7 +2,7 @@ import {
   BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER,
   BLOCKIT_PROJECT_AFFINITY_HEADER,
   type BlockitAuthoringPhaseAffinity,
-} from "./projectAffinity";
+} from "../../lib/runtime/affinity";
 
 export function buildRuntimeAffinityHeaders(
   projectUuid: string | null,
