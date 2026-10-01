@@ -5,6 +5,11 @@ import { join, relative, dirname, normalize } from "node:path";
 const ROOT = "gateway";
 
 const COMPATIBILITY_WRAPPERS = new Set([
+  "statusProjection",
+  "resultCompaction",
+  "outputSchemas",
+  "protocol",
+  "backend",
   "contract",
   "controlReceipt",
   "capabilityManifest",
@@ -22,6 +27,8 @@ const COMPATIBILITY_WRAPPERS = new Set([
 ]);
 
 const CONTROL_COMPATIBILITY_WRAPPERS = new Set([
+  "sourceOwners",
+  "developmentIntent",
   "registry",
   "capabilityManifest",
   "delta",
