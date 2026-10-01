@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "purpose": "Development-only routing regression corpus. These cases express intended Skill activation and negative-routing boundaries; they are not runtime routing code.",
+  "cases": [
+    {
+      "id": "geometry-reference",
+      "prompt": "Build the chair geometry from the approved reference.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-modelling",
+      "forbidden_skills": [
+        "lazydesigner-mcp-development",
+        "lazydesigner-blockbench-development",
+        "lazydesigner-development-brief"
+      ]
+    },
+    {
+      "id": "visual-geometry-not-runtime",
+      "prompt": "The cubes were created successfully, but the chair silhouette is still wrong.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-modelling",
+      "forbidden_skills": [
+        "lazydesigner-blockbench-development",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
+      "id": "texture-flat",
+      "prompt": "The mapped wood texture looks too flat; improve the material read.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-texturing",
+      "forbidden_skills": [
+        "lazydesigner-modelling",
+        "lazydesigner-mcp-development",
+        "lazydesigner-blockbench-development"
+      ]
+    },
+    {
+      "id": "uv-overlap-upstream",
+      "prompt": "Texture verification shows a UV overlap causing the visible defect.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-texturing",
+      "allowed_handoff": "lazydesigner-modelling",
+      "forbidden_skills": [
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
+      "id": "animation-idle",
+      "prompt": "Create an idle animation using the approved rig.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-animation",
+      "forbidden_skills": [
+        "lazydesigner-modelling",
+        "lazydesigner-blockbench-development"
+      ]
+    },
+    {
+      "id": "blockbench-undo-defect",
+      "prompt": "The cube mutation succeeds but Undo does not restore the previous Blockbench state.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-blockbench-development",
+      "forbidden_skills": [
+        "lazydesigner-modelling",
+        "lazydesigner-development-brief"
+      ]
+    },
+    {
+      "id": "mcp-result-contract",
+      "prompt": "The MCP structuredContent result no longer matches the advertised public schema.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-mcp-development",
+      "forbidden_skills": [
+        "lazydesigner-blockbench-development",
+        "lazydesigner-modelling"
+      ]
+    },
+    {
+      "id": "complex-dev-ambiguity",
+      "prompt": "Redesign the cross-owner architecture; ownership and acceptance are still unresolved.",
+      "lane": "DEVELOPMENT",
+      "expected_skill": "lazydesigner-development-brief",
+      "forbidden_skills": [
+        "lazydesigner-modelling",
+        "lazydesigner-texturing"
+      ]
+    },
+    {
+      "id": "reference-router",
+      "prompt": "Prepare the minimum useful reference evidence for this new Minecraft prop.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-reference-preparation",
+      "forbidden_skills": [
+        "lazydesigner-development-brief",
+        "lazydesigner-blockbench-development"
+      ]
+    },
+    {
+      "id": "pixel-icon",
+      "prompt": "Create a strict 16x16 Minecraft-native pixel icon from this reference.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-pixel-art-authoring",
+      "forbidden_skills": [
+        "lazydesigner-texturing",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
+      "id": "particle-reference",
+      "prompt": "Author a blue flame Bedrock particle JSON and its texture as a standalone reference artifact.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-particle-reference-authoring",
+      "forbidden_skills": [
+        "lazydesigner-animation",
+        "lazydesigner-mcp-development"
+      ]
+    },
+    {
+      "id": "prompt-compiler-delegated",
+      "prompt": "Normalize the confirmed reference requirements into one clean production brief.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-prompt-compiler",
+      "activation": "DELEGATED",
+      "parent_skill": "lazydesigner-reference-preparation",
+      "forbidden_skills": [
+        "lazydesigner-development-brief"
+      ]
+    },
+    {
+      "id": "skill-maintenance",
+      "prompt": "Refine the modelling Skill so visual failures stop activating runtime development.",
+      "lane": "SKILL_SYSTEM",
+      "expected_skill": "lazydesigner-skill-development",
+      "forbidden_skills": [
+        "lazydesigner-development-brief",
+        "lazydesigner-blockbench-development"
+      ]
+    },
+    {
+      "id": "suspected-mcp-without-evidence",
+      "prompt": "The model still looks wrong; maybe the MCP is the problem.",
+      "lane": "IN_USE",
+      "expected_skill": "lazydesigner-modelling",
+      "forbidden_skills": [
+        "lazydesigner-mcp-development",
+        "lazydesigner-blockbench-development"
+      ]
+    }
+  ]
+}
