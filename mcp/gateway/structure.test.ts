@@ -39,6 +39,14 @@ const WRAPPERS: Readonly<Record<string, string>> = {
     'export * from "../development/intent";\n',
   "gateway/control/sourceOwners.ts":
     'export * from "../development/sourceOwners";\n',
+  "gateway/runtime/capabilityExecutor.ts":
+    'export * from "../execution/capabilityExecutor";\n',
+  "gateway/runtime/benchmarkTrace.ts":
+    'export * from "../execution/benchmarkTrace";\n',
+  "gateway/runtime/orchestrationRecoveryState.ts":
+    'export * from "../session/orchestrationRecoveryState";\n',
+  "gateway/runtime/projectAffinity.ts":
+    'export * from "../../lib/runtime/affinity";\n',
 };
 
 describe("Gateway structural ownership", () => {
