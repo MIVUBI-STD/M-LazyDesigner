@@ -4,29 +4,7 @@ Applies to `mcp/**`. Root `../AGENTS.md` owns repository routing, execution-cont
 
 ## Source Ownership
 
-```text
-index.ts                 plugin orchestration only
-plugin/                  Runtime host, Blockbench integration, dev reload
-server/net.ts            Runtime HTTP/MCP transport + serialization
-server/runtime/          registration/surface/consolidation/phase/bootstrap
-server/tools/            Geometry/Texture/Animation/Particle implementations
-server/resources/        Runtime Resources
-server/prompts.ts        Runtime Prompt registration
-lib/                     shared/domain-pure implementation; root is compatibility/shared facade
-lib/authoring/           handoff readiness + validation semantics
-lib/bedrock/             Bedrock project identity + project semantics
-lib/product/             product identity
-lib/protocol/            MCP/resource protocol helpers
-lib/runtime/             Runtime connection/affinity/fetch/lifecycle primitives
-ui/                      Blockbench UI implementation details
-prompts/                 canonical prompt source + generated manifest
-build/                   Runtime bundle/watch + prompt-manifest build input
-scripts/                 verification/measurement/deploy utilities
-tests/                   contract/integration regressions
-docs/                    generated API docs; never hand-edit generated entries
-```
-
-Use the affected owner + direct callers first. `server/tools.ts` is a compatibility facade, never a Runtime-state owner.
+Route exact implementation work through `docs/04-system/implementation-map.md` and the nearest source/consumer. The `lib/` root is a compatibility facade, not a new domain owner; `server/tools.ts` is likewise a compatibility facade. Domain implementations stay under their canonical subdirectories, and generated docs/prompts stay generator-owned.
 
 ## Execution Context / Proof Ceiling
 
