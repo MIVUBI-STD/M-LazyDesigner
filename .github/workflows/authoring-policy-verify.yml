@@ -1,28 +1,6 @@
 name: Authoring Policy Verify
 
 on:
-  push:
-    branches:
-      - Local
-    paths:
-      - "AGENTS.md"
-      - "CONTEXT.md"
-      - ".agents/skills/lazydesigner-reference-preparation/**"
-      - ".agents/skills/lazydesigner-prompt-compiler/**"
-      - ".agents/skills/lazydesigner-modelling/**"
-      - ".agents/skills/lazydesigner-texturing/**"
-      - ".agents/skills/lazydesigner-animation/**"
-      - "docs/02-reference/**"
-      - "docs/03-authoring/**"
-      - "docs/04-system/implementation-map.md"
-      - "docs/04-system/control/**"
-      - "docs/05-operations/local-acceptance-runbook.md"
-      - "workspace/README.md"
-      - "workspace/active/**"
-      - "mcp/gateway/control/**"
-      - "mcp/lib/authoringPhase.ts"
-      - "mcp/tests/authoring/**"
-      - ".github/workflows/authoring-policy-verify.yml"
   workflow_dispatch:
 
 concurrency:

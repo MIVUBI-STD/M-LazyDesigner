@@ -1,12 +1,6 @@
 name: Release Verify
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -26,23 +20,7 @@ jobs:
         working-directory: mcp
 
     steps:
-      - name: Require Local pull request source
-        if: github.event_name == 'pull_request'
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
-        run: |
-          test "$HEAD_REPOSITORY" = "$GITHUB_REPOSITORY" || {
-            echo "Stable release promotion must come from this repository's Local branch." >&2
-            exit 1
-          }
-          test "$HEAD_REF" = "Local" || {
-            echo "Stable release promotion must come from Local." >&2
-            exit 1
-          }
-
       - name: Require Local manual release source
-        if: github.event_name == 'workflow_dispatch'
         env:
           REF_NAME: ${{ github.ref_name }}
         run: |
@@ -54,12 +32,11 @@ jobs:
       - name: Checkout release candidate
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Require current main ancestry
-        if: github.event_name != 'push'
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main
           git merge-base --is-ancestor origin/main HEAD || {

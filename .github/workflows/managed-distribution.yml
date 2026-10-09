@@ -1,33 +1,6 @@
 name: Managed Distribution
 
 on:
-  push:
-    branches: [Local]
-    tags: ["blockit-v*"]
-    paths:
-      - "distribution/**"
-      - "mcp/tests/managed-install.test.ts"
-      - "mcp/gateway/**"
-      - "mcp/server/**"
-      - "mcp/lib/**"
-      - "mcp/plugin/**"
-      - "mcp/ui/**"
-      - "mcp/prompts/**"
-      - "mcp/build/**"
-      - "mcp/package.json"
-      - "mcp/bun.lock"
-      - ".agents/skills/lazydesigner-modelling/**"
-      - ".agents/skills/lazydesigner-texturing/**"
-      - ".agents/skills/lazydesigner-animation/**"
-      - ".agents/skills/lazydesigner-mcp-development/**"
-      - ".agents/skills/lazydesigner-blockbench-development/**"
-      - "docs/03-authoring/**"
-      - "docs/04-system/**"
-      - "docs/05-operations/**"
-      - "workspace/README.md"
-      - "LICENSE"
-      - ".bun-version"
-      - ".github/workflows/managed-distribution.yml"
   workflow_dispatch:
 
 permissions:

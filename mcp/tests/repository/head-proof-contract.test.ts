@@ -6,11 +6,11 @@ async function read(path: string): Promise<string> {
 }
 
 describe("exact-head proof contract", () => {
-  test("Local pushes receive a lightweight head classification without duplicating full verification", async () => {
+  test("manual Head Proof classifies source equivalence without executable verification", async () => {
     const workflow = await read(".github/workflows/head-proof.yml");
 
-    expect(workflow).toContain("branches:");
-    expect(workflow).toContain("- Local");
+    expect(workflow).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(workflow).not.toMatch(/^  push:/m);
     expect(workflow).toContain('classification="documentation-only"');
     expect(workflow).toContain('classification="source-impacting"');
     expect(workflow).toContain("source-equivalence evidence only");

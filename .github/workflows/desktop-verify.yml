@@ -1,16 +1,6 @@
 name: Desktop Verify
 
 on:
-  push:
-    branches:
-      - Local
-    paths:
-      - "apps/desktop/**"
-      - "mcp/compatibility/blockbench.json"
-      - "distribution/**"
-      - "mcp/lib/runtime/fetch.ts"
-      - "mcp/tests/managed-install.test.ts"
-      - ".github/workflows/desktop-verify.yml"
   workflow_dispatch:
 
 permissions:

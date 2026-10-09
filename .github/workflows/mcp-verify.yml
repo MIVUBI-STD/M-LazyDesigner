@@ -1,26 +1,6 @@
 name: MCP Verify
 
 on:
-  push:
-    branches:
-      - Local
-    paths:
-      - "mcp/**"
-      - "!mcp/AGENTS.md"
-      - "!mcp/README.md"
-      - "!mcp/about.md"
-      - "!mcp/gateway/README.md"
-      - "!mcp/llms.txt"
-      - "!mcp/tests/repository/**"
-      - "!mcp/tests/authoring/**"
-      - "!mcp/prompts/blockbench_code_eval_safety.md"
-      - "!mcp/prompts/blockbench_native_apis.md"
-      - ".agents/skills/lazydesigner-modelling/**"
-      - ".agents/skills/lazydesigner-texturing/**"
-      - ".agents/skills/lazydesigner-animation/**"
-      - "docs/05-operations/next-action.md"
-      - ".bun-version"
-      - ".github/workflows/mcp-verify.yml"
   workflow_dispatch:
 
 concurrency:
@@ -50,22 +30,15 @@ jobs:
         shell: bash
         env:
           EXPECTED_SHA: ${{ github.sha }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           actual_sha="$(git rev-parse HEAD)"
           test "$actual_sha" = "$EXPECTED_SHA"
-          if [[ "$EVENT_NAME" == "push" ]]; then
-            full_acceptance="false"
-          else
-            full_acceptance="true"
-          fi
           {
             echo "### MCP exact-SHA proof"
             echo
             printf -- '- exact_sha: `%s`\n' "$actual_sha"
-            printf -- '- event: `%s`\n' "$EVENT_NAME"
-            printf -- '- full_acceptance: `%s`\n' "$full_acceptance"
+            echo "- verification: manual full source gate"
             echo "- live_local_tests: excluded"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -77,137 +50,14 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
-      # Canonical full-gate composition remains explicit here for repository
-      # ownership/audit visibility. Affected mode selects the minimum safe subset;
-      # full mode executes verify:full, whose verify:mcp owner contains:
-      # bun run docs:check
-      # bun run verify:project-graph
-      # bun run typecheck
-      # bun run typecheck:gateway
-      # bun run test:runtime
-      # bun run verify:authoring
-      # bun run benchmark:semantic-invalidation-scope
-      # bun run measure:surface
-      # bun run measure:stages
-      # bun run build
-      - name: Plan verification scope
-        id: scope
-        shell: bash
-        working-directory: .
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BEFORE_SHA: ${{ github.event.before }}
-          HEAD_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          full_verify() {
-            echo "mode=full" >> "$GITHUB_OUTPUT"
-            : > /tmp/mcp-changed-paths.txt
-          }
-
-          if [[ "$EVENT_NAME" != "push" ]]; then
-            echo "Manual/non-push verification uses the canonical full verifier."
-            full_verify
-            exit 0
-          fi
-
-          if [[ -z "${BEFORE_SHA:-}" || "$BEFORE_SHA" =~ ^0+$ ]]; then
-            echo "Push has no trustworthy before SHA; failing wide."
-            full_verify
-            exit 0
-          fi
-
-          if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
-            echo "Before SHA is unavailable locally; failing wide."
-            full_verify
-            exit 0
-          fi
-
-          git diff --name-status --find-renames "$BEFORE_SHA" "$HEAD_SHA" > /tmp/mcp-change-status.txt
-
-          if grep -Eq '^(D|R|C)[0-9]*[[:space:]]' /tmp/mcp-change-status.txt; then
-            echo "Deletion/rename/copy detected; ownership may have disappeared, so use full verification."
-            full_verify
-            exit 0
-          fi
-
-          awk -F '\t' '{print $NF}' /tmp/mcp-change-status.txt | sed '/^$/d' | sort -u > /tmp/mcp-changed-paths.txt
-
-          if [[ ! -s /tmp/mcp-changed-paths.txt ]]; then
-            echo "No changed paths resolved; failing wide."
-            full_verify
-            exit 0
-          fi
-
-          echo "Affected verification paths:"
-          cat /tmp/mcp-changed-paths.txt
-
-          mapfile -t changed_paths < /tmp/mcp-changed-paths.txt
-
-          semantic_args=()
-          previous_worktree="/tmp/mcp-before-${BEFORE_SHA:0:12}"
-          if git worktree add --detach "$previous_worktree" "$BEFORE_SHA" >/dev/null 2>&1; then
-            if (
-              cd "$previous_worktree/mcp"
-              bun run ./scripts/development/snapshot-semantic-registry.ts
-            ) > /tmp/mcp-previous-semantic-registry.json 2>/tmp/mcp-semantic-snapshot.err; then
-              semantic_args=(
-                --previous-semantic-snapshot
-                /tmp/mcp-previous-semantic-registry.json
-              )
-            else
-              echo "Previous semantic snapshot unavailable; path-based planner remains authoritative."
-              cat /tmp/mcp-semantic-snapshot.err || true
-            fi
-            git worktree remove --force "$previous_worktree" >/dev/null 2>&1 || true
-          else
-            echo "Previous worktree unavailable; path-based planner remains authoritative."
-          fi
-
-          (
-            cd mcp
-            bun run plan:affected -- "${semantic_args[@]}" "${changed_paths[@]}"
-          ) > /tmp/mcp-affected-plan.json
-
-          planner_full="$(bun -e 'const p=JSON.parse(await Bun.file("/tmp/mcp-affected-plan.json").text()); console.log(p.execution.fallback_full_verify ? "true" : "false")')"
-          if [[ "$planner_full" == "true" ]]; then
-            echo "Affected planner requested canonical full verification."
-            echo "mode=full" >> "$GITHUB_OUTPUT"
-          else
-            echo "mode=affected" >> "$GITHUB_OUTPUT"
-          fi
-
-          {
-            echo "### MCP verification plan"
-            echo
-            echo '~~~json'
-            cat /tmp/mcp-affected-plan.json
-            echo '~~~'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Run affected verification
-        if: steps.scope.outputs.mode == 'affected'
-        shell: bash
-        run: |
-          set -euo pipefail
-          mapfile -t changed_paths < /tmp/mcp-changed-paths.txt
-          bun run verify:affected -- "${changed_paths[@]}"
-
-      - name: Run full verification
-        if: steps.scope.outputs.mode == 'full'
-        # CI is a remote/static acceptance environment. verify:full is the
-        # canonical source gate and intentionally excludes *:live gates.
+      # Exact-source full verification on manual dispatch, not live Blockbench proof.
+      - name: Run canonical full source verification
         run: bun run verify:full
 
-      # Keep verified build artifacts only when the canonical full verifier ran.
-      # Affected-only pushes intentionally avoid rebuilding unrelated bundles.
       - name: Record exact-SHA build provenance
-        if: steps.scope.outputs.mode == 'full'
         run: bun run ./scripts/operations/verified-build-artifact.ts write-ci
 
       - name: Upload verified compatibility bundle
-        if: steps.scope.outputs.mode == 'full'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: blockit-mcp-verified

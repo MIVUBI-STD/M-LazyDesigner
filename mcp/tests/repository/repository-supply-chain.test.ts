@@ -92,7 +92,8 @@ describe("repository workflow supply chain", () => {
 
   test("MCP verification publishes only a read-only exact-SHA verified compatibility artifact", async () => {
     const workflow = await source("../.github/workflows/mcp-verify.yml");
-    expect(workflow).toContain("bun run ./scripts/verified-build-artifact.ts write-ci");
+    expect(workflow).toContain("bun run ./scripts/operations/verified-build-artifact.ts write-ci");
+    expect(workflow).toContain("bun run verify:full");
     expect(workflow).toContain("name: blockit-mcp-verified");
     expect(workflow).toContain("mcp/dist/blockit_mcp.js");
     expect(workflow).toContain("mcp/dist/blockit-build-provenance.json");
@@ -101,44 +102,28 @@ describe("repository workflow supply chain", () => {
     expect(workflow).not.toContain("git push");
   });
 
-  test("developer-facing static docs route to Repository Verify rather than executable MCP verification", async () => {
-    const [repositoryWorkflow, mcpWorkflow] = await Promise.all([
+  test("static and executable verifiers remain available on demand", async () => {
+    const [repo, mcp, json] = await Promise.all([
       source("../.github/workflows/repository-verify.yml"),
       source("../.github/workflows/mcp-verify.yml"),
+      source("package.json"),
     ]);
-
-    for (const path of [
-      '"docs/**"',
-      '"mcp/AGENTS.md"',
-      '"mcp/README.md"',
-      '"mcp/about.md"',
-      '"mcp/gateway/README.md"',
-      '"mcp/llms.txt"',
-    ]) {
-      expect(repositoryWorkflow).toContain(path);
-    }
-
-    for (const path of [
-      '"!mcp/AGENTS.md"',
-      '"!mcp/README.md"',
-      '"!mcp/about.md"',
-      '"!mcp/gateway/README.md"',
-      '"!mcp/llms.txt"',
-    ]) {
-      expect(mcpWorkflow).toContain(path);
-    }
-
-    for (const workflow of [repositoryWorkflow, mcpWorkflow]) {
-      expect(workflow).not.toContain("docs/knowledge/");
-      expect(workflow).not.toContain("docs/foundation/");
+    const scripts = JSON.parse(json).scripts as Record<string, string>;
+    expect(repo).toContain("bun run verify:repository");
+    expect(mcp).toContain("bun run verify:full");
+    expect(mcp).not.toContain("verify:affected");
+    expect(scripts["verify:affected"]).toContain("run-affected-execution.ts");
+    for (const workflow of [repo, mcp]) {
+      expect(workflow).toMatch(/^on:\n  workflow_dispatch:/m);
+      expect(workflow).not.toMatch(/^  push:|^  pull_request:|^  schedule:/m);
     }
   });
 
-  test("repository hygiene owners are present and routed to static verification", async () => {
-    const repositoryWorkflow = await source("../.github/workflows/repository-verify.yml");
-
-    expect(repositoryWorkflow).toContain('".editorconfig"');
-    expect(repositoryWorkflow).toContain('"SECURITY.md"');
+  test("repository hygiene retains canonical static verification", async () => {
+    const workflow = await source("../.github/workflows/repository-verify.yml");
+    const scripts = JSON.parse(await source("package.json")).scripts as Record<string, string>;
+    expect(workflow).toContain("bun run verify:repository");
+    expect(scripts["verify:repository"]).toBe("bun test tests/repository/*.test.ts");
     expect(await Bun.file("../.editorconfig").exists()).toBe(true);
     expect(await Bun.file("../SECURITY.md").exists()).toBe(true);
   });

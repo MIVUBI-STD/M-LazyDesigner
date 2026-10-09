@@ -1,9 +1,6 @@
 name: Head Proof
 
 on:
-  push:
-    branches:
-      - Local
   workflow_dispatch:
 
 concurrency:

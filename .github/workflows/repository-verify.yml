@@ -1,37 +1,6 @@
 name: Repository Verify
 
 on:
-  push:
-    branches:
-      - Local
-    paths:
-      - ".editorconfig"
-      - ".gitattributes"
-      - ".gitignore"
-      - "AGENTS.md"
-      - "GITHUB_RULES.md"
-      - "CONTEXT.md"
-      - "README.md"
-      - "CONTRIBUTING.md"
-      - "SECURITY.md"
-      - ".agents/skills/lazydesigner-development-brief/**"
-      - ".agents/skills/lazydesigner-mcp-development/**"
-      - ".agents/skills/lazydesigner-blockbench-development/**"
-      - "docs/**"
-      - "apps/desktop/**"
-      - "distribution/**"
-      - "mcp/compatibility/blockbench.json"
-      - "mcp/AGENTS.md"
-      - "mcp/README.md"
-      - "mcp/about.md"
-      - "mcp/gateway/README.md"
-      - "mcp/llms.txt"
-      - "mcp/package.json"
-      - "mcp/tests/repository/**"
-      - "mcp/prompts/blockbench_code_eval_safety.md"
-      - "mcp/prompts/blockbench_native_apis.md"
-      - "Experimental/README.md"
-      - ".github/workflows/**"
   workflow_dispatch:
 
 concurrency:

@@ -1,18 +1,6 @@
 name: MCP Conformance
 
 on:
-  push:
-    branches:
-      - Local
-    paths:
-      - "mcp/server/**"
-      - "mcp/lib/factories.ts"
-      - "mcp/lib/authoringPhase.ts"
-      - "mcp/lib/registrationProfile.ts"
-      - "mcp/package.json"
-      - "mcp/bun.lock"
-      - "mcp/scripts/serve-conformance-runtime.ts"
-      - ".github/workflows/mcp-conformance.yml"
   workflow_dispatch:
 
 concurrency:

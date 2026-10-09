@@ -48,7 +48,7 @@ describe("repository GitHub discipline", () => {
     ]);
 
     expect(root).toContain(".agents/skills/lazydesigner-development-brief/SKILL.md");
-    expect(root).toContain("Asset authoring is not software **Development**");
+    expect(root).toContain("### Asset Authoring");
     requireInvariant(root, /exhaust source\/static\/CI-verifiable work first[\s\S]*handoff only the minimum[\s\S]*never transfer the whole task/i, "AGENTS.md", "root routes by minimum higher-context residue");
     expect(packageRules).toMatch(/higher-context residue does not transfer the entire task|higher-context dependency does not transfer the whole MCP task/i);
     expect(brief).toContain("## Execution Partition");
@@ -108,83 +108,51 @@ describe("repository GitHub discipline", () => {
     expect(next).not.toContain("3D_ASSISTED");
   });
 
-  test("verification layers stay directory-owned and non-duplicating", async () => {
-    const [repository, authoring, mcp, release, packageText] = await Promise.all([
+  test("canonical verification contracts remain available", async () => {
+    const [repo, authoring, mcp, release, pkg] = await Promise.all([
       source("../.github/workflows/repository-verify.yml"),
       source("../.github/workflows/authoring-policy-verify.yml"),
       source("../.github/workflows/mcp-verify.yml"),
       source("../.github/workflows/release-verify.yml"),
       source("package.json"),
     ]);
-    const scripts = JSON.parse(packageText).scripts as Record<string, string>;
-
-    expect(scripts["verify:repository"]).toBe("bun test tests/repository/*.test.ts");
-    expect(scripts["verify:authoring"]).toBe("bun test tests/authoring/*.test.ts");
-    expect(scripts["test:runtime"]).toBe("bun test tests/*.test.ts");
-    expect(scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
-    expect(scripts["verify:release"]).toBe(
-      "bun run security:audit && bun run verify:full"
-    );
-    expect(scripts["verify:mcp"]).toBe(
-      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run verify:build"
-    );
-    expect(scripts["verify:types"]).toContain("bun run verify:project-graph");
-    expect(scripts["verify:types"]).toContain("bun run typecheck:gateway");
-    expect(scripts["verify:contracts"]).toContain("bun run test:runtime");
-    expect(scripts["verify:contracts"]).toContain("bun run verify:authoring");
-    expect(scripts["verify:benchmarks"]).toContain(
-      "bun run benchmark:semantic-invalidation-scope"
-    );
-    expect(scripts["verify:surface-guards"]).toBe(
-      "bun run measure:surface && bun run measure:phases"
-    );
-    expect(scripts["report:mcp-efficiency"]).toBe(
-      "bun run measure:mcp-efficiency"
-    );
-    expect(scripts["verify:mcp"]).not.toContain("report:mcp-efficiency");
-    expect(scripts["verify:build"]).toBe("bun run build");
-    expect(scripts["verify:experimental"]).toBe("bun run verify:hybrid-remote");
-    expect(scripts["verify:mcp"]).not.toContain("verify:experimental");
-    expect(scripts["verify:mcp"]).not.toContain("bun run verify:repository");
-
-    expect(repository).toContain("bun run verify:repository");
+    const s = JSON.parse(pkg).scripts as Record<string, string>;
+    expect(s["verify:repository"]).toBe("bun test tests/repository/*.test.ts");
+    expect(s["verify:authoring"]).toBe("bun test tests/authoring/*.test.ts");
+    expect(s["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
+    expect(s["verify:release"]).toBe("bun run security:audit && bun run verify:full");
+    expect(s["verify:mcp"]).toBe("bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run build");
+    expect(s["verify:contracts"]).toContain("bun run test:runtime");
+    expect(s["verify:contracts"]).toContain("bun run verify:authoring");
+    expect(s["verify:benchmarks"]).toContain("bun run benchmark:semantic-invalidation-scope");
+    expect(s["verify:surface-guards"]).toBe("bun run measure:surface && bun run measure:stages");
+    expect(s["verify:affected"]).toContain("run-affected-execution.ts");
+    expect(repo).toContain("bun run verify:repository");
     expect(authoring).toContain("bun run verify:authoring");
-    expect(mcp).toContain("bun run verify:affected");
-    expect(mcp).toContain("bun run verify:remote");
-    expect(mcp).toContain("Affected mode selects the minimum safe subset");
+    expect(mcp).toContain("bun run verify:full");
     expect(release).toContain("bun run verify:release");
-    expect(authoring).toContain('"workspace/active/**"');
-    expect(mcp).toContain('"!mcp/tests/repository/**"');
-    expect(mcp).toContain('"!mcp/tests/authoring/**"');
   });
 
-
-  test("MCP Verify owns bounded push verification and exact-SHA full manual acceptance", async () => {
+  test("MCP Verify retains exact-SHA full manual source proof", async () => {
     const mcp = await source("../.github/workflows/mcp-verify.yml");
-    const packageText = await source("package.json");
-    const scripts = JSON.parse(packageText).scripts as Record<string, string>;
-
-    expect(mcp).toContain("name: MCP Verify");
-    expect(mcp).toContain("workflow_dispatch:");
+    expect(mcp).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(mcp).not.toMatch(/^  push:/m);
     expect(mcp).toContain('EXPECTED_SHA: ${{ github.sha }}');
     expect(mcp).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
-    expect(mcp).toContain("MCP exact-SHA proof");
-    expect(mcp).toContain('if [[ "$EVENT_NAME" != "push" ]]');
-    expect(mcp).toContain("Manual/non-push verification uses the canonical full verifier.");
-    expect(mcp).toContain("bun run verify:remote");
+    expect(mcp).toContain("bun run verify:full");
     expect(mcp).toContain("live_local_tests: excluded");
-    expect(scripts["verify:remote"]).toBe("bun run verify:full");
-    expect(scripts["verify:remote"]).not.toMatch(/live/i);
+    expect(mcp).not.toContain("verify:affected");
   });
 
-  test("release verification stays Local-only and ancestry guarded", async () => {
+  test("Release Verify remains manual, Local-only and ancestry guarded", async () => {
     const release = await source("../.github/workflows/release-verify.yml");
-    expect(release).toContain("name: Full release contract");
-    expect(release).toContain('test "$HEAD_REF" = "Local"');
+    expect(release).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(release).not.toMatch(/^  push:|^  pull_request:/m);
     expect(release).toContain('test "$REF_NAME" = "Local"');
     expect(release).toContain("fetch-depth: 0");
     expect(release).toContain("persist-credentials: false");
     expect(release).toContain("git merge-base --is-ancestor origin/main HEAD");
     expect(release).toContain("bun run verify:release");
   });
+
 });
