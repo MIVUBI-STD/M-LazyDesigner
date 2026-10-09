@@ -165,11 +165,11 @@ At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`.
 
 ## Development Operating Standard
 
-For material repository or product development, apply `docs/04-system/development-operating-standard.md` before changes and at completion. It supplements existing Bounded, Standard and Complex contracts without creating another work lane, agent, Skill or status owner. Do not preload it for routine Asset Authoring, Reference Preparation or read-only observation.
+Material development follows `docs/04-system/development-operating-standard.md` before editing and at completion; no new lane or normal authoring preload.
 
-Classify the requested action as `INSPECT | PLAN | DIAGNOSE | DEVELOP | REPAIR | VALIDATE | RELEASE` before selecting the existing responsible lane. Inspection and planning are read-only by default. A cross-domain finding creates an evidence-gated handoff, not automatic permission to change source or release. Before write, external execution, installation, live mutation or release, use the permission preflight in the standard; a specialist cannot override a denied operation.
+Classify `INSPECT | PLAN | DIAGNOSE | DEVELOP | REPAIR | VALIDATE | RELEASE`. INSPECT/PLAN are read-only; lane changes need evidence. Apply permission preflight before writes, installs, networking, live mutation or release; a specialist cannot override denial.
 
-For material commits, preserve `Work`, `State` and `Proof` metadata, plus conditional `Decision`, `Unresolved` and `Next`. Git records the historical change; `docs/05-operations/next-action.md` is the current repository continuation owner, not a second commit log. When resuming, reconcile historical `Next` with actual `Local` source; never execute it automatically.
+Material commits use `Work`, `State`, `Proof`, plus conditional `Decision`, `Unresolved`, `Next`. Git owns history; `docs/05-operations/next-action.md` owns current continuation. Reconcile historical `Next` with current source.
 
 ## Source Precedence
 
