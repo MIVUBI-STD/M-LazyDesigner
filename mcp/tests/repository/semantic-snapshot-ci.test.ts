@@ -13,7 +13,7 @@ describe("semantic snapshot affected-execution ownership", () => {
     expect(scripts["verify:affected"]).toContain("run-affected-execution.ts");
     expect(scripts["snapshot:semantic-registry"]).toContain("snapshot-semantic-registry.ts");
     expect(planner).toContain("planAffectedExecution");
-    expect(snapshot).toContain("snapshot");
+    expect(snapshot).toContain("CAPABILITY_SEMANTIC_REGISTRY");
     expect(workflow).toMatch(/^on:\n  workflow_dispatch:/m);
     expect(workflow).toContain("bun run verify:full");
     expect(workflow).not.toContain("git worktree add --detach");
