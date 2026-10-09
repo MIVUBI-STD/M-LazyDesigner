@@ -81,32 +81,37 @@ describe("MCP dependency closure", () => {
     expect(phaseContract).toContain("Animation Readiness Preflight");
   });
 
-  test("CI routes track the hierarchical docs owners they validate", async () => {
-    const [repositoryWorkflow, authoringWorkflow, mcpWorkflow] = await Promise.all([
+  test("on-demand static and authoring checks retain the existing canonical owners", async () => {
+    const [repositoryFlow, authoringFlow, mcpFlow, docs, pkg] = await Promise.all([
       text("../.github/workflows/repository-verify.yml"),
       text("../.github/workflows/authoring-policy-verify.yml"),
       text("../.github/workflows/mcp-verify.yml"),
+      text("../docs/README.md"),
+      text("package.json"),
     ]);
-
-    expect(repositoryWorkflow).toContain('"docs/**"');
-    expect(authoringWorkflow).toContain('"docs/02-reference/**"');
-    expect(authoringWorkflow).toContain('"docs/03-authoring/**"');
-    expect(authoringWorkflow).toContain('"docs/04-system/implementation-map.md"');
-    expect(mcpWorkflow).toContain('"docs/05-operations/next-action.md"');
-    expect(mcpWorkflow).toContain('"!mcp/AGENTS.md"');
-
-    for (const workflow of [repositoryWorkflow, authoringWorkflow, mcpWorkflow]) {
-      expect(workflow).not.toContain("docs/knowledge/");
-      expect(workflow).not.toContain("docs/foundation/");
+    const scripts = JSON.parse(pkg).scripts as Record<string, string>;
+    expect(docs).toContain("02-reference/");
+    expect(docs).toContain("03-authoring/");
+    expect(docs).toContain("04-system/");
+    expect(scripts["verify:repository"]).toBe("bun test tests/repository/*.test.ts");
+    expect(scripts["verify:authoring"]).toBe("bun test tests/authoring/*.test.ts");
+    expect(repositoryFlow).toContain("bun run verify:repository");
+    expect(authoringFlow).toContain("bun run verify:authoring");
+    expect(mcpFlow).toContain("bun run verify:full");
+    for (const flow of [repositoryFlow, authoringFlow, mcpFlow]) {
+      expect(flow).toMatch(/^on:\n  workflow_dispatch:/m);
+      expect(flow).not.toContain("docs/knowledge/");
+      expect(flow).not.toContain("docs/foundation/");
     }
   });
-  test("remote acceptance composes the canonical full verifier without live checks", async () => {
+  test("on-demand full source verification excludes installed or live Blockbench execution", async () => {
     const packageText = await Bun.file("package.json").text();
     const scripts = JSON.parse(packageText).scripts as Record<string, string>;
-
-    expect(scripts["verify:remote"]).toBe("bun run verify:full");
-    expect(scripts["verify:remote"]).not.toContain(":live");
+    const workflow = await text("../.github/workflows/mcp-verify.yml");
+    expect(scripts["verify:full"]).toBe("bun run verify:repository && bun run verify:mcp");
     expect(scripts["verify:full"]).not.toContain(":live");
+    expect(workflow).toContain("bun run verify:full");
+    expect(workflow).toContain("live_local_tests: excluded");
   });
 
 

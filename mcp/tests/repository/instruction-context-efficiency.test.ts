@@ -46,17 +46,20 @@ describe("repository instruction/context efficiency", () => {
     expect(contract).toContain("Quality PASS");
   });
 
-  test("static instruction owners stay on Repository Verify rather than forcing executable MCP CI", async () => {
-    const [repositoryWorkflow, mcpWorkflow] = await Promise.all([
+  test("manual verification keeps repository context checks independent of MCP execution", async () => {
+    const [repositoryWorkflow, mcpWorkflow, pkg] = await Promise.all([
       text("../.github/workflows/repository-verify.yml"),
       text("../.github/workflows/mcp-verify.yml"),
+      text("package.json"),
     ]);
-
-    expect(repositoryWorkflow).toContain('"AGENTS.md"');
-    expect(repositoryWorkflow).toContain('"mcp/AGENTS.md"');
-    expect(repositoryWorkflow).toContain('"docs/**"');
-    expect(mcpWorkflow).toContain('"!mcp/AGENTS.md"');
-    expect(mcpWorkflow).not.toContain('"AGENTS.md"');
-    expect(mcpWorkflow).not.toContain('"docs/04-system/prompt-cache-and-compaction.md"');
+    const scripts = JSON.parse(pkg).scripts as Record<string, string>;
+    expect(repositoryWorkflow).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(mcpWorkflow).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(repositoryWorkflow).toContain("bun run verify:repository");
+    expect(mcpWorkflow).toContain("bun run verify:full");
+    expect(scripts["verify:repository"]).toBe("bun test tests/repository/*.test.ts");
+    expect(scripts["verify:full"]).toContain("bun run verify:mcp");
+    expect(mcpWorkflow).not.toContain("docs/04-system/prompt-cache-and-compaction.md");
   });
+
 });

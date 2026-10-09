@@ -17,7 +17,7 @@ describe("material development and repository authority", () => {
     }
     expect(root).toContain("INSPECT | PLAN | DIAGNOSE | DEVELOP | REPAIR | VALIDATE | RELEASE");
     expect(discipline).toContain("NORMALIZE intent");
-    expect(discipline).toContain("first");
+    expect(discipline).toContain("earliest incorrect canonical owner");
     expect(discipline).toContain("STOP");
     expect(discipline).toContain("no change required?");
     expect(discipline).toContain("producer/consumer");

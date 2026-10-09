@@ -417,6 +417,18 @@ docs/04-system/skill-taxonomy.md
 
 Normal asset work loads one active specialist. Geometry may additionally load exactly one selected primary modelling profile. Shared Stage Context is a reusable semantic contract, not a Skill/router/manager.
 
+For **repository-development knowledge**, reuse existing source owners rather than introducing a second registry:
+
+```text
+development intent / source ownership → mcp/gateway/development/intent.ts + sourceOwners.ts
+source/capability dependencies          → mcp/gateway/development/semanticDependencyMatrix.ts
+Markdown section identity + ranking    → mcp/lib/semantic/knowledge.ts
+bounded developer retrieval             → mcp/scripts/development/plan-development-context.ts
+optional Markdown section index         → mcp/scripts/development/build-knowledge-index.ts
+```
+
+The semantic dependency matrix models implementation/capability relationships; it is **not** proof of a complete document-link knowledge graph. Knowledge section IDs are path/heading-scoped and derived, while canonical policy authority remains with the selected document. Do not promote search similarity into evidence of a source relationship.
+
 ## Reference Package
 
 One canonical machine-readable package:

@@ -16,6 +16,22 @@ TASK
 
 The goal is **minimum sufficient context**, not the smallest possible prompt.
 
+## Source-grounded repository knowledge retrieval
+
+For repository development (not ordinary asset authoring), reuse the existing components:
+
+```text
+Task
+→ AGENTS.md / docs/README.md router
+→ canonical document path + development source owner
+→ explicit semantic dependency relation where source-backed
+→ content-hashed Markdown sections / bounded symbol map
+→ selected source/anchor tests and REQUIRED context
+→ decision
+```
+
+`mcp/lib/semantic/knowledge.ts` already supplies path/heading-scoped section IDs, content hashes and ranked section selection. `mcp/scripts/development/plan-development-context.ts` composes the existing developer context plan; `mcp/gateway/development/sourceOwners.ts` and `semanticDependencyMatrix.ts` own distinct source and semantic dependency roles. These are *not* one universal documentation graph. Explicit docs links under `docs/README.md` remain human-facing authority; generated indexes and semantic search are derived navigation evidence only. Do not create a new registry, inferred graph or state owner for cosmetic parity with another repository.
+
 ## Authority Roles
 
 ```text

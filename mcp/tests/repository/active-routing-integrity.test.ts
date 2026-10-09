@@ -47,23 +47,29 @@ describe("active routing integrity", () => {
     ]) expect(root).not.toContain(retired);
   });
 
-  test("MCP Verify tracks canonical non-mcp specialist owners without legacy router trigger", async () => {
-    const workflow = await source("../.github/workflows/mcp-verify.yml");
-    for (const path of [
-      ".agents/skills/lazydesigner-modelling/**",
-      ".agents/skills/lazydesigner-texturing/**",
-      ".agents/skills/lazydesigner-animation/**",
-      "docs/05-operations/next-action.md",
+  test("manual source verification does not replace canonical specialist routing", async () => {
+    const [workflow, root, taxonomy] = await Promise.all([
+      source("../.github/workflows/mcp-verify.yml"),
+      source("../AGENTS.md"),
+      source("../docs/04-system/skill-taxonomy.md"),
+    ]);
+
+    expect(workflow).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(workflow).toContain("bun run verify:full");
+    expect(workflow).not.toMatch(/^  push:|^  pull_request:/m);
+    expect(root).toContain("LazyDesigner Control");
+    for (const skill of [
+      "lazydesigner-modelling",
+      "lazydesigner-texturing",
+      "lazydesigner-animation",
     ]) {
-      expect(workflow).toContain(`- "${path}"`);
+      expect(taxonomy).toContain(skill);
     }
-    for (const legacy of [
-      ".agents/skills/blockbench-bedrock-modelling/**",
-      ".agents/skills/blockit-bedrock-texturing/**",
-      ".agents/skills/blockit-bedrock-animation/**",
-      ".agents/skills/blockit-bedrock-entity-mcp/**",
-    ]) expect(workflow).not.toContain(legacy);
-    expect(workflow).not.toContain("docs/knowledge/");
-    expect(workflow).not.toContain("docs/foundation/");
+    for (const retired of [
+      ".agents/skills/blockbench-bedrock-modelling/",
+      ".agents/skills/blockit-bedrock-texturing/",
+      ".agents/skills/blockit-bedrock-animation/",
+    ]) expect(root).not.toContain(retired);
   });
+
 });
