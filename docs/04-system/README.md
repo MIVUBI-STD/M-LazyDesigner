@@ -12,6 +12,7 @@ tool-capability-integrity-audit.md
 blockbench-compatibility.md
 control/context-projection.md
 implementation-map.md
+development-operating-standard.md
 skill-taxonomy.md
 compatibility-identifiers.md
 ```
@@ -45,6 +46,9 @@ What does Control project to Codex?
 
 Which source/module owns this behavior?
 → implementation-map.md
+
+What development discipline, permission and STOP checks apply?
+→ development-operating-standard.md
 
 Which Skill category/semantic owner applies?
 → skill-taxonomy.md

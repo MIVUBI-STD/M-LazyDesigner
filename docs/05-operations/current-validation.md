@@ -31,9 +31,9 @@ separate ANIMATION surface. Canonical Control source is
 
 | Surface | Canonical proof | Status authority |
 | --- | --- | --- |
-| Repository policy / ownership | `Repository Verify` / `verify:repository` | exact-SHA GitHub Actions |
-| Executable MCP source | `MCP Verify` | exact-SHA GitHub Actions |
-| Typecheck / Runtime regressions | `MCP Verify` / `verify:full` | exact-SHA GitHub Actions |
+| Repository policy / ownership | `Repository Verify` / `verify:repository` | manual exact-SHA execution when available |
+| Executable MCP source | `MCP Verify` | manual exact-SHA execution when available |
+| Typecheck / Runtime regressions | `MCP Verify` / `verify:full` | manual exact-SHA execution when available |
 | Build + provenance artifact | full `MCP Verify` | exact-SHA workflow + artifact provenance |
 | Local executable checkout | `LOCAL_CODE` runbook | matching local execution evidence |
 | Installed/native Blockbench behavior | `LIVE_BLOCKBENCH` runbook | matching live execution evidence |
@@ -46,38 +46,17 @@ that same exact source SHA is current-head evidence.
 
 ## Exact-SHA source acceptance
 
-`MCP Verify` is the canonical executable source-verification workflow.
+All normal verification workflows are manual-only. A `Local` push does not create executable acceptance evidence. `MCP Verify` checks the selected exact `github.sha`, executes `bun run verify:full`, then produces a read-only identified build artifact on a successful run. It does not run live Blockbench acceptance.
 
-```text
-push
-→ exact-SHA check
-→ affected planner
-→ bounded verification when ownership is sufficient
-→ fail wide to verify:full when bounded proof is insufficient
+Narrow claims can use the appropriate targeted script. The affected-execution planner remains available locally/on demand; the old push-specific affected/full CI decision path is retired. A successful `verify:repository` plus `verify:mcp` on one SHA is composite source evidence, not an executed `verify:full`.
 
-workflow_dispatch / non-push
-→ exact-SHA check
-→ verify:full
-```
+### Optional Head Proof
 
-`verify:full` aliases `verify:full` and intentionally excludes `*:live`
-gates. A green source workflow is remote/static execution proof only; it is not
-installed Runtime, native Blockbench, persistence, playback, or visual proof.
+`Head Proof` is manual-only. It classifies the selected commit relative to its parent. A docs-only classification is source-equivalence evidence, never a fresh compiler/test/build, native or visual PASS.
 
-A separate duplicate full-acceptance workflow is intentionally not maintained.
+### Default-branch registration
 
-## Head Proof
-
-`Head Proof` remains a lightweight source-equivalence classifier, not an
-executable verifier.
-
-A docs-only head may report that executable source did not change relative to
-its parent. That is source-equivalence evidence only and does not create a new
-typecheck/test/build result.
-
-A source-impacting head receives no acceptance from `Head Proof`.
-Source-impacting heads continue to require their normal source verification
-workflows.
+At the 2026-10-10 audit, `main` was the default branch with only `mcp-verify.yml` in `.github/workflows/`; `Local` had ten workflows. GitHub requires default-branch registration of a manual workflow. A Local-only YAML file is not proof of manual dispatch availability, and does not authorize editing `main` or repository settings.
 
 ## Current source contracts
 

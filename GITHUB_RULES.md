@@ -274,7 +274,31 @@ Message format: `<type>(<optional-scope>): <concise logical outcome>`.
 
 Use `feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `build`, `release`, or bounded `chore`. Split commits only for genuinely independent outcomes. Never split by file, tool call, technical layer, discovery order, or transfer limitation. Do not rewrite published/shared history merely for aesthetics.
 
+### Commit-based work continuity
+
+For each independently valid material work unit, include concise metadata in the **same logical commit**:
+
+```text
+Work: <stable domain/topic>
+State: ACTIVE | BLOCKED | PAUSED | DONE
+Decision: <important rationale, when material>
+Proof: <actual evidence + execution ceiling>
+Unresolved: <specific open claim, when applicable>
+Next: <one actionable next step, unless DONE>
+```
+
+`Work`, `State` and `Proof` are required for material commits. `DONE` closes only the bounded unit, not the whole product. An older `Next` is history, not automatic authorization. Reconcile relevant commits and changed source before resuming. Preserve current continuation in the existing `docs/05-operations/next-action.md` owner and stable design decisions in their canonical docs; do not create parallel task diaries, proof ledgers, checkpoint commits or session-memory files.
+
 ## 6. VERIFY + FAILURE POLICY — prove only what matters
+
+### Manual-only GitHub Actions
+
+Normal repository policy, authoring, MCP, dependency security, conformance, Desktop, packaging and release-check workflows are `workflow_dispatch` only. A `Local` commit must not enqueue, wait for, or be judged by automatic `push`, `pull_request`, `schedule`, `workflow_run` or tag-triggered verification.
+
+Use the least expensive exact-source/static evidence first; use affected or targeted tests when executable verification changes the decision. Invoke manual CI only on request or when narrower proof is insufficient. Preserve verifiers, tests, immutable action pins, lockfile checks, security audits, read-only build provenance and separately authorized release gates. A manual PASS proves only successfully executed checks for its exact SHA, never native Blockbench or visual acceptance.
+
+**Default branch dispatch boundary.** GitHub requires a manual workflow file to be registered on the default branch. `Local` is working authority; `main` is stable/release authority and may lack Local-only workflows. Do not silently synchronize `main`, change default branch, Actions settings, branch protection, rulesets or required checks to expose a Run workflow button or bypass a blocked check. Report missing registration and request separate authorization for administrative/stable-branch changes. Manual dispatch is never release approval; tag-backed drafts, Desktop signing, secret use and publication retain their distinct safeguards.
+
 
 Validation is evidence, not ceremony.
 
@@ -384,7 +408,7 @@ Branch/tag deletion, PR merge/close, release publication/deletion, environment b
 
 ## GitHub Actions
 
-- Workflows run only on intended events/paths their checks can falsify.
+- Verification and release-check workflows run only by explicit manual dispatch; each selected command must still falsify a relevant claim.
 - Correctly skipped irrelevant workflows are not missing proof.
 - Required-but-skipped checks are CI/ruleset routing defects, not reasons to change unrelated code.
 - Verification workflows are read-only by default and do not commit back to `Local`.

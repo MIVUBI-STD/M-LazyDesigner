@@ -34,6 +34,7 @@ Start from the smallest owner that can actually explain the requested change:
 - current continuation → `docs/05-operations/next-action.md` only when material;
 - current proof interpretation → `docs/05-operations/current-validation.md`;
 - source/tool ownership → `docs/04-system/implementation-map.md`;
+- material development discipline and permission preflight → `docs/04-system/development-operating-standard.md`;
 - MCP package implementation → `mcp/AGENTS.md`;
 - persistent asset work → `workspace/README.md`.
 
@@ -56,15 +57,15 @@ Live Blockbench, visual, playback, persistence, installed-plugin, and client-reg
 
 ## CI behavior
 
-CI on `Local` is an asynchronous regression safety net, not a blocking permission gate for normal development.
+GitHub Actions verification is **manual-only and on demand**. A normal `Local` push does not start tests, conformance, security audit, packaging or release checks. Prefer exact-head source inspection and the smallest relevant existing verifier; do not trigger CI as a post-commit ritual.
 
-- Use the cheapest relevant proof before committing.
-- After a normal `Local` commit, continue work without waiting for queued/in-progress CI unless its result is required for the next decision.
-- Only a failure on the current relevant `Local` HEAD needs diagnosis; cancelled or superseded runs can be ignored.
-- `Repository Verify` owns repository/routing/security/static infrastructure contracts.
-- `Authoring Policy Verify` owns static Reference/Authoring policy and specialist-routing contracts.
-- `MCP Verify` owns executable/public MCP source, build, generated-doc, and full package regressions.
-- `Release Verify` runs the canonical release gate for `main` pull requests and stable-branch pushes.
+- `Repository Verify` checks repository/routing/static contracts.
+- `Authoring Policy Verify` checks Reference/Authoring and specialist contracts.
+- `MCP Verify` runs `bun run verify:full` on demand with exact-SHA build provenance; it excludes installed/native/visual acceptance.
+- `Dependency Security`, `MCP Conformance`, `Desktop Verify`, `Managed Distribution`, `Head Proof`, and `Release Verify` remain optional proof tools.
+- Tag-based draft releases and Desktop signing still require their existing release/source/security approvals; manual dispatch is not permission to publish.
+- Completed matching-SHA steps alone count as executable proof; skipped or historical runs do not.
+- GitHub registers manual workflows on the default branch. If `main` lacks a Local-only workflow, changing `main` or settings needs separate explicit authority.
 
 ## Generated files
 
@@ -88,6 +89,8 @@ chore:     bounded maintenance when no better category fits
 ```
 
 Do not create checkpoint commits, transfer experiments, placeholder files, temporary workflows, or compatibility layers solely to move data through GitHub.
+
+Material logical commits include `Work`, `State`, and `Proof`, with `Decision`, `Unresolved`, and `Next` only when material. Git owns prior revisions; current repository continuation stays with `docs/05-operations/next-action.md`.
 
 ## Repository hygiene
 

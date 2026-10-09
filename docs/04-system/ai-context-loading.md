@@ -291,6 +291,7 @@ PRODUCT_DEVELOPMENT Skills
 ```text
 current development request
 root AGENTS.md + GITHUB_RULES.md
+docs/04-system/development-operating-standard.md for material development
 exact source owner(s)
 docs/04-system/implementation-map.md when ownership is not already exact
 matching PRODUCT_DEVELOPMENT Skill only when its reusable procedure materially helps

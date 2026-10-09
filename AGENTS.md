@@ -161,7 +161,15 @@ At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`.
 
 ## GitHub Work
 
-`GITHUB_RULES.md` owns branch/ref, GitHub-first partitioning, transfer, atomic delivery, CI/security, retries, and STOP.
+`GITHUB_RULES.md` owns branch/ref, GitHub-first partitioning, transfer, atomic delivery, manual CI, commit continuity, security, retries and STOP.
+
+## Development Operating Standard
+
+For material repository or product development, apply `docs/04-system/development-operating-standard.md` before changes and at completion. It supplements existing Bounded, Standard and Complex contracts without creating another work lane, agent, Skill or status owner. Do not preload it for routine Asset Authoring, Reference Preparation or read-only observation.
+
+Classify the requested action as `INSPECT | PLAN | DIAGNOSE | DEVELOP | REPAIR | VALIDATE | RELEASE` before selecting the existing responsible lane. Inspection and planning are read-only by default. A cross-domain finding creates an evidence-gated handoff, not automatic permission to change source or release. Before write, external execution, installation, live mutation or release, use the permission preflight in the standard; a specialist cannot override a denied operation.
+
+For material commits, preserve `Work`, `State` and `Proof` metadata, plus conditional `Decision`, `Unresolved` and `Next`. Git records the historical change; `docs/05-operations/next-action.md` is the current repository continuation owner, not a second commit log. When resuming, reconcile historical `Next` with actual `Local` source; never execute it automatically.
 
 ## Source Precedence
 

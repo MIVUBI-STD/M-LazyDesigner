@@ -6,26 +6,9 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-Continue in `REMOTE_GITHUB`.
+`Local` is development/source authority. GitHub Actions are manual-only: a source push does not create an executable proof result. `MCP Verify` runs the full source gate when explicitly dispatched; targeted/affected verifier scripts remain available on demand.
 
-The canonical source-verification workflow is `MCP Verify`. Current proof
-state is intentionally not mirrored in this continuation document; resolve it
-from the exact current `Local` SHA and its GitHub Actions/check results:
-
-```text
-Local push
-→ exact-SHA proof
-→ affected verification when safe
-→ full verify:full when bounded proof is insufficient
-
-manual/non-push
-→ exact-SHA proof
-→ full verify:full
-```
-
-Do not claim typecheck, Runtime/Gateway tests, build, remote acceptance,
-local/live behavior, or visual/reference acceptance without matching evidence
-for the exact current source SHA.
+At the 2026-10-10 audit, default branch `main` listed only `mcp-verify.yml`, while `Local` carried ten workflows. GitHub requires default-branch workflow registration for manual dispatch. Do not infer that every new Local YAML has a Run workflow control; modifying `main`, default branch or settings needs separate permission.
 
 ## Next REMOTE_GITHUB work
 
@@ -54,15 +37,16 @@ experimental/  opt-in implementation only
 
 Do not continue structural refactoring merely for appearance. Remaining compatibility wrappers are intentionally retained until matching local/live compatibility evidence exists.
 
-The next proof stage is deferred by current instruction:
+Proof is activated by actual task need, not each commit:
 
 ```text
-full source verification / CI  → deferred
-LOCAL_CODE                     → deferred
-LIVE_BLOCKBENCH                → deferred
+REMOTE_GITHUB review → current source/static claim
+manual CI            → only when executed checks are necessary
+LOCAL_CODE           → genuine toolchain or generator residue
+LIVE_BLOCKBENCH      → native/installed/visual acceptance
 ```
 
-Until proof is reactivated, limit REMOTE_GITHUB work to defects discovered from authoritative source evidence. Do not create new package splits, routers, registries, or migration frameworks.
+Do not infer current-head executable PASS from history. Avoid package splits, routers, registries or migration frameworks without a real canonical-owner gap.
 
 ## Runtime boundary
 
@@ -98,7 +82,7 @@ proof-marker files
 history rewrites
 ```
 
-The normal `MCP Verify` path remains authoritative. If it continues to produce
+The optional full `MCP Verify` path remains authoritative when explicitly executed. If it continues to produce
 no run, diagnose Actions execution/settings through an authorized capability
 when available; do not redesign product architecture around that limitation.
 
