@@ -111,6 +111,16 @@ export function applyCapabilityGraphOutcome(
 ): CapabilityFactState {
   if (!succeeded) return previous;
 
+  // Undo/Redo can restore or remove previously authored facts. Do not
+  // assert missing or present without a current Runtime inspection.
+  if (capability === "undo" || capability === "redo") {
+    return seedCapabilityFacts({
+      projectBound: previous.project_bound === true
+        ? true
+        : previous.project_bound === false ? false : null,
+    });
+  }
+
   const branch = capabilityBranchFromArguments(args);
   const entry = capabilityGraphEntry(capability, branch);
   if (!entry) return previous;

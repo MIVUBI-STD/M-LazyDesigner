@@ -155,6 +155,27 @@ describe("capability dependency graph", () => {
     )).toEqual(original);
   });
 
+  test("Undo and Redo invalidate inferred facts without declaring authored state missing", () => {
+    const observed = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      geometry_available: true,
+      uv_plan_available: true,
+      uv_layout_current: false,
+      texture_available: true,
+      animation_available: true,
+      visual_evidence_current: true,
+    };
+    for (const capability of ["undo", "redo"]) {
+      const after = applyCapabilityGraphOutcome(observed, capability, {}, true);
+      expect(after).toEqual({ project_bound: true });
+      expect(evaluateCapabilityPreconditions(
+        "manage_uv_layout", { field: "operation", value: "apply" }, after
+      ).eligibility).toBe("UNKNOWN");
+      expect(applyCapabilityGraphOutcome(observed, capability, {}, false))
+        .toEqual(observed);
+    }
+  });
+
   test("animation timeline, effects and controllers invalidate previous visual evidence", () => {
     for (const capability of [
       "manage_animation_timeline",
