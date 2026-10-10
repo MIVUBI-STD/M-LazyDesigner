@@ -15,7 +15,7 @@ const ALLOWED_RUNTIME_ROOT_IMPLEMENTATIONS = new Set([
 ]);
 
 // A compatibility facade may re-export multiple canonical owners.
-const THIN_FACADE = /^(?:export \\* from "\\.{1,2}\\/[A-Za-z0-9_./-]+";\\n)+$/;
+const THIN_FACADE = /^(?:export \* from "\.{1,2}\/[A-Za-z0-9_./-]+";\n)+$/;
 
 async function unexpectedImplementations(
   dir: string,
