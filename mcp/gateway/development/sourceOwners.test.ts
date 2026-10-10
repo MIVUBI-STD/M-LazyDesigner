@@ -154,15 +154,36 @@ describe("Control source-owner registry", () => {
     }
   });
 
-  test("development producers import canonical source ownership directly", async () => {
-    const [planner, consumer] = await Promise.all([
-      Bun.file("scripts/development/plan-affected-execution.ts").text(),
-      Bun.file("tests/development/semantic-impact.test.ts").text(),
-    ]);
-    for (const file of [planner, consumer]) {
-      expect(file).toContain('from "../../gateway/development/sourceOwners"');
-      expect(file).not.toContain('from "../../gateway/control/sourceOwners"');
+  test("development producers and regression consumers never import Control compatibility source owners", async () => {
+    const testFiles = (await readdir("tests/development", { withFileTypes: true }))
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".test.ts"))
+      .map((entry) => `tests/development/${entry.name}`);
+    const files = [
+      ...(await activeTypeScriptFiles("gateway/development")),
+      ...(await activeTypeScriptFiles("scripts/development")),
+      ...testFiles,
+    ];
+    const violations: string[] = [];
+    for (const file of files) {
+      const source = await Bun.file(file).text();
+      for (const match of source.matchAll(/(?:from\s*|import\s*\(\s*)["']([^"']+)["']/g)) {
+        const specifier = match[1]!;
+        const destination = specifier.startsWith("@/")
+          ? specifier.slice(2)
+          : specifier.startsWith(".")
+            ? join(file.slice(0, file.lastIndexOf("/")), specifier).replaceAll("\\", "/")
+            : specifier;
+        if (
+          destination === "gateway/control/sourceOwners" ||
+          destination === "gateway/control/sourceOwners.ts"
+        ) {
+          violations.push(`${file} -> ${specifier}`);
+        }
+      }
     }
+    expect(violations).toEqual([]);
+    expect(await Bun.file("scripts/development/analyze-semantic-impact.ts").text())
+      .toContain('from "../../gateway/development/sourceOwners"');
   });
 
   test("canonical capabilities never use the generic registration fallback", () => {

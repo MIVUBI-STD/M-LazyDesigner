@@ -363,6 +363,9 @@ describe("affected execution planner", () => {
       ["mcp/gateway/development/impact.ts", [
         "mcp/tests/development/semantic-impact.test.ts",
       ]],
+      ["mcp/scripts/development/analyze-semantic-impact.ts", [
+        "mcp/tests/development/semantic-impact.test.ts",
+      ]],
       ["mcp/gateway/development/affectedExecution.ts", [
         "mcp/tests/development/affected-execution.test.ts",
       ]],

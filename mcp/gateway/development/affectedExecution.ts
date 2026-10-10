@@ -190,7 +190,8 @@ function sharedContractTestsForPath(path: string): readonly string[] {
       "mcp/tests/development/source-ownership-contract.test.ts",
       "mcp/tests/development/semantic-impact.test.ts"];
   }
-  if (path === "mcp/gateway/development/impact.ts") {
+  if (path === "mcp/gateway/development/impact.ts" ||
+      path === "mcp/scripts/development/analyze-semantic-impact.ts") {
     return ["mcp/tests/development/semantic-impact.test.ts"];
   }
   if (path === "mcp/gateway/development/affectedExecution.ts" ||
@@ -261,6 +262,7 @@ function affectsRepositoryContracts(path: string): boolean {
     path === "mcp/lib/semantic/knowledge.ts" ||
     path === "mcp/scripts/development/plan-development-context.ts" ||
     path === "mcp/scripts/development/build-knowledge-index.ts" ||
+    path === "mcp/scripts/development/analyze-semantic-impact.ts" ||
     path === "mcp/scripts/development/plan-affected-execution.ts" ||
     path === "mcp/scripts/development/run-affected-execution.ts"
   );
