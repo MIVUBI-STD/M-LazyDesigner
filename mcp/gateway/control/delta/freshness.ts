@@ -221,31 +221,11 @@ export function geometryInvalidation(
     }
   }
 
-  if (capability === "remove_element") {
-    for (const candidate of resultCandidates(result)) {
-      const removedRoot = record(candidate.removed_root);
-      if (typeof removedRoot?.type === "string") {
-        return assetDomainsForScopes(
-          removedElementSemanticScopes(removedRoot.type)
-        );
-      }
-    }
-  }
-
-  if (capability === "rename_element") {
-    for (const candidate of resultCandidates(result)) {
-      const element = record(candidate.element);
-      if (typeof element?.type === "string") {
-        return assetDomainsForScopes(
-          renamedElementSemanticScopes(element.type)
-        );
-      }
-      if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
-        return assetDomainsForScopes(
-          renamedElementSemanticScopes("group")
-        );
-      }
-    }
+  if (capability === "remove_element" || capability === "rename_element") {
+    // Use the same receipt-scoped facts as freshness/verification. A remove
+    // or rename need not invalidate Animation or mapped Texturing when its
+    // authoritative receipt proves those dependencies were untouched.
+    return assetDomainsForScopes(geometryFreshnessScopes(capability, result).stale);
   }
 
   const scopes = capabilityDefaultStaleScopes(capability);

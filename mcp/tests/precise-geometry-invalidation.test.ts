@@ -142,6 +142,61 @@ describe("precise geometry invalidation from receipts", () => {
     ]);
   });
 
+  test("remove/rename domain invalidation agrees with receipt-scoped freshness", () => {
+    const scenarios = [
+      {
+        capability: "remove_element",
+        result: {
+          removed_root: { type: "group" },
+          removed_counts: { elements: 0 },
+          affected_animations: 0,
+        },
+        scopes: ["GEOMETRY_STRUCTURE"],
+        domains: ["GEOMETRY"],
+      },
+      {
+        capability: "remove_element",
+        result: {
+          removed_root: { type: "group" },
+          removed_counts: { elements: 3 },
+          affected_animations: 0,
+        },
+        scopes: ["GEOMETRY_STRUCTURE", "UV_MAPPING", "TEXTURE_APPEARANCE"],
+        domains: ["GEOMETRY", "TEXTURING"],
+      },
+      {
+        capability: "rename_element",
+        result: {
+          execution: "applied",
+          changes: [{ id: "bone-a", old_name: "old", new_name: "new" }],
+          affected_animations: 0,
+        },
+        scopes: ["GEOMETRY_STRUCTURE"],
+        domains: ["GEOMETRY"],
+      },
+    ] as const;
+    for (const entry of scenarios) {
+      const delta = buildControlDelta({
+        capability: entry.capability,
+        phaseBefore: "geometry",
+        phaseAfter: "geometry",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: entry.result,
+      });
+      expect(delta.freshness.stale).toEqual([...entry.scopes]);
+      expect(delta.invalidates.authoring_domains).toEqual([...entry.domains]);
+    }
+    const unknown = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: { execution: "applied" },
+    });
+    expect(unknown.invalidates.authoring_domains).toContain("ANIMATION");
+    expect(unknown.invalidates.authoring_domains).toContain("TEXTURING");
+  });
+
   test("batch rename with zero affected animations preserves animation", () => {
     const delta = buildControlDelta({
       capability: "rename_element",
