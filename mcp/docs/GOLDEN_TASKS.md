@@ -38,15 +38,21 @@ For `golden-existing-model-correction`, use the **same unchanged starting
 `.bbmodel` bytes** for baseline and candidate, in addition to the same
 approved Reference Package. The existing session runner accepts the absolute
 starting model path as its third positional argument, hashes it **once before
-Gateway starts**, and writes `pipeline_provenance.input_asset_sha256` to its
-usual `golden-run-draft.json`. It does not copy or mutate the seed model.
+Gateway starts**, and validates that Blockbench currently has a **saved, separate working copy**
+with identical initial bytes. It reuses the existing read-only live preflight
+and `get_project_info` capability before Gateway starts, recording
+`input_asset_sha256`, `input_project_uuid` and matching Runtime build identity
+in the usual `golden-run-draft.json`. It does not copy, mutate or save a model.
 
-A later accepted-result comparison rejects a missing or different starting
-model SHA-256. This is a benchmark-only operation with **zero extra MCP calls or
-model-context loading during normal authoring**. Preserve an unchanged seed
-and conduct native correction on a disposable copy. A hash proves only identical
-input bytes, never visual improvement or unaffected-state preservation; those
-still require their own fresh evidence and human review.
+An accepted correction requires the captured live project identity; a later
+comparison rejects missing or different starting model SHA-256. This is a
+benchmark-only preflight (including one read-only `get_project_info` call)
+with **zero extra MCP calls or model-context loading during normal authoring**.
+Preserve the immutable seed and open a distinct saved working copy in Blockbench
+before the benchmark; editing the seed or starting from an already-modified
+working copy is rejected. The preflight proves only the starting moment, not
+ongoing project identity, visual improvement, or unaffected-state preservation;
+those still require fresh evidence and human review.
 
 ## Required Run Record
 

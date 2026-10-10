@@ -7,6 +7,7 @@ import goldenCorpus from "../fixtures/golden-task-cases.json";
 import {
   buildGoldenRunDraft,
   fingerprintGoldenInputModel,
+  verifyGoldenCorrectionLiveProject,
   goldenSessionPaths,
 } from "../../scripts/reporting/run-golden-benchmark-session";
 
@@ -50,6 +51,53 @@ describe("golden benchmark session runner", () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+
+  test("binds a saved live Blockbench project to an identical disposable working copy", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lazydesigner-live-correction-"));
+    const seed = join(dir, "seed.bbmodel");
+    const copy = join(dir, "working.bbmodel");
+    const original = '{"meta":{"format_version":"4.10"},"elements":[{"name":"chair"}]}';
+    const snapshot = (savePath: string, saved = true, format = "bedrock") => ({
+      project: { uuid: "asset-project-1", saved, save_path: savePath },
+      format: { id: format },
+    });
+    try {
+      await writeFile(seed, original);
+      await writeFile(copy, original);
+      const result = await verifyGoldenCorrectionLiveProject(seed, snapshot(copy));
+      expect(result).toEqual({
+        inputAssetSha256: createHash("sha256").update(original).digest("hex"),
+        projectUuid: "asset-project-1",
+      });
+      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(seed)))
+        .rejects.toThrow("separate working copy");
+      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(copy, false)))
+        .rejects.toThrow("saved, active Bedrock");
+      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(copy, true, "java_block")))
+        .rejects.toThrow("saved, active Bedrock");
+      await writeFile(copy, original.replace("chair", "table"));
+      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(copy)))
+        .rejects.toThrow("differs from the starting seed bytes");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("run draft retains native preflight identity without upgrading quality", () => {
+    const draft = buildGoldenRunDraft({
+      task, sourceSha: "a".repeat(40), traceEvents: [], wallTimeMs: 100,
+      inputAssetSha256: "b".repeat(64),
+      inputProjectUuid: "native-project-1",
+      runtimeBuildIdentity: "sha256:" + "c".repeat(64),
+    });
+    expect(draft.runs[0]!.pipeline_provenance).toMatchObject({
+      input_project_uuid: "native-project-1",
+      input_asset_sha256: "b".repeat(64),
+      runtime_build_identity: "sha256:" + "c".repeat(64),
+    });
+    expect(draft.runs[0]!.quality_verdict).toBe("UNVERIFIED");
+    expect(draft.runs[0]!.accepted_result).toBeNull();
   });
 
   test("does not allow a run to borrow a different task or source SHA", () => {

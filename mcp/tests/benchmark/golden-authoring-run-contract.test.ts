@@ -16,6 +16,7 @@ function acceptedRun(): GoldenAuthoringDocument {
         model: "gpt-5.6-sol",
         pipeline_provenance: {
           input_asset_sha256: "c".repeat(64),
+          input_project_uuid: "blockbench-project-correction",
           reference_package_fingerprint: "a".repeat(64),
           control_task_context_id: "task:1234567890abcdef1234",
           runtime_build_identity: "runtime-build-accepted",
@@ -174,6 +175,17 @@ describe("golden authoring accepted-result benchmark", () => {
     malformed.runs[0]!.pipeline_provenance.input_asset_sha256 = "not-a-hash";
     expect(() => validateGoldenAuthoringDocument(malformed))
       .toThrow("must be a 64-character lowercase hex SHA-256");
+  });
+
+  test("rejects accepted corrections without live active-project identity", () => {
+    const document = acceptedRun();
+    document.runs[0]!.pipeline_provenance.input_project_uuid = null;
+    expect(() => validateGoldenAuthoringDocument(document))
+      .toThrow("requires a live input_project_uuid");
+
+    document.runs[0]!.pipeline_provenance.input_project_uuid = " ";
+    expect(() => validateGoldenAuthoringDocument(document))
+      .toThrow("input_project_uuid must be a non-empty string");
   });
 
   test("rejects source-only accepted quality", () => {

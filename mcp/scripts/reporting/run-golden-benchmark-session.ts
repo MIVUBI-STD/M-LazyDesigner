@@ -1,4 +1,4 @@
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, realpath } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { extname, isAbsolute, join, resolve } from "node:path";
 import goldenCorpus from "../../tests/fixtures/golden-task-cases.json";
@@ -10,6 +10,7 @@ import type {
   GoldenTraceEvent,
 } from "./evaluate-golden-authoring-runs";
 import type { BenchmarkTraceEvent } from "../../gateway/runtime/benchmarkTrace";
+import { LiveMcpClient, structuredObject } from "../verify/live-e2e-common";
 
 type GoldenTask = (typeof goldenCorpus.tasks)[number];
 
@@ -85,13 +86,84 @@ export async function fingerprintGoldenInputModel(path: string): Promise<string>
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+type LiveCorrectionBaseline = {
+  inputAssetSha256: string;
+  projectUuid: string;
+  runtimeBuildIdentity: string;
+};
+
+/**
+ * Verify the model open in Blockbench is a clean, separately saved working
+ * copy of the immutable seed. Runs only for the correction golden benchmark.
+ */
+export async function verifyGoldenCorrectionLiveProject(
+  seedPath: string,
+  snapshot: unknown
+): Promise<Pick<LiveCorrectionBaseline, "inputAssetSha256" | "projectUuid">> {
+  const data = snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
+    ? snapshot as Record<string, unknown> : {};
+  const project = data.project && typeof data.project === "object"
+    ? data.project as Record<string, unknown> : {};
+  const format = data.format && typeof data.format === "object"
+    ? data.format as Record<string, unknown> : {};
+
+  if (format.id !== "bedrock" || project.saved !== true ||
+      typeof project.uuid !== "string" || !project.uuid.trim() ||
+      typeof project.save_path !== "string" || !isAbsolute(project.save_path)) {
+    throw new Error("Golden correction requires a saved, active Bedrock .bbmodel project with a stable UUID.");
+  }
+
+  const savedPath = project.save_path;
+  if (extname(savedPath).toLowerCase() !== ".bbmodel") {
+    throw new Error("Golden correction working copy must be an editable .bbmodel.");
+  }
+
+  const [seedReal, savedReal] = await Promise.all([
+    realpath(seedPath),
+    realpath(savedPath),
+  ]);
+  const canonical = (path: string) => process.platform === "win32" ? path.toLowerCase() : path;
+  if (canonical(seedReal) === canonical(savedReal)) {
+    throw new Error("Golden correction must edit a separate working copy, not the immutable seed.");
+  }
+
+  const [inputAssetSha256, workingSha256] = await Promise.all([
+    fingerprintGoldenInputModel(seedPath),
+    fingerprintGoldenInputModel(savedPath),
+  ]);
+  if (workingSha256 !== inputAssetSha256) {
+    throw new Error("Golden correction active Blockbench model differs from the starting seed bytes.");
+  }
+
+  return { inputAssetSha256, projectUuid: project.uuid.trim() };
+}
+
+async function preflightGoldenCorrection(seedPath: string): Promise<LiveCorrectionBaseline> {
+  const client = new LiveMcpClient({
+    expectedPhase: "geometry",
+    requiredTools: ["get_project_info"],
+  });
+  const { buildIdentity } = await client.preflight();
+  const projectInfo = structuredObject(
+    await client.callTool("get_project_info", {}, "inspection"),
+    "get_project_info"
+  );
+  const baseline = await verifyGoldenCorrectionLiveProject(seedPath, projectInfo);
+  return { ...baseline, runtimeBuildIdentity: buildIdentity };
+}
+
 export function buildGoldenRunDraft(input: {
   task: GoldenTask;
   sourceSha: string;
   traceEvents: readonly BenchmarkTraceEvent[];
   wallTimeMs: number;
   inputAssetSha256?: string | null;
+  inputProjectUuid?: string | null;
+  runtimeBuildIdentity?: string | null;
 }): GoldenAuthoringDocument {
+  if (input.inputProjectUuid != null && !input.inputProjectUuid.trim()) {
+    throw new Error("Golden session inputProjectUuid must be a nonempty string.");
+  }
   if (input.inputAssetSha256 != null &&
     !/^[0-9a-f]{64}$/.test(input.inputAssetSha256)) {
     throw new Error("Golden session inputAssetSha256 must be a lowercase SHA-256.");
@@ -122,9 +194,10 @@ export function buildGoldenRunDraft(input: {
         model: null,
         pipeline_provenance: {
           input_asset_sha256: input.inputAssetSha256 ?? null,
+          input_project_uuid: input.inputProjectUuid ?? null,
           reference_package_fingerprint: null,
           control_task_context_id: null,
-          runtime_build_identity: null,
+          runtime_build_identity: input.runtimeBuildIdentity ?? null,
           artifact_revision: null,
         },
         quality_verdict: "UNVERIFIED",
@@ -156,7 +229,7 @@ async function finalizeSession(input: {
   sourceSha: string;
   paths: GoldenSessionPaths;
   startedAtMs: number;
-  inputAssetSha256: string | null;
+  correctionBaseline: LiveCorrectionBaseline | null;
 }): Promise<void> {
   const traceFile = Bun.file(input.paths.trace);
   if (!(await traceFile.exists())) {
@@ -174,7 +247,9 @@ async function finalizeSession(input: {
     sourceSha: input.sourceSha,
     traceEvents: report.events,
     wallTimeMs,
-    inputAssetSha256: input.inputAssetSha256,
+    inputAssetSha256: input.correctionBaseline?.inputAssetSha256,
+    inputProjectUuid: input.correctionBaseline?.projectUuid,
+    runtimeBuildIdentity: input.correctionBaseline?.runtimeBuildIdentity,
   });
 
   await Bun.write(
@@ -205,10 +280,10 @@ async function main(): Promise<void> {
   }
 
   const task = taskById(taskId);
-  // Correction baselines must begin from the same real file bytes.
-  // Capture before launching Gateway, never after the model is mutated.
-  const inputAssetSha256 = task.id === "golden-existing-model-correction"
-    ? await fingerprintGoldenInputModel(inputModelPath ?? "")
+  // Preflight before Gateway and any mutation. Capture only once for this
+  // benchmark task; normal Codex authoring remains unchanged.
+  const correctionBaseline = task.id === "golden-existing-model-correction"
+    ? await preflightGoldenCorrection(inputModelPath ?? "")
     : null;
   const sourceSha = exactGitSha();
   const paths = goldenSessionPaths(task.id, outputRoot);
@@ -242,7 +317,7 @@ async function main(): Promise<void> {
     sourceSha,
     paths,
     startedAtMs,
-    inputAssetSha256,
+    correctionBaseline,
   });
 
   process.exitCode = exitCode;
