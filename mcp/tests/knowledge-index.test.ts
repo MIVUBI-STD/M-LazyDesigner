@@ -103,6 +103,30 @@ describe("knowledge section compiler", () => {
     })).toEqual([]);
   });
 
+  test("invalid non-finite retrieval limits and corrupt section sizes fail closed", () => {
+    const section = indexMarkdownKnowledge("budget.md",
+      "# Geometry\nsmall geometry guidance")[0]!;
+    for (const requested of [
+      { maxTokenProxy: Number.NaN },
+      { maxTokenProxy: Number.POSITIVE_INFINITY },
+      { limit: Number.NaN },
+      { limit: Number.NEGATIVE_INFINITY },
+    ]) {
+      expect(selectKnowledgeSections({
+        sections: [section],
+        query: "geometry",
+        ...requested,
+      })).toEqual([]);
+    }
+    for (const corruptSize of [Number.NaN, -1]) {
+      expect(selectKnowledgeSections({
+        sections: [{ ...section, token_proxy: corruptSize }],
+        query: "geometry",
+        maxTokenProxy: 50,
+      })).toEqual([]);
+    }
+  });
+
   test("retains duplicate authored role links so the canonical router can reject collisions", () => {
     const links = indexExplicitDocumentationEdges("docs/README.md", [
       "[Implementation Map](04-system/README.md)",

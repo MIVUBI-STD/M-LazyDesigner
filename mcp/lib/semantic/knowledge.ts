@@ -205,8 +205,13 @@ export function selectKnowledgeSections(input: {
   maxTokenProxy?: number;
 }): KnowledgeSelection[] {
   const queryTerms = new Set(tokens(input.query));
-  const boundedLimit = Math.max(1, Math.trunc(input.limit ?? 8));
-  const budget = Math.max(1, Math.trunc(input.maxTokenProxy ?? 1200));
+  const requestedLimit = input.limit ?? 8;
+  const requestedBudget = input.maxTokenProxy ?? 1200;
+  if (!Number.isFinite(requestedLimit) || !Number.isFinite(requestedBudget)) {
+    return []; // Invalid external limits must not disable bounding.
+  }
+  const boundedLimit = Math.max(1, Math.trunc(requestedLimit));
+  const budget = Math.max(1, Math.trunc(requestedBudget));
 
   const ranked = input.sections
     .map((section) => {
@@ -230,6 +235,7 @@ export function selectKnowledgeSections(input: {
   let used = 0;
   for (const section of ranked) {
     if (selected.length >= boundedLimit) break;
+    if (!Number.isFinite(section.token_proxy) || section.token_proxy < 0) continue;
     if (used + section.token_proxy > budget) continue;
     selected.push(section);
     used += section.token_proxy;
