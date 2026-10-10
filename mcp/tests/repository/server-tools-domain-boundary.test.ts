@@ -236,7 +236,7 @@ describe("server tool domain ownership", () => {
     expect(schema).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/animation/controllerSchema"'
+      'from "./controllerSchema"'
     );
     expect(runtimeExtension).toContain(
       'from "../../../tools/animation/controllerSchema"'
@@ -321,7 +321,7 @@ describe("server tool domain ownership", () => {
     expect(planner).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/animation/controllerPlanner"'
+      'from "./controllerPlanner"'
     );
     expect(executor).toContain("resolveAnimation: resolveAuthoredAnimation");
     expect(executor).toContain("createId: () => guid()");
@@ -344,7 +344,7 @@ describe("server tool domain ownership", () => {
     expect(schema).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/animation/inspectionSchema"'
+      'from "./inspectionSchema"'
     );
     expect(runtimeContract).toContain(
       'from "../../tools/animation/inspectionSchema"'
@@ -391,7 +391,7 @@ describe("server tool domain ownership", () => {
     expect(schema).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/paint/selectionLayerSchema"'
+      'from "./selectionLayerSchema"'
     );
     expect(executor.length).toBeLessThan(28000);
   });
@@ -442,7 +442,7 @@ describe("server tool domain ownership", () => {
       'from "@/server/tools/texture/materialState"'
     );
     expect(creator).toContain(
-      'from "./texture/materialState"'
+      'from "./materialState"'
     );
     expect(creator).not.toContain(
       'from "./texture-materials"'
@@ -466,7 +466,7 @@ describe("server tool domain ownership", () => {
     expect(schema).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/texture/materialSchema"'
+      'from "./materialSchema"'
     );
     expect(executor.length).toBeLessThan(26000);
   });
@@ -488,7 +488,7 @@ describe("server tool domain ownership", () => {
     expect(schema).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/texture/createSchema"'
+      'from "./createSchema"'
     );
     expect(runtimeContract).toContain(
       'from "../../tools/texture/createSchema"'
