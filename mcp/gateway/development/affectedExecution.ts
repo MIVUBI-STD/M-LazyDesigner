@@ -134,8 +134,8 @@ const GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH: Readonly<
   "mcp/gateway/runtime/backendContract.ts": [
     "mcp/gateway/backend-effects-boundary.test.ts",
   ],
-  "mcp/gateway/runtime/orchestrationRecoveryState.ts": [
-    "mcp/gateway/runtime/orchestrationRecoveryState.test.ts",
+  "mcp/gateway/session/orchestrationRecoveryState.ts": [
+    "mcp/gateway/session/orchestrationRecoveryState.test.ts",
     "mcp/gateway/index-boundary.test.ts",
   ],
   "mcp/gateway/index.ts": [
@@ -174,6 +174,35 @@ function sharedContractTestsForPath(path: string): readonly string[] {
   ) {
     return CONTROL_DELTA_CONTRACT_TESTS;
   }
+
+  // Engineering ownership remains in the existing affected-work planner.
+  if (path === "mcp/lib/semantic/knowledge.ts" ||
+      path === "mcp/scripts/development/build-knowledge-index.ts") {
+    return ["mcp/tests/knowledge-index.test.ts",
+      "mcp/tests/development/development-context-plan.test.ts"];
+  }
+  if (path === "mcp/scripts/development/plan-development-context.ts") {
+    return ["mcp/tests/development/development-context-plan.test.ts"];
+  }
+  if (path === "mcp/gateway/development/sourceOwners.ts" ||
+      path.startsWith("mcp/gateway/development/sourceOwners/")) {
+    return ["mcp/gateway/development/sourceOwners.test.ts",
+      "mcp/tests/development/source-ownership-contract.test.ts",
+      "mcp/tests/development/semantic-impact.test.ts"];
+  }
+  if (path === "mcp/gateway/development/impact.ts") {
+    return ["mcp/tests/development/semantic-impact.test.ts"];
+  }
+  if (path === "mcp/gateway/development/affectedExecution.ts" ||
+      path === "mcp/scripts/development/plan-affected-execution.ts") {
+    return ["mcp/tests/development/affected-execution.test.ts"];
+  }
+  if (path === "mcp/scripts/development/run-affected-execution.ts") {
+    return ["mcp/tests/development/affected-execution.test.ts",
+      "mcp/tests/development/affected-runner-portability.test.ts"];
+  }
+  if (path.startsWith("mcp/tests/development/") &&
+      path.endsWith(".test.ts")) return [path];
   return [];
 }
 
@@ -214,12 +243,26 @@ function affectsDocs(path: string): boolean {
 function affectsRepositoryContracts(path: string): boolean {
   return (
     path.startsWith(".github/") ||
+    path.startsWith(".agents/permissions/") ||
+    path.startsWith(".agents/skills/") ||
     path === "AGENTS.md" ||
     path === "GITHUB_RULES.md" ||
+    path === "CONTEXT.md" ||
+    path === "CONTRIBUTING.md" ||
+    path === "SECURITY.md" ||
+    path === "README.md" ||
+    path === "mcp/AGENTS.md" ||
+    path === "docs/README.md" ||
     path.startsWith("docs/04-system/") ||
     path.startsWith("docs/05-operations/") ||
     path.startsWith("mcp/tests/repository/") ||
-    path.startsWith("mcp/gateway/control/")
+    path.startsWith("mcp/gateway/control/") ||
+    path.startsWith("mcp/gateway/development/") ||
+    path === "mcp/lib/semantic/knowledge.ts" ||
+    path === "mcp/scripts/development/plan-development-context.ts" ||
+    path === "mcp/scripts/development/build-knowledge-index.ts" ||
+    path === "mcp/scripts/development/plan-affected-execution.ts" ||
+    path === "mcp/scripts/development/run-affected-execution.ts"
   );
 }
 
@@ -234,7 +277,7 @@ function affectsGatewayHotPathBenchmark(path: string): boolean {
 
 function affectsGatewayReplayShadow(path: string): boolean {
   return (
-    path === "mcp/benchmarks/gatewayReplayCorpus.ts" ||
+    path === "mcp/scripts/benchmark/fixtures/gateway-replay-corpus.ts" ||
     path === "mcp/gateway/experimental/shadowRouting.ts" ||
     path === "mcp/scripts/benchmark/benchmark-gateway-replay-shadow.ts" ||
     path === "mcp/scripts/evaluate/evaluate-hybrid-promotion-policy.ts" ||
@@ -295,7 +338,10 @@ function clearlyMappedPath(path: string): boolean {
     path.startsWith(".github/") ||
     path === "AGENTS.md" ||
     path === "GITHUB_RULES.md" ||
-    path === "CONTEXT.md"
+    path === "CONTEXT.md" ||
+    path === "CONTRIBUTING.md" ||
+    path === "SECURITY.md" ||
+    path === "README.md"
   );
 }
 
