@@ -354,6 +354,17 @@ the correction.
 
 ### Fidelity Delta / Convergence
 
+A discrepancy disappearing from a partial observation is not evidence of
+resolution. The correction loop accepts an absent target only with explicit
+`cleared_target_codes`, a fresh evidence handle, and `recovered_views`
+covering the target's recorded views (or verification fallback views when
+the claim has no recorded view). This is a reviewer's bounded clearance
+declaration, **not** automatic visual certification. Missing or contradictory
+coverage rejects the update before mutation, leaving verification pending.
+Unrelated discrepancies remain tracked independently. For non-targeted full
+updates, previously recorded claims also need explicit clearance before
+they disappear; do not rename a remaining mismatch to bypass verification.
+
 A local correction must prove direction, not merely mutation activity. Compare the relevant fresh pre-correction evidence with fresh post-correction evidence for every materially affected supported claim/view:
 
 ```text

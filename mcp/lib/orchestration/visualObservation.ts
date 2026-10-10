@@ -3,8 +3,8 @@ import type {
   MinecraftQualityClass,
   MinecraftQualityOwner,
   VerificationDiscrepancy,
-  duplicateDiscrepancyCodes,
 } from "@/lib/orchestration/compactEvidence";
+import { duplicateDiscrepancyCodes } from "@/lib/orchestration/compactEvidence";
 import type { ModelView, VisualEvidenceTarget } from "@/lib/reference/visualEvidence";
 
 export type VisualObservationCriterion =

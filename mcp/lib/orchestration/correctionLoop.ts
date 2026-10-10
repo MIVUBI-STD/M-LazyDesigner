@@ -52,6 +52,11 @@ type CorrectionConvergenceState =
   | "CAUSE_CHANGED"
   | "PLATEAU";
 
+type CorrectionEvidenceUpdateOptions = {
+  recovered_views?: readonly ModelView[];
+  cleared_target_codes?: readonly string[];
+};
+
 type CorrectionLoopRecord = {
   recipe_id: string;
   base_recipe: AuthoringRecipe;
@@ -632,7 +637,7 @@ export class CorrectionLoopRegistry {
     handle: CorrectionLoopHandle,
     evidenceHandle: VerificationEvidenceHandle,
     observations: readonly StructuredVisualObservation[],
-    options: { recovered_views?: readonly ModelView[] } = {}
+    options: CorrectionEvidenceUpdateOptions = {}
   ): {
     applied: boolean;
     accepted_count: number;
@@ -678,7 +683,7 @@ export class CorrectionLoopRegistry {
     handle: CorrectionLoopHandle,
     evidenceHandle: VerificationEvidenceHandle,
     discrepancies: readonly VerificationDiscrepancy[],
-    options: { recovered_views?: readonly ModelView[] } = {}
+    options: CorrectionEvidenceUpdateOptions = {}
   ): void {
     const record = this.entries.get(handle);
     if (!record) throw new Error("CORRECTION_LOOP_NOT_FOUND: handle expired.");
@@ -698,6 +703,46 @@ export class CorrectionLoopRegistry {
     }
 
     assertUniqueDiscrepancyCodes(discrepancies);
+    // Missing findings are not proof of resolution. In a targeted correction,
+    // only pending codes are in scope; otherwise the full current batch is.
+    const incomingCodes = new Set(discrepancies.map((item) => item.code));
+    const inScope = record.pending_target_discrepancy_codes.length
+      ? record.pending_target_discrepancy_codes
+      : record.discrepancies.map((item) => item.code);
+    const absent = inScope.filter((code) => !incomingCodes.has(code));
+    const declared = options.cleared_target_codes ?? [];
+    const clearCodes = new Set(declared);
+    if (clearCodes.size !== declared.length) {
+      throw new Error("DUPLICATE_TARGET_CLEARANCE: declare each clear code once.");
+    }
+    if (declared.some((code) => !absent.includes(code))) {
+      throw new Error("TARGET_CLEARANCE_CONTRADICTED: clear code is present or outside verification scope.");
+    }
+    const unchecked = absent.filter((code) => !clearCodes.has(code));
+    if (unchecked.length) {
+      throw new Error("TARGET_CLEARANCE_UNVERIFIED: missing claims require explicit clearance: " + unchecked.join(", "));
+    }
+    if (absent.length) {
+      if (evidenceHandle === record.verification_evidence_handle) {
+        throw new Error("TARGET_CLEARANCE_STALE_EVIDENCE: supply fresh evidence.");
+      }
+      const freshViews = new Set(options.recovered_views ?? []);
+      const requiredViews = new Set<ModelView>();
+      for (const code of absent) {
+        const prior = record.last_attempt_target_snapshot.find((item) => item.code === code) ??
+          record.discrepancies.find((item) => item.code === code);
+        const views = prior?.views?.length
+          ? prior.views
+          : record.verification_request.domain === "GEOMETRY"
+            ? record.verification_request.views
+            : [];
+        for (const view of views) requiredViews.add(view);
+      }
+      const missingViews = [...requiredViews].filter((view) => !freshViews.has(view));
+      if (missingViews.length) {
+        throw new Error("TARGET_CLEARANCE_VIEW_MISSING: recheck claim views " + missingViews.join(", "));
+      }
+    }
     const incoming = [...structuredClone(discrepancies)];
     const pendingTargetCodes = [...record.pending_target_discrepancy_codes];
     if (pendingTargetCodes.length > 0) {

@@ -60,7 +60,94 @@ describe("zero-waste correction loop reuse", () => {
     expect(registry.projectContinuation(handle).continuation_id).toBe(before);
   });
 
-  test("reuses the same verification scope for a bounded correction", () => {
+  test("missing targeted discrepancy cannot be cleared without fresh complete view evidence", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "clearance",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY", source: "capture_model_views",
+        verification_risk: "HIGH", views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 512, size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:clear-0",
+      discrepancies: [
+        {code: "WIDTH_LOW", severity: "REVIEW", summary: "Width too small",
+          quality_class: "PRIMARY_FORM", owner: "GEOMETRY",
+          cause_family: "SIZE_MISMATCH", views: ["front"], evidence_targets: ["width"]},
+        {code: "CONTACT", severity: "REVIEW", summary: "Contact gap",
+          views: ["left"], evidence_targets: ["attachment"]},
+      ],
+    });
+    const plan = registry.planGeometryCorrection(handle, [{
+      id: "resize", predicted_error: 0.1, mutation_cost: 0.1, risk: 0.1,
+      patch: {
+        target_discrepancy_codes: ["WIDTH_LOW"],
+        correction_family: "RESIZE",
+        intent: {
+          target: {semantic_group: "upper_arm"},
+          operation: {kind: "RESIZE_AXIS", axis: "X",
+            mode: "MULTIPLY", value: 1.05, anchor: "MIN"},
+        },
+      },
+    }]);
+    expect(plan.state).toBe("CORRECTION_READY");
+    const before = registry.projectContinuation(handle).continuation_id;
+    expect(() => registry.updateEvidence(handle, "verificationevidence:clear-1", []))
+      .toThrow("TARGET_CLEARANCE_UNVERIFIED");
+    expect(() => registry.updateEvidence(handle, "verificationevidence:clear-1", [], {
+      cleared_target_codes: ["WIDTH_LOW"], recovered_views: ["left"],
+    })).toThrow("TARGET_CLEARANCE_VIEW_MISSING");
+    expect(() => registry.updateEvidence(handle, "verificationevidence:clear-0", [], {
+      cleared_target_codes: ["WIDTH_LOW"], recovered_views: ["front"],
+    })).toThrow("TARGET_CLEARANCE_STALE_EVIDENCE");
+    expect(() => registry.updateEvidence(handle, "verificationevidence:clear-1", [], {
+      cleared_target_codes: ["CONTACT"], recovered_views: ["front"],
+    })).toThrow("TARGET_CLEARANCE_CONTRADICTED");
+    expect(registry.projectContinuation(handle).continuation_id).toBe(before);
+
+    registry.updateEvidence(handle, "verificationevidence:clear-1", [], {
+      cleared_target_codes: ["WIDTH_LOW"], recovered_views: ["front"],
+    });
+    const after = registry.projectContinuation(handle);
+    expect(after.convergence.state).toBe("RESOLVED");
+    expect(after.unresolved.map((item) => item.code)).toEqual(["CONTACT"]);
+    expect(after.fresh_view_evidence).toContainEqual({
+      view: "left", handle: "verificationevidence:clear-0",
+    });
+    expect(after.fresh_view_evidence).toContainEqual({
+      view: "front", handle: "verificationevidence:clear-1",
+    });
+  });
+
+  test("full-batch clearance needs every relevant camera, not disappearance alone", () => {
+    const registry = new CorrectionLoopRegistry();
+    const handle = registry.start({
+      recipe_id: "full-clear",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY", source: "capture_model_views",
+        verification_risk: "MEDIUM", views: ["front", "left"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256, size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:full-0",
+      discrepancies: [{code: "FORM", severity: "REVIEW", summary: "Form wrong",
+        views: ["front", "left"]}],
+    });
+    expect(() => registry.updateEvidence(handle, "verificationevidence:full-1", [], {
+      cleared_target_codes: ["FORM"], recovered_views: ["front"],
+    })).toThrow("TARGET_CLEARANCE_VIEW_MISSING");
+    expect(registry.projectContinuation(handle).unresolved_count).toBe(1);
+    registry.updateEvidence(handle, "verificationevidence:full-1", [], {
+      cleared_target_codes: ["FORM"], recovered_views: ["front", "left"],
+    });
+    expect(registry.projectContinuation(handle).state).toBe("CLEAR");
+  });
+
   test("reuses the same verification scope for a bounded correction", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({
@@ -771,7 +858,10 @@ describe("zero-waste correction loop reuse", () => {
     ]);
     expect(pending.delivery).toBe("DELTA");
 
-    registry.updateEvidence(handle, "verificationevidence:front-fresh", []);
+    registry.updateEvidence(handle, "verificationevidence:front-fresh", [], {
+      cleared_target_codes: ["WIDTH_LOW"],
+      recovered_views: ["front"],
+    });
     const ready = registry.projectContinuationDelivery(handle, [
       pending.continuation_id,
     ]);
@@ -879,7 +969,10 @@ describe("zero-waste correction loop reuse", () => {
     expect(JSON.stringify(pending)).not.toContain("rejected_candidate_ids");
     expect(JSON.stringify(pending)).not.toContain("scope_instance_ids");
 
-    registry.updateEvidence(handle, "verificationevidence:front-fresh", []);
+    registry.updateEvidence(handle, "verificationevidence:front-fresh", [], {
+      cleared_target_codes: ["WIDTH_LOW"],
+      recovered_views: ["front"],
+    });
     const after = registry.projectContinuation(handle);
     expect(after.state).toBe("READY");
     expect(after.mode).toBe("PRUNED_READY");
@@ -1021,7 +1114,10 @@ describe("zero-waste correction loop reuse", () => {
       { view: "left", handle: "verificationevidence:first" },
     ]);
 
-    registry.updateEvidence(handle, "verificationevidence:front-second", []);
+    registry.updateEvidence(handle, "verificationevidence:front-second", [], {
+      cleared_target_codes: ["WIDTH_LOW"],
+      recovered_views: ["front"],
+    });
 
     const afterUpdate = registry.projectContinuation(handle);
     expect(afterUpdate.unresolved).toEqual([
@@ -1438,8 +1534,8 @@ describe("zero-waste correction loop reuse", () => {
       handle,
       "verificationevidence:second",
       [{
-        code: "WIDTH_STILL_LOW",
-        severity: "REVIEW",
+        code: "WIDTH_LOW",
+        severity: "INFO",
         summary: "Width improved but remains slightly low.",
       }]
     );
