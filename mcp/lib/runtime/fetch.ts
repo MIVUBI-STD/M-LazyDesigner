@@ -1,4 +1,4 @@
-import { lstatSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { runtimeTlsPaths } from "./connection";
 import {
   RUNTIME_AUTH_HEADER,
@@ -28,7 +28,7 @@ export async function runtimeFetch(
     throw new Error(`Missing Runtime TLS certificate: ${cert}. Use LazyDesigner Desktop Setup Runtime Security or run blockit setup-tls.`);
   }
   const token = readRuntimeAuthorizationToken(
-    { readFileSync, lstatSync },
+    { readFileSync, readdirSync, existsSync },
     runtimeAuthorizationPath()
   );
   const headers = new Headers(

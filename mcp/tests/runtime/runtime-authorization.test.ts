@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import {
-  lstatSync, readFileSync, writeFileSync, mkdtempSync, rmSync, symlinkSync,
+  existsSync, readdirSync, readFileSync, writeFileSync, mkdtempSync, rmSync, symlinkSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,7 +16,7 @@ import {
 test("Runtime local authorization token is outside the repository and non-overwriting", () => {
   const directory = mkdtempSync(join(tmpdir(), "lazydesigner-auth-"));
   const path = join(directory, "runtime-auth.token");
-  const fs = { lstatSync, readFileSync, writeFileSync };
+  const fs = { existsSync, readdirSync, readFileSync, writeFileSync };
   try {
     const first = ensureRuntimeAuthorizationToken(fs, { randomBytes }, path);
     expect(first).toMatch(/^[a-f0-9]{64}$/);
@@ -37,7 +37,7 @@ test("invalid or symlinked local credentials fail closed", () => {
   const directory = mkdtempSync(join(tmpdir(), "lazydesigner-auth-deny-"));
   const path = join(directory, "runtime-auth.token");
   const target = join(directory, "untrusted.token");
-  const fs = { lstatSync, readFileSync, writeFileSync };
+  const fs = { existsSync, readdirSync, readFileSync, writeFileSync };
   try {
     writeFileSync(path, "invalid");
     expect(() => ensureRuntimeAuthorizationToken(fs, { randomBytes }, path))

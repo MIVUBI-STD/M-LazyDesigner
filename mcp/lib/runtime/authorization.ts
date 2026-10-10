@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { randomBytes as nativeRandomBytes } from "node:crypto";
-import type { lstatSync, readFileSync, writeFileSync } from "node:fs";
+import type { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, dirname } from "node:path";
 import { runtimeTlsPaths } from "./connection";
 
 /**
@@ -11,9 +12,12 @@ import { runtimeTlsPaths } from "./connection";
 export const RUNTIME_AUTH_HEADER = "x-lazydesigner-runtime-auth";
 const TOKEN_PATTERN = /^[a-f0-9]{64}$/;
 
+// Blockbench's permission-scoped fs exposes directory Dirents, but not
+// consistently lstatSync. Use the same no-symlink entry check as native export.
 type TokenReader = {
   readFileSync: typeof readFileSync;
-  lstatSync: typeof lstatSync;
+  readdirSync: typeof readdirSync;
+  existsSync: typeof existsSync;
 };
 type TokenWriter = TokenReader & { writeFileSync: typeof writeFileSync };
 type TokenCrypto = { randomBytes: typeof nativeRandomBytes };
@@ -33,8 +37,16 @@ export function readRuntimeAuthorizationToken(
   fs: TokenReader,
   path: string = runtimeAuthorizationPath()
 ): string {
-  const state = fs.lstatSync(path);
-  if (!state.isFile() || state.isSymbolicLink()) {
+  if (!fs.existsSync(path)) {
+    const error = new Error("LazyDesigner Runtime authorization credential is missing.") as NodeJS.ErrnoException;
+    error.code = "ENOENT";
+    throw error;
+  }
+  const name = basename(path);
+  const matches = fs.readdirSync(dirname(path), { withFileTypes: true })
+    .filter(entry => entry.name === name ||
+      (process.platform === "win32" && entry.name.toLowerCase() === name.toLowerCase()));
+  if (matches.length !== 1 || !matches[0].isFile() || matches[0].isSymbolicLink()) {
     throw new Error("LazyDesigner Runtime authorization credential is not a regular file.");
   }
   const value = fs.readFileSync(path, "utf8");

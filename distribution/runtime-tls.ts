@@ -1,5 +1,5 @@
 import { createPrivateKey, randomBytes, X509Certificate } from "node:crypto";
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, readdirSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { runtimeTlsPaths } from "../mcp/lib/runtime/connection";
 import {
@@ -63,7 +63,7 @@ export function runtimeTlsStatus(
     if (!status.ready) return status;
     try {
       readRuntimeAuthorizationToken(
-        { readFileSync, lstatSync },
+        { readFileSync, readdirSync, existsSync },
         runtimeAuthorizationPath(env, platform)
       );
     } catch {
@@ -175,7 +175,7 @@ export function ensureRuntimeTlsIdentity(
   const status = validateRuntimeTlsIdentity(env, platform);
   if (!status.ready) throw new Error(status.error ?? "Runtime TLS identity is not ready.");
   ensureRuntimeAuthorizationToken(
-    { readFileSync, lstatSync, writeFileSync },
+    { readFileSync, readdirSync, existsSync, writeFileSync },
     { randomBytes },
     runtimeAuthorizationPath(env, platform)
   );
@@ -211,7 +211,7 @@ export function renewRuntimeTlsIdentity(
   const current = validateRuntimeTlsIdentity(env, platform);
   if (current.ready) {
     ensureRuntimeAuthorizationToken(
-      { readFileSync, lstatSync, writeFileSync },
+      { readFileSync, readdirSync, existsSync, writeFileSync },
       { randomBytes },
       runtimeAuthorizationPath(env, platform)
     );

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:https";
@@ -46,7 +46,7 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
       port: 0,
       endpoint: "/bb-mcp",
       authorizationToken: readRuntimeAuthorizationToken(
-        { lstatSync: (await import("node:fs")).lstatSync, readFileSync },
+        { existsSync, readdirSync, readFileSync },
         runtimeAuthorizationPath()
       ),
     });

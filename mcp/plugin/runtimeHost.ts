@@ -57,7 +57,7 @@ export class RuntimeHost {
       message: "LazyDesigner reads this machine's local TLS identity and maintains its local Runtime session lease.",
       detail: `TLS identity directory: ${paths.directory}. Runtime session state remains local to this PC.`,
       optional: false,
-    }) as (RuntimeSessionFs & Pick<typeof import("node:fs"), "lstatSync">) | null;
+    }) as (RuntimeSessionFs & Pick<typeof import("node:fs"), "existsSync" | "readdirSync">) | null;
     if (!fs) throw new Error("LazyDesigner requires permission to access its local Runtime identity.");
     // @ts-ignore - requireNativeModule is a Blockbench desktop global.
     const nativeCrypto = requireNativeModule("crypto") as
