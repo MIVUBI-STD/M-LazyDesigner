@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test";
 import {
   textureLayerManagementParameters,
 } from "@/server/tools/paint";
+import {
+  preflightLayerMetadataBatch,
+  requireFlatLayerStructure,
+} from "@/server/tools/paint/layerState";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -184,5 +188,61 @@ describe("texture layer management hardening", () => {
     expect(paint).toContain("already at index");
     expect(paint).toContain("already has the exact name");
     expect(paint).toContain("collides case-insensitively");
+  });
+});
+
+describe("Blockbench 5.2 native texture layer group boundary", () => {
+  const flat = {
+    layers: [
+      { uuid: "a", type: "pixel_layer", parent_uuid: "" },
+      { uuid: "b", type: "pixel_layer", parent_uuid: "" },
+    ],
+  } as unknown as Texture;
+  const nested = {
+    layers: [
+      { uuid: "group", type: "layer_group", parent_uuid: "" },
+      { uuid: "a", type: "pixel_layer", parent_uuid: "group" },
+      { uuid: "b", type: "pixel_layer", parent_uuid: "" },
+    ],
+  } as unknown as Texture;
+
+  test("flat pixel stacks keep the existing structural-operation guard open", () => {
+    for (const action of [
+      "create_layer", "delete_layer", "duplicate_layer",
+      "merge_down", "move_layer", "flatten_layers", "batch_metadata",
+    ]) {
+      expect(() => requireFlatLayerStructure(flat, action)).not.toThrow();
+    }
+  });
+
+  test("native layer group structures fail closed before structural mutations", () => {
+    for (const action of [
+      "create_layer", "delete_layer", "duplicate_layer",
+      "merge_down", "move_layer", "flatten_layers",
+    ]) {
+      expect(() => requireFlatLayerStructure(nested, action)).toThrow(
+        /native Blockbench texture layer groups\/parent links/i
+      );
+    }
+  });
+
+  test("orphaned parent links and unknown native layer items also fail closed", () => {
+    const parentLinkOnly = {
+      layers: [{ uuid: "a", type: "pixel_layer", parent_uuid: "missing-group" }],
+    } as unknown as Texture;
+    const futureItem = {
+      layers: [{ uuid: "future", type: "procedural_layer" }],
+    } as unknown as Texture;
+    expect(() => requireFlatLayerStructure(parentLinkOnly, "move_layer")).toThrow(/flat pixel-layer stack/);
+    expect(() => requireFlatLayerStructure(futureItem, "move_layer")).toThrow(/flat pixel-layer stack/);
+  });
+
+  test("batch order changes are rejected before layer resolution and Undo", async () => {
+    expect(() => preflightLayerMetadataBatch(nested, [
+      { layer_id: "a", target_index: 0 },
+    ])).toThrow(/flat pixel-layer stack/);
+    const runtime = await Bun.file("server/tools/paint/selectionLayers.ts").text();
+    expect(runtime).toContain("requireFlatLayerStructure(texture, action)");
+    expect(runtime).toContain("preflightLayerMetadataBatch(");
   });
 });

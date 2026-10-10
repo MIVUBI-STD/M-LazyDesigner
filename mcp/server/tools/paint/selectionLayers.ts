@@ -24,6 +24,7 @@ import {
   requireLayerMove,
   requireLayerOpacityChange,
   requireLayerRename,
+  requireFlatLayerStructure,
   preflightLayerMetadataBatch,
   resolveManagedTextureLayer,
   textureLayerContinuationState,
@@ -253,6 +254,14 @@ export function registerPaintSelectionLayerTools(): void {
               const texture = requiresEditorLayerSelection
                 ? getAndActivateTexture(texture_id)
                 : resolvePaintTexture(texture_id);
+              // These operations use a flat layer-array model. Native groups
+              // require hierarchy-aware ordering and composite acceptance.
+              if ([
+                "create_layer", "delete_layer", "duplicate_layer",
+                "merge_down", "move_layer", "flatten_layers",
+              ].includes(action)) {
+                requireFlatLayerStructure(texture, action);
+              }
               const layer =
                 action === "create_layer" ||
                 action === "flatten_layers" ||

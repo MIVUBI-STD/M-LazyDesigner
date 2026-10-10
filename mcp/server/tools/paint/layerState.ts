@@ -13,6 +13,30 @@ export type LayerMetadataBatchUpdate = {
   target_index?: number;
 };
 
+/**
+ * Blockbench 5.2 stores TextureLayerGroup and pixel layers in one ordered
+ * texture.layers array. Raw flat-array edits cannot preserve nested parent
+ * ordering or guarantee the rendered composite. Reject structural operations
+ * until the native group round-trip contract has been accepted.
+ */
+export function requireFlatLayerStructure(texture: Texture, action: string): void {
+  const hierarchical = texture.layers.some((layer) => {
+    const item = layer as TextureLayer & {
+      type?: string;
+      parent_uuid?: string;
+    };
+    return Boolean(item.parent_uuid) ||
+      (typeof item.type === "string" && item.type !== "pixel_layer");
+  });
+  if (hierarchical) {
+    throw new Error(
+      `texture_layer_management(${action}) requires a flat pixel-layer stack. ` +
+      "Native Blockbench texture layer groups/parent links are present; " +
+      "refusing to alter hierarchy or composite before native group acceptance."
+    );
+  }
+}
+
 export function resolveManagedTextureLayer(
   texture: Texture,
   reference: string
@@ -83,6 +107,9 @@ export function preflightLayerMetadataBatch<
   updates: readonly TUpdate[]
 ) {
   requireDistinctBatchLayerTargets(updates);
+  if (updates.some((update) => update.target_index !== undefined)) {
+    requireFlatLayerStructure(texture, "batch_metadata");
+  }
   const resolved = updates.map((update) => ({
     update,
     layer: resolveManagedTextureLayer(texture, update.layer_id),
