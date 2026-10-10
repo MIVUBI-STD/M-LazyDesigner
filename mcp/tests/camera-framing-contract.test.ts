@@ -163,6 +163,72 @@ describe("capture_model_views explicit framing contract", () => {
     expect(code).toContain("landmark_projections: landmarkProjections");
   });
 
+  test("correspondence capture accepts bounded current-reference claims but no visual approval field", () => {
+    const input = {
+      recipe_id: "bedrock-chair",
+      reference: {
+        package_fingerprint: "a".repeat(64),
+        current_package_fingerprint: "a".repeat(64),
+        images: [{
+          id: "IMG_FRONT", sha256: "b".repeat(64), integrity: "VERIFIED",
+          status: "APPROVED", view: "front",
+          regions: [{
+            id: "seat-region", part_id: "seat",
+            evidence_role: "PRIMARY_VOLUME", visibility: "DIRECT",
+            box_uv: [0.1, 0.2, 0.8, 0.9], related_part_id: null,
+          }],
+        }],
+        parts: [{ id: "seat", role: "GEOMETRY" }],
+      },
+      proposals: [{
+        image_id: "IMG_FRONT", region_id: "seat-region", part_id: "seat",
+        native_cube_uuids: ["cube-1", "cube-2"],
+      }],
+    };
+    const asInput = (reference_correspondence: unknown) => ({
+      ...baseInput, reference_correspondence,
+    });
+    expect(captureModelViewsParameters.safeParse(asInput(input)).success).toBe(true);
+    expect(captureModelViewsParameters.safeParse(asInput({
+      ...input, proposals: [{ ...input.proposals[0], native_cube_uuids: [] }],
+    })).success).toBe(true); // Absence remains provisional, not "missing geometry".
+    expect(captureModelViewsParameters.safeParse(asInput({
+      ...input, proposals: [{ ...input.proposals[0], review: {
+        outcome: "MATCHED", source_pixels_inspected: true,
+      } }],
+    })).success).toBe(false);
+    expect(captureModelViewsParameters.safeParse(asInput({
+      ...input, reference: { ...input.reference, images: [{
+        ...input.reference.images[0], regions: [{
+          ...input.reference.images[0].regions[0], evidence_role: "INVENTED",
+        }],
+      }] },
+    })).success).toBe(false);
+    expect(captureModelViewsParameters.safeParse(asInput({
+      ...input, reference: { ...input.reference, package_fingerprint: "bad-hash" },
+    })).success).toBe(false);
+    expect(captureModelViewsParameters.safeParse(asInput({
+      ...input, proposals: Array.from({ length: 17 }, () => input.proposals[0]),
+    })).success).toBe(false);
+  });
+
+  test("existing capture binds correspondence to current saved recipe-owned native state", async () => {
+    const captureSource = await Bun.file("server/tools/inspection/camera.ts").text();
+    const nativeSource = await Bun.file("server/runtime/recipes/authoring/service.ts").text();
+    expect(captureSource).toContain('name: "capture_model_views"');
+    expect(captureSource).toContain("readRecipePartCaptureScope(");
+    expect(captureSource).toContain("assessVisualPartCorrespondence({");
+    expect(captureSource).toContain("source_authority: \"CALLER_SUPPLIED_NOT_VERIFIED_BY_RUNTIME\"");
+    expect(captureSource).toContain("review_state: \"PENDING_ACTUAL_IMAGE_COMPARISON\"");
+    expect(captureSource).toContain("automatic_correction: false");
+    expect(captureSource).toContain("PART_CORRESPONDENCE_CAPTURE_STALE");
+    expect(captureSource).not.toContain("createTool(\"part_correspondence\"");
+    expect(nativeSource).toContain("assertAuthoringRecipeNativeMatchesCompiled(native, recipe)");
+    expect(nativeSource).toContain("resolveSemanticIdentity(recipe, native,");
+    expect(nativeSource).toContain("fingerprintAuthoringRecipeNativeSnapshot(native)");
+    expect(nativeSource).toContain("RECIPE_OWNED_CUBES_ONLY");
+  });
+
   test("caps automatic evidence selection at the five-view context budget", () => {
     const result = selectModelViewsForEvidence([
       "width",

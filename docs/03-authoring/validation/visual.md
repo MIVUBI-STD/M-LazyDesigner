@@ -331,6 +331,34 @@ Resolve `DECLARED_TEXTURE_BUT_VISIBLE_VOLUME` and
 issuing a causal correction. If the region/model correspondence is
 uncertain, keep the claim `UNVERIFIED`.
 
+### Recipe-owned part correspondence at the capture boundary
+
+When explicit image-region annotations and native recipe-owned Cube
+UUIDs are material to a Geometry review, reuse the existing Gateway
+`status(include_reference_images=true)` to obtain the actual approved
+source pixels and current image IDs/SHA-256/regions. On the existing
+`capture_model_views` call, optionally include
+`reference_correspondence` with the saved `recipe_id`, **only the
+current reference metadata** (not binary bytes), and the explicitly
+proposed region-to-Cube UUID mapping.
+
+The native owner reads the current stored Authoring Recipe and exact
+recipe-owned UUIDs, verifies their state before and after the model
+capture, and returns compact `part_correspondence` candidates with
+project/native fingerprint and capture-image digests. A missing recipe
+or invalid native owner is rejected; an absent candidate mapping stays
+provisional, **not** proof of a missing required part.
+
+The source image metadata in the Runtime request remains **caller
+declared**, not verified by Blockbench from the Reference Package. Its
+output deliberately omits source/model visual-review declarations and
+cannot mark a correspondence `SUPPORTED` automatically. Only
+fresh paired source/model pixels examined together may support a
+reviewer's later claim. The recipe-owned native fingerprint does not
+cover unrelated Cubes, parent group transforms or texture pixels.
+Do not forward provisional correspondence directly into correction
+convergence or a 3D mutation. The four-tool Gateway surface is unchanged.
+
 ## Bounded Landmark Diagnosis
 
 Use source-image landmark measurements only after the actual approved image

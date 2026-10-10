@@ -1,6 +1,6 @@
 # Visual Part Correspondence — bounded architecture decision
 
-**Status:** BATCH 1 SOURCE IMPLEMENTED · BATCH 2 DEFERRED · NOT EXECUTABLE/NATIVE VERIFIED  
+**Status:** BATCHES 1+2 SOURCE IMPLEMENTED · NOT EXECUTABLE/NATIVE VERIFIED  
 **Updated:** 2026-10-11  
 **Working authority:** `Local` (baseline `5b7becaa2feb9bec9c3cd70b2ebaa2cb250d6b88`)  
 **Task:** Image Reference → verified semantic-part-to-native-element correspondence
@@ -164,13 +164,37 @@ join does not inspect Blockbench, load image pixels, independently attest
 native snapshot freshness, or manufacture a visual review. Regression
 definitions are committed, not executable PASS.
 
-**Batch 2: Consumer connection only after Batch 1 proves a real consumer
-gap.** Join the existing Control original-image delivery to current
-recipe-owned native identity and one fresh `capture_model_views` / existing
-native inspection result. Do not broaden to arbitrary Blockbench elements
-until an explicit stable UUID/freshness path is grounded. Reuse
-`visualObservation` for concrete differences and the current
-`correctionLoop` for independently diagnosed causes.
+**Batch 2: Opt-in consumer on existing `capture_model_views` — source
+implemented.** Caller first obtains actual current approved source images,
+regions and SHA-256 from existing Gateway `status` opt-in delivery; to
+avoid repeating binary data, it supplies only the bounded source metadata
+and explicit part→native Cube UUID proposals in the optional
+`reference_correspondence` capture argument. The Runtime reads the
+stored recipe/current native owned-Cube snapshot via the existing
+`recipes/authoring/service.ts` owner and the existing
+`resolveSemanticIdentity`, verifies snapshot/project stability before
+and after canonical offscreen captures, and binds proposals to the real
+new capture image digests/handle. `assessVisualPartCorrespondence`
+is invoked with **NO review declaration**: claims remain
+`PROVISIONAL / CONFLICTING / UNAVAILABLE`, never automatically
+`SUPPORTED` or visual PASS. Source fields are **caller-supplied and
+not independently validated by the Blockbench Runtime**; the Gateway
+source image delivery is the origin, not Runtime attestation.
+
+The resulting response contains `part_correspondence`, current
+recipe-owned native fingerprint, project UUID, exact available
+instance/native UUID identities and per-view capture image digests.
+It is a single **read-only opt-in extension of the existing capture tool**,
+not an additional Gateway capability, registry, or visual classifier.
+
+**Limitations:** recipe-owned Cube transforms are covered; unrelated
+Cubes, group-parent transformations, texture pixels and approval of source
+region boxes are **not** included in that native snapshot fingerprint.
+Matching image/view labels does not certify source-camera calibration.
+The reviewing AI must inspect the freshly returned model pixels beside
+the actual approved source pixels. A source claim/capture never
+auto-generates a discrepancy, a correction or Undo. Unsupported or
+unbound native candidates remain unresolved, not "missing geometry".
 
 **Proof discipline:** define all focused source tests as a batch, then use
 the existing owner verifier on one pinned HEAD when actually executable.
@@ -205,8 +229,8 @@ not fabricate a new Actions workflow or ask for the user's PC.
 6. Measured executable and native proof is reported separately from the
    source-level design, without claiming improved visual fidelity in advance.
 
-**Delivery record:** Batch 1 is source-implemented with focused regression
-definitions. Batch 2 remains **NOT IMPLEMENTED**, pending a real consumer
-with independently obtained fresh native identity/capture and actual
-reference/model image review. No Bun/CI or live Blockbench validation has
-been executed on this Batch 1 source.
+**Delivery record:** Batches 1+2 are source-implemented with focused
+regression definitions. No matching-SHA Bun/CI, installed Blockbench
+runtime, native capture/recipe-fingerprint, or visual correspondence
+acceptance has been executed. Runtime source metadata is caller-declared;
+candidate assessment never replaces direct review.

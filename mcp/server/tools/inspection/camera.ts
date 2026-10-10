@@ -1,9 +1,12 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { z } from "zod";
+import { createHash } from "node:crypto";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { captureScreenshot, captureAppScreenshot } from "@/lib/blockbench/capture";
 import { imageContent } from "@/lib/protocol/imageContent";
+import { assessVisualPartCorrespondence } from "@/lib/reference/partCorrespondence";
+import { readRecipePartCaptureScope } from "@/server/runtime/recipes/authoring/service";
 import {
   compareReferenceLandmarkProjection,
   type LandmarkProjectionObservation,
@@ -337,6 +340,47 @@ const landmarkPairSchema = z.object({
   model_cube_uuid: z.string().trim().min(1).max(160),
 }).strict();
 
+const correspondenceRegionSchema = z.object({
+  id: z.string().trim().min(1).max(96),
+  part_id: z.string().trim().min(1).max(96),
+  evidence_role: z.enum(["PRIMARY_VOLUME", "SURFACE_DETAIL", "CONTACT", "NEGATIVE_SPACE"]),
+  visibility: z.enum(["DIRECT", "PARTIAL", "OCCLUDED"]),
+  box_uv: z.tuple([z.number(), z.number(), z.number(), z.number()]).nullable(),
+  related_part_id: z.string().trim().min(1).max(96).nullable(),
+}).strict();
+
+/**
+ * Opt-in consumer for an already delivered Control status reference.
+ * All source fields are caller-declared; Runtime cannot read the Gateway's
+ * Reference Package or attest that the source pixels were actually viewed.
+ * No review outcome is accepted in capture parameters.
+ */
+const referenceCorrespondenceSchema = z.object({
+  recipe_id: z.string().trim().min(1).max(128),
+  reference: z.object({
+    package_fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+    current_package_fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+    images: z.array(z.object({
+      id: z.string().trim().min(1).max(160),
+      sha256: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+      integrity: z.enum(["VERIFIED", "MISSING", "INVALID"]),
+      status: z.string().nullable(),
+      view: modelViewEnum.nullable(),
+      regions: z.array(correspondenceRegionSchema).max(16),
+    }).strict()).min(1).max(4),
+    parts: z.array(z.object({
+      id: z.string().trim().min(1).max(96),
+      role: z.string().nullable(),
+    }).strict()).max(24),
+  }).strict(),
+  proposals: z.array(z.object({
+    image_id: z.string().trim().min(1).max(160),
+    region_id: z.string().trim().min(1).max(96),
+    part_id: z.string().trim().min(1).max(96),
+    native_cube_uuids: z.array(z.string().trim().min(1).max(160)).max(64),
+  }).strict()).min(1).max(16),
+}).strict();
+
 const uniqueModelViewsSchema = z
   .array(modelViewEnum)
   .min(1)
@@ -349,6 +393,9 @@ export const captureModelViewsParameters = z
   .object({
   size: z.number().int().min(32).max(1024).optional().describe("Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only."),
   highlight_missing_textures: z.boolean().default(false).describe("Diagnostic capture: brighten native missing-texture materials temporarily. Restores state; not a normal shaded comparison or flashing UI."),
+  reference_correspondence: referenceCorrespondenceSchema.optional().describe(
+    "Opt-in source-region → saved recipe-owned Cube UUID candidate assessment. Source metadata must come from current status image delivery; Runtime verifies current recipe/native Cube identity and returns PROVISIONAL candidates with capture provenance only. No visual PASS or auto-mutation."
+  ),
   landmark_pairs: z.array(landmarkPairSchema).min(1).max(16).optional().describe(
     "Optional read-only projected Cube-center landmarks, paired to specific source-image IDs and SHA-256. Requires explicit views; does not calibrate the source camera or judge visual similarity."
   ),
@@ -467,7 +514,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_model_views",
     description:
-      "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk. Optional landmark_pairs project rendered Cube centers to a matched canonical view and report normalized 2D residuals, never solved camera calibration or automatic geometric correction. Returns observation only; no quality score/PASS/FAIL.",
+      "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk. Optional landmark_pairs project rendered Cube centers; optional reference_correspondence attaches current saved recipe-owned Cube identity and provisional source-region associations to the same fresh capture. Both are read-only diagnostics, never solved camera calibration, automatic geometric correction, or visual PASS.",
     annotations: {
       title: "Capture Model Views",
       readOnlyHint: true,
@@ -824,7 +871,7 @@ export function registerCameraTools() {
 
   createTool(cameraToolDocs[3].name, {
     ...cameraToolDocs[3],
-    async execute({ views, evidence_targets, verification_risk, front_direction, framing, highlight_missing_textures, landmark_pairs, size }) {
+    async execute({ views, evidence_targets, verification_risk, front_direction, framing, highlight_missing_textures, landmark_pairs, reference_correspondence, size }) {
       if (!Project) {
         throw new Error(
           "No project is open. Open or create the intended Bedrock project before capturing model views."
@@ -847,6 +894,18 @@ export function registerCameraTools() {
         );
       }
       const selectedViews = selection.views;
+      // Validate actual native recipe ownership before doing expensive captures.
+      const requestedCorrespondenceUuids = reference_correspondence
+        ? [...new Set(reference_correspondence.proposals.flatMap(
+            (claim) => claim.native_cube_uuids
+          ))]
+        : [];
+      const correspondenceBefore = reference_correspondence
+        ? readRecipePartCaptureScope(
+            reference_correspondence.recipe_id, requestedCorrespondenceUuids
+          )
+        : null;
+      const captureProjectUuid = Project.uuid;
       const captureSize =
         size ??
         (evidence_targets?.length
@@ -881,6 +940,7 @@ export function registerCameraTools() {
         | { type: "text"; text: string }
         | { type: "image"; data: string; mimeType: string }
       > = [];
+      const imageDigests: Array<{view: ModelView; sha256: string}> = [];
       const captures: Array<{
         view: ModelView;
         projection: "orthographic" | "perspective";
@@ -907,6 +967,13 @@ export function registerCameraTools() {
 
         content.push({ type: "text", text: `VIEW ${view}` });
         content.push(image);
+        if (reference_correspondence) {
+          imageDigests.push({
+            view,
+            sha256: createHash("sha256")
+              .update(Buffer.from(image.data, "base64")).digest("hex"),
+          });
+        }
         captures.push({
           view,
           projection: spec.projection,
@@ -916,6 +983,69 @@ export function registerCameraTools() {
           camera_spec: captureCameraSpecMetadata(spec),
           ...(landmark_pairs?.length ? { landmark_projections: landmarkProjections } : {}),
         });
+      }
+
+      let partCorrespondenceEvidence = null;
+      if (reference_correspondence && correspondenceBefore) {
+        const after = readRecipePartCaptureScope(
+          reference_correspondence.recipe_id, requestedCorrespondenceUuids
+        );
+        if (Project.uuid !== captureProjectUuid ||
+            correspondenceBefore.project_uuid !== after.project_uuid ||
+            correspondenceBefore.native_snapshot_fingerprint !==
+              after.native_snapshot_fingerprint) {
+          throw new Error(
+            "PART_CORRESPONDENCE_CAPTURE_STALE: recipe-owned native state or project changed during capture."
+          );
+        }
+        const captureEvidenceHandle = "modelcapture:" + createHash("sha256")
+          .update(JSON.stringify({
+            project_uuid: captureProjectUuid,
+            native: after.native_snapshot_fingerprint,
+            front_direction, framing_bounds: {
+              min: [...framingBounds.min], max: [...framingBounds.max],
+            },
+            image_digests: imageDigests,
+          }))
+          .digest("hex");
+        const assessment = assessVisualPartCorrespondence({
+          reference: reference_correspondence.reference,
+          model: {
+            project_uuid: after.project_uuid,
+            recipe_id: after.recipe_id,
+            identities: after.identities,
+            native_snapshot_fingerprint: correspondenceBefore.native_snapshot_fingerprint,
+            current_native_snapshot_fingerprint: after.native_snapshot_fingerprint,
+            capture: {
+              project_uuid: after.project_uuid,
+              native_snapshot_fingerprint: after.native_snapshot_fingerprint,
+              evidence_handle: captureEvidenceHandle,
+              views: selectedViews,
+            },
+          },
+          // Deliberately omit review: freshly captured model images have
+          // not yet been visually inspected with approved source pixels.
+          proposals: reference_correspondence.proposals,
+        });
+        partCorrespondenceEvidence = {
+          ...assessment,
+          model_capture_evidence_handle: captureEvidenceHandle,
+          project_uuid: after.project_uuid,
+          recipe_id: after.recipe_id,
+          native_snapshot_fingerprint: after.native_snapshot_fingerprint,
+          native_scope: after.native_scope,
+          verified_native_target_count: after.verified_count,
+          recipe_owned_snapshot_stable_during_capture: true,
+          model_scope_limits: [
+            "UNRELATED_CUBES_NOT_COVERED",
+            "PARENT_GROUP_TRANSFORMS_NOT_COVERED",
+            "TEXTURE_PIXELS_NOT_COVERED",
+          ],
+          source_authority: "CALLER_SUPPLIED_NOT_VERIFIED_BY_RUNTIME" as const,
+          review_state: "PENDING_ACTUAL_IMAGE_COMPARISON" as const,
+          automatic_correction: false,
+          model_images: imageDigests,
+        };
       }
 
       const format = Format as { id?: string } | undefined;
@@ -946,6 +1076,9 @@ export function registerCameraTools() {
           selected_size: captureSize,
         },
         captures,
+        ...(partCorrespondenceEvidence
+          ? { part_correspondence: partCorrespondenceEvidence }
+          : {}),
         ...(landmark_pairs?.length ? {
           landmark_diagnosis: {
             state: "DIAGNOSTIC_ONLY" as const,

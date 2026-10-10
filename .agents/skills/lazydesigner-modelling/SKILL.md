@@ -58,6 +58,19 @@ boxes are proposal metadata, never automatic masks, scale measurements,
 3D reconstruction or authority for hidden surfaces. Do not add a
 segmentation-model dependency to the normal Gateway.
 
+At a material Geometry part-identification boundary, use the **existing**
+`capture_model_views.reference_correspondence` opt-in with the current
+`REFERENCE.json` source metadata delivered by Gateway `status` and
+explicit native recipe-owned Cube UUID proposals. One capture returns both
+the actual model image and a bounded `part_correspondence` observation.
+The Runtime validates native recipe ownership/current Cube state, **not**
+whether the source image was approved, the annotations were accurate,
+parent group transforms or texture material changed. Correspondence
+output is provisional until actual source/model pixels are directly
+reviewed. Never infer missing geometry from an unmatched part, submit
+invented `review` fields to capture, or loop repeated captures merely
+to collect candidate labels. No new Gateway capability is required.
+
 For a small number of reference-critical **mass-center** landmarks, reuse
 `images[].landmarks` and the same `capture_model_views` call with
 `landmark_pairs`: source image ID/hash, visible source UV, canonical view,
