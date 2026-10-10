@@ -1,29 +1,11 @@
 name: MCP Verify
 
 on:
-  push:
-    paths:
-      - "mcp/**"
-      - "AGENTS.md"
-      - "README.md"
-      - "CONTEXT.md"
-      - ".agents/skills/**"
-      - "docs/knowledge/**"
-      - "docs/foundation/**"
-      - ".bun-version"
-      - ".github/workflows/mcp-verify.yml"
-  pull_request:
-    paths:
-      - "mcp/**"
-      - "AGENTS.md"
-      - "README.md"
-      - "CONTEXT.md"
-      - ".agents/skills/**"
-      - "docs/knowledge/**"
-      - "docs/foundation/**"
-      - ".bun-version"
-      - ".github/workflows/mcp-verify.yml"
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -31,63 +13,56 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: mcp
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Prove exact SHA
+        working-directory: .
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          test "$actual_sha" = "$EXPECTED_SHA"
+          {
+            echo "### MCP exact-SHA proof"
+            echo
+            printf -- '- exact_sha: `%s`\n' "$actual_sha"
+            echo "- verification: manual full source gate"
+            echo "- live_local_tests: excluded"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: ".bun-version"
 
       - name: Install dependencies from lockfile
         run: bun install --frozen-lockfile
 
-      - name: Typecheck
-        id: typecheck
-        continue-on-error: true
-        run: bun run typecheck
+      # Exact-source full verification on manual dispatch, not live Blockbench proof.
+      - name: Run canonical full source verification
+        run: bun run verify:full
 
-      - name: Contract tests
-        id: tests
-        continue-on-error: true
-        run: bun run test
+      - name: Record exact-SHA build provenance
+        run: bun run ./scripts/operations/verified-build-artifact.ts write-ci
 
-      - name: Default MCP surface measurement
-        id: surface
-        continue-on-error: true
-        run: bun run measure:surface
-
-      - name: Production build
-        id: build
-        continue-on-error: true
-        run: bun run build
-
-      - name: Generated docs freshness
-        id: docs
-        continue-on-error: true
-        run: bun run docs:check
-
-      - name: Enforce verification result
-        if: always()
-        env:
-          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
-          TESTS_OUTCOME: ${{ steps.tests.outcome }}
-          SURFACE_OUTCOME: ${{ steps.surface.outcome }}
-          BUILD_OUTCOME: ${{ steps.build.outcome }}
-          DOCS_OUTCOME: ${{ steps.docs.outcome }}
-        run: |
-          failed=0
-          for gate in TYPECHECK TESTS SURFACE BUILD DOCS; do
-            outcome_var="${gate}_OUTCOME"
-            outcome="${!outcome_var}"
-            if [ "$outcome" != "success" ]; then
-              echo "${gate} gate failed: ${outcome}"
-              failed=1
-            fi
-          done
-          exit "$failed"
+      - name: Upload verified compatibility bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: blockit-mcp-verified
+          path: |
+            mcp/dist/blockit_mcp.js
+            mcp/dist/blockit-build-provenance.json
+          if-no-files-found: error
+          retention-days: 14

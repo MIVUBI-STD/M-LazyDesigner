@@ -1,0 +1,274 @@
+name: Desktop Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Desktop version from source (MAJOR.MINOR.PATCH)
+        required: true
+        type: string
+      trusted:
+        description: Require Authenticode and Tauri updater signatures
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-draft-release
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: apps/desktop
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Validate requested Desktop version
+        shell: pwsh
+        run: |
+          $version = '${{ inputs.version }}'
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw 'Desktop release version must be MAJOR.MINOR.PATCH.'
+          }
+
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $tauri = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $cargo = Get-Content src-tauri/Cargo.toml -Raw
+          $cargoMatch = [regex]::Match($cargo, '(?m)^version\s*=\s*"([^"]+)"\s*$')
+          if (!$cargoMatch.Success) { throw 'Cargo package version is missing.' }
+
+          $versions = @(
+            [string]$package.version,
+            [string]$tauri.version,
+            [string]$cargoMatch.Groups[1].Value
+          )
+          foreach ($sourceVersion in $versions) {
+            if ($sourceVersion -ne $version) {
+              throw "Requested Desktop version $version does not match source version $sourceVersion."
+            }
+          }
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Select pinned Rust toolchain
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.98.1 --profile minimal
+          rustup default 1.98.1
+          rustc --version
+
+      - name: Resolve pinned baseline Bun
+        id: bun-pin
+        shell: pwsh
+        run: |
+          $version = (Get-Content ../../.bun-version -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected an exact pinned Bun version.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup baseline Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v${{ steps.bun-pin.outputs.version }}/bun-windows-x64-baseline.zip
+
+      - name: Parse Desktop PowerShell scripts
+        shell: pwsh
+        run: |
+          $scripts = Get-ChildItem -LiteralPath ./scripts -Filter '*.ps1' -File
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $messages = ($errors | ForEach-Object { $_.Message }) -join '; '
+              throw "PowerShell syntax error in $($script.Name): $messages"
+            }
+          }
+
+      - name: Install Desktop dependencies
+        run: npm ci
+
+      - name: Audit Desktop npm dependencies
+        run: npm audit --audit-level=high
+
+      - name: Verify Desktop source
+        run: npm run verify:source
+
+      - name: Reject duplicate Desktop release
+        shell: pwsh
+        run: |
+          $trusted = [System.Convert]::ToBoolean('${{ inputs.trusted }}')
+          $shortSha = $env:GITHUB_SHA.Substring(0, 12)
+          $tag = if ($trusted) { "desktop-v${{ inputs.version }}" } else { "desktop-dev-v${{ inputs.version }}-$shortSha" }
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "A Desktop draft release for $tag already exists." }
+          $global:LASTEXITCODE = 0
+
+      - name: Import Windows signing certificate
+        if: inputs.trusted
+        shell: pwsh
+        env:
+          LAZYDESIGNER_WINDOWS_PFX_BASE64: ${{ secrets.LAZYDESIGNER_WINDOWS_PFX_BASE64 }}
+          LAZYDESIGNER_WINDOWS_PFX_PASSWORD: ${{ secrets.LAZYDESIGNER_WINDOWS_PFX_PASSWORD }}
+        run: ./scripts/import-windows-signing-certificate.ps1
+
+      - name: Build exact-SHA integrated Desktop installer
+        if: ${{ !inputs.trusted }}
+        run: npm run build:app
+
+      - name: Build trusted exact-SHA Desktop installer
+        if: inputs.trusted
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          LAZYDESIGNER_TIMESTAMP_URL: ${{ vars.LAZYDESIGNER_TIMESTAMP_URL }}
+        run: npm run build:app:trusted
+
+      - name: Resolve release artifact and provenance
+        id: release
+        shell: pwsh
+        run: |
+          $bundle = Join-Path $PWD 'src-tauri\target\release\bundle\nsis'
+          $installers = @(Get-ChildItem $bundle -Filter '*.exe' -File)
+          if ($installers.Count -ne 1) {
+            throw "Expected exactly one NSIS installer, found $($installers.Count)."
+          }
+          $installer = $installers[0]
+          $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+          $checksumLines = @("$hash  $($installer.Name)")
+          $trusted = [System.Convert]::ToBoolean('${{ inputs.trusted }}')
+          $authenticodeStatus = 'NotRequired'
+          $authenticodeSubject = $null
+          $authenticodeThumbprint = $null
+          $updaterSignaturePath = $null
+          $updateManifestPath = $null
+
+          if ($trusted) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
+            if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid -or !$signature.SignerCertificate) {
+              throw "Trusted Desktop build is not Authenticode-valid: $($signature.Status) $($signature.StatusMessage)"
+            }
+            $authenticodeStatus = 'Valid'
+            $authenticodeSubject = $signature.SignerCertificate.Subject
+            $authenticodeThumbprint = $signature.SignerCertificate.Thumbprint
+
+            $sidecars = @(Get-ChildItem $bundle -Filter '*.exe.sig' -File)
+            if ($sidecars.Count -ne 1) {
+              throw "Trusted Desktop build requires exactly one Tauri updater signature sidecar; found $($sidecars.Count)."
+            }
+            $updaterSignaturePath = $sidecars[0].FullName
+            $sigHash = (Get-FileHash -Algorithm SHA256 $updaterSignaturePath).Hash.ToLowerInvariant()
+            $checksumLines += "$sigHash  $($sidecars[0].Name)"
+
+            $updateManifestPath = Join-Path $bundle 'latest.json'
+            & ./scripts/write-update-manifest.ps1 `
+              -Version '${{ inputs.version }}' `
+              -InstallerName $installer.Name `
+              -SignaturePath $updaterSignaturePath `
+              -OutputPath $updateManifestPath
+            $manifestHash = (Get-FileHash -Algorithm SHA256 $updateManifestPath).Hash.ToLowerInvariant()
+            $checksumLines += "$manifestHash  latest.json"
+          }
+
+          $checksumLines | Set-Content -Encoding ascii (Join-Path $bundle 'SHA256SUMS.txt')
+
+          $managedManifest = Join-Path $PWD 'src-tauri\resources\managed\blockit-package.json'
+          $managed = Get-Content -LiteralPath $managedManifest -Raw | ConvertFrom-Json
+          if ($managed.source_sha -ne $env:GITHUB_SHA) {
+            throw "Bundled managed source SHA $($managed.source_sha) does not match release source SHA $env:GITHUB_SHA."
+          }
+
+          $provenance = [ordered]@{
+            schema = 1
+            release_tag = if ($trusted) { "desktop-v${{ inputs.version }}" } else { "desktop-dev-v${{ inputs.version }}-$($env:GITHUB_SHA.Substring(0, 12))" }
+            source_sha = $env:GITHUB_SHA
+            desktop_version = '${{ inputs.version }}'
+            installer = $installer.Name
+            installer_sha256 = $hash
+            managed_source_sha = $managed.source_sha
+            managed_build_identity = $managed.build_identity
+            trust = [ordered]@{
+              mode = if ($trusted) { 'trusted' } else { 'development-draft' }
+              authenticode_status = $authenticodeStatus
+              authenticode_subject = $authenticodeSubject
+              authenticode_thumbprint = $authenticodeThumbprint
+              tauri_updater_signature = if ($updaterSignaturePath) { Split-Path -Leaf $updaterSignaturePath } else { $null }
+              update_manifest = if ($updateManifestPath) { Split-Path -Leaf $updateManifestPath } else { $null }
+              self_update_runtime_enabled = $false
+            }
+          }
+          $provenance | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $bundle 'desktop-build-provenance.json')
+
+          "installer_path=$($installer.FullName)" >> $env:GITHUB_OUTPUT
+          "installer_name=$($installer.Name)" >> $env:GITHUB_OUTPUT
+          "bundle=$bundle" >> $env:GITHUB_OUTPUT
+          "sha256=$hash" >> $env:GITHUB_OUTPUT
+          "trusted=$($trusted.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if ($updaterSignaturePath) { "updater_signature_path=$updaterSignaturePath" >> $env:GITHUB_OUTPUT }
+          if ($updateManifestPath) { "update_manifest_path=$updateManifestPath" >> $env:GITHUB_OUTPUT }
+
+      - name: Create draft Desktop release
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          $assets = @(
+            "${{ steps.release.outputs.installer_path }}",
+            "${{ steps.release.outputs.bundle }}\SHA256SUMS.txt#SHA256SUMS.txt",
+            "${{ steps.release.outputs.bundle }}\desktop-build-provenance.json#desktop-build-provenance.json"
+          )
+          $trustNote = 'DEVELOPMENT DRAFT — installer publisher identity was not required. Do not publish this draft.'
+          if ('${{ steps.release.outputs.trusted }}' -eq 'true') {
+            $assets += "${{ steps.release.outputs.updater_signature_path }}"
+            $assets += "${{ steps.release.outputs.update_manifest_path }}#latest.json"
+            $trustNote = 'TRUSTED DRAFT — Authenticode installer identity, Tauri updater artifact signature, and static update manifest were verified during this workflow. Self-update runtime remains disabled.'
+          }
+
+          $trusted = [System.Convert]::ToBoolean('${{ inputs.trusted }}')
+          $shortSha = $env:GITHUB_SHA.Substring(0, 12)
+          $tag = if ($trusted) { "desktop-v${{ inputs.version }}" } else { "desktop-dev-v${{ inputs.version }}-$shortSha" }
+          $title = if ($trusted) { "LazyDesigner Desktop v${{ inputs.version }}" } else { "LazyDesigner Desktop Development Draft v${{ inputs.version }} ($shortSha)" }
+          $releaseFlags = @('--draft')
+          if (!$trusted) { $releaseFlags += '--prerelease' }
+
+          gh release create $tag @assets @releaseFlags `
+            --repo $env:GITHUB_REPOSITORY `
+            --target $env:GITHUB_SHA `
+            --title $title `
+            --notes "$trustNote Exact source SHA: $env:GITHUB_SHA. Installer SHA-256: ${{ steps.release.outputs.sha256 }}. Managed components are bundled from the same source SHA. Publication remains a separate explicit action."
+
+      - name: Release summary
+        shell: pwsh
+        run: |
+          "### LazyDesigner Desktop v${{ inputs.version }}" >> $env:GITHUB_STEP_SUMMARY
+          "Draft release created; nothing was auto-published." >> $env:GITHUB_STEP_SUMMARY
+          "Source SHA: ``$env:GITHUB_SHA``" >> $env:GITHUB_STEP_SUMMARY
+          "Installer SHA-256: ``${{ steps.release.outputs.sha256 }}``" >> $env:GITHUB_STEP_SUMMARY
+          "Trusted signing requested: ``${{ inputs.trusted }}``" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Remove imported signing certificate
+        if: always() && inputs.trusted
+        shell: pwsh
+        run: |
+          if ($env:LAZYDESIGNER_WINDOWS_CERT_THUMBPRINT) {
+            Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:LAZYDESIGNER_WINDOWS_CERT_THUMBPRINT" -Force -ErrorAction SilentlyContinue
+          }

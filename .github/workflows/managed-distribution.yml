@@ -1,0 +1,92 @@
+name: Managed Distribution
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-source:
+    if: startsWith(github.ref, 'refs/tags/blockit-v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run verify:release
+
+  windows-package:
+    needs: release-source
+    if: always() && (needs.release-source.result == 'success' || needs.release-source.result == 'skipped')
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - name: Preserve canonical source line endings before checkout
+        working-directory: ${{ runner.temp }}
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Resolve pinned baseline compiler
+        id: bun-pin
+        run: |
+          $version = (Get-Content ../.bun-version -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected an exact pinned Bun version' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v${{ steps.bun-pin.outputs.version }}/bun-windows-x64-baseline.zip
+      - run: bun install --frozen-lockfile
+      - name: Audit MCP dependency advisories
+        run: bun run security:audit
+      - name: Test managed file transactions and Codex TOML on Windows
+        run: bun test tests/managed-install.test.ts
+      - name: Build the native Runtime bundle
+        run: bun run build
+      - name: Compile, install twice, and initialize packaged Gateway
+        run: bun run ../distribution/package.ts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v6
+        with:
+          name: blockit-managed-windows-x64
+          path: |
+            mcp/dist/managed/blockit-windows-x64.zip
+            mcp/dist/managed/blockit-package.json
+          if-no-files-found: error
+          retention-days: 14
+
+  draft-release:
+    if: startsWith(github.ref, 'refs/tags/blockit-v')
+    needs: [release-source, windows-package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v6
+        with:
+          name: blockit-managed-windows-x64
+      - name: Prepare release assets without publishing unaccepted native behavior
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^blockit-v[0-9]+\.[0-9]+\.[0-9]+(-preview\.[0-9]+)?$ ]]
+          flags=(--draft)
+          if [[ "$TAG" == *-preview.* ]]; then flags+=(--prerelease); fi
+          gh release create "$TAG" blockit-windows-x64.zip blockit-package.json --repo "$REPOSITORY" --verify-tag "${flags[@]}" --title "LazyDesigner $TAG" --notes "Verified source and packaged Windows smoke tests. Native Blockbench/Codex acceptance and dependency closure must be reviewed before publishing. This workflow does not publish automatically."
