@@ -55,14 +55,14 @@ import {
   requireDistinctPbrChannelAssignments,
   requireExplicitUniformMaterialSourceSwitch,
   requireMaterialConfigSavePostcondition,
-} from "@/server/tools/texture-material-validation";
+} from "./materialValidation";
 export {
   hasExactTextureGroupNameCollision,
   importedTextureGroupName,
   isMinecraftTextureSetDocument,
   requireDistinctPbrChannelAssignments,
   requireMaterialConfigSavePostcondition,
-} from "@/server/tools/texture-material-validation";
+} from "./materialValidation";
 
 
 function refreshMaterialGroups(groups: readonly TextureGroup[]): void {

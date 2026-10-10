@@ -3,7 +3,7 @@ import { compileTextureRefinementIntent } from "@/lib/texture/computeCompiler";
 import type { TextureSourceRecipe } from "@/lib/texture/sourceComposer";
 import { renderTextureSourceRecipe } from "@/lib/texture/sourceComposer";
 import { diffTextureRegion } from "@/lib/texture/regionDiff";
-import type { PaintTransactionOperation } from "@/lib/paintTransaction";
+import type { PaintTransactionOperation } from "@/lib/texture/paintTransaction";
 import {
   applyGeometryAwareMaterialTreatment,
   type GeometryAwareMaterialIntent,

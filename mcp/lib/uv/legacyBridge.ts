@@ -1,7 +1,7 @@
 import {
   packBoxUvOffsets,
   type BoxUvRegion,
-} from "@/lib/boxUvLayout";
+} from "@/lib/uv/boxLayout";
 
 export const LEGACY_BOX_UV_BACKEND = {
   id: "first_fit_v1" as const,

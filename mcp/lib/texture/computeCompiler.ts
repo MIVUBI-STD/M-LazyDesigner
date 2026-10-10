@@ -1,5 +1,5 @@
 import type { PaletteRgb } from "@/lib/texture/proceduralOps";
-import type { TextureComputeOperationName } from "@/lib/textureComputeRequest";
+import type { TextureComputeOperationName } from "@/lib/texture/computeRequest";
 
 function hexByte(v:number){return Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0");}
 function paletteHex(palette:readonly PaletteRgb[]):string[]{

@@ -10,7 +10,7 @@ import {
   type UvLayoutSnapshot,
   type UvRect,
 } from "@/lib/uv/contracts";
-import { boxUvFootprint } from "@/lib/boxUvLayout";
+import { boxUvFootprint } from "@/lib/uv/boxLayout";
 
 export type UvCubeFaceSnapshot = {
   face: UvFaceKey;
