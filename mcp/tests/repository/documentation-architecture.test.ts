@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { indexExplicitDocumentationEdges } from "../../lib/semantic/knowledge";
 
 async function text(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -76,6 +77,30 @@ describe("AI-first documentation architecture", () => {
     expect(root).toContain("Skills   = execution procedure");
     expect(root).toContain("Control  = task/stage/context selection and projection");
     expect(root).toMatch(/Do not read all documentation by default/i);
+  });
+
+  test("system documentation router links remain explicit, unique and resolvable", async () => {
+    const root = await text("../docs/README.md");
+    const rootRoutes = indexExplicitDocumentationEdges("docs/README.md", root)
+      .filter((edge) => edge.label === "System documentation router");
+    expect(rootRoutes).toHaveLength(1);
+    expect(rootRoutes[0]?.to).toBe("docs/04-system/README.md");
+    expect(await Bun.file("../" + rootRoutes[0]!.to).exists()).toBe(true);
+
+    const system = await text("../" + rootRoutes[0]!.to);
+    const systemRoutes = indexExplicitDocumentationEdges(rootRoutes[0]!.to, system);
+    for (const [label, expectedPath] of [
+      ["Implementation Map", "docs/04-system/implementation-map.md"],
+      ["Development Operating Standard", "docs/04-system/development-operating-standard.md"],
+      ["AI Context Loading", "docs/04-system/ai-context-loading.md"],
+      ["Module Boundaries", "docs/04-system/module-boundaries.md"],
+    ] as const) {
+      const edges = systemRoutes.filter((edge) => edge.label === label);
+      expect(edges, label).toHaveLength(1);
+      expect(edges[0]?.to, label).toBe(expectedPath);
+      expect(await Bun.file("../" + edges[0]!.to).exists(), label).toBe(true);
+      expect(edges[0]?.relation).toBe("EXPLICIT_MARKDOWN_LINK");
+    }
   });
 
   test("context loading contract defines bounded bundles for every active task class", async () => {
