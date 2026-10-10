@@ -99,7 +99,7 @@ describe("Reference Preparation content contract", () => {
 
     expect(flow).toContain("no ceremonial pre-confirmation when no BLOCKING ambiguity remains");
     expect(referenceSkill).toContain("Particle-only exception");
-    expect(referenceSkill).toContain("does **not** inherit the image branch's hard pre-generation confirmation ceremony");
+    expect(referenceSkill).toContain("no ceremonial pre-confirmation when no BLOCKING ambiguity remains");
     expect(particleWorkflow).toContain("PACKAGE ONLY IF EXPLICITLY REQUESTED OR UNAMBIGUOUSLY PART OF THE REQUEST");
     expect(particleWorkflow).toContain("A validated particle artifact and a delivered Resource Pack are separate states");
     expect(particleSkill).toContain("delivery.md only when package/handoff is requested");

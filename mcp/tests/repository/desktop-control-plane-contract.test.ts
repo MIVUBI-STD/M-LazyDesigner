@@ -42,11 +42,11 @@ describe("Desktop control-plane ownership", () => {
     expect(runtimeLease).toContain("runtime_url");
     expect(runtimeLease).toContain("runtime-session");
 
-    for (const dependency of [
-      '"apps/desktop/**"',
-      '"mcp/compatibility/blockbench.json"',
-      '"distribution/**"',
-    ]) expect(workflow).toContain(dependency);
+    // All verification workflows are deliberately manual-only. Verify the
+    // real Desktop source gate rather than retired push path filters.
+    expect(workflow).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(workflow).not.toMatch(/^  push:/m);
+    expect(workflow).toContain("apps/desktop");
   });
 
   test("Desktop versions and Rust toolchain stay synchronized", async () => {

@@ -56,7 +56,7 @@ describe("repository GitHub discipline", () => {
     }
   });
 
-  test("development routing uses canonical LazyDesigner development owners"  test("development routing uses canonical LazyDesigner development owners", async () => {
+  test("development routing uses canonical LazyDesigner development owners", async () => {
     const [root, packageRules, brief, mcpDevelopment, blockbenchDevelopment] = await Promise.all([
       source("../AGENTS.md"),
       source("AGENTS.md"),

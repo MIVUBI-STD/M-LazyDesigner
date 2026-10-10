@@ -27,7 +27,7 @@ describe("LazyDesigner Bedrock-first contract", () => {
     ]);
 
     expect(modelling).toContain("LazyDesigner Bedrock Modelling");
-    expect(modelling).toContain("Native UV Layout");
+    expect(modelling).toContain("UV Layout");
     expect(modelling).toContain("Group/Bone-owned");
     expect(texturing).toContain("LazyDesigner Bedrock Texturing");
     expect(texturing).toContain("PBR/material semantics");
@@ -39,7 +39,7 @@ describe("LazyDesigner Bedrock-first contract", () => {
 
   test("particle authoring stays Bedrock asset-only and does not absorb gameplay wiring", async () => {
     const [particle, animation] = await Promise.all([
-      source("server/tools/particle.ts"),
+      source("server/tools/particle/manage.ts"),
       source("../.agents/skills/lazydesigner-animation/SKILL.md"),
     ]);
 

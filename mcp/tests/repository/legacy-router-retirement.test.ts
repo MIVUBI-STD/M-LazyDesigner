@@ -89,6 +89,8 @@ describe("canonical LazyDesigner Skill identity", () => {
     expect(taxonomy).toContain("lazydesigner-mcp-development");
     expect(taxonomy).toContain("lazydesigner-blockbench-development");
     expect(control).toContain("contextForAuthoringDomain");
-    for (const canonical of CANONICAL_SPECIALIST_PATHS) expect(contexts).toContain(canonical);
+    const authoringOwner = await Bun.file("gateway/context/authoring.ts").text();
+    for (const canonical of CANONICAL_SPECIALIST_PATHS) expect(authoringOwner).toContain(canonical);
+    expect(contexts).toContain('from "../context/authoring"');
   });
 });

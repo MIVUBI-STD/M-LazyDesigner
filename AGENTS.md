@@ -155,9 +155,9 @@ Use status/search/describe only for stale/unknown orientation, capability identi
 
 At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`.
 
-## GitHub work and development
+### ChatGPT + GitHub/cloud-only continuity
 
-`GITHUB_RULES.md` owns remote `Local` authority, ChatGPT + GitHub/cloud-only source continuity, exact-SHA CI proof, minimal context recovery, manual CI, security and STOP; do not require the user's PC. Read-only `amati` does not mutate.
+`GITHUB_RULES.md` owns `Local`, remote-only continuity, exact-SHA CI, recovery, security and STOP; do not require the user's PC. An `amati` request is read-only.
 
 ## Development Operating Standard
 

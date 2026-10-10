@@ -93,9 +93,9 @@ describe("Skill lane and activation contract", () => {
   test("frontmatter discovery descriptions contain a negative activation boundary", async () => {
     for (const name of Object.keys(EXPECTED)) {
       const skill = await source(`../.agents/skills/${name}/SKILL.md`);
-      const frontmatter = skill.match(/^---\\n([\\s\\S]*?)\\n---/);
+      const frontmatter = skill.match(/^---\n([\s\S]*?)\n---/);
       expect(frontmatter, name).not.toBeNull();
-      const description = frontmatter?.[1].match(/^description:\\s*(.+)$/m)?.[1] ?? "";
+      const description = frontmatter?.[1].match(/^description:\s*(.+)$/m)?.[1] ?? "";
       expect(description.length, name).toBeGreaterThan(80);
       expect(description, name).toMatch(/do not/i);
     }

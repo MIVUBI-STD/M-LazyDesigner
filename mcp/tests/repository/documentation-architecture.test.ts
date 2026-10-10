@@ -135,7 +135,7 @@ describe("AI-first documentation architecture", () => {
     }
   });
 
-  test("context loading contract defines bounded bundles for every active task class"  test("context loading contract defines bounded bundles for every active task class", async () => {
+  test("context loading contract defines bounded bundles for every active task class", async () => {
     const [context, sharedStage, taxonomy] = await Promise.all([
       text("../docs/04-system/ai-context-loading.md"),
       text("../docs/04-system/authoring-stage-context.md"),
