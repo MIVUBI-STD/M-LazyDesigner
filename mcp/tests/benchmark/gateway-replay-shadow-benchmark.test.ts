@@ -6,6 +6,12 @@ import {
 } from "../../scripts/benchmark/benchmark-gateway-replay-shadow";
 
 describe("Gateway remote replay shadow benchmark", () => {
+  test("replay fixture types import the real Gateway owner", async () => {
+    const source = await Bun.file("scripts/benchmark/fixtures/gateway-replay-corpus.ts").text();
+    expect(source).toContain('from "../../../gateway/experimental/shadowRouting"');
+    expect(source).not.toContain('from "../gateway/experimental/shadowRouting"');
+  });
+
   test("corpus covers all required remote decision states", () => {
     const knowledge = new Set(
       GATEWAY_REPLAY_CORPUS.map((item) => item.knowledge)

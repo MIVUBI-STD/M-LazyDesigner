@@ -1,4 +1,4 @@
-import type { ShadowReplayCase, ShadowReplayKnowledgeState } from "../gateway/experimental/shadowRouting";
+import type { ShadowReplayCase, ShadowReplayKnowledgeState } from "../../../gateway/experimental/shadowRouting";
 
 export type ReplayKnowledgeState = ShadowReplayKnowledgeState;
 

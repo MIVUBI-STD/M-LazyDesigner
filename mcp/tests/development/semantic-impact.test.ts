@@ -1,18 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import { analyzeSemanticImpact } from "../../gateway/development/impact";
 import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
-import { listExplicitSourceOwners } from "../../gateway/control/sourceOwners";
+import { listExplicitSourceOwners } from "../../gateway/development/sourceOwners";
 
 describe("semantic affected graph", () => {
   test("maps a source change to its canonical capability and anchor test", () => {
     const report = analyzeSemanticImpact({
-      changedPaths: ["mcp/server/tools/cubes.ts"],
+      changedPaths: ["mcp/server/tools/geometry/cubes.ts"],
       sourceOwners: listExplicitSourceOwners(),
       manifest: CAPABILITY_BRANCH_MANIFEST,
     });
 
     expect(report.direct_capabilities).toContain("manage_cubes");
-    expect(report.affected_sources).toContain("mcp/server/tools/cubes.ts");
+    expect(report.affected_capabilities.find(
+      (entry) => entry.capability === "manage_cubes"
+    )?.reasons).toContain("DIRECT_SOURCE");
+    expect(report.affected_sources).toContain("mcp/server/tools/geometry/cubes.ts");
     expect(report.affected_anchor_tests).toContain(
       "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
     );
@@ -25,7 +28,7 @@ describe("semantic affected graph", () => {
 
   test("expands through produced facts without loading unrelated domains", () => {
     const report = analyzeSemanticImpact({
-      changedPaths: ["mcp/server/runtime/uvLayoutService.ts"],
+      changedPaths: ["mcp/server/runtime/uv/layoutService.ts"],
       sourceOwners: listExplicitSourceOwners(),
       manifest: CAPABILITY_BRANCH_MANIFEST,
     });

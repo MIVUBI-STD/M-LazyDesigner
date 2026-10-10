@@ -137,6 +137,34 @@ describe("Control source-owner registry", () => {
     });
   });
 
+  test("all explicit capability owners have real canonical source, regression anchor and specialist files", async () => {
+    const owners = Object.entries(listExplicitSourceOwners());
+    expect(owners.length).toBeGreaterThanOrEqual(71);
+    for (const [capability, owner] of owners) {
+      expect(owner.resolution, capability).toBeUndefined();
+      expect(owner.source, capability).toMatch(/^mcp\/[A-Za-z0-9/_-]+\.ts$/);
+      expect(await Bun.file(`../${owner.source}`).exists(), `${capability}: ${owner.source}`).toBe(true);
+      const testPath = anchorTestForSourceOwner(owner);
+      expect(testPath, capability).toMatch(/^mcp\/.*\.test\.ts$/);
+      expect(await Bun.file(`../${testPath}`).exists(), `${capability}: ${testPath}`).toBe(true);
+      if (owner.specialist) {
+        expect(owner.specialist, capability).toMatch(/^\.agents\/skills\/lazydesigner-[a-z-]+\/SKILL\.md$/);
+        expect(await Bun.file(`../${owner.specialist}`).exists(), `${capability}: ${owner.specialist}`).toBe(true);
+      }
+    }
+  });
+
+  test("development producers import canonical source ownership directly", async () => {
+    const [planner, consumer] = await Promise.all([
+      Bun.file("scripts/development/plan-affected-execution.ts").text(),
+      Bun.file("tests/development/semantic-impact.test.ts").text(),
+    ]);
+    for (const file of [planner, consumer]) {
+      expect(file).toContain('from "../../gateway/development/sourceOwners"');
+      expect(file).not.toContain('from "../../gateway/control/sourceOwners"');
+    }
+  });
+
   test("canonical capabilities never use the generic registration fallback", () => {
     const explicit = listExplicitSourceOwners();
     for (const [name, entry] of CAPABILITY_CORE_MANIFEST) {

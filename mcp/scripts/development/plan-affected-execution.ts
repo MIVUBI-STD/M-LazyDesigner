@@ -1,7 +1,7 @@
 import { analyzeSemanticImpact } from "../../gateway/development/impact";
 import { planAffectedExecution } from "../../gateway/development/affectedExecution";
 import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
-import { listExplicitSourceOwners } from "../../gateway/control/sourceOwners";
+import { listExplicitSourceOwners } from "../../gateway/development/sourceOwners";
 import {
   CAPABILITY_SEMANTIC_REGISTRY,
   diffCapabilitySemanticRegistry,
