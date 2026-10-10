@@ -28,6 +28,8 @@ import {
   preflightLayerMetadataBatch,
   resolveManagedTextureLayer,
   textureLayerContinuationState,
+  type LayerMetadataBatchUpdate,
+  type ManagedTextureLayer,
 } from "./layerState";
 
 

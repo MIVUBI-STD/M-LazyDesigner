@@ -2,7 +2,8 @@
 /// <reference types="blockbench-types" />
 import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
-import { captureScreenshot, captureAppScreenshot, imageContent } from "@/lib/blockbench/capture";
+import { captureScreenshot, captureAppScreenshot } from "@/lib/blockbench/capture";
+import { imageContent } from "@/lib/protocol/imageContent";
 import { readRenderedModelBounds, type RenderedModelBounds, type Vec3 } from "@/lib/geometry/renderedModelBounds";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { vector3Schema, projectionEnum } from "@/lib/schemas/common";
@@ -738,7 +739,7 @@ export function registerCameraTools() {
         evidence_targets as VisualEvidenceTarget[] | undefined,
         verification_risk as VisualEvidenceRisk
       );
-            if (selection.views.length === 0 ||
+      if (selection.views.length === 0 ||
           (!views?.length && selection.uncovered_targets.length > 0)) {
         throw new Error(
           `Unable to select canonical model views for evidence targets: ${selection.uncovered_targets.join(", ") || "none selected"}.`

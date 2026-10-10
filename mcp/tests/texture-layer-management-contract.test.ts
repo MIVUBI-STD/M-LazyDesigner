@@ -75,19 +75,20 @@ describe("texture layer management hardening", () => {
   });
 
   test("runtime resolves layers inside the requested texture instead of global selection", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
-
-    expect(paint).toContain("function resolveManagedTextureLayer(");
-    expect(paint).toContain("const uuidMatch = layers.find");
-    expect(paint).toContain("const nameMatches = layers.filter");
-    expect(paint).toContain("Pass the exact layer UUID");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
+    const layerState = await source("server/tools/paint/layerState.ts");
+    expect(layerState).toContain("export function resolveManagedTextureLayer(");
+    expect(layerState).toContain("const uuidMatch = layers.find");
+    expect(layerState).toContain("const nameMatches = layers.filter");
+    expect(layerState).toContain("Pass the exact layer UUID");
+    expect(paint).toContain("resolveManagedTextureLayer(texture, layer_id!)");
     expect(paint).not.toContain("if (!TextureLayer.selected)");
     expect(paint).not.toContain("const layerToDelete = TextureLayer.selected");
     expect(paint).not.toContain("TextureLayer.selected.mergeDown(false)");
   });
 
   test("Undo scopes follow native Blockbench layer semantics instead of double-snapshotting", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
 
     expect(paint).not.toContain(
       "textures: [texture],\n                layers: texture.layers,\n                bitmap: true"
@@ -110,7 +111,7 @@ describe("texture layer management hardening", () => {
   });
 
   test("batch metadata preflights once and recomposes at most once", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
     const start = paint.indexOf('if (action === "batch_metadata")');
     const end = paint.indexOf('if (action === "create_layer")', start);
     const block = paint.slice(start, end);
@@ -125,34 +126,39 @@ describe("texture layer management hardening", () => {
   });
 
   test("batch metadata rejects duplicate targets and final name collisions before Undo", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
 
-    expect(paint).toContain("requireDistinctBatchLayerTargets");
-    expect(paint).toContain("contains duplicate layer target");
-    expect(paint).toContain("would create duplicate layer name");
-    const preflight = paint.slice(
-      paint.indexOf("function preflightLayerMetadataBatch"),
-      paint.indexOf("export const paintSelectionLayerToolDocs")
+    const layerState = await source("server/tools/paint/layerState.ts");
+    expect(layerState).toContain("requireDistinctBatchLayerTargets");
+    expect(layerState).toContain("contains duplicate layer target");
+    expect(layerState).toContain("would create duplicate layer name");
+    const preflight = layerState.slice(
+      layerState.indexOf("export function preflightLayerMetadataBatch"),
+      layerState.indexOf("export type LayerMetadataBatchPlan")
     );
+    expect(paint).toContain("preflightLayerMetadataBatch(");
     expect(preflight).not.toContain("Undo.initEdit");
   });
 
   test("batch metadata rejects an all-no-op cohort before Undo", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
-    const preflight = paint.slice(
-      paint.indexOf("function preflightLayerMetadataBatch"),
-      paint.indexOf("export const paintSelectionLayerToolDocs")
+    const paint = await source("server/tools/paint/selectionLayers.ts");
+    const layerState = await source("server/tools/paint/layerState.ts");
+    const preflight = layerState.slice(
+      layerState.indexOf("export function preflightLayerMetadataBatch"),
+      layerState.indexOf("export type LayerMetadataBatchPlan")
     );
-
     expect(preflight).toContain("const anyChange = resolved.some");
     expect(preflight).toContain("already matches the requested final layer metadata");
-    expect(preflight.indexOf("already matches")).toBeLessThan(
+    expect(preflight).not.toContain("Undo.initEdit");
+    const beforeUndo = paint.slice(
+      paint.indexOf('if (action === "batch_metadata")'),
       paint.indexOf("Undo.initEdit(undoAspects)")
     );
+    expect(beforeUndo).toContain("preflightLayerMetadataBatch(");
   });
 
   test("flatten is native-only and fails closed when native semantics are unavailable", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
     const start = paint.indexOf('if (action === "flatten_layers")');
     const block = paint.slice(start);
 
@@ -164,7 +170,7 @@ describe("texture layer management hardening", () => {
   });
 
   test("layer mutations return compact continuation state", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
 
     for (const marker of [
       "layerContinuationState(texture",
@@ -181,13 +187,12 @@ describe("texture layer management hardening", () => {
   });
 
   test("no-op and ambiguity checks run before Undo", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
-
-    expect(paint).toContain("already has opacity");
-    expect(paint).toContain("already uses blend mode");
-    expect(paint).toContain("already at index");
-    expect(paint).toContain("already has the exact name");
-    expect(paint).toContain("collides case-insensitively");
+    const layerState = await source("server/tools/paint/layerState.ts");
+    expect(layerState).toContain("already has opacity");
+    expect(layerState).toContain("already uses blend mode");
+    expect(layerState).toContain("already at index");
+    expect(layerState).toContain("already has the exact name");
+    expect(layerState).toContain("collides case-insensitively");
   });
 });
 
