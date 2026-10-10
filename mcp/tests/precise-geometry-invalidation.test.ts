@@ -30,6 +30,29 @@ describe("precise geometry invalidation from receipts", () => {
       .toEqual(["REVERIFY_GEOMETRY"]);
   });
 
+  test("Group receipts return domain arrays and bounded freshness together", () => {
+    for (const [fields, expectedStale, expectedDomains] of [
+      [["visibility"], ["GEOMETRY_STRUCTURE"], ["GEOMETRY"]],
+      [["origin"], ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"], ["GEOMETRY", "ANIMATION"]],
+      [["rotation"], ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"], ["GEOMETRY", "ANIMATION"]],
+    ] as const) {
+      const delta = buildControlDelta({
+        capability: "modify_group", phaseBefore: "geometry", phaseAfter: "geometry",
+        projectUuid: "project-a", succeeded: true,
+        result: { execution: "applied", changed_fields: fields },
+      });
+      expect(delta.freshness.stale).toEqual(expectedStale);
+      expect(delta.invalidates.authoring_domains).toEqual(expectedDomains);
+    }
+    const subtreeTranslation = buildControlDelta({
+      capability: "modify_group", phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: { execution: "applied", offset: [1, 0, 0], elements: 2 },
+    });
+    expect(subtreeTranslation.freshness.stale).toContain("GEOMETRY_STRUCTURE");
+    expect(subtreeTranslation.freshness.precise).toBe(false);
+  });
+
   test("group pivot or rotation still invalidates animation motion", () => {
     const delta = buildControlDelta({
       capability: "modify_group",

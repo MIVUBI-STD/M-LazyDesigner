@@ -216,10 +216,7 @@ export function geometryInvalidation(
         if (fields.some((field) => field === "origin" || field === "rotation")) {
           stale.push("ANIMATION_MOTION");
         }
-        return {
-          stale,
-          precise: true,
-        };
+        return assetDomainsForScopes(stale);
       }
     }
   }
@@ -359,6 +356,23 @@ export function geometryFreshnessScopes(
       stale: cubeSemanticScopesFromChangedFields(changedFields),
       precise: true,
     };
+  }
+
+  if (capability === "modify_group") {
+    for (const candidate of resultCandidates(result)) {
+      if (candidate.execution === "applied" && Array.isArray(candidate.changed_fields)) {
+        const fields = candidate.changed_fields.filter(
+          (field): field is string => typeof field === "string"
+        );
+        const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
+        if (fields.some(field => field === "origin" || field === "rotation")) {
+          stale.push("ANIMATION_MOTION");
+        }
+        return { stale, precise: true };
+      }
+    }
+    // Translated subtrees do not supply changed_fields: keep the
+    // conservative default until the Runtime returns better evidence.
   }
 
   if (capability === "remove_element") {
