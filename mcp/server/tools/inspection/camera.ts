@@ -243,6 +243,34 @@ export function selectModelViewsForEvidence(
   };
 }
 
+/** Resolve camera selection without overriding explicit view intent. */
+export function resolveCaptureViewSelection(
+  views: readonly ModelView[] | undefined,
+  targets: readonly VisualEvidenceTarget[] | undefined,
+  risk: VisualEvidenceRisk = "LOW"
+) {
+  if (!views?.length) return selectModelViewsForEvidence(targets ?? [], risk);
+  const requested = [...new Set(targets ?? [])];
+  const covered = new Set<VisualEvidenceTarget>();
+  const coverage = views.map((view) => {
+    const targets = modelViewReferenceContract(view).primary_evidence.filter(
+      (target): target is VisualEvidenceTarget =>
+        requested.includes(target as VisualEvidenceTarget)
+    );
+    for (const target of targets) covered.add(target);
+    return { view, targets };
+  });
+  return {
+    requested_targets: requested,
+    risk,
+    minimum_views: [...views],
+    views: [...views],
+    coverage,
+    uncovered_targets: requested.filter((target) => !covered.has(target)),
+    expansion: [] as ModelView[],
+  };
+}
+
 export function buildModelViewReferenceComparison(
   views: readonly ModelView[]
 ) {
@@ -563,6 +591,18 @@ function cameraSpec(
   };
 }
 
+/** Camera settings applied for capture; not independent native pose attestation. */
+export function captureCameraSpecMetadata(spec: CameraSpec) {
+  return {
+    projection: spec.projection,
+    position: [...spec.position],
+    target: [...spec.target],
+    up: [...spec.up],
+    zoom: spec.zoom ?? null,
+    fov: spec.fov ?? null,
+  };
+}
+
 export function prepareOffscreenPreview(preview: Preview, size = CAPTURE_SIZE): void {
   resizePreview(preview, size, size);
 
@@ -693,20 +733,13 @@ export function registerCameraTools() {
       }
 
       const observed = readRenderedModelBounds();
-      const selection = views?.length
-        ? {
-            requested_targets: evidence_targets ?? [],
-            risk: verification_risk as VisualEvidenceRisk,
-            minimum_views: views as ModelView[],
-            views: views as ModelView[],
-            coverage: [],
-            uncovered_targets: [],
-            expansion: [],
-          }
-        : selectModelViewsForEvidence(
-            (evidence_targets ?? []) as VisualEvidenceTarget[]
-          );
-      if (selection.views.length === 0 || selection.uncovered_targets.length > 0) {
+      const selection = resolveCaptureViewSelection(
+        views as ModelView[] | undefined,
+        evidence_targets as VisualEvidenceTarget[] | undefined,
+        verification_risk as VisualEvidenceRisk
+      );
+            if (selection.views.length === 0 ||
+          (!views?.length && selection.uncovered_targets.length > 0)) {
         throw new Error(
           `Unable to select canonical model views for evidence targets: ${selection.uncovered_targets.join(", ") || "none selected"}.`
         );
@@ -752,6 +785,7 @@ export function registerCameraTools() {
         width: number;
         height: number;
         png_bytes: number;
+        camera_spec: ReturnType<typeof captureCameraSpecMetadata>;
       }> = [];
 
       for (const view of selectedViews) {
@@ -773,6 +807,7 @@ export function registerCameraTools() {
           width: captureSize,
           height: captureSize,
           png_bytes: Math.floor(image.data.length * 3 / 4) - (image.data.endsWith("==") ? 2 : image.data.endsWith("=") ? 1 : 0),
+          camera_spec: captureCameraSpecMetadata(spec),
         });
       }
 
@@ -787,6 +822,7 @@ export function registerCameraTools() {
         total_png_bytes: captures.reduce((sum, capture) => sum + capture.png_bytes, 0),
         front_direction,
         framing_mode: framingInput.mode,
+        framing_bounds: { min: [...framingBounds.min], max: [...framingBounds.max] },
         view_selection: {
           mode: views?.length ? "explicit" : "information_gain",
           requested_targets: selection.requested_targets,
@@ -795,6 +831,7 @@ export function registerCameraTools() {
           expansion_views: selection.expansion,
           coverage: selection.coverage,
           selected_views: selectedViews,
+          uncovered_targets: selection.uncovered_targets,
         },
         resolution_selection: {
           mode: size === undefined && evidence_targets?.length ? "adaptive" : "explicit_or_default",
@@ -812,6 +849,8 @@ export function registerCameraTools() {
           brightness: Settings.get("brightness"),
           view_mode: Project.view_mode,
           source: "blockbench_preview",
+          camera_spec_source: "offscreen_capture_plan",
+          native_camera_attested: false,
           in_game_verified: false,
         },
         active_editor_camera_untouched: true,
@@ -824,6 +863,12 @@ export function registerCameraTools() {
           "Canonical model views captured for observation only. Use reference_comparison to map captures to the approved five-preview board, judge differences directly, and treat correspondence metadata as non-scoring evidence only; this tool does not judge resemblance.",
       });
 
+      if (views?.length && selection.uncovered_targets.length) {
+        content.unshift({
+          type: "text",
+          text: `Explicit views do not cover canonical evidence target(s): ${selection.uncovered_targets.join(", ")}. Keep those claims UNVERIFIED until supported by direct evidence; this capture is not a full-claim PASS.`,
+        });
+      }
       return { content, structuredContent };
     },
   }, cameraToolDocs[3].status);

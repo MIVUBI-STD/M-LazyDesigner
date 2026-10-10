@@ -4,6 +4,8 @@ import {
   captureModelViewsParameters,
   modelViewReferenceContract,
   prepareOffscreenPreview,
+  resolveCaptureViewSelection,
+  captureCameraSpecMetadata,
   selectCaptureSizeForEvidence,
   selectModelViewsForEvidence,
 } from "@/server/tools/inspection/camera";
@@ -72,6 +74,47 @@ describe("capture_model_views explicit framing contract", () => {
     });
   });
 
+  test("risk is forwarded by the runtime selection route", () => {
+    expect(resolveCaptureViewSelection(undefined, ["width"], "LOW").views).toEqual(["front"]);
+    expect(resolveCaptureViewSelection(undefined, ["width"], "MEDIUM")).toMatchObject({
+      risk: "MEDIUM", minimum_views: ["front"], views: ["front", "left"], expansion: ["left"],
+    });
+    expect(resolveCaptureViewSelection(undefined, ["width"], "HIGH")).toMatchObject({
+      risk: "HIGH", minimum_views: ["front"], views: ["front", "left", "top"], expansion: ["left", "top"],
+    });
+  });
+
+  test("explicit views expose unsupported targets rather than pretending coverage", () => {
+    expect(resolveCaptureViewSelection(["front"], ["width", "attachment"], "HIGH")).toMatchObject({
+      views: ["front"], minimum_views: ["front"], expansion: [],
+      coverage: [{view: "front", targets: ["width"]}],
+      uncovered_targets: ["attachment"], risk: "HIGH",
+    });
+    expect(resolveCaptureViewSelection(["front", "left"], ["width", "attachment"], "MEDIUM")).toMatchObject({
+      uncovered_targets: [], coverage: [
+        {view: "front", targets: ["width"]},
+        {view: "left", targets: ["attachment"]},
+      ],
+    });
+    expect(resolveCaptureViewSelection(["front"], undefined, "LOW")).toMatchObject({
+      requested_targets: [], uncovered_targets: [], views: ["front"],
+    });
+  });
+
+  test("camera-plan metadata is independent of subsequent input object mutation", () => {
+    const position: [number, number, number] = [2, 4, 6];
+    const metadata = captureCameraSpecMetadata({
+      view: "front", projection: "orthographic", position,
+      target: [0, 0, 0], up: [0, 1, 0], zoom: 12,
+    });
+    expect(metadata).toEqual({
+      projection: "orthographic", position: [2, 4, 6],
+      target: [0, 0, 0], up: [0, 1, 0], zoom: 12, fov: null,
+    });
+    position[0] = 90;
+    expect(metadata.position).toEqual([2, 4, 6]);
+  });
+
   test("caps automatic evidence selection at the five-view context budget", () => {
     const result = selectModelViewsForEvidence([
       "width",
@@ -125,6 +168,16 @@ describe("capture_model_views explicit framing contract", () => {
     expect(cameraSource).toContain("min[2] + size[2] / 2");
     expect(cameraSource).not.toContain("(min[0] + max[0]) / 2");
     expect(cameraSource).toContain("this tool does not judge resemblance");
+  });
+
+  test("runtime binding exports risk, camera specs and honest proof boundaries", async () => {
+    const code = await Bun.file("server/tools/inspection/camera.ts").text();
+    expect(code).toContain("const selection = resolveCaptureViewSelection(");
+    expect(code).toContain("verification_risk as VisualEvidenceRisk");
+    expect(code).toContain("camera_spec: captureCameraSpecMetadata(spec)");
+    expect(code).toContain("framing_bounds:");
+    expect(code).toContain("uncovered_targets: selection.uncovered_targets");
+    expect(code).toContain("native_camera_attested: false");
   });
 
   test("keeps model and explicit framing Cube-owned after retirement of 3D-assisted evidence", async () => {

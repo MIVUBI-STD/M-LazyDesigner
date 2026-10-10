@@ -455,8 +455,18 @@ targets still come from grounded visual diagnosis and must not be invented from 
 alone.
 
 Explicit `views` remain authoritative when the reference requires a specific
-correspondence. If the target set itself cannot be covered within five views, narrow the
-claim instead of silently exceeding the context budget.
+correspondence. When `evidence_targets` are also given, `view_selection.uncovered_targets`
+reports which claims lack canonical view coverage. Those claims remain UNVERIFIED
+until direct image evidence supports them; the tool does not silently replace
+explicit views. If automatic selection cannot cover the targets in five views,
+narrow the claim instead of silently exceeding the context budget.
+
+Captures include computed `camera_spec` (projection, position, target, up,
+zoom/FOV) and `framing_bounds`. Compare these settings before judging
+before/after silhouettes or proportions. Prefer a shared explicit framing
+envelope when object bounds change: auto-framing can hide scale changes.
+Camera-spec metadata describes the applied capture plan, not independently
+attested native camera pose or proof of visual fidelity.
 
 ## Dynamic Evidence Reuse
 
