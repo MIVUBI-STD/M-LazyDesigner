@@ -7,8 +7,8 @@ async function source(path: string): Promise<string> {
 describe("LazyDesigner Bedrock-first contract", () => {
   test("core authoring identity stays Minecraft Bedrock specific", async () => {
     const [phase, profile, server] = await Promise.all([
-      source("lib/authoringPhase.ts"),
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/authoringStage.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
       source("server/server.ts"),
     ]);
 
@@ -50,7 +50,7 @@ describe("LazyDesigner Bedrock-first contract", () => {
   });
 
   test("generic Blockbench fallback families remain opt-in instead of normal authoring", async () => {
-    const profile = await source("lib/registrationProfile.ts");
+    const profile = await source("lib/capabilities/registrationProfile.ts");
     expect(profile).toContain('EXTENDED_LEGACY_REGISTRATION_FAMILIES = [\n  "import",\n  "ui",');
     expect(profile).toContain('DEFAULT_MCP_REGISTRATION_PROFILE: McpRegistrationProfile =\n  "bedrock_entity"');
   });
