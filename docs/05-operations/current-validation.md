@@ -58,6 +58,16 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 
 The historical 2026-10-10 gap was closed by main commit `1d026a1754033bb8c206b7f25660a906552ad72c`, registering ten manual-only workflow definitions without transferring product source. Future development remains on `Local`; `main` is not an ongoing synchronization target. Registered YAML does not prove a manual run was dispatched, completed, or accepted. Do not edit `main` or settings without separate authorization.
 
+Current compatibility authority: the historical Blockbench 5.2.0 native
+test does not confer `validated` on newer LazyDesigner builds. Only
+`liveValidatedBuilds` entries matching the exact editor version and
+current bundle identity can do so; none is recorded at this source HEAD.
+The existing Control path distinguishes missing Reference Package as
+`NEEDS_ORIENTATION` (not `READY`) without denying Runtime queries.
+Benchmark-only tracing includes known-precondition rejects; it is not
+evidence of reduced Codex tokens. Source/static changes here are not
+matching-Bun or live-Blockbench PASS.
+
 ## Current source contracts 
 Local source now declares an additional machine-local Runtime authorization credential on the native HTTPS listener and known-missing prerequisite enforcement for the normal four-tool Gateway invocation path. This is **source-level behavior and prepared regression evidence**, not an executed current-SHA Bun, native transport, or Blockbench PASS.
 

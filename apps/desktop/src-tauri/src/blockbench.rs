@@ -13,7 +13,30 @@ struct BlockbenchCompatibilityManifest {
     minimum_version: String,
     review_boundary_version: String,
     source_type_baseline: String,
-    live_validated_versions: Vec<String>,
+    live_validated_builds: Vec<ValidatedBlockbenchBuild>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ValidatedBlockbenchBuild {
+    version: String,
+    build_identity: String,
+}
+
+fn matches_live_validated_build(
+    version: &str,
+    build_identity: Option<&str>,
+    entries: &[ValidatedBlockbenchBuild],
+) -> bool {
+    let Some(build) = build_identity.filter(|value| {
+        value.len() == 71 && value.starts_with("sha256:") &&
+        value[7..].bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+    }) else {
+        return false;
+    };
+    entries.iter().any(|entry|
+        entry.version == version && entry.build_identity == build
+    )
 }
 
 #[derive(Debug, Serialize)]
@@ -55,14 +78,19 @@ pub(crate) fn parse_version(value: &str) -> Option<(u64, u64, u64)> {
     Some((major, minor, patch))
 }
 
-pub(crate) fn evaluate_compatibility(version: &str) -> Result<BlockbenchCompatibility, String> {
+fn evaluate_compatibility_for_build(
+    version: &str,
+    runtime_build_identity: Option<&str>,
+) -> Result<BlockbenchCompatibility, String> {
     let manifest = compatibility_manifest()?;
     let parsed = parse_version(version);
     let minimum = parse_version(&manifest.minimum_version)
         .ok_or_else(|| "Invalid minimum Blockbench compatibility version.".to_string())?;
     let review = parse_version(&manifest.review_boundary_version)
         .ok_or_else(|| "Invalid Blockbench review boundary version.".to_string())?;
-    let live_validated = manifest.live_validated_versions.iter().any(|candidate| candidate == version);
+    let live_validated = matches_live_validated_build(
+        version, runtime_build_identity, &manifest.live_validated_builds,
+    );
 
     let status = match parsed {
         None => "invalid",
@@ -79,6 +107,12 @@ pub(crate) fn evaluate_compatibility(version: &str) -> Result<BlockbenchCompatib
         source_type_baseline: manifest.source_type_baseline,
         live_validated,
     })
+}
+
+// Version discovery is available even while Blockbench is closed. Without a
+// verified native Runtime identity Desktop must report compatible-unverified.
+pub(crate) fn evaluate_compatibility(version: &str) -> Result<BlockbenchCompatibility, String> {
+    evaluate_compatibility_for_build(version, None)
 }
 
 fn discover_executable(system: &System) -> Result<Option<PathBuf>, String> {
@@ -287,10 +321,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn canonical_manifest_marks_recorded_live_version_validated() {
+    fn historical_editor_version_does_not_validate_current_bundle() {
         let result = evaluate_compatibility("5.2.0").unwrap();
-        assert_eq!(result.status, "validated");
-        assert!(result.live_validated);
+        assert_eq!(result.status, "compatible-unverified");
+        assert!(!result.live_validated);
+        assert_eq!(evaluate_compatibility("5.2.2").unwrap().status, "compatible-unverified");
+    }
+
+    #[test]
+    fn native_bundle_validation_needs_both_exact_version_and_build() {
+        let build = format!("sha256:{}", "a".repeat(64));
+        let entries = vec![ValidatedBlockbenchBuild {
+            version: "5.2.2".to_string(), build_identity: build.clone(),
+        }];
+        assert!(matches_live_validated_build("5.2.2", Some(&build), &entries));
+        assert!(!matches_live_validated_build("5.2.0", Some(&build), &entries));
+        assert!(!matches_live_validated_build("5.2.2", None, &entries));
+        assert!(!matches_live_validated_build("5.2.2", Some("source"), &entries));
     }
 
     #[test]

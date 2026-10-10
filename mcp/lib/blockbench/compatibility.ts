@@ -24,6 +24,23 @@ type ParsedVersion = {
 
 export const BLOCKBENCH_MIN_VERSION = manifest.minimumVersion;
 
+// A historical editor version alone is not proof for a newly built plugin.
+// Every accepted entry must correspond to an exact native-tested bundle.
+type ValidatedBuild = { version: string; buildIdentity: string };
+const liveValidatedBuilds: readonly ValidatedBuild[] = manifest.liveValidatedBuilds;
+
+export function matchesLiveValidatedBuild(
+  version: string,
+  buildIdentity: string | null | undefined,
+  entries: readonly ValidatedBuild[] = liveValidatedBuilds
+): boolean {
+  return typeof buildIdentity === "string" &&
+    /^sha256:[a-f0-9]{64}$/.test(buildIdentity) &&
+    entries.some(entry =>
+      entry.version === version && entry.buildIdentity === buildIdentity
+    );
+}
+
 function parseVersion(value: string): ParsedVersion | null {
   const match = /^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(value.trim());
   if (!match) return null;
@@ -50,13 +67,14 @@ function parsePolicyVersion(value: string): ParsedVersion {
 }
 
 export function evaluateBlockbenchCompatibility(
-  rawVersion: string
+  rawVersion: string,
+  currentBuildIdentity: string | null = null
 ): BlockbenchCompatibility {
   const version = String(rawVersion ?? "").trim();
   const parsed = parseVersion(version);
   const minimum = parsePolicyVersion(manifest.minimumVersion);
   const reviewBoundary = parsePolicyVersion(manifest.reviewBoundaryVersion);
-  const liveValidated = manifest.liveValidatedVersions.includes(version);
+  const liveValidated = matchesLiveValidatedBuild(version, currentBuildIdentity);
 
   const common = {
     version,

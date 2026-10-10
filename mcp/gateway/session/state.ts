@@ -29,9 +29,9 @@ export class GatewaySessionState {
   onRuntimeGenerationChange(): void {
     gatewayOrchestrationRecoveryState.invalidateRuntimeGeneration();
     this.executionState = null;
-    this.capabilityFacts = seedCapabilityFacts({
-      projectBound: this.capabilityFactsProjectUuid !== null,
-    });
+    // Runtime restart invalidates observed facts until the next bound status
+    // refresh. Keep the requested project UUID for safe backend rebind checks.
+    this.capabilityFacts = seedCapabilityFacts({});
   }
 
   synchronizeProject(projectUuid: string | null): void {

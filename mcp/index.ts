@@ -170,7 +170,10 @@ BBPlugin.register("blockit_mcp", {
       return;
     }
 
-    const compatibility = evaluateBlockbenchCompatibility(Blockbench.version);
+    const compatibility = evaluateBlockbenchCompatibility(
+      Blockbench.version,
+      currentBuildIdentity()
+    );
     if (
       compatibility.status === "unsupported" ||
       compatibility.status === "invalid"

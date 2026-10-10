@@ -110,7 +110,8 @@ export function buildReadiness(
   return {
     modelling_start: blocked
       ? "BLOCKED"
-      : projectReady && domainReady && contextReady && !lifecycle.orientation_required
+      : projectReady && domainReady && contextReady &&
+          reference.available && !lifecycle.orientation_required
         ? "READY"
         : "NEEDS_ORIENTATION",
     runtime_ready: runtimeReady,

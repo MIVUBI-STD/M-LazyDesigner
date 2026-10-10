@@ -49,6 +49,11 @@ async function workspace(gates: {
 }): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), "lazydesigner-lifecycle-"));
   await writeFile(join(directory, "README.md"), `# Lifecycle Fixture\n\nCurrent Stage: TEXTURING\n\nGeometry: ${gates.geometry}\n\nUV Layout: ${gates.uv}\n\nTexturing: ${gates.texturing}\n\nAnimation: ${gates.animation ?? "NOT_STARTED"}\n\nCurrent next step: Continue current stage\n\nKnown blocker(s): None\n`);
+  await writeFile(join(directory, "REFERENCE.json"), JSON.stringify({
+    schema: "lazydesigner-reference-v1",
+    asset: { name: "test-model", profile: "PROP_FURNITURE" },
+    readiness: { geometry: "READY", texture: "READY", animation: "READY" },
+  }));
   return directory;
 }
 
@@ -72,7 +77,9 @@ describe("LazyDesigner Control lifecycle readiness", () => {
 
   test("Texturing becomes legal after Geometry APPROVED and UV Layout PASS", async () => {
     const directory = await workspace({ geometry: "APPROVED", uv: "PASS", texturing: "IN_PROGRESS" });
-    const packet = await buildControlPacket(status("texturing"), { workspacePath: directory });
+    const packet = await buildControlPacket(status("texturing"), {
+      workspacePath: directory, referencePackagePath: directory,
+    });
 
     expect(packet.readiness.modelling_start).toBe("READY");
     expect(packet.readiness.reasons).not.toContain("GEOMETRY_APPROVAL_REQUIRED");
@@ -89,7 +96,9 @@ describe("LazyDesigner Control lifecycle readiness", () => {
 
   test("Animation is lifecycle-ready when upstream persisted gates are approved", async () => {
     const directory = await workspace({ geometry: "APPROVED", uv: "PASS", texturing: "APPROVED", animation: "IN_PROGRESS" });
-    const packet = await buildControlPacket(status("animation"), { workspacePath: directory });
+    const packet = await buildControlPacket(status("animation"), {
+      workspacePath: directory, referencePackagePath: directory,
+    });
 
     expect(packet.readiness.modelling_start).toBe("READY");
     expect(packet.readiness.reasons).not.toContain("TEXTURE_APPROVAL_REQUIRED");

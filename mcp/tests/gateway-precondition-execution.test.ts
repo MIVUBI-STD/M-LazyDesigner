@@ -8,6 +8,7 @@ describe("stable Gateway invoke prerequisite enforcement", () => {
     let invoked = 0;
     const session = new GatewaySessionState();
     session.replaceFacts(seedCapabilityFacts({ projectBound: false }));
+    const records: Array<{ kind: string; success: boolean; capability: string }> = [];
     const executor = new GatewayCapabilityExecutor(
       {
         invokeCapabilityWithMetadata: async () => {
@@ -16,13 +17,33 @@ describe("stable Gateway invoke prerequisite enforcement", () => {
         },
       } as any,
       { invoke: async () => { invoked++; return null; } } as any,
-      session
+      session,
+      {
+        startedAt: () => Date.now(),
+        record: (event: { kind: string; success: boolean; capability: string }) => {
+          records.push(event);
+        },
+      } as any
     );
     const result = await executor.invoke("manage_cubes", { operation: "create" }) as any;
     expect(result.isError).toBe(true);
     expect(result.structuredContent.code).toBe("CAPABILITY_PRECONDITION_BLOCKED");
     expect(result.structuredContent.requires).toContain("project_bound");
     expect(invoked).toBe(0);
+    expect(records).toEqual([
+      expect.objectContaining({
+        kind: "recovery", success: false, capability: "manage_cubes",
+      }),
+    ]);
+  });
+
+  test("a Runtime generation change invalidates stale prerequisite facts", () => {
+    const session = new GatewaySessionState();
+    session.synchronizeProject("active-model-a");
+    expect(session.facts.project_bound).toBe(true);
+    session.onRuntimeGenerationChange();
+    expect(session.projectUuid).toBe("active-model-a");
+    expect(session.facts.project_bound).toBe("unknown");
   });
 
   test("unknown preconditions retain Runtime authority instead of false blocking", async () => {

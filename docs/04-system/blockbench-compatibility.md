@@ -21,7 +21,8 @@ The compatibility manifest is intentionally small. It is the future shared input
 
 ```text
 validated
-→ exact version has matching recorded live LazyDesigner evidence
+→ exact Blockbench version AND active plugin bundle build identity match a
+  recorded successful native acceptance entry. Version-only evidence is insufficient
 
 compatible-unverified
 → version is at or above the minimum and below the review boundary,
@@ -43,7 +44,12 @@ The review boundary is not a claim that a future Blockbench version is incompati
 
 ## Current policy
 
-The source type baseline remains Blockbench types 5.1.0. Current repository evidence records live native testing against Blockbench 5.2.0. Other versions must not inherit that live proof by version proximity.
+The source type baseline remains Blockbench types 5.1.0. Historical repository
+records mention native tests on Blockbench 5.2.0, but they are not validation
+for the current plugin build. `liveValidatedBuilds` starts empty: 5.2.0,
+5.2.1 and 5.2.2 are allowed with `compatible-unverified`, not `validated`.
+The native plugin supplies its embedded `sha256:<bundle>` identity; Desktop
+version-only discovery cannot claim current-build native proof.
 
 When Blockbench publishes a new feature release:
 
@@ -52,7 +58,8 @@ release/beta appears
 → inspect Blockbench technical/API changes
 → run existing LazyDesigner source gate
 → run bounded LIVE_BLOCKBENCH compatibility harness
-→ add exact version to liveValidatedVersions only after matching live proof
+→ add {version, buildIdentity} to liveValidatedBuilds only after matching
+  exact-bundle and live-editor acceptance evidence is recorded with source SHA
 → move reviewBoundaryVersion only after the new family is reviewed
 ```
 

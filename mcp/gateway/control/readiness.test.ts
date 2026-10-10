@@ -73,6 +73,22 @@ describe("Control readiness policy", () => {
     );
   });
 
+  test("missing reference asks for orientation, never signals modelling READY", () => {
+    const snapshot = baseSnapshot();
+    const missing = buildReadiness(
+      snapshot, emptyWorkspace(), emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, null
+    );
+    expect(missing.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(missing.reasons).toContain("REFERENCE_PACKAGE_UNAVAILABLE");
+    const present = buildReadiness(
+      snapshot, emptyWorkspace(),
+      { ...emptyReference("REFERENCE_PATH_UNAVAILABLE"), available: true },
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, null
+    );
+    expect(present.modelling_start).toBe("READY");
+  });
+
   test("system development readiness does not require asset context", () => {
     const readiness = buildReadiness(
       baseSnapshot(),

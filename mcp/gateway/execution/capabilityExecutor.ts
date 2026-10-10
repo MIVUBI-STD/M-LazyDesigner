@@ -98,7 +98,20 @@ export class GatewayCapabilityExecutor {
       // Both stable invoke_capability and explicit experimental direct tools
       // enforce only proven-missing prerequisites; UNKNOWN stays Runtime-owned.
       const blocked = this.directPreconditionBlockedResult(capability, args);
-      if (blocked) return blocked;
+      if (blocked) {
+        // The AI paid for this call even though no Runtime mutation occurred.
+        // Benchmark-only recording is a zero-write no-op when disabled.
+        this.trace?.record({
+          startedAt,
+          kind: "recovery",
+          capability,
+          success: false,
+          result: blocked,
+          readOnly: null,
+          verificationClass: null,
+        });
+        return blocked;
+      }
 
       const traceMeta = traceMetaFromContext(context);
       const branch = capabilityBranchFromArguments(args);

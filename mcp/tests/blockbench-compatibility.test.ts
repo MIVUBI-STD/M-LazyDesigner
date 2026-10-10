@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   BLOCKBENCH_MIN_VERSION,
   evaluateBlockbenchCompatibility,
+  matchesLiveValidatedBuild,
 } from "@/lib/blockbenchCompatibility";
 
 describe("Blockbench compatibility policy", () => {
@@ -9,11 +10,25 @@ describe("Blockbench compatibility policy", () => {
     expect(BLOCKBENCH_MIN_VERSION).toBe("5.1.0");
   });
 
-  test("marks the current live-tested version as validated", () => {
-    expect(evaluateBlockbenchCompatibility("5.2.0")).toMatchObject({
-      status: "validated",
-      liveValidated: true,
-    });
+  test("prior native success is historical, not validation of the current build", () => {
+    for (const version of ["5.2.0", "5.2.1", "5.2.2"]) {
+      expect(evaluateBlockbenchCompatibility(version)).toMatchObject({
+        status: "compatible-unverified",
+        liveValidated: false,
+      });
+      expect(evaluateBlockbenchCompatibility(version, "sha256:" + "a".repeat(64))
+        .status).toBe("compatible-unverified");
+    }
+  });
+
+  test("only an exact native-proven version and matching bundle identity qualify", () => {
+    const build = "sha256:" + "a".repeat(64);
+    const accepted = [{ version: "5.2.2", buildIdentity: build }];
+    expect(matchesLiveValidatedBuild("5.2.2", build, accepted)).toBe(true);
+    expect(matchesLiveValidatedBuild("5.2.0", build, accepted)).toBe(false);
+    expect(matchesLiveValidatedBuild("5.2.2", "sha256:" + "b".repeat(64), accepted)).toBe(false);
+    expect(matchesLiveValidatedBuild("5.2.2", null, accepted)).toBe(false);
+    expect(matchesLiveValidatedBuild("5.2.2", "source", accepted)).toBe(false);
   });
 
   test("allows an in-family prerelease without pretending it was live-tested", () => {
