@@ -16,6 +16,15 @@ export type AuthoringRecipeApplyAdapter = {
   ): Promise<string> | string;
   remove(instanceId: string, uuid: string, recipeId: string): Promise<void> | void;
   restore?(snapshot: AuthoringRecipeNativeSnapshot): Promise<void> | void;
+  /**
+   * Read-only final native safety check while the same Undo edit is open.
+   * May veto an edit; it must never commit, undo or modify geometry.
+   */
+  verifyBeforeCommit?(context: {
+    before: AuthoringRecipeNativeSnapshot;
+    after: AuthoringRecipeNativeSnapshot;
+    affectedInstanceIds: readonly string[];
+  }): Promise<void> | void;
   commitUndo?(): Promise<void> | void;
   cancelUndo?(): Promise<void> | void;
 };
@@ -113,8 +122,25 @@ export async function applyAuthoringRecipeIncrementalAtomic(
     if (afterFingerprint === actualBeforeFingerprint) {
       throw new Error("RECIPE_APPLY_POSTCONDITION_FAILED: affected transaction did not change native owned state.");
     }
-    await adapter.commitUndo?.();
-    return {
+    if (adapter.verifyBeforeCommit) {
+      // Pass detached snapshots to the read-only guard and prove that the
+      // check did not itself mutate the native model.
+      await adapter.verifyBeforeCommit({
+        before: structuredClone(before),
+        after: structuredClone(after),
+        affectedInstanceIds: affectedIds,
+      });
+      const checked = await adapter.readOwned(nextRecipe.id);
+      if (fingerprintAuthoringRecipeNativeSnapshot(checked) !== afterFingerprint) {
+        throw new Error(
+          "RECIPE_PRECOMMIT_STATE_CHANGED: a verification hook changed the native model."
+        );
+      }
+      assertAuthoringRecipeNativeMatchesCompiled(checked, nextRecipe);
+    }
+    // Construct the receipt before committing. Commit must be the last
+    // potentially stateful operation; nothing may throw after it succeeds.
+    const receipt: AuthoringRecipeApplyReceipt = {
       schema: 1, execution: "applied", recipe_id: nextRecipe.id,
       previous_recipe_fingerprint: rebuild.previous_recipe_fingerprint,
       next_recipe_fingerprint: rebuild.next_recipe_fingerprint,
@@ -135,8 +161,36 @@ export async function applyAuthoringRecipeIncrementalAtomic(
         animation_motion: true,
       },
     };
+    await adapter.commitUndo?.();
+    return receipt;
   } catch (error) {
-    try { await adapter.restore?.(before); } finally { await adapter.cancelUndo?.(); }
+    // Always attempt cancellation even if a custom restore hook failed.
+    // Never use an unscoped Undo.undo(): it could revert unrelated work.
+    const rollbackFailures: string[] = [];
+    try {
+      await adapter.restore?.(before);
+    } catch (failure) {
+      rollbackFailures.push("restore: " + String(failure));
+    }
+    try {
+      await adapter.cancelUndo?.();
+    } catch (failure) {
+      rollbackFailures.push("cancel: " + String(failure));
+    }
+    try {
+      const restored = await adapter.readOwned(previousRecipe.id);
+      if (fingerprintAuthoringRecipeNativeSnapshot(restored) !== actualBeforeFingerprint) {
+        rollbackFailures.push("native state differs from the original recipe snapshot");
+      }
+    } catch (failure) {
+      rollbackFailures.push("readback: " + String(failure));
+    }
+    if (rollbackFailures.length) {
+      throw new Error(
+        "RECIPE_APPLY_ROLLBACK_UNVERIFIED: " + rollbackFailures.join("; "),
+        { cause: error }
+      );
+    }
     throw error;
   }
 }

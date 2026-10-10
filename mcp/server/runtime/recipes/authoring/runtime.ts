@@ -80,6 +80,17 @@ function extendPlacement(cube: Cube, placement: CompiledCubePlacement, recipeId:
 
 export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): AuthoringRecipeApplyAdapter {
   let created: Cube[] = [];
+  let existingAtBegin: Cube[] = [];
+  let activeUndoSave: unknown | null = null;
+  let undoIndexAtBegin: number | null = null;
+  const requireOwnedUndo = () => {
+    if (!activeUndoSave || Undo.current_save !== activeUndoSave ||
+        undoIndexAtBegin === null || Undo.index !== undoIndexAtBegin) {
+      throw new Error(
+        "RECIPE_NATIVE_UNDO_OWNERSHIP_LOST: another editor operation changed the active Undo transaction."
+      );
+    }
+  };
   return {
     readOwned: (requestedRecipeId) => {
       if (requestedRecipeId !== recipeId) throw new Error("Parametric recipe adapter recipe identity mismatch.");
@@ -93,11 +104,16 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
         const ownership = readAuthoringRecipeCubeOwnership(cube)!;
         return affected.has(ownership.instance_id);
       });
+      existingAtBegin = existing;
+      const undoIndex = Undo.index;
       Undo.initEdit({
         elements: existing,
         outliner: true,
         collections: [],
       });
+      activeUndoSave = Undo.current_save ?? null;
+      undoIndexAtBegin = undoIndex;
+      requireOwnedUndo();
     },
     upsert: (placement, existingUuid, requestedRecipeId) => {
       if (requestedRecipeId !== recipeId) throw new Error("Parametric recipe upsert identity mismatch.");
@@ -128,16 +144,53 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
       if (requestedRecipeId !== recipeId) throw new Error("Parametric recipe removal identity mismatch.");
       resolveOwnedCube(recipeId,instanceId,uuid).remove();
     },
+    verifyBeforeCommit: ({ affectedInstanceIds }) => {
+      requireOwnedUndo();
+      // Verify all newly authored cubes still exist and carry exact recipe
+      // ownership. This does not substitute for reference-image visual QA.
+      const affected = new Set(affectedInstanceIds);
+      for (const cube of created) {
+        if (!(Cube.all ?? []).includes(cube)) {
+          throw new Error("RECIPE_NATIVE_PRECOMMIT_MISSING_CUBE: " + cube.uuid);
+        }
+        const owner = readAuthoringRecipeCubeOwnership(cube);
+        if (!owner || owner.recipe_id !== recipeId ||
+            !affected.has(owner.instance_id)) {
+          throw new Error("RECIPE_NATIVE_PRECOMMIT_OWNERSHIP_MISMATCH: " + cube.uuid);
+        }
+      }
+    },
     commitUndo: () => {
-      Undo.finishEdit("LazyDesigner parametric recipe", {
-        elements: created,
-      });
-      created = [];
+      requireOwnedUndo();
+      // Update dependent rendered state *before* committing the native edit.
+      // After finishEdit succeeds we must not risk another throwing operation.
       Canvas.updateAll();
+      // UndoSystem.save.load() removes elements present in the opposite
+      // snapshot but not this one. Include surviving updated Cubes and new
+      // Cubes in the post-save; omit deleted Cubes so redo removes them.
+      // Outliner is recorded in both directions for create/remove ordering.
+      const surviving = existingAtBegin.filter((cube) =>
+        (Cube.all ?? []).includes(cube)
+      );
+      Undo.finishEdit("LazyDesigner parametric recipe", {
+        elements: [...surviving, ...created],
+        outliner: true,
+        collections: [],
+      });
+      activeUndoSave = null;
+      undoIndexAtBegin = null;
+      created = [];
+      existingAtBegin = [];
     },
     cancelUndo: () => {
-      if (Undo.current_save) Undo.cancelEdit(true);
+      // Native Blockbench 5.2 cancelEdit(true) replays this transaction's
+      // before-save. Do NOT cancel another tool's active edit.
+      requireOwnedUndo();
+      Undo.cancelEdit(true);
+      activeUndoSave = null;
+      undoIndexAtBegin = null;
       created = [];
+      existingAtBegin = [];
       Canvas.updateAll();
     },
   };

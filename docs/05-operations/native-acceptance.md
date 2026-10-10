@@ -180,6 +180,32 @@ Save/export the acceptance asset, close/reopen as appropriate, then verify:
 
 Minecraft in-game behavior is outside this acceptance unless separately tested.
 
+### Parametric recipe Undo/Redo and pre-commit cancellation
+
+On the same exact installed Blockbench build, create a recipe change that
+**updates one existing Cube, removes one Cube, and adds one new Cube** as a
+single affected-only apply. Verify all of these using native state and UUIDs:
+
+- successful apply produces one named native Undo entry with unchanged
+  unrelated Cubes and a post-state snapshot containing every surviving
+  updated Cube plus every created Cube (not deleted Cubes);
+- **Undo** restores the exact original instance IDs, Cube UUIDs, transforms
+  and outliner hierarchy; **Redo** reconstructs the exact updated/created
+  state while preserving deletions and unaffected neighbors;
+- a forced read-only pre-commit failure occurs before `Undo.finishEdit`;
+  `Undo.cancelEdit(true)` restores the baseline owned-state fingerprint
+  without consuming another editor transaction;
+- when another active editor Undo save has taken ownership, the recipe
+  adapter refuses to cancel/finish it and returns explicit uncertainty;
+- if readback does not match the original fingerprint after cancellation,
+  report `RECIPE_APPLY_ROLLBACK_UNVERIFIED` rather than asserting recovery.
+
+This is a LIVE_BLOCKBENCH acceptance scenario **not executed by this
+document**. A landmark difference measured *after* commit is not an
+automatic native rollback: first establish the current native edit's
+identity and perform separate authorized recovery; never issue unscoped
+`Undo.undo()` after intervening work.
+
 ## 9. Cost to Accepted Result
 
 Record only actionable measurements:

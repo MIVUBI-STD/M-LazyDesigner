@@ -354,7 +354,19 @@ vanished discrepancy.
 
 If the measurement regresses, stop the correction and **undo the actual
 native edit at its execution owner** before recapturing; correction-loop code
-does not invoke native Undo or claim it has reverted model state. A measured
+does not invoke native Undo or claim it has reverted model state.
+
+The parametric recipe's native apply transaction now has a separate safety
+boundary: while the original `Undo.initEdit` remains open, a read-only
+`verifyBeforeCommit` check can reject the candidate before
+`Undo.finishEdit`. The adapter verifies exact ownership of the current
+Undo save and created Cubes. On rejection the same native owner uses
+`Undo.cancelEdit(true)`; the transaction checks that the before-state
+fingerprint is restored and surfaces `RECIPE_APPLY_ROLLBACK_UNVERIFIED`
+if not. This must **not** be described as post-commit automatic rollback
+or as automatically wired landmark judgment. Landmark before/after
+measurements performed after an apply commit remain diagnostic until an
+actual execution-owner recovery is completed. A measured
 improvement is supporting diagnostic evidence only: a fresh actual
 reference↔model comparison and independent semantic observation still own
 `IMPROVED`, `RESOLVED` and final visual `PASS` decisions. Do not derive

@@ -52,6 +52,112 @@ describe("Parametric authoring atomic affected-only transaction", () => {
     expect(fake.state.cubes.find((cube) => cube.instance_id === "line:2")?.uuid).toContain("uuid-line:2");
   });
 
+  test("read-only pre-commit gate vetoes mutation and restores exact native baseline", async () => {
+    const previous = recipe(2,4);
+    const next = recipe(3,4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    let checked = 0;
+    await expect(applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline),
+      {
+        ...fake.adapter,
+        verifyBeforeCommit({ before, after, affectedInstanceIds }) {
+          checked++;
+          expect(before).toEqual(baseline);
+          expect(after).toEqual(snapshotFromRecipe(next));
+          expect(affectedInstanceIds).toEqual(["line:1", "line:2", "line:3"]);
+          expect(fake.committed).toBe(false);
+          throw new Error("LANDMARK_PRECOMMIT_REGRESSED: measured point worsened.");
+        },
+      }
+    )).rejects.toThrow("LANDMARK_PRECOMMIT_REGRESSED");
+    expect(checked).toBe(1);
+    expect(fake.cancelled).toBe(true);
+    expect(fake.committed).toBe(false);
+    expect(fake.state).toEqual(baseline);
+  });
+
+  test("successful pre-commit evidence check runs before native commit", async () => {
+    const previous = recipe(2,4);
+    const next = recipe(3,4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    const operations: string[] = [];
+    const receipt = await applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline),
+      {
+        ...fake.adapter,
+        verifyBeforeCommit() {
+          operations.push("verify");
+          expect(fake.committed).toBe(false);
+        },
+        commitUndo() {
+          operations.push("commit");
+        },
+      }
+    );
+    expect(receipt.execution).toBe("applied");
+    expect(operations).toEqual(["verify", "commit"]);
+  });
+
+  test("verification hook cannot modify native Cube state before Undo is committed", async () => {
+    const previous = recipe(2,4);
+    const next = recipe(3,4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    await expect(applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline),
+      {
+        ...fake.adapter,
+        verifyBeforeCommit({ before, after }) {
+          // A buggy inspector tries to change both its snapshot and native.
+          before.cubes[0]!.from = [77, 0, 0];
+          after.cubes[0]!.from = [88, 0, 0];
+          fake.state.cubes[1]!.from = [99, 0, 0];
+        },
+      }
+    )).rejects.toThrow("RECIPE_PRECOMMIT_STATE_CHANGED");
+    expect(fake.committed).toBe(false);
+    expect(fake.cancelled).toBe(true);
+    expect(fake.state).toEqual(baseline);
+  });
+
+  test("native cancel is attempted even when a custom restore hook fails", async () => {
+    const previous = recipe(2,4);
+    const next = recipe(3,4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    await expect(applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline),
+      {
+        ...fake.adapter,
+        restore: () => { throw new Error("restore cannot run"); },
+        verifyBeforeCommit: () => { throw new Error("check rejected"); },
+      }
+    )).rejects.toThrow("RECIPE_APPLY_ROLLBACK_UNVERIFIED");
+    expect(fake.cancelled).toBe(true);
+    expect(fake.committed).toBe(false);
+  });
+
+  test("a failed edit with unverified rollback never reports atomic recovery", async () => {
+    const previous = recipe(2,4);
+    const next = recipe(3,4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    await expect(applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline),
+      {
+        ...fake.adapter,
+        restore: () => {}, // intentionally defective recovery adapter
+        verifyBeforeCommit: () => { throw new Error("precommit rejected"); },
+      }
+    )).rejects.toThrow("RECIPE_APPLY_ROLLBACK_UNVERIFIED");
+    expect(fake.committed).toBe(false);
+    expect(fake.cancelled).toBe(true);
+    expect(fake.state).not.toEqual(baseline);
+  });
+
   test("count increase creates only new instances; count reduction removes only deleted instances", async () => {
     const base = recipe(2,3);
     const larger = recipe(2,5);
