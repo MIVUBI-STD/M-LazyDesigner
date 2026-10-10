@@ -1,6 +1,6 @@
 # LazyDesigner Implementation Map
 
-Updated: 2026-10-01
+Updated: 2026-10-10
 
 This file maps **current source ownership only**. Product workflow belongs in `docs/01-product/flow.md`; AI context loading in `docs/04-system/ai-context-loading.md`; continuation/proof in `docs/05-operations/`.
 
@@ -18,6 +18,41 @@ ChatGPT Reference Preparation
 ```
 
 There is one authoring system. Supporting docs/Skills/QA may project or interpret state; they do not create alternate Runtime, routing, or authored-state systems.
+
+## Navigation graph: source owner to proof
+
+This diagram **links existing owners**; it does not generate capability metadata,
+define a new runtime graph, or require extra reads on the Codex hot path.
+Follow only the branch relevant to the active task.
+
+```mermaid
+flowchart TD
+  Task{Current task}
+  Task -->|Asset authoring| Control["gateway/control/ — stage/context/readiness"]
+  Control --> Cap["gateway/capabilities/manifest.ts — branch graph"]
+  Cap --> Exec["gateway/execution/ — invoke and control_delta"]
+  Exec --> Native["server/runtime/ + server/tools/ — Blockbench executor"]
+  Native --> Evidence["receipts + affected verification / approval"]
+  Task -->|System development| Owner["gateway/development/sourceOwners.ts"]
+  Owner --> Source["exact implementation owner + anchor test"]
+  Source --> Impact["gateway/development/affectedExecution.ts"]
+  Impact --> Proof["minimal relevant verifier / matching proof"]
+```
+
+| Question | Canonical owner | Next read only when needed |
+| --- | --- | --- |
+| Which Stage/specialist now? | `gateway/control/` + `lib/capabilities/authoringStage.ts` | `docs/04-system/authoring-stage-context.md` for cross-stage ambiguity |
+| Which tool and prerequisites? | `gateway/capabilities/manifest.ts` + `graph.ts` | Runtime tool schema for execution |
+| What state/evidence was invalidated? | `gateway/control/delta/` + `lib/orchestration/` | affected current evidence |
+| Who fixes capability source? | `gateway/development/sourceOwners.ts` | exact module + `anchor_test` |
+| Which tests are affected? | `gateway/development/affectedExecution.ts` | focused verifier |
+| What is proven? | `docs/05-operations/current-validation.md` | exact-SHA executed CI/native evidence |
+
+A branch without `graph` metadata is **not automatically defective**:
+some tools need only Runtime validation. `READY/UNKNOWN/BLOCKED` describes
+known prerequisites; it does not establish visual approval. Never infer
+source ownership from a capability's semantic similarity or a diagram arrow.
+If the exact owner exists, do not traverse document navigation again.
 
 ## Canonical Skills
 

@@ -13,6 +13,20 @@ This folder owns AI-facing capability discovery and routing.
 - `semanticDependencyMatrix.ts` — product semantic-surface dependency and refresh mapping.
 - `semanticFreshness.ts` — deterministic consumer freshness against semantic catalog revisions.
 
+### Capability dependency graph semantics
+
+```text
+manifest branch → requires → READY | UNKNOWN | BLOCKED
+                → successful Runtime receipt → produces / invalidates
+                → Control delta → bounded verify / continue / handoff
+```
+
+`UNKNOWN` deliberately defers to the native Runtime; a known-false prerequisite
+blocks direct invoke. Missing `graph` fields do not imply missing functionality
+or permission to invent prerequisites. `lib/capabilities/manifest.ts` owns
+Runtime capability and Stage metadata; `gateway/development/sourceOwners.ts`
+owns engineering ownership; neither is duplicated here.
+
 Same-purpose files retained at the `gateway/` root are compatibility re-exports only. Do not add new capability data there.
 
 Runtime tool schemas remain authoritative for validation. Core lifecycle/tier/Stage metadata lives in `lib/capabilities/manifest.ts`. Engineering verification/check selection remains under `gateway/development/`; product status and capability surfaces must not depend on development-only planners.

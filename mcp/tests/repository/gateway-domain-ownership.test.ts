@@ -61,4 +61,23 @@ describe("gateway canonical ownership", () => {
 
     expect(violations).toEqual([]);
   });
+  test("flow graph navigation agrees with canonical routing owners", async () => {
+    const [flow, map, control, development, capability] = await Promise.all([
+      Bun.file("../docs/01-product/flow.md").text(),
+      Bun.file("../docs/04-system/implementation-map.md").text(),
+      Bun.file("gateway/control/README.md").text(),
+      Bun.file("gateway/development/README.md").text(),
+      Bun.file("gateway/capabilities/README.md").text(),
+    ]);
+    expect(flow).toContain("SYSTEM_DEVELOPMENT");
+    expect(flow).toContain("Stable four-tool Gateway");
+    expect(map).toContain("gateway/development/sourceOwners.ts");
+    expect(map).toContain("gateway/development/affectedExecution.ts");
+    expect(map).toContain("gateway/capabilities/manifest.ts");
+    expect(control).toContain("compatibility-only re-export of Development source owners");
+    expect(control).not.toContain("sourceOwners/         domain-scoped");
+    expect(development).toContain("sourceOwners.ts (exact source + anchor_test)");
+    expect(capability).toContain("READY | UNKNOWN | BLOCKED");
+    // Static navigation contract only; does not claim live Gateway or visual proof.
+  });
 });

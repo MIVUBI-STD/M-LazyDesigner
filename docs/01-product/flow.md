@@ -1,6 +1,6 @@
 # LazyDesigner End-to-End Flow
 
-Updated: 2026-09-11
+Updated: 2026-10-10
 
 This file owns only the **product-level sequence**. It must not duplicate detailed Reference, Authoring, Control, or Operations contracts.
 
@@ -38,6 +38,36 @@ Asset Authoring        → ../03-authoring/README.md
 Control / System       → ../04-system/README.md
 Current Operations     → ../05-operations/README.md
 ```
+
+## Two execution paths at a glance
+
+These diagrams are navigation projections, not separate routing/state authority.
+Refer to [Implementation Map](../04-system/implementation-map.md) only when
+source ownership is the question; normal Codex asset authoring stays on Control.
+
+```mermaid
+flowchart TD
+  U[User request] --> M{Task class?}
+  M -->|ASSET_AUTHORING| R[Approved reference / requirements]
+  R --> C[Control: active stage and minimum context]
+  C --> S[Exactly one active specialist]
+  S --> G[Stable four-tool Gateway]
+  G --> N[Runtime / Blockbench native]
+  N --> V{Affected evidence valid?}
+  V -->|Correction needed| C
+  V -->|Ready for review| A[Approval / authorized checkpoint]
+  A --> F[Finalization]
+  M -->|SYSTEM_DEVELOPMENT| O[Exact source owner / scope]
+  O --> I[Dependency impact / affected tests]
+  I --> W[Bounded source change]
+  W --> P[Matching proof / commit]
+```
+
+Only AUTHORING↔Animation changes Runtime surface; Geometry↔Texturing
+changes semantic owner inside AUTHORING. A missing Reference Package means
+`NEEDS_ORIENTATION` for authoring readiness, not a claim of quality failure.
+Existing-asset corrections can reuse the accepted reference and skip unrelated
+asset intake; `SYSTEM_DEVELOPMENT` never inherits authoring stage gates.
 
 ## 1. Request Classification
 

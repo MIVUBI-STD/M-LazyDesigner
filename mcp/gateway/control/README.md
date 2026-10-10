@@ -23,11 +23,13 @@ Control owns:
 - Reference Package projection;
 - `GEOMETRY_CONTEXT | TEXTURE_CONTEXT | ANIMATION_CONTEXT`;
 - content-addressed Skill/profile handles;
-- bounded source/specialist/test ownership for system development;
+- bounded **projection** of development source/specialist/test ownership
+  (canonical mappings belong to `../development/sourceOwners.ts`);
 - capability-domain metadata;
 - mutation invalidation and next-intent delta.
 
 Control does not own:
+- canonical system-development source-owner mappings or verifier selection;
 - user/reference truth;
 - Skill prose or modelling knowledge;
 - Tool schemas/implementation;
@@ -45,7 +47,7 @@ referencePackage.ts   REFERENCE.json filesystem/cache boundary
 workspace.ts          Active Workspace projection
 contextProjection.ts  stage-specific authoring context
 contexts.ts           Skill/profile paths + content-addressed context handles
-sourceOwners/         domain-scoped capability source-owner maps\nsourceOwners.ts        source-owner composition + fallback
+sourceOwners.ts       compatibility-only re-export of Development source owners
 registry.ts           compatibility facade
 snapshot.ts           live Gateway/Runtime orientation
 packetContext.ts      task identity + context delivery/cache semantics
