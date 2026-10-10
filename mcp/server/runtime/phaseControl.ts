@@ -12,6 +12,7 @@ import {
 import {
   ANIMATION_HANDOFF_READINESS_RULE,
   animationHandoffReadinessSchema,
+  assertAnimationCheckpointCurrent,
   summarizeAnimationHandoffReadiness,
 } from "@/lib/authoring/authoringReadiness";
 
@@ -68,6 +69,24 @@ export function registerPhaseControlTool(): void {
         const readinessSummary = readiness
           ? summarizeAnimationHandoffReadiness(readiness)
           : null;
+
+        // Verify actual saved-project state, not only caller-supplied flags.
+        // One native stat at AUTHORING→Animation; other stages incur no I/O.
+        if (target_phase === "animation") {
+          if (!readiness) throw new Error("Animation readiness is required.");
+          const project = typeof Project === "undefined" ? null : Project;
+          const format = typeof Format === "undefined"
+            ? null : (Format as { id?: string } | null);
+          assertAnimationCheckpointCurrent(readiness, project, format?.id, (checkpoint) => {
+            // @ts-ignore - Blockbench permission-scoped native module.
+            const fs = requireNativeModule("fs", {
+              message: "LazyDesigner verifies the saved .bbmodel before Animation.",
+              optional: false,
+            }) as Pick<typeof import("node:fs"), "statSync"> | null;
+            if (!fs) throw new Error("Native checkpoint filesystem access unavailable.");
+            return fs.statSync(checkpoint);
+          });
+        }
 
         // Apply the canonical Runtime surface/focus before returning the handoff
         // receipt. Gateway affinity follows this result; it does not own Runtime
