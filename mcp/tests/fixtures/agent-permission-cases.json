@@ -52,7 +52,11 @@
         "task": "DEVELOP",
         "action": "source-write",
         "path": "mcp/gateway/development/intent.ts",
-        "authorized_scope": true
+        "authorized_scope": true,
+        "branch": "Local",
+        "task_scope_paths": [
+          "mcp/gateway/development/intent.ts"
+        ]
       },
       "expected": "allow"
     },
@@ -74,7 +78,10 @@
         "action": "source-write",
         "branch": "main",
         "path": "docs/README.md",
-        "authorized_scope": true
+        "authorized_scope": true,
+        "task_scope_paths": [
+          "docs/README.md"
+        ]
       },
       "expected": "ask"
     },
@@ -85,7 +92,11 @@
         "task": "DEVELOP",
         "action": "source-write",
         "path": ".github/workflows/repository-verify.yml",
-        "authorized_scope": true
+        "authorized_scope": true,
+        "branch": "Local",
+        "task_scope_paths": [
+          ".github/workflows/repository-verify.yml"
+        ]
       },
       "expected": "allow"
     },
@@ -107,7 +118,11 @@
         "task": "DEVELOP",
         "action": "source-write",
         "path": ".agents/skills/lazydesigner-modelling/SKILL.md",
-        "authorized_scope": true
+        "authorized_scope": true,
+        "branch": "Local",
+        "task_scope_paths": [
+          ".agents/skills/lazydesigner-modelling/SKILL.md"
+        ]
       },
       "expected": "allow"
     },
@@ -118,7 +133,11 @@
         "task": "DEVELOP",
         "action": "source-write",
         "path": "mcp/tests/fixtures/skill-routing-cases.json",
-        "authorized_scope": true
+        "authorized_scope": true,
+        "branch": "Local",
+        "task_scope_paths": [
+          "mcp/tests/fixtures/skill-routing-cases.json"
+        ]
       },
       "expected": "allow"
     },
@@ -382,6 +401,113 @@
         "task": "DEVELOP",
         "action": "shell-exec",
         "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "write-needs-explicit-branch",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "docs/README.md",
+        "authorized_scope": true,
+        "task_scope_paths": [
+          "docs/README.md"
+        ]
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "write-needs-exact-files",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "branch": "Local",
+        "path": "docs/README.md",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "write-other-file-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "branch": "Local",
+        "path": "docs/README.md",
+        "authorized_scope": true,
+        "task_scope_paths": [
+          "mcp/server/net.ts"
+        ]
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "write-batch-file-allowed",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "branch": "Local",
+        "path": "docs/README.md",
+        "authorized_scope": true,
+        "task_scope_paths": [
+          "docs/README.md",
+          "docs/04-system/README.md"
+        ]
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "write-task-scope-traversal-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "branch": "Local",
+        "path": "docs/README.md",
+        "authorized_scope": true,
+        "task_scope_paths": [
+          "docs/../README.md"
+        ]
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "write-glob-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "branch": "Local",
+        "path": "mcp/**",
+        "authorized_scope": true,
+        "task_scope_paths": [
+          "mcp/**"
+        ]
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "read-private-key-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "INSPECT",
+        "action": "read",
+        "path": "mcp/keys/secret.pem"
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "read-p12-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "INSPECT",
+        "action": "read",
+        "path": "mcp/keys/sign.p12"
       },
       "expected": "deny"
     }

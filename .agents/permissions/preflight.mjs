@@ -10,6 +10,7 @@ function safeRepoPath(path) {
  if(typeof path!=="string"||path.length===0||path.length>4096||path.startsWith("/")||/[%:\\\u0000-\u001f]/.test(path))return false;
  const segments=path.split("/");
  if(segments.some(part=>!part||part==="."||part===".."||[".git",".env",".ssh","secrets","credentials"].includes(part.toLowerCase())||part.toLowerCase().startsWith(".env.")))return false;
+ if(/\.(?:pem|p12|pfx|key|jks|keystore)$/i.test(path)||path.includes("*")||path.includes("?"))return false;
  return true;
 }
 
@@ -22,8 +23,8 @@ function evaluatePreflight(request) {
  if(!LANES.has(lane)||!TASKS.has(task)||!ACTIONS.has(action))return deny("Unknown lane, task or action.");
  const context=request.execution_context??"REMOTE_GITHUB";
  if(!CONTEXTS.has(context))return deny("Unknown execution context.");
- const branch=request.branch??"Local";
- if(branch!=="Local"&&branch!=="main")return deny("Unrecognized branch authority.");
+ const branch=request.branch;
+ if(branch!==undefined&&branch!=="Local"&&branch!=="main")return deny("Unrecognized branch authority.");
  if(request.authorized_scope!==undefined&&typeof request.authorized_scope!=="boolean")return deny("Invalid scope authorization claim.");
  if(request.path!==undefined&&!safeRepoPath(request.path))return deny("Unsafe or sensitive repository path.");
  if(action==="force-push"||action==="execute-untrusted"||action==="secret-access")return deny("Unsafe action is prohibited.");
@@ -42,9 +43,19 @@ function evaluatePreflight(request) {
     ? (ROOT_WRITABLE.has(path)||["mcp/","apps/","distribution/","docs/","experiments/",".github/",".agents/permissions/"].some(prefix=>path.startsWith(prefix)))
     : (path.startsWith(".agents/skills/")||SKILL_OWNER_PATHS.has(path));
    if(!allowed)return deny("Path is outside the selected lane canonical owner.");
+   if(branch===undefined)return ask("Source writes require an explicitly pinned branch.");
    if(branch!=="Local")return ask("Main is stable/release authority; separate approval required.");
    if(request.authorized_scope!==true)return ask("Current user has not authorized this exact write scope.");
-   return allow("Local canonical owner write authorized in selected lane.");
+   if(!Array.isArray(request.task_scope_paths)||request.task_scope_paths.length===0){
+     return ask("Source writes require a nonempty exact-file task_scope_paths list.");
+   }
+   if(request.task_scope_paths.some(scope=>!safeRepoPath(scope))){
+     return deny("Task scope contains an unsafe or invalid path.");
+   }
+   if(!request.task_scope_paths.includes(path)){
+     return deny("Target file is outside the explicitly declared task scope.");
+   }
+   return allow("Local canonical file is inside the declared task scope.");
  }
  if(action==="run-verifier"){
    if(!["DEVELOP","REPAIR","VALIDATE"].includes(task))return deny("Task does not authorize verification execution.");
@@ -73,7 +84,7 @@ function evaluatePreflight(request) {
 
 export { evaluatePreflight };
 
-// Usage: node .agents/permissions/preflight.mjs '{"lane":"DEVELOPMENT","task":"DEVELOP","action":"source-write","branch":"Local","path":"docs/README.md","authorized_scope":true}'
+// Usage: node .agents/permissions/preflight.mjs '{"lane":"DEVELOPMENT","task":"DEVELOP","action":"source-write","branch":"Local","path":"docs/README.md","task_scope_paths":["docs/README.md"],"authorized_scope":true}'
 if (process.argv[1] && new URL(import.meta.url).pathname.replaceAll("%20", " ").endsWith(process.argv[1].replaceAll("\\", "/"))) {
   if (!process.argv[2]) {
     console.error("Usage: node .agents/permissions/preflight.mjs '<request-json>'");

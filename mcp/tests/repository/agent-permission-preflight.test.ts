@@ -21,6 +21,21 @@ describe("repository agent permission preflight", () => {
     }
   });
 
+  test("source mutations require pinned Local and explicitly declared file paths", () => {
+    const request = {
+      lane: "DEVELOPMENT", task: "DEVELOP", action: "source-write",
+      path: "docs/README.md", authorized_scope: true,
+    };
+    expect(evaluatePreflight({ ...request, task_scope_paths: ["docs/README.md"] }).decision).toBe("ask");
+    expect(evaluatePreflight({ ...request, branch: "Local" }).decision).toBe("ask");
+    expect(evaluatePreflight({
+      ...request, branch: "Local", task_scope_paths: ["mcp/server/net.ts"],
+    }).decision).toBe("deny");
+    expect(evaluatePreflight({
+      ...request, branch: "Local", task_scope_paths: ["docs/README.md"],
+    }).decision).toBe("allow");
+  });
+
   test("specialist selection never enlarges the active work-lane permission", () => {
     const task = { lane: "IN_USE", task: "REPAIR", action: "source-write", path: "mcp/server/net.ts", authorized_scope: true };
     expect(evaluatePreflight(task).decision).toBe("deny");
