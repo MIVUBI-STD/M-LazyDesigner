@@ -10,6 +10,10 @@ in `docs/05-operations/current-validation.md`.
 
 Default-branch workflow registration history stays in `current-validation.md`; `Local` remains the working authority. Manual registration is not executable PASS. Governance now follows M-Lazy-Developer's ChatGPT GitHub/cloud-only and topical cold-start rules with LazyDesigner-specific product owners.
 
+## Image Reference correspondence — topic continuation (design only)
+
+Canonical design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md), reviewed against current `Local` source and external PartField/SAMPart3D/Open3DIS/OpenMask3D/OpenUSD/Grounded SAM 2. **The join is not implemented.** First confirm a real consumer/evidence need, then complete one coherent pure source-domain contract with bounded regressions before considering a Runtime/Gateway consumer. Keep `REFERENCE.json` and native Cube UUID identity distinct, never equate missing association with missing geometry, and never infer visual PASS from region labels. No second runtime, registry, GPU service, additional Gateway tool or local-PC dependency. Exact-SHA executable and native evidence remain `NOT EXECUTED` until actual runs.
+
 ## Next REMOTE_GITHUB work
 
 The structural source-cleanup pass is complete for the current architecture. Repository-development knowledge routing uses existing canonical owners: the `mcp/lib/semantic/knowledge.ts` document-link parser and the bounded `mcp/scripts/development/plan-development-context.ts` consumer. Unresolved SYSTEM_DEVELOPMENT routes traverse only authored Markdown links from the docs router through the system router to the implementation map; exact source ownership bypasses this extra read. Missing required documents must fail visibly. Check relevant developer-context and knowledge-index regressions before claiming executable PASS. The cross-owner method flow now has a regression in `mcp/tests/development/development-context-plan.test.ts`: exact development intent and source owner → semantic impact → bounded verifier mapping → explicit Local-only file-scope permission. This protects flow composition but is not itself an executed Bun PASS.

@@ -116,6 +116,8 @@ as mandatory dependencies in the existing ChatGPT + GitHub architecture.
 Use their **representational contracts** to expose uncertainty and improve
 the next human/AI image-review decision, not as unearned native accuracy proof.
 
+The deeper comparison with PartField, SAMPart3D, Open3DIS, OpenMask3D, OpenUSD, and Grounded SAM 2 for **Visual Part Correspondence** is scoped in [the bounded design decision](visual-part-correspondence.md). This documents the explicit source-region → semantic part → exact native UUID evidence boundary, not an adopted ML engine.
+
 ## Quality integrations
 
 ### Cross-view reference consistency
