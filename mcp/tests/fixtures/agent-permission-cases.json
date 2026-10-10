@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Deterministic repository agent permission preflight cases; this is source policy evaluation, not model behavior or host-enforced authorization.",
+  "cases": [
+    {
+      "id": "inspect-read",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "INSPECT",
+        "action": "read",
+        "path": "docs/README.md"
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "inspect-write-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "INSPECT",
+        "action": "source-write",
+        "path": "AGENTS.md",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "plan-write-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "PLAN",
+        "action": "source-write",
+        "path": "mcp/index.ts",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "diagnosis-write-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DIAGNOSE",
+        "action": "source-write",
+        "path": "mcp/index.ts",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "develop-local-owned",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp/gateway/development/intent.ts",
+        "authorized_scope": true
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "develop-missing-authority",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "docs/README.md"
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "develop-write-main",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "branch": "main",
+        "path": "docs/README.md",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "develop-workflows-local",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": ".github/workflows/repository-verify.yml",
+        "authorized_scope": true
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "development-skills-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": ".agents/skills/lazydesigner-modelling/SKILL.md",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "skill-lane-skills-allowed",
+      "request": {
+        "lane": "SKILL_SYSTEM",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": ".agents/skills/lazydesigner-modelling/SKILL.md",
+        "authorized_scope": true
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "skill-lane-corpus-allowed",
+      "request": {
+        "lane": "SKILL_SYSTEM",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp/tests/fixtures/skill-routing-cases.json",
+        "authorized_scope": true
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "skill-lane-runtime-denied",
+      "request": {
+        "lane": "SKILL_SYSTEM",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp/server/net.ts",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "development-asset-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "REPAIR",
+        "action": "source-write",
+        "path": "workspace/active/lift/model.bbmodel",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "in-use-repo-write-denied",
+      "request": {
+        "lane": "IN_USE",
+        "task": "REPAIR",
+        "action": "source-write",
+        "path": "mcp/server/net.ts",
+        "authorized_scope": true,
+        "specialist": "lazydesigner-blockbench-development"
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "in-use-live-approval",
+      "request": {
+        "lane": "IN_USE",
+        "task": "REPAIR",
+        "action": "live-mutation",
+        "execution_context": "LIVE_BLOCKBENCH",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "in-use-no-runtime",
+      "request": {
+        "lane": "IN_USE",
+        "task": "REPAIR",
+        "action": "live-mutation",
+        "execution_context": "REMOTE_GITHUB",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "manual-ci-approval",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "VALIDATE",
+        "action": "manual-ci",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "remote-bun-unproven",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "VALIDATE",
+        "action": "run-verifier",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "local-bun-authorized",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "VALIDATE",
+        "action": "run-verifier",
+        "authorized_scope": true,
+        "execution_context": "LOCAL_CODE"
+      },
+      "expected": "allow"
+    },
+    {
+      "id": "release-needs-approval",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "RELEASE",
+        "action": "release",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "release-from-dev-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "release",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "admin-needs-approval",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "repo-admin",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "skill-admin-denied",
+      "request": {
+        "lane": "SKILL_SYSTEM",
+        "task": "DEVELOP",
+        "action": "repo-admin",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "external-network-approval",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "external-network",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "dependency-install-approval",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "dependency-install",
+        "authorized_scope": true
+      },
+      "expected": "ask"
+    },
+    {
+      "id": "force-push-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "force-push",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "execute-untrusted-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "execute-untrusted",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "secrets-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "INSPECT",
+        "action": "secret-access",
+        "path": "mcp/package.json"
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "secret-file-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "INSPECT",
+        "action": "read",
+        "path": ".env"
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "parent-path-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp/../../GITHUB_RULES.md",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "encoded-path-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp/%2e%2e/README.md",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "windows-path-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp\\server\\net.ts",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "generated-artifact-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "mcp/docs/api.json",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "unknown-path-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "private-key.pem",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "unknown-lane-denied",
+      "request": {
+        "lane": "ROOT_ADMIN",
+        "task": "DEVELOP",
+        "action": "source-write",
+        "path": "AGENTS.md",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    },
+    {
+      "id": "unknown-action-denied",
+      "request": {
+        "lane": "DEVELOPMENT",
+        "task": "DEVELOP",
+        "action": "shell-exec",
+        "authorized_scope": true
+      },
+      "expected": "deny"
+    }
+  ]
+}
