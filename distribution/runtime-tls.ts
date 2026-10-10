@@ -1,7 +1,12 @@
-import { createPrivateKey, X509Certificate } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createPrivateKey, randomBytes, X509Certificate } from "node:crypto";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { runtimeTlsPaths } from "../mcp/lib/runtime/connection";
+import {
+  ensureRuntimeAuthorizationToken,
+  readRuntimeAuthorizationToken,
+  runtimeAuthorizationPath,
+} from "../mcp/lib/runtime/authorization";
 
 export type RuntimeTlsStatus = {
   ready: boolean;
@@ -54,7 +59,21 @@ export function runtimeTlsStatus(
   platform: string = process.platform
 ): RuntimeTlsStatus {
   try {
-    return validateRuntimeTlsIdentity(env, platform);
+    const status = validateRuntimeTlsIdentity(env, platform);
+    if (!status.ready) return status;
+    try {
+      readRuntimeAuthorizationToken(
+        { readFileSync, lstatSync },
+        runtimeAuthorizationPath(env, platform)
+      );
+    } catch {
+      return {
+        ready: false,
+        cert: status.cert,
+        error: "Runtime authorization credential is missing or invalid.",
+      };
+    }
+    return status;
   } catch (error) {
     return {
       ready: false,
@@ -155,6 +174,11 @@ export function ensureRuntimeTlsIdentity(
 
   const status = validateRuntimeTlsIdentity(env, platform);
   if (!status.ready) throw new Error(status.error ?? "Runtime TLS identity is not ready.");
+  ensureRuntimeAuthorizationToken(
+    { readFileSync, lstatSync, writeFileSync },
+    { randomBytes },
+    runtimeAuthorizationPath(env, platform)
+  );
   return status;
 }
 
@@ -185,7 +209,14 @@ export function renewRuntimeTlsIdentity(
   }
 
   const current = validateRuntimeTlsIdentity(env, platform);
-  if (current.ready) return current;
+  if (current.ready) {
+    ensureRuntimeAuthorizationToken(
+      { readFileSync, lstatSync, writeFileSync },
+      { randomBytes },
+      runtimeAuthorizationPath(env, platform)
+    );
+    return current;
+  }
 
   const previousCert = readFileSync(paths.cert);
   const previousKey = readFileSync(paths.key);

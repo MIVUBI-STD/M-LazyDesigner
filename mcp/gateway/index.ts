@@ -67,7 +67,7 @@ function buildGatewayServer(
     experimentalTools: () => registeredExperimentalTools,
     trace: benchmarkTrace,
     invoke: (capability, args, context, controlOptions) =>
-      executor.invoke(capability, args, context, false, controlOptions),
+      executor.invoke(capability, args, context, controlOptions),
   });
 
   if (isExperimentalGatewaySurface(surfaceProfile)) {
@@ -81,8 +81,7 @@ function buildGatewayServer(
         executor.invoke(
           capability,
           args,
-          context as GatewayToolContext | undefined,
-          true
+          context as GatewayToolContext | undefined
         ),
     });
   }

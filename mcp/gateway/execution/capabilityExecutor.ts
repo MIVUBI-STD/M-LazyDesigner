@@ -88,7 +88,6 @@ export class GatewayCapabilityExecutor {
     capability: string,
     args: JsonRecord,
     context?: GatewayToolContext,
-    enforceKnownBlockers: boolean = false,
     controlOptions?: {
       taskContextId?: string | null;
       cohortBoundary?: "CONTINUE" | "COMPLETE";
@@ -96,10 +95,10 @@ export class GatewayCapabilityExecutor {
   ): Promise<unknown> {
     const startedAt = this.trace?.startedAt() ?? 0;
     try {
-      if (enforceKnownBlockers) {
-        const blocked = this.directPreconditionBlockedResult(capability, args);
-        if (blocked) return blocked;
-      }
+      // Both stable invoke_capability and explicit experimental direct tools
+      // enforce only proven-missing prerequisites; UNKNOWN stays Runtime-owned.
+      const blocked = this.directPreconditionBlockedResult(capability, args);
+      if (blocked) return blocked;
 
       const traceMeta = traceMetaFromContext(context);
       const branch = capabilityBranchFromArguments(args);

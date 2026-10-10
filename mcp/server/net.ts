@@ -1,6 +1,11 @@
 import type { IncomingMessage, Server as NodeHttpServer, ServerResponse } from 'node:http'
 import type { Socket } from 'node:net'
 import {
+  RUNTIME_AUTH_HEADER,
+  isRuntimeAuthorizationToken,
+  runtimeAuthorizationMatches
+} from '@/lib/runtime/authorization'
+import {
   MAX_REQUEST_BODY_BYTES,
   MAX_REQUEST_HEADER_BYTES,
   RuntimePayloadTooLargeError,
@@ -86,14 +91,24 @@ export default function createNetServer (
     port,
     endpoint,
     host = '127.0.0.1',
-    generation = null
+    generation = null,
+    authorizationToken = null
   }: {
     endpoint: string
     port: number
     host?: string
     generation?: number | null
+    authorizationToken?: string | null
   }
 ): NetServer {
+  // A real Blockbench listener always has a Runtime generation and MUST carry
+  // a valid local credential. Isolated HTTP/protocol fixtures may omit both.
+  if (generation !== null && !isRuntimeAuthorizationToken(authorizationToken)) {
+    throw new Error('Native LazyDesigner Runtime requires a local authorization credential.')
+  }
+  if (authorizationToken !== null && !isRuntimeAuthorizationToken(authorizationToken)) {
+    throw new Error('Invalid native Runtime authorization credential.')
+  }
   const activeSockets = new Set<Socket>()
   let shuttingDown = false
   let closePromise: Promise<void> | null = null
@@ -118,7 +133,8 @@ export default function createNetServer (
 
         if (
           rawHeaderCount(request, 'host') > 1 ||
-          rawHeaderCount(request, 'origin') > 1 ||
+          rawHeaderCount(request, 'origin') > 1 || 
+          rawHeaderCount(request, RUNTIME_AUTH_HEADER) > 1 ||
           rawHeaderCount(request, 'mcp-method') > 1 ||
           rawHeaderCount(request, 'mcp-name') > 1 ||
           (request.httpVersion === '1.1' && hostHeader === undefined)
@@ -185,6 +201,25 @@ export default function createNetServer (
             { 'content-type': 'application/json' },
             jsonErrorBody('Forbidden: invalid Host header'),
             connectionClose
+          )
+          return
+        }
+
+        // Do not reveal open-project health, catalog or mutation surfaces to
+        // clients lacking the machine-local credential.
+        if (
+          authorizationToken !== null &&
+          !runtimeAuthorizationMatches(
+            authorizationToken,
+            singleRequestHeader(request, RUNTIME_AUTH_HEADER)
+          )
+        ) {
+          sendNodeResponse(
+            response,
+            401,
+            { 'content-type': 'application/json' },
+            jsonErrorBody('Unauthorized: invalid Runtime client credential'),
+            true
           )
           return
         }

@@ -5,7 +5,8 @@ import { performance } from "node:perf_hooks";
 import { z } from "zod";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { createTool } from "@/lib/factories";
-import createNetServer, { type NetServer } from "@/server/net";
+import createNetServer, { type NetServer } from "@/server/net"; 
+import { RUNTIME_AUTH_HEADER } from "@/lib/runtime/authorization";
 import { MCP_SERVER_INSTRUCTIONS } from "@/server/server";
 
 const HOST = "127.0.0.1";
@@ -224,6 +225,42 @@ describe("P1.4 raw-net stateless integration", () => {
       response_mode: "auto",
     });
     expect(body).not.toHaveProperty("sessions");
+  });
+
+  test("protected Runtime rejects uncredentialed local requests before health or MCP dispatch", async () => {
+    const token = "a".repeat(64);
+    const guarded = createNetServer(
+      { createServer: (options, callback) => createHttpServer(options, callback) },
+      { port: 0, endpoint: ENDPOINT, host: HOST, authorizationToken: token }
+    );
+    try {
+      if (!guarded.listening) {
+        await new Promise<void>((resolve, reject) => {
+          guarded.once("listening", resolve);
+          guarded.once("error", reject);
+        });
+      }
+      const address = guarded.address() as AddressInfo;
+      const health = `http://${HOST}:${address.port}${ENDPOINT}/health`;
+      const unauth = await fetch(health);
+      expect(unauth.status).toBe(401);
+      const wrong = await fetch(health, {
+        headers: { [RUNTIME_AUTH_HEADER]: "b".repeat(64) },
+      });
+      expect(wrong.status).toBe(401);
+      const authorized = await fetch(health, {
+        headers: { [RUNTIME_AUTH_HEADER]: token },
+      });
+      expect(authorized.status).toBe(200);
+      const mcp = await fetch(`http://${HOST}:${address.port}${ENDPOINT}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      });
+      expect(mcp.status).toBe(401);
+    } finally {
+      await guarded.closeAndWait();
+    }
   });
 
   test("outer HTTP owner rejects standalone GET and DELETE", async () => {

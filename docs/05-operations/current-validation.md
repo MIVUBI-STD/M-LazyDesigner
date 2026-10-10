@@ -58,7 +58,10 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 
 The historical 2026-10-10 gap was closed by main commit `1d026a1754033bb8c206b7f25660a906552ad72c`, registering ten manual-only workflow definitions without transferring product source. Future development remains on `Local`; `main` is not an ongoing synchronization target. Registered YAML does not prove a manual run was dispatched, completed, or accepted. Do not edit `main` or settings without separate authorization.
 
-## Current source contracts
+## Current source contracts 
+Local source now declares an additional machine-local Runtime authorization credential on the native HTTPS listener and known-missing prerequisite enforcement for the normal four-tool Gateway invocation path. This is **source-level behavior and prepared regression evidence**, not an executed current-SHA Bun, native transport, or Blockbench PASS.
+
+
 
 ### Control
 

@@ -5,7 +5,11 @@ import { join } from "node:path";
 import { createServer } from "node:https";
 import type { AddressInfo } from "node:net";
 import { runtimeTlsPaths, DEFAULT_RUNTIME_URL } from "../../lib/runtime/connection";
-import { runtimeFetch } from "../../lib/runtime/fetch";
+import { runtimeFetch } from "../../lib/runtime/fetch"; 
+import {
+  readRuntimeAuthorizationToken,
+  runtimeAuthorizationPath,
+} from "../../lib/runtime/authorization";
 import { setupRuntimeTls } from "../../scripts/operations/setup-runtime-tls";
 import {
   ensureRuntimeTlsIdentity,
@@ -38,7 +42,14 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
     const key = readFileSync(runtimeTlsPaths().key, "utf8");
     server = createNetServer({ createServer: (options, callback) =>
       createServer({ ...options, cert, key }, callback)
-    }, { port: 0, endpoint: "/bb-mcp" });
+    }, {
+      port: 0,
+      endpoint: "/bb-mcp",
+      authorizationToken: readRuntimeAuthorizationToken(
+        { lstatSync: (await import("node:fs")).lstatSync, readFileSync },
+        runtimeAuthorizationPath()
+      ),
+    });
     if (!server.listening) await new Promise<void>((resolve, reject) => {
       server!.once("listening", resolve);
       server!.once("error", reject);

@@ -7,6 +7,10 @@ import type { NetServer } from "@/server/net";
 import createNetServer from "@/server/net";
 import { setStatusBarState } from "@/ui/statusBar";
 import { runtimeTlsPaths } from "@/lib/runtime/connection";
+import {
+  ensureRuntimeAuthorizationToken,
+  runtimeAuthorizationPath,
+} from "@/lib/runtime/authorization";
 import { type NativeCrypto } from "@/plugin/profileIdentity";
 import {
   startRuntimeSessionLease,
@@ -26,6 +30,7 @@ export class RuntimeHost {
   private nativeHttp: Parameters<typeof createNetServer>[0] | null = null;
   private nativeFs: RuntimeSessionFs | null = null;
   private nativeCrypto: NativeCrypto | null = null;
+  private runtimeAuthorizationToken: string | null = null;
   private config: RuntimeHostConfig | null = null;
 
   acquireNativeNetwork(generation: number): boolean {
@@ -52,13 +57,21 @@ export class RuntimeHost {
       message: "LazyDesigner reads this machine's local TLS identity and maintains its local Runtime session lease.",
       detail: `TLS identity directory: ${paths.directory}. Runtime session state remains local to this PC.`,
       optional: false,
-    }) as RuntimeSessionFs | null;
+    }) as (RuntimeSessionFs & Pick<typeof import("node:fs"), "lstatSync">) | null;
     if (!fs) throw new Error("LazyDesigner requires permission to access its local Runtime identity.");
     // @ts-ignore - requireNativeModule is a Blockbench desktop global.
-    const nativeCrypto = requireNativeModule("crypto") as NativeCrypto | null;
-    if (!nativeCrypto) throw new Error("LazyDesigner requires the native crypto module for local profile identity.");
+    const nativeCrypto = requireNativeModule("crypto") as
+      (NativeCrypto & Pick<typeof import("node:crypto"), "randomBytes">) | null;
+    if (!nativeCrypto) throw new Error("LazyDesigner requires native crypto for its profile and Runtime credential.");
     const cert = fs.readFileSync(paths.cert, "utf8");
     const key = fs.readFileSync(paths.key, "utf8");
+    // Upgrade existing installed TLS identities in place without replacing
+    // their certificate or key. Invalid/linked token files fail closed.
+    const authorizationToken = ensureRuntimeAuthorizationToken(
+      fs,
+      nativeCrypto,
+      runtimeAuthorizationPath()
+    );
     this.nativeHttp = {
       createServer: (options, callback) => https.createServer(
         { ...options, cert, key, minVersion: "TLSv1.2" }, callback
@@ -66,6 +79,7 @@ export class RuntimeHost {
     };
     this.nativeFs = fs;
     this.nativeCrypto = nativeCrypto;
+    this.runtimeAuthorizationToken = authorizationToken;
     return true;
   }
 
@@ -116,6 +130,7 @@ export class RuntimeHost {
     if (
       !isRuntimeGenerationCurrent(generation) ||
       !this.nativeHttp ||
+      !this.runtimeAuthorizationToken ||
       !this.config ||
       this.httpServer
     ) {
@@ -124,7 +139,11 @@ export class RuntimeHost {
 
     const config = { ...this.config };
     setStatusBarState("starting", `binding ${config.port}`);
-    const candidate = createNetServer(this.nativeHttp, { ...config, generation });
+    const candidate = createNetServer(this.nativeHttp, {
+      ...config,
+      generation,
+      authorizationToken: this.runtimeAuthorizationToken,
+    });
     this.httpServer = candidate;
 
     try {
@@ -182,6 +201,7 @@ export class RuntimeHost {
     this.nativeFs = null;
     this.nativeCrypto = null;
     this.config = null;
+    this.runtimeAuthorizationToken = null;
 
     if (generation === null) {
       void closePromise.catch((error) => {

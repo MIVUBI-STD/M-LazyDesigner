@@ -1,5 +1,10 @@
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
 import { runtimeTlsPaths } from "./connection";
+import {
+  RUNTIME_AUTH_HEADER,
+  readRuntimeAuthorizationToken,
+  runtimeAuthorizationPath,
+} from "./authorization";
 
 /** Bun-owned clients trust only this machine's Runtime certificate for HTTPS. */
 export async function runtimeFetch(
@@ -22,8 +27,19 @@ export async function runtimeFetch(
   } catch {
     throw new Error(`Missing Runtime TLS certificate: ${cert}. Use LazyDesigner Desktop Setup Runtime Security or run blockit setup-tls.`);
   }
+  const token = readRuntimeAuthorizationToken(
+    { readFileSync, lstatSync },
+    runtimeAuthorizationPath()
+  );
+  const headers = new Headers(
+    init?.headers ?? (input instanceof Request ? input.headers : undefined)
+  );
+  // Never trust an inbound caller-supplied credential over the installed
+  // machine's owned token; never put the credential in URL or logs.
+  headers.set(RUNTIME_AUTH_HEADER, token);
   return fetch(input, {
     ...init,
+    headers,
     redirect: "error",
     tls: { ca, rejectUnauthorized: true },
   });
