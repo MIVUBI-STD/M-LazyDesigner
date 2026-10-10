@@ -28,6 +28,10 @@ Canonical source/module dependency boundary:
 
 Use it when deciding which Docs, Skills, reference fields, or current-state evidence belong in the active context.
 
+When a repository-development question has no exact implementation owner, follow the
+[System documentation router](04-system/README.md). This is an explicit
+navigation edge, not permission to infer code ownership from document similarity.
+
 ## Canonical Hierarchy
 
 ```text

@@ -12,7 +12,7 @@ On 2026-10-10 the ten manual-only workflow definitions from `Local` were registe
 
 ## Next REMOTE_GITHUB work
 
-The structural source-cleanup pass is complete for the current architecture.
+The structural source-cleanup pass is complete for the current architecture. Repository-development knowledge routing uses existing canonical owners: the `mcp/lib/semantic/knowledge.ts` document-link parser and the bounded `mcp/scripts/development/plan-development-context.ts` consumer. Unresolved SYSTEM_DEVELOPMENT routes traverse only authored Markdown links from the docs router through the system router to the implementation map; exact source ownership bypasses this extra read. Missing required documents must fail visibly. Check relevant developer-context and knowledge-index regressions before claiming executable PASS.
 
 Current canonical boundaries are now explicit:
 

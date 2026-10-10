@@ -30,7 +30,7 @@ Task
 → decision
 ```
 
-`mcp/lib/semantic/knowledge.ts` already supplies path/heading-scoped section IDs, content hashes and ranked section selection. `mcp/scripts/development/plan-development-context.ts` composes the existing developer context plan; `mcp/gateway/development/sourceOwners.ts` and `semanticDependencyMatrix.ts` own distinct source and semantic dependency roles. These are *not* one universal documentation graph. Explicit docs links under `docs/README.md` remain human-facing authority; generated indexes and semantic search are derived navigation evidence only. Do not create a new registry, inferred graph or state owner for cosmetic parity with another repository.
+`mcp/lib/semantic/knowledge.ts` already supplies path/heading-scoped section IDs, content hashes and ranked section selection. `mcp/scripts/development/plan-development-context.ts` composes the existing developer context plan; `mcp/gateway/development/sourceOwners.ts` and `semanticDependencyMatrix.ts` own distinct source and semantic dependency roles. This is *not* a universal documentation graph. For ambiguous or unresolved SYSTEM_DEVELOPMENT intent, the existing context planner now follows the two explicit Markdown edges `docs/README.md → docs/04-system/README.md → docs/04-system/implementation-map.md`; confirmed source-owner routes skip that graph traversal. Missing required documents or edges fail closed instead of silently producing an empty knowledge result. Section ranking remains a navigation aid, never source or runtime authority. Do not add a parallel registry or inferred graph.
 
 ## Authority Roles
 

@@ -51,6 +51,40 @@ describe("development context planner", () => {
     ]);
   });
 
+  test("uncertain development intent follows only authored canonical document links", async () => {
+    const plan = await buildDevelopmentContextPlan({
+      intent: "unclassified repository architecture change",
+      symbolMapMaxBytes: 2000,
+      knowledgeTokenBudget: 500,
+    });
+    expect(plan.routing.confidence).toBe("UNRESOLVED");
+    expect(plan.documentation_route).toMatchObject({
+      authority: "EXPLICIT_MARKDOWN_LINK",
+      nodes: [
+        "docs/README.md",
+        "docs/04-system/README.md",
+        "docs/04-system/implementation-map.md",
+      ],
+      canonical_owner: "docs/04-system/implementation-map.md",
+    });
+    expect(plan.documentation_route?.edges).toHaveLength(2);
+    expect(plan.read_targets.source).toEqual([]);
+    expect(plan.knowledge_sections.every(
+      (section) => section.source !== "docs/04-system/README.md"
+    )).toBe(true);
+  });
+
+  test("known source ownership avoids an extra documentation graph traversal", async () => {
+    const plan = await buildDevelopmentContextPlan({
+      intent: "manage_cubes source issue",
+      changedPaths: ["mcp/server/tools/geometry/cubes.ts"],
+      symbolMapMaxBytes: 2000,
+    });
+    expect(plan.routing.confidence).toBe("EXACT");
+    expect(plan.documentation_route).toBeNull();
+    expect(plan.read_targets.source).toContain("mcp/server/tools/geometry/cubes.ts");
+  });
+
   test("omits semantic impact when there is no change set", async () => {
     const plan = await buildDevelopmentContextPlan({
       intent: "gateway routing discovery",

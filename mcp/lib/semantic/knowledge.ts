@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { posix } from "node:path";
 
 export type KnowledgeSection = {
   id: string;
@@ -234,4 +235,76 @@ export function selectKnowledgeSections(input: {
     used += section.token_proxy;
   }
   return selected;
+}
+
+/**
+ * Direct canonical-document navigation edges. Source and target IDs are derived
+ * from checked-in paths and are stable across content-only revisions. A file
+ * relocation requires updating its canonical link owner.
+ *
+ * This is a bounded navigation graph, NOT inferred semantic dependency or
+ * independent documentation authority.
+ */
+export type ExplicitDocumentationEdge = {
+  from: string;
+  to: string;
+  from_id: string;
+  to_id: string;
+  line: number;
+  relation: "EXPLICIT_MARKDOWN_LINK";
+};
+
+export function indexExplicitDocumentationEdges(
+  source: string,
+  markdown: string
+): ExplicitDocumentationEdge[] {
+  if (!source.startsWith("docs/") || !source.endsWith(".md") ||
+      source.includes("\\") || source.split("/").includes("..")) {
+    throw new Error("Documentation router source must be a canonical docs/*.md path.");
+  }
+
+  const edges: ExplicitDocumentationEdge[] = [];
+  const known = new Set<string>();
+  let fence: { marker: string; size: number } | null = null;
+  for (const [index, line] of markdown.split(/\r?\n/).entries()) {
+    const boundary = line.match(/^\s{0,3}(`{3,}|~{3,})/);
+    if (boundary) {
+      const marker = boundary[1]![0]!;
+      if (!fence) fence = { marker, size: boundary[1]!.length };
+      else if (fence.marker === marker && boundary[1]!.length >= fence.size) {
+        fence = null;
+      }
+      continue;
+    }
+    if (fence) continue;
+
+    const links = /\[[^\]\n]+\]\(([^)\s]+)\)/g;
+    for (const match of line.matchAll(links)) {
+      if (match.index != null && match.index > 0 && line[match.index - 1] === "!") {
+        continue; // image reference, not documentation navigation
+      }
+      const href = match[1]!;
+      if (href.startsWith("/") || href.startsWith("#") ||
+          /^[a-z][a-z\d+.-]*:/i.test(href) || href.startsWith("//")) {
+        continue;
+      }
+      const relative = href.split("#", 1)[0]!;
+      if (!relative.endsWith(".md") || /[\\?%:]/.test(relative)) continue;
+      const target = posix.normalize(posix.join(posix.dirname(source), relative));
+      if (!target.startsWith("docs/") || target.split("/").includes("..")) {
+        continue; // cannot infer or grant authority outside canonical docs
+      }
+      if (known.has(target)) continue;
+      known.add(target);
+      edges.push({
+        from: source,
+        to: target,
+        from_id: `document:${source.slice(0, -3)}`,
+        to_id: `document:${target.slice(0, -3)}`,
+        line: index + 1,
+        relation: "EXPLICIT_MARKDOWN_LINK",
+      });
+    }
+  }
+  return edges;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   indexMarkdownKnowledge,
+  indexExplicitDocumentationEdges,
   knowledgeIndexFingerprint,
   selectKnowledgeSections,
 } from "../lib/semantic/knowledge";
@@ -77,6 +78,33 @@ describe("knowledge section compiler", () => {
     expect(selected.some((section) => section.heading === "Texture Styling")).toBe(
       false
     );
+  });
+
+  test("explicit documentation links form a source-grounded, revision-stable graph", () => {
+    const first = indexExplicitDocumentationEdges("docs/README.md", [
+      "# Router",
+      "Follow [System](04-system/README.md) for source ownership.",
+      "[System again](04-system/README.md)",
+      "[External](https://example.org/other.md)",
+      "[Escape](../secret.md)",
+      "```md",
+      "[Fake](04-system/phantom.md)",
+      "```",
+      "![Image](04-system/decor.md)",
+    ].join("\n"));
+    const second = indexExplicitDocumentationEdges("docs/README.md",
+      "# Changed prose\nFollow [System](04-system/README.md) for canonical ownership."
+    );
+    expect(first).toHaveLength(1);
+    expect(first[0]).toMatchObject({
+      from: "docs/README.md",
+      to: "docs/04-system/README.md",
+      from_id: "document:docs/README",
+      to_id: "document:docs/04-system/README",
+      relation: "EXPLICIT_MARKDOWN_LINK",
+    });
+    expect(second[0]?.to_id).toBe(first[0]?.to_id);
+    expect(() => indexExplicitDocumentationEdges("../README.md", "# Invalid")).toThrow();
   });
 
   test("duplicate semantic heading paths fail closed", () => {

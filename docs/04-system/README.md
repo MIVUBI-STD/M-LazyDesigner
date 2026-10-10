@@ -57,6 +57,13 @@ Which legacy BlockIT identifier must remain stable during migration?
 → compatibility-identifiers.md
 ```
 
+For an unresolved repository-development owner, this router links to the
+[Implementation Map](implementation-map.md). Apply the
+[Development Operating Standard](development-operating-standard.md) to material
+changes; consult [AI Context Loading](ai-context-loading.md) and
+[Module Boundaries](module-boundaries.md) when those decisions are material.
+These authored links are navigation evidence, not a second source-owner registry.
+
 AI load rule: use this domain for context loading, shared Stage Context, Tool execution-path/efficiency/integrity questions, Blockbench compatibility, Control/context routing, source ownership, Skill ownership, or compatibility-identifier questions. Do not use it as a substitute for product flow or authoring standards.
 
 

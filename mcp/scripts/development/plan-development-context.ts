@@ -2,7 +2,9 @@ import { readFile } from "node:fs/promises";
 import { analyzeSemanticImpact } from "../../gateway/development/impact";
 import {
   indexMarkdownKnowledge,
+  indexExplicitDocumentationEdges,
   selectKnowledgeSections,
+  type ExplicitDocumentationEdge,
   type KnowledgeSelection,
 } from "../../lib/semantic/knowledge";
 import { CAPABILITY_BRANCH_MANIFEST } from "../../gateway/capabilities/manifest";
@@ -33,12 +35,49 @@ export type DevelopmentContextPlan = {
   semantic_impact: ReturnType<typeof analyzeSemanticImpact> | null;
   semantic_catalog_revisions: typeof CAPABILITY_SEMANTIC_CATALOG_REVISIONS;
   knowledge_sections: KnowledgeSelection[];
+  documentation_route: {
+    authority: "EXPLICIT_MARKDOWN_LINK";
+    nodes: string[];
+    edges: ExplicitDocumentationEdge[];
+    canonical_owner: string;
+  } | null;
   read_targets: {
     source: string[];
     anchor_tests: string[];
     specialists: string[];
   };
 };
+
+/**
+ * Read only two canonical routers when exact implementation ownership remains
+ * ambiguous. Links must exist in authored Markdown: search/ranking cannot
+ * invent document relationships.
+ */
+async function resolveUncertainSystemDocumentRoute(): Promise<NonNullable<DevelopmentContextPlan["documentation_route"]>> {
+  const root = "docs/README.md";
+  const system = "docs/04-system/README.md";
+  const owner = "docs/04-system/implementation-map.md";
+  const [rootText, systemText] = await Promise.all([
+    readFile("../docs/README.md", "utf8"),
+    readFile("../docs/04-system/README.md", "utf8"),
+  ]);
+  const rootEdge = indexExplicitDocumentationEdges(root, rootText)
+    .find((edge) => edge.to === system);
+  const ownerEdge = indexExplicitDocumentationEdges(system, systemText)
+    .find((edge) => edge.to === owner);
+  if (!rootEdge || !ownerEdge) {
+    throw new Error(
+      "System documentation routing is incomplete. Repair docs/README.md " +
+      "or docs/04-system/README.md rather than guessing a canonical owner."
+    );
+  }
+  return {
+    authority: "EXPLICIT_MARKDOWN_LINK",
+    nodes: [root, system, owner],
+    edges: [rootEdge, ownerEdge],
+    canonical_owner: owner,
+  };
+}
 
 function developmentDomainForCapability(
   capability: string
@@ -136,7 +175,14 @@ export async function buildDevelopmentContextPlan(input: {
   );
 
 
+  // Source ownership outranks docs graph discovery. Only unresolved/ambiguous
+  // development requests follow the explicit two-hop documentation route.
+  const documentationRoute = effectiveRouting.context_strategy === "DIRECT_SOURCE_OWNERS"
+    ? null
+    : await resolveUncertainSystemDocumentRoute();
+
   const knowledgePaths = uniqueSorted([
+    ...(documentationRoute ? [documentationRoute.canonical_owner] : []),
     ...effectiveRouting.required_context_paths,
     ...routingSpecialists,
     ...(semanticImpact?.affected_specialists ?? []),
@@ -148,11 +194,10 @@ export async function buildDevelopmentContextPlan(input: {
         const localPath = path.startsWith("mcp/")
           ? path.slice(4)
           : `../${path}`;
-        try {
-          return indexMarkdownKnowledge(path, await readFile(localPath, "utf8"));
-        } catch {
-          return [];
-        }
+        // A missing routed/required source is an unresolved authority error,
+        // never evidence that the relevant knowledge is empty.
+        const content = await readFile(localPath, "utf8");
+        return indexMarkdownKnowledge(path, content);
       })
     )
   ).flat();
@@ -184,6 +229,7 @@ export async function buildDevelopmentContextPlan(input: {
     semantic_catalog_revisions:
       CAPABILITY_SEMANTIC_CATALOG_REVISIONS,
     knowledge_sections: selectedKnowledge,
+    documentation_route: documentationRoute,
     read_targets: {
       source: uniqueSorted([
         ...routingSources,
