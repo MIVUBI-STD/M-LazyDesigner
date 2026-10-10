@@ -79,7 +79,11 @@ if (process.argv[1] && new URL(import.meta.url).pathname.replaceAll("%20", " ").
     console.error("Usage: node .agents/permissions/preflight.mjs '<request-json>'");
     process.exitCode=2;
   } else {
-    try { console.log(JSON.stringify(evaluatePreflight(JSON.parse(process.argv[2])), null, 2)); }
+    try {
+      const verdict = evaluatePreflight(JSON.parse(process.argv[2]));
+      console.log(JSON.stringify(verdict, null, 2));
+      process.exitCode = verdict.decision === "allow" ? 0 : verdict.decision === "ask" ? 3 : 4;
+    }
     catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode=2; }
   }
 }

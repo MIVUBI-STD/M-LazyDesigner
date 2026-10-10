@@ -235,6 +235,12 @@ resume_stage
 
 “Maybe the tool/MCP/runtime is wrong” is not sufficient evidence.
 
+### Skill Supply-Chain Admission
+
+Current LazyDesigner Skills are repository-owned instructions, not arbitrary executable plugins. Treat imported Skill packages and references as untrusted data until their origin, allowed file types, prompt-injection surface, external processes, credentials and network/install behavior are reviewed. `mcp/tests/repository/agent-supply-chain.test.ts` is a narrow static admission guard for committed Skill packages (including nested references and symlinks). It does not execute third-party content and cannot establish whether an AI agent followed the instructions.
+
+For a legitimate future executable Skill dependency, require a separately reviewed execution/provenance contract and a targeted security test change; never weaken the scan just to let an unreviewed script pass. The active Skill taxonomy and existing routing fixture remain the semantic owners.
+
 ## Naming Rules
 
 Canonical LazyDesigner Skill names use prefix `lazydesigner-` plus a direct responsibility noun.
