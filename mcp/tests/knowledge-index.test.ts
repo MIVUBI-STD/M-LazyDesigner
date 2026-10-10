@@ -80,6 +80,42 @@ describe("knowledge section compiler", () => {
     );
   });
 
+  test("never exceeds the knowledge token budget, including the first ranked section", () => {
+    const large = indexMarkdownKnowledge(
+      "long.md", "# Geometry UV Rig\n" + "geometry ".repeat(300)
+    )[0]!;
+    const small = indexMarkdownKnowledge(
+      "short.md", "# Geometry\nsmall focused correction"
+    )[0]!;
+    expect(large.token_proxy).toBeGreaterThan(50);
+    const selected = selectKnowledgeSections({
+      sections: [large, small],
+      query: "geometry uv rig",
+      maxTokenProxy: 50,
+    });
+    expect(selected.map((section) => section.id)).toEqual([small.id]);
+    expect(selected.reduce((sum, section) => sum + section.token_proxy, 0))
+      .toBeLessThanOrEqual(50);
+    expect(selectKnowledgeSections({
+      sections: [large],
+      query: "geometry uv rig",
+      maxTokenProxy: 50,
+    })).toEqual([]);
+  });
+
+  test("retains duplicate authored role links so the canonical router can reject collisions", () => {
+    const links = indexExplicitDocumentationEdges("docs/README.md", [
+      "[Implementation Map](04-system/README.md)",
+      "[Implementation Map](04-system/README.md)",
+    ].join("\n"));
+    expect(links).toHaveLength(2);
+    expect(links.map((edge) => edge.label)).toEqual([
+      "Implementation Map", "Implementation Map",
+    ]);
+    expect(links[0]?.to).toBe(links[1]?.to);
+    expect(links[0]?.line).not.toBe(links[1]?.line);
+  });
+
   test("explicit documentation links form a source-grounded, revision-stable graph", () => {
     const first = indexExplicitDocumentationEdges("docs/README.md", [
       "# Router",
@@ -95,7 +131,9 @@ describe("knowledge section compiler", () => {
     const second = indexExplicitDocumentationEdges("docs/README.md",
       "# Changed prose\nFollow [System](04-system/README.md) for canonical ownership."
     );
-    expect(first).toHaveLength(1);
+    // Each authored link is evidence; target-level de-duplication would
+    // conceal a duplicate canonical role before it reaches routing checks.
+    expect(first).toHaveLength(2);
     expect(first[0]).toMatchObject({
       from: "docs/README.md",
       to: "docs/04-system/README.md",

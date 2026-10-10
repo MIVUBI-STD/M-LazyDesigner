@@ -230,7 +230,7 @@ export function selectKnowledgeSections(input: {
   let used = 0;
   for (const section of ranked) {
     if (selected.length >= boundedLimit) break;
-    if (used + section.token_proxy > budget && selected.length > 0) continue;
+    if (used + section.token_proxy > budget) continue;
     selected.push(section);
     used += section.token_proxy;
   }
@@ -265,7 +265,6 @@ export function indexExplicitDocumentationEdges(
   }
 
   const edges: ExplicitDocumentationEdge[] = [];
-  const known = new Set<string>();
   let fence: { marker: string; size: number } | null = null;
   for (const [index, line] of markdown.split(/\r?\n/).entries()) {
     const boundary = line.match(/^\s{0,3}(`{3,}|~{3,})/);
@@ -296,8 +295,8 @@ export function indexExplicitDocumentationEdges(
       if (!target.startsWith("docs/") || target.split("/").includes("..")) {
         continue; // cannot infer or grant authority outside canonical docs
       }
-      if (known.has(target)) continue;
-      known.add(target);
+      // Preserve every authored edge: a duplicate role must remain visible
+      // to the fail-closed canonical-router uniqueness check.
       edges.push({
         from: source,
         to: target,
