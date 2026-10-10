@@ -34,7 +34,7 @@ describe("affected execution planner", () => {
       "bun run benchmark:gateway-hot-path"
     );
     expect(plan.execution.commands).toContain(
-      "bun test tests/gateway-hot-path-strategy-benchmark.test.ts tests/hybrid4-generated-schema.test.ts tests/hybrid4-precondition-safety.test.ts"
+      "bun test tests/benchmark/gateway-hot-path-strategy-benchmark.test.ts tests/benchmark/hybrid4-generated-schema.test.ts tests/benchmark/hybrid4-precondition-safety.test.ts"
     );
   });
 
@@ -123,7 +123,7 @@ describe("affected execution planner", () => {
       "mcp/tests/contracts/material-receipt-contract.test.ts"
     );
     expect(plan.targeted_tests).toContain(
-      "mcp/tests/gateway-control-continuation-hardening.test.ts"
+      "mcp/tests/control-texture-mutation-precision.test.ts"
     );
     expect(plan.commands.some((command) =>
       command.includes("material-receipt-contract.test.ts")
@@ -165,7 +165,7 @@ describe("affected execution planner", () => {
 
   test("gateway recovery source changes select their bounded recovery contracts", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/gateway/runtime/orchestrationRecoveryState.ts"],
+      changedPaths: ["mcp/gateway/session/orchestrationRecoveryState.ts"],
       semanticImpact: impact(),
     });
 
@@ -174,12 +174,12 @@ describe("affected execution planner", () => {
     expect(plan.checks).toContain("TARGETED_TESTS");
     expect(plan.targeted_tests).toEqual(
       expect.arrayContaining([
-        "mcp/gateway/runtime/orchestrationRecoveryState.test.ts",
+        "mcp/gateway/session/orchestrationRecoveryState.test.ts",
         "mcp/gateway/index-boundary.test.ts",
       ])
     );
     expect(plan.commands.some((command) =>
-      command.includes("gateway/runtime/orchestrationRecoveryState.test.ts")
+      command.includes("gateway/session/orchestrationRecoveryState.test.ts")
     )).toBe(true);
   });
 
@@ -229,7 +229,7 @@ describe("affected execution planner", () => {
 
   test("report-only tooling stays bounded to compiler hygiene and never becomes full acceptance", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/scripts/measure-mcp-efficiency.ts"],
+      changedPaths: ["mcp/scripts/measure/measure-mcp-efficiency.ts"],
       semanticImpact: impact(),
     });
 
@@ -250,7 +250,7 @@ describe("affected execution planner", () => {
 
   test("replay corpus changes run shadow benchmark and promotion policy", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/benchmarks/gatewayReplayCorpus.ts"],
+      changedPaths: ["mcp/scripts/benchmark/fixtures/gateway-replay-corpus.ts"],
       semanticImpact: impact(),
     });
 
@@ -262,7 +262,7 @@ describe("affected execution planner", () => {
 
   test("hot-path benchmark changes run the dedicated deterministic benchmark", () => {
     const plan = planAffectedExecution({
-      changedPaths: ["mcp/scripts/benchmark-gateway-hot-path.ts"],
+      changedPaths: ["mcp/scripts/benchmark/benchmark-gateway-hot-path.ts"],
       semanticImpact: impact(),
     });
 
@@ -317,6 +317,56 @@ describe("affected execution planner", () => {
 
     expect(plan.fallback_full_verify).toBe(true);
     expect(plan.commands).toEqual(["bun run verify:full"]);
+  });
+
+  test("governance and agent changes select repository contracts without a full-suite fallback", () => {
+    for (const path of [
+      ".agents/permissions/preflight.mjs",
+      ".agents/skills/lazydesigner-modelling/SKILL.md",
+      "docs/README.md",
+      "mcp/AGENTS.md",
+      "CONTRIBUTING.md",
+      "mcp/gateway/development/sourceOwners/geometry.ts",
+    ]) {
+      const plan = planAffectedExecution({ changedPaths: [path], semanticImpact: impact() });
+      expect(plan.fallback_full_verify, path).toBe(false);
+      expect(plan.checks, path).toContain("REPOSITORY_CONTRACTS");
+      expect(plan.commands, path).toContain("bun run verify:repository");
+    }
+  });
+
+  test("development and knowledge owners select their exact consumer regression tests", async () => {
+    const scenarios: Array<[string, string[]]> = [
+      ["mcp/lib/semantic/knowledge.ts", [
+        "mcp/tests/knowledge-index.test.ts",
+        "mcp/tests/development/development-context-plan.test.ts",
+      ]],
+      ["mcp/scripts/development/plan-development-context.ts", [
+        "mcp/tests/development/development-context-plan.test.ts",
+      ]],
+      ["mcp/gateway/development/sourceOwners.ts", [
+        "mcp/gateway/development/sourceOwners.test.ts",
+        "mcp/tests/development/semantic-impact.test.ts",
+      ]],
+      ["mcp/gateway/development/impact.ts", [
+        "mcp/tests/development/semantic-impact.test.ts",
+      ]],
+      ["mcp/gateway/development/affectedExecution.ts", [
+        "mcp/tests/development/affected-execution.test.ts",
+      ]],
+      ["mcp/tests/development/semantic-impact.test.ts", [
+        "mcp/tests/development/semantic-impact.test.ts",
+      ]],
+    ];
+    for (const [path, expectedFiles] of scenarios) {
+      const plan = planAffectedExecution({ changedPaths: [path], semanticImpact: impact() });
+      expect(plan.fallback_full_verify, path).toBe(false);
+      expect(plan.checks, path).toContain("TARGETED_TESTS");
+      for (const file of expectedFiles) {
+        expect(plan.targeted_tests, path).toContain(file);
+        expect(await Bun.file(file.slice(4)).exists(), file).toBe(true);
+      }
+    }
   });
 
   test("unmapped, infra, empty-owner, or truncated changes fail safe to the full verifier", () => {
