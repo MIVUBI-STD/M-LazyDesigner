@@ -12,7 +12,7 @@ describe("MCP dependency closure", () => {
     expect(packageJson.scripts["verify:closure"]).toBe("bun run verify:repository && bun run verify:authoring && bun run docs:check");
     expect(packageJson.scripts["verify:closure"]).not.toContain("verify:mcp");
     expect(packageJson.scripts["verify:mcp"]).toBe(
-      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run verify:build"
+      "bun run verify:types && bun run verify:contracts && bun run verify:benchmarks && bun run verify:surface-guards && bun run build"
     );
     expect(packageJson.scripts["verify:contracts"]).toContain("bun run test:runtime");
     expect(packageJson.scripts["verify:contracts"]).toContain("bun run verify:authoring");
@@ -26,7 +26,7 @@ describe("MCP dependency closure", () => {
   });
 
   test("generated docs and runtime prompt manifest share the same freshness gate", async () => {
-    const freshness = await text("build/check-docs-freshness.ts");
+    const freshness = await text("scripts/verify/verify-generated-artifacts-fresh.ts");
     const packageJson = JSON.parse(await text("package.json")) as {
       scripts: Record<string, string>;
     };
