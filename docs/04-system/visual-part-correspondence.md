@@ -1,6 +1,6 @@
 # Visual Part Correspondence — bounded architecture decision
 
-**Status:** DESIGN ONLY · SOURCE_REVIEWED · NOT IMPLEMENTED  
+**Status:** BATCH 1 SOURCE IMPLEMENTED · BATCH 2 DEFERRED · NOT EXECUTABLE/NATIVE VERIFIED  
 **Updated:** 2026-10-11  
 **Working authority:** `Local` (baseline `5b7becaa2feb9bec9c3cd70b2ebaa2cb250d6b88`)  
 **Task:** Image Reference → verified semantic-part-to-native-element correspondence
@@ -43,10 +43,12 @@ source image bytes and IDs on demand.
 | `lib/orchestration/visualObservation.ts` | Human/AI-verified discrepancy with explicit criterion/owner and evidence refs | Unproven geometry causes from strings or 2D boxes |
 | `lib/orchestration/correctionLoop.ts` | Existing causal and bounded correction/reverification | Source image interpretation or new solver |
 
-**One possible narrow pure implementation** (only if needed by actual
-callers): `mcp/lib/reference/partCorrespondence.ts`, containing the typed
-join and conflict assessment. Do not add a store, public capability, router,
-new package schema/version, or mirrored mapping in Gateway and Runtime.
+**Implemented Batch 1 pure owner:** `mcp/lib/reference/partCorrespondence.ts`.
+It consumes existing `imageRegionEvidence` and the already validated
+`SemanticIdentityResolution` type without creating a store, Gateway tool,
+new reference schema, router or mirrored Runtime mapping. It is not wired
+into normal authoring traffic yet; no native capture/revision truth can be
+inferred from source-only test fixtures.
 
 ## High-end source evaluation — adopt contracts, not engines
 
@@ -77,7 +79,7 @@ new package schema/version, or mirrored mapping in Gateway and Runtime.
 Source evaluation is conceptual. These models' published benchmarks are
 not LazyDesigner benchmarks, nor proof of native reference similarity.
 
-## V1 correspondence contract (future pure assessment; no new persisted state)
+## V1 correspondence contract (Batch 1 pure source implemented; no persisted state)
 
 **Source evidence**, selected from the existing approved package:
 
@@ -143,12 +145,24 @@ region in one photo is **not** proof that existing model geometry is extra.
 
 ## Build order — two coherent batches, not patch-by-patch testing
 
-**Batch 1: Contract + source-level correspondence.** Implement at most one
-pure reference-domain join if current owners cannot express the needed
-mapping. Feed current `imageRegionEvidence` and exact owned native
-identity *facts*. Reject duplicate/ambiguous associations and stale
-source/model identity before any downstream discrepancy. Define focused
-behavioral regressions together (no status/UI/transport changes).
+**Batch 1: Contract + source-level correspondence — implemented at
+source level.** The pure `assessVisualPartCorrespondence` function consumes
+existing parsed source image regions and a `SemanticIdentityResolution`
+from the existing recipe identity owner. It requires explicit proposed
+Cube UUIDs, source/model/capture revision matches and a claim-specific
+review referencing the exact image ID, region ID, SHA-256 and current
+model capture handle. It distinguishes unsupported source/owner mismatch,
+missing proposal, missing proven native target, partial/occluded parts,
+surface detail, relationship-only regions and repeated same-view evidence.
+One part may map to several independently resolved Cube UUIDs; one Cube
+claimed by unrelated parts produces a conflict. There is **no**
+auto-classification of missing/extra geometry, and the output
+`visual_verdict` remains `NOT_EVALUATED`.
+
+These are caller-supplied **already verified evidence facts**. The pure
+join does not inspect Blockbench, load image pixels, independently attest
+native snapshot freshness, or manufacture a visual review. Regression
+definitions are committed, not executable PASS.
 
 **Batch 2: Consumer connection only after Batch 1 proves a real consumer
 gap.** Join the existing Control original-image delivery to current
@@ -191,5 +205,8 @@ not fabricate a new Actions workflow or ask for the user's PC.
 6. Measured executable and native proof is reported separately from the
    source-level design, without claiming improved visual fidelity in advance.
 
-**Implementation authorization:** this document selects the smallest
-architecture, but does **not** mark Batch 1 or 2 as implemented or tested.
+**Delivery record:** Batch 1 is source-implemented with focused regression
+definitions. Batch 2 remains **NOT IMPLEMENTED**, pending a real consumer
+with independently obtained fresh native identity/capture and actual
+reference/model image review. No Bun/CI or live Blockbench validation has
+been executed on this Batch 1 source.
