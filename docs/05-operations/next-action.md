@@ -37,6 +37,8 @@ experimental/  opt-in implementation only
 
 Do not continue structural refactoring merely for appearance. Remaining compatibility wrappers are intentionally retained until matching local/live compatibility evidence exists.
 
+Repository ownership audit: 71 explicit capability→implementation/anchor mappings resolved on the checked `Local` tree. The existing `gateway/development/affectedExecution.ts` planner now selects bounded repository and development-consumer checks for agent policy, knowledge, documentation and canonical ownership changes. Migration-sensitive benchmark/recovery paths were reconciled to current files. These source/static checks and unexecuted regression definitions do not prove current-head Bun, TypeScript, Actions or native Blockbench PASS.
+
 Proof is activated by actual task need, not each commit:
 
 ```text

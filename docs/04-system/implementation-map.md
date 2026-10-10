@@ -107,6 +107,8 @@ affectedExecution.ts         affected execution/verification planning
 
 For a capability without an exact source mapping, Development Intelligence falls back to `mcp/server/runtime/registration.ts` as the Runtime **surface owner** plus the matching specialist. It must not route ownership to legacy compatibility facades or guess an implementation file.
 
+The canonical `affectedExecution.ts` turns changed source paths into a bounded verifier plan. Agent permissions, repository governance, system-document routing, knowledge indexing and developer source ownership require repository contract checks; changed knowledge/context and source-owner implementations also select their concrete developer regression tests. Unknown and toolchain changes still fail safe to full verification. No automatic CI is triggered. New Development consumers import `gateway/development/sourceOwners.ts` directly; `gateway/control/sourceOwners.ts` is a compatibility-only re-export.
+
 ## Gateway Execution
 
 Canonical source: `mcp/gateway/execution/`.
