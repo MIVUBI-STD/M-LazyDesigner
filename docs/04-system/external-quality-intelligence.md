@@ -93,10 +93,10 @@ Candidate classes include identity/case handling, mirror pairing, pivots, UV ori
 Canonical executable owner:
 
 ```text
-mcp/lib/referenceCrossViewEvidence.ts
+mcp/lib/reference/crossViewEvidence.ts
 ```
 
-Compare only semantic/world-space constraints that multiple views explicitly claim about the same part. Never infer numeric scale from image pixels and never treat occlusion as absence.
+Compare only semantic/world-space constraints that multiple **distinct** views explicitly claim about the same part. Normalize view identity (case/whitespace) and part IDs before comparison. Duplicate observations from one view must not create cross-view confidence; contradictory same-view observations still create conflicts. Never infer numeric scale from image pixels and never treat occlusion as absence.
 
 Conflict classes:
 
@@ -209,7 +209,7 @@ Current remote comparison against the experimental `Ref` research branch and `A-
 | quality decision router / separate approval engine | REJECTED | existing evidence + readiness owners already separate diagnostics from approval |
 | persistent approved-asset / quality-profile registry | REJECTED | would create a second durable authority; approved reference/current workspace already own task truth |
 | always-loaded normalized knowledge corpus / `bb_knowledge` equivalent | REJECTED | bounded external retrieval is preferred; no hot-path corpus/database |
-| cross-view reference comparator | IMPLEMENTED | `mcp/lib/referenceCrossViewEvidence.ts` |
+| cross-view reference comparator | IMPLEMENTED | `mcp/lib/reference/crossViewEvidence.ts` |
 | Minecraft-native representation/style evidence | IMPLEMENTED | `mcp/lib/minecraftStyleEvidence.ts` |
 | animation/contact geometric evidence | IMPLEMENTED | `mcp/lib/animationContactEvidence.ts` plus native playback boundary |
 | surface / physical UV / motion-craft diagnostics | IMPLEMENTED | existing Runtime evidence augmentation; no new public tools |

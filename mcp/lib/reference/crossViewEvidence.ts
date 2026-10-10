@@ -54,9 +54,13 @@ export function analyzeReferenceCrossViewEvidence(input: {
     return { state: "unavailable" as const, reason: "example_limit_invalid" as const };
   }
 
-  const usable = input.observations.filter(
-    (entry) => entry.view.trim().length > 0 && entry.part_id.trim().length > 0
-  );
+  const usable = input.observations
+    .filter((entry) => entry.view.trim().length > 0 && entry.part_id.trim().length > 0)
+    .map((entry) => ({
+      ...entry,
+      view: entry.view.trim().toLowerCase(),
+      part_id: entry.part_id.trim(),
+    }));
   const byPart = new Map<string, ReferencePartObservation[]>();
   for (const observation of usable) {
     const entries = byPart.get(observation.part_id) ?? [];
@@ -74,7 +78,9 @@ export function analyzeReferenceCrossViewEvidence(input: {
         .map((entry) => ({ view: entry.view, value: entry.dimensions?.[axis] }))
         .filter((entry): entry is { view: string; value: number } => finitePositive(entry.value));
       if (values.length < 2) continue;
-      comparableDimensionCount += 1;
+      // Repeated claims from one view can reveal contradictions but never
+      // establish independent cross-view support.
+      if (new Set(values.map((entry) => entry.view)).size >= 2) comparableDimensionCount += 1;
       const min = Math.min(...values.map((entry) => entry.value));
       const max = Math.max(...values.map((entry) => entry.value));
       const basis = Math.max(max, Number.EPSILON);
@@ -94,7 +100,7 @@ export function analyzeReferenceCrossViewEvidence(input: {
       .filter((entry) => entry.attachment_parent !== undefined)
       .map((entry) => ({ view: entry.view, parent: canonicalParent(entry.attachment_parent) }));
     if (parents.length >= 2) {
-      attachmentComparisonCount += 1;
+      if (new Set(parents.map((entry) => entry.view)).size >= 2) attachmentComparisonCount += 1;
       if (new Set(parents.map((entry) => entry.parent ?? "<root>")).size > 1) {
         issues.push({ kind: "attachment_conflict", part_id: partId, observations: parents });
       }
@@ -123,6 +129,6 @@ export function analyzeReferenceCrossViewEvidence(input: {
         : comparableDimensionCount + attachmentComparisonCount > 0
           ? ("consistent_with_available_constraints" as const)
           : ("insufficient_comparable_constraints" as const),
-    note: "This evidence compares only explicit semantic/world-space constraints that multiple views claim about the same part. It never infers scale from pixels, never treats occlusion as absence, and never creates visual approval.",
+    note: "This evidence compares only explicit semantic/world-space constraints that multiple views claim about the same part. It never infers scale from pixels, never treats occlusion as absence, and never creates visual approval. Repeated claims from one view do not establish cross-view consistency, although contradictions remain reportable.",
   };
 }
