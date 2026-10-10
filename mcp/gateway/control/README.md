@@ -44,6 +44,7 @@ types.ts              compact Control contracts
 referenceTypes.ts     REFERENCE.json projection contracts
 referenceParser.ts    pure REFERENCE.json normalization
 referencePackage.ts   REFERENCE.json filesystem/cache boundary
+referenceImageEvidence.ts   bounded source-image integrity + opt-in MCP media delivery
 workspace.ts          Active Workspace projection
 contextProjection.ts  stage-specific authoring context
 contexts.ts           Skill/profile paths + content-addressed context handles

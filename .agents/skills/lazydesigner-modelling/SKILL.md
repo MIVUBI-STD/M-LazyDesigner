@@ -39,6 +39,15 @@ Accept `selected_profile` from Control, sourced from the current Reference Packa
 
 For reference-driven visual work, the **actual approved reference image** must be in **active multimodal context**; path/prose/memory is not visual evidence. Unavailable → `BLOCKED`. Approved image owns visuals; explicit dimensions own numeric scale.
 
+When using the stable Gateway with a Reference Package, explicitly request
+`status(reference_package_path=..., include_reference_images=true)` at a
+visual review boundary, selecting only relevant active-stage image IDs if
+more than four are present. Compare delivered MCP reference image content
+with fresh `capture_model_views` image content under compatible views and
+framing. Reuse unchanged images in the active review context; do not fetch
+them at every Cube edit. The returned SHA-256/ID/approval fields establish
+source identity, not visual quality or native camera calibration.
+
 Evidence states remain `SUPPORTED | PROVISIONAL | CONFLICTING | UNAVAILABLE`. View Pair Map is conditional only for material front/back, depth, attachment, or 3/4 ambiguity.
 
 Before the first primary batch, resolve only decision-changing structure:

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { MODEL_VIEWS, type ModelView } from "../../lib/reference/visualEvidence";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import type {
   ControlProfile,
@@ -197,6 +198,12 @@ export function parseReferencePackage(
       role: stringValue(item.role),
       used_by: [...new Set(usedBy)],
       status: stringValue(item.status),
+      view: (() => {
+        const candidate = stringValue(item.view)?.toLowerCase();
+        return candidate && MODEL_VIEWS.includes(candidate as ModelView)
+          ? candidate as ModelView
+          : null;
+      })(),
     }];
   });
 

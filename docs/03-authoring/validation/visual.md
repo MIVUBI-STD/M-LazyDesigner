@@ -159,6 +159,28 @@ still remains `LOCAL PROOF REQUIRED` until tested locally.
 
 ## Reference ↔ Model View Pairing
 
+For actual image-based review through the Gateway: obtain the approved
+source image(s) with `status(reference_package_path=...,
+include_reference_images=true)` for the current authoring stage. If there
+are more than four, request only the necessary stage image IDs using
+`reference_image_ids`. The source images arrive as MCP image content,
+while compact metadata exposes ID, approval status, optional canonical view,
+SHA-256 and current Reference Package fingerprint.
+
+Capture current model images separately with `capture_model_views` using
+the correct `front_direction`, framing and relevant views/targets.
+Compare both actual images directly in one reviewing context. For images
+marked composite/unknown, verify the relevant panel manually rather than
+pretending that a tag solves camera alignment. Model camera-spec fields
+are capture plans, not native camera attestation; neither matching hashes nor
+silhouette score grants a visual PASS.
+
+Control binds image byte hashes to the active stage context fingerprint.
+A changed source image invalidates the old context even if
+`REFERENCE.json` did not change. A missing, unsafe or oversized source
+image blocks the affected stage. Normal `status` remains compact; do
+not request the bytes during unrelated orientation or development work.
+
 Compare like with like using the View Pair Map. Do not silently compare mismatched front/back or left/right interpretations.
 
 Do not require every view after every mutation. Capture the smallest view set

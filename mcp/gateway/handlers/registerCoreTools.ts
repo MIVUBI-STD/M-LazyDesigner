@@ -19,6 +19,8 @@ import {
 } from "../development/sourceOwners";
 import type { LocalCapabilityRegistry } from "../providers/registry";
 import { projectGatewayStatus } from "../presentation/statusProjection";
+import { readReferencePackageProjection } from "../control/referencePackage";
+import { readReferenceImageEvidence } from "../control/referenceImageEvidence";
 import {
   gatewayDescribeOutputSchema,
   gatewaySearchOutputSchema,
@@ -96,6 +98,16 @@ const statusInput = z.object({
     .min(1)
     .optional()
     .describe("Reference Package directory or REFERENCE.json path."),
+  include_reference_images: z
+    .boolean()
+    .default(false)
+    .describe("Explicitly attach original source images as MCP image content for review; normal status remains text-only."),
+  reference_image_ids: z
+    .array(z.string().min(1).max(160))
+    .min(1)
+    .max(4)
+    .optional()
+    .describe("Optional bounded subset of active-stage REFERENCE.json image IDs. Use when the stage has more than four images."),
   current_user_delta: z
     .string()
     .max(1000)
@@ -203,6 +215,8 @@ export function registerCoreGatewayTools(
           known_context_ids,
           workspace_path,
           reference_package_path,
+          include_reference_images,
+          reference_image_ids,
           current_user_delta,
           task_mode,
           task_intent,
@@ -220,6 +234,35 @@ export function registerCoreGatewayTools(
           taskMode: task_mode,
           taskIntent: task_intent,
         });
+        // Keep binary evidence out of Control's compact status context.
+        // Deliver it only after explicit request, using IDs selected by the
+        // existing stage projection. A later model capture uses those same
+        // canonical view labels for manual image-pair review.
+        let referenceEvidence: Awaited<ReturnType<typeof readReferenceImageEvidence>> | null = null;
+        if (!include_reference_images && reference_image_ids !== undefined) {
+          throw new Error("REFERENCE_IMAGE_SELECTION_INVALID: set include_reference_images=true.");
+        }
+        if (include_reference_images) {
+          if (task_mode !== "ASSET_AUTHORING" || !reference_package_path ||
+              !control.reference.available) {
+            throw new Error("REFERENCE_IMAGE_CONTEXT_REQUIRED: bind a readable Reference Package.");
+          }
+          const stageIds = control.stage_context?.reference_image_ids ?? [];
+          const ids = reference_image_ids ?? stageIds;
+          const hasActiveStage = control.stage_context?.context_type != null;
+          if (!ids.length || ids.length > 4 ||
+              (hasActiveStage && ids.some((id) => !stageIds.includes(id)))) {
+            throw new Error(
+              "REFERENCE_IMAGE_SELECTION_INVALID: select 1-4 declared active-stage image IDs."
+            );
+          }
+          const source = await readReferencePackageProjection(reference_package_path);
+          if (source.fingerprint !== control.reference.fingerprint) {
+            throw new Error("REFERENCE_IMAGE_REVISION_CHANGED: refresh Control status.");
+          }
+          referenceEvidence = await readReferenceImageEvidence(source, ids);
+        }
+
         const registeredExperimentalTools = experimentalTools();
         return {
           content: [
@@ -232,6 +275,17 @@ export function registerCoreGatewayTools(
                     ? "Control status ready."
                     : "Control ready; Runtime offline.",
             },
+            ...(referenceEvidence ?? []).flatMap((image) => [
+              {
+                type: "text" as const,
+                text: "REFERENCE_IMAGE " + image.id +
+                  " VIEW " + (image.view ?? "COMPOSITE_OR_UNKNOWN") +
+                  " STATUS " + (image.status ?? "UNSPECIFIED") +
+                  " SHA256 " + image.sha256 +
+                  ". Compare the actual image with the matching fresh Blockbench capture; labels alone are not visual proof.",
+              },
+              { type: "image" as const, data: image.data, mimeType: image.mime_type },
+            ]),
           ],
           structuredContent: {
             ...projectGatewayStatus(status, known_semantic_revisions),
@@ -243,6 +297,23 @@ export function registerCoreGatewayTools(
                 4 + registeredExperimentalTools.length,
             },
             control: projectControlPacketForGateway(control),
+            ...(referenceEvidence ? {
+              reference_image_evidence: {
+                reference_fingerprint: control.reference.fingerprint,
+                source: "reference_package_file_bytes",
+                model_image_capture_required: true,
+                visual_verdict: "not_evaluated",
+                pairing_rule: "Match only compatible explicitly known image views with current Blockbench model captures; composite/unknown views require actual visual interpretation. Status is not approval.",
+                images: referenceEvidence.map((image) => ({
+                  id: image.id,
+                  view: image.view,
+                  status: image.status,
+                  sha256: image.sha256,
+                  mime_type: image.mime_type,
+                  bytes: image.bytes,
+                })),
+              },
+            } : {}),
           },
         };
       } catch (error) {

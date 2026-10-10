@@ -236,7 +236,17 @@ file
 role
 used_by
 status
+view (optional; only for an individually oriented reference image)
 ```
+
+For a single-view image, `view` may use a canonical model-view name
+(`front`, `back`, `left`, `right`, `top`, `bottom`,
+`front_left_3q`, or `front_right_3q`). Leave it absent for composite
+sheets or ambiguous perspectives; do not invent camera correspondence.
+The Runtime/Gateway computes content SHA-256 and image integrity when loading
+this package. Never store an unverified hash or embed image bytes in
+`REFERENCE.json`. File references must remain package-relative and resolve
+inside the package. Visual approval still requires looking at the actual image.
 
 `role` examples:
 

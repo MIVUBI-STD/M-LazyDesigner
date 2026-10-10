@@ -5,6 +5,7 @@ import {
   parseReferencePackage,
 } from "./referenceParser";
 import type { ControlReferenceProjection } from "./referenceTypes";
+import { inspectReferenceImages } from "./referenceImageEvidence";
 
 export type {
   ControlProfile,
@@ -51,7 +52,7 @@ export async function readReferencePackageProjection(
     const signature = `${info.size}:${info.mtimeMs}`;
     const cached = cache.get(sourcePath);
     if (cached?.signature === signature) {
-      return cached.projection;
+      return inspectReferenceImages(cached.projection);
     }
 
     const raw = await readFile(sourcePath, "utf8");
@@ -70,7 +71,7 @@ export async function readReferencePackageProjection(
     }
 
     cache.set(sourcePath, { signature, projection });
-    return projection;
+    return inspectReferenceImages(projection);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException)?.code;
     return {

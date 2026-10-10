@@ -164,6 +164,27 @@ A missing resource that `REFERENCE.json` marks `READY` is a package-consistency 
 
 Never scan `images/` blindly.
 
+When working through the stable four-tool Gateway, `status` normally
+returns only the active-stage reference image IDs. For actual visual review,
+call `status` with the same `reference_package_path` and
+`include_reference_images=true`; optionally pass 1–4
+`reference_image_ids` from the active stage if more than four images are
+declared. This returns the actual image bytes as MCP image content, with
+image ID, known single-view label, status, SHA-256, and source fingerprint.
+No image bytes enter the compact JSON Control packet.
+
+Control checks declared package-relative files for traversal, symlinks,
+size and MIME-signature consistency; missing/invalid stage images block stage
+readiness. Hashes of source image bytes invalidate the stage context even
+when `REFERENCE.json` is unchanged. A missing or changed image is not
+silently replaced by nearby files, metadata or an image query.
+
+For reference/model review, retain the delivered reference image in active
+multimodal context and compare it with fresh `capture_model_views` output,
+matching only genuinely corresponding orientations. A composite sheet
+requires the reviewer to identify the actual panel; image `view` metadata
+alone is not native camera calibration or visual PASS.
+
 Preferred model image resolution:
 
 ```text

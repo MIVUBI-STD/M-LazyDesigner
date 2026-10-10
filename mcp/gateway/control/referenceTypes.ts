@@ -1,3 +1,5 @@
+import type { ModelView } from "../../lib/reference/visualEvidence";
+
 export type ControlProfile =
   | "PROP_FURNITURE"
   | "VEHICLE"
@@ -76,6 +78,13 @@ export type ControlReferenceProjection = {
     role: string | null;
     used_by: ControlReferenceStage[];
     status: string | null;
+    /** Canonical single-view label; null for composite/unspecified sheets. */
+    view?: ModelView | null;
+    /** Read-time source-byte identity, not an approval or visual verdict. */
+    sha256?: string | null;
+    bytes?: number | null;
+    media_type?: "image/png" | "image/jpeg" | "image/webp" | null;
+    integrity?: "VERIFIED" | "MISSING" | "INVALID";
   }>;
   /**
    * Decision-critical facts already owned by REFERENCE.json. Optional for
