@@ -14,10 +14,10 @@ describe("LazyDesigner Control source migration", () => {
     const [gateway, registration, executor] = await Promise.all([
       text("gateway/index.ts"),
       text("gateway/handlers/registerCoreTools.ts"),
-      text("gateway/runtime/capabilityExecutor.ts"),
+      text("gateway/execution/capabilityExecutor.ts"),
     ]);
     expect(registration).toContain('from "../control"');
-    expect(executor).toContain('from "../control"');
+    expect(executor).toContain('from "../control/delta/engine"');
     expect(gateway).not.toContain('from "./navigator"');
     expect(registration).toContain("buildControlPacket");
     expect(executor).toContain("buildControlDelta");

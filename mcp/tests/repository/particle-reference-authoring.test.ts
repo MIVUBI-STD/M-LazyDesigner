@@ -21,7 +21,8 @@ describe("particle reference authoring contract", () => {
 
     expect(spec).toContain("facing_camera_mode");
     expect(spec).toContain("timing owner: frames_per_second | stretch_to_lifetime");
-    expect(spec).toContain("Physical travel stays in motion components");
+    expect(spec).toContain("physical travel");
+    expect(spec).toContain("motion component, not flipbook");
     expect(texture).toContain("flipbook");
     expect(texture).toContain("stretch_to_lifetime");
     expect(emitter).toContain("activation_expression");

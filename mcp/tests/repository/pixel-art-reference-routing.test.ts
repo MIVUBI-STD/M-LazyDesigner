@@ -13,8 +13,9 @@ describe("pixel-art reference specialist ownership", () => {
       source("../.agents/skills/lazydesigner-pixel-art-authoring/SKILL.md"),
     ]);
 
-    expect(agents).toContain("lazydesigner-pixel-art-authoring/SKILL.md");
-    expect(agents).toContain("actual Blockbench atlas/UV/Painter task");
+    expect(agents).toContain("lazydesigner-pixel-art-authoring");
+    expect(agents).toContain("Reference Preparation");
+    expect(agents).toContain("Blockbench atlas/UV/Painter mutation");
 
     expect(taxonomy).toContain("lazydesigner-pixel-art-authoring");
     expect(taxonomy).toContain("standalone icon / sprite / tile / pixel-art reference image");
