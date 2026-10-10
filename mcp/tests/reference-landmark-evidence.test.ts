@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   compareReferenceLandmarkProjection,
   parseReferenceImageLandmarks,
+  assessLandmarkCorrectionDelta,
+  type LandmarkCaptureEvidence,
 } from "@/lib/reference/landmarkEvidence";
 
 describe("reference-image landmark contract", () => {
@@ -72,5 +74,109 @@ describe("reference-image landmark contract", () => {
     expect(() => compareReferenceLandmarkProjection({
       ...base, projected_uv: [Number.NaN, 0.5],
     })).toThrow("REFERENCE_LANDMARK_PROJECTION_INVALID");
+  });
+});
+
+function captureEvidence(
+  evidence_handle: string,
+  firstUv: [number, number],
+  secondUv: [number, number] = [0.65, 0.5]
+): LandmarkCaptureEvidence {
+  const points = [
+    { id: "body", cube: "cube-body", uv: [0.4, 0.5] as [number, number], projected: firstUv },
+    { id: "arm", cube: "cube-arm", uv: [0.5, 0.5] as [number, number], projected: secondUv },
+  ];
+  return {
+    evidence_handle,
+    project_uuid: "project-1",
+    front_direction: "+z",
+    width: 512,
+    height: 512,
+    framing_bounds: { min: [-10, 0, -10], max: [10, 20, 10] },
+    cameras: [{
+      view: "front", projection: "orthographic",
+      position: [0, 10, 40], target: [0, 10, 0], up: [0, 1, 0],
+      zoom: 20, fov: null,
+    }],
+    landmarks: points.map((row) => compareReferenceLandmarkProjection({
+      reference_image_id: "IMG_FRONT",
+      reference_sha256: "a".repeat(64),
+      view: "front",
+      landmark_id: row.id,
+      model_cube_uuid: row.cube,
+      model_anchor: "CUBE_CENTER",
+      model_world_point: [0, 10, 0],
+      reference_uv: row.uv,
+      projected_uv: row.projected,
+      ndc_depth: 0,
+    })),
+  };
+}
+
+describe("reference landmark before/after convergence guard", () => {
+  test("one worse landmark vetoes a superficially improved second point", () => {
+    const before = captureEvidence("before", [0.6, 0.5], [0.7, 0.5]);
+    const after = captureEvidence("after", [0.5, 0.5], [0.8, 0.5]);
+    const delta = assessLandmarkCorrectionDelta(before, after);
+    expect(delta.state).toBe("REGRESSED");
+    expect(delta.comparisons.map((item) => item.state)).toEqual([
+      "IMPROVED", "REGRESSED",
+    ]);
+    expect(delta.rollback_native_edit_required).toBe(true);
+    expect(delta.visual_verdict).toBe("UNVERIFIED");
+  });
+
+  test("only complete same-camera, same-reference observations are comparable", () => {
+    const before = captureEvidence("before", [0.6, 0.5]);
+    const after = captureEvidence("after", [0.5, 0.5]);
+    expect(assessLandmarkCorrectionDelta(before, after).state).toBe("IMPROVED");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, cameras: [{ ...after.cameras[0]!, zoom: 21 }],
+    }).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, framing_bounds: { ...after.framing_bounds, max: [11, 20, 10] },
+    }).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, front_direction: "-z",
+    }).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, landmarks: after.landmarks.slice(0, 1),
+    }).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, landmarks: after.landmarks.map((row, index) => index === 0
+        ? { ...row, reference_sha256: "b".repeat(64) }
+        : row),
+    }).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, project_uuid: "another-project",
+    }).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, evidence_handle: before.evidence_handle,
+    }).state).toBe("UNCOMPARABLE");
+  });
+
+  test("tampered numeric residuals cannot be used to claim measured progress", () => {
+    const before = captureEvidence("before", [0.6, 0.5]);
+    const after = captureEvidence("after", [0.5, 0.5]);
+    const invalid = {
+      ...after,
+      landmarks: after.landmarks.map((point) =>
+        point.landmark_id === "body"
+          ? { ...point, distance_uv: 0, offset_uv: [0, 0] as [number, number] }
+          : point),
+    };
+    expect(assessLandmarkCorrectionDelta(before, invalid).state).toBe("UNCOMPARABLE");
+    expect(assessLandmarkCorrectionDelta(before, {
+      ...after, landmarks: [...after.landmarks, after.landmarks[0]!],
+    }).state).toBe("UNCOMPARABLE");
+  });
+
+  test("stable measurements never imply visual approval", () => {
+    const before = captureEvidence("before", [0.6, 0.5]);
+    const after = captureEvidence("after", [0.6, 0.5]);
+    const delta = assessLandmarkCorrectionDelta(before, after);
+    expect(delta.state).toBe("UNCHANGED");
+    expect(delta.visual_verdict).toBe("UNVERIFIED");
+    expect(delta.rollback_native_edit_required).toBe(false);
   });
 });

@@ -194,6 +194,13 @@ subset to `capture_model_views`, together with `views` and
 through the same offscreen camera used to capture that view. The returned
 `landmark_projections` contain normalized offsets and image-frame status.
 
+When checking a bounded change, retain the previous and current capture
+metadata and evidence handles. `assessLandmarkCorrectionDelta` compares the
+same image/landmark/Cube/view with unchanged camera, project and framing;
+regression or missing pairing blocks confirmation at the existing
+correction-loop evidence-update boundary. Native Undo remains the actual
+authoring owner's responsibility, not a side effect of landmark analysis.
+
 A source landmark is **not automatically a Cube center**: only pair those
 that truly refer to the center of that model mass. Source/model camera
 alignment is not solved or attested; residuals are diagnostic only, and no

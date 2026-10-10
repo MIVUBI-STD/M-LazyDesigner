@@ -330,6 +330,36 @@ auto-issue a correction. If camera/view/source binding is uncertain, keep
 the discrepancy `UNVERIFIED`, not `RESOLVED`. Continue using the existing
 difference-first observation and correction loop for supported claims.
 
+### Measured direction guard — same capture, not source-camera calibration
+
+For bounded corrections that already have a separately evidenced **Geometry**
+owner/cause and exact Cube correspondence, compare the previous and fresh
+`capture_model_views` landmark outputs only when the source image ID/SHA,
+landmark ID, exact Cube UUID, project UUID, front direction, resolution,
+framing bounds and **computed camera settings** are unchanged.
+
+The existing `assessLandmarkCorrectionDelta(before, after)` helper evaluates
+per-point 2D UV residual direction (`IMPROVED`, `UNCHANGED`,
+`REGRESSED`, `UNCOMPARABLE`). It does not average improvement across
+different parts: any worsening point is a regression. It also cannot prove
+correct correspondence between a real-world reference camera and Blockbench.
+
+On the existing `CorrectionLoopRegistry.updateEvidence` boundary,
+`options.landmark_check` can supply the previous/current capture descriptions,
+bound to the original/new verification evidence handles. The affected views
+must be explicitly reported in `recovered_views`. Camera drift, missing
+pairs, incorrect handles and regressed measurements are rejected **before**
+correction state changes. An unchanged measurement cannot be used to clear a
+vanished discrepancy.
+
+If the measurement regresses, stop the correction and **undo the actual
+native edit at its execution owner** before recapturing; correction-loop code
+does not invoke native Undo or claim it has reverted model state. A measured
+improvement is supporting diagnostic evidence only: a fresh actual
+reference↔model comparison and independent semantic observation still own
+`IMPROVED`, `RESOLVED` and final visual `PASS` decisions. Do not derive
+`POSITION_MISMATCH` or other 3D causes from a 2D UV offset alone.
+
 ## Visual Repair Loop
 
 ```text

@@ -58,6 +58,16 @@ second correction planner. Skip landmark measurement when the visible feature
 is an edge/joint/detail rather than the Cube center, or the camera cannot
 actually be paired.
 
+When a correction has known semantic cause and a stable camera, the
+read-only `assessLandmarkCorrectionDelta` diagnostic can compare previous
+and new capture landmark residuals. Only compare the **same** source image
+SHA, exact Cube UUID, framing envelope, camera plan and covered view.
+Pass that measurement through existing correction-loop evidence updates only
+as a veto; any worsened point or uncomparable camera must stop the correction,
+leave convergence pending and request undo/recapture at the actual native
+execution owner. Do not claim this helper performs Undo, changes the model,
+automatically grants clearance, or produces a fidelity score.
+
 Evidence states remain `SUPPORTED | PROVISIONAL | CONFLICTING | UNAVAILABLE`. View Pair Map is conditional only for material front/back, depth, attachment, or 3/4 ambiguity.
 
 Before the first primary batch, resolve only decision-changing structure:

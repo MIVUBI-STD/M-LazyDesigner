@@ -19,6 +19,10 @@ import {
 } from "@/lib/orchestration/compactEvidence";
 import type { ModelView } from "@/lib/reference/visualEvidence";
 import {
+  assessLandmarkCorrectionDelta,
+  type LandmarkCaptureEvidence,
+} from "@/lib/reference/landmarkEvidence";
+import {
   compileStructuredVisualObservations,
   type StructuredVisualObservation,
 } from "@/lib/orchestration/visualObservation";
@@ -55,6 +59,11 @@ type CorrectionConvergenceState =
 type CorrectionEvidenceUpdateOptions = {
   recovered_views?: readonly ModelView[];
   cleared_target_codes?: readonly string[];
+  /** Optional measurement veto, never a visual approval or mutation trigger. */
+  landmark_check?: {
+    before: LandmarkCaptureEvidence;
+    after: LandmarkCaptureEvidence;
+  };
 };
 
 type CorrectionLoopRecord = {
@@ -743,6 +752,40 @@ export class CorrectionLoopRegistry {
         throw new Error("TARGET_CLEARANCE_VIEW_MISSING: recheck claim views " + missingViews.join(", "));
       }
     }
+    // Keep the measurement guard before any correction record mutation.
+    // Landmarks only veto unsafe convergence; they cannot diagnose a 3D cause,
+    // authorize a candidate, certify visual PASS or perform native Undo.
+    if (options.landmark_check) {
+      const { before, after } = options.landmark_check;
+      if (record.verification_request.domain !== "GEOMETRY" ||
+          record.pending_target_discrepancy_codes.length === 0) {
+        throw new Error("LANDMARK_CORRECTION_NOT_PENDING");
+      }
+      if (before.evidence_handle !== record.verification_evidence_handle ||
+          after.evidence_handle !== evidenceHandle) {
+        throw new Error("LANDMARK_CAPTURE_HANDLE_MISMATCH");
+      }
+      const recovered = new Set(options.recovered_views ?? []);
+      if (after.landmarks.some((row) => !recovered.has(row.view))) {
+        throw new Error("LANDMARK_CAPTURE_VIEW_UNVERIFIED");
+      }
+      const delta = assessLandmarkCorrectionDelta(before, after);
+      if (delta.state === "UNCOMPARABLE") {
+        throw new Error(
+          "LANDMARK_CAMERA_OR_REFERENCE_MISMATCH: recapture matched source, Cube and camera evidence."
+        );
+      }
+      if (delta.state === "REGRESSED") {
+        throw new Error(
+          "LANDMARK_CORRECTION_REGRESSED: do not accept convergence; revert the native edit in its execution owner and recapture."
+        );
+      }
+      // No displacement is not proof that a discrepancy has disappeared.
+      if (delta.state === "UNCHANGED" && absent.length > 0) {
+        throw new Error("LANDMARK_CLEARANCE_UNSUPPORTED: measured targets did not improve.");
+      }
+    }
+
     const incoming = [...structuredClone(discrepancies)];
     const pendingTargetCodes = [...record.pending_target_discrepancy_codes];
     if (pendingTargetCodes.length > 0) {
