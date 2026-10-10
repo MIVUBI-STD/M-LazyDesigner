@@ -52,7 +52,7 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 
 ### Optional Head Proof
 
-`Head Proof` is manual-only. It classifies the selected commit relative to its parent. A docs-only classification is source-equivalence evidence, never a fresh compiler/test/build, native or visual PASS.
+`Head Proof` is manual-only. It classifies the selected commit relative to its parent. A docs-only head classification means only that executable source did not change relative to its parent. Head Proof is source-equivalence evidence, never a fresh compiler/test/build, native or visual PASS. Source-impacting heads continue to require exact-SHA executable verification; docs-only head evidence never substitutes for that proof.
 
 ### Default-branch registration
 

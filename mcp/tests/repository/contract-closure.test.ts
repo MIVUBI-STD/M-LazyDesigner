@@ -69,7 +69,7 @@ describe("MCP dependency closure", () => {
     const [workflow, runbook, phaseContract] = await Promise.all([
       text("../docs/03-authoring/workflow.md"),
       text("../docs/05-operations/local-acceptance-runbook.md"),
-      text("lib/authoringPhase.ts"),
+      text("lib/capabilities/authoringStage.ts"),
     ]);
 
     expect(workflow).toMatch(/USER APPROVAL or authorized autonomous verification/i);

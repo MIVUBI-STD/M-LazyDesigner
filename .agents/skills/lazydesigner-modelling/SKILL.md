@@ -27,7 +27,7 @@ Control → current intent/reference readiness → selected_profile
 → this Skill → exactly one selected profile
 ```
 
-Accept `selected_profile` from Control; do not rediscover or preload profiles. `GENERIC` is fallback only. Reclassification is context-only: preserve valid asset/reference state, and never let profile guidance override approved reference evidence, explicit dimensions, or user requirements.
+Accept `selected_profile` from Control, sourced from the current Reference Package (`REFERENCE.json.asset.profile`); do not independently classify, rediscover or preload profiles. `GENERIC` is fallback only. Reclassification is context-only: preserve valid asset/reference state, and never let profile guidance override approved reference evidence, explicit dimensions, or user requirements.
 
 ## Minimum Necessary Evidence
 - **No per-Cube inspection ceremony** without a diagnosed problem.

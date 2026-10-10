@@ -68,7 +68,7 @@ describe("Control context ownership", () => {
     expect(referenceParser).toContain("selected_profile: selectedProfile");
     expect(contexts).toContain("contextForAuthoringDomain(");
     expect(contexts).toContain("PROFILE_PATHS[selectedProfile]");
-    expect(modelling).toContain("accept `selected_profile` from Control");
+    expect(modelling).toContain("Accept `selected_profile` from Control");
     expect(modelling).toContain("current Reference Package");
     expect(projectionDoc).toContain("Control does not independently classify the asset");
   });
