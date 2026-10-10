@@ -48,6 +48,16 @@ framing. Reuse unchanged images in the active review context; do not fetch
 them at every Cube edit. The returned SHA-256/ID/approval fields establish
 source identity, not visual quality or native camera calibration.
 
+For an approved single-view image with actual visually inspected regions,
+reuse the existing source-image delivery's `regions` and
+`semantic_part_grounding`: distinguish visible primary volume from
+surface texture, direct from partly occluded from unobserved shape, and
+same-view repetition from independent cross-view evidence. Check
+`ownership_issues` before building or correcting a part. Region bounding
+boxes are proposal metadata, never automatic masks, scale measurements,
+3D reconstruction or authority for hidden surfaces. Do not add a
+segmentation-model dependency to the normal Gateway.
+
 For a small number of reference-critical **mass-center** landmarks, reuse
 `images[].landmarks` and the same `capture_model_views` call with
 `landmark_pairs`: source image ID/hash, visible source UV, canonical view,

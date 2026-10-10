@@ -307,6 +307,30 @@ A static pivot that creates an implausible motion arc is not approved.
 
 Use the **actual approved reference image plus evidence from the current saved/release candidate**. Do not reuse older model screenshots after material geometry/pivot/hierarchy/texture/animation changes.
 
+## Region-grounded semantic part review
+
+A real image can contain multiple representations inside one semantic part:
+its **silhouette/volume** belongs to Geometry, whereas its **markings,
+colors and thin surface detail** normally belong to Texture. For an
+approved single-view image, `images[].regions` can annotate these
+bounded claims using `part_id`, `evidence_role`, `visibility` and
+normalized region box. The same `status(include_reference_images=true)`
+response returns the pixel image and its region metadata; the read-only
+`semantic_part_grounding` summary separates owner signals, view coverage
+and explicit ownership conflicts.
+
+`PARTIAL` never authorizes reconstruction of the unseen continuation.
+`OCCLUDED` is visibility uncertainty, not evidence that the part does
+not exist. Duplicate images of one canonical view never supply independent
+cross-view shape corroboration. A box is neither a semantic segmentation
+mask nor source-camera calibration. Do not generate geometry from a box,
+turn region labels into automatic difference scores, infer exact dimensions
+from pixels, or allow a proposed region to overrule the approved image.
+Resolve `DECLARED_TEXTURE_BUT_VISIBLE_VOLUME` and
+`DECLARED_OMIT_BUT_VISIBLE` as explicit owner-review questions before
+issuing a causal correction. If the region/model correspondence is
+uncertain, keep the claim `UNVERIFIED`.
+
 ## Bounded Landmark Diagnosis
 
 Use source-image landmark measurements only after the actual approved image

@@ -207,6 +207,18 @@ alignment is not solved or attested; residuals are diagnostic only, and no
 automatic 3D move follows. If source view or point correspondence is uncertain,
 perform qualitative visual review instead of inventing a match.
 
+To localize semantic parts without inventing Cube geometry, an active-stage
+single-view reference may also carry bounded `images[].regions` bound to
+known `parts[].id`. The same on-demand source-image delivery returns region
+claims with current image SHA-256, and `reference_image_evidence.semantic_part_grounding`
+separates direct/partial/occluded view evidence, geometry regions and
+surface-texture regions. The attached source image must still be visually
+inspected: a bounding box is a proposal, **not** a segmentation mask or proof
+of correct object recognition. Two crops tagged `front` count as one view,
+not cross-view corroboration. A visible volume assigned `TEXTURE` or a
+visible part declared `OMIT` becomes an explicit review issue; it is not
+silently accepted or automatically fixed.
+
 Preferred model image resolution:
 
 ```text

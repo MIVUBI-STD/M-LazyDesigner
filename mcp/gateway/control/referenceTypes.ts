@@ -1,5 +1,6 @@
 import type { ModelView } from "../../lib/reference/visualEvidence";
 import type { ReferenceImageLandmark } from "../../lib/reference/landmarkEvidence";
+import type { ReferenceImageRegion } from "../../lib/reference/imageRegionEvidence";
 
 export type ControlProfile =
   | "PROP_FURNITURE"
@@ -83,6 +84,8 @@ export type ControlReferenceProjection = {
     view?: ModelView | null;
     /** Source-image observations, not model vertices or solved camera calibration. */
     landmarks?: ReferenceImageLandmark[];
+    /** Authored regions tied to semantic parts. Not automatic segmentation. */
+    regions?: ReferenceImageRegion[];
     /** Read-time source-byte identity, not an approval or visual verdict. */
     sha256?: string | null;
     bytes?: number | null;

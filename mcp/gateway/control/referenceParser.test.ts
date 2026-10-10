@@ -244,6 +244,43 @@ describe("Control reference parser", () => {
     }), "/pkg/REFERENCE.json", "/pkg")).toBeNull();
   });
 
+  test("anchors marked reference image regions to existing semantic parts and one view", () => {
+    const model = {
+      schema: "lazydesigner-reference-v1",
+      asset: { name: "Workbench", kind: "MODEL", profile: "PROP_FURNITURE" },
+      parts: [{ id: "frame", role: "GEOMETRY" }, { id: "stripe", role: "TEXTURE" }],
+      images: [{
+        id: "IMG_FRONT", file: "images/front.png", view: "front",
+        used_by: ["GEOMETRY", "TEXTURE"], status: "APPROVED",
+        regions: [
+          { id: "body", part_id: "frame", evidence_role: "PRIMARY_VOLUME",
+            visibility: "DIRECT", box_uv: [0.1, 0.2, 0.9, 0.9] },
+          { id: "trim", part_id: "stripe", evidence_role: "SURFACE_DETAIL",
+            visibility: "PARTIAL", box_uv: [0.3, 0.4, 0.8, 0.5] },
+        ],
+      }],
+    };
+    const parse = (value: unknown) =>
+      parseReferencePackage(JSON.stringify(value), "/pkg/REFERENCE.json", "/pkg");
+    const result = parse(model);
+    expect(result?.images[0]?.regions).toHaveLength(2);
+    expect(result?.images[0]?.regions?.[0]).toMatchObject({
+      id: "body", part_id: "frame", visibility: "DIRECT",
+    });
+    expect(parse({ ...model, images: [{ ...model.images[0], view: undefined }] })).toBeNull();
+    expect(parse({ ...model, images: [{ ...model.images[0], regions: [
+      { ...model.images[0].regions[0], part_id: "unlisted_part" },
+    ] }] })).toBeNull();
+    expect(parse({ ...model, parts: [{ id: "frame" }, { id: "frame" }] })).toBeNull();
+    expect(parse({ ...model, images: [{ ...model.images[0], regions: [
+      { ...model.images[0].regions[0], box_uv: [0.9, 0.2, 0.1, 0.8] },
+    ] }] })).toBeNull();
+    expect(parse({ ...model, images: [{ ...model.images[0], regions: [
+      { id: "hidden", part_id: "frame", evidence_role: "PRIMARY_VOLUME",
+        visibility: "OCCLUDED", box_uv: null },
+    ] }] })?.images[0]?.regions?.[0]?.box_uv).toBeNull();
+  });
+
   test("empty reference keeps a stable unavailable shape", () => {
     expect(emptyReference("REFERENCE_NOT_FOUND")).toMatchObject({
       available: false,

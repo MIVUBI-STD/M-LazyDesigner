@@ -82,6 +82,46 @@ describe("actual reference image evidence — Control owner", () => {
     expect(stage.reference_image_ids).toEqual(["IMG_FRONT"]);
   });
 
+  test("delivers region annotations with the exact original image and part correspondence", async () => {
+    const root = await packageRoot();
+    await writeFile(join(root, "REFERENCE.json"), JSON.stringify({
+      schema: "lazydesigner-reference-v1",
+      asset: { name: "Bench", kind: "MODEL", profile: "PROP_FURNITURE" },
+      parts: [
+        { id: "seat", role: "GEOMETRY" },
+        { id: "seat_decal", role: "TEXTURE" },
+      ],
+      readiness: { overall: "READY", geometry: "READY", texture: "READY" },
+      images: [{
+        id: "IMG_FRONT", file: "images/front.png", role: "PRIMARY_GEOMETRY",
+        view: "front", used_by: ["GEOMETRY", "TEXTURE"], status: "APPROVED",
+        regions: [
+          { id: "seat_volume", part_id: "seat", evidence_role: "PRIMARY_VOLUME",
+            visibility: "DIRECT", box_uv: [0.15, 0.2, 0.85, 0.7] },
+          { id: "logo", part_id: "seat_decal", evidence_role: "SURFACE_DETAIL",
+            visibility: "DIRECT", box_uv: [0.4, 0.4, 0.6, 0.5] },
+        ],
+      }],
+    }));
+    const reference = await readReferencePackageProjection(root);
+    const evidence = await readReferenceImageEvidence(reference, ["IMG_FRONT"]);
+    expect(evidence[0]).toMatchObject({
+      id: "IMG_FRONT", view: "front",
+      sha256: createHash("sha256").update(RED_PNG).digest("hex"),
+      regions: [
+        { id: "seat_volume", part_id: "seat", evidence_role: "PRIMARY_VOLUME" },
+        { id: "logo", part_id: "seat_decal", evidence_role: "SURFACE_DETAIL" },
+      ],
+    });
+    expect(Buffer.from(evidence[0].data, "base64")).toEqual(RED_PNG);
+    expect(buildControlStageContext({
+      domain: "GEOMETRY", reference, workspace,
+    }).reference_image_ids).toEqual(["IMG_FRONT"]);
+    const statusSource = await Bun.file("gateway/handlers/registerCoreTools.ts").text();
+    expect(statusSource).toContain("semantic_part_grounding: summarizeReferencePartRegions(");
+    expect(statusSource).toContain("regions: image.regions,");
+  });
+
   test("fresh image content invalidates stage fingerprint when REFERENCE.json is unchanged", async () => {
     const root = await packageRoot();
     const initial = await readReferencePackageProjection(root);

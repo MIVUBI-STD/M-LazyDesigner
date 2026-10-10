@@ -86,6 +86,36 @@ A quirk enters LazyDesigner regression coverage only when:
 
 Candidate classes include identity/case handling, mirror pairing, pivots, UV orientation, interpolation/export, save/reopen identity, and codec round-trips.
 
+## Grounded-image research adoption (October 2026)
+
+Four external source systems provide relevant, **not directly imported** ideas:
+
+| Source | Source-level capability | Bounded LazyDesigner adoption |
+| --- | --- | --- |
+| Meta [SAM 3](https://github.com/facebookresearch/sam3) | Promptable concept/instance segmentation from text, points, boxes, masks | Keep explicit `image ID → region → part ID` correspondence, without weights, GPU or a segmentation promise |
+| IDEA [Grounding DINO](https://github.com/IDEA-Research/GroundingDINO) | Text phrase → detected image boxes | Keep semantic-part ID + normalized box as **proposed evidence**, never inferred authoritative geometry |
+| AllenAI [Molmo2 / MolmoPoint](https://github.com/allenai/molmo2) | Point grounding across images/video | Retain named landmark-to-part association and source image hash instead of naked pixel coordinates |
+| Meta [SAM 2](https://github.com/facebookresearch/segment-anything-2) | Promptable object masks and occlusion-aware video evidence | Record `DIRECT / PARTIAL / OCCLUDED` explicitly; absence from view is not physical absence |
+
+Canonical executable owner for this minimal knowledge transfer:
+
+```text
+mcp/lib/reference/imageRegionEvidence.ts
+```
+
+`REFERENCE.json images[].regions` remains optional and bounded.
+`mcp/gateway/control/referenceParser.ts` checks part-ID/view/UV integrity.
+On-demand original-image delivery returns region claims and an owner/conflict
+summary. Nothing calls SAM, Molmo, Grounding DINO or external inference.
+No new public Gateway tool, duplicate approval authority, dense 3D
+reconstructor or quality score is introduced. External systems' reported
+benchmark results do **not** imply LazyDesigner performance.
+
+The larger models' runtime/weight/dependency requirements make them unsuitable
+as mandatory dependencies in the existing ChatGPT + GitHub architecture.
+Use their **representational contracts** to expose uncertainty and improve
+the next human/AI image-review decision, not as unearned native accuracy proof.
+
 ## Quality integrations
 
 ### Cross-view reference consistency

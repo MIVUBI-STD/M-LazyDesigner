@@ -21,6 +21,7 @@ import type { LocalCapabilityRegistry } from "../providers/registry";
 import { projectGatewayStatus } from "../presentation/statusProjection";
 import { readReferencePackageProjection } from "../control/referencePackage";
 import { readReferenceImageEvidence } from "../control/referenceImageEvidence";
+import { summarizeReferencePartRegions } from "../../lib/reference/imageRegionEvidence";
 import {
   gatewayDescribeOutputSchema,
   gatewaySearchOutputSchema,
@@ -239,6 +240,7 @@ export function registerCoreGatewayTools(
         // existing stage projection. A later model capture uses those same
         // canonical view labels for manual image-pair review.
         let referenceEvidence: Awaited<ReturnType<typeof readReferenceImageEvidence>> | null = null;
+        let referencePartRoles: Array<{ id: string; role: string | null }> = [];
         if (!include_reference_images && reference_image_ids !== undefined) {
           throw new Error("REFERENCE_IMAGE_SELECTION_INVALID: set include_reference_images=true.");
         }
@@ -260,6 +262,11 @@ export function registerCoreGatewayTools(
           if (source.fingerprint !== control.reference.fingerprint) {
             throw new Error("REFERENCE_IMAGE_REVISION_CHANGED: refresh Control status.");
           }
+          referencePartRoles = (source.semantic_facts?.parts ?? []).flatMap((part) =>
+            typeof part.id === "string"
+              ? [{ id: part.id, role: typeof part.role === "string" ? part.role : null }]
+              : []
+          );
           referenceEvidence = await readReferenceImageEvidence(source, ids);
         }
 
@@ -304,11 +311,19 @@ export function registerCoreGatewayTools(
                 model_image_capture_required: true,
                 visual_verdict: "not_evaluated",
                 pairing_rule: "Match only compatible explicitly known image views with current Blockbench model captures; composite/unknown views require actual visual interpretation. Status is not approval.",
+                semantic_part_grounding: summarizeReferencePartRegions(
+                  referenceEvidence.map((image) => ({
+                    id: image.id, view: image.view, sha256: image.sha256,
+                    regions: image.regions,
+                  })),
+                  referencePartRoles
+                ),
                 images: referenceEvidence.map((image) => ({
                   id: image.id,
                   view: image.view,
                   status: image.status,
                   landmarks: image.landmarks,
+                  regions: image.regions,
                   sha256: image.sha256,
                   mime_type: image.mime_type,
                   bytes: image.bytes,

@@ -127,6 +127,16 @@ Do not apply this ceremony automatically to Pixel Art or Particle requests that 
 
 ## Visual/model branch
 
+When an approved **single-view** source reference contains a decision-critical
+object region, optional `REFERENCE.json images[].regions` may bind an
+annotated normalized image box to a known `parts[].id`, explicit
+`PRIMARY_VOLUME | SURFACE_DETAIL | CONTACT | NEGATIVE_SPACE` role and
+`DIRECT | PARTIAL | OCCLUDED` visibility. Do **not** generate 16 boxes
+by default or annotate a composite turnaround sheet as if it were one
+camera. A fully occluded region has no box and no invented hidden geometry.
+This is source-image evidence for the downstream reviewer, not running
+Grounding DINO/SAM, user approval or a Blockbench Cube plan.
+
 Use the minimum evidence that reduces downstream uncertainty. Possible modules remain `CONCEPT | TURNAROUND | STRUCTURAL_DETAIL | MATERIAL_TEXTURE | RIG_DEFORMATION | POSE_ACTION | EXPRESSION_FACE | ANIMATION_KEYFRAME`; **do not generate every module by default**.
 
 `docs/02-reference/image/standard.md` owns panel economy and layout; `scale-and-escalation.md` owns player/world scale and multi-sheet escalation; prompt construction remains in `prompt-contract.md` + `master-templates.md`.

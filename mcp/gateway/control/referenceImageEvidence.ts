@@ -172,6 +172,7 @@ export type DeliveredReferenceImage = {
   view: ReferenceImage["view"];
   status: string | null;
   landmarks: NonNullable<ReferenceImage["landmarks"]>;
+  regions: NonNullable<ReferenceImage["regions"]>;
   sha256: string;
   mime_type: NonNullable<ReferenceImage["media_type"]>;
   bytes: number;
@@ -208,6 +209,7 @@ export async function readReferenceImageEvidence(
       view: image.view ?? null,
       status: image.status,
       landmarks: image.landmarks ?? [],
+      regions: image.regions ?? [],
       sha256: image.sha256,
       mime_type: read.media_type,
       bytes: read.bytes.length,

@@ -273,6 +273,65 @@ lists invalidate the reference package rather than being silently ignored.
 Landmarks describe observations, **not** matched camera calibration or proven
 3D positions. Use only when the points materially reduce a Geometry ambiguity.
 
+Optional `images[].regions` binds **visible source-image regions** to exact
+semantic `parts[].id` without running a segmentation model or inventing 3D
+geometry. Use at most 16 region claims per **single-view** image. Each must
+have a unique `id`, known `part_id`, one `evidence_role`, one `visibility`,
+and either a normalized `box_uv: [left,top,right,bottom]` or no box when
+`visibility=OCCLUDED`.
+
+```json
+{
+  "id": "IMG_FRONT",
+  "file": "images/front.png",
+  "view": "front",
+  "used_by": ["GEOMETRY", "TEXTURE"],
+  "status": "APPROVED",
+  "regions": [
+    {
+      "id": "backrest_mass",
+      "part_id": "backrest",
+      "evidence_role": "PRIMARY_VOLUME",
+      "visibility": "DIRECT",
+      "box_uv": [0.26, 0.11, 0.76, 0.64]
+    },
+    {
+      "id": "backrest_pattern",
+      "part_id": "backrest",
+      "evidence_role": "SURFACE_DETAIL",
+      "visibility": "PARTIAL",
+      "box_uv": [0.33, 0.17, 0.65, 0.35]
+    },
+    {
+      "id": "rear_support",
+      "part_id": "rear_leg",
+      "evidence_role": "PRIMARY_VOLUME",
+      "visibility": "OCCLUDED",
+      "box_uv": null
+    }
+  ]
+}
+```
+
+Allowed `evidence_role`: `PRIMARY_VOLUME | SURFACE_DETAIL | CONTACT |
+NEGATIVE_SPACE`. Allowed `visibility`: `DIRECT | PARTIAL | OCCLUDED`.
+`related_part_id` is an optional, independently declared `parts[].id` for
+`CONTACT` or `NEGATIVE_SPACE` only, not an invented parent relationship.
+
+A directly visible `PRIMARY_VOLUME` region is a geometry question; a
+`SURFACE_DETAIL` region is a texturing question. **Both may belong to the
+same semantic part.** `OCCLUDED` means the image cannot support that
+part's hidden shape; it does **not** mean the part is absent or a guessed
+box/volume is permitted. Never auto-convert these annotations into a Cube,
+mask, projective UV or complete 3D reconstruction.
+
+Region boxes are manual/vision-review annotations that must be inspected
+against the actual image. Missing part IDs, duplicate part identities, bounds
+outside 0–1, inverted/empty rectangles, ambiguous composite images and
+inconsistent visibility/box combinations make the package invalid. Existing
+packages without `regions` remain valid. No model weights, cloud service,
+new package authority or executable vision model is required.
+
 `role` examples:
 
 ```text

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { MODEL_VIEWS, type ModelView } from "../../lib/reference/visualEvidence";
 import { parseReferenceImageLandmarks } from "../../lib/reference/landmarkEvidence";
+import { parseReferenceImageRegions } from "../../lib/reference/imageRegionEvidence";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import type {
   ControlProfile,
@@ -182,6 +183,11 @@ export function parseReferencePackage(
   const assetKind =
     assetKindValue(asset?.kind) ?? (selectedProfile ? "MODEL" : null);
   const imageEntries = Array.isArray(root.images) ? root.images : [];
+  const declaredPartIdsList = (Array.isArray(root.parts) ? root.parts.slice(0, 24) : [])
+    .map(record).map((part) => stringValue(part?.id))
+    .filter((id): id is string => id !== null);
+  const declaredPartIds = new Set(declaredPartIdsList);
+  const ambiguousParts = declaredPartIds.size !== declaredPartIdsList.length;
   let invalidLandmarks = false;
   const images = imageEntries.flatMap((entry) => {
     const item = record(entry);
@@ -190,6 +196,7 @@ export function parseReferencePackage(
     const file = stringValue(item.file);
     if (!id || !file) return [];
     const landmarks = parseReferenceImageLandmarks(item.landmarks);
+    const regions = parseReferenceImageRegions(item.regions);
     const viewCandidate = stringValue(item.view)?.toLowerCase();
     const view: ModelView | null =
       viewCandidate && MODEL_VIEWS.includes(viewCandidate as ModelView)
@@ -197,7 +204,14 @@ export function parseReferencePackage(
         : null;
     // A point on an unregistered composite sheet has no canonical viewport
     // coordinates. Crop/panel registration is a separate explicit authoring act.
-    if (landmarks === null || (landmarks.length > 0 && !view)) {
+    if (landmarks === null || regions === null ||
+        ((landmarks.length > 0 || regions.length > 0) && !view) ||
+        (regions.length > 0 && (
+          ambiguousParts || !declaredPartIds.size ||
+          regions.some((region) => !declaredPartIds.has(region.part_id) ||
+            (region.related_part_id !== null &&
+              !declaredPartIds.has(region.related_part_id)))
+        ))) {
       invalidLandmarks = true;
       return [];
     }
@@ -213,6 +227,7 @@ export function parseReferencePackage(
       used_by: [...new Set(usedBy)],
       status: stringValue(item.status),
       ...(item.landmarks !== undefined ? { landmarks } : {}),
+      ...(item.regions !== undefined ? { regions } : {}),
       view,
     }];
   });
