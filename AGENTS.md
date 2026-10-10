@@ -163,6 +163,12 @@ At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`.
 
 `GITHUB_RULES.md` owns branch/ref, GitHub-first partitioning, transfer, atomic delivery, manual CI, commit continuity, security, retries and STOP.
 
+### ChatGPT + GitHub/cloud-only continuity
+
+For ChatGPT-owned repository development, `Local` is a remote GitHub branch, not the user's PC. Complete GitHub/cloud-verifiable work without requiring user-local checkouts, installed toolchains, commands or private files. Record genuinely unavailable executable/native Blockbench proof as bounded UNKNOWN rather than assigning the entire task to the user. `GITHUB_RULES.md` owns the detailed boundary.
+
+ChatGPT Project Instructions point to the repository and `Local`, not duplicated policy. A new chat reads current `AGENTS.md` and `GITHUB_RULES.md`, recovers by topic/current source/relevant commits, and never treats chat titles or historical `Next` as source authority. An `amati` request is read-only.
+
 ## Development Operating Standard
 
 Material development follows `docs/04-system/development-operating-standard.md` before editing and at completion; no new lane or normal authoring preload.
@@ -208,6 +214,7 @@ asset continuity          → workspace/active/<project>/README.md
 stable project facts      → CONTEXT.md
 GitHub execution          → GITHUB_RULES.md
 research                  → experiments/
+managed distribution      → distribution/
 ```
 
 Do not create duplicate navigation, review archives, decision logs, roadmaps, or parallel state systems.
@@ -216,7 +223,7 @@ Do not create duplicate navigation, review archives, decision logs, roadmaps, or
 
 Keep the root sparse and deterministic for Codex navigation.
 
-Allowed top-level domains are `.agents/`, `.github/`, `apps/`, `docs/`, `mcp/`, `workspace/`, and `experiments/`, plus repository-wide entrypoint/governance/toolchain files.
+Allowed top-level domains are `.agents/`, `.github/`, `apps/`, `distribution/`, `docs/`, `mcp/`, `workspace/`, and `experiments/`, plus repository-wide entrypoint/governance/toolchain files.
 
 Do not add top-level feature, generated, fixture, benchmark, archive, temporary, or per-asset directories. Put them under the canonical owner.
 

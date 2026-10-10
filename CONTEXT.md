@@ -146,4 +146,4 @@ Repository source/docs/CI work follows `GITHUB_RULES.md`. Static proof never pro
 - system ownership → `docs/04-system/README.md`
 - current operations → `docs/05-operations/README.md`
 - workspace contract → `workspace/README.md`
-- research → `Experimental/`
+- research → `experiments/`

@@ -12,9 +12,14 @@ tool-capability-integrity-audit.md
 blockbench-compatibility.md
 control/context-projection.md
 implementation-map.md
+module-boundaries.md
 development-operating-standard.md
 skill-taxonomy.md
 compatibility-identifiers.md
+terminology.md
+external-quality-intelligence.md
+prompt-cache-and-compaction.md
+zero-waste-token-efficiency-plan.md
 ```
 
 ## Read order by question
@@ -56,6 +61,12 @@ Which Skill category/semantic owner applies?
 Which legacy BlockIT identifier must remain stable during migration?
 → compatibility-identifiers.md
 ```
+
+## Bounded system evidence and historical plans
+
+- External source authority → [External Quality Intelligence](external-quality-intelligence.md) (not native visual acceptance).
+- Long-session context/cache semantics → [Prompt Cache and Compaction](prompt-cache-and-compaction.md).
+- Dated efficiency rationale → [Historical Zero-Waste Plan](zero-waste-token-efficiency-plan.md). This is not the current task queue; continuation remains under `docs/05-operations/next-action.md`.
 
 For an unresolved repository-development owner, this router links to the
 [Implementation Map](implementation-map.md). Apply the

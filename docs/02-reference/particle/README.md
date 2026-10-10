@@ -53,6 +53,8 @@ Normal authoring should stay within two control documents plus one primary domai
 
 The specialist skill contains compact task bundles. `knowledge-map.md` owns the detailed routing map; this README does not duplicate it.
 
+Select the [Particle Knowledge Map](knowledge-map.md) for one specific component owner; use [Current Particle Status](STATUS.md) only for maturity and unresolved proof. These are navigation links, not duplicate authorities.
+
 ## High-value routing
 
 ```text

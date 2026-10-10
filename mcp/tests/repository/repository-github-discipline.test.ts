@@ -38,7 +38,25 @@ describe("repository GitHub discipline", () => {
     expect(rules).not.toContain("docs/foundation/");
   });
 
-  test("development routing uses canonical LazyDesigner development owners", async () => {
+  test("ChatGPT cloud-only and new-chat continuation require repository authority", async () => {
+    const [root, rules, contributing, context] = await Promise.all([
+      source("../AGENTS.md"), source("../GITHUB_RULES.md"),
+      source("../CONTRIBUTING.md"), source("../CONTEXT.md"),
+    ]);
+    expect(root).toContain("ChatGPT + GitHub/cloud-only continuity");
+    expect(root).toContain("An `amati` request is read-only.");
+    expect(rules).toContain("ChatGPT GitHub/cloud-only repository invariant");
+    expect(rules).toContain("Never require the user to clone/download");
+    expect(rules).toContain("UNKNOWN / NOT EXECUTED");
+    expect(rules).toContain("ChatGPT Project bootstrap and cross-chat recovery");
+    expect(rules).toContain("chat naming/retention requirements");
+    expect(contributing).toContain("ChatGPT remote-first workflow");
+    for (const entry of [root, rules, contributing, context]) {
+      expect(entry).not.toContain("Experimental/");
+    }
+  });
+
+  test("development routing uses canonical LazyDesigner development owners"  test("development routing uses canonical LazyDesigner development owners", async () => {
     const [root, packageRules, brief, mcpDevelopment, blockbenchDevelopment] = await Promise.all([
       source("../AGENTS.md"),
       source("AGENTS.md"),

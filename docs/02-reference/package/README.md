@@ -1,6 +1,6 @@
 # Reference Package
 
-Canonical Codex handoff documentation.
+Canonical Codex handoff documentation. The optional [Particle Handoff](particle-handoff.md) specializes the existing `REFERENCE.json` package; it does not create another format, stage, or Control route.
 
 ```text
 schema.md          REFERENCE.json structure, stable facts, scale, readiness
@@ -9,6 +9,7 @@ load-contract.md   minimal stage-specific consumption and fallback loading
 geometry.md        GEOMETRY.md projection contract
 texture.md         TEXTURE.md projection contract
 animation.md       ANIMATION.md projection contract
+particle-handoff.md optional particle specialization of the same handoff
 ```
 
 ## AI Read Rule

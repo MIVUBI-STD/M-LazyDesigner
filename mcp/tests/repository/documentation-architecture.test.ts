@@ -103,7 +103,39 @@ describe("AI-first documentation architecture", () => {
     }
   });
 
-  test("context loading contract defines bounded bundles for every active task class", async () => {
+  test("secondary canonical knowledge routes are explicit and resolvable", async () => {
+    const routes = [
+      ["docs/04-system/README.md", "External Quality Intelligence", "docs/04-system/external-quality-intelligence.md"],
+      ["docs/04-system/README.md", "Prompt Cache and Compaction", "docs/04-system/prompt-cache-and-compaction.md"],
+      ["docs/04-system/README.md", "Historical Zero-Waste Plan", "docs/04-system/zero-waste-token-efficiency-plan.md"],
+      ["docs/05-operations/README.md", "Native 5.2 Adoption", "docs/05-operations/blockbench-5.2-native-adoption.md"],
+      ["docs/02-reference/package/README.md", "Particle Handoff", "docs/02-reference/package/particle-handoff.md"],
+      ["docs/02-reference/particle/README.md", "Particle Knowledge Map", "docs/02-reference/particle/knowledge-map.md"],
+      ["docs/02-reference/particle/README.md", "Current Particle Status", "docs/02-reference/particle/STATUS.md"],
+    ] as const;
+    for (const [router, label, target] of routes) {
+      const edges = indexExplicitDocumentationEdges(router, await text("../" + router))
+        .filter(edge => edge.label === label);
+      expect(edges, label).toHaveLength(1);
+      expect(edges[0]?.to, label).toBe(target);
+      expect(await Bun.file("../" + target).exists(), target).toBe(true);
+    }
+    const map = await text("../docs/02-reference/particle/knowledge-map.md");
+    const edges = indexExplicitDocumentationEdges("docs/02-reference/particle/knowledge-map.md", map)
+      .filter(edge => edge.to.startsWith("docs/02-reference/particle/"));
+    const names = edges.map(edge => edge.to.split("/").pop()!).sort();
+    const files = (await readdir("../docs/02-reference/particle", { withFileTypes: true }))
+      .filter(entry => entry.isFile() && entry.name.endsWith(".md") &&
+        !["README.md", "knowledge-map.md", "STATUS.md"].includes(entry.name))
+      .map(entry => entry.name).sort();
+    expect(names).toEqual(files);
+    for (const edge of edges) {
+      expect(edge.relation).toBe("EXPLICIT_MARKDOWN_LINK");
+      expect(await Bun.file("../" + edge.to).exists(), edge.to).toBe(true);
+    }
+  });
+
+  test("context loading contract defines bounded bundles for every active task class"  test("context loading contract defines bounded bundles for every active task class", async () => {
     const [context, sharedStage, taxonomy] = await Promise.all([
       text("../docs/04-system/ai-context-loading.md"),
       text("../docs/04-system/authoring-stage-context.md"),

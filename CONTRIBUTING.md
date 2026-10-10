@@ -23,6 +23,10 @@ LIVE_BLOCKBENCH → LOCAL_CODE + deployed/reloaded LazyDesigner + reconnected li
 
 Use `CONTEXT: ...` or `SWITCH CONTEXT: ...` when useful. The label does not create capability; root `AGENTS.md` owns proof ceilings and fail-safe defaults. Do not claim local/runtime proof from `REMOTE_GITHUB`, and do not treat `LIVE_BLOCKBENCH` as automatic activation of formal Local Acceptance.
 
+## ChatGPT remote-first workflow
+
+ChatGPT repository tasks are GitHub/cloud-only by default; `Local` refers to the remote development branch, not a user-PC checkout. Do not assign a ChatGPT-owned install, checkout, test, or archive-preparation step to the user merely because execution or native Blockbench proof is absent. Preserve the precise unverified claim and finish independent source work. A fresh chat bootstraps from current `AGENTS.md` and `GITHUB_RULES.md`, recovering by topic/source rather than chat title. Developer-initiated local authoring is a separate optional context.
+
 ## Before changing code
 
 Start from the smallest owner that can actually explain the requested change:
@@ -51,7 +55,7 @@ executable/public MCP    → bun run verify:mcp
 main release boundary    → bun run verify:release
 ```
 
-Install the locked dependency surface required by the selected verifier. During iteration, prefer a targeted `bun test <file>` or primitive command; do not run a full verifier merely because a Markdown or routing file changed.
+In an authorized executable environment that is actually available, use locked dependencies and a targeted `bun test <file>` during iteration. A toolchain or user-PC run is not a prerequisite for source-verifiable ChatGPT/GitHub work; do not run a full verifier merely because Markdown changed.
 
 Live Blockbench, visual, playback, persistence, installed-plugin, and client-registry claims require matching `LIVE_BLOCKBENCH` evidence.
 
@@ -71,7 +75,7 @@ GitHub Actions verification is **manual-only and on demand**. A normal `Local` p
 
 Generated MCP API documentation and prompt manifests follow their canonical source + generator. Do not hand-edit generated output to make a verifier pass.
 
-Transient captures, previews, sample renders, caches, and per-mutation screenshots do not belong at repository root. Use existing ignored `.cache/` locations under persistent workspace or `Experimental/` work when temporary visual/debug evidence is needed.
+Transient captures, previews, sample renders, caches, and per-mutation screenshots do not belong at repository root. Use existing ignored `.cache/` locations under persistent workspace or `experiments/` work when temporary visual/debug evidence is needed.
 
 ## Commit discipline
 

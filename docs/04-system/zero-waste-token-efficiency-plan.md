@@ -1,6 +1,6 @@
 # Zero-Waste Token Efficiency — Remaining Implementation Plan
 
-Updated: 2026-09-20  
+Historical design snapshot: 2026-09-20. Retains rationale and acceptance criteria, not the current development queue or latest verified state. Historical `NEXT` labels below are not current commands; current continuation lives in `docs/05-operations/next-action.md` and implementation truth in exact-head source/proof.  
 Scope: `Local` branch, Codex/Astra usage reduction without capability or quality loss.
 
 ## Goal

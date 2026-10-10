@@ -8,7 +8,7 @@ in `docs/05-operations/current-validation.md`.
 
 `Local` is development/source authority. GitHub Actions are manual-only: a source push does not create an executable proof result. `MCP Verify` runs the full source gate when explicitly dispatched; targeted/affected verifier scripts remain available on demand.
 
-On 2026-10-10 the ten manual-only workflow definitions from `Local` were registered on default branch `main` by commit `1d026a1754033bb8c206b7f25660a906552ad72c`, without promoting product source. The maintainer has since reaffirmed that `Local` alone owns ongoing development; leave `main` unchanged unless a separate release or administrative change is explicitly authorized. Workflow registration is source evidence, not proof that a job was dispatched or passed.
+Default-branch workflow registration history stays in `current-validation.md`; `Local` remains the working authority. Manual registration is not executable PASS. Governance now follows M-Lazy-Developer's ChatGPT GitHub/cloud-only and topical cold-start rules with LazyDesigner-specific product owners.
 
 ## Next REMOTE_GITHUB work
 

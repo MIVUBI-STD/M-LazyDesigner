@@ -92,6 +92,20 @@ A cloud development workspace can satisfy `LOCAL_CODE` when its exact checkout, 
 
 Installed-plugin identity, native Undo/playback/persistence, Gateway lifecycle and visual claims still require matching `LIVE_BLOCKBENCH` evidence. Report `LOCAL PROOF REQUIRED` only for genuinely missing local/live proof, not for an already accepted CI source gate.
 
+### ChatGPT GitHub/cloud-only repository invariant
+
+For ChatGPT-owned repository development, `Local` names a remote GitHub branch, never access to the user's PC. GitHub owns current source, commits and recoverable work continuity. **Never require the user to clone/download the repository, install Bun/Node, run local tests or commands, launch Blockbench, provide private local paths/files, or prepare archives** as a prerequisite or workaround for a ChatGPT-owned source task.
+
+Use the strongest actually available route: authenticated current-ref GitHub source/edit → authorized connected cloud execution if present → targeted existing manual verification only when needed and callable. If a claim inherently needs unavailable toolchain or native evidence, label that exact claim `UNKNOWN / NOT EXECUTED`; finish all independently verifiable GitHub work. Local developer commands are optional for separately initiated local development, not a remote-work completion gate. A user-local workflow requires an explicitly requested change of mode.
+
+Higher-context handoff means a bounded claim for an actually available future cloud/native runtime, not a user-PC to-do.
+
+### ChatGPT Project bootstrap and cross-chat recovery
+
+ChatGPT Project Instructions should be a short pointer to this repository and branch `Local`. Load current `AGENTS.md` and `GITHUB_RULES.md` completely when bootstrapping a fresh repository chat; follow one canonical owner thereafter. Do not impose chat naming/retention requirements; chats and remembered context are orientation, not repository work-state authority.
+
+For repository URL plus "amati/inspect", pin the current `Local` HEAD and remain read-only. Recover unfinished work by topic and source, using relevant commit `Work`, `State`, `Proof`, `Unresolved` and `Next` after reconciling newer owner/consumer changes. An unrelated latest commit or historical `Next` does not authorize resuming another task. Keep durable work and its continuity in the same logical commit, never a parallel chat log.
+
 ## 2. READ MINIMUM — read only what can change the decision
 
 After the reusable boot, default to:
@@ -254,7 +268,7 @@ any NO
 - Preserve lockfiles, runtime/version constraints, and pinned/trusted action versions unless they are the actual owner.
 - New files, workflows, abstractions, fixtures, reports, branches, PRs, issues, comments, labels, and releases default to zero unless scope proves a need.
 - Generated MCP API docs follow canonical source + generator; never hand-edit them to obtain green status.
-- `Experimental/` evidence is not production capability or local-acceptance proof.
+- `experiments/` evidence is not production capability or local-acceptance proof.
 
 ### Commit discipline
 
@@ -379,7 +393,7 @@ proof state        → docs/05-operations/current-validation.md
 implementation     → docs/04-system/implementation-map.md
 asset continuity   → workspace/active/<project>/README.md
 generated API docs → canonical MCP source + generator
-research           → Experimental/
+research           → experiments/
 ```
 
 - `next-action.md` stores only continuation, blockers, deferrals, and the next meaningful repository action.
@@ -418,9 +432,9 @@ Branch/tag deletion, PR merge/close, release publication/deletion, environment b
 - Treat event-derived strings as untrusted input; validate or pass them as data, never evaluate them as code.
 - Never execute untrusted PR code with secrets/write tokens through `pull_request_target` or privileged persistent runners.
 
-### Approved `Experimental/` runtime exception
+### Approved `experiments/` runtime exception
 
-An explicitly user-approved bounded repository-owned experimental harness may use Actions as an ephemeral runtime when that runtime is the experiment under test. Keep it under `Experimental/`, read-only by default, bounded to repository-owned inputs, reproducible, artifact-only, and separate from production proof. Artifact existence is not visual approval.
+An explicitly user-approved bounded repository-owned experimental harness may use Actions as an ephemeral runtime when that runtime is the experiment under test. Keep it under `experiments/`, read-only by default, bounded to repository-owned inputs, reproducible, artifact-only, and separate from production proof. Artifact existence is not visual approval.
 
 ## Sensitive data, releases, and environments
 

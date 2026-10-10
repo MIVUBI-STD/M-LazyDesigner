@@ -15,110 +15,49 @@ Official Bedrock semantics outrank editor workarounds. Snowstorm-specific behavi
 
 ## Canonical knowledge owners
 
-```text
-fundamentals.md
-→ document mental model, component families, emitter-vs-particle responsibility
-
-component-catalog.md
-→ complete component inventory
-
-component-field-reference.md
-→ field-by-field purpose, ownership and failure modes
-
-official-schema-coverage.md
-→ closure audit mapping official component families to canonical owners
-
-official-defaults-evaluation.md
-→ verified defaults, omission semantics, evaluation timing and schema-version deltas
-
-lifecycle-space.md
-→ creation/update/render timing, emitter-vs-particle lifetime, local/world simulation
-
-emitter.md
-→ rate, lifetime, initialization, built-in shapes and density
-
-emitter-shape-math.md
-→ custom shape/ring/cone/fan direction math
-
-math-physics-reference.md
-→ vectors, projection, spatial distributions, ballistics, probability and numerical safety
-
-motion.md
-→ initial impulse, acceleration, drag, parametric motion and kill planes
-
-collision-advanced.md
-→ restitution, drag, contact events, repeated contact and high-speed caveats
-
-appearance-rendering.md
-→ materials, billboard, tint, lighting and overdraw
-
-billboard-direction.md
-→ directional/velocity-aligned billboard semantics and edge cases
-
-texture-authoring.md
-→ PNG/RGBA, atlas layout, gutters, UV/flipbook and tint-compatible source art
-
-texture-resolution-sampling.md
-→ resolution, resampling, texel density, downscale, alpha coverage and frame stability
-
-texture-filtering-bleeding.md
-→ hidden RGB, bleed, matte/halo and minification/filtering edge cases
-
-texture-color-science.md
-→ practical value/alpha/color design for opaque/alpha/blend/additive materials
-
-molang.md
-→ particle/emitter variable ownership and lifetime stability
-
-particle-variable-inventory.md
-→ documented particle-system built-in variables
-
-molang-language-math.md
-→ syntax, operators, math, easing, interpolation, random and trigonometry
-
-molang-formula-cookbook.md
-→ reusable lifetime, random-class, oscillation, orbit/spiral, remap and safe-math formulas
-
-molang-queries-context.md
-→ query/context host availability and external-state coupling
-
-curves.md
-→ linear/Bezier/Bezier-chain/Catmull-Rom curves and normalized progression
-
-events.md
-→ emitter/particle/collision events, child effects, relationships and fan-out
-
-event-timing.md
-→ emitter time vs particle time, birth-relative timing and nested ordering
-
-snowstorm.md
-→ generic Snowstorm/Wintersky editor/preview compatibility boundary
-
-snowstorm-compatibility-matrix.md
-→ version-by-version Snowstorm/Wintersky capabilities, fixes, source mapping and round-trip risks
-
-snowstorm-version-quirks.md
-→ release-specific anomalies, regressions and minimal-reproduction rules
-
-performance.md
-→ population, lifetime/rate/cap, overdraw and expression/collision/event cost guidance
-
-entity-integration.md
-→ entity mapping, locators, animation/controller triggering and attached context
-
-troubleshooting.md
-→ symptom-first causal diagnosis
-```
+- [fundamentals.md](fundamentals.md) — document mental model, component families, emitter-vs-particle responsibility
+- [component-catalog.md](component-catalog.md) — complete component inventory
+- [component-field-reference.md](component-field-reference.md) — field-by-field purpose, ownership and failure modes
+- [official-schema-coverage.md](official-schema-coverage.md) — closure audit mapping official component families to canonical owners
+- [official-defaults-evaluation.md](official-defaults-evaluation.md) — verified defaults, omission semantics, evaluation timing and schema-version deltas
+- [lifecycle-space.md](lifecycle-space.md) — creation/update/render timing, emitter-vs-particle lifetime, local/world simulation
+- [emitter.md](emitter.md) — rate, lifetime, initialization, built-in shapes and density
+- [emitter-shape-math.md](emitter-shape-math.md) — custom shape/ring/cone/fan direction math
+- [math-physics-reference.md](math-physics-reference.md) — vectors, projection, spatial distributions, ballistics, probability and numerical safety
+- [motion.md](motion.md) — initial impulse, acceleration, drag, parametric motion and kill planes
+- [collision-advanced.md](collision-advanced.md) — restitution, drag, contact events, repeated contact and high-speed caveats
+- [appearance-rendering.md](appearance-rendering.md) — materials, billboard, tint, lighting and overdraw
+- [billboard-direction.md](billboard-direction.md) — directional/velocity-aligned billboard semantics and edge cases
+- [texture-authoring.md](texture-authoring.md) — PNG/RGBA, atlas layout, gutters, UV/flipbook and tint-compatible source art
+- [texture-resolution-sampling.md](texture-resolution-sampling.md) — resolution, resampling, texel density, downscale, alpha coverage and frame stability
+- [texture-filtering-bleeding.md](texture-filtering-bleeding.md) — hidden RGB, bleed, matte/halo and minification/filtering edge cases
+- [texture-color-science.md](texture-color-science.md) — practical value/alpha/color design for opaque/alpha/blend/additive materials
+- [molang.md](molang.md) — particle/emitter variable ownership and lifetime stability
+- [particle-variable-inventory.md](particle-variable-inventory.md) — documented particle-system built-in variables
+- [molang-language-math.md](molang-language-math.md) — syntax, operators, math, easing, interpolation, random and trigonometry
+- [molang-formula-cookbook.md](molang-formula-cookbook.md) — reusable lifetime, random-class, oscillation, orbit/spiral, remap and safe-math formulas
+- [molang-queries-context.md](molang-queries-context.md) — query/context host availability and external-state coupling
+- [curves.md](curves.md) — linear/Bezier/Bezier-chain/Catmull-Rom curves and normalized progression
+- [events.md](events.md) — emitter/particle/collision events, child effects, relationships and fan-out
+- [event-timing.md](event-timing.md) — emitter time vs particle time, birth-relative timing and nested ordering
+- [snowstorm.md](snowstorm.md) — generic Snowstorm/Wintersky editor/preview compatibility boundary
+- [snowstorm-compatibility-matrix.md](snowstorm-compatibility-matrix.md) — version-by-version Snowstorm/Wintersky capabilities, fixes, source mapping and round-trip risks
+- [snowstorm-version-quirks.md](snowstorm-version-quirks.md) — release-specific anomalies, regressions and minimal-reproduction rules
+- [performance.md](performance.md) — population, lifetime/rate/cap, overdraw and expression/collision/event cost guidance
+- [entity-integration.md](entity-integration.md) — entity mapping, locators, animation/controller triggering and attached context
+- [troubleshooting.md](troubleshooting.md) — symptom-first causal diagnosis
 
 ## Workflow and delivery owners
 
-```text
-authoring-spec.md → normalize requested effect
+- [authoring-spec.md](authoring-spec.md) — normalize requested effect
+- [workflow.md](workflow.md) — authoring sequence
+- [qa.md](qa.md) — static/preflight acceptance
+- [delivery.md](delivery.md) — clean package contract
+- [patterns.md](patterns.md) — reusable physical starting patternsauthoring-spec.md → normalize requested effect
 workflow.md       → authoring sequence
 qa.md             → static/preflight acceptance
 delivery.md       → clean package contract
 patterns.md       → reusable physical starting patterns
-```
 
 Knowledge and workflow stay separate. Deep technical rules belong to the nearest knowledge owner, not duplicated into workflow files.
 

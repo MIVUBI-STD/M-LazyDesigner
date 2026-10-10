@@ -15,6 +15,8 @@ main   → stable / release authority; changes only by explicit promotion
 
 Routine repository development uses `Local`. Repository behavior is routed by `AGENTS.md`; GitHub execution/history/CI rules are owned by `GITHUB_RULES.md`.
 
+For a new ChatGPT repository chat, provide this `Local` URL and intended task. ChatGPT follows current root rules, works GitHub/cloud-first without requiring the user's PC, and treats `amati` as read-only. Continuity comes from current source and relevant work commits, not chat titles.
+
 ## Canonical Product Flow
 
 ```text

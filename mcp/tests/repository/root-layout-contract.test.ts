@@ -32,4 +32,14 @@ describe("repository root layout", () => {
       expect(name).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     }
   });
+  test("agent root taxonomy matches the executable canonical domain list", async () => {
+    const root = await Bun.file("../AGENTS.md").text();
+    const rule = root.match(/Allowed top-level domains are ([^\n]+), plus repository-wide/);
+    expect(rule).not.toBeNull();
+    const names = [...rule![1]!.matchAll(/`([.a-z-]+)\/`/g)]
+      .map(match => match[1]).sort();
+    expect(names).toEqual([...ALLOWED_TOP_LEVEL_DIRECTORIES].sort());
+    expect(root).toContain("research                  → experiments/");
+  });
+
 });
