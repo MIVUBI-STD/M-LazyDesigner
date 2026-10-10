@@ -32,6 +32,22 @@ session draft preserves those flags and adds an **UNVERIFIED** human-review
 criterion. No extra authoring tools, screenshots or routine Codex context are
 introduced.
 
+## First baseline — Existing Model Correction
+
+For `golden-existing-model-correction`, use the **same unchanged starting
+`.bbmodel` bytes** for baseline and candidate, in addition to the same
+approved Reference Package. The existing session runner accepts the absolute
+starting model path as its third positional argument, hashes it **once before
+Gateway starts**, and writes `pipeline_provenance.input_asset_sha256` to its
+usual `golden-run-draft.json`. It does not copy or mutate the seed model.
+
+A later accepted-result comparison rejects a missing or different starting
+model SHA-256. This is a benchmark-only operation with **zero extra MCP calls or
+model-context loading during normal authoring**. Preserve an unchanged seed
+and conduct native correction on a disposable copy. A hash proves only identical
+input bytes, never visual improvement or unaffected-state preservation; those
+still require their own fresh evidence and human review.
+
 ## Required Run Record
 
 A future live run should record at minimum:

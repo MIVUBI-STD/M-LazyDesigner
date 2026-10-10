@@ -27,6 +27,8 @@ export type GoldenAcceptanceEvidence = {
 };
 
 export type GoldenPipelineProvenance = {
+  /** Exact starting .bbmodel bytes; required for accepted existing-model correction. */
+  input_asset_sha256?: string | null;
   reference_package_fingerprint: string | null;
   control_task_context_id: string | null;
   runtime_build_identity: string | null;
@@ -103,6 +105,10 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
     if (value !== null && (typeof value !== "string" || value.trim().length === 0)) {
       throw new Error(`${prefix}.pipeline_provenance.${field} must be null or a non-empty string.`);
     }
+  }
+  if (provenance.input_asset_sha256 != null &&
+    !/^[0-9a-f]{64}$/.test(provenance.input_asset_sha256)) {
+    throw new Error(`${prefix}.pipeline_provenance.input_asset_sha256 must be a 64-character lowercase hex SHA-256.`);
   }
   if (
     provenance.reference_package_fingerprint !== null &&
@@ -183,6 +189,10 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
   }
 
   if (run.accepted_result === true) {
+    if (run.task_id === "golden-existing-model-correction" &&
+      !provenance.input_asset_sha256) {
+      throw new Error(`${prefix} accepted correction requires input_asset_sha256 from the starting .bbmodel.`);
+    }
     if (run.proof_scope !== "LIVE_BLOCKBENCH") {
       throw new Error(`${prefix} accepted result requires LIVE_BLOCKBENCH proof, not source-only execution.`);
     }

@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { createHash } from "node:crypto";
 import goldenCorpus from "../fixtures/golden-task-cases.json";
 import {
   buildGoldenRunDraft,
+  fingerprintGoldenInputModel,
   goldenSessionPaths,
 } from "../../scripts/reporting/run-golden-benchmark-session";
 
@@ -22,6 +27,29 @@ describe("golden benchmark session runner", () => {
     expect(paths.trace.endsWith("trace.ndjson")).toBe(true);
     expect(paths.trace_report.endsWith("trace-report.json")).toBe(true);
     expect(paths.golden_run_draft.endsWith("golden-run-draft.json")).toBe(true);
+  });
+
+  test("pins the unchanged starting .bbmodel once with SHA-256", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lazydesigner-golden-input-"));
+    const seed = join(dir, "input.bbmodel");
+    try {
+      const bytes = '{"meta":{"format_version":"4.10"}}';
+      await writeFile(seed, bytes);
+      const sha = await fingerprintGoldenInputModel(seed);
+      expect(sha).toBe(createHash("sha256").update(bytes).digest("hex"));
+      const draft = buildGoldenRunDraft({
+        task, sourceSha: "1".repeat(40), wallTimeMs: 25,
+        traceEvents: [], inputAssetSha256: sha,
+      });
+      expect(draft.runs[0]!.pipeline_provenance.input_asset_sha256).toBe(sha);
+      expect(draft.runs[0]!.accepted_result).toBeNull();
+      await writeFile(seed, "");
+      await expect(fingerprintGoldenInputModel(seed)).rejects.toThrow("must not be empty");
+      await expect(fingerprintGoldenInputModel(join(dir, "input.json")))
+        .rejects.toThrow("requires an absolute input .bbmodel");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   test("does not allow a run to borrow a different task or source SHA", () => {

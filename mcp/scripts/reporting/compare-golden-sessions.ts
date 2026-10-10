@@ -25,6 +25,7 @@ export type FinalGoldenSessionReport = {
   quality_verdict: "PASS" | "FAIL" | "UNVERIFIED";
   accepted_result: boolean | null;
   pipeline_provenance: {
+    input_asset_sha256?: string | null;
     reference_package_fingerprint: string | null;
     control_task_context_id: string | null;
     runtime_build_identity: string | null;
@@ -99,6 +100,18 @@ export function compareAcceptedGoldenSessions(input: {
       "Accepted-session comparison requires the same reference package fingerprint."
     );
   }
+  // A correction can appear cheaper simply because the candidate started
+  // from an easier/already-fixed model. Reject unlike input bytes.
+  if (input.baseline.task_id === "golden-existing-model-correction") {
+    const first = input.baseline.pipeline_provenance.input_asset_sha256;
+    const second = input.candidate.pipeline_provenance.input_asset_sha256;
+    if (!first || !second || !/^[a-f0-9]{64}$/.test(first) ||
+      !/^[a-f0-9]{64}$/.test(second) || first !== second) {
+      throw new Error(
+        "Existing-model correction comparisons require the same valid input_asset_sha256."
+      );
+    }
+  }
 
   const metrics = Object.fromEntries(
     METRIC_KEYS.map((key) => {
@@ -126,6 +139,9 @@ export function compareAcceptedGoldenSessions(input: {
     candidate_source_sha: input.candidate.source_sha,
     reference_package_fingerprint:
       input.baseline.pipeline_provenance.reference_package_fingerprint,
+    ...(input.baseline.task_id === "golden-existing-model-correction"
+      ? { input_asset_sha256: input.baseline.pipeline_provenance.input_asset_sha256 }
+      : {}),
     quality_gate: "BOTH_ACCEPTED_PASS_SAME_REFERENCE",
     metrics,
     rule:

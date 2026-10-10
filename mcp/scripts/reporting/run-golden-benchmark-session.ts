@@ -1,5 +1,6 @@
-import { mkdir } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { mkdir, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { extname, isAbsolute, join, resolve } from "node:path";
 import goldenCorpus from "../../tests/fixtures/golden-task-cases.json";
 import {
   summarizeGatewayBenchmarkTrace,
@@ -69,12 +70,32 @@ export function goldenSessionPaths(
   };
 }
 
+/**
+ * Pin the exact starting model once for a correction benchmark. This runs
+ * only inside the benchmark process, not on the normal Codex MCP hot path.
+ */
+export async function fingerprintGoldenInputModel(path: string): Promise<string> {
+  if (!isAbsolute(path) || extname(path).toLowerCase() !== ".bbmodel") {
+    throw new Error("Existing-model correction requires an absolute input .bbmodel file.");
+  }
+  const bytes = await readFile(path);
+  if (bytes.byteLength === 0) {
+    throw new Error("Existing-model correction input .bbmodel must not be empty.");
+  }
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
 export function buildGoldenRunDraft(input: {
   task: GoldenTask;
   sourceSha: string;
   traceEvents: readonly BenchmarkTraceEvent[];
   wallTimeMs: number;
+  inputAssetSha256?: string | null;
 }): GoldenAuthoringDocument {
+  if (input.inputAssetSha256 != null &&
+    !/^[0-9a-f]{64}$/.test(input.inputAssetSha256)) {
+    throw new Error("Golden session inputAssetSha256 must be a lowercase SHA-256.");
+  }
   // Never borrow events from another task or source revision.
   for (const event of input.traceEvents) {
     if (event.source_sha !== input.sourceSha || event.task_id !== input.task.id) {
@@ -100,6 +121,7 @@ export function buildGoldenRunDraft(input: {
         proof_scope: "LIVE_BLOCKBENCH",
         model: null,
         pipeline_provenance: {
+          input_asset_sha256: input.inputAssetSha256 ?? null,
           reference_package_fingerprint: null,
           control_task_context_id: null,
           runtime_build_identity: null,
@@ -134,6 +156,7 @@ async function finalizeSession(input: {
   sourceSha: string;
   paths: GoldenSessionPaths;
   startedAtMs: number;
+  inputAssetSha256: string | null;
 }): Promise<void> {
   const traceFile = Bun.file(input.paths.trace);
   if (!(await traceFile.exists())) {
@@ -151,6 +174,7 @@ async function finalizeSession(input: {
     sourceSha: input.sourceSha,
     traceEvents: report.events,
     wallTimeMs,
+    inputAssetSha256: input.inputAssetSha256,
   });
 
   await Bun.write(
@@ -173,13 +197,19 @@ async function finalizeSession(input: {
 async function main(): Promise<void> {
   const taskId = process.argv[2];
   const outputRoot = process.argv[3] ?? ".cache/golden-sessions";
+  const inputModelPath = process.argv[4];
   if (!taskId) {
     throw new Error(
-      "Usage: bun run benchmark:golden-session -- <golden-task-id> [output-root]"
+      "Usage: bun run benchmark:golden-session -- <golden-task-id> [output-root] [existing-model-input.bbmodel]"
     );
   }
 
   const task = taskById(taskId);
+  // Correction baselines must begin from the same real file bytes.
+  // Capture before launching Gateway, never after the model is mutated.
+  const inputAssetSha256 = task.id === "golden-existing-model-correction"
+    ? await fingerprintGoldenInputModel(inputModelPath ?? "")
+    : null;
   const sourceSha = exactGitSha();
   const paths = goldenSessionPaths(task.id, outputRoot);
   await mkdir(paths.directory, { recursive: true });
@@ -212,6 +242,7 @@ async function main(): Promise<void> {
     sourceSha,
     paths,
     startedAtMs,
+    inputAssetSha256,
   });
 
   process.exitCode = exitCode;

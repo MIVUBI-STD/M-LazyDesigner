@@ -15,6 +15,7 @@ function acceptedRun(): GoldenAuthoringDocument {
         proof_scope: "LIVE_BLOCKBENCH",
         model: "gpt-5.6-sol",
         pipeline_provenance: {
+          input_asset_sha256: "c".repeat(64),
           reference_package_fingerprint: "a".repeat(64),
           control_task_context_id: "task:1234567890abcdef1234",
           runtime_build_identity: "runtime-build-accepted",
@@ -161,6 +162,18 @@ describe("golden authoring accepted-result benchmark", () => {
     const summary = summarizeGoldenAuthoringDocument(document);
     expect(summary.runs[0]?.metrics.redundant_readbacks).toBe(1);
     expect(summary.runs[0]?.metrics.tool_calls_to_accepted_result).toBe(4);
+  });
+
+  test("rejects accepted corrections without the exact starting model hash", () => {
+    const missing = acceptedRun();
+    missing.runs[0]!.pipeline_provenance.input_asset_sha256 = null;
+    expect(() => validateGoldenAuthoringDocument(missing))
+      .toThrow("accepted correction requires input_asset_sha256");
+
+    const malformed = acceptedRun();
+    malformed.runs[0]!.pipeline_provenance.input_asset_sha256 = "not-a-hash";
+    expect(() => validateGoldenAuthoringDocument(malformed))
+      .toThrow("must be a 64-character lowercase hex SHA-256");
   });
 
   test("rejects source-only accepted quality", () => {
