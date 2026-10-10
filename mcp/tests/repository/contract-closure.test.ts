@@ -8,7 +8,7 @@ describe("MCP dependency closure", () => {
   test("verification layers compose without rerunning repository/authoring subsets in the full gate", async () => {
     const packageJson = JSON.parse(await text("package.json")) as { scripts: Record<string, string> };
 
-    expect(packageJson.scripts["test:runtime"]).toBe("bun test tests/*.test.ts");
+    expect(packageJson.scripts["test:runtime"]).toBe("bun test tests/*.test.ts tests/benchmark/*.test.ts tests/contracts/*.test.ts tests/development/*.test.ts tests/live/*.test.ts tests/runtime/*.test.ts");
     expect(packageJson.scripts["verify:closure"]).toBe("bun run verify:repository && bun run verify:authoring && bun run docs:check");
     expect(packageJson.scripts["verify:closure"]).not.toContain("verify:mcp");
     expect(packageJson.scripts["verify:mcp"]).toBe(
