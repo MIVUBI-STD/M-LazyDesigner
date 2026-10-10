@@ -308,6 +308,7 @@ export function registerCoreGatewayTools(
                   id: image.id,
                   view: image.view,
                   status: image.status,
+                  landmarks: image.landmarks,
                   sha256: image.sha256,
                   mime_type: image.mime_type,
                   bytes: image.bytes,

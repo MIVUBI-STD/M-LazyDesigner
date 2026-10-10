@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { MODEL_VIEWS, type ModelView } from "../../lib/reference/visualEvidence";
+import { parseReferenceImageLandmarks } from "../../lib/reference/landmarkEvidence";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import type {
   ControlProfile,
@@ -181,12 +182,25 @@ export function parseReferencePackage(
   const assetKind =
     assetKindValue(asset?.kind) ?? (selectedProfile ? "MODEL" : null);
   const imageEntries = Array.isArray(root.images) ? root.images : [];
+  let invalidLandmarks = false;
   const images = imageEntries.flatMap((entry) => {
     const item = record(entry);
     if (!item) return [];
     const id = stringValue(item.id);
     const file = stringValue(item.file);
     if (!id || !file) return [];
+    const landmarks = parseReferenceImageLandmarks(item.landmarks);
+    const viewCandidate = stringValue(item.view)?.toLowerCase();
+    const view: ModelView | null =
+      viewCandidate && MODEL_VIEWS.includes(viewCandidate as ModelView)
+        ? viewCandidate as ModelView
+        : null;
+    // A point on an unregistered composite sheet has no canonical viewport
+    // coordinates. Crop/panel registration is a separate explicit authoring act.
+    if (landmarks === null || (landmarks.length > 0 && !view)) {
+      invalidLandmarks = true;
+      return [];
+    }
     const usedBy = (Array.isArray(item.used_by) ? item.used_by : [])
       .map(normalizeStage)
       .filter(
@@ -198,14 +212,11 @@ export function parseReferencePackage(
       role: stringValue(item.role),
       used_by: [...new Set(usedBy)],
       status: stringValue(item.status),
-      view: (() => {
-        const candidate = stringValue(item.view)?.toLowerCase();
-        return candidate && MODEL_VIEWS.includes(candidate as ModelView)
-          ? candidate as ModelView
-          : null;
-      })(),
+      ...(item.landmarks !== undefined ? { landmarks } : {}),
+      view,
     }];
   });
+  if (invalidLandmarks) return null;
 
   return {
     available: true,

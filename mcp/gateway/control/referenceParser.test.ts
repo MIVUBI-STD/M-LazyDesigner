@@ -205,6 +205,45 @@ describe("Control reference parser", () => {
     });
   });
 
+  test("passes bounded image landmarks into the stage reference contract", () => {
+    const doc = {
+      schema: "lazydesigner-reference-v1",
+      asset: { name: "Lantern", kind: "MODEL" },
+      images: [{
+        id: "IMG_FRONT", file: "images/front.png",
+        view: "front", used_by: ["GEOMETRY"],
+        landmarks: [
+          { id: "handle", uv: [0.5, 0.1], part_id: "handle" },
+          { id: "body", uv: [0.5, 0.55] },
+        ],
+      }],
+    };
+    const parsed = parseReferencePackage(JSON.stringify(doc), "/pkg/REFERENCE.json", "/pkg");
+    expect(parsed?.images[0].landmarks).toEqual([
+      { id: "handle", uv: [0.5, 0.1], part_id: "handle" },
+      { id: "body", uv: [0.5, 0.55], part_id: null },
+    ]);
+    expect(parseReferencePackage(JSON.stringify({
+      ...doc,
+      images: [{ ...doc.images[0], landmarks: [
+        { id: "handle", uv: [0.5, 0.1] },
+        { id: "handle", uv: [0.5, 0.9] },
+      ] }],
+    }), "/pkg/REFERENCE.json", "/pkg")).toBeNull();
+    expect(parseReferencePackage(JSON.stringify({
+      ...doc,
+      images: [{ ...doc.images[0], landmarks: [
+        { id: "handle", uv: [1.2, 0.1] },
+      ] }],
+    }), "/pkg/REFERENCE.json", "/pkg")).toBeNull();
+    expect(parseReferencePackage(JSON.stringify({
+      ...doc,
+      images: [{ ...doc.images[0], view: undefined, landmarks: [
+        { id: "handle", uv: [0.5, 0.1] },
+      ] }],
+    }), "/pkg/REFERENCE.json", "/pkg")).toBeNull();
+  });
+
   test("empty reference keeps a stable unavailable shape", () => {
     expect(emptyReference("REFERENCE_NOT_FOUND")).toMatchObject({
       available: false,

@@ -4,6 +4,10 @@ import { z } from "zod";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { captureScreenshot, captureAppScreenshot } from "@/lib/blockbench/capture";
 import { imageContent } from "@/lib/protocol/imageContent";
+import {
+  compareReferenceLandmarkProjection,
+  type LandmarkProjectionObservation,
+} from "@/lib/reference/landmarkEvidence";
 import { readRenderedModelBounds, type RenderedModelBounds, type Vec3 } from "@/lib/geometry/renderedModelBounds";
 import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { vector3Schema, projectionEnum } from "@/lib/schemas/common";
@@ -324,6 +328,15 @@ const explicitFramingSchema = z
     }
   );
 
+const landmarkPairSchema = z.object({
+  reference_image_id: z.string().trim().min(1).max(160),
+  reference_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  landmark_id: z.string().trim().min(1).max(96),
+  reference_uv: z.tuple([z.number().finite().min(0).max(1), z.number().finite().min(0).max(1)]),
+  view: modelViewEnum,
+  model_cube_uuid: z.string().trim().min(1).max(160),
+}).strict();
+
 const uniqueModelViewsSchema = z
   .array(modelViewEnum)
   .min(1)
@@ -336,6 +349,9 @@ export const captureModelViewsParameters = z
   .object({
   size: z.number().int().min(32).max(1024).optional().describe("Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only."),
   highlight_missing_textures: z.boolean().default(false).describe("Diagnostic capture: brighten native missing-texture materials temporarily. Restores state; not a normal shaded comparison or flashing UI."),
+  landmark_pairs: z.array(landmarkPairSchema).min(1).max(16).optional().describe(
+    "Optional read-only projected Cube-center landmarks, paired to specific source-image IDs and SHA-256. Requires explicit views; does not calibrate the source camera or judge visual similarity."
+  ),
   views: uniqueModelViewsSchema.optional().describe(
     "Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set."
   ),
@@ -373,6 +389,44 @@ export const captureModelViewsParameters = z
         message: "Provide explicit views or evidence_targets.",
         path: ["views"],
       });
+    }
+    if (value.landmark_pairs?.length) {
+      if (!value.views?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Landmark projections require explicitly matched canonical views.",
+          path: ["views"],
+        });
+      }
+      const keys = new Set<string>();
+      const sources = new Map<string, { sha: string; view: ModelView }>();
+      for (const [index, row] of value.landmark_pairs.entries()) {
+        if (value.views?.length && !value.views.includes(row.view)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "The landmark view must be included in explicit capture views.",
+            path: ["landmark_pairs", index, "view"],
+          });
+        }
+        const key = JSON.stringify([row.reference_image_id, row.landmark_id, row.view]);
+        if (keys.has(key)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Duplicate source-image landmark identity.",
+            path: ["landmark_pairs", index],
+          });
+        }
+        keys.add(key);
+        const prior = sources.get(row.reference_image_id);
+        if (prior && (prior.sha !== row.reference_sha256 || prior.view !== row.view)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Source image ID cannot map to different byte hashes or views.",
+            path: ["landmark_pairs", index, "reference_image_id"],
+          });
+        }
+        sources.set(row.reference_image_id, { sha: row.reference_sha256, view: row.view });
+      }
     }
   });
 
@@ -413,7 +467,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_model_views",
     description:
-      "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects views and 256/384/512 evidence resolution deterministically. Explicit size overrides automatic resolution; explicit views without evidence_targets retain 512×512. Returns observation only; no score/PASS/FAIL.",
+      "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk. Optional landmark_pairs project rendered Cube centers to a matched canonical view and report normalized 2D residuals, never solved camera calibration or automatic geometric correction. Returns observation only; no quality score/PASS/FAIL.",
     annotations: {
       title: "Capture Model Views",
       readOnlyHint: true,
@@ -677,6 +731,53 @@ export function withMissingTextureHighlight<T>(enabled: boolean, capture: () => 
   } finally {uniforms.forEach((uniform,index)=>uniform.value=previous[index]);}
 }
 
+/**
+ * Use Blockbench's actual rendered Cube vertices rather than invented local
+ * corners; the mean is transform-safe across Cube rotation and parent groups.
+ * Only visible, unambiguously identified Cube UUIDs can enter this read.
+ */
+function renderedCubeCenter(uuid: string): Vec3 {
+  const cube = Cube.all.find((item) => item.uuid === uuid);
+  if (!cube || !cube.mesh || cube.visibility === false) {
+    throw new Error("REFERENCE_LANDMARK_CUBE_UNAVAILABLE: " + uuid);
+  }
+  let node: THREE.Object3D | null = cube.mesh;
+  while (node) {
+    if (!node.visible) throw new Error("REFERENCE_LANDMARK_CUBE_HIDDEN: " + uuid);
+    node = node.parent;
+  }
+  cube.mesh.updateWorldMatrix(true, false);
+  const vertices = cube.getGlobalVertexPositions();
+  if (!Array.isArray(vertices) || vertices.length !== 8 ||
+      vertices.some((v) => v.length !== 3 || v.some((n) => !Number.isFinite(n)))) {
+    throw new Error("REFERENCE_LANDMARK_CUBE_GEOMETRY_INVALID: " + uuid);
+  }
+  return [0, 1, 2].map(
+    (axis) => vertices.reduce((sum, v) => sum + v[axis]!, 0) / vertices.length
+  ) as Vec3;
+}
+
+function captureLandmarkProjections(
+  preview: Preview,
+  view: ModelView,
+  pairs: readonly z.infer<typeof landmarkPairSchema>[]
+): LandmarkProjectionObservation[] {
+  if (pairs.length === 0) return [];
+  const camera = preview.camera;
+  camera.updateMatrixWorld(true);
+  return pairs.filter((row) => row.view === view).map((row) => {
+    const point = renderedCubeCenter(row.model_cube_uuid);
+    const projected = new THREE.Vector3(...point).project(camera);
+    return compareReferenceLandmarkProjection({
+      ...row,
+      model_anchor: "CUBE_CENTER",
+      model_world_point: point,
+      projected_uv: [(projected.x + 1) / 2, (1 - projected.y) / 2],
+      ndc_depth: projected.z,
+    });
+  });
+}
+
 function captureOffscreenPng(preview: Preview, highlightMissing = false): string {
   let dataUrl: string | undefined;
   withShadedCapture(() => withMissingTextureHighlight(highlightMissing, () => Canvas.withoutGizmos(() => {
@@ -723,7 +824,7 @@ export function registerCameraTools() {
 
   createTool(cameraToolDocs[3].name, {
     ...cameraToolDocs[3],
-    async execute({ views, evidence_targets, verification_risk, front_direction, framing, highlight_missing_textures, size }) {
+    async execute({ views, evidence_targets, verification_risk, front_direction, framing, highlight_missing_textures, landmark_pairs, size }) {
       if (!Project) {
         throw new Error(
           "No project is open. Open or create the intended Bedrock project before capturing model views."
@@ -787,6 +888,7 @@ export function registerCameraTools() {
         height: number;
         png_bytes: number;
         camera_spec: ReturnType<typeof captureCameraSpecMetadata>;
+        landmark_projections?: LandmarkProjectionObservation[];
       }> = [];
 
       for (const view of selectedViews) {
@@ -797,6 +899,9 @@ export function registerCameraTools() {
           framingBounds
         );
         applyCamera(capturePreview, spec);
+        const landmarkProjections = captureLandmarkProjections(
+          capturePreview, view, landmark_pairs ?? []
+        );
         const image = imageContent(captureOffscreenPng(capturePreview, highlight_missing_textures), "image/png")
           .content[0];
 
@@ -809,6 +914,7 @@ export function registerCameraTools() {
           height: captureSize,
           png_bytes: Math.floor(image.data.length * 3 / 4) - (image.data.endsWith("==") ? 2 : image.data.endsWith("=") ? 1 : 0),
           camera_spec: captureCameraSpecMetadata(spec),
+          ...(landmark_pairs?.length ? { landmark_projections: landmarkProjections } : {}),
         });
       }
 
@@ -840,6 +946,18 @@ export function registerCameraTools() {
           selected_size: captureSize,
         },
         captures,
+        ...(landmark_pairs?.length ? {
+          landmark_diagnosis: {
+            state: "DIAGNOSTIC_ONLY" as const,
+            pairing_authority: "CALLER_SUPPLIED_REFERENCE_ID_AND_SHA256" as const,
+            source_camera_calibrated: false,
+            automatic_correction: false,
+            requested_count: landmark_pairs.length,
+            projection_count: captures.reduce(
+              (sum, row) => sum + (row.landmark_projections?.length ?? 0), 0
+            ),
+          },
+        } : {}),
         reference_comparison: buildModelViewReferenceComparison(
           captures.map((capture) => capture.view)
         ),

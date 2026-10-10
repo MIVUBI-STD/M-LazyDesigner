@@ -48,6 +48,16 @@ framing. Reuse unchanged images in the active review context; do not fetch
 them at every Cube edit. The returned SHA-256/ID/approval fields establish
 source identity, not visual quality or native camera calibration.
 
+For a small number of reference-critical **mass-center** landmarks, reuse
+`images[].landmarks` and the same `capture_model_views` call with
+`landmark_pairs`: source image ID/hash, visible source UV, canonical view,
+and exact target Cube UUID. Request only a bounded meaningful subset. The
+result is a normalized 2D projection residual from the rendered Cube center;
+do not turn this into a guessed 3D move, camera calibration, visual PASS or
+second correction planner. Skip landmark measurement when the visible feature
+is an edge/joint/detail rather than the Cube center, or the camera cannot
+actually be paired.
+
 Evidence states remain `SUPPORTED | PROVISIONAL | CONFLICTING | UNAVAILABLE`. View Pair Map is conditional only for material front/back, depth, attachment, or 3/4 ambiguity.
 
 Before the first primary batch, resolve only decision-changing structure:

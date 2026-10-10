@@ -307,6 +307,29 @@ A static pivot that creates an implausible motion arc is not approved.
 
 Use the **actual approved reference image plus evidence from the current saved/release candidate**. Do not reuse older model screenshots after material geometry/pivot/hierarchy/texture/animation changes.
 
+## Bounded Landmark Diagnosis
+
+Use source-image landmark measurements only after the actual approved image
+has been inspected and the required part correspondence is known. An
+`images[].landmarks` row supplies `id`, normalized `uv` and optional
+semantic `part_id`. The image hash is read from the current Reference Package;
+never assume an old image ID identifies unchanged pixels.
+
+For a grounded central mass point, call existing `capture_model_views` with
+explicit `views`, `front_direction`, and a bounded `landmark_pairs` list
+referencing image ID, SHA-256, landmark ID/UV, view, and exact model Cube UUID.
+The Runtime observes that Cube's rendered world-space center (including
+parent transform), then returns projected model UV, source/model offset and
+an in-frame flag. No new tool or second solver is needed.
+
+A Cube center is **not a general corner, joint or silhouette endpoint**.
+Do not map a source edge landmark to a Cube center just because the part name
+matches. Landmark residuals do not establish source camera calibration,
+depth reconstruction, view occlusion, or reference fidelity PASS; they never
+auto-issue a correction. If camera/view/source binding is uncertain, keep
+the discrepancy `UNVERIFIED`, not `RESOLVED`. Continue using the existing
+difference-first observation and correction loop for supported claims.
+
 ## Visual Repair Loop
 
 ```text

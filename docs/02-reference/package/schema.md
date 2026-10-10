@@ -248,6 +248,31 @@ this package. Never store an unverified hash or embed image bytes in
 `REFERENCE.json`. File references must remain package-relative and resolve
 inside the package. Visual approval still requires looking at the actual image.
 
+Optional `images[].landmarks` is a bounded list (maximum 16) of visible
+source-image points. Each row has a unique `id`, a normalized image coordinate
+`uv: [u,v]` in [0,1] (origin: top-left), and optionally `part_id` tying it
+to a `parts[].id`. Never invent hidden points, depth, world coordinates or
+Cube UUIDs at reference-preparation time. Example:
+
+```json
+{
+  "id": "IMG_GEO_FRONT",
+  "file": "images/front.png",
+  "view": "front",
+  "used_by": ["GEOMETRY"],
+  "status": "APPROVED",
+  "landmarks": [
+    {"id": "torso_center", "uv": [0.50, 0.52], "part_id": "torso"},
+    {"id": "left_shoulder", "uv": [0.29, 0.35], "part_id": "left_arm"}
+  ]
+}
+```
+
+Invalid or duplicate landmark IDs, UVs outside [0,1], and unbounded
+lists invalidate the reference package rather than being silently ignored.
+Landmarks describe observations, **not** matched camera calibration or proven
+3D positions. Use only when the points materially reduce a Geometry ambiguity.
+
 `role` examples:
 
 ```text

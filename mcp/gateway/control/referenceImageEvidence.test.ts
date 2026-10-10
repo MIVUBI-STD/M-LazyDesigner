@@ -62,6 +62,26 @@ describe("actual reference image evidence — Control owner", () => {
     expect(serialized).not.toContain(evidence[0].data);
   });
 
+  test("source landmark coordinates follow the current delivered image identity", async () => {
+    const root = await packageRoot([{
+      id: "IMG_FRONT", file: "images/front.png",
+      view: "front", used_by: ["GEOMETRY"], status: "APPROVED",
+      landmarks: [{ id: "torso_center", uv: [0.5, 0.55], part_id: "torso" }],
+    }]);
+    const reference = await readReferencePackageProjection(root);
+    const evidence = await readReferenceImageEvidence(reference, ["IMG_FRONT"]);
+    expect(evidence[0]).toMatchObject({
+      id: "IMG_FRONT", view: "front",
+      sha256: reference.images[0].sha256,
+      landmarks: [{ id: "torso_center", uv: [0.5, 0.55], part_id: "torso" }],
+    });
+    expect(evidence[0].landmarks).toHaveLength(1);
+    const stage = buildControlStageContext({
+      domain: "GEOMETRY", reference, workspace,
+    });
+    expect(stage.reference_image_ids).toEqual(["IMG_FRONT"]);
+  });
+
   test("fresh image content invalidates stage fingerprint when REFERENCE.json is unchanged", async () => {
     const root = await packageRoot();
     const initial = await readReferencePackageProjection(root);

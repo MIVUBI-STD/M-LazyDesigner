@@ -115,6 +115,54 @@ describe("capture_model_views explicit framing contract", () => {
     expect(metadata.position).toEqual([2, 4, 6]);
   });
 
+  test("validates bounded landmark pairs before any capture or Cube lookup", () => {
+    const source = {
+      reference_image_id: "IMG_FRONT",
+      reference_sha256: "a".repeat(64),
+      landmark_id: "torso",
+      reference_uv: [0.5, 0.5],
+      view: "front",
+      model_cube_uuid: "uuid-body",
+    };
+    expect(captureModelViewsParameters.safeParse({
+      ...baseInput, landmark_pairs: [source],
+    }).success).toBe(true);
+    const invalid = [
+      { ...source, view: "left" },
+      { ...source, reference_uv: [1.1, 0.5] },
+      { ...source, reference_uv: [Number.NaN, 0.5] },
+      { ...source, reference_sha256: "not-a-hash" },
+      { ...source, model_cube_uuid: "" },
+    ];
+    for (const pair of invalid) {
+      expect(captureModelViewsParameters.safeParse({
+        ...baseInput, landmark_pairs: [pair],
+      }).success).toBe(false);
+    }
+    expect(captureModelViewsParameters.safeParse({
+      front_direction: "+z", evidence_targets: ["width"], landmark_pairs: [source],
+    }).success).toBe(false);
+    expect(captureModelViewsParameters.safeParse({
+      ...baseInput, landmark_pairs: [source, source],
+    }).success).toBe(false);
+    expect(captureModelViewsParameters.safeParse({
+      ...baseInput, landmark_pairs: [
+        source, { ...source, landmark_id: "eye", reference_sha256: "b".repeat(64) },
+      ],
+    }).success).toBe(false);
+  });
+
+  test("landmarks are only diagnostic projections of rendered Cube centers", async () => {
+    const code = await Bun.file("server/tools/inspection/camera.ts").text();
+    expect(code).toContain("getGlobalVertexPositions()");
+    expect(code).toContain("cube.mesh.updateWorldMatrix(true, false)");
+    expect(code).toContain(".project(camera)");
+    expect(code).toContain('model_anchor: "CUBE_CENTER"');
+    expect(code).toContain("source_camera_calibrated: false");
+    expect(code).toContain("automatic_correction: false");
+    expect(code).toContain("landmark_projections: landmarkProjections");
+  });
+
   test("caps automatic evidence selection at the five-view context budget", () => {
     const result = selectModelViewsForEvidence([
       "width",

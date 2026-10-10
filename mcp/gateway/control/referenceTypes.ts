@@ -1,4 +1,5 @@
 import type { ModelView } from "../../lib/reference/visualEvidence";
+import type { ReferenceImageLandmark } from "../../lib/reference/landmarkEvidence";
 
 export type ControlProfile =
   | "PROP_FURNITURE"
@@ -80,6 +81,8 @@ export type ControlReferenceProjection = {
     status: string | null;
     /** Canonical single-view label; null for composite/unspecified sheets. */
     view?: ModelView | null;
+    /** Source-image observations, not model vertices or solved camera calibration. */
+    landmarks?: ReferenceImageLandmark[];
     /** Read-time source-byte identity, not an approval or visual verdict. */
     sha256?: string | null;
     bytes?: number | null;

@@ -185,6 +185,21 @@ matching only genuinely corresponding orientations. A composite sheet
 requires the reviewer to identify the actual panel; image `view` metadata
 alone is not native camera calibration or visual PASS.
 
+When the specific Geometry mismatch requires a measurable point, the image
+entry may carry `landmarks` with source UV coordinates and semantic part IDs.
+Use the SHA-256 and image ID returned with the actual source image. After
+matching the relevant model Cube's UUID, pass an explicit `landmark_pairs`
+subset to `capture_model_views`, together with `views` and
+`front_direction`. The Runtime projects the **rendered Cube center**
+through the same offscreen camera used to capture that view. The returned
+`landmark_projections` contain normalized offsets and image-frame status.
+
+A source landmark is **not automatically a Cube center**: only pair those
+that truly refer to the center of that model mass. Source/model camera
+alignment is not solved or attested; residuals are diagnostic only, and no
+automatic 3D move follows. If source view or point correspondence is uncertain,
+perform qualitative visual review instead of inventing a match.
+
 Preferred model image resolution:
 
 ```text
