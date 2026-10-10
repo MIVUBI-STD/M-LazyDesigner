@@ -439,7 +439,7 @@ describe("server tool domain ownership", () => {
     expect(state).not.toContain("/gateway/");
 
     expect(executor).toContain(
-      'from "@/server/tools/texture/materialState"'
+      'from "./materialState"'
     );
     expect(creator).toContain(
       'from "./materialState"'

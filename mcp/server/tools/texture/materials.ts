@@ -38,8 +38,8 @@ import {
   resolveRuntimeTextureByUuid,
   resolveTextureToolMaterial,
   runtimePbrTextureStates,
-} from "@/server/tools/texture/materialState";
-export { resolveTextureToolMaterial } from "@/server/tools/texture/materialState";
+} from "./materialState";
+export { resolveTextureToolMaterial } from "./materialState";
 import {
   materialMutationReceipt,
   materialPersistenceReceipt,
