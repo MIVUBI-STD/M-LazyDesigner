@@ -310,6 +310,14 @@ LOCAL
 
 ### Compact Difference Contract
 
+A correction discrepancy `code` is a stable identity, not a reusable severity
+label. Two claims in the same evidence batch cannot share a code, including
+whitespace variants, even if they differ in owner or severity. Structured
+batches mark both ambiguous entries `OBSERVATION_INVALID`; direct correction
+input fails before state mutation. Valid independent claims remain eligible.
+This avoids a `Map` silently replacing one diagnosis with another during
+correction, convergence and continuation.
+
 For a local visual mismatch, the reviewing model should stop after producing the
 minimum decision payload needed by the existing authoring-intent compiler:
 

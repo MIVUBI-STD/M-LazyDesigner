@@ -22,6 +22,45 @@ function recipe(): AuthoringRecipe {
 }
 
 describe("zero-waste correction loop reuse", () => {
+  test("raw correction entrypoints reject duplicate identity without changing continuation", () => {
+    const registry = new CorrectionLoopRegistry();
+    const input: Parameters<CorrectionLoopRegistry["start"]>[0] = {
+      recipe_id: "identity-boundary",
+      base_recipe: recipe(),
+      verification_request: {
+        domain: "GEOMETRY",
+        source: "capture_model_views",
+        verification_risk: "LOW",
+        views: ["front"],
+        views_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        size: 256,
+        size_role: "FALLBACK_IF_NO_GROUNDED_TARGETS",
+        scope_instance_ids: ["arms:0"],
+      },
+      verification_evidence_handle: "verificationevidence:identity-start",
+      discrepancies: [{ code: "WIDTH", severity: "REVIEW", summary: "Width mismatch." }],
+    };
+    expect(() => registry.start({
+      ...input,
+      discrepancies: [
+        { code: "WIDTH", severity: "REVIEW", summary: "Width mismatch." },
+        { code: "WIDTH", severity: "BLOCKING", summary: "Different diagnosis." },
+      ],
+    })).toThrow("DUPLICATE_DISCREPANCY_CODE");
+    expect(() => registry.start({
+      ...input,
+      discrepancies: [{ code: " WIDTH ", severity: "REVIEW", summary: "Ambiguous identity." }],
+    })).toThrow("INVALID_DISCREPANCY_CODE");
+    const handle = registry.start(input);
+    const before = registry.projectContinuation(handle).continuation_id;
+    expect(() => registry.updateEvidence(handle, "verificationevidence:identity-next", [
+      { code: "WIDTH", severity: "REVIEW", summary: "Updated width." },
+      { code: "WIDTH", severity: "BLOCKING", summary: "Conflicting update." },
+    ])).toThrow("DUPLICATE_DISCREPANCY_CODE");
+    expect(registry.projectContinuation(handle).continuation_id).toBe(before);
+  });
+
+  test("reuses the same verification scope for a bounded correction", () => {
   test("reuses the same verification scope for a bounded correction", () => {
     const registry = new CorrectionLoopRegistry();
     const handle = registry.start({

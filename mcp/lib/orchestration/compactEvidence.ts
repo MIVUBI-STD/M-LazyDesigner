@@ -89,6 +89,40 @@ export type VerificationDiscrepancy = {
   cause_family?: MinecraftCauseFamily;
 };
 
+/**
+ * Correction and convergence use discrepancy code as an identity key.
+ * Duplicate identities must never silently overwrite other claims.
+ */
+export function duplicateDiscrepancyCodes(
+  items: readonly Pick<VerificationDiscrepancy, "code">[]
+): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const item of items) {
+    const code = typeof item.code === "string" ? item.code.trim() : "";
+    if (!code) continue;
+    if (seen.has(code)) duplicates.add(code);
+    seen.add(code);
+  }
+  return [...duplicates];
+}
+
+export function assertUniqueDiscrepancyCodes(
+  items: readonly Pick<VerificationDiscrepancy, "code">[]
+): void {
+  if (items.some((item) => typeof item.code !== "string" ||
+      !item.code.trim() || item.code !== item.code.trim())) {
+    throw new Error("INVALID_DISCREPANCY_CODE: use a nonempty, trimmed identity.");
+  }
+  const duplicate = duplicateDiscrepancyCodes(items);
+  if (duplicate.length) {
+    throw new Error(
+      "DUPLICATE_DISCREPANCY_CODE: " + duplicate.join(", ") +
+      ". Each correction claim needs its own stable code."
+    );
+  }
+}
+
 export type CompactVerificationEvidence = {
   evidence_handle: VerificationEvidenceHandle;
   domain: VerificationEvidenceRequest["domain"];

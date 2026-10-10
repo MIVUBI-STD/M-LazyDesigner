@@ -3,6 +3,7 @@ import type {
   MinecraftQualityClass,
   MinecraftQualityOwner,
   VerificationDiscrepancy,
+  duplicateDiscrepancyCodes,
 } from "@/lib/orchestration/compactEvidence";
 import type { ModelView, VisualEvidenceTarget } from "@/lib/reference/visualEvidence";
 
@@ -264,13 +265,19 @@ export function compileStructuredVisualObservations(
       | "OBSERVATION_INVALID";
   }> = [];
 
+  const duplicateCodes = new Set(duplicateDiscrepancyCodes(inputs));
   for (const input of inputs) {
+    const normalizedCode = typeof input.code === "string" ? input.code.trim() : "";
+    if (duplicateCodes.has(normalizedCode)) {
+      unverified.push({ code: normalizedCode, reason: "OBSERVATION_INVALID" });
+      continue;
+    }
     const result = compileStructuredVisualObservation(input);
     if (result.state === "SUPPORTED") {
       supported.push(result.discrepancy);
     } else {
       unverified.push({
-        code: input.code,
+        code: normalizedCode,
         reason: result.reason,
       });
     }

@@ -89,6 +89,62 @@ describe("structured visual observation compiler", () => {
     });
   });
 
+  test("conflicting duplicate codes cannot select different correction owners", () => {
+    const result = compileStructuredVisualObservations([
+      {
+        code: "FORM_MISMATCH",
+        criterion: "SILHOUETTE_PROPORTION",
+        severity: "BLOCKING",
+        summary: "Torso proportions differ.",
+        evidence: {
+          current_evidence_ref: "model:front:1",
+          reference_evidence_ref: "ref:front",
+          views: ["front"],
+        },
+      },
+      {
+        code: " FORM_MISMATCH ",
+        criterion: "TEXTURE_MATERIAL_REGION",
+        severity: "REVIEW",
+        summary: "Different material.",
+        evidence: {
+          current_evidence_ref: "model:front:1",
+          reference_evidence_ref: "ref:front",
+          views: ["front"],
+        },
+      },
+    ]);
+    expect(result.supported).toEqual([]);
+    expect(result.unverified).toEqual([
+      { code: "FORM_MISMATCH", reason: "OBSERVATION_INVALID" },
+      { code: "FORM_MISMATCH", reason: "OBSERVATION_INVALID" },
+    ]);
+  });
+
+  test("ambiguous codes are excluded without discarding independent valid claims", () => {
+    const base = {
+      code: "A",
+      criterion: "SILHOUETTE_PROPORTION" as const,
+      severity: "REVIEW" as const,
+      summary: "A discrepancy.",
+      evidence: {
+        current_evidence_ref: "model:front:1",
+        reference_evidence_ref: "ref:front",
+        views: ["front" as const],
+      },
+    };
+    const result = compileStructuredVisualObservations([
+      base,
+      { ...base, code: " A ", summary: "Second conflicting claim." },
+      { ...base, code: "B", summary: "Independent valid claim." },
+    ]);
+    expect(result.supported.map((item) => item.code)).toEqual(["B"]);
+    expect(result.unverified).toEqual([
+      { code: "A", reason: "OBSERVATION_INVALID" },
+      { code: "A", reason: "OBSERVATION_INVALID" },
+    ]);
+  });
+
   test("batch compilation separates supported observations from unverified claims", () => {
     const result = compileStructuredVisualObservations([
       {

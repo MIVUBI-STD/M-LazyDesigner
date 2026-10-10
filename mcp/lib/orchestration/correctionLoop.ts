@@ -11,6 +11,7 @@ import {
 import type { VerificationEvidenceRequest } from "@/lib/orchestration/evidencePlan";
 import type { VerificationEvidenceHandle } from "@/lib/orchestration/evidenceRegistry";
 import {
+  assertUniqueDiscrepancyCodes,
   diagnoseMinecraftDiscrepancy,
   minecraftQualityFocus,
   prioritizeMinecraftDiscrepancies,
@@ -293,6 +294,7 @@ export class CorrectionLoopRegistry {
       | "evidence_recovery_reason"
     >
   ): CorrectionLoopHandle {
+    assertUniqueDiscrepancyCodes(input.discrepancies);
     const viewEvidenceHandles: Partial<
       Record<ModelView, VerificationEvidenceHandle>
     > = {};
@@ -695,6 +697,7 @@ export class CorrectionLoopRegistry {
       }
     }
 
+    assertUniqueDiscrepancyCodes(discrepancies);
     const incoming = [...structuredClone(discrepancies)];
     const pendingTargetCodes = [...record.pending_target_discrepancy_codes];
     if (pendingTargetCodes.length > 0) {
