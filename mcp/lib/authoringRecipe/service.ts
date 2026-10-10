@@ -7,6 +7,7 @@ import {
 } from "@/lib/authoringRecipe/nativeState";
 import {
   applyAuthoringRecipeIncrementalAtomic,
+  revertLastAuthoringRecipeApply,
   type AuthoringRecipeApplyAdapter,
 } from "@/lib/authoringRecipe/transaction";
 import { AuthoringRecipePlanRegistry } from "@/lib/authoringRecipe/planRegistry";
@@ -84,6 +85,25 @@ export function createAuthoringRecipeService(
     },
     readEvidence(handle: AuthoringEvidenceHandle) {
       return evidenceRegistry.get(handle);
+    },
+    /**
+     * Explicit, receipt-scoped recovery only. Uses the same bounded authoring
+     * evidence registry already populated by applyCompact; never searches
+     * Blockbench Undo history by recipe name.
+     */
+    async revertApplied(input: {
+      evidence_handle: AuthoringEvidenceHandle;
+      expected_native_source_fingerprint_after: string;
+    }) {
+      const recorded = evidenceRegistry.get(input.evidence_handle);
+      if (recorded.kind !== "APPLY_RECEIPT") {
+        throw new Error("RECIPE_POSTCOMMIT_RECEIPT_REQUIRED: use an exact apply evidence handle.");
+      }
+      return revertLastAuthoringRecipeApply(
+        recorded.value,
+        input.expected_native_source_fingerprint_after,
+        dependencies.createApplyAdapter(recorded.value.recipe_id)
+      );
     },
     async apply(input: { plan_id: string; expected_native_source_fingerprint: string }) {
       const stored = registry.get(input.plan_id);

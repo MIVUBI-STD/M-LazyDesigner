@@ -46,9 +46,30 @@ ownership returns `RECIPE_APPLY_ROLLBACK_UNVERIFIED`, never a success receipt.
 Do not use an unscoped `Undo.undo()`: a subsequent edit could belong to
 someone else.
 
-This is **pre-commit transaction safety**, not automatic rollback of a
-previously committed edit after a visual comparison. External landmark
-diagnosis is a read-only convergence veto and has no native mutation
-authority; a later measured regression requires the execution owner to
-perform a separate validated recovery rather than claiming that Undo
-already happened. Native live acceptance remains distinct from source tests.
+## Exact-last-edit recovery after commit
+
+The existing `applyCompact` evidence receipt may carry short-lived
+`native_undo_provenance` from the genuine Blockbench Undo transaction.
+The native owner stamps a private Symbol on **Undo.current_save before**
+`Undo.finishEdit`; Blockbench 5.2.1 stores this exact save object in
+`Undo.history[index].before`. This does not create another history or
+an auxiliary registry. A fake/source-only adapter returns no such proof
+and therefore cannot authorize post-commit rollback.
+
+The existing `AuthoringRecipeService.revertApplied` accepts only an
+`APPLY_RECEIPT` handle from its existing bounded evidence registry and
+an exact post-apply native fingerprint. The native adapter then checks,
+synchronously before `Undo.undo()`, that (1) the correct project is active,
+(2) no edit is open, (3) the current history entry is **the final entry**,
+(4) its private token and recipe/project/before/after provenance match,
+and (5) the currently owned Cube snapshot still matches the receipt.
+After native Undo, the original fingerprint is rechecked. Any uncertainty
+is a refusal or `RECIPE_POSTCOMMIT_UNDO_UNVERIFIED`, never an automatic
+retry or an unscoped history traversal. The eligibility is ephemeral and
+is lost when native history changes or the service's evidence handle expires.
+
+This is an **explicit owner-mediated recovery path**, not automatic
+rollback triggered by landmark measurements, a public fifth Gateway tool,
+or a guarantee that live Blockbench Undo has passed acceptance. The
+existing `CorrectionLoopRegistry` continues to veto incompatible or
+regressed measurements without invoking native mutation.

@@ -6,6 +6,16 @@ import {
   type AuthoringRecipeNativeSnapshot,
 } from "@/lib/authoringRecipe/nativeState";
 
+/**
+ * Ephemeral native Undo provenance. Its ID is meaningful only while the
+ * original Blockbench history entry is still the current top of history.
+ */
+export type RecipeNativeUndoProvenance = {
+  token: string;
+  project_uuid: string;
+  undo_index: number;
+};
+
 export type AuthoringRecipeApplyAdapter = {
   readOwned(recipeId: string): Promise<AuthoringRecipeNativeSnapshot> | AuthoringRecipeNativeSnapshot;
   beginUndo?(affectedInstanceIds: readonly string[]): Promise<void> | void;
@@ -25,8 +35,19 @@ export type AuthoringRecipeApplyAdapter = {
     after: AuthoringRecipeNativeSnapshot;
     affectedInstanceIds: readonly string[];
   }): Promise<void> | void;
-  commitUndo?(): Promise<void> | void;
+  commitUndo?(binding: {
+    recipe_id: string;
+    native_source_fingerprint_before: string;
+    native_source_fingerprint_after: string;
+  }): Promise<RecipeNativeUndoProvenance | void> | RecipeNativeUndoProvenance | void;
   cancelUndo?(): Promise<void> | void;
+  /** Exact-top native edit only. Implemented by the Blockbench adapter. */
+  revertCommittedUndo?(binding: {
+    recipe_id: string;
+    provenance: RecipeNativeUndoProvenance;
+    native_source_fingerprint_before: string;
+    native_source_fingerprint_after: string;
+  }): Promise<void> | void;
 };
 
 export type AuthoringRecipeApplyReceipt = {
@@ -37,6 +58,7 @@ export type AuthoringRecipeApplyReceipt = {
   next_recipe_fingerprint: string;
   native_source_fingerprint_before: string;
   native_source_fingerprint_after: string;
+  native_undo_provenance?: RecipeNativeUndoProvenance;
   created_instance_ids: string[];
   updated_instance_ids: string[];
   removed_instance_ids: string[];
@@ -161,7 +183,12 @@ export async function applyAuthoringRecipeIncrementalAtomic(
         animation_motion: true,
       },
     };
-    await adapter.commitUndo?.();
+    const provenance = await adapter.commitUndo?.({
+      recipe_id: nextRecipe.id,
+      native_source_fingerprint_before: actualBeforeFingerprint,
+      native_source_fingerprint_after: afterFingerprint,
+    });
+    if (provenance) receipt.native_undo_provenance = provenance;
     return receipt;
   } catch (error) {
     // Always attempt cancellation even if a custom restore hook failed.
@@ -193,4 +220,62 @@ export async function applyAuthoringRecipeIncrementalAtomic(
     }
     throw error;
   }
+}
+
+/**
+ * Explicit post-commit revert for a single receipt from the existing authoring
+ * evidence registry. No history search, no guessed Undo index, and no
+ * automatic rollback from landmark/visual diagnostics.
+ */
+export async function revertLastAuthoringRecipeApply(
+  receipt: AuthoringRecipeApplyReceipt,
+  expectedAfterFingerprint: string,
+  adapter: AuthoringRecipeApplyAdapter
+): Promise<{
+  execution: "reverted";
+  recipe_id: string;
+  native_source_fingerprint_after_revert: string;
+}> {
+  if (receipt.execution !== "applied" || !receipt.native_undo_provenance ||
+      !adapter.revertCommittedUndo) {
+    throw new Error("RECIPE_POSTCOMMIT_UNDO_UNAVAILABLE: no attributable native Undo entry.");
+  }
+  if (receipt.native_source_fingerprint_after !== expectedAfterFingerprint) {
+    throw new Error("RECIPE_POSTCOMMIT_FINGERPRINT_MISMATCH: use the exact apply receipt.");
+  }
+  const current = await adapter.readOwned(receipt.recipe_id);
+  if (fingerprintAuthoringRecipeNativeSnapshot(current) !== expectedAfterFingerprint) {
+    throw new Error("RECIPE_POSTCOMMIT_STATE_CHANGED: native recipe state differs after apply.");
+  }
+  try {
+    await adapter.revertCommittedUndo({
+      recipe_id: receipt.recipe_id,
+      provenance: receipt.native_undo_provenance,
+      native_source_fingerprint_before: receipt.native_source_fingerprint_before,
+      native_source_fingerprint_after: receipt.native_source_fingerprint_after,
+    });
+  } catch (error) {
+    // Undo may have begun before a native callback failed. Do not issue a
+    // second undo automatically or claim the model was restored.
+    throw new Error("RECIPE_POSTCOMMIT_UNDO_UNVERIFIED: " + String(error), {
+      cause: error,
+    });
+  }
+  // The native Undo may already have run: any readback exception is an
+  // uncertain recovery outcome, never an invitation to retry Undo.
+  try {
+    const after = await adapter.readOwned(receipt.recipe_id);
+    if (fingerprintAuthoringRecipeNativeSnapshot(after) !== receipt.native_source_fingerprint_before) {
+      throw new Error("native recipe fingerprint did not return to before-state");
+    }
+  } catch (error) {
+    throw new Error("RECIPE_POSTCOMMIT_UNDO_UNVERIFIED: " + String(error), {
+      cause: error,
+    });
+  }
+  return {
+    execution: "reverted",
+    recipe_id: receipt.recipe_id,
+    native_source_fingerprint_after_revert: receipt.native_source_fingerprint_before,
+  };
 }

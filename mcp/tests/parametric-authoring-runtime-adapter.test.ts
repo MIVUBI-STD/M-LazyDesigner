@@ -24,8 +24,21 @@ describe("Blockbench parametric recipe adapter ownership", () => {
       "search_capabilities",
       "invoke_capability",
     ]) expect(source).not.toContain(forbidden);
-    expect(source).not.toContain("Undo.undo()");
+    // Native undo is allowed only in the receipt-guarded recovery branch.
+    const revert = source.slice(source.indexOf("revertCommittedUndo:"));
+    expect(revert).toContain("Undo.index !== Undo.history.length");
+    expect(revert).toContain("Undo.index !== binding.provenance.undo_index");
+    expect(revert).toContain("RECIPE_UNDO_PROVENANCE");
+    expect(revert).toContain("RECIPE_NATIVE_UNDO_STATE_CHANGED");
+    expect(revert).toContain("Undo.undo()");
+    expect(source.slice(0, source.indexOf("revertCommittedUndo:"))).not.toContain("Undo.undo()");
     expect(source).not.toContain("Undo.redo()");
+    const commit = source.slice(
+      source.indexOf("commitUndo:"),
+      source.indexOf("cancelUndo:")
+    );
+    expect(commit.indexOf("Object.defineProperty(Undo.current_save"))
+      .toBeLessThan(commit.indexOf('Undo.finishEdit("LazyDesigner parametric recipe"'));
   });
 
   test("native Undo snapshots retain updated elements and encode deletions", async () => {

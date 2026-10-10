@@ -200,11 +200,28 @@ single affected-only apply. Verify all of these using native state and UUIDs:
 - if readback does not match the original fingerprint after cancellation,
   report `RECIPE_APPLY_ROLLBACK_UNVERIFIED` rather than asserting recovery.
 
+Add one explicit **post-commit receipt-bound recovery** scenario to the
+same native acceptance session. Use `applyCompact`'s authoring evidence
+handle and exact `native_source_fingerprint_after` with the existing
+recipe service's internal `revertApplied` operation:
+
+- after the recipe's native commit, with no intervening edits, recovery
+  must undo exactly that history entry and restore the original fingerprint;
+- a different project's active editor or a newer intervening native edit
+  must reject recovery **without modifying** the current Undo index;
+- an open unrelated native edit, a changed Cube, a substituted receipt,
+  expired receipt, already-undone edit, or missing native provenance must
+  fail closed, not guess based on an action label;
+- when `Undo.undo()` or native readback fails, report
+  `RECIPE_POSTCOMMIT_UNDO_UNVERIFIED`; never automatically retry Undo;
+- verify that source-only/mock adapters cannot produce native rollback
+  eligibility without an attributable Blockbench history entry.
+
 This is a LIVE_BLOCKBENCH acceptance scenario **not executed by this
-document**. A landmark difference measured *after* commit is not an
-automatic native rollback: first establish the current native edit's
-identity and perform separate authorized recovery; never issue unscoped
-`Undo.undo()` after intervening work.
+document**. Landmark residual deterioration after a commit never performs
+automatic Undo; it may only trigger a separately authorized recovery
+decision through the existing native owner. No fifth Gateway tool is
+introduced.
 
 ## 9. Cost to Accepted Result
 

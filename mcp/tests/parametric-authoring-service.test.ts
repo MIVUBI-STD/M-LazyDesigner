@@ -122,6 +122,79 @@ describe("Parametric authoring plan-handle service", () => {
     expect(receipt.updated_instance_ids).toEqual(["line:1","line:2","line:3"]);
   });
 
+  test("compact apply evidence authorizes one exact last-edit recovery through the same service", async () => {
+    const previous = recipe(2, 4), next = recipe(3, 4);
+    let native = snapshot(previous);
+    const baseline = structuredClone(native);
+    let topIsOurUndo = true;
+    let nativeUndoCalls = 0;
+    const service = createAuthoringRecipeService({
+      readOwned: () => structuredClone(native),
+      createApplyAdapter: () => ({
+        readOwned: () => structuredClone(native),
+        upsert(placement, existingUuid, recipeId) {
+          const index = native.cubes.findIndex((item) => item.instance_id === placement.id);
+          const nextCube = {
+            uuid: existingUuid ?? "new-" + placement.id,
+            recipe_id: recipeId,
+            instance_id: placement.id,
+            name: placement.name,
+            from: [...placement.from] as [number, number, number],
+            to: [...placement.to] as [number, number, number],
+            origin: [...placement.origin] as [number, number, number],
+            rotation: [...placement.rotation] as [number, number, number],
+            inflate: placement.inflate,
+          };
+          if (index >= 0) native.cubes[index] = nextCube;
+          else native.cubes.push(nextCube);
+          return nextCube.uuid;
+        },
+        remove(instanceId) {
+          native.cubes = native.cubes.filter((item) => item.instance_id !== instanceId);
+        },
+        commitUndo: () => ({
+          token: "native-history-owned",
+          project_uuid: "bound-project",
+          undo_index: 1,
+        }),
+        revertCommittedUndo(binding) {
+          nativeUndoCalls++;
+          if (!topIsOurUndo || binding.provenance.token !== "native-history-owned") {
+            throw new Error("RECIPE_NATIVE_UNDO_NOT_TOP");
+          }
+          native = structuredClone(baseline);
+          topIsOurUndo = false;
+        },
+      }),
+    });
+    const plan = await service.plan(previous, next);
+    const applied = await service.applyCompact({
+      plan_id: plan.plan_id,
+      expected_native_source_fingerprint: plan.native_source_fingerprint,
+    });
+    expect(applied.execution).toBe("applied");
+    expect(applied.evidence_handle).toMatch(/^authoringevidence:/);
+    expect(applied).not.toHaveProperty("native_undo_provenance");
+    topIsOurUndo = false;
+    await expect(service.revertApplied({
+      evidence_handle: applied.evidence_handle,
+      expected_native_source_fingerprint_after: applied.native_source_fingerprint_after,
+    })).rejects.toThrow("RECIPE_POSTCOMMIT_UNDO_UNVERIFIED");
+    expect(native).not.toEqual(baseline);
+    topIsOurUndo = true;
+    const restored = await service.revertApplied({
+      evidence_handle: applied.evidence_handle,
+      expected_native_source_fingerprint_after: applied.native_source_fingerprint_after,
+    });
+    expect(restored.execution).toBe("reverted");
+    expect(native).toEqual(baseline);
+    expect(nativeUndoCalls).toBe(2);
+    await expect(service.revertApplied({
+      evidence_handle: applied.evidence_handle,
+      expected_native_source_fingerprint_after: applied.native_source_fingerprint_after,
+    })).rejects.toThrow("RECIPE_POSTCOMMIT_STATE_CHANGED");
+  });
+
   test("registry is bounded and evicts old handles", () => {
     const registry = new AuthoringRecipePlanRegistry(2);
     const previous = recipe(2,1);

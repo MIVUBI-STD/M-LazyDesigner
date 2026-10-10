@@ -366,7 +366,19 @@ fingerprint is restored and surfaces `RECIPE_APPLY_ROLLBACK_UNVERIFIED`
 if not. This must **not** be described as post-commit automatic rollback
 or as automatically wired landmark judgment. Landmark before/after
 measurements performed after an apply commit remain diagnostic until an
-actual execution-owner recovery is completed. A measured
+actual execution-owner recovery is completed.
+
+The existing Authoring Recipe Service now supports explicit
+receipt-bound recovery through its existing bounded `APPLY_RECEIPT`
+evidence handle. The native adapter may undo the **exact top-most**
+Blockbench history entry only when a private provenance stamp on the
+actual before-save matches the receipt, project UUID, Undo position
+and exact after-state fingerprint. An intervening edit, current open
+edit, changed Cube state or missing receipt must refuse recovery.
+A successful Undo must restore the exact original native fingerprint;
+otherwise return `RECIPE_POSTCOMMIT_UNDO_UNVERIFIED`. This internal
+recovery method does not change the stable four-tool Gateway surface,
+and it is not invoked automatically by `assessLandmarkCorrectionDelta`. A measured
 improvement is supporting diagnostic evidence only: a fresh actual
 reference↔model comparison and independent semantic observation still own
 `IMPROVED`, `RESOLVED` and final visual `PASS` decisions. Do not derive

@@ -1,5 +1,10 @@
 /// <reference types="blockbench-types" />
 
+import { randomUUID } from "node:crypto";
+import {
+  fingerprintAuthoringRecipeNativeSnapshot,
+} from "@/lib/authoringRecipe/nativeState";
+import type { RecipeNativeUndoProvenance } from "@/lib/authoringRecipe/transaction";
 import type { CompiledCubePlacement } from "@/lib/authoringRecipe/contracts";
 import type { AuthoringRecipeApplyAdapter } from "@/lib/authoringRecipe/transaction";
 import type { AuthoringRecipeNativeSnapshot } from "@/lib/authoringRecipe/nativeState";
@@ -7,6 +12,26 @@ import {
   authoringRecipeOwnershipPatch,
   readAuthoringRecipeCubeOwnership,
 } from "./ownership";
+
+/**
+ * Private attestation carried by Blockbench's original UndoSystem.save object.
+ * Upstream Blockbench 5.2.1 stores that same object as history-entry.before.
+ * No separate history, registry, or mutable global map is created.
+ */
+const RECIPE_UNDO_PROVENANCE = Symbol("lazydesigner.recipe.nativeUndo");
+
+type NativeUndoMark = {
+  token: string;
+  recipe_id: string;
+  project_uuid: string;
+  native_source_fingerprint_before: string;
+  native_source_fingerprint_after: string;
+};
+
+type MarkedUndoEntry = {
+  action?: string;
+  before?: { [RECIPE_UNDO_PROVENANCE]?: NativeUndoMark };
+};
 
 function requireProject(): void {
   if (!Project) throw new Error("Parametric recipe apply requires an open Blockbench project.");
@@ -83,9 +108,11 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
   let existingAtBegin: Cube[] = [];
   let activeUndoSave: unknown | null = null;
   let undoIndexAtBegin: number | null = null;
+  let projectUuidAtBegin: string | null = null;
   const requireOwnedUndo = () => {
     if (!activeUndoSave || Undo.current_save !== activeUndoSave ||
-        undoIndexAtBegin === null || Undo.index !== undoIndexAtBegin) {
+        undoIndexAtBegin === null || Undo.index !== undoIndexAtBegin ||
+        !Project || Project.uuid !== projectUuidAtBegin) {
       throw new Error(
         "RECIPE_NATIVE_UNDO_OWNERSHIP_LOST: another editor operation changed the active Undo transaction."
       );
@@ -106,6 +133,7 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
       });
       existingAtBegin = existing;
       const undoIndex = Undo.index;
+      projectUuidAtBegin = Project.uuid;
       Undo.initEdit({
         elements: existing,
         outliner: true,
@@ -160,8 +188,31 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
         }
       }
     },
-    commitUndo: () => {
+    commitUndo: (binding) => {
       requireOwnedUndo();
+      if (binding.recipe_id !== recipeId) {
+        throw new Error("RECIPE_NATIVE_UNDO_RECIPE_MISMATCH");
+      }
+      const actualAfter = fingerprintAuthoringRecipeNativeSnapshot(
+        readBlockbenchAuthoringRecipeOwnedState(recipeId)
+      );
+      if (actualAfter !== binding.native_source_fingerprint_after) {
+        throw new Error("RECIPE_NATIVE_UNDO_STATE_CHANGED");
+      }
+      const token = randomUUID();
+      const provenance: NativeUndoMark = {
+        token,
+        recipe_id: recipeId,
+        project_uuid: projectUuidAtBegin!,
+        native_source_fingerprint_before: binding.native_source_fingerprint_before,
+        native_source_fingerprint_after: binding.native_source_fingerprint_after,
+      };
+      // Stamp the live BEFORE save *before* finishEdit. This is the exact
+      // object Blockbench places in history[index].before on native commit;
+      // nothing needs to mutate or throw after finishEdit succeeds.
+      Object.defineProperty(Undo.current_save as object, RECIPE_UNDO_PROVENANCE, {
+        value: provenance, writable: false, configurable: false,
+      });
       // Update dependent rendered state *before* committing the native edit.
       // After finishEdit succeeds we must not risk another throwing operation.
       Canvas.updateAll();
@@ -179,8 +230,14 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
       });
       activeUndoSave = null;
       undoIndexAtBegin = null;
+      projectUuidAtBegin = null;
       created = [];
       existingAtBegin = [];
+      return {
+        token,
+        project_uuid: provenance.project_uuid,
+        undo_index: Undo.index,
+      } satisfies RecipeNativeUndoProvenance;
     },
     cancelUndo: () => {
       // Native Blockbench 5.2 cancelEdit(true) replays this transaction's
@@ -189,9 +246,44 @@ export function createBlockbenchAuthoringRecipeApplyAdapter(recipeId: string): A
       Undo.cancelEdit(true);
       activeUndoSave = null;
       undoIndexAtBegin = null;
+      projectUuidAtBegin = null;
       created = [];
       existingAtBegin = [];
       Canvas.updateAll();
+    },
+    revertCommittedUndo: (binding) => {
+      requireProject();
+      if (binding.recipe_id !== recipeId ||
+          Project.uuid !== binding.provenance.project_uuid ||
+          Undo.current_save ||
+          Undo.index !== Undo.history.length ||
+          Undo.index !== binding.provenance.undo_index ||
+          Undo.index < 1) {
+        throw new Error("RECIPE_NATIVE_UNDO_NOT_TOP: refusing an intervening or unrelated edit.");
+      }
+      const last = Undo.history[Undo.index - 1] as MarkedUndoEntry | undefined;
+      const mark = last?.before?.[RECIPE_UNDO_PROVENANCE];
+      if (last?.action !== "LazyDesigner parametric recipe" || !mark ||
+          mark.token !== binding.provenance.token ||
+          mark.recipe_id !== recipeId ||
+          mark.project_uuid !== Project.uuid ||
+          mark.native_source_fingerprint_before !== binding.native_source_fingerprint_before ||
+          mark.native_source_fingerprint_after !== binding.native_source_fingerprint_after) {
+        throw new Error("RECIPE_NATIVE_UNDO_IDENTITY_MISMATCH: top history entry is not this apply.");
+      }
+      // Last-chance synchronous recheck: no await between validation and undo.
+      const current = readBlockbenchAuthoringRecipeOwnedState(recipeId);
+      if (fingerprintAuthoringRecipeNativeSnapshot(current) !==
+          binding.native_source_fingerprint_after) {
+        throw new Error("RECIPE_NATIVE_UNDO_STATE_CHANGED: model differs from the committed recipe.");
+      }
+      Undo.undo();
+      const restored = readBlockbenchAuthoringRecipeOwnedState(recipeId);
+      if (Undo.index !== binding.provenance.undo_index - 1 ||
+          fingerprintAuthoringRecipeNativeSnapshot(restored) !==
+            binding.native_source_fingerprint_before) {
+        throw new Error("RECIPE_NATIVE_UNDO_RESTORE_UNVERIFIED: native Undo did not restore original state.");
+      }
     },
   };
 }

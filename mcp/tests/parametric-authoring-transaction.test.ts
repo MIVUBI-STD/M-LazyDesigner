@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { AuthoringRecipe, CompiledCubePlacement } from "@/lib/authoringRecipe/contracts";
 import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
-import { applyAuthoringRecipeIncrementalAtomic } from "@/lib/authoringRecipe/transaction";
+import {
+  applyAuthoringRecipeIncrementalAtomic,
+  revertLastAuthoringRecipeApply,
+} from "@/lib/authoringRecipe/transaction";
 import { fingerprintAuthoringRecipeNativeSnapshot, type AuthoringRecipeNativeSnapshot } from "@/lib/authoringRecipe/nativeState";
 
 function recipe(spacing = 2, count = 4): AuthoringRecipe {
@@ -156,6 +159,118 @@ describe("Parametric authoring atomic affected-only transaction", () => {
     expect(fake.committed).toBe(false);
     expect(fake.cancelled).toBe(true);
     expect(fake.state).not.toEqual(baseline);
+  });
+
+  test("reverts a receipt-bound last native edit and verifies original fingerprint", async () => {
+    const previous = recipe(2, 4), next = recipe(3, 4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    const provenance = {
+      token: "owned-undo-1",
+      project_uuid: "project-uuid-1",
+      undo_index: 1,
+    };
+    const adapter = {
+      ...fake.adapter,
+      commitUndo(binding: { recipe_id: string;
+        native_source_fingerprint_before: string;
+        native_source_fingerprint_after: string }) {
+        expect(binding.recipe_id).toBe("fixture");
+        expect(binding.native_source_fingerprint_before)
+          .toBe(fingerprintAuthoringRecipeNativeSnapshot(baseline));
+        expect(binding.native_source_fingerprint_after)
+          .toBe(fingerprintAuthoringRecipeNativeSnapshot(fake.state));
+        return provenance;
+      },
+      revertCommittedUndo(binding: {recipe_id: string;
+        provenance: typeof provenance;
+        native_source_fingerprint_before: string;
+        native_source_fingerprint_after: string }) {
+        expect(binding.recipe_id).toBe("fixture");
+        expect(binding.provenance).toEqual(provenance);
+        expect(binding.native_source_fingerprint_after)
+          .toBe(fingerprintAuthoringRecipeNativeSnapshot(fake.state));
+        fake.adapter.restore(baseline);
+      },
+    };
+    const receipt = await applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline), adapter
+    );
+    expect(receipt.native_undo_provenance).toEqual(provenance);
+    const result = await revertLastAuthoringRecipeApply(
+      receipt, receipt.native_source_fingerprint_after, adapter
+    );
+    expect(result).toEqual({
+      execution: "reverted", recipe_id: "fixture",
+      native_source_fingerprint_after_revert:
+        fingerprintAuthoringRecipeNativeSnapshot(baseline),
+    });
+    expect(fake.state).toEqual(baseline);
+  });
+
+  test("post-commit revert fails closed on absent provenance and changed native state", async () => {
+    const previous = recipe(2, 4), next = recipe(3, 4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    let nativeUndoCalls = 0;
+    const adapter = {
+      ...fake.adapter,
+      revertCommittedUndo: () => { nativeUndoCalls++; },
+    };
+    const receipt = await applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline), adapter
+    );
+    await expect(revertLastAuthoringRecipeApply(
+      receipt, receipt.native_source_fingerprint_after, adapter
+    )).rejects.toThrow("RECIPE_POSTCOMMIT_UNDO_UNAVAILABLE");
+    const marked = {
+      ...receipt,
+      native_undo_provenance: { token: "t", project_uuid: "p", undo_index: 1 },
+    };
+    await expect(revertLastAuthoringRecipeApply(
+      marked, "sha256:wrong", adapter
+    )).rejects.toThrow("RECIPE_POSTCOMMIT_FINGERPRINT_MISMATCH");
+    fake.state.cubes[1]!.from = [77, 0, 0];
+    await expect(revertLastAuthoringRecipeApply(
+      marked, receipt.native_source_fingerprint_after, adapter
+    )).rejects.toThrow("RECIPE_POSTCOMMIT_STATE_CHANGED");
+    expect(nativeUndoCalls).toBe(0);
+  });
+
+  test("native Undo errors and incomplete restoration are never treated as successful recovery", async () => {
+    const previous = recipe(2, 4), next = recipe(3, 4);
+    const baseline = snapshotFromRecipe(previous);
+    const fake = fakeAdapter(baseline);
+    const provenance = { token: "owned-undo", project_uuid: "p", undo_index: 1 };
+    const shared = {
+      ...fake.adapter,
+      commitUndo: () => provenance,
+    };
+    const receipt = await applyAuthoringRecipeIncrementalAtomic(
+      previous, next, fingerprintAuthoringRecipeNativeSnapshot(baseline), shared
+    );
+    await expect(revertLastAuthoringRecipeApply(
+      receipt, receipt.native_source_fingerprint_after,
+      { ...shared, revertCommittedUndo: () => { throw new Error("native Undo interrupted"); } }
+    )).rejects.toThrow("RECIPE_POSTCOMMIT_UNDO_UNVERIFIED");
+    await expect(revertLastAuthoringRecipeApply(
+      receipt, receipt.native_source_fingerprint_after,
+      { ...shared, revertCommittedUndo: () => {} }
+    )).rejects.toThrow("RECIPE_POSTCOMMIT_UNDO_UNVERIFIED");
+    let reads = 0;
+    await expect(revertLastAuthoringRecipeApply(
+      receipt, receipt.native_source_fingerprint_after,
+      {
+        ...shared,
+        readOwned: () => {
+          reads++;
+          if (reads === 2) throw new Error("native readback unavailable");
+          return structuredClone(fake.state);
+        },
+        revertCommittedUndo: () => {},
+      }
+    )).rejects.toThrow("RECIPE_POSTCOMMIT_UNDO_UNVERIFIED");
+    expect(reads).toBe(2);
   });
 
   test("count increase creates only new instances; count reduction removes only deleted instances", async () => {
