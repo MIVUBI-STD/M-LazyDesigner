@@ -687,6 +687,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     graph: {
       requires: ["project_bound", "animation_available"],
       produces: ["animation_available"],
+      invalidates: ["visual_evidence_current"],
     },
   },
   {
@@ -699,6 +700,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     graph: {
       requires: ["project_bound", "animation_available"],
       produces: ["animation_available"],
+      invalidates: ["visual_evidence_current"],
     },
   },
   {

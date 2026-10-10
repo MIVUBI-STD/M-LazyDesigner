@@ -96,6 +96,25 @@ describe("capability dependency graph", () => {
     ).eligibility).toBe("READY");
   });
 
+  test("animation timeline, effects and controllers invalidate previous visual evidence", () => {
+    for (const capability of [
+      "manage_animation_timeline",
+      "manage_animation_effects",
+      "manage_animation_controller",
+    ]) {
+      const prior = {
+        ...seedCapabilityFacts({ projectBound: true }),
+        animation_available: true,
+        visual_evidence_current: true,
+      };
+      const next = applyCapabilityGraphOutcome(prior, capability, {}, true);
+      expect(next.animation_available).toBe(true);
+      expect(next.visual_evidence_current).toBe(false);
+      expect(prior.visual_evidence_current).toBe(true);
+      expect(applyCapabilityGraphOutcome(prior, capability, {}, false)).toEqual(prior);
+    }
+  });
+
   test("blocked candidates are demoted but remain discoverable for recovery", () => {
     const tools = [
       tool("create_texture", "Create a texture."),
