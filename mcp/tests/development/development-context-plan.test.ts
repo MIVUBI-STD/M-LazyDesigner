@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { buildDevelopmentContextPlan } from "../../scripts/development/plan-development-context";
+import { buildAffectedExecutionPlan } from "../../scripts/development/plan-affected-execution";
+import { evaluatePreflight } from "../../../.agents/permissions/preflight.mjs";
 
 describe("development context planner", () => {
   test("combines intent routing, bounded symbols and semantic impact", async () => {
@@ -83,6 +85,52 @@ describe("development context planner", () => {
     expect(plan.routing.confidence).toBe("EXACT");
     expect(plan.documentation_route).toBeNull();
     expect(plan.read_targets.source).toContain("mcp/server/tools/geometry/cubes.ts");
+  });
+
+  test("method flow connects exact owner, bounded impact, verifier consumers and Local permission", async () => {
+    const changedPath = "mcp/server/tools/geometry/cubes.ts";
+    const context = await buildDevelopmentContextPlan({
+      intent: "repair manage_cubes regression in canonical Geometry source",
+      changedPaths: [changedPath],
+      symbolMapMaxBytes: 2000,
+      knowledgeTokenBudget: 180,
+    });
+    const affected = buildAffectedExecutionPlan([changedPath]);
+    const explicitScope = {
+      lane: "DEVELOPMENT",
+      task: "DEVELOP",
+      action: "source-write",
+      branch: "Local",
+      path: changedPath,
+      task_scope_paths: [changedPath],
+      authorized_scope: true,
+    };
+
+    expect(context.routing.domain).toBe("GEOMETRY");
+    expect(context.routing.confidence).toBe("EXACT");
+    expect(context.documentation_route).toBeNull();
+    expect(context.read_targets.source).toContain(changedPath);
+    expect(context.read_targets.anchor_tests).toContain(
+      "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
+    );
+    expect(affected.semantic_impact.direct_capabilities).toContain("manage_cubes");
+    expect(affected.semantic_impact.affected_anchor_tests).toContain(
+      "mcp/tests/model-effectiveness-correction-accuracy.test.ts"
+    );
+    expect(affected.execution.checks).toContain("PROJECT_GRAPH");
+    expect(
+      affected.execution.commands.some((command) =>
+        command === "bun run verify:project-graph" ||
+        command === "bun run verify:full"
+      )
+    ).toBe(true);
+
+    expect(evaluatePreflight(explicitScope).decision).toBe("allow");
+    expect(evaluatePreflight({ ...explicitScope, branch: "main" }).decision).toBe("ask");
+    expect(evaluatePreflight({
+      ...explicitScope,
+      path: "mcp/server/tools/texture/create.ts",
+    }).decision).toBe("deny");
   });
 
   test("omits semantic impact when there is no change set", async () => {
