@@ -197,6 +197,37 @@ describe("precise geometry invalidation from receipts", () => {
     expect(unknown.invalidates.authoring_domains).toContain("TEXTURING");
   });
 
+  test("single Group rename honors explicit zero affected animations", () => {
+    const delta = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: {
+        execution: "applied",
+        element: { type: "group", uuid: "g-a" },
+        changes: [{ id: "g-a", old_name: "before", new_name: "after" }],
+        affected_animations: 0,
+      },
+    });
+    expect(delta.freshness.stale).toEqual(["GEOMETRY_STRUCTURE"]);
+    expect(delta.invalidates.authoring_domains).toEqual(["GEOMETRY"]);
+  });
+
+  test("Group removal without element counts remains conservative", () => {
+    const delta = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: {
+        removed_root: { type: "group", uuid: "g-a" },
+        affected_animations: 0,
+      },
+    });
+    expect(delta.freshness.precise).toBe(false);
+    expect(delta.freshness.stale).toContain("UV_MAPPING");
+    expect(delta.invalidates.authoring_domains).toContain("TEXTURING");
+  });
+
   test("batch rename with zero affected animations preserves animation", () => {
     const delta = buildControlDelta({
       capability: "rename_element",

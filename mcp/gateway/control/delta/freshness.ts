@@ -380,6 +380,14 @@ export function geometryFreshnessScopes(
             precise: true,
           };
         }
+        // Group removal without element counts cannot safely exclude UV/
+        // texture effects. Treat it as uncertain, not precisely scoped.
+        if (removedRoot.type === "group") {
+          return {
+            stale: capabilityDefaultStaleScopes(capability),
+            precise: false,
+          };
+        }
         return {
           stale: removedElementSemanticScopes(removedRoot.type),
           precise: true,
@@ -390,24 +398,25 @@ export function geometryFreshnessScopes(
 
   if (capability === "rename_element") {
     for (const candidate of resultCandidates(result)) {
-      const element = record(candidate.element);
-      if (typeof element?.type === "string") {
-        return {
-          stale: renamedElementSemanticScopes(element.type),
-          precise: true,
-        };
-      }
+      // A single Group rename supplies both element and changes. Prefer
+      // actual animation-reference impact over a generic element type.
       if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
         const affectedAnimations =
           typeof candidate.affected_animations === "number"
             ? candidate.affected_animations
             : null;
         return {
-          stale:
-            affectedAnimations === 0
-              ? ["GEOMETRY_STRUCTURE"]
-              : renamedElementSemanticScopes("group"),
+          stale: affectedAnimations === 0
+            ? ["GEOMETRY_STRUCTURE"]
+            : renamedElementSemanticScopes("group"),
           precise: affectedAnimations !== null,
+        };
+      }
+      const element = record(candidate.element);
+      if (typeof element?.type === "string") {
+        return {
+          stale: renamedElementSemanticScopes(element.type),
+          precise: true,
         };
       }
     }
