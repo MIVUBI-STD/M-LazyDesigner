@@ -37,6 +37,7 @@ function acceptedRun(): GoldenAuthoringDocument {
           {
             index: 0,
             kind: "inspect",
+            success: true,
             capability: "inspect_elements",
             required_for_decision: true,
             result_bytes: 900,
@@ -45,6 +46,7 @@ function acceptedRun(): GoldenAuthoringDocument {
           {
             index: 1,
             kind: "mutate",
+            success: true,
             capability: "manage_cubes",
             required_for_decision: true,
             result_bytes: 1200,
@@ -53,6 +55,7 @@ function acceptedRun(): GoldenAuthoringDocument {
           {
             index: 2,
             kind: "verify",
+            success: true,
             capability: "capture_model_views",
             required_for_decision: true,
             result_bytes: 2400,
@@ -79,6 +82,11 @@ function acceptedRun(): GoldenAuthoringDocument {
             criterion: "bounded_correction_rounds",
             verdict: "PASS",
             evidence_ref: "trace:rounds:1",
+          },
+          {
+            criterion: "human_acceptance",
+            verdict: "PASS",
+            evidence_ref: "user:review:explicit-approval-example",
           },
         ],
       },
@@ -140,9 +148,10 @@ describe("golden authoring accepted-result benchmark", () => {
 
   test("counts non-decision inspection as redundant readback only after acceptance", () => {
     const document = acceptedRun();
-    document.runs[0]!.trace.splice(2, 0, {
+    document.runs[0]!.trace.push({
       index: 3,
       kind: "inspect",
+      success: true,
       capability: "inspect_elements",
       required_for_decision: false,
       result_bytes: 500,
@@ -152,6 +161,46 @@ describe("golden authoring accepted-result benchmark", () => {
     const summary = summarizeGoldenAuthoringDocument(document);
     expect(summary.runs[0]?.metrics.redundant_readbacks).toBe(1);
     expect(summary.runs[0]?.metrics.tool_calls_to_accepted_result).toBe(4);
+  });
+
+  test("rejects source-only accepted quality", () => {
+    const doc = acceptedRun();
+    doc.runs[0]!.proof_scope = "LOCAL_CODE";
+    expect(() => validateGoldenAuthoringDocument(doc)).toThrow("requires LIVE_BLOCKBENCH");
+  });
+
+  test("requires recorded human review, never inferred from the tool result", () => {
+    const doc = acceptedRun();
+    doc.runs[0]!.acceptance_evidence = doc.runs[0]!.acceptance_evidence.filter(
+      entry => entry.criterion !== "human_acceptance"
+    );
+    expect(() => validateGoldenAuthoringDocument(doc)).toThrow("human_acceptance PASS evidence");
+  });
+
+  test("rejects contradictory duplicate criterion evidence", () => {
+    const doc = acceptedRun();
+    doc.runs[0]!.acceptance_evidence.unshift({
+      criterion: "reference_fidelity",
+      verdict: "FAIL",
+      evidence_ref: "visual:reference-mismatch",
+    });
+    expect(() => validateGoldenAuthoringDocument(doc)).toThrow("duplicate criteria");
+  });
+
+  test("requires successful mutation and verification observations", () => {
+    for (const kind of ["mutate", "verify"] as const) {
+      const doc = acceptedRun();
+      const event = doc.runs[0]!.trace.find(x => x.kind === kind)!;
+      event.success = false;
+      expect(() => validateGoldenAuthoringDocument(doc))
+        .toThrow(`recorded successful ${kind === "mutate" ? "mutation" : "verification"} trace`);
+    }
+  });
+
+  test("accepted trace must have no missing or reordered events", () => {
+    const doc = acceptedRun();
+    doc.runs[0]!.trace[2]!.index = 5;
+    expect(() => validateGoldenAuthoringDocument(doc)).toThrow("ordered, contiguous trace");
   });
 
   test("template remains unmeasured and references a real golden task", async () => {

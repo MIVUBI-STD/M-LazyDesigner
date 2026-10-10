@@ -17,6 +17,21 @@ Every checked-in Golden Task remains `UNMEASURED` until the task is executed aga
 
 Static tests may validate the benchmark **shape**, but they cannot convert an unmeasured task into PASS.
 
+## Accepted-result proof guard
+
+The existing evaluator accepts quality as measured only with
+`LIVE_BLOCKBENCH` scope, a contiguous task/SHA-specific Gateway trace,
+at least one **recorded successful** mutation and verification, unique PASS
+evidence for every required task criterion, and a separate documented
+`human_acceptance` review reference. Failed attempts may stay in the trace.
+Approval must come from a real human review; an LLM, tool receipt or passing
+static validator cannot attest it.
+
+The existing Gateway recorder already emits operation success flags. The
+session draft preserves those flags and adds an **UNVERIFIED** human-review
+criterion. No extra authoring tools, screenshots or routine Codex context are
+introduced.
+
 ## Required Run Record
 
 A future live run should record at minimum:

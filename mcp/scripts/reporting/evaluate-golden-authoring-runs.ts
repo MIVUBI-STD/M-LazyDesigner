@@ -12,6 +12,8 @@ export type GoldenTraceKind =
 export type GoldenTraceEvent = {
   index: number;
   kind: GoldenTraceKind;
+  /** Recorded Gateway outcome; missing means unverified legacy/manual trace. */
+  success?: boolean;
   capability?: string;
   required_for_decision: boolean | null;
   result_bytes?: number | null;
@@ -132,6 +134,9 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
     if (!["search", "describe", "inspect", "mutate", "verify", "recovery"].includes(event.kind)) {
       throw new Error(`${prefix}.trace[${eventIndex}].kind is invalid.`);
     }
+    if (event.success !== undefined && typeof event.success !== "boolean") {
+      throw new Error(`${prefix}.trace[${eventIndex}].success must be boolean when present.`);
+    }
     if (
       event.required_for_decision !== null &&
       typeof event.required_for_decision !== "boolean"
@@ -154,6 +159,21 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
   const evidenceByCriterion = new Map(
     run.acceptance_evidence.map((entry) => [entry.criterion, entry] as const)
   );
+  if (evidenceByCriterion.size !== run.acceptance_evidence.length) {
+    throw new Error(`${prefix}.acceptance_evidence contains duplicate criteria.`);
+  }
+  for (const [evidenceIndex, entry] of run.acceptance_evidence.entries()) {
+    if (typeof entry.criterion !== "string" || entry.criterion.trim().length === 0) {
+      throw new Error(`${prefix}.acceptance_evidence[${evidenceIndex}].criterion is invalid.`);
+    }
+    if (!["PASS", "FAIL", "UNVERIFIED"].includes(entry.verdict)) {
+      throw new Error(`${prefix}.acceptance_evidence[${evidenceIndex}].verdict is invalid.`);
+    }
+    if (entry.evidence_ref !== null &&
+      (typeof entry.evidence_ref !== "string" || entry.evidence_ref.trim().length === 0)) {
+      throw new Error(`${prefix}.acceptance_evidence[${evidenceIndex}].evidence_ref is invalid.`);
+    }
+  }
   for (const criterion of task.acceptance) {
     if (!evidenceByCriterion.has(criterion)) {
       throw new Error(
@@ -163,6 +183,9 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
   }
 
   if (run.accepted_result === true) {
+    if (run.proof_scope !== "LIVE_BLOCKBENCH") {
+      throw new Error(`${prefix} accepted result requires LIVE_BLOCKBENCH proof, not source-only execution.`);
+    }
     if (run.quality_verdict !== "PASS") {
       throw new Error(`${prefix} cannot be accepted unless quality_verdict is PASS.`);
     }
@@ -176,16 +199,23 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
         `${prefix} accepted result requires complete Reference → Control → Runtime → artifact provenance.`
       );
     }
-    if (!run.trace.some((event) => event.kind === "mutate")) {
-      throw new Error(`${prefix} accepted result requires at least one mutation trace event.`);
+    if (!run.trace.some((event) => event.kind === "mutate" && event.success === true)) {
+      throw new Error(`${prefix} accepted result requires a recorded successful mutation trace event.`);
     }
-    if (!run.trace.some((event) => event.kind === "verify")) {
-      throw new Error(`${prefix} accepted result requires at least one verification trace event.`);
+    if (!run.trace.some((event) => event.kind === "verify" && event.success === true)) {
+      throw new Error(`${prefix} accepted result requires a recorded successful verification trace event.`);
+    }
+    if (run.trace.some((event, i) => event.index !== i)) {
+      throw new Error(`${prefix} accepted result requires an ordered, contiguous trace starting at 0.`);
     }
     if (run.trace.some((event) => event.required_for_decision === null)) {
       throw new Error(
         `${prefix} accepted result requires decision labels for every trace event.`
       );
+    }
+    const humanAcceptance = evidenceByCriterion.get("human_acceptance");
+    if (humanAcceptance?.verdict !== "PASS" || !humanAcceptance.evidence_ref) {
+      throw new Error(`${prefix} accepted result requires documented human_acceptance PASS evidence.`);
     }
     for (const criterion of task.acceptance) {
       const evidence = evidenceByCriterion.get(criterion)!;

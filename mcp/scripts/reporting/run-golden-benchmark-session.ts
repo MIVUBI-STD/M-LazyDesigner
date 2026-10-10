@@ -75,9 +75,16 @@ export function buildGoldenRunDraft(input: {
   traceEvents: readonly BenchmarkTraceEvent[];
   wallTimeMs: number;
 }): GoldenAuthoringDocument {
+  // Never borrow events from another task or source revision.
+  for (const event of input.traceEvents) {
+    if (event.source_sha !== input.sourceSha || event.task_id !== input.task.id) {
+      throw new Error("Golden session trace does not match the selected task_id and source SHA.");
+    }
+  }
   const trace: GoldenTraceEvent[] = input.traceEvents.map((event) => ({
     index: event.sequence,
     kind: event.kind,
+    success: event.success,
     ...(event.capability ? { capability: event.capability } : {}),
     required_for_decision: null,
     result_bytes: event.result_bytes,
@@ -112,7 +119,7 @@ export function buildGoldenRunDraft(input: {
           reasoning_tokens: null,
         },
         trace,
-        acceptance_evidence: input.task.acceptance.map((criterion) => ({
+        acceptance_evidence: [...input.task.acceptance, "human_acceptance"].map((criterion) => ({
           criterion,
           verdict: "UNVERIFIED",
           evidence_ref: null,

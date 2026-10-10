@@ -52,6 +52,7 @@ function golden(): GoldenAuthoringDocument {
           { criterion: "unaffected_state_preserved", verdict: "UNVERIFIED", evidence_ref: null },
           { criterion: "reference_fidelity", verdict: "UNVERIFIED", evidence_ref: null },
           { criterion: "bounded_correction_rounds", verdict: "UNVERIFIED", evidence_ref: null },
+          { criterion: "human_acceptance", verdict: "UNVERIFIED", evidence_ref: null },
         ],
       },
     ],
@@ -101,7 +102,7 @@ describe("golden session finalizer", () => {
     expect(report.metrics).toBeNull();
     expect(report.unresolved).toEqual({
       decision_labels: 1,
-      acceptance_evidence: 4,
+      acceptance_evidence: 5,
     });
   });
 

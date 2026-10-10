@@ -40,6 +40,11 @@
           "criterion": "bounded_correction_rounds",
           "verdict": "UNVERIFIED",
           "evidence_ref": null
+        },
+        {
+          "criterion": "human_acceptance",
+          "verdict": "UNVERIFIED",
+          "evidence_ref": null
         }
       ],
       "pipeline_provenance": {
