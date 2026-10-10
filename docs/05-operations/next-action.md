@@ -8,7 +8,7 @@ in `docs/05-operations/current-validation.md`.
 
 `Local` is development/source authority. GitHub Actions are manual-only: a source push does not create an executable proof result. `MCP Verify` runs the full source gate when explicitly dispatched; targeted/affected verifier scripts remain available on demand.
 
-At the 2026-10-10 audit, default branch `main` listed only `mcp-verify.yml`, while `Local` carried ten workflows. GitHub requires default-branch workflow registration for manual dispatch. Do not infer that every new Local YAML has a Run workflow control; modifying `main`, default branch or settings needs separate permission.
+On 2026-10-10 the ten manual-only workflow definitions from `Local` were registered on default branch `main` by commit `1d026a1754033bb8c206b7f25660a906552ad72c`, without promoting product source. The maintainer has since reaffirmed that `Local` alone owns ongoing development; leave `main` unchanged unless a separate release or administrative change is explicitly authorized. Workflow registration is source evidence, not proof that a job was dispatched or passed.
 
 ## Next REMOTE_GITHUB work
 

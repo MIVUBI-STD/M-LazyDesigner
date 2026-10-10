@@ -99,7 +99,8 @@ describe("repository GitHub discipline", () => {
     expect(validation).toContain("Do not strengthen source/static claims into local/live/visual claims without matching evidence from the exact current source SHA.");
     expect(next).toContain("continuation only");
     expect(next).toMatch(/LIVE_BLOCKBENCH|local\/live/i);
-    expect(repositoryWorkflow).toContain('"docs/**"');
+    expect(repositoryWorkflow).toMatch(/^on:\n  workflow_dispatch:/m);
+    expect(repositoryWorkflow).toContain("bun run verify:repository");
 
     for (const owner of [runbook, validation, next, repositoryWorkflow]) {
       expect(owner).not.toContain("docs/knowledge/");

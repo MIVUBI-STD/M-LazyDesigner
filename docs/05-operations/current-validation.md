@@ -56,7 +56,7 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 
 ### Default-branch registration
 
-At the 2026-10-10 audit, `main` was the default branch with only `mcp-verify.yml` in `.github/workflows/`; `Local` had ten workflows. GitHub requires default-branch registration of a manual workflow. A Local-only YAML file is not proof of manual dispatch availability, and does not authorize editing `main` or repository settings.
+The historical 2026-10-10 gap was closed by main commit `1d026a1754033bb8c206b7f25660a906552ad72c`, registering ten manual-only workflow definitions without transferring product source. Future development remains on `Local`; `main` is not an ongoing synchronization target. Registered YAML does not prove a manual run was dispatched, completed, or accepted. Do not edit `main` or settings without separate authorization.
 
 ## Current source contracts
 

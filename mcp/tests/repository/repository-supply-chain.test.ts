@@ -79,7 +79,7 @@ describe("repository workflow supply chain", () => {
     expect(mcpWorkflow).toContain("timeout-minutes: 10");
     expect(releaseWorkflow).toContain("timeout-minutes: 10");
     expect(mcpWorkflow).toContain("bun install --frozen-lockfile");
-    expect(mcpWorkflow).toContain("bun run verify:remote");
+    expect(mcpWorkflow).toContain("bun run verify:full");
     expect(mcpWorkflow).toContain('EXPECTED_SHA: ${{ github.sha }}');
     expect(mcpWorkflow).toContain('test "$actual_sha" = "$EXPECTED_SHA"');
     expect(mcpWorkflow).not.toMatch(/contents:\s*write/i);
