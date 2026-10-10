@@ -1,4 +1,8 @@
 import {
+  cubeChangedFieldsFromResult,
+  cubeSemanticScopesFromChangedFields,
+} from "../../lib/receipts/cubeMutation";
+import {
   CAPABILITY_BRANCH_MANIFEST,
   manifestEntryForBranch,
   type CapabilityGraphSpec,
@@ -102,7 +106,8 @@ export function applyCapabilityGraphOutcome(
   previous: CapabilityFactState,
   capability: string,
   args: Record<string, unknown>,
-  succeeded: boolean
+  succeeded: boolean,
+  result?: unknown
 ): CapabilityFactState {
   if (!succeeded) return previous;
 
@@ -111,7 +116,27 @@ export function applyCapabilityGraphOutcome(
   if (!entry) return previous;
 
   const next: CapabilityFactState = { ...previous };
-  for (const fact of entry.invalidates ?? []) next[fact] = false;
+  // Match Control's canonical Cube receipt semantics. Only bounded updates
+  // with complete field evidence can preserve unrelated accepted facts.
+  // Create/simplify/missing receipt deliberately stay conservative.
+  const scopedCubeUpdate =
+    capability === "manage_cubes" &&
+    (branch?.value === "update" || branch?.value === "batch_update");
+  const changedFields = scopedCubeUpdate
+    ? cubeChangedFieldsFromResult(result)
+    : [];
+  const staleScopes = changedFields.length > 0
+    ? cubeSemanticScopesFromChangedFields(changedFields)
+    : null;
+  for (const fact of entry.invalidates ?? []) {
+    if (staleScopes &&
+      fact === "uv_layout_current" &&
+      !staleScopes.includes("UV_MAPPING")) continue;
+    if (staleScopes &&
+      fact === "texture_alignment_current" &&
+      !staleScopes.includes("TEXTURE_APPEARANCE")) continue;
+    next[fact] = false;
+  }
   for (const fact of entry.produces ?? []) next[fact] = true;
   return next;
 }

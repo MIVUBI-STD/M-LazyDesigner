@@ -160,7 +160,8 @@ export class GatewayCapabilityExecutor {
           this.session.facts,
           capability,
           args,
-          succeeded
+          succeeded,
+          result.structuredContent
         )
       );
 

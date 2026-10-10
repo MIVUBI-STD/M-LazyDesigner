@@ -96,6 +96,65 @@ describe("capability dependency graph", () => {
     ).eligibility).toBe("READY");
   });
 
+  test("Cube effects preserve unrelated UV/Texture graph facts", () => {
+    const original = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      geometry_available: true,
+      uv_plan_available: true,
+      uv_layout_current: true,
+      texture_alignment_current: true,
+      visual_evidence_current: true,
+    };
+    const receipt = (fields: string[]) => ({
+      geometry_effect: {
+        changed_fields: fields,
+        center_delta: [0, 0, 0], size_delta: [0, 0, 0],
+        origin_delta: [0, 0, 0], rotation_delta: [0, 0, 0],
+        inflate_delta: 0, uv_offset_delta: [0, 0],
+        mirror_uv_changed: false, autouv_changed: false,
+        visibility_changed: false, faces_changed: false,
+      },
+    });
+    const position = applyCapabilityGraphOutcome(
+      original, "manage_cubes", { operation: "update" }, true,
+      receipt(["rotation"])
+    );
+    expect(position.geometry_available).toBe(true);
+    expect(position.uv_plan_available).toBe(false);
+    expect(position.uv_layout_current).toBe(true);
+    expect(position.texture_alignment_current).toBe(true);
+    expect(position.visual_evidence_current).toBe(false);
+
+    const shape = applyCapabilityGraphOutcome(
+      original, "manage_cubes", { operation: "update" }, true,
+      receipt(["from", "to"])
+    );
+    expect(shape.uv_layout_current).toBe(false);
+    expect(shape.texture_alignment_current).toBe(false);
+
+    const uv = applyCapabilityGraphOutcome(
+      original, "manage_cubes", { operation: "batch_update" }, true,
+      receipt(["uv_offset"])
+    );
+    expect(uv.uv_layout_current).toBe(false);
+    expect(uv.texture_alignment_current).toBe(false);
+
+    for (const [operation, result] of [
+      ["update", null], ["create", receipt(["rotation"])],
+      ["simplify", receipt(["rotation"])],
+    ] as const) {
+      const conservative = applyCapabilityGraphOutcome(
+        original, "manage_cubes", { operation }, true, result
+      );
+      expect(conservative.uv_layout_current).toBe(false);
+      expect(conservative.texture_alignment_current).toBe(false);
+    }
+    expect(applyCapabilityGraphOutcome(
+      original, "manage_cubes", { operation: "update" }, false,
+      receipt(["from"])
+    )).toEqual(original);
+  });
+
   test("animation timeline, effects and controllers invalidate previous visual evidence", () => {
     for (const capability of [
       "manage_animation_timeline",
