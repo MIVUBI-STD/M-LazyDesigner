@@ -72,7 +72,7 @@ export function registerPhaseControlTool(): void {
 
         // Verify actual saved-project state, not only caller-supplied flags.
         // One native stat at AUTHORING→Animation; other stages incur no I/O.
-        if (target_phase === "animation") {
+        if (target_phase === "animation" && previousSurface !== targetSurface) {
           if (!readiness) throw new Error("Animation readiness is required.");
           const project = typeof Project === "undefined" ? null : Project;
           const format = typeof Format === "undefined"

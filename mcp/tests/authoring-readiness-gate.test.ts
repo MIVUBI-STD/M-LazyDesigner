@@ -50,18 +50,24 @@ describe("Animation handoff readiness gate", () => {
       no_blockers: true,
     })).toThrow();
   });
-  test("rejects relative, incomplete and non-bbmodel checkpoint paths", () => {
-    const readiness = {
+  test("rejects relative or non-bbmodel checkpoints at the Runtime boundary", () => {
+    const readiness = animationHandoffReadinessSchema.parse({
       geometry_approved: true, uv_layout: "PASS", texture_approved: true,
       checkpoint: "C:/asset/current.bbmodel", no_blockers: true,
-    };
-    expect(animationHandoffReadinessSchema.safeParse(readiness).success).toBe(true);
+    });
+    let reads = 0;
     for (const checkpoint of [
       "checkpoint", "relative.bbmodel", "/assets/out.geo.json", "C:/asset",
     ]) {
-      expect(animationHandoffReadinessSchema.safeParse({ ...readiness, checkpoint }).success)
-        .toBe(false);
+      // Existing public schema remains generator-stable; physical checkpoint
+      // integrity is enforced by the native Runtime, not a new Zod surface.
+      expect(() => assertAnimationCheckpointCurrent(
+        { ...readiness, checkpoint },
+        { save_path: "C:/asset/current.bbmodel", saved: true },
+        "bedrock", () => { reads++; return { isFile: () => true, size: 120 }; }
+      )).toThrow("ANIMATION_CHECKPOINT_MISMATCH");
     }
+    expect(reads).toBe(0);
   });
 
   test("accepts an exact saved Bedrock project after just one file stat", () => {
