@@ -241,7 +241,9 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
     graph: {
       requires: ["project_bound", "geometry_available", "uv_plan_available"],
       produces: ["uv_layout_current"],
-      invalidates: ["texture_alignment_current", "visual_evidence_current"],
+      // The applied plan describes pre-mutation UV state; require a fresh
+      // plan before a subsequent apply. Runtime fingerprint remains authority.
+      invalidates: ["uv_plan_available", "texture_alignment_current", "visual_evidence_current"],
       predecessor: {
         capability: "manage_uv_layout",
         branch: { field: "operation", value: "plan" },

@@ -78,6 +78,22 @@ describe("capability dependency graph", () => {
     );
     expect(facts.uv_layout_current).toBe(true);
     expect(facts.texture_alignment_current).toBe(false);
+    expect(facts.uv_plan_available).toBe(false);
+    const repeatApply = evaluateCapabilityPreconditions(
+      "manage_uv_layout",
+      { field: "operation", value: "apply" },
+      facts
+    );
+    expect(repeatApply.eligibility).toBe("BLOCKED");
+    expect(repeatApply.missing).toContain("uv_plan_available");
+    // Replanning restores graph readiness without changing accepted UV.
+    facts = applyCapabilityGraphOutcome(
+      facts, "manage_uv_layout", { operation: "plan" }, true
+    );
+    expect(facts.uv_plan_available).toBe(true);
+    expect(evaluateCapabilityPreconditions(
+      "manage_uv_layout", { field: "operation", value: "apply" }, facts
+    ).eligibility).toBe("READY");
   });
 
   test("blocked candidates are demoted but remain discoverable for recovery", () => {
