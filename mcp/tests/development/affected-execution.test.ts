@@ -69,6 +69,18 @@ describe("affected execution planner", () => {
     )).toBe(true);
   });
 
+  test("all explicit affected-verifier source and test references resolve in the active tree", async () => {
+    const source = await Bun.file("gateway/development/affectedExecution.ts").text();
+    const paths = [...new Set(
+      [...source.matchAll(/["'](mcp\/[^"']+?\.(?:ts|json|md|yml))["']/g)]
+        .map((match) => match[1]!)
+    )];
+    expect(paths.length).toBeGreaterThan(50);
+    for (const path of paths) {
+      expect(await Bun.file(path.slice(4)).exists(), path).toBe(true);
+    }
+  });
+
   test("every shared receipt module has an explicit bounded verifier owner", async () => {
     const receiptFiles = (await readdir("lib/receipts"))
       .filter((name) => name.endsWith(".ts"))
