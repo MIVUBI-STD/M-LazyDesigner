@@ -99,11 +99,19 @@ describe("knowledge section compiler", () => {
     expect(first[0]).toMatchObject({
       from: "docs/README.md",
       to: "docs/04-system/README.md",
+      label: "System",
       from_id: "document:docs/README",
       to_id: "document:docs/04-system/README",
       relation: "EXPLICIT_MARKDOWN_LINK",
     });
     expect(second[0]?.to_id).toBe(first[0]?.to_id);
+    const relocated = indexExplicitDocumentationEdges("docs/README.md",
+      "Follow [System documentation router](05-operations/README.md) for an explicitly moved route."
+    );
+    expect(relocated[0]).toMatchObject({
+      label: "System documentation router",
+      to: "docs/05-operations/README.md",
+    });
     expect(() => indexExplicitDocumentationEdges("../README.md", "# Invalid")).toThrow();
   });
 

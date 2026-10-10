@@ -55,22 +55,34 @@ export type DevelopmentContextPlan = {
  */
 async function resolveUncertainSystemDocumentRoute(): Promise<NonNullable<DevelopmentContextPlan["documentation_route"]>> {
   const root = "docs/README.md";
-  const system = "docs/04-system/README.md";
-  const owner = "docs/04-system/implementation-map.md";
-  const [rootText, systemText] = await Promise.all([
-    readFile("../docs/README.md", "utf8"),
-    readFile("../docs/04-system/README.md", "utf8"),
-  ]);
-  const rootEdge = indexExplicitDocumentationEdges(root, rootText)
-    .find((edge) => edge.to === system);
-  const ownerEdge = indexExplicitDocumentationEdges(system, systemText)
-    .find((edge) => edge.to === owner);
-  if (!rootEdge || !ownerEdge) {
-    throw new Error(
-      "System documentation routing is incomplete. Repair docs/README.md " +
-      "or docs/04-system/README.md rather than guessing a canonical owner."
-    );
-  }
+  const findUniqueRole = (
+    links: ExplicitDocumentationEdge[],
+    label: string,
+    router: string
+  ): ExplicitDocumentationEdge => {
+    const matches = links.filter((edge) => edge.label === label);
+    if (matches.length !== 1) {
+      throw new Error(
+        `Expected one canonical "${label}" route from ${router}, found ${matches.length}. ` +
+        "Repair the router instead of guessing a document owner."
+      );
+    }
+    return matches[0]!;
+  };
+  const rootText = await readFile("../docs/README.md", "utf8");
+  const rootEdge = findUniqueRole(
+    indexExplicitDocumentationEdges(root, rootText),
+    "System documentation router",
+    root
+  );
+  const system = rootEdge.to;
+  const systemText = await readFile(`../${system}`, "utf8");
+  const ownerEdge = findUniqueRole(
+    indexExplicitDocumentationEdges(system, systemText),
+    "Implementation Map",
+    system
+  );
+  const owner = ownerEdge.to;
   return {
     authority: "EXPLICIT_MARKDOWN_LINK",
     nodes: [root, system, owner],

@@ -248,6 +248,7 @@ export function selectKnowledgeSections(input: {
 export type ExplicitDocumentationEdge = {
   from: string;
   to: string;
+  label: string;
   from_id: string;
   to_id: string;
   line: number;
@@ -278,12 +279,13 @@ export function indexExplicitDocumentationEdges(
     }
     if (fence) continue;
 
-    const links = /\[[^\]\n]+\]\(([^)\s]+)\)/g;
+    const links = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
     for (const match of line.matchAll(links)) {
       if (match.index != null && match.index > 0 && line[match.index - 1] === "!") {
         continue; // image reference, not documentation navigation
       }
-      const href = match[1]!;
+      const label = match[1]!.trim();
+      const href = match[2]!;
       if (href.startsWith("/") || href.startsWith("#") ||
           /^[a-z][a-z\d+.-]*:/i.test(href) || href.startsWith("//")) {
         continue;
@@ -299,6 +301,7 @@ export function indexExplicitDocumentationEdges(
       edges.push({
         from: source,
         to: target,
+        label,
         from_id: `document:${source.slice(0, -3)}`,
         to_id: `document:${target.slice(0, -3)}`,
         line: index + 1,
