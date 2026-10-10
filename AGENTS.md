@@ -89,10 +89,6 @@ STOP Condition
 
 Concrete bug, stale rule/test, CI routing defect, or behavior-preserving cleanup starts at the exact owner. Do not load `lazydesigner-development-brief` merely because source code is involved.
 
-### Standard Development
-
-Use when requirement and owner are clear but work exceeds bounded maintenance. Finish the GitHub-verifiable partition before escalating generator/filesystem/native residue.
-
 ### Complex / Ambiguous Development
 
 Use `.agents/skills/lazydesigner-development-brief/SKILL.md` only when architecture, cross-owner ambiguity, unresolved success criteria, or a material unknown prevents a reliable standard contract. A clear optimization request does not become Complex merely because quality or efficiency matters.
@@ -159,15 +155,9 @@ Use status/search/describe only for stale/unknown orientation, capability identi
 
 At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`.
 
-## GitHub Work
+## GitHub work and development
 
-`GITHUB_RULES.md` owns branch/ref, GitHub-first partitioning, transfer, atomic delivery, manual CI, commit continuity, security, retries and STOP.
-
-### ChatGPT + GitHub/cloud-only continuity
-
-For ChatGPT-owned repository development, `Local` is a remote GitHub branch, not the user's PC. Complete GitHub/cloud-verifiable work without requiring user-local checkouts, installed toolchains, commands or private files. Record genuinely unavailable executable/native Blockbench proof as bounded UNKNOWN rather than assigning the entire task to the user. `GITHUB_RULES.md` owns the detailed boundary.
-
-ChatGPT Project Instructions point to the repository and `Local`, not duplicated policy. A new chat reads current `AGENTS.md` and `GITHUB_RULES.md`, recovers by topic/current source/relevant commits, and never treats chat titles or historical `Next` as source authority. An `amati` request is read-only.
+`GITHUB_RULES.md` owns remote `Local` authority, ChatGPT + GitHub/cloud-only source continuity, exact-SHA CI proof, minimal context recovery, manual CI, security and STOP; do not require the user's PC. Read-only `amati` does not mutate.
 
 ## Development Operating Standard
 

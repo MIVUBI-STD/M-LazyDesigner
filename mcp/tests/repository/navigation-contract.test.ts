@@ -54,7 +54,7 @@ const REQUIRED_NAVIGATION_READMES = [
 ] as const;
 
 const SCRIPT_NAME =
-  /^(?:analyze|audit|benchmark|build|compare|deploy|evaluate|finalize|generate|live|measure|plan|report|run|serve|setup|snapshot|summarize|validate|verified|verify)-[a-z0-9]+(?:-[a-z0-9]+)*\.ts$/;
+  /^(?:analyze|audit|benchmark|build|compare|deploy|dev|evaluate|finalize|generate|live|measure|plan|report|run|serve|setup|snapshot|summarize|validate|verified|verify)-[a-z0-9]+(?:-[a-z0-9]+)*\.ts$/;
 
 describe("repository navigation contract", () => {
   test("MCP package keeps one intentional top-level directory taxonomy", async () => {
