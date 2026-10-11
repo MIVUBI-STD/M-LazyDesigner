@@ -42,7 +42,7 @@ The manager never kills applications, closes unsaved models, silently overwrites
 
 ## Codex configuration
 
-Only the BlockIT MCP entry is managed. Other servers, model/settings semantics, comments, timeouts, disabled/remote entries, and unrelated configuration remain preserved or fail closed when safe preservation cannot be proven.
+Only the BlockIT MCP entry is managed. Other servers, model/settings semantics, comments, explicit timeouts, disabled/remote entries, and unrelated configuration remain preserved or fail closed when safe preservation cannot be proven. If no explicit BlockIT timeout is configured, the managed entry sets `tool_timeout_sec` to 180 seconds so Codex does not hit its default 60-second timeout before the Gateway's normal 120-second native call budget. Existing explicit values, including shorter ones, remain untouched and must be reviewed for long-call local acceptance; this timeout does not guarantee that queued or interrupted native operations complete.
 
 Normal MCP launch uses the installed versioned Gateway executable directly. The maintenance command wrapper exists for explicit install/update/status/recovery operations; it is not the normal authoring transport.
 

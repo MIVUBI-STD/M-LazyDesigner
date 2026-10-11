@@ -6,6 +6,7 @@ Build the local plugin from `mcp/`:
 
 ```bash
 bun install --frozen-lockfile
+bun run setup:tls
 bun run typecheck
 bun run test
 bun run build
@@ -20,11 +21,13 @@ mcp/dist/blockit_mcp.js
 
 `blockit_mcp.js` is a retained compatibility filename, not the current product name.
 
-Default MCP endpoint after the plugin is running:
+Native Blockbench Runtime HTTPS endpoint after the plugin is running (diagnostics only):
 
 ```text
-http://127.0.0.1:3000/bb-mcp
+https://127.0.0.1:3000/bb-mcp
 ```
+
+It requires the machine-local TLS certificate and Runtime authorization credential. Do not point Codex directly at this native endpoint. Codex uses the persistent four-tool stdio Gateway; select a source-checkout or exact-SHA managed Gateway as described in the [local acceptance runbook](../../../docs/05-operations/local-acceptance-runbook.md#3a-choose-the-codex-mcp-gateway-to-test).
 
 Keep **Legacy UI Fallbacks (Debug)** disabled for normal Bedrock Entity authoring. `risky_eval` and `from_geo_json` remain disabled.
 

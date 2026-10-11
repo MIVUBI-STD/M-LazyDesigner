@@ -65,7 +65,22 @@ test("Codex configuration preserves other servers, settings and BlockIT timeouts
   assert.throws(() => configureCodex('not valid TOML', "x.exe", parse));
 });
 
-test("install is idempotent and keeps user assets and root instructions", async () => sandbox(async (d, o) => {
+
+test("Codex first install gives the Gateway enough timeout headroom without overriding an explicit value", () => {
+  const executable = "C:\\BlockIT\\blockit.exe";
+  const fresh = configureCodex("", executable, parse);
+  const defaultEntry = parse(fresh).mcp_servers.blockit;
+  assert.equal(defaultEntry.tool_timeout_sec, 180);
+  assert.equal(defaultEntry.command, executable);
+  assert.deepEqual(defaultEntry.args, ["mcp"]);
+  assert.equal(configureCodex(fresh, executable, parse), fresh);
+
+  const selected = '[mcp_servers.blockit]\ncommand="user-gateway"\ntool_timeout_sec=45\n';
+  const adopted = parse(configureCodex(selected, executable, parse, true)).mcp_servers.blockit;
+  assert.equal(adopted.tool_timeout_sec, 45);
+});
+
+test("install is idempotent and keeps user assets and root instructions, async () => sandbox(async (d, o) => {
   const pkg = join(d, "pkg"); await fixture(pkg); await mkdir(o.workspace, { recursive: true });
   await writeFile(join(o.workspace, "AGENTS.md"), "User-owned instructions\n");
   await writeFile(join(o.workspace, "model.bbmodel"), "USER MODEL");

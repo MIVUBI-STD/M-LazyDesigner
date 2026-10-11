@@ -1,6 +1,6 @@
 # Local Acceptance Runbook
 
-Updated: 2026-09-19  
+Updated: 2026-10-11  
 Owner: `LIVE_BLOCKBENCH` formal acceptance procedure  
 Current state: native LazyDesigner authoring path only.
 
@@ -23,21 +23,13 @@ STOP Condition
 
 Source/CI is not visual proof. Static Footprint is a guardrail; Authoring Efficiency measures Cost to Accepted Result after the quality gate passes. User-stopped tests stay stopped.
 
-## 2. Pin Local State
+## 2. Pin Current Local State
 
-Remote source baseline prepared for handoff:
+The historical verified baseline is documented in `current-validation.md`. It is not a
+substitute for current `Local` source acceptance. Pin the exact checkout used
+for this localtest, rather than resetting the branch to an old SHA.
 
-```text
-repository: MIVUBI-STD/M-LazyDesigner
-branch: Local
-remote-verified SHA: 7d3abf40238373461085fac179fcbbc07a7da300
-Head Proof: PASS
-MCP Verify: PASS
-MCP Conformance: PASS
-Managed Distribution: PASS
-```
-
-On the local machine:
+From the repository root:
 
 ```bash
 git switch Local
@@ -46,14 +38,12 @@ git status --short
 git rev-parse HEAD
 ```
 
-Require:
+Record the 40-character HEAD, and require a clean source checkout *before*
+creating any machine-only test configuration. Check this same SHA against
+the GitHub Actions run and build provenance; a manual-only workflow not yet
+executed on this SHA is `UNVERIFIED`, not PASS. An accepted CI result for
+another SHA never transfers to this checkout.
 
-```text
-HEAD == 7d3abf40238373461085fac179fcbbc07a7da300
-working tree clean
-```
-
-If HEAD differs because Local advanced after this handoff, use the newer exact-head proof instead of forcing/resetting history. Do not reuse this baseline across a changed source/package state.
 
 ## 3. Source Closure
 
@@ -66,7 +56,7 @@ cd mcp
 bun install --frozen-lockfile
 ```
 
-For a clean checkout exactly matching the remote-verified SHA above, **do not rerun `verify:full` merely to repeat accepted CI proof**.
+For a clean checkout matching an **accepted exact-SHA full source gate**, do not rerun `verify:full` merely to repeat that same proof. When current-SHA proof is missing, run the canonical gate once before deploying.
 
 Run local source verification only when:
 - local source/package inputs changed;
@@ -78,6 +68,62 @@ Then use:
 ```bash
 bun run verify:full
 ```
+
+## 3A. Choose the Codex MCP Gateway to Test
+
+Codex uses a **stdio Gateway**, not the native Blockbench HTTPS endpoint.
+Choose one launch authority and keep it fixed throughout a local acceptance run.
+`codex mcp list` shows configured entries but is not evidence of a live
+connection; invoke Gateway `status` in the same Codex session to prove it.
+
+**A. Managed Desktop / packaged integration.** The managed installer owns the
+`[mcp_servers.blockit]` entry in the user's Codex `config.toml`. It launches
+the immutable `versions/<source-sha>/blockit.exe` with `args = ["mcp"]`.
+Check the installed `source_sha` against `git rev-parse HEAD` and verify the
+Blockbench plugin build identity. If the package predates HEAD, this run can
+test the **installed package**, not prove the latest source. Do not deploy a
+current plugin over an older managed Gateway and call that exact-head PASS.
+Use the normal Desktop/managed installer for package activation, not manual
+rewrites of its owned files. Do not alter the user's other MCP servers.
+
+**B. Current source checkout / Codex developer localtest.** If no matching
+managed package exists, use the same checked-out `mcp/gateway/index.ts` as the
+stdio launch target and deploy the plugin built from that checkout. Codex may
+load a *project-scoped* `.codex/config.toml` only when the repository is trusted.
+For a temporary, uncommitted Windows developer configuration, use:
+
+```toml
+[mcp_servers.blockit]
+command = 'C:\ABSOLUTE\PATH\TO\bun.exe'
+args = ['run', 'C:\ABSOLUTE\PATH\TO\M-LazyDesigner\mcp\gateway\index.ts']
+startup_timeout_sec = 20
+tool_timeout_sec = 180
+```
+
+Replace both paths with actual **absolute paths**. This is a local test
+override, **not** a new managed installer or repository-owned configuration.
+Keep `.codex/config.toml` out of Git and remove the override after source
+testing. Preserve or back up pre-existing project-specific settings rather than
+overwriting them. Do not separately run `bun run gateway` when Codex already
+starts that Gateway. If Codex does not trust the project or the override is
+not visible, stop and inspect its effective `blockit` MCP entry; do not assume
+Codex used the source process.
+
+Codex's default `tool_timeout_sec` is 60 seconds. This is shorter than the
+Gateway's normal 120-second Runtime call budget and can turn long native
+mutations into uncertain outcomes. Managed entries without an explicit
+timeout now default to **180 seconds**; explicitly set user timeouts are
+preserved. Confirm the effective Codex timeout is appropriate for the actual
+runtime budget before testing. If a call is interrupted or `OUTCOME_UNKNOWN`,
+inspect Blockbench state before retrying it. A larger timeout is not itself
+stability proof.
+
+Whichever mode is selected: record the Codex Gateway `command`/`args`,
+exact checkout/managed source SHA, installed native `build_identity`, active
+Runtime URL/phase and Gateway tool surface. Only four public Gateway tools
+are expected: `status`, `search_capabilities`, `describe_capability` and
+`invoke_capability`. The expected default native Runtime endpoint is
+`https://127.0.0.1:3000/bb-mcp`; direct HTTP is limited to isolated tests.
 
 ## 4. Deploy Exact Plugin
 
@@ -332,13 +378,9 @@ Synthetic readiness never proves user asset approval. Tool/export success, low c
 
 Run from `mcp/` after the exact verified plugin is deployed and Blockbench is open.
 
-Start with transport/runtime identity only:
+The shared native verifier preflight already checks transport and build identity. Run `verify:stateless-local` **only if** that shared preflight fails or a focused transport diagnosis is required; do not run it again unconditionally.
 
-```bash
-bun run verify:stateless-local
-```
-
-Then test project affinity before authoring mutations:
+First test project affinity before authoring mutations:
 
 ```bash
 bun run verify:project-affinity-live -- --confirm-disposable

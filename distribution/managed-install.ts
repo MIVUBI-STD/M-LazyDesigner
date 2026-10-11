@@ -172,7 +172,10 @@ export function configureCodex(original: string, executable: string, parse: (tex
   const prior = before.mcp_servers?.blockit ?? {};
   // Preserve options/security decisions rather than silently re-enabling a disabled server.
   if (prior.enabled === false) throw new Error("BlockIT is disabled in Codex; enable it explicitly before installation.");
-  const options = { ...prior, command: executable, args: ["mcp"] };
+  // Codex defaults to 60s per tool, shorter than the Gateway's 120s native
+  // Runtime call budget. Give unspecified managed entries enough headroom;
+  // explicit user timeouts remain authoritative and are never rewritten.
+  const options = { tool_timeout_sec: 180, ...prior, command: executable, args: ["mcp"] };
   if (Object.hasOwn(options, "url")) throw new Error("Existing blockit points to a remote server; refusing to replace it.");
   const scalar = (v: unknown): string => {
     if (typeof v === "string") return JSON.stringify(v);
