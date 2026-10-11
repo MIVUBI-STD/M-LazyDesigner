@@ -11,6 +11,8 @@ import {
 export const VERIFIED_BUNDLE_FILENAME = LEGACY_MCP_BUNDLE_FILENAME;
 export const VERIFIED_PROVENANCE_FILENAME = "blockit-build-provenance.json";
 export const VERIFIED_REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
+// This script lives under mcp/scripts/operations. CI uploads mcp/dist/.
+export const VERIFIED_PACKAGE_ARTIFACT_DIR = resolve(import.meta.dir, "../../dist");
 export const VERIFIED_COMMAND = "bun run verify:mcp";
 
 export type VerifiedBuildProvenance = {
@@ -205,7 +207,7 @@ async function writeCi(): Promise<void> {
     `CI checkout SHA mismatch: checkout=${checkoutSha}; event=${gitSha}.`
   );
   const result = await writeVerifiedBuildProvenance({
-    artifact_dir: resolve(import.meta.dir, "../dist"),
+    artifact_dir: VERIFIED_PACKAGE_ARTIFACT_DIR,
     repository,
     ref,
     git_sha: gitSha,

@@ -1,17 +1,23 @@
 import { describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import {
   VERIFIED_BUNDLE_FILENAME,
   VERIFIED_COMMAND,
   VERIFIED_PROVENANCE_FILENAME,
+  VERIFIED_PACKAGE_ARTIFACT_DIR,
   fileSha256,
   verifyVerifiedBuildArtifact,
   writeVerifiedBuildProvenance,
 } from "@/scripts/operations/verified-build-artifact";
 
 describe("verified GitHub build artifact", () => {
+  test("CI provenance path is the package dist directory, not scripts/dist", () => {
+    expect(VERIFIED_PACKAGE_ARTIFACT_DIR).toBe(resolve(import.meta.dir, "../dist"));
+    expect(VERIFIED_PACKAGE_ARTIFACT_DIR).not.toBe(resolve(import.meta.dir, "../scripts/dist"));
+  });
+
   test("pins exact source SHA, bundle hash, embedded build identity, verifier and toolchain", async () => {
     const root = mkdtempSync(join(tmpdir(), "blockit-verified-artifact-"));
     try {
