@@ -23,4 +23,11 @@ describe("Hybrid-4 generated schema boundary", () => {
       });
     }
   });
+  test("generator reads the package-owned API and reproduces committed Hybrid-4 schemas", async () => {
+    const { generateHybrid4Schemas } = await import("../../scripts/generate/generate-hybrid4-schemas");
+    const generated = await generateHybrid4Schemas();
+    const committed = await Bun.file("gateway/experimental/generated/hybrid4Schemas.ts").text();
+    expect(generated).toBe(committed);
+  });
+
 });

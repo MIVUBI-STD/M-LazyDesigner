@@ -2,7 +2,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "../../gateway/experimental/hybridProfile";
 
-const root = resolve(import.meta.dir, "..");
+// The generator lives in mcp/scripts/generate; its package root is two levels up.
+const root = resolve(import.meta.dir, "../..");
 const apiPath = resolve(root, "docs/api.json");
 const outputPath = resolve(
   root,
