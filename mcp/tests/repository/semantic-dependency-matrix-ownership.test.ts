@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
 describe("semantic dependency matrix ownership", () => {
+  test("consumer freshness derives refresh targets from the canonical dependency matrix", async () => {
+    const source = await Bun.file("gateway/capabilities/semanticFreshness.ts").text();
+    expect(source).toContain("semanticRefreshSurfacesForDimensions");
+    expect(source).not.toContain('refresh.add("CAPABILITY_SEARCH")');
+    expect(source).not.toContain('refresh.add("DESCRIBE_SCHEMA")');
+  });
+
   test("invalidation planner delegates dimension ownership to central matrix", async () => {
     const source = await Bun.file("gateway/development/semanticInvalidation.ts").text();
     expect(source).toContain("semanticSurfacesAffectedByDimensions");

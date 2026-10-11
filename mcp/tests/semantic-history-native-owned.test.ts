@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   recordCurrentCapabilitySemanticHistoryEffectIfAdvanced,
   semanticHistoryEffectForEntry,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
 
 describe("native-owned semantic history annotation", () => {
   test("does not annotate a previous entry when native Undo did not advance", () => {
@@ -48,7 +48,7 @@ describe("native-owned semantic history annotation", () => {
   });
 
   test("eraser and native brush paths use guarded semantic history", async () => {
-    const brush = await Bun.file("server/tools/paint-brush.ts").text();
+    const brush = await Bun.file("server/tools/paint/brush.ts").text();
 
     expect(brush).toContain(
       'runSemanticNativePaintStroke("eraser_tool"'
@@ -62,8 +62,8 @@ describe("native-owned semantic history annotation", () => {
   });
 
   test("Painter and texture-set import use guarded native history annotation", async () => {
-    const paint = await Bun.file("server/tools/paint-primitives.ts").text();
-    const materials = await Bun.file("server/tools/texture-materials.ts").text();
+    const paint = await Bun.file("server/tools/paint/primitives.ts").text();
+    const materials = await Bun.file("server/tools/texture/materials.ts").text();
     for (const capability of [
       "paint_fill_tool",
       "draw_shape_tool",

@@ -4,9 +4,11 @@ This file owns **continuation only**. Stable architecture belongs in
 `docs/01-product/` and `docs/04-system/`; current proof interpretation belongs
 in `docs/05-operations/current-validation.md`.
 
-## Test and data verification — consolidation batch 1
+## Test and data verification — consolidation batches 1–2
 
-Source-level affected selection now covers directly changed executable tests and routes the three existing regression/golden/quality corpus fixtures to their owning contracts. Repository and authoring test edits remain suite-owned; unknown data fixtures retain the safe full-verification fallback. No new runner, registry, database, or external dependencies. Targeted regression definitions are added alongside the planner; Bun/CI execution on this source revision remains **NOT EXECUTED** until actual exact-SHA proof exists. Next: inspect the largest test clusters by invariant and canonical owner, then consolidate only proven duplicates without losing distinct failure-mode coverage. Do not retire tests merely due to age or count.
+Affected selection now covers directly changed executable tests and maps three existing regression/golden/quality corpus fixtures to their contract owners; unknown fixtures keep the conservative full gate. The semantic-history cluster was reconciled with migrated source owners: native paint/texture and ephemeral history tests read canonical modules rather than compatibility re-exports. The overlapping semantic policy test was retired by moving its unique freshness assertion to the existing dependency-matrix ownership test and retaining its inline-scope invariant in the dynamically discovered semantic-history coverage test; duplicate invalidation assertions were already owned by the dependency-matrix test. No new runner, registry, database, or dependencies. Current source changes have **NOT EXECUTED** Bun/CI proof at this SHA.
+
+Next: identify the next independently proven redundant/stale cluster by canonical invariant and source owner; consolidate only with equivalent coverage and use existing targeted verification once at the relevant proof milestone. Do not retire tests due solely to age or file count.
 
 ## Current direction
 

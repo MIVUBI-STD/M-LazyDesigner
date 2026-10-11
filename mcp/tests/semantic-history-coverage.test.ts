@@ -52,12 +52,15 @@ describe("semantic Undo history coverage", () => {
     }
   });
 
-  test("capability-derived semantic annotations reference only canonical authored capabilities", async () => {
+  test("authoring tools derive semantic scopes from canonical capabilities rather than inline literals", async () => {
     const files = await sourceFiles(TOOL_ROOT);
     const referenced = new Set<string>();
 
     for (const path of files) {
       const source = await Bun.file(path).text();
+      expect(source, `inline semantic-history scopes in ${path}`).not.toMatch(
+        /recordCurrentSemanticHistoryEffect\(\[\s*["']/
+      );
       for (const match of source.matchAll(
         /recordCurrentCapabilitySemanticHistoryEffect(?:IfAdvanced)?\(\s*["']([^"']+)["']/g
       )) {
@@ -90,7 +93,7 @@ describe("semantic Undo history coverage", () => {
   });
 
   test("semantic history remains ephemeral and fail-closed", async () => {
-    const source = await Bun.file("lib/semanticHistory.ts").text();
+    const source = await Bun.file("lib/authoring/semanticHistory.ts").text();
 
     expect(source).toContain("new WeakMap<object, SemanticHistoryEffect>()");
     expect(source).not.toContain("writeFile");
