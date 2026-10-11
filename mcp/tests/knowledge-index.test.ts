@@ -5,6 +5,7 @@ import {
   diffKnowledgeIndex,
   indexExplicitDocumentationEdges,
   knowledgeIndexFingerprint,
+  knowledgeIndexIntegrityFingerprint,
   selectKnowledgeSections,
 } from "../lib/semantic/knowledge";
 import { parsePreviousKnowledgeIndex } from "../scripts/development/build-knowledge-index";
@@ -290,6 +291,29 @@ describe("knowledge section compiler", () => {
     expect(() => parsePreviousKnowledgeIndex({
       ...current, sources: [{...sources[0], content_sha256: "0".repeat(64)}],
     })).toThrow(/fingerprint/);
+  });
+
+  test("historic index search metadata cannot be reused with a partial fingerprint", () => {
+    const markdown = "# Geometry\nscale rig pivot";
+    const sections = indexMarkdownKnowledge("docs/geometry.md", markdown);
+    const sources = [describeKnowledgeSource("docs/geometry.md", markdown)];
+    const baseline = {
+      schema: 1,
+      proof_scope: "REPO_OWNED_KNOWLEDGE_INDEX",
+      fingerprint: knowledgeIndexFingerprint(sections, sources),
+      integrity_fingerprint: knowledgeIndexIntegrityFingerprint(sections, sources),
+      sections, sources,
+    };
+    expect(parsePreviousKnowledgeIndex(baseline).integrity_verified).toBe(true);
+    const poisoned = [{ ...sections[0]!, search_terms: ["unrelated"], token_proxy: 0 }];
+    expect(knowledgeIndexFingerprint(poisoned, sources)).toBe(baseline.fingerprint);
+    expect(() => parsePreviousKnowledgeIndex({ ...baseline, sections: poisoned }))
+      .toThrow(/integrity fingerprint/);
+    expect(parsePreviousKnowledgeIndex({ ...baseline, integrity_fingerprint: undefined })
+      .integrity_verified).toBe(false);
+    expect(() => parsePreviousKnowledgeIndex({
+      ...baseline, sections: [sections[0]!, sections[0]!],
+    })).toThrow(/duplicate sections/);
   });
 
   test("duplicate identities reject unsafe index deltas", () => {

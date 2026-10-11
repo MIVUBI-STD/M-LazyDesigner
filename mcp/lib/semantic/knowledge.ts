@@ -284,6 +284,26 @@ export function knowledgeIndexFingerprint(
   return sha256(JSON.stringify({ sections: stable, sources: evidence }));
 }
 
+/**
+ * Full checksum for metadata reused from a prior index. The existing
+ * knowledgeIndexFingerprint remains the legacy identity/position checksum.
+ * This is tamper-evident consistency, not source authentication.
+ */
+export function knowledgeIndexIntegrityFingerprint(
+  sections: readonly KnowledgeSection[],
+  sources?: readonly KnowledgeSourceEvidence[]
+): string {
+  const fields = sections.map(section => ({
+    id: section.id, source: section.source, heading: section.heading,
+    heading_path: section.heading_path, level: section.level,
+    start_line: section.start_line, end_line: section.end_line,
+    bytes: section.bytes, token_proxy: section.token_proxy,
+    search_terms: section.search_terms, sha256: section.sha256,
+  })).sort((a,b) => a.id.localeCompare(b.id));
+  const evidence = sources ? [...sources].sort((a,b) => a.source.localeCompare(b.source)) : [];
+  return sha256(JSON.stringify({schema:1,sections:fields,sources:evidence}));
+}
+
 /** Pure revision comparison; moving line numbers cannot dirty stable content. */
 export function diffKnowledgeIndex(
   before: KnowledgeIndexSnapshot, after: KnowledgeIndexSnapshot

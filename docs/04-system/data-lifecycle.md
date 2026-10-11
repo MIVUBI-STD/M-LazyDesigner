@@ -68,6 +68,13 @@ and schema-1 output, adding hashed source evidence. Optional
 report, reuses sections from source files with identical content hashes,
 and emits a deterministic revision delta. Older schema-1 reports without
 source evidence remain readable but cannot be reused solely by path.
+Previous-index integrity: the original identity/position fingerprint is
+retained for schema-1 compatibility. New outputs also include an
+`integrity_fingerprint` covering heading, section identity, search terms,
+token budgets, sizes, line ranges, content hashes and source evidence.
+Legacy reports without this complete checksum can be compared but cannot
+be used to reuse stored sections. Invalid/duplicate section metadata fails
+closed. This is consistency checking, not an authenticated source signature.
 The comparison is read-only and is **not** a background watcher, a second
 registry, an automatic remote updater or executable runtime proof.
 

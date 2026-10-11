@@ -1,7 +1,7 @@
 import { lstat, readFile } from "node:fs/promises";
 import {
   describeKnowledgeSource, diffKnowledgeIndex, indexMarkdownKnowledge,
-  knowledgeIndexFingerprint, type KnowledgeIndexSnapshot,
+  knowledgeIndexFingerprint, knowledgeIndexIntegrityFingerprint, type KnowledgeIndexSnapshot,
   type KnowledgeSection, type KnowledgeSourceEvidence,
 } from "../../lib/semantic/knowledge";
 
@@ -12,7 +12,9 @@ const DEFAULT_SOURCES = [
   "../.agents/skills/lazydesigner-animation/SKILL.md",
 ] as const;
 
-export function parsePreviousKnowledgeIndex(value: unknown): KnowledgeIndexSnapshot {
+type ParsedPreviousKnowledgeIndex = KnowledgeIndexSnapshot & { integrity_verified: boolean };
+
+export function parsePreviousKnowledgeIndex(value: unknown): ParsedPreviousKnowledgeIndex {
   if (!value || typeof value !== "object" || Array.isArray(value))
     throw new Error("Previous knowledge index must be an object.");
   const report = value as Record<string, unknown>;
@@ -21,14 +23,24 @@ export function parsePreviousKnowledgeIndex(value: unknown): KnowledgeIndexSnaps
       typeof report.fingerprint !== "string")
     throw new Error("Previous knowledge index schema is invalid.");
   const sections = report.sections as KnowledgeSection[];
+  const sectionIds = new Set<string>();
   for (const s of sections) {
-    if (!s || typeof s.id !== "string" || typeof s.source !== "string" ||
-        !Array.isArray(s.heading_path) ||
-        !s.heading_path.every(h => typeof h === "string") ||
+    if (!s || typeof s.id !== "string" || !s.id ||
+        typeof s.source !== "string" || !s.source ||
+        typeof s.heading !== "string" ||
+        !Array.isArray(s.heading_path) || s.heading_path.length === 0 ||
+        s.heading_path.length > 6 || !s.heading_path.every(h => typeof h === "string") ||
+        !Number.isSafeInteger(s.level) || s.level < 1 || s.level > 6 ||
+        !Number.isSafeInteger(s.bytes) || s.bytes < 0 ||
+        !Number.isSafeInteger(s.token_proxy) || s.token_proxy < 0 ||
+        !Array.isArray(s.search_terms) || s.search_terms.length > 24 ||
+        !s.search_terms.every(term => typeof term === "string") ||
         !/^[0-9a-f]{64}$/.test(s.sha256) ||
         !Number.isSafeInteger(s.start_line) || s.start_line < 1 ||
-        !Number.isSafeInteger(s.end_line) || s.end_line < s.start_line)
-      throw new Error("Previous knowledge index contains invalid sections.");
+        !Number.isSafeInteger(s.end_line) || s.end_line < s.start_line ||
+        sectionIds.has(s.id))
+      throw new Error("Previous knowledge index contains invalid or duplicate sections.");
+    sectionIds.add(s.id);
   }
   const evidence = report.sources;
   if (evidence !== undefined && (
@@ -43,9 +55,16 @@ export function parsePreviousKnowledgeIndex(value: unknown): KnowledgeIndexSnaps
     )
   )) throw new Error("Previous knowledge source provenance is malformed.");
   const sources = evidence as KnowledgeSourceEvidence[] | undefined;
+  if (sources && new Set(sources.map(source => source.source)).size !== sources.length)
+    throw new Error("Previous knowledge index contains duplicate source evidence.");
   if (knowledgeIndexFingerprint(sections, sources) !== report.fingerprint)
     throw new Error("Previous knowledge index fingerprint mismatch.");
-  return { sections, ...(sources ? { sources } : {}) };
+  const integrity_verified = report.integrity_fingerprint !== undefined;
+  if (integrity_verified && (
+    typeof report.integrity_fingerprint !== "string" ||
+    knowledgeIndexIntegrityFingerprint(sections, sources) !== report.integrity_fingerprint
+  )) throw new Error("Previous knowledge index integrity fingerprint mismatch.");
+  return { sections, ...(sources ? { sources } : {}), integrity_verified };
 }
 
 async function main() {
@@ -63,7 +82,7 @@ async function main() {
   if (args.some(a => a.startsWith("--"))) throw new Error("Unknown knowledge index option.");
   const inputs = args.length ? args : [...DEFAULT_SOURCES];
   if (new Set(inputs).size !== inputs.length) throw new Error("Duplicate knowledge source paths.");
-  let previous: KnowledgeIndexSnapshot | undefined;
+  let previous: ParsedPreviousKnowledgeIndex | undefined;
   if (previousPath) {
     const stat = await lstat(previousPath);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size === 0 || stat.size > 8 * 1024 * 1024)
@@ -85,17 +104,21 @@ async function main() {
   const sections = inputsWithContent.flatMap((input, i) => {
     const evidence = sources[i]!;
     const prior = priorSources.get(input.source);
-    if (prior?.origin === "REPOSITORY" &&
-        prior.content_sha256 === evidence.content_sha256) {
+    if (previous?.integrity_verified === true &&
+        prior?.origin === "REPOSITORY" &&
+        prior.content_sha256 === evidence.content_sha256 &&
+        oldSections.has(input.source)) {
       reused_source_count++;
       return oldSections.get(input.source) ?? [];
     }
     return indexMarkdownKnowledge(input.source, input.markdown);
   });
   const fingerprint = knowledgeIndexFingerprint(sections, sources);
+  const integrity_fingerprint = knowledgeIndexIntegrityFingerprint(sections, sources);
   console.log(JSON.stringify({
     schema: 1, proof_scope: "REPO_OWNED_KNOWLEDGE_INDEX",
-    fingerprint, sources, source_count: sources.length, reused_source_count,
+    fingerprint, integrity_fingerprint,
+    sources, source_count: sources.length, reused_source_count,
     section_count: sections.length,
     total_bytes: sections.reduce((sum,s) => sum + s.bytes, 0),
     total_token_proxy: sections.reduce((sum,s) => sum + s.token_proxy, 0),
