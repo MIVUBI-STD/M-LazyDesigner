@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { GatewayBackendError } from "../../gateway/runtime/backendContract";
+import { gatewayErrorResult } from "../../gateway/execution/gatewayErrors";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -22,22 +24,43 @@ describe("Gateway and Control recovery ownership", () => {
     expect(contract).toContain('"GATEWAY_BUSY"');
     expect(queue).toContain('"GATEWAY_BUSY"');
 
-    expect(backend).toContain("inspect current model state before retrying");
-    expect(backend).not.toMatch(/invokeCapability\([\s\S]*?retry\s*\(/i);
+    expect(backend).toContain('from "./interruptionPolicy"');
   });
 
-  test("Gateway presentation delegates explicit retry safety to canonical recovery projection", async () => {
-    const [gateway, presentation] = await Promise.all([
-      source("gateway/index.ts"),
-      source("gateway/execution/gatewayErrors.ts"),
-    ]);
+  test("Gateway error envelope preserves uncertain mutations and retryable reads", () => {
+    const uncertain = gatewayErrorResult(
+      new GatewayBackendError("OUTCOME_UNKNOWN", "Runtime interrupted", false, {
+        operation: "manage_cubes",
+      })
+    );
+    expect(uncertain).toMatchObject({
+      isError: true,
+      structuredContent: {
+        code: "OUTCOME_UNKNOWN",
+        operation: "manage_cubes",
+        recovery: {
+          category: "TRANSPORT",
+          safe_to_retry: false,
+          state_uncertain: true,
+          requires_status_refresh: true,
+        },
+      },
+    });
 
-    expect(presentation).toContain("safeToRetry: error.safeToRetry");
-    expect(presentation).toContain("recoveryForGatewayError(");
-    expect(presentation).toContain("known.safeToRetry");
-    expect(gateway).toMatch(/never auto-retry an interrupted mutation/i);
-    expect(gateway).not.toContain("autoRetry");
-    expect(gateway).not.toContain("automaticRetry");
+    const readOnly = gatewayErrorResult(
+      new GatewayBackendError("BACKEND_CALL_INTERRUPTED", "Read interrupted", true)
+    );
+    expect(readOnly).toMatchObject({
+      isError: true,
+      structuredContent: {
+        code: "BACKEND_CALL_INTERRUPTED",
+        recovery: {
+          category: "TRANSPORT",
+          safe_to_retry: true,
+          state_uncertain: false,
+        },
+      },
+    });
   });
 
   test("Control owns workspace/reference orientation without becoming a second Runtime recovery engine", async () => {

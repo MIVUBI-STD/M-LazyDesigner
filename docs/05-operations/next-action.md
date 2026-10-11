@@ -21,11 +21,14 @@ Animation/Paint/Texture/Element tests now inspect canonical migrated owners
 rather than compatibility re-exports. Duplicated semantic-policy assertions
 were consolidated.
 
-Documentation checks now use the canonical hierarchy/role test owners while
-retaining independent reference/authoring handoff checks. This file is
-compacted instead of raising its existing 6 KB test limit. Completed work
-belongs to Git commit history, not cumulative session notes. Bun/CI proof
-for the current source revision is **NOT EXECUTED**.
+Documentation checks use canonical hierarchy/role owners while retaining
+independent reference/authoring handoff checks. Gateway recovery assertions
+now exercise the actual structured error envelope for uncertain mutations
+versus retryable reads, rather than relying on message wording or variable
+names. Control routing tests read the canonical policy value while retaining
+the consumer's explicit default linkage. This file remains within its
+existing 6 KB limit; commits own completed history. Bun/CI proof for the
+current source revision is **NOT EXECUTED**.
 
 ## Next REMOTE_GITHUB work
 
