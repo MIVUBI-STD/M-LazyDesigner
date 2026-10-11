@@ -1,26 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { readdir } from "node:fs/promises";
 
-async function text(path: string): Promise<string> {
-  return Bun.file(path).text();
-}
-
-describe("AI-first documentation hierarchy", () => {
-  test("docs root exposes only canonical domain hierarchy plus root router", async () => {
-    const entries = (await readdir("../docs", { withFileTypes: true })).map((entry) => entry.name).sort();
-    expect(entries).toEqual(["01-product", "02-reference", "03-authoring", "04-system", "05-operations", "README.md"]);
-    expect(await Bun.file("../docs/foundation/README.md").exists()).toBe(false);
-    expect(await Bun.file("../docs/knowledge/README.md").exists()).toBe(false);
-  });
-
-  test("root docs README routes AI by domain instead of duplicating policy", async () => {
-    const readme = await text("../docs/README.md");
-    for (const domain of ["01-product", "02-reference", "03-authoring", "04-system", "05-operations"]) expect(readme).toContain(domain);
-    expect(readme).toMatch(/minimum|smallest|relevant/i);
-    expect(readme).toMatch(/canonical owner/i);
-  });
-
-  test("reference domain separates image and package authorities", async () => {
+describe("reference and authoring documentation handoff", () => {
+  test("reference retains distinct image and package contracts", async () => {
     const required = [
       "../docs/02-reference/README.md", "../docs/02-reference/flow.md", "../docs/02-reference/policy.md",
       "../docs/02-reference/image/README.md", "../docs/02-reference/image/standard.md",
@@ -33,7 +14,7 @@ describe("AI-first documentation hierarchy", () => {
     for (const path of required) expect(await Bun.file(path).exists(), path).toBe(true);
   });
 
-  test("authoring domain owns modelling profiles and stage standards", async () => {
+  test("authoring retains profiles and stage standards", async () => {
     const profileRoot = "../docs/03-authoring/modelling/profiles";
     for (const profile of ["README.md", "prop-furniture.md", "vehicle.md", "humanoid.md", "creature.md", "mechanical.md", "plant-foliage.md", "generic.md"]) {
       expect(await Bun.file(`${profileRoot}/${profile}`).exists(), profile).toBe(true);
@@ -45,27 +26,12 @@ describe("AI-first documentation hierarchy", () => {
     ]) expect(await Bun.file(path).exists(), path).toBe(true);
   });
 
-  test("system and operations state remain separate from product/reference policy", async () => {
-    const [implementation, validation, next, runbook] = await Promise.all([
-      text("../docs/04-system/implementation-map.md"), text("../docs/05-operations/current-validation.md"),
-      text("../docs/05-operations/next-action.md"), text("../docs/05-operations/local-acceptance-runbook.md"),
+  test("AI routing retains canonical reference and modelling specialists", async () => {
+    const [root, referenceSkill, modellingSkill] = await Promise.all([
+      Bun.file("../AGENTS.md").text(),
+      Bun.file("../.agents/skills/lazydesigner-reference-preparation/SKILL.md").text(),
+      Bun.file("../.agents/skills/lazydesigner-modelling/SKILL.md").text(),
     ]);
-    expect(implementation).toMatch(/source ownership/i);
-    expect(validation).toMatch(/proof interpretation/i);
-    expect(next).toMatch(/continuation only/i);
-    expect(runbook).toMatch(/local acceptance/i);
-  });
-
-  test("primary AI-facing routing points to canonical hierarchy and LazyDesigner Skills", async () => {
-    const [root, context, referenceSkill, modellingSkill] = await Promise.all([
-      text("../AGENTS.md"), text("../CONTEXT.md"),
-      text("../.agents/skills/lazydesigner-reference-preparation/SKILL.md"),
-      text("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-    ]);
-    for (const owner of [root, context, referenceSkill, modellingSkill]) {
-      expect(owner).not.toContain("docs/knowledge/");
-      expect(owner).not.toContain("docs/foundation/");
-    }
     expect(root).toContain(".agents/skills/lazydesigner-reference-preparation/SKILL.md");
     expect(referenceSkill).toContain("docs/02-reference/");
     expect(modellingSkill).toContain("docs/03-authoring/modelling/profiles/");

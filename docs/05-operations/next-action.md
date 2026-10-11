@@ -4,125 +4,75 @@ This file owns **continuation only**. Stable architecture belongs in
 `docs/01-product/` and `docs/04-system/`; current proof interpretation belongs
 in `docs/05-operations/current-validation.md`.
 
-## Test and data verification — consolidation batches 1–2
-
-Affected selection now covers directly changed executable tests and maps three existing regression/golden/quality corpus fixtures to their contract owners; unknown fixtures keep the conservative full gate. The semantic-history cluster was reconciled with migrated source owners: native paint/texture and ephemeral history tests read canonical modules rather than compatibility re-exports. The overlapping semantic policy test was retired by moving its unique freshness assertion to the existing dependency-matrix ownership test and retaining its inline-scope invariant in the dynamically discovered semantic-history coverage test; duplicate invalidation assertions were already owned by the dependency-matrix test. No new runner, registry, database, or dependencies. Current source changes have **NOT EXECUTED** Bun/CI proof at this SHA.
-
-Next: identify the next independently proven redundant/stale cluster by canonical invariant and source owner; consolidate only with equivalent coverage and use existing targeted verification once at the relevant proof milestone. Do not retire tests due solely to age or file count.
-
-## Modular tool ownership tests — consolidation batch 3
-
-Four existing Animation, Paint, Texture and Element ownership suites now read canonical implementation modules under `mcp/server/tools/{animation,paint,texture,element}/` rather than retired re-export wrappers. Registration and order invariants remain. Animation schema assertions now inspect the actual `keyframeSchema.ts`, `timelineSchema.ts` and `batchSchema.ts` owners, preserving schema/executor boundaries. No production changes, new runner, registry, database, or dependencies. Source/static comparison only; Bun/CI and native Blockbench **NOT EXECUTED** on this SHA.
-
-Next: inspect additional proven stale or redundant clusters and preserve independent failure boundaries before any further retirement.
-
 ## Current direction
 
-`Local` is development/source authority. GitHub Actions are manual-only: a source push does not create an executable proof result. `MCP Verify` runs the full source gate when explicitly dispatched; targeted/affected verifier scripts remain available on demand.
+`Local` is working source authority. GitHub Actions are **manual-only**:
+a push does not prove executable correctness. Registration history belongs
+in `current-validation.md`. ChatGPT + GitHub/cloud work does not require
+the user's PC.
 
-Default-branch workflow registration history stays in `current-validation.md`; `Local` remains the working authority. Manual registration is not executable PASS. Governance now follows M-Lazy-Developer's ChatGPT GitHub/cloud-only and topical cold-start rules with LazyDesigner-specific product owners.
+## Active: test and data consolidation
 
-## Image Reference correspondence — topic continuation (source implementation)
+The canonical `mcp/gateway/development/affectedExecution.ts` planner now
+selects changed executable tests and routes regression, golden-task, and
+quality-benchmark corpora to their owning contract tests. Unknown fixtures
+retain conservative full verification. Semantic-history and
+Animation/Paint/Texture/Element tests now inspect canonical migrated owners
+rather than compatibility re-exports. Duplicated semantic-policy assertions
+were consolidated.
 
-Canonical design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md), reviewed against current `Local` source and external PartField/SAMPart3D/Open3DIS/OpenMask3D/OpenUSD/Grounded SAM 2. **Batch 1 pure join is source-implemented** under `mcp/lib/reference/partCorrespondence.ts` with focused regression definitions, but no executed Bun/CI/native acceptance. **Batch 2 consumer is source-implemented**, opt-in on existing `capture_model_views.reference_correspondence`: model-side ownership/fingerprint is read from canonical saved recipe-native state and tied to the current capture image digest. This provides only provisional/conflict/unavailable association signals; approval of source pixels, source-currentness at Blockbench Runtime, group/texture changes, and visual match are not independently attested. Keep `REFERENCE.json` and Cube identity distinct; no missing-part/visual-PASS claims from absent mappings or box metadata. No second runtime, registry, GPU service, Gateway tool or local-PC requirement. Exact-SHA executable and native evidence remain `NOT EXECUTED` until actual runs.
+Documentation checks now use the canonical hierarchy/role test owners while
+retaining independent reference/authoring handoff checks. This file is
+compacted instead of raising its existing 6 KB test limit. Completed work
+belongs to Git commit history, not cumulative session notes. Bun/CI proof
+for the current source revision is **NOT EXECUTED**.
 
 ## Next REMOTE_GITHUB work
 
-The structural source-cleanup pass is complete for the current architecture. Repository-development knowledge routing uses existing canonical owners: the `mcp/lib/semantic/knowledge.ts` document-link parser and the bounded `mcp/scripts/development/plan-development-context.ts` consumer. Unresolved SYSTEM_DEVELOPMENT routes traverse only authored Markdown links from the docs router through the system router to the implementation map; exact source ownership bypasses this extra read. Missing required documents must fail visibly. Check relevant developer-context and knowledge-index regressions before claiming executable PASS. The cross-owner method flow now has a regression in `mcp/tests/development/development-context-plan.test.ts`: exact development intent and source owner → semantic impact → bounded verifier mapping → explicit Local-only file-scope permission. This protects flow composition but is not itself an executed Bun PASS.
+- Identify another demonstrated stale source-text assertion or duplicate
+  test by inspecting its canonical owner and unique negative failure modes.
+- Preserve safety, behavior, and regression coverage; do not alter a test
+  simply to obtain a green status.
+- Run existing affected verification and exact-SHA source gates only when
+  execution evidence is needed. No new test framework or data registry.
 
-Current canonical boundaries are now explicit:
+`docs/04-system/implementation-map.md` is the canonical development map;
+`mcp/gateway/development/sourceOwners.ts` owns capability/source anchors;
+`mcp/gateway/development/affectedExecution.ts` owns affected verification.
+`mcp/lib/semantic/knowledge.ts` indexes authored Markdown knowledge.
+Uncertain SYSTEM_DEVELOPMENT routing uses explicit documentation links,
+not inferred graph edges. The cross-owner method regression lives at
+`mcp/tests/development/development-context-plan.test.ts`.
 
-```text
-lib domain truth
-→ Authoring Recipe
-→ Orchestration
-→ Runtime
-→ Gateway
+## Reference correspondence - separate active topic
 
-Gateway:
-context/       neutral authoring context contract
-capabilities/  discovery/semantic capability truth
-control/       product context/readiness/projection
-development/   repository diagnosis/source ownership
-execution/     capability Runtime + Control coordination
-runtime/       transport/affinity/queue/recovery mechanics
-session/       process-local facts/continuation/recovery state
-surface/       stable client-surface profile
-experimental/  opt-in implementation only
-```
+Source implementation lives in `mcp/lib/reference/partCorrespondence.ts`.
+The optional `capture_model_views.reference_correspondence` consumer uses
+recipe-native Cube identity and capture-image hashes for provisional part
+correspondence. Source pixel review, hidden-part completeness and visual
+quality cannot be inferred from region boxes or missing mappings.
+Design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md).
+No new GPU service, Gateway tool, Runtime or persistent registry.
+Current source still lacks matching Bun/native/visual acceptance.
 
-Do not continue structural refactoring merely for appearance. Remaining compatibility wrappers are intentionally retained until matching local/live compatibility evidence exists.
+## Runtime and proof boundaries
 
-Repository ownership audit: 71 explicit capability→implementation/anchor mappings resolved on the checked `Local` tree. The existing `gateway/development/affectedExecution.ts` planner now selects bounded repository and development-consumer checks for agent policy, knowledge, documentation and canonical ownership changes. Migration-sensitive benchmark/recovery paths were reconciled to current files. The semantic-impact CLI now imports the canonical Development source owner, and the ownership regression checks active development producers rather than only selected examples. These source/static checks and unexecuted regression definitions do not prove current-head Bun, TypeScript, Actions or native Blockbench PASS.
+The persistent Gateway owns client stability and Runtime recovery. Control
+owns context/readiness; Runtime and Plugin own native Blockbench operations.
+Preserve the four-tool Gateway surface, semantic freshness, receipt safety
+and fail-closed unknown mutation outcomes.
 
-Proof is activated by actual task need, not each commit:
-
-```text
-REMOTE_GITHUB review → current source/static claim
-manual CI            → only when executed checks are necessary
-LOCAL_CODE           → genuine toolchain or generator residue
-LIVE_BLOCKBENCH      → native/installed/visual acceptance
-```
-
-Do not infer current-head executable PASS from history. Avoid package splits, routers, registries or migration frameworks without a real canonical-owner gap.
-
-## Runtime boundary
-
-The persistent Gateway remains the client-stability boundary; Runtime owns
-Blockbench execution. Do not move Runtime/native authoring state into Control.
-
-## Zero-Waste rules
-
-Optimize cost to accepted result, not raw tool count.
-
-- known capability → direct invoke;
-- search only when identity is unknown/stale;
-- describe only for real schema uncertainty;
-- status only for orientation, authority change or recovery;
-- reuse content-addressed context;
-- invalidate only materially affected evidence;
-- complete authoritative receipts may replace reassurance reads;
-- visual verification must be decision-changing and bounded;
-- unknown mutation outcome never auto-retries.
-
-## Proof discipline
-
-A missing, pending, or failed exact-SHA proof is not an invitation to fabricate
-a trigger or redesign the product around CI state.
-
-Do not create:
-
-```text
-trigger-only commits
-temporary proof workflows
-temporary branches
-proof-marker files
-history rewrites
-```
-
-The optional full `MCP Verify` path remains authoritative when explicitly executed. If it continues to produce
-no run, diagnose Actions execution/settings through an authorized capability
-when available; do not redesign product architecture around that limitation.
-
-## Higher-context residue
-
-`LOCAL_CODE` is only for executable checkout/toolchain residue that cannot be
-completed remotely.
-
-`LIVE_BLOCKBENCH` is only for installed/native/session/visual evidence such as
-Runtime reconnect, Blockbench Undo/Redo, persistence, native UV/Painter/
-Animation/Particle execution, app close/open recovery and visual acceptance.
-
-These are deferred. Do not redo accepted REMOTE_GITHUB analysis when they are
-reactivated.
+`REMOTE_GITHUB` may establish source/static facts, never live acceptance.
+`LOCAL_CODE` is for genuine toolchain/generator residue unavailable via
+connected cloud execution. `LIVE_BLOCKBENCH` is needed for native Undo,
+playback, persistence, reconnect, capture and visual approval. A historical,
+skipped, different-SHA or prepared test is not current-head PASS. See
+`current-validation.md` and `local-acceptance-runbook.md`.
 
 ## Stop rules
 
-- no duplicate authoring engine;
-- no second semantic state database;
-- no speculative planner/vector store/heartbeat;
-- No hand-editing generated docs/output; generated API/prompt artifacts remain generator-owned;
-- no capability reduction solely for context savings;
-- no current-head PASS claim without matching evidence;
-- no proof-of-proof infrastructure when an existing owner already answers the
-  decision.
+No second authoring engine or semantic-state database, speculative vector
+store, parallel routers, incompatible transport, shadow registry or
+proof-of-proof system. Do not hand-edit generated outputs, fabricate
+CI-trigger commits, silently change `main`, or require a user-local PC.
+Stop when the bounded owner-level task is complete.
