@@ -1,0 +1,27 @@
+/** Compare a lightweight native probe against the last full Desktop projection. */
+export type ConnectionObservation = {
+  blockbench_running: boolean;
+  runtime_listener_live: boolean;
+  gateway_active: boolean | null;
+  plugin_integrity: string;
+  project_revision: string | null;
+  project_session_live: boolean;
+};
+
+export type ConnectionBaseline = {
+  blockbench: { running: boolean };
+  runtime_listener_live: boolean;
+  plugin_integrity: string;
+  managed: { gateway_active: boolean } | null;
+  project_navigation: { revision: string; session_live: boolean };
+};
+
+export function connectionChanged(candidate: ConnectionObservation, current: ConnectionBaseline): boolean {
+  return candidate.blockbench_running !== current.blockbench.running
+    || candidate.plugin_integrity !== current.plugin_integrity
+    || candidate.runtime_listener_live !== current.runtime_listener_live
+    || (candidate.gateway_active !== null && current.managed !== null
+      && candidate.gateway_active !== current.managed.gateway_active)
+    || candidate.project_revision !== current.project_navigation.revision
+    || candidate.project_session_live !== current.project_navigation.session_live;
+}

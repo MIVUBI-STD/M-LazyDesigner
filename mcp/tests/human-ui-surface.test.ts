@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { connectionChanged } from "../../apps/desktop/src/connectionWatch";
 
 const source = (relative: string) =>
   Bun.file(new URL(`../${relative}`, import.meta.url)).text();
@@ -10,7 +11,7 @@ describe("human-facing Blockbench UI", () => {
     expect(panel).toContain("LazyDesigner status");
     expect(panel).toContain("Current project");
     expect(panel).toContain("Open Project Folder");
-    expect(panel).toContain("AI handles the technical authoring workflow in the background.");
+    expect(panel).toContain("Technical authoring runs through your connected AI client.");
 
     for (const internal of [
       "Advanced details",
@@ -31,13 +32,13 @@ describe("human-facing Blockbench UI", () => {
       source("ui/statusBar.ts"),
     ]);
 
-    expect(ui).toContain('return "Ready"');
+    expect(ui).toContain('return "Runtime ready"');
     expect(ui).toContain('return "Starting"');
     expect(ui).toContain('return "Needs attention"');
-    expect(ui).toContain('return "AI authoring is ready."');
+    expect(ui).toContain('return "Local Runtime is ready. AI client connection is managed separately."');
     expect(ui).toContain('return "AI authoring is not available right now."');
 
-    expect(statusBar).toContain('return "LazyDesigner Ready"');
+    expect(statusBar).toContain('return "LazyDesigner Runtime Ready"');
     expect(statusBar).toContain('return "LazyDesigner Needs Attention"');
     expect(statusBar).not.toContain("runtimeAddress");
     expect(statusBar).not.toContain("127.0.0.1");
@@ -115,5 +116,49 @@ describe("human-facing Blockbench UI", () => {
     expect(settings).toContain("Legacy Compatibility (Developer)");
     expect(settings).toContain("Leave this at the default for normal use.");
     expect(settings).toContain("Leave this off for normal use.");
+  });
+
+  test("panel mounts before the network permission gate", async () => {
+    const [entry, status, css, panel] = await Promise.all([
+      source("index.ts"), source("ui/statusBar.ts"), source("ui/panel.css"), source("ui/index.ts"),
+    ]);
+    expect(entry).toContain("blockbenchIntegration.setupUi(registrationProfile, authoringStage)");
+    expect(entry.indexOf("blockbenchIntegration.setupUi(registrationProfile, authoringStage)"))
+      .toBeLessThan(entry.indexOf("runtimeHost.acquireNativeNetwork(generation)"));
+    expect(entry).toContain('setStatusBarState("failed"');
+    expect(status).toContain('document.createElement("button")');
+    expect(status).toContain('state: "starting"');
+    expect(css).not.toContain("nth-last-child");
+    expect(panel).not.toContain("pluginBrowserSetup");
+  });
+
+  test("Desktop connection observations are conservative", () => {
+    const baseline = {
+      blockbench: { running: true },
+      runtime_listener_live: true,
+      plugin_integrity: "ready",
+      managed: { gateway_active: true },
+      project_navigation: { revision: "rev1", session_live: true },
+    };
+    const observation = {
+      blockbench_running: true,
+      runtime_listener_live: true,
+      gateway_active: null,
+      plugin_integrity: "ready",
+      project_revision: "rev1",
+      project_session_live: true,
+    };
+    expect(connectionChanged(observation, baseline)).toBe(false);
+    expect(connectionChanged({ ...observation, gateway_active: false }, baseline)).toBe(true);
+    expect(connectionChanged({ ...observation, project_revision: "rev2" }, baseline)).toBe(true);
+    expect(connectionChanged({ ...observation, runtime_listener_live: false }, baseline)).toBe(true);
+    expect(connectionChanged({ ...observation, gateway_active: false }, { ...baseline, managed: null })).toBe(false);
+  });
+
+  test("Desktop guards overlapping probes and signals stale state", async () => {
+    const app = await Bun.file(new URL("../../apps/desktop/src/App.svelte", import.meta.url)).text();
+    expect(app).toContain("statusProbeInFlight");
+    expect(app).toContain("statusProbeFailures >= 2");
+    expect(app).toContain("connectionChanged(candidate, status)");
   });
 });

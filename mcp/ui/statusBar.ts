@@ -2,7 +2,7 @@ import statusBarCSS from "@/ui/statusBar.css";
 
 let statusBarElement: HTMLDivElement | undefined;
 let statusBarCssHandle: { delete(): void } | undefined;
-let statusIndicator: HTMLDivElement | undefined;
+let statusIndicator: HTMLButtonElement | undefined;
 let statusDot: HTMLDivElement | undefined;
 let statusText: HTMLSpanElement | undefined;
 
@@ -14,12 +14,12 @@ export interface BlockItRuntimeStatusDetail {
 
 export const BLOCKIT_RUNTIME_STATUS_CHANGED = "blockit-runtime-status-changed";
 
-let currentStatus: BlockItRuntimeStatusDetail = { state: "running" };
+let currentStatus: BlockItRuntimeStatusDetail = { state: "starting" };
 
 function statusLabel(state: McpServerStatus): string {
   if (state === "starting") return "LazyDesigner Starting";
   if (state === "failed") return "LazyDesigner Needs Attention";
-  return "LazyDesigner Ready";
+  return "LazyDesigner Runtime Ready";
 }
 
 function renderStatus(): void {
@@ -29,8 +29,9 @@ function renderStatus(): void {
 
   statusIndicator.title = [
     statusLabel(currentStatus.state),
-    "Click to open LazyDesigner",
+    "Open LazyDesigner panel",
   ].join(" · ");
+  statusIndicator.setAttribute("aria-label", statusIndicator.title);
 }
 
 function emitStatus(): void {
@@ -66,7 +67,8 @@ export function statusBarSetup(): void {
   statusBarElement = document.createElement("div");
   statusBarElement.id = "mcp-status-bar";
 
-  statusIndicator = document.createElement("div");
+  statusIndicator = document.createElement("button");
+  statusIndicator.type = "button";
   statusIndicator.className = "mcp-status-indicator";
 
   statusDot = document.createElement("div");
@@ -74,6 +76,7 @@ export function statusBarSetup(): void {
 
   statusText = document.createElement("span");
   statusText.className = "mcp-status-text";
+  statusText.setAttribute("aria-live", "polite");
 
   statusIndicator.appendChild(statusDot);
   statusIndicator.appendChild(statusText);

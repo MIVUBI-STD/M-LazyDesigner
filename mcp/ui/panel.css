@@ -4,11 +4,6 @@
     padding: 12px;
 }
 
-/* Native Blockbench places Settings and Features last in this tab bar. */
-body.blockit-plugin-page #plugin_browser_page_tab_bar > li:nth-last-child(-n+2) {
-    display: none;
-}
-
 .mcp-panel .lazydesigner-card,
 .mcp-panel .project-section {
     padding: 14px;

@@ -1,6 +1,8 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 import { VERSION } from "@/lib/constants";
+import { DEFAULT_MCP_AUTHORING_STAGE } from "@/lib/capabilities/authoringStage";
+import { setStatusBarState } from "@/ui/statusBar";
 import { PRODUCT_ABOUT } from "@/lib/product/productIdentity";
 import {
   applyMcpToolSurface,
@@ -75,26 +77,13 @@ async function initializeBlockItRuntime(
   const { generation, priorTeardown } = claim;
   await priorTeardown;
   if (!isRuntimeGenerationCurrent(generation)) return;
-  if (!runtimeHost.acquireNativeNetwork(generation)) return;
-
+  // Make the status panel available even when native Runtime startup fails.
+  setStatusBarState("starting");
   const registrationProfile = blockbenchIntegration.setupBase({
     generation,
     isGenerationCurrent: isRuntimeGenerationCurrent,
   });
   registerMcpProfile(registrationProfile);
-
-  const rawPort = Number(Settings.get("mcp_port") || 3000);
-  if (!Number.isInteger(rawPort) || rawPort < 1 || rawPort > 65535) {
-    markRuntimeGenerationState(generation, "failed");
-    console.error(
-      `[MCP] Invalid mcp_port value "${Settings.get("mcp_port")}" - server will not start. Set a port between 1 and 65535 in plugin settings.`
-    );
-    Blockbench.showQuickMessage(
-      "LazyDesigner couldn't start. Check its connection settings.",
-      4000
-    );
-    return;
-  }
 
   let authoringStage: McpAuthoringStage;
   try {
@@ -102,15 +91,26 @@ async function initializeBlockItRuntime(
       Settings.get(MCP_AUTHORING_PHASE_SETTING_ID)
     );
   } catch (error) {
+    blockbenchIntegration.setupUi(registrationProfile, DEFAULT_MCP_AUTHORING_STAGE);
     markRuntimeGenerationState(generation, "failed");
+    setStatusBarState("failed", "Invalid startup focus. Restore the default in Blockbench settings.");
     console.error("[MCP] Invalid authoring phase setting - server will not start", error);
-    Blockbench.showQuickMessage(
-      "LazyDesigner couldn't start. Check its startup settings.",
-      4000
-    );
+    Blockbench.showQuickMessage("LazyDesigner couldn't start. Check its startup settings.", 4000);
+    return;
+  }
+  // Human UI does not depend on a running server or loaded prompts.
+  blockbenchIntegration.setupUi(registrationProfile, authoringStage);
+
+  const rawPort = Number(Settings.get("mcp_port") || 3000);
+  if (!Number.isInteger(rawPort) || rawPort < 1 || rawPort > 65535) {
+    markRuntimeGenerationState(generation, "failed");
+    setStatusBarState("failed", "Invalid port. Enter a number from 1 to 65535.");
+    console.error(`[MCP] Invalid mcp_port value "${Settings.get("mcp_port")}" - server will not start. Set a port between 1 and 65535 in plugin settings.`);
+    Blockbench.showQuickMessage("LazyDesigner couldn't start. Check its connection settings.", 4000);
     return;
   }
 
+  if (!runtimeHost.acquireNativeNetwork(generation)) return;
   applyMcpToolSurface(registrationProfile, authoringStage);
   setMcpPhaseSwitchHandler((targetPhase) => {
     if (!isRuntimeGenerationCurrent(generation)) return;
@@ -125,6 +125,7 @@ async function initializeBlockItRuntime(
     runtimeEndpoint = normalizeRuntimeEndpoint(Settings.get("mcp_endpoint"));
   } catch (error) {
     markRuntimeGenerationState(generation, "failed");
+    setStatusBarState("failed", "Invalid connection path. Restore the default in Blockbench settings.");
     console.error("[MCP] Invalid mcp_endpoint value - server will not start", error);
     Blockbench.showQuickMessage(
       "LazyDesigner couldn't start. Check its connection settings.",
@@ -141,7 +142,6 @@ async function initializeBlockItRuntime(
   if (!(await runtimeHost.start(generation))) return;
   if (!isRuntimeGenerationCurrent(generation)) return;
 
-  blockbenchIntegration.setupUi(registrationProfile, authoringStage);
   setupLocalDevAutoReload(generation, currentBuildIdentity());
 }
 
@@ -206,6 +206,7 @@ BBPlugin.register("blockit_mcp", {
       .catch((error) => {
         if (!isRuntimeGenerationCurrent(claim.generation)) return;
         markRuntimeGenerationState(claim.generation, "failed");
+        setStatusBarState("failed", "Runtime initialization failed. See console for details.");
         console.error("[MCP] LazyDesigner runtime initialization failed", error);
         Blockbench.showQuickMessage(
           "LazyDesigner couldn't start. Technical details are available in the console.",

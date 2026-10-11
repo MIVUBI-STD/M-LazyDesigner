@@ -240,37 +240,37 @@
 {/if}
 
 <style>
-  .preferences-recovery{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-elevated);font-size:10px}
-  .preferences-recovery>div{display:grid;gap:5px}.preferences-recovery span{font-size:9px;color:var(--muted)}
+  .preferences-recovery{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-elevated);font-size:var(--font-sm)}
+  .preferences-recovery>div{display:grid;gap:5px}.preferences-recovery span{font-size:var(--font-sm);color:var(--muted)}
   .content-section{margin-bottom:34px}
   .section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}
-  .section-heading h2{margin:0;font-size:12px;font-weight:700}
+  .section-heading h2{margin:0;font-size:var(--font-title);font-weight:700}
   .project-list{border:1px solid var(--border-soft);border-radius:8px;overflow:hidden;background:var(--bg-elevated)}
-  .project-row{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}
+  .project-row{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}
   .project-row:last-child{border-bottom:0}
   .project-main{min-width:0;display:grid;gap:3px}
-  .project-title{font-size:11px;font-weight:700}
-  .project-meta{color:var(--muted);font-size:9px}
+  .project-title{font-size:var(--font-ui);font-weight:700}
+  .project-meta{color:var(--muted);font-size:var(--font-sm)}
   .project-actions,.model-actions{display:flex;align-items:center;gap:6px}
-  .primary-button,.secondary-button{min-height:32px;padding:6px 11px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}
+  .primary-button,.secondary-button{min-height:32px;padding:6px 11px;border-radius:6px;font-size:var(--font-sm);font-weight:700;cursor:pointer}
   .primary-button{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
   .secondary-button{border:1px solid var(--border);background:var(--surface-2);color:var(--text-soft)}
-  .small-button{min-height:28px;padding:4px 9px;font-size:9px}
-  .quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:650;cursor:pointer}
+  .small-button{min-height:32px;padding:4px 9px;font-size:var(--font-sm)}
+  .quiet-button,.show-more-button{border:0;background:transparent;color:var(--muted);font-size:var(--font-sm);font-weight:650;cursor:pointer}
   .quiet-button:hover,.show-more-button:hover{color:var(--text)}
-  .project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface-1)}
-  .project-details-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 5px;color:var(--muted-2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-  .model-row{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}
+  .project-details{padding:4px 12px 8px;border-bottom:1px solid var(--border-soft);background:var(--surface)}
+  .project-details-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 5px;color:var(--muted-2);font-size:var(--font-xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .model-row{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border-soft)}
   .model-main{min-width:0;display:flex;align-items:center;gap:7px}
-  .model-main strong{font-size:9px;font-weight:650}.model-main span{color:var(--muted-2);font-size:8px}
+  .model-main strong{font-size:var(--font-sm);font-weight:650}.model-main span{color:var(--muted-2);font-size:var(--font-xs)}
   .show-more-button{margin-top:8px;padding:4px 0}
-  .compact-search{width:150px;height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font:inherit;font-size:9px;outline:none}
+  .compact-search{width:150px;height:34px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font:inherit;font-size:var(--font-sm);outline:none}
   .compact-search:focus{border-color:var(--info)}.compact-search::placeholder{color:var(--muted-2)}
   .project-search{width:180px}
-  .project-empty{padding:10px 0;color:var(--muted-2);font-size:9px}.project-empty-list{padding:13px 12px}
+  .project-empty{padding:10px 0;color:var(--muted-2);font-size:var(--font-sm)}.project-empty-list{padding:13px 12px}
   .folder-heading{margin-top:6px;padding-top:9px;border-top:1px solid var(--border-soft)}
   .folder-shortcuts{display:flex;flex-wrap:wrap;gap:6px;padding:3px 0 6px}
-  .folder-shortcut{min-height:28px;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font-size:9px;font-weight:650}
+  .folder-shortcut{min-height:28px;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font-size:var(--font-sm);font-weight:650}
   .folder-shortcut:hover:not(:disabled){background:var(--surface-3);color:var(--text)}
   .project-detail-actions{display:flex;justify-content:flex-end;padding:6px 0 2px}
   .pinned-label{color:var(--text-soft)}
@@ -279,6 +279,6 @@
   .more-menu summary:hover,.more-menu[open] summary{background:var(--surface-2);color:var(--text)}
   .more-menu summary::-webkit-details-marker{display:none}
   .menu-popover{position:absolute;z-index:20;right:0;top:34px;width:168px;display:grid;padding:5px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}
-  .menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:10px}
+  .menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:var(--font-sm)}
   .menu-popover button:hover:not(:disabled){background:var(--surface-3)}
 </style>

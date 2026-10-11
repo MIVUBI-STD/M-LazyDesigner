@@ -5,7 +5,6 @@ import {
   canReloadLazyDesignerPlugin,
   reloadLazyDesignerPlugin,
 } from "@/plugin/reload";
-import { pluginBrowserSetup, pluginBrowserTeardown } from "@/ui/pluginBrowser";
 import {
   BLOCKIT_RUNTIME_STATUS_CHANGED,
   statusBarSetup,
@@ -116,7 +115,6 @@ export function uiSetup(input: UiSetupInput) {
 
   panelCssHandle = Blockbench.addCSS(panelCSS);
   statusBarSetup();
-  pluginBrowserSetup();
 
   panel = new Panel("mcp_panel", {
     id: "mcp_panel",
@@ -168,12 +166,12 @@ export function uiSetup(input: UiSetupInput) {
         runtimeStatusLabel(state: McpServerStatus): string {
           if (state === "starting") return "Starting";
           if (state === "failed") return "Needs attention";
-          return "Ready";
+          return "Runtime ready";
         },
         runtimeStatusMessage(state: McpServerStatus): string {
           if (state === "starting") return "Preparing AI authoring...";
           if (state === "failed") return "AI authoring is not available right now.";
-          return "AI authoring is ready.";
+          return "Local Runtime is ready. AI client connection is managed separately.";
         },
         openProjectFolder(): void {
           if (!Project || (!Project.save_path && !Project.export_path)) {
@@ -238,7 +236,6 @@ export function uiSetup(input: UiSetupInput) {
 }
 
 export function uiTeardown(): void {
-  pluginBrowserTeardown();
   runtimeStatusListener?.();
   runtimeStatusListener = undefined;
   projectStateListener?.();

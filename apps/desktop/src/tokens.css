@@ -40,6 +40,12 @@
   --gap-xl: 24px;
   --page-pad: 24px;
 
+  /* Shared Desktop type scale; semantic sizes prevent microtext drift. */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-ui: 13px;
+  --font-title: 14px;
+
   --control-height: 38px;
   --rail-width: 72px;
   --content-max: 1180px;

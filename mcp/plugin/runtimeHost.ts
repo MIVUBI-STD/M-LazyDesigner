@@ -46,6 +46,7 @@ export class RuntimeHost {
 
     if (!https) {
       markRuntimeGenerationState(generation, "failed");
+      setStatusBarState("failed", "Network permission is required for the local Runtime.");
       console.error("[MCP] HTTPS permission unavailable - server will not start");
       Blockbench.showQuickMessage("MCP Server requires network permission", 3000);
       return false;
