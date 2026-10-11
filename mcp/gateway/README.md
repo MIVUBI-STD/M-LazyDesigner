@@ -243,7 +243,7 @@ Run `bun run setup:tls` before native testing; see [Runtime TLS setup](../README
 Gateway client tools      4
 Runtime callable union   54
 AUTHORING surface        47
-Animation surface        20
+Animation surface        18
 ```
 
 These are source-era counts, not installed Runtime proof.

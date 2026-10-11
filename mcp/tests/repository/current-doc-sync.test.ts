@@ -56,6 +56,8 @@ describe("current developer-facing documentation sync", () => {
     expectToolCount(mcpReadme, "AUTHORING surface", geometryToolCount);
     expectToolCount(mcpReadme, "Animation surface", animationToolCount);
     expect(gatewayReadme).toMatch(new RegExp(`Runtime callable union\\s+${callableToolCount}`, "i"));
+    expect(gatewayReadme).toMatch(new RegExp(`AUTHORING surface\\s+${geometryToolCount}\\s`, "i"));
+    expect(gatewayReadme).toMatch(new RegExp(`Animation surface\\s+${animationToolCount}\\s`, "i"));
   });
 
   test("reference and authoring specialists point to canonical owners", async () => {
