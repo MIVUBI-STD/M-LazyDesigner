@@ -22,19 +22,18 @@ Animation/Paint/Texture/Element tests now inspect canonical migrated owners
 rather than compatibility re-exports. Duplicated semantic-policy assertions
 were consolidated.
 
-Documentation checks use canonical hierarchy/role owners while retaining
-independent reference/authoring handoff checks. Gateway recovery assertions
-now exercise the actual structured error envelope for uncertain mutations
-versus retryable reads, rather than relying on message wording or variable
-names. Control routing tests read the canonical policy value while retaining
-the consumer's explicit default linkage. This file remains within its
-existing 6 KB limit; commits own completed history. Bun/CI proof for the
-current source revision is **NOT EXECUTED**.
+Documentation checks retain canonical hierarchy/role owners and unique
+handoff cases. Gateway recovery and routing tests consume the real error
+envelope and policy. A source-level validation pass found and repaired the
+semantic-history UI exemption that still pointed at a retired re-export
+wrapper; it now targets the canonical interaction/UI owner. This file
+remains under its existing 6 KB limit. Bun/CI proof for the current
+source revision is **NOT EXECUTED**.
 
 ## Next REMOTE_GITHUB work
 
-- Reconcile the next demonstrated stale assertion against its canonical
-  source owner and preserve distinct negative and integration cases.
+- Reconcile additional proven stale assertions against canonical ownership;
+  preserve independent negative and integration coverage.
 - Preserve safety, behavior, and regression coverage; do not alter a test
   simply to obtain a green status.
 - Use existing affected/exact-SHA verification at an acceptance milestone

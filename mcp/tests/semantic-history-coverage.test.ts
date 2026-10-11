@@ -5,7 +5,7 @@ import { join, relative } from "node:path";
 
 const TOOL_ROOT = "server/tools";
 const SEMANTIC_HISTORY_EXEMPTIONS = new Set([
-  "server/tools/ui.ts",
+  "server/tools/interaction/ui.ts",
 ]);
 
 async function sourceFiles(dir: string): Promise<string[]> {
@@ -78,9 +78,9 @@ describe("semantic Undo history coverage", () => {
   });
 
   test("semantic-history exemptions stay explicit and maintenance-only", async () => {
-    const source = await Bun.file("server/tools/ui.ts").text();
+    const source = await Bun.file("server/tools/interaction/ui.ts").text();
     expect(SEMANTIC_HISTORY_EXEMPTIONS).toEqual(
-      new Set(["server/tools/ui.ts"])
+      new Set(["server/tools/interaction/ui.ts"])
     );
     expect(source.match(/Undo\.finishEdit\(/g)?.length ?? 0).toBeGreaterThan(0);
     expect(
