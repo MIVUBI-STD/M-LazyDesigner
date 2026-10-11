@@ -69,6 +69,57 @@ describe("affected execution planner", () => {
     )).toBe(true);
   });
 
+  test("directly changed executable tests get executed, rather than only typechecked", () => {
+    for (const path of [
+      "mcp/tests/animation-mutation-contract.test.ts",
+      "mcp/tests/benchmark/quality-benchmark-contract.test.ts",
+      "mcp/gateway/runtime/operationQueue.test.ts",
+    ]) {
+      const plan = planAffectedExecution({
+        changedPaths: [path], semanticImpact: impact(),
+      });
+      expect(plan.fallback_full_verify, path).toBe(false);
+      expect(plan.targeted_tests, path).toContain(path);
+      expect(plan.commands, path).toContain(`bun test ${path.slice(4)}`);
+    }
+  });
+
+  test("repository and authoring test edits use their existing suites, without duplicate focused runs", () => {
+    for (const [path, suite] of [
+      ["mcp/tests/repository/semantic-policy-deduplication.test.ts", "bun run verify:repository"],
+      ["mcp/tests/authoring/quality-first-authoring-contract.test.ts", "bun run verify:authoring"],
+    ] as const) {
+      const plan = planAffectedExecution({
+        changedPaths: [path], semanticImpact: impact(),
+      });
+      expect(plan.fallback_full_verify, path).toBe(false);
+      expect(plan.commands, path).toContain(suite);
+      expect(plan.targeted_tests, path).not.toContain(path);
+    }
+  });
+
+  test("known data corpus edits select their contracts; unknown fixtures fail conservatively", () => {
+    const owned: Array<[string, string]> = [
+      ["mcp/tests/fixtures/regression-cases.json", "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"],
+      ["mcp/tests/fixtures/golden-task-cases.json", "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"],
+      ["mcp/tests/fixtures/quality-benchmark-cases.json", "mcp/tests/benchmark/quality-benchmark-contract.test.ts"],
+    ];
+    for (const [path, owner] of owned) {
+      const plan = planAffectedExecution({
+        changedPaths: [path], semanticImpact: impact(),
+      });
+      expect(plan.fallback_full_verify, path).toBe(false);
+      expect(plan.targeted_tests, path).toEqual([owner]);
+      expect(plan.commands, path).toContain(`bun test ${owner.slice(4)}`);
+    }
+    const unknown = planAffectedExecution({
+      changedPaths: ["mcp/tests/fixtures/unmapped-cases.json"],
+      semanticImpact: impact(),
+    });
+    expect(unknown.fallback_full_verify).toBe(true);
+    expect(unknown.commands).toEqual(["bun run verify:full"]);
+  });
+
   test("all explicit affected-verifier source and test references resolve in the active tree", async () => {
     const source = await Bun.file("gateway/development/affectedExecution.ts").text();
     const paths = [...new Set(

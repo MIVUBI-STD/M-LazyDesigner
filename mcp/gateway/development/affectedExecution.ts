@@ -202,6 +202,15 @@ function sharedContractTestsForPath(path: string): readonly string[] {
     return ["mcp/tests/development/affected-execution.test.ts",
       "mcp/tests/development/affected-runner-portability.test.ts"];
   }
+  // These data fixtures have existing executable contract owners.
+  // Unknown fixtures deliberately retain the conservative full gate.
+  if (path === "mcp/tests/fixtures/regression-cases.json" ||
+      path === "mcp/tests/fixtures/golden-task-cases.json") {
+    return ["mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"];
+  }
+  if (path === "mcp/tests/fixtures/quality-benchmark-cases.json") {
+    return ["mcp/tests/benchmark/quality-benchmark-contract.test.ts"];
+  }
   if (path.startsWith("mcp/tests/development/") &&
       path.endsWith(".test.ts")) return [path];
   return [];
@@ -423,6 +432,13 @@ export function planAffectedExecution(input: {
       path.startsWith("mcp/") && path.endsWith(".test.ts")
     ),
     ...changedPaths.flatMap(sharedContractTestsForPath),
+    // An edited executable test must run. Repository/authoring tests already
+    // run via their owning suite, so avoid a duplicate focused invocation.
+    ...changedPaths.filter((path) =>
+      path.startsWith("mcp/") && path.endsWith(".test.ts") &&
+      !path.startsWith("mcp/tests/repository/") &&
+      !path.startsWith("mcp/tests/authoring/")
+    ),
     ...(changedPaths.some(affectsGatewayOutputContracts)
       ? ["mcp/tests/gateway-output-schema.test.ts"]
       : []),

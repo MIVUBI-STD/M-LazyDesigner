@@ -4,6 +4,10 @@ This file owns **continuation only**. Stable architecture belongs in
 `docs/01-product/` and `docs/04-system/`; current proof interpretation belongs
 in `docs/05-operations/current-validation.md`.
 
+## Test and data verification — consolidation batch 1
+
+Source-level affected selection now covers directly changed executable tests and routes the three existing regression/golden/quality corpus fixtures to their owning contracts. Repository and authoring test edits remain suite-owned; unknown data fixtures retain the safe full-verification fallback. No new runner, registry, database, or external dependencies. Targeted regression definitions are added alongside the planner; Bun/CI execution on this source revision remains **NOT EXECUTED** until actual exact-SHA proof exists. Next: inspect the largest test clusters by invariant and canonical owner, then consolidate only proven duplicates without losing distinct failure-mode coverage. Do not retire tests merely due to age or count.
+
 ## Current direction
 
 `Local` is development/source authority. GitHub Actions are manual-only: a source push does not create an executable proof result. `MCP Verify` runs the full source gate when explicitly dispatched; targeted/affected verifier scripts remain available on demand.
