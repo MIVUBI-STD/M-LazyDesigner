@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:https";
 import type { AddressInfo } from "node:net";
-import { runtimeTlsPaths, DEFAULT_RUNTIME_URL } from "../../lib/runtime/connection";
+import { runtimeTlsPaths, DEFAULT_RUNTIME_URL, normalizeRuntimeUrl } from "../../lib/runtime/connection";
 import { runtimeFetch } from "../../lib/runtime/fetch"; 
 import {
   readRuntimeAuthorizationToken,
@@ -26,6 +26,16 @@ test("TLS paths are absolute and the production default is HTTPS", () => {
   expect(runtimeTlsPaths({ HOME: "/home/test" }, "linux").key)
     .toBe("/home/test/.config/LazyDesigner/tls/key.pem");
   expect(() => runtimeTlsPaths({ BLOCKIT_TLS_DIR: "relative" })).toThrow("absolute");
+});
+
+
+test("Runtime URL normalization is shared without loading Gateway internals", () => {
+  expect(normalizeRuntimeUrl("https://localhost:3000/bb-mcp/"))
+    .toBe("https://localhost:3000/bb-mcp");
+  expect(normalizeRuntimeUrl("http://127.0.0.1:3000/bb-mcp"))
+    .toBe("http://127.0.0.1:3000/bb-mcp");
+  expect(() => normalizeRuntimeUrl("https://example.com/bb-mcp")).toThrow("loopback");
+  expect(() => normalizeRuntimeUrl("https://user:password@localhost:3000/bb-mcp")).toThrow("credentials");
 });
 
 test("HTTPS canonical handler and Gateway validate trust; hostile origin and untrusted peer fail", async () => {

@@ -80,4 +80,17 @@ describe("gateway canonical ownership", () => {
     expect(capability).toContain("READY | UNKNOWN | BLOCKED");
     // Static navigation contract only; does not claim live Gateway or visual proof.
   });
+  test("native plugin modules do not import the client Gateway layer", async () => {
+    const violations: string[] = [];
+    for (const file of await sourceFiles("plugin")) {
+      const body = await Bun.file(file).text();
+      for (const request of importsOf(body)) {
+        if (request.startsWith("@/gateway/") || request.startsWith("../gateway/")) {
+          violations.push(`${file} -> ${request}`);
+        }
+      }
+    }
+    expect(violations).toEqual([]);
+  });
+
 });

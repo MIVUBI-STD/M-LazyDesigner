@@ -1,4 +1,4 @@
-import { normalizeRuntimeUrl } from "@/gateway/contract";
+import { normalizeRuntimeUrl } from "@/lib/runtime/connection";
 import { profileIdentity, type NativeCrypto } from "@/plugin/profileIdentity";
 
 export type RuntimeSessionFs = Pick<
