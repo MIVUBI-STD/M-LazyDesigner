@@ -78,6 +78,33 @@ native assets, cross-file transactions, multi-process revision locks,
 full backup/restore, or absolute power-loss durability. Do not claim native
 persistence acceptance from a source-only audit.
 
+## Guarded persistence and user-visible recovery
+
+Desktop preferences and project identity metadata now use the existing
+`metadata_io.rs` writer with an explicit previous-byte expectation. A stale
+write is rejected rather than replacing a more recent file. Before replacing
+existing valid metadata, the writer checkpoints the previous bytes to the
+adjacent `.bak` file. For a newly created metadata file, there is no prior
+version to checkpoint. These recovery copies are application-owned and are
+not a backup of Blockbench models, textures or references.
+
+When Desktop preferences become unreadable, navigation reports
+`RECOVERABLE` only when the original file can be preserved and an existing
+recovery copy passes schema validation. The Desktop shows an explicit
+confirmation before restoring saved project pins. Recovery retains the exact
+damaged original in a unique `.corrupt-*.bak` file first, then restores only
+the validated prior version. Restoration never rotates the known-good
+`.bak` copy, never silently restores a valid current file, and never
+touches native Blockbench assets.
+
+This safeguards the normal single-instance Desktop writer and detects stale
+reads; there is **no cross-process atomic compare-and-swap**, whole-project
+transaction, automatic migration, or proof of power-loss durability.
+A missing, corrupt, oversized or symlinked original/backup must fail closed.
+A prior `.bak` can be one successful metadata revision behind current state;
+recovering it is a deliberate user decision, not lossless recreation of
+the most recent preferences.
+
 ## Review / verification
 
 Inventory tests own classification, alias resolution and the no-workspace-read

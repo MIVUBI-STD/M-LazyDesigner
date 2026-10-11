@@ -127,7 +127,7 @@
   };
 
   type ProjectNavigationActionResult = {
-    status: 'OPENED' | 'REVEALED' | 'PINNED' | 'UNPINNED';
+    status: 'OPENED' | 'REVEALED' | 'PINNED' | 'UNPINNED' | 'RESTORED';
   };
 
   type ProjectPathResult = {
@@ -228,12 +228,14 @@
 
   async function runProjectAction(action: ProjectAction, id: string) {
     if (devFixture || busyAction) return;
+    if (action === 'restore-project-preferences' &&
+        !window.confirm('Restore the last saved project pins? The damaged settings file will be retained.')) return;
     busyAction = 'project-action';
     error = '';
     clearSuccessToast();
     try {
       await invoke<ProjectNavigationActionResult>('project_navigation_action', { action, id });
-      if (action === 'pin-project' || action === 'unpin-project') await refresh();
+      if (action === 'pin-project' || action === 'unpin-project' || action === 'restore-project-preferences') await refresh();
     } catch (cause) {
       error = errorMessage(cause);
     } finally {
@@ -563,6 +565,7 @@
       revision: 'fixture:1',
       session_live: fixture !== 'fresh-install' && fixture !== 'runtime-offline',
       continue_model_id: fixture === 'fresh-install' ? null : 'model-fixture',
+      preferences_issue: null,
       active: fixture === 'fresh-install' ? null : {
         project_id: 'project-fixture',
         project_name: 'Furniture',

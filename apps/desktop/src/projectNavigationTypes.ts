@@ -36,6 +36,7 @@ export type ProjectNavigation = {
   revision: string | null;
   session_live: boolean;
   continue_model_id: string | null;
+  preferences_issue: 'RECOVERABLE' | 'UNRECOVERABLE' | null;
   active: ActiveProjectNavigation | null;
   projects: ProjectNavigationProject[];
 };
@@ -45,4 +46,5 @@ export type ProjectAction =
   | 'open-folder'
   | 'reveal-model'
   | 'pin-project'
-  | 'unpin-project';
+  | 'unpin-project'
+  | 'restore-project-preferences';

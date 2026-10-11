@@ -73,6 +73,16 @@ URLs/revisions remain caller-supplied and unverified until separately
 checked. This is source implementation only: matching Bun/CI and live
 Blockbench acceptance are **NOT EXECUTED**.
 
+## Safe Desktop metadata recovery (2026-10-11)
+
+Added bounded read/snapshot comparison, a rotating last-valid metadata
+checkpoint, stale-write refusal, and explicit recovery for malformed
+project pin preferences. The UI only offers restore with a validated
+recovery copy and confirmation; the corrupt original is saved separately.
+No native .bbmodel, texture, reference or workspace asset changes.
+Exact-SHA Rust/Windows/Desktop source and installed acceptance remain
+**NOT EXECUTED** under REMOTE_GITHUB. See `docs/04-system/data-lifecycle.md`.
+
 ## Runtime and proof boundaries
 
 The persistent Gateway owns client stability and Runtime recovery. Control

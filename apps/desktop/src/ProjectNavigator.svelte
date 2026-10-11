@@ -49,6 +49,22 @@
   }
 </script>
 
+{#if navigation.preferences_issue}
+  <section class="preferences-recovery" role="alert">
+    <div>
+      <strong>Project pins need attention</strong>
+      <span>Saved pin preferences could not be read. Model files remain untouched.</span>
+    </div>
+    {#if navigation.preferences_issue === 'RECOVERABLE'}
+      <button class="secondary-button small-button" onclick={() => onProjectAction('restore-project-preferences', '')} disabled={busy}>
+        Restore saved pins
+      </button>
+    {:else}
+      <span>No valid recovery copy is available. Existing data was preserved.</span>
+    {/if}
+  </section>
+{/if}
+
 {#if !navigation.active && continueTarget()}
   {@const target = continueTarget()}
   {#if target}
@@ -224,6 +240,8 @@
 {/if}
 
 <style>
+  .preferences-recovery{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-elevated);font-size:10px}
+  .preferences-recovery>div{display:grid;gap:5px}.preferences-recovery span{font-size:9px;color:var(--muted)}
   .content-section{margin-bottom:34px}
   .section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:10px}
   .section-heading h2{margin:0;font-size:12px;font-weight:700}
