@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   indexMarkdownKnowledge,
+  describeKnowledgeSource,
+  diffKnowledgeIndex,
   indexExplicitDocumentationEdges,
   knowledgeIndexFingerprint,
   selectKnowledgeSections,
 } from "../lib/semantic/knowledge";
+import { parsePreviousKnowledgeIndex } from "../scripts/development/build-knowledge-index";
 
 describe("knowledge section compiler", () => {
   test("creates stable hierarchical ids and ignores fenced headings", () => {
@@ -175,6 +178,86 @@ describe("knowledge section compiler", () => {
       to: "docs/05-operations/README.md",
     });
     expect(() => indexExplicitDocumentationEdges("../README.md", "# Invalid")).toThrow();
+  });
+
+  test("provenance is bound to source content and refuses ambiguous versions", () => {
+    const source = "# Particle\\nappearance";
+    const repo = describeKnowledgeSource("docs/particle.md", source);
+    expect(repo.origin).toBe("REPOSITORY");
+    expect(repo.content_sha256).toMatch(/^[0-9a-f]{64}$/);
+    const external = describeKnowledgeSource("snapshots/particle.md", source, {
+      upstream_url: "https://learn.microsoft.com/minecraft/",
+      upstream_revision: "v1.21.0",
+      compatible_with: [{ product: "MINECRAFT_BEDROCK", version: "1.21.0" }],
+    });
+    expect(external.origin).toBe("EXTERNAL_SNAPSHOT");
+    expect(() => describeKnowledgeSource("snapshots/particle.md", source, {
+      upstream_url: "http://example.com", upstream_revision: "v1",
+    })).toThrow(/HTTPS/);
+    expect(() => describeKnowledgeSource("snapshots/particle.md", source, {
+      upstream_url: "https://example.com", upstream_revision: "v1",
+      compatible_with: [{ product: "BLOCKBENCH", version: "latest" }],
+    })).toThrow(/exact/);
+  });
+
+  test("unchanged sections survive source line shifts, but upstream revisions invalidate", () => {
+    const source = "docs/model.md";
+    const oldText = "# Geometry\\nold\\n# Texturing\\nunchanged";
+    const newText = "# Geometry\\nnew\\nextra\\n# Texturing\\nunchanged";
+    const a = indexMarkdownKnowledge(source, oldText);
+    const b = indexMarkdownKnowledge(source, newText);
+    const diff = diffKnowledgeIndex({ sections: a }, { sections: b });
+    expect(diff.changed).toEqual([a[0]!.id]);
+    expect(diff.unchanged).toEqual([a[1]!.id]);
+    expect(a[1]!.start_line).not.toBe(b[1]!.start_line);
+    const meta = (rev: string) => describeKnowledgeSource(source, oldText, {
+      upstream_url: "https://example.org/spec", upstream_revision: rev,
+    });
+    expect(diffKnowledgeIndex(
+      { sections: a, sources: [meta("v1")] },
+      { sections: a, sources: [meta("v2")] },
+    ).changed).toHaveLength(2);
+  });
+
+  test("exact version matching never trusts sources with unknown compatibility", () => {
+    const path = "snapshots/animation.md", markdown = "# Animation\\ncontroller";
+    const sections = indexMarkdownKnowledge(path, markdown);
+    const evidence = describeKnowledgeSource(path, markdown, {
+      upstream_url: "https://example.org/spec", upstream_revision: "v1",
+      compatible_with: [{ product: "BLOCKBENCH", version: "5.2.1" }],
+    });
+    const select = (version: string, sourceEvidence = [evidence]) =>
+      selectKnowledgeSections({
+        sections, sourceEvidence, compatibleWith: { product: "BLOCKBENCH", version },
+        query: "animation controller",
+      });
+    expect(select("5.2.1")).toHaveLength(1);
+    expect(select("5.3.0")).toHaveLength(0);
+    expect(select("latest")).toHaveLength(0);
+    expect(select("5.2.1", [])).toHaveLength(0);
+    expect(() => select("5.2.1", [evidence, evidence])).toThrow(/Duplicate/);
+  });
+
+  test("schema-1 baseline supports original reports and checks source-level provenance fingerprint", () => {
+    const sections = indexMarkdownKnowledge("docs/a.md", "# A\\ncontent");
+    const legacy = {
+      schema: 1, proof_scope: "REPO_OWNED_KNOWLEDGE_INDEX",
+      fingerprint: knowledgeIndexFingerprint(sections), sections,
+    };
+    expect(parsePreviousKnowledgeIndex(legacy).sources).toBeUndefined();
+    const sources = [describeKnowledgeSource("docs/a.md", "# A\\ncontent")];
+    const current = { ...legacy, sources, fingerprint: knowledgeIndexFingerprint(sections, sources) };
+    expect(parsePreviousKnowledgeIndex(current).sources).toEqual(sources);
+    expect(() => parsePreviousKnowledgeIndex({
+      ...current, sources: [{...sources[0], content_sha256: "0".repeat(64)}],
+    })).toThrow(/fingerprint/);
+  });
+
+  test("duplicate identities reject unsafe index deltas", () => {
+    const section = indexMarkdownKnowledge("docs/a.md", "# A\\ncontent")[0]!;
+    expect(() => diffKnowledgeIndex(
+      { sections: [section, section] }, { sections: [section] },
+    )).toThrow(/Duplicate/);
   });
 
   test("duplicate semantic heading paths fail closed", () => {

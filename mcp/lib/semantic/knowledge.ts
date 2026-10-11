@@ -1,6 +1,66 @@
 import { createHash } from "node:crypto";
 import { posix } from "node:path";
 
+export type KnowledgeCompatibility = {
+  product: "MINECRAFT_BEDROCK" | "BLOCKBENCH";
+  version: string;
+};
+
+export type ExternalKnowledgeProvenance = {
+  upstream_url: string;
+  upstream_revision: string;
+  compatible_with?: readonly KnowledgeCompatibility[];
+};
+
+export type KnowledgeSourceEvidence =
+  | { origin: "REPOSITORY"; source: string; content_sha256: string }
+  | ({ origin: "EXTERNAL_SNAPSHOT"; source: string; content_sha256: string } & ExternalKnowledgeProvenance);
+
+export type KnowledgeIndexSnapshot = {
+  sections: readonly KnowledgeSection[];
+  sources?: readonly KnowledgeSourceEvidence[]; // absent in legacy schema-1 output
+};
+
+export type KnowledgeRevisionDelta = {
+  added: string[];
+  changed: string[];
+  removed: string[];
+  unchanged: string[];
+  affected_sources: string[];
+};
+
+const exactVersion = (value: string) => /^\d+(?:\.\d+){1,3}$/.test(value);
+
+/** Attach source-level evidence to actual Markdown bytes; no external fetch. */
+export function describeKnowledgeSource(
+  source: string, markdown: string, upstream?: ExternalKnowledgeProvenance
+): KnowledgeSourceEvidence {
+  if (!source.trim() || source.includes("\0")) throw new Error("Knowledge source path is missing.");
+  const identity = { source, content_sha256: sha256(markdown) };
+  if (!upstream) return { origin: "REPOSITORY", ...identity };
+  let url: URL;
+  try { url = new URL(upstream.upstream_url); }
+  catch { throw new Error("External provenance requires HTTPS URL."); }
+  if (url.protocol !== "https:" || !url.hostname || url.username || url.password) {
+    throw new Error("External provenance requires HTTPS URL without credentials.");
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/.test(upstream.upstream_revision)) {
+    throw new Error("External provenance requires pinned upstream revision.");
+  }
+  const versions = upstream.compatible_with;
+  if (versions !== undefined && (
+    !Array.isArray(versions) || versions.length === 0 || versions.length > 32 ||
+    versions.some(v => !v || !["MINECRAFT_BEDROCK","BLOCKBENCH"].includes(v.product) ||
+      typeof v.version !== "string" || !exactVersion(v.version)) ||
+    new Set(versions.map(v => v.product + ":" + v.version)).size !== versions.length
+  )) throw new Error("Compatibility must declare unique exact versions.");
+  return {
+    origin: "EXTERNAL_SNAPSHOT", ...identity,
+    upstream_url: url.href, upstream_revision: upstream.upstream_revision,
+    ...(versions ? { compatible_with: versions.map(v => ({ ...v })) } : {}),
+  };
+}
+
 export type KnowledgeSection = {
   id: string;
   source: string;
@@ -183,7 +243,8 @@ export function indexMarkdownKnowledge(
 }
 
 export function knowledgeIndexFingerprint(
-  sections: readonly KnowledgeSection[]
+  sections: readonly KnowledgeSection[],
+  sources?: readonly KnowledgeSourceEvidence[]
 ): string {
   const stable = sections
     .map((section) => ({
@@ -194,15 +255,78 @@ export function knowledgeIndexFingerprint(
       sha256: section.sha256,
     }))
     .sort((a, b) => a.id.localeCompare(b.id));
-  return sha256(JSON.stringify(stable));
+  if (!sources) return sha256(JSON.stringify(stable)); // original schema-1 compatibility
+  const evidence = [...sources].sort((a, b) => a.source.localeCompare(b.source));
+  return sha256(JSON.stringify({ sections: stable, sources: evidence }));
 }
 
+/** Pure revision comparison; moving line numbers cannot dirty stable content. */
+export function diffKnowledgeIndex(
+  before: KnowledgeIndexSnapshot, after: KnowledgeIndexSnapshot
+): KnowledgeRevisionDelta {
+  const index = (sections: readonly KnowledgeSection[]) => {
+    const indexed = new Map<string, KnowledgeSection>();
+    for (const section of sections) {
+      if (!section.id || !section.source || indexed.has(section.id)) {
+        throw new Error("Duplicate or missing knowledge section identity.");
+      }
+      indexed.set(section.id, section);
+    }
+    return indexed;
+  };
+  const sourceIndex = (sources?: readonly KnowledgeSourceEvidence[]) => {
+    const indexed = new Map<string, KnowledgeSourceEvidence>();
+    for (const source of sources ?? []) {
+      if (!source.source || indexed.has(source.source)) {
+        throw new Error("Duplicate or missing knowledge source evidence.");
+      }
+      indexed.set(source.source, source);
+    }
+    return indexed;
+  };
+  const a = index(before.sections), b = index(after.sections);
+  const previousSources = sourceIndex(before.sources);
+  const nextSources = sourceIndex(after.sources);
+  const semanticSource = (source?: KnowledgeSourceEvidence): string => {
+    if (!source) return "UNKNOWN";
+    if (source.origin === "REPOSITORY") return "REPOSITORY";
+    return JSON.stringify({
+      origin: source.origin, url: source.upstream_url,
+      revision: source.upstream_revision,
+      compatibility: (source.compatible_with ?? [])
+        .map(v => v.product + ":" + v.version).sort(),
+    });
+  };
+  const delta: KnowledgeRevisionDelta = {
+    added: [], changed: [], removed: [], unchanged: [], affected_sources: [],
+  };
+  const affected = new Set<string>();
+  for (const id of [...new Set([...a.keys(), ...b.keys()])].sort()) {
+    const was = a.get(id), now = b.get(id);
+    if (!was && now) { delta.added.push(id); affected.add(now.source); }
+    else if (was && !now) { delta.removed.push(id); affected.add(was.source); }
+    else if (was && now) {
+      const provenanceChanged = before.sources !== undefined &&
+        semanticSource(previousSources.get(was.source)) !==
+        semanticSource(nextSources.get(now.source));
+      if (was.source !== now.source || was.sha256 !== now.sha256 ||
+          JSON.stringify(was.heading_path) !== JSON.stringify(now.heading_path) ||
+          provenanceChanged) {
+        delta.changed.push(id); affected.add(was.source); affected.add(now.source);
+      } else delta.unchanged.push(id);
+    }
+  }
+  delta.affected_sources = [...affected].sort();
+  return delta;
+}
 
 export function selectKnowledgeSections(input: {
   sections: readonly KnowledgeSection[];
   query: string;
   limit?: number;
   maxTokenProxy?: number;
+  compatibleWith?: KnowledgeCompatibility; // strict opt-in, unknown is excluded
+  sourceEvidence?: readonly KnowledgeSourceEvidence[];
 }): KnowledgeSelection[] {
   const queryTerms = new Set(tokens(input.query));
   const requestedLimit = input.limit ?? 8;
@@ -212,8 +336,26 @@ export function selectKnowledgeSections(input: {
   }
   const boundedLimit = Math.max(1, Math.trunc(requestedLimit));
   const budget = Math.max(1, Math.trunc(requestedBudget));
+  if (input.compatibleWith && (
+    !["MINECRAFT_BEDROCK", "BLOCKBENCH"].includes(input.compatibleWith.product) ||
+    !exactVersion(input.compatibleWith.version)
+  )) return [];
+  const sources = new Map<string, KnowledgeSourceEvidence>();
+  for (const evidence of input.sourceEvidence ?? []) {
+    if (sources.has(evidence.source)) throw new Error("Duplicate knowledge source evidence.");
+    sources.set(evidence.source, evidence);
+  }
 
   const ranked = input.sections
+    .filter(section => {
+      if (!input.compatibleWith) return true;
+      const evidence = sources.get(section.source);
+      return evidence?.origin === "EXTERNAL_SNAPSHOT" &&
+        evidence.compatible_with?.some(v =>
+          v.product === input.compatibleWith!.product &&
+          v.version === input.compatibleWith!.version
+        ) === true;
+    })
     .map((section) => {
       const headingTerms = new Set(tokens(section.heading_path.join(" ")));
       let score = 0;

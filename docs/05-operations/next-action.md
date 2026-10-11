@@ -63,6 +63,16 @@ Current source still lacks matching Bun/native/visual acceptance.
 
 The source includes a read-only tracked-data/alias inventory and staged Desktop metadata replacement with fail-closed preference reads. No new knowledge registry or user asset migration. Bun, Rust, installed Desktop and native Blockbench acceptance remain **NOT EXECUTED** under REMOTE_GITHUB. Contract: `docs/04-system/data-lifecycle.md`.
 
+## Knowledge lifecycle implementation (2026-10-11)
+
+Canonical Markdown knowledge now emits content-hashed source evidence,
+pure revision deltas and explicit exact-version filtering. The existing
+`generate:knowledge-index` command can compare fingerprint-checked previous
+reports and reuse unchanged source sections without re-parsing. Upstream
+URLs/revisions remain caller-supplied and unverified until separately
+checked. This is source implementation only: matching Bun/CI and live
+Blockbench acceptance are **NOT EXECUTED**.
+
 ## Runtime and proof boundaries
 
 The persistent Gateway owns client stability and Runtime recovery. Control
