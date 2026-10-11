@@ -13,4 +13,17 @@ describe("developer command facade", () => {
     expect(packageJson.scripts?.benchmark).toBe("bun run verify:benchmarks");
     expect(packageJson.scripts?.release).toBe("bun run verify:release");
   });
+  test("full MCP source gate discovers every Gateway test instead of a stale hand-picked subset", async () => {
+    const packageJson = JSON.parse(
+      await Bun.file("package.json").text()
+    ) as { scripts?: Record<string, string> };
+    const scripts = packageJson.scripts ?? {};
+    expect(scripts["verify:full"]).toContain("bun run verify:mcp");
+    expect(scripts["verify:mcp"]).toContain("bun run verify:contracts");
+    expect(scripts["verify:contracts"]).toContain("bun test gateway/ lib/capabilities/manifest.test.ts");
+    expect(scripts["verify:contracts"]).not.toContain("bun run test:gateway-structure");
+    expect(scripts["verify:contracts"]).not.toContain("bun run test:gateway-recovery");
+    expect(scripts["verify:contracts"]).not.toContain("bun run test:capability-manifest");
+  });
+
 });
