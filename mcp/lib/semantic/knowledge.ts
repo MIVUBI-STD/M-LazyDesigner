@@ -145,6 +145,35 @@ function searchTerms(
     .map(([token]) => token);
 }
 
+type MarkdownFence = { marker: string; size: number };
+
+/**
+ * Share the same CommonMark-style fence boundary between knowledge sections
+ * and explicit documentation links. A shorter run or a line with trailing
+ * content must not end an active fence.
+ */
+function advanceMarkdownFence(
+  line: string,
+  current: MarkdownFence | null
+): { fence: MarkdownFence | null; boundary: boolean } {
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+  if (!match) return { fence: current, boundary: false };
+  const run = match[1]!;
+  const marker = run[0]!;
+  const suffix = match[2]!;
+  if (current) {
+    if (current.marker === marker && run.length >= current.size && suffix.trim() === "") {
+      return { fence: null, boundary: true };
+    }
+    return { fence: current, boundary: false };
+  }
+  // Backtick fences cannot contain backticks in their opening info string.
+  if (marker === "`" && suffix.includes("`")) {
+    return { fence: null, boundary: false };
+  }
+  return { fence: { marker, size: run.length }, boundary: true };
+}
+
 /**
  * Parse ATX Markdown headings into addressable, content-hashed knowledge sections.
  *
@@ -159,7 +188,7 @@ export function indexMarkdownKnowledge(
   const lines = text.split(/\r?\n/);
   const sections: KnowledgeSection[] = [];
   const headingStack: Array<{ level: number; heading: string }> = [];
-  let fence: string | null = null;
+  let fence: MarkdownFence | null = null;
   let active:
     | {
         id: string;
@@ -194,14 +223,9 @@ export function indexMarkdownKnowledge(
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index] ?? "";
-    const fenceMatch = line.match(/^\s*([`~]{3,})/);
-    if (fenceMatch) {
-      const marker = fenceMatch[1]![0]!;
-      if (fence === null) fence = marker;
-      else if (fence === marker) fence = null;
-      continue;
-    }
-    if (fence !== null) continue;
+    const transition = advanceMarkdownFence(line, fence);
+    fence = transition.fence;
+    if (transition.boundary || fence !== null) continue;
 
     const headingMatch = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
     if (!headingMatch) continue;
@@ -413,18 +437,11 @@ export function indexExplicitDocumentationEdges(
   }
 
   const edges: ExplicitDocumentationEdge[] = [];
-  let fence: { marker: string; size: number } | null = null;
+  let fence: MarkdownFence | null = null;
   for (const [index, line] of markdown.split(/\r?\n/).entries()) {
-    const boundary = line.match(/^\s{0,3}(`{3,}|~{3,})/);
-    if (boundary) {
-      const marker = boundary[1]![0]!;
-      if (!fence) fence = { marker, size: boundary[1]!.length };
-      else if (fence.marker === marker && boundary[1]!.length >= fence.size) {
-        fence = null;
-      }
-      continue;
-    }
-    if (fence) continue;
+    const transition = advanceMarkdownFence(line, fence);
+    fence = transition.fence;
+    if (transition.boundary || fence !== null) continue;
 
     const links = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
     for (const match of line.matchAll(links)) {

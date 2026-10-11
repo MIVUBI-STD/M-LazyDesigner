@@ -41,6 +41,45 @@ describe("knowledge section compiler", () => {
     );
   });
 
+  test("long fences do not expose shorter inner fences as knowledge headings", () => {
+    const sections = indexMarkdownKnowledge("doc.md", [
+      "# Actual",
+      "````md",
+      "```",
+      "## Hidden",
+      "```",
+      "````",
+      "## Visible",
+    ].join("\n"));
+    expect(sections.map(section => section.heading)).toEqual(["Actual", "Visible"]);
+  });
+
+  test("fences close only on a matching, sufficiently long, plain closing line", () => {
+    const sections = indexMarkdownKnowledge("doc.md", [
+      "# Start",
+      "~~~~text",
+      "~~~",
+      "~~~~still-content",
+      "## Hidden",
+      "~~~~",
+      "## Done",
+    ].join("\n"));
+    expect(sections.map(section => section.heading)).toEqual(["Start", "Done"]);
+  });
+
+  test("documentation links respect the same multiline fence boundaries", () => {
+    const edges = indexExplicitDocumentationEdges("docs/index.md", [
+      "[Available](present.md)",
+      "````md",
+      "```",
+      "[Invisible](missing.md)",
+      "````",
+      "[Available again](present.md)",
+    ].join("\n"));
+    expect(edges.map(edge => edge.label)).toEqual(["Available", "Available again"]);
+    expect(edges.map(edge => edge.line)).toEqual([1, 6]);
+  });
+
   test("content changes alter only the affected section hash", () => {
     const before = indexMarkdownKnowledge(
       "doc.md",
