@@ -7,7 +7,7 @@ describe("element module ownership", () => {
       Bun.file("server/tools/element/mutation.ts").text(),
       Bun.file("server/tools/element/hierarchy.ts").text(),
       Bun.file("server/tools/element/discovery.ts").text(),
-      Bun.file("server/tools/element-shared.ts").text(),
+      Bun.file("server/tools/element/shared.ts").text(),
     ]);
 
     expect(facade).not.toContain("createTool(");

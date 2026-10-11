@@ -4,11 +4,11 @@ describe("paint module ownership", () => {
   test("paint facade aggregates focused capability owners only", async () => {
     const [facade, primitives, brush, settings, selectionLayers, shared] = await Promise.all([
       Bun.file("server/tools/paint.ts").text(),
-      Bun.file("server/tools/paint-primitives.ts").text(),
-      Bun.file("server/tools/paint-brush.ts").text(),
-      Bun.file("server/tools/paint-settings.ts").text(),
-      Bun.file("server/tools/paint-selection-layers.ts").text(),
-      Bun.file("server/tools/paint-shared.ts").text(),
+      Bun.file("server/tools/paint/primitives.ts").text(),
+      Bun.file("server/tools/paint/brush.ts").text(),
+      Bun.file("server/tools/paint/settings.ts").text(),
+      Bun.file("server/tools/paint/selectionLayers.ts").text(),
+      Bun.file("server/tools/paint/shared.ts").text(),
     ]);
 
     expect(facade).not.toContain("createTool(");

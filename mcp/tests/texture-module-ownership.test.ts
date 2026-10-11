@@ -4,11 +4,11 @@ describe("texture module ownership", () => {
   test("texture facade aggregates focused capability owners only", async () => {
     const [facade, create, read, atlas, assignment, materials] = await Promise.all([
       Bun.file("server/tools/texture.ts").text(),
-      Bun.file("server/tools/texture-create.ts").text(),
-      Bun.file("server/tools/texture-read.ts").text(),
-      Bun.file("server/tools/texture-atlas.ts").text(),
-      Bun.file("server/tools/texture-assignment.ts").text(),
-      Bun.file("server/tools/texture-materials.ts").text(),
+      Bun.file("server/tools/texture/create.ts").text(),
+      Bun.file("server/tools/texture/read.ts").text(),
+      Bun.file("server/tools/texture/atlas.ts").text(),
+      Bun.file("server/tools/texture/assignment.ts").text(),
+      Bun.file("server/tools/texture/materials.ts").text(),
     ]);
 
     expect(facade).not.toContain("createTool(");

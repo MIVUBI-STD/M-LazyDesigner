@@ -5,10 +5,10 @@ describe("animation module ownership", () => {
     const [facade, rigging, shared] = await Promise.all([
       Bun.file("server/tools/animation.ts").text(),
       Bun.file("server/tools/animation/rigging.ts").text(),
-      Bun.file("server/tools/animation-shared.ts").text(),
+      Bun.file("server/tools/animation/shared.ts").text(),
     ]);
 
-    expect(facade).toContain('from "./animation-rigging"');
+    expect(facade).toContain('from "./animation/rigging"');
     expect(facade).toContain("registerBoneRiggingTool();");
     expect(facade).toContain("boneRiggingToolDoc");
     expect(facade).not.toContain("Bone rigging: ${action}");
@@ -23,10 +23,10 @@ describe("animation module ownership", () => {
   test("animation creation implementation lives outside the animation facade", async () => {
     const [facade, creation] = await Promise.all([
       Bun.file("server/tools/animation.ts").text(),
-      Bun.file("server/tools/animation-create.ts").text(),
+      Bun.file("server/tools/animation/create.ts").text(),
     ]);
 
-    expect(facade).toContain('from "./animation-create"');
+    expect(facade).toContain('from "./animation/create"');
     expect(facade).toContain("registerCreateAnimationTool();");
     expect(facade).toContain("createAnimationToolDoc");
     expect(facade).not.toContain('Undo.finishEdit("Create animation"');
@@ -36,11 +36,14 @@ describe("animation module ownership", () => {
   });
 
   test("animation facade aggregates focused capability modules only", async () => {
-    const [facade, keyframes, timeline, batch] = await Promise.all([
+    const [facade, keyframes, timeline, batch, keyframeSchema, timelineSchema, batchSchema] = await Promise.all([
       Bun.file("server/tools/animation.ts").text(),
-      Bun.file("server/tools/animation-keyframes.ts").text(),
-      Bun.file("server/tools/animation-timeline.ts").text(),
-      Bun.file("server/tools/animation-batch.ts").text(),
+      Bun.file("server/tools/animation/keyframes.ts").text(),
+      Bun.file("server/tools/animation/timeline.ts").text(),
+      Bun.file("server/tools/animation/batch.ts").text(),
+      Bun.file("server/tools/animation/keyframeSchema.ts").text(),
+      Bun.file("server/tools/animation/timelineSchema.ts").text(),
+      Bun.file("server/tools/animation/batchSchema.ts").text(),
     ]);
 
     expect(facade).not.toContain("createTool(");
@@ -50,11 +53,15 @@ describe("animation module ownership", () => {
     expect(facade).toContain("registerAnimationTimelineTool();");
     expect(facade).toContain("registerAnimationBatchTools();");
 
-    expect(keyframes).toContain("export const manageKeyframesParameters");
-    expect(keyframes).toContain("export const animationGraphEditorParameters");
-    expect(timeline).toContain("export const animationTimelineParameters");
-    expect(batch).toContain("export const batchKeyframeOperationsParameters");
-    expect(batch).toContain("export const animationCopyPasteParameters");
+    // Schema owners are distinct from the executor modules that re-export them.
+    expect(keyframes).toContain('from "./keyframeSchema"');
+    expect(timeline).toContain('from "./timelineSchema"');
+    expect(batch).toContain('from "./batchSchema"');
+    expect(keyframeSchema).toContain("export const manageKeyframesParameters");
+    expect(keyframeSchema).toContain("export const animationGraphEditorParameters");
+    expect(timelineSchema).toContain("export const animationTimelineParameters");
+    expect(batchSchema).toContain("export const batchKeyframeOperationsParameters");
+    expect(batchSchema).toContain("export const animationCopyPasteParameters");
   });
 
 });

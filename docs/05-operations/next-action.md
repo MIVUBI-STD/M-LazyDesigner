@@ -10,6 +10,12 @@ Affected selection now covers directly changed executable tests and maps three e
 
 Next: identify the next independently proven redundant/stale cluster by canonical invariant and source owner; consolidate only with equivalent coverage and use existing targeted verification once at the relevant proof milestone. Do not retire tests due solely to age or file count.
 
+## Modular tool ownership tests — consolidation batch 3
+
+Four existing Animation, Paint, Texture and Element ownership suites now read canonical implementation modules under `mcp/server/tools/{animation,paint,texture,element}/` rather than retired re-export wrappers. Registration and order invariants remain. Animation schema assertions now inspect the actual `keyframeSchema.ts`, `timelineSchema.ts` and `batchSchema.ts` owners, preserving schema/executor boundaries. No production changes, new runner, registry, database, or dependencies. Source/static comparison only; Bun/CI and native Blockbench **NOT EXECUTED** on this SHA.
+
+Next: inspect additional proven stale or redundant clusters and preserve independent failure boundaries before any further retirement.
+
 ## Current direction
 
 `Local` is development/source authority. GitHub Actions are manual-only: a source push does not create an executable proof result. `MCP Verify` runs the full source gate when explicitly dispatched; targeted/affected verifier scripts remain available on demand.
