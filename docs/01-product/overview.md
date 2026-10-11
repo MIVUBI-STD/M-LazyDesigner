@@ -39,7 +39,7 @@ Causal correction
 Secondary structure / surface / motion only after prerequisites are sound
 ```
 
-Detailed sequence: [Current Flow](../knowledge/flow.md).
+Detailed sequence: [Current Flow](flow.md).
 
 ## Responsibility Split
 
@@ -67,9 +67,9 @@ LazyDesigner succeeds when approved evidence drives visible form honestly; prima
 
 ## Related
 
-- [Product Requirements](02-product-requirements.md)
-- [Reference Guide](04-reference-guide.md)
-- [Geometry Standard](05-geometry-standard.md)
-- [Texture Standard](06-texture-standard.md)
-- [Visual Validation](07-visual-validation.md)
-- [Current Flow](../knowledge/flow.md)
+- [Product Requirements](requirements.md)
+- [Reference Preparation](../02-reference/README.md)
+- [Geometry Standard](../03-authoring/modelling/standard.md)
+- [Texture Standard](../03-authoring/texture/standard.md)
+- [Visual Validation](../03-authoring/validation/visual.md)
+- [Current Flow](flow.md)

@@ -158,7 +158,7 @@ const GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH: Readonly<
 };
 
 
-const FIXTURE_CONTRACT_TESTS_BY_PATH: Readonly<Record<string, readonly string[]>> = {
+export const FIXTURE_CONTRACT_TESTS_BY_PATH: Readonly<Record<string, readonly string[]>> = {
   "mcp/tests/fixtures/agent-permission-cases.json": [
     "mcp/tests/repository/agent-permission-preflight.test.ts",
   ],

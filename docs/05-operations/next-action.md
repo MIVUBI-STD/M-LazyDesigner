@@ -83,6 +83,16 @@ No native .bbmodel, texture, reference or workspace asset changes.
 Exact-SHA Rust/Windows/Desktop source and installed acceptance remain
 **NOT EXECUTED** under REMOTE_GITHUB. See `docs/04-system/data-lifecycle.md`.
 
+## Maintenance diagnostics (2026-10-11)
+
+`audit:data` now derives broken authored documentation links, fixture
+consumer integrity and compatibility alias chains. The existing
+`plan:affected` remains the only verification planner. Confirmed stale
+links in the product overview now resolve to tracked canonical owners.
+No background worker, registry or user asset mutation was introduced.
+Current exact-SHA Bun/Rust/Windows/Blockbench acceptance remains
+**NOT EXECUTED** under REMOTE_GITHUB.
+
 ## Runtime and proof boundaries
 
 The persistent Gateway owns client stability and Runtime recovery. Control

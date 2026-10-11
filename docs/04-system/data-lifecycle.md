@@ -35,6 +35,18 @@ artifact, does not fetch the internet, and is not a backup mechanism.
 Neither a filename collision nor a ranking score establishes canonical
 ownership. Continue using existing source owners and scoped context loading.
 
+The same read-only audit also reports explicit Markdown links in `docs/`
+whose tracked targets are missing, missing consumer tests for JSON fixtures,
+and multi-hop compatibility re-exports. Fixture consumers come directly
+from the canonical `gateway/development/affectedExecution.ts` map; no
+duplicate fixture registry or inferred documentation graph is added.
+
+By default, `audit:data` fails for missing alias targets and missing fixture
+consumers. `audit:data --strict` also fails for authored broken document
+links and alias chains. The output never edits source or private assets.
+Use existing `plan:affected` and `verify:affected` for changed-source
+dependency/verification planning. There is no second test planner.
+
 ## Knowledge lifecycle and provenance
 
 The canonical `mcp/lib/semantic/knowledge.ts` now offers source-level SHA-256
