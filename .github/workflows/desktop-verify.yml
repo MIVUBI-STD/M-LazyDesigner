@@ -214,7 +214,7 @@ jobs:
           $provenance | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $bundle 'desktop-build-provenance.json')
 
       - name: Upload Desktop installer smoke artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v6
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: lazydesigner-desktop-windows-x64
           path: |
