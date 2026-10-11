@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { connectionChanged } from "../../apps/desktop/src/connectionWatch";
 
 const source = (relative: string) =>
   Bun.file(new URL(`../${relative}`, import.meta.url)).text();
@@ -132,27 +131,12 @@ describe("human-facing Blockbench UI", () => {
     expect(panel).not.toContain("pluginBrowserSetup");
   });
 
-  test("Desktop connection observations are conservative", () => {
-    const baseline = {
-      blockbench: { running: true },
-      runtime_listener_live: true,
-      plugin_integrity: "ready",
-      managed: { gateway_active: true },
-      project_navigation: { revision: "rev1", session_live: true },
-    };
-    const observation = {
-      blockbench_running: true,
-      runtime_listener_live: true,
-      gateway_active: null,
-      plugin_integrity: "ready",
-      project_revision: "rev1",
-      project_session_live: true,
-    };
-    expect(connectionChanged(observation, baseline)).toBe(false);
-    expect(connectionChanged({ ...observation, gateway_active: false }, baseline)).toBe(true);
-    expect(connectionChanged({ ...observation, project_revision: "rev2" }, baseline)).toBe(true);
-    expect(connectionChanged({ ...observation, runtime_listener_live: false }, baseline)).toBe(true);
-    expect(connectionChanged({ ...observation, gateway_active: false }, { ...baseline, managed: null })).toBe(false);
+  test("Desktop connection comparison preserves unknown Gateway observations", async () => {
+    // MCP compilation is rootDir=mcp; do not import Desktop TypeScript into this package.
+    const comparison = await Bun.file(new URL("../../apps/desktop/src/connectionWatch.ts", import.meta.url)).text();
+    expect(comparison).toContain("candidate.gateway_active !== null && current.managed !== null");
+    expect(comparison).toContain("candidate.project_revision !== current.project_navigation.revision");
+    expect(comparison).toContain("candidate.runtime_listener_live !== current.runtime_listener_live");
   });
 
   test("Desktop guards overlapping probes and signals stale state", async () => {
