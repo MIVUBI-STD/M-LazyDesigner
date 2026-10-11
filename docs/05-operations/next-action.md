@@ -6,6 +6,9 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
+Source hardening batch (2026-10-11): `af60851` reconciled stale Stage/type imports and ownership declarations. A subsequent native-lifecycle change introduces process-global bounded admission (16 waiting native calls plus one active) across Gateway clients. Both remain **source changes only** until verified on their exact commit SHA; do not mark build, long-session stability, or installed Blockbench as PASS. Prefer one matching full acceptance milestone instead of repeated full test runs.
+
+
 `Local` is working source authority. GitHub Actions are **manual-only**:
 a push does not prove executable correctness. Registration history belongs
 in `current-validation.md`. ChatGPT + GitHub/cloud work does not require

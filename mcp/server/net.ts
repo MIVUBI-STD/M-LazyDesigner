@@ -37,6 +37,7 @@ import {
 } from '@/lib/runtime/affinity'
 import {
   RuntimeGenerationRetiredError,
+  RuntimeOperationQueueFullError,
   runRuntimeOperationExclusive,
   waitForRuntimeOperationDrain
 } from '@/lib/runtime/lifecycle'
@@ -461,6 +462,16 @@ export default function createNetServer (
             closeMcpConnection
           )
         } catch (error) {
+          if (error instanceof RuntimeOperationQueueFullError) {
+            sendNodeResponse(
+              response,
+              429,
+              { 'content-type': 'application/json', 'retry-after': '1' },
+              jsonErrorBody(error.message, envelope.id),
+              true
+            )
+            return
+          }
           if (
             error instanceof RuntimeRequestAbandonedError ||
             error instanceof RuntimeGenerationRetiredError

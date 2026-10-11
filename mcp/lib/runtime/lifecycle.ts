@@ -13,7 +13,12 @@ type RuntimeLifecycleCoordinator = {
   state: RuntimeLifecycleState;
   operationTail: Promise<void>;
   teardownTail: Promise<void>;
+  /** Process-wide admission counter, retained across plugin reload generations. */
+  pendingOperations?: number;
 };
+
+/** Native Blockbench state is process-global: one active operation plus bounded waiters. */
+export const MAX_RUNTIME_WAITING_OPERATIONS = 16;
 
 const GLOBAL_LIFECYCLE_KEY = "__BLOCKIT_RUNTIME_LIFECYCLE_V1__";
 
@@ -24,7 +29,11 @@ type RuntimeLifecycleGlobal = typeof globalThis & {
 function getCoordinator(): RuntimeLifecycleCoordinator {
   const root = globalThis as RuntimeLifecycleGlobal;
   const existing = root[GLOBAL_LIFECYCLE_KEY];
-  if (existing?.version === 1) return existing;
+  if (existing?.version === 1) {
+    // Upgrade a coordinator created by an older hot-reloaded plugin in place.
+    if (existing.pendingOperations === undefined) existing.pendingOperations = 0;
+    return existing;
+  }
 
   const created: RuntimeLifecycleCoordinator = {
     version: 1,
@@ -34,6 +43,7 @@ function getCoordinator(): RuntimeLifecycleCoordinator {
     state: "stopped",
     operationTail: Promise.resolve(),
     teardownTail: Promise.resolve(),
+    pendingOperations: 0,
   };
   root[GLOBAL_LIFECYCLE_KEY] = created;
   return created;
@@ -43,6 +53,13 @@ export class RuntimeGenerationRetiredError extends Error {
   constructor(readonly generation: number) {
     super(`BlockIT Runtime generation ${generation} is no longer active.`);
     this.name = "RuntimeGenerationRetiredError";
+  }
+}
+
+export class RuntimeOperationQueueFullError extends Error {
+  constructor() {
+    super(`LazyDesigner Runtime is busy: ${MAX_RUNTIME_WAITING_OPERATIONS} native operations are already waiting. No new mutation was executed.`);
+    this.name = "RuntimeOperationQueueFullError";
   }
 }
 
@@ -124,6 +141,12 @@ export function runRuntimeOperationExclusive<T>(
   operation: () => Promise<T>
 ): Promise<T> {
   const coordinator = getCoordinator();
+  // Admission happens synchronously before the operation is scheduled. A
+  // second Gateway cannot bypass the first Gateway's private queue limit.
+  if ((coordinator.pendingOperations ?? 0) >= MAX_RUNTIME_WAITING_OPERATIONS + 1) {
+    return Promise.reject(new RuntimeOperationQueueFullError());
+  }
+  coordinator.pendingOperations = (coordinator.pendingOperations ?? 0) + 1;
   const execute = async (): Promise<T> => {
     if (
       generation !== null &&
@@ -141,7 +164,9 @@ export function runRuntimeOperationExclusive<T>(
     return result;
   };
 
-  const run = coordinator.operationTail.then(execute, execute);
+  const run = coordinator.operationTail.then(execute, execute).finally(() => {
+    coordinator.pendingOperations = Math.max(0, (coordinator.pendingOperations ?? 1) - 1);
+  });
   coordinator.operationTail = run.then(
     () => undefined,
     () => undefined

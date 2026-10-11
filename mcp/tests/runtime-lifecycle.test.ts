@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   RuntimeGenerationRetiredError,
+  RuntimeOperationQueueFullError,
+  MAX_RUNTIME_WAITING_OPERATIONS,
   beginRuntimeGenerationTeardown,
   claimRuntimeGeneration,
   getRuntimeLifecycleSnapshot,
@@ -72,6 +74,35 @@ describe("BlockIT plugin lifecycle coordinator", () => {
     ).toBe("new-generation");
 
     await beginRuntimeGenerationTeardown(second.generation, async () => {});
+  });
+
+  test("global native admission rejects overload before execution and drains safely", async () => {
+    const claim = claimRuntimeGeneration(`sha256:${"6".repeat(64)}`);
+    const gate = deferred();
+    let executed = 0;
+    const pending = Array.from({ length: MAX_RUNTIME_WAITING_OPERATIONS + 1 }, (_, index) =>
+      runRuntimeOperationExclusive(claim.generation, async () => {
+        executed += 1;
+        if (index === 0) await gate.promise;
+        return index;
+      })
+    );
+
+    try {
+      await Promise.resolve();
+      await expect(
+        runRuntimeOperationExclusive(claim.generation, async () => {
+          executed += 1;
+          return -1;
+        })
+      ).rejects.toBeInstanceOf(RuntimeOperationQueueFullError);
+      expect(executed).toBe(1);
+    } finally {
+      gate.resolve();
+      await Promise.allSettled(pending);
+      await beginRuntimeGenerationTeardown(claim.generation, async () => {});
+    }
+    expect(executed).toBe(MAX_RUNTIME_WAITING_OPERATIONS + 1);
   });
 
   test("lifecycle state updates are generation-owned and bounded", async () => {
