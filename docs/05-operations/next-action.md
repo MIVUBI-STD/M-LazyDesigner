@@ -59,6 +59,10 @@ Design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md)
 No new GPU service, Gateway tool, Runtime or persistent registry.
 Current source still lacks matching Bun/native/visual acceptance.
 
+## Data lifecycle source implementation (2026-10-11)
+
+The source includes a read-only tracked-data/alias inventory and staged Desktop metadata replacement with fail-closed preference reads. No new knowledge registry or user asset migration. Bun, Rust, installed Desktop and native Blockbench acceptance remain **NOT EXECUTED** under REMOTE_GITHUB. Contract: `docs/04-system/data-lifecycle.md`.
+
 ## Runtime and proof boundaries
 
 The persistent Gateway owns client stability and Runtime recovery. Control

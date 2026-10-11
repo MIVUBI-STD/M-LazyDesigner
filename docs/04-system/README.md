@@ -13,6 +13,7 @@ blockbench-compatibility.md
 control/context-projection.md
 implementation-map.md
 module-boundaries.md
+data-lifecycle.md
 development-operating-standard.md
 skill-taxonomy.md
 compatibility-identifiers.md
@@ -52,6 +53,9 @@ What does Control project to Codex?
 
 Which source/module owns this behavior?
 → implementation-map.md
+
+Which data is canonical, derived or user-owned, and how is Desktop metadata protected?
+→ data-lifecycle.md
 
 What development discipline, permission and STOP checks apply?
 → development-operating-standard.md

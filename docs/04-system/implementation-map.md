@@ -123,6 +123,10 @@ Control owns product context selection, projection and lifecycle orientation. It
 
 Compatibility paths `control/developmentIntent.ts`, `control/sourceOwners.ts`, `control/sourceOwners/**`, and `control/registry.ts` are not implementation owners.
 
+## Data lifecycle
+
+`docs/04-system/data-lifecycle.md` owns the data safety contract. `mcp/scripts/development/data-inventory.ts` is a derived, on-demand Git-tracked audit with no independent state. `apps/desktop/src-tauri/src/metadata_io.rs` protects only small Desktop-owned metadata written by `project_navigation.rs`, never native asset files.
+
 ## Gateway Development Intelligence
 
 Canonical source: `mcp/gateway/development/`.

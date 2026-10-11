@@ -6,6 +6,7 @@ This directory owns bounded source-development planning and derived development 
 analyze-semantic-impact.ts       changed paths → affected capability graph
 build-development-symbol-map.ts  intent → bounded TypeScript symbol map
 build-knowledge-index.ts         repository knowledge → deterministic section index
+data-inventory.ts                Git-tracked authored data + pure aliases → read-only audit
 plan-development-context.ts      intent/change set → bounded Codex read targets
 plan-affected-execution.ts       changed paths → minimum safe verification plan
 run-affected-execution.ts        execute the bounded affected plan

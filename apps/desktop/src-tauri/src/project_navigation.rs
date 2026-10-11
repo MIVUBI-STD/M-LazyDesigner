@@ -139,6 +139,7 @@ struct ProjectIdentity {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
+#[serde(deny_unknown_fields)]
 struct ProjectNavigationPreferences {
     schema: u8,
     pinned_project_ids: Vec<String>,
@@ -205,50 +206,64 @@ fn read_navigation_snapshot(profile_id: Option<&str>) -> Option<NavigationSnapsh
     navigation_snapshot_is_valid(&snapshot, expected_profile_id).then_some(snapshot)
 }
 
-fn read_project_navigation_preferences() -> ProjectNavigationPreferences {
-    let Some(path) = project_navigation_preferences_path() else {
-        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+fn empty_navigation_preferences() -> ProjectNavigationPreferences {
+    ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() }
+}
+
+fn read_navigation_preferences_at(path: &Path) -> Result<Option<ProjectNavigationPreferences>, String> {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(format!("Unable to inspect project preferences: {error}")),
     };
-    let Ok(metadata) = fs::metadata(&path) else {
-        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
-    };
-    if metadata.len() == 0 || metadata.len() > 64 * 1024 {
-        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > 64 * 1024 {
+        return Err("Preferences are not a valid bounded regular file.".to_string());
     }
-    let Ok(bytes) = fs::read(path) else {
-        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
-    };
-    let Ok(mut value) = serde_json::from_slice::<ProjectNavigationPreferences>(&bytes) else {
-        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
-    };
-    if value.schema != 1 {
-        return ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() };
+    let data = fs::read(path).map_err(|error| format!("Unable to read preferences: {error}"))?;
+    let mut value: ProjectNavigationPreferences = serde_json::from_slice(&data)
+        .map_err(|_| "Preferences are malformed; original data preserved.".to_string())?;
+    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) {
+        return Err("Preferences contain an unsupported schema or project ID; original data preserved.".to_string());
     }
-    value.pinned_project_ids.retain(|id| {
-        id.strip_prefix("project-")
-            .map(|suffix| suffix.len() == 20 && suffix.chars().all(|ch| ch.is_ascii_hexdigit()))
-            .unwrap_or(false)
-    });
     value.pinned_project_ids.sort();
     value.pinned_project_ids.dedup();
-    value
+    Ok(Some(value))
+}
+
+fn valid_pinned_project_id(id: &str) -> bool {
+    id.strip_prefix("project-")
+        .map(|suffix| suffix.len() == 20 && suffix.chars().all(|ch| ch.is_ascii_hexdigit()))
+        .unwrap_or(false)
+}
+
+fn load_project_navigation_preferences() -> Result<ProjectNavigationPreferences, String> {
+    let path = project_navigation_preferences_path()
+        .ok_or_else(|| "LOCALAPPDATA is unavailable.".to_string())?;
+    Ok(read_navigation_preferences_at(&path)?.unwrap_or_else(empty_navigation_preferences))
+}
+
+fn read_project_navigation_preferences() -> ProjectNavigationPreferences {
+    load_project_navigation_preferences().unwrap_or_else(|_| empty_navigation_preferences())
+}
+
+fn write_navigation_preferences_at(path: &Path, value: &ProjectNavigationPreferences) -> Result<(), String> {
+    // Do not turn an unreadable future/corrupt file into an empty configuration.
+    read_navigation_preferences_at(path)?;
+    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) {
+        return Err("Preferences schema or project IDs are invalid.".to_string());
+    }
+    let data = serde_json::to_vec(value).map_err(|error| format!("Unable to encode preferences: {error}"))?;
+    if data.len() > 64 * 1024 { return Err("Preferences exceed bounded size.".to_string()); }
+    crate::metadata_io::replace_metadata(path, &data)
+        .map_err(|error| format!("Unable to replace preferences: {error}"))
 }
 
 fn write_project_navigation_preferences(value: &ProjectNavigationPreferences) -> Result<(), String> {
     let path = project_navigation_preferences_path()
         .ok_or_else(|| "LOCALAPPDATA is unavailable.".to_string())?;
-    let parent = path.parent()
-        .ok_or_else(|| "Project preference directory is invalid.".to_string())?;
-    fs::create_dir_all(parent)
-        .map_err(|error| format!("Unable to prepare project preferences: {error}"))?;
-    let bytes = serde_json::to_vec(value)
-        .map_err(|error| format!("Unable to encode project preferences: {error}"))?;
-    if bytes.len() > 64 * 1024 {
-        return Err("Project preferences exceed the bounded size.".to_string());
-    }
-    fs::write(&path, bytes)
-        .map_err(|error| format!("Unable to write project preferences: {error}"))?;
-    Ok(())
+    let parent = path.parent().ok_or_else(|| "Preference directory is invalid.".to_string())?;
+    fs::create_dir_all(parent).map_err(|error| format!("Unable to prepare preferences: {error}"))?;
+    write_navigation_preferences_at(&path, value)
 }
 
 fn navigation_revision_token(snapshot: &NavigationSnapshot) -> String {
@@ -415,7 +430,7 @@ fn write_project_manifest(root: &Path, manifest: &ProjectManifest) -> Result<(),
     if bytes.len() > PROJECT_MANIFEST_MAX_BYTES as usize {
         return Err("Project manifest exceeds the bounded size.".to_string());
     }
-    fs::write(root.join(PROJECT_MANIFEST_FILE), bytes)
+    crate::metadata_io::replace_metadata(&root.join(PROJECT_MANIFEST_FILE), &bytes)
         .map_err(|error| format!("Unable to write Project manifest: {error}"))
 }
 
@@ -709,8 +724,8 @@ pub(crate) fn action(action: &str, id: &str, profile_id: Option<&str>) -> Result
                 ProjectManifestState::Valid(manifest) => Some(stable_project_id(&manifest)),
                 _ => None,
             };
-            let mut preferences = read_project_navigation_preferences();
-            preferences.schema = 1;
+            // Refuse corrupted preferences before creating a pinned project manifest.
+            let mut preferences = load_project_navigation_preferences()?;
             preferences.pinned_project_ids.retain(|candidate| {
                 candidate != id && candidate != &legacy_id && current_stable_id.as_deref() != Some(candidate.as_str())
             });
@@ -786,6 +801,43 @@ mod tests {
             project_uuid: "11111111-2222-4333-8444-555555555555".to_string(),
             display_name: name.to_string(),
         }
+    }
+
+    #[test]
+    fn corrupt_preferences_are_not_replaced_by_defaults() {
+        let dir = temp_project("preferences-corruption");
+        let path = dir.join("project-preferences.json");
+        let invalid = br#"{"schema":2,"pinned_project_ids":[]}"#;
+        fs::write(&path, invalid).unwrap();
+        assert!(read_navigation_preferences_at(&path).is_err());
+        assert!(write_navigation_preferences_at(&path, &empty_navigation_preferences()).is_err());
+        assert_eq!(fs::read(path).unwrap(), invalid);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn unsupported_preference_fields_survive_failed_write() {
+        let dir = temp_project("preferences-forward-compat");
+        let path = dir.join("project-preferences.json");
+        let original = br#"{"schema":1,"pinned_project_ids":[],"future":"preserve"}"#;
+        fs::write(&path, original).unwrap();
+        assert!(write_navigation_preferences_at(&path, &empty_navigation_preferences()).is_err());
+        assert_eq!(fs::read(path).unwrap(), original);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn valid_preferences_replace_in_one_file() {
+        let dir = temp_project("preferences-write");
+        let path = dir.join("project-preferences.json");
+        write_navigation_preferences_at(&path, &empty_navigation_preferences()).unwrap();
+        let updated = ProjectNavigationPreferences {
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()],
+        };
+        write_navigation_preferences_at(&path, &updated).unwrap();
+        assert_eq!(read_navigation_preferences_at(&path).unwrap().unwrap().pinned_project_ids, updated.pinned_project_ids);
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
