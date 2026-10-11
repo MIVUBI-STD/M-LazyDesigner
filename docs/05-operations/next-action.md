@@ -29,6 +29,16 @@ GitHub connector cannot dispatch `workflow_dispatch`; no Bun runner
 is available here.
 **Not executed** is the correct evidence state, never a waived gate.
 
+**Confirmed pre-CI blockers:** `mcp/docs/index.html` still embeds the
+retired HTTP listener guidance; `mcp/docs/api.json` lacks the new
+`capture_model_views.reference_correspondence` input. Canonical
+`generate:owned-artifacts` must regenerate these files using Bun and
+commit exact generator output, not hand edits. The Hybrid-4 generator's
+package-root bug and the verified CI bundle directory bug were corrected
+in source but are not executable PASS. Regenerate before final CI;
+`docs:check` otherwise cannot succeed.
+
+
 On one final `Local` SHA, dispatch `MCP Verify`, `Repository Verify`,
 `Authoring Policy Verify`, `Dependency Security`, `MCP Conformance`,
 `Desktop Verify`, and `Managed Distribution` from the `Local` branch.
