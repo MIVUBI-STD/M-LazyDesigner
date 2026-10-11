@@ -181,7 +181,7 @@ describe("knowledge section compiler", () => {
   });
 
   test("provenance is bound to source content and refuses ambiguous versions", () => {
-    const source = "# Particle\\nappearance";
+    const source = "# Particle\nappearance";
     const repo = describeKnowledgeSource("docs/particle.md", source);
     expect(repo.origin).toBe("REPOSITORY");
     expect(repo.content_sha256).toMatch(/^[0-9a-f]{64}$/);
@@ -202,8 +202,8 @@ describe("knowledge section compiler", () => {
 
   test("unchanged sections survive source line shifts, but upstream revisions invalidate", () => {
     const source = "docs/model.md";
-    const oldText = "# Geometry\\nold\\n# Texturing\\nunchanged";
-    const newText = "# Geometry\\nnew\\nextra\\n# Texturing\\nunchanged";
+    const oldText = "# Geometry\nold\n# Texturing\nunchanged";
+    const newText = "# Geometry\nnew\nextra\n# Texturing\nunchanged";
     const a = indexMarkdownKnowledge(source, oldText);
     const b = indexMarkdownKnowledge(source, newText);
     const diff = diffKnowledgeIndex({ sections: a }, { sections: b });
@@ -220,7 +220,7 @@ describe("knowledge section compiler", () => {
   });
 
   test("exact version matching never trusts sources with unknown compatibility", () => {
-    const path = "snapshots/animation.md", markdown = "# Animation\\ncontroller";
+    const path = "snapshots/animation.md", markdown = "# Animation\ncontroller";
     const sections = indexMarkdownKnowledge(path, markdown);
     const evidence = describeKnowledgeSource(path, markdown, {
       upstream_url: "https://example.org/spec", upstream_revision: "v1",
@@ -239,13 +239,13 @@ describe("knowledge section compiler", () => {
   });
 
   test("schema-1 baseline supports original reports and checks source-level provenance fingerprint", () => {
-    const sections = indexMarkdownKnowledge("docs/a.md", "# A\\ncontent");
+    const sections = indexMarkdownKnowledge("docs/a.md", "# A\ncontent");
     const legacy = {
       schema: 1, proof_scope: "REPO_OWNED_KNOWLEDGE_INDEX",
       fingerprint: knowledgeIndexFingerprint(sections), sections,
     };
     expect(parsePreviousKnowledgeIndex(legacy).sources).toBeUndefined();
-    const sources = [describeKnowledgeSource("docs/a.md", "# A\\ncontent")];
+    const sources = [describeKnowledgeSource("docs/a.md", "# A\ncontent")];
     const current = { ...legacy, sources, fingerprint: knowledgeIndexFingerprint(sections, sources) };
     expect(parsePreviousKnowledgeIndex(current).sources).toEqual(sources);
     expect(() => parsePreviousKnowledgeIndex({
@@ -254,7 +254,7 @@ describe("knowledge section compiler", () => {
   });
 
   test("duplicate identities reject unsafe index deltas", () => {
-    const section = indexMarkdownKnowledge("docs/a.md", "# A\\ncontent")[0]!;
+    const section = indexMarkdownKnowledge("docs/a.md", "# A\ncontent")[0]!;
     expect(() => diffKnowledgeIndex(
       { sections: [section, section] }, { sections: [section] },
     )).toThrow(/Duplicate/);
