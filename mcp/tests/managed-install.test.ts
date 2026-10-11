@@ -80,7 +80,7 @@ test("Codex first install gives the Gateway enough timeout headroom without over
   assert.equal(adopted.tool_timeout_sec, 45);
 });
 
-test("install is idempotent and keeps user assets and root instructions, async () => sandbox(async (d, o) => {
+test("install is idempotent and keeps user assets and root instructions", async () => sandbox(async (d, o) => {
   const pkg = join(d, "pkg"); await fixture(pkg); await mkdir(o.workspace, { recursive: true });
   await writeFile(join(o.workspace, "AGENTS.md"), "User-owned instructions\n");
   await writeFile(join(o.workspace, "model.bbmodel"), "USER MODEL");
