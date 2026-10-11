@@ -2,14 +2,14 @@ import { z } from "zod";
 import { createPrompt, prompts } from "@/lib/factories";
 import { getPromptContent } from "@/lib/prompts/loader";
 import {
-  BEDROCK_WORKFLOW_PHASE_SECTIONS,
+  BEDROCK_WORKFLOW_STAGE_SECTIONS,
   assertBedrockWorkflowSourceCompatible,
 } from "@/lib/prompts/contract";
 import {
-  buildMcpPhaseHandoffContract,
-  buildMcpPhasePromptHeader,
-  getActiveMcpAuthoringPhase,
-  type McpAuthoringPhase,
+  buildMcpStageHandoffContract,
+  buildMcpStagePromptHeader,
+  getActiveMcpAuthoringStage,
+  type McpAuthoringStage,
 } from "@/lib/capabilities/authoringStage";
 import { describeMcpSurfaceToolNames } from "@/server/runtime/registration";
 import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
@@ -45,10 +45,10 @@ function readSection(markdown: string, heading: string): string {
  */
 export function selectMcpPhaseWorkflowBody(
   workflow: string,
-  phase: McpAuthoringPhase
+  phase: McpAuthoringStage
 ): string {
   assertBedrockWorkflowSourceCompatible(workflow);
-  const sections = BEDROCK_WORKFLOW_PHASE_SECTIONS[phase].map((heading) =>
+  const sections = BEDROCK_WORKFLOW_STAGE_SECTIONS[phase].map((heading) =>
     readSection(workflow, heading)
   );
   if (phase === "animation") sections.push(ANIMATION_RUNTIME_WORKFLOW);
@@ -63,7 +63,7 @@ createPrompt("bedrock_entity_workflow", {
     "Compact BlockIT operating contract for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, native capability boundaries, and Bedrock/.bbmodel export.",
   argsSchema: z.object({}),
   async generate() {
-    const phase = getActiveMcpAuthoringPhase();
+    const phase = getActiveMcpAuthoringStage();
     const workflow = getPromptContent("bedrock_entity_workflow");
     const allowedTools = describeMcpSurfaceToolNames(
       DEFAULT_MCP_REGISTRATION_PROFILE,
@@ -76,9 +76,9 @@ createPrompt("bedrock_entity_workflow", {
           content: {
             type: "text",
             text: [
-              buildMcpPhasePromptHeader(phase, allowedTools),
+              buildMcpStagePromptHeader(phase, allowedTools),
               selectMcpPhaseWorkflowBody(workflow, phase),
-              buildMcpPhaseHandoffContract(phase),
+              buildMcpStageHandoffContract(phase),
             ].join("\n\n"),
           },
         },

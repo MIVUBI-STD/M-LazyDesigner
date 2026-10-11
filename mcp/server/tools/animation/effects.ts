@@ -6,8 +6,6 @@ import {
   applyEffectPayload,
   effectPointData,
   effectPointSnapshot,
-  effectiveTimelineScriptLines,
-  normalizeEffectiveParticleScript,
   snapshotsEffectivelyEqual,
 } from "./effectState";
 export {
@@ -290,7 +288,7 @@ export function registerAnimationEffectTools() {
           sim[operation.channel].push({ id: `move:${index}`, uuid: null, channel: operation.channel, time: nextTime, points: [{ id: found.pointId, snapshot: next }] });
         });
 
-        type PlanResult = ReturnType<typeof continuationState> | { channel: AnimationEffectChannel; removed: { keyframe_uuid: string; data_point_index: number | null; remaining?: Array<{ effect: string; script: string }> } };
+        type PlanResult = ReturnType<typeof animationEffectContinuationState> | { channel: AnimationEffectChannel; removed: { keyframe_uuid: string; data_point_index: number | null; remaining?: Array<{ effect: string; script: string }> } };
         const results: PlanResult[] = [];
         Undo.initEdit({ animations: [animation] });
         try {

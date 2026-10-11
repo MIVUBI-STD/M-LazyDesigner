@@ -8,11 +8,9 @@ import {
 } from "@/lib/particle/document";
 import { requireParticleFilesystem } from "./fileTransaction";
 
-export type GeneratedParticleTextureReadiness = {
-  source: string;
-  status: string;
-  output_path: string;
-};
+export type GeneratedParticleTextureReadiness =
+  | { source: "existing" | "vanilla"; status: "SATISFIED" }
+  | { source: "generated"; status: "SATISFIED" | "REQUIRES_TEXTURING"; output_path: string };
 
 export function assertGeneratedTextureReady(
   plan: GeneratedParticleTextureReadiness | null
@@ -85,7 +83,7 @@ function sliceWithoutSplittingSurrogatePair(
   return value.slice(0, end);
 }
 
-function boundedContent(
+export function boundedContent(
   serialized: string,
   maxContentLength: number
 ): { truncated: boolean; content: string | null } {

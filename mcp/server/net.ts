@@ -19,6 +19,7 @@ import {
   singleRequestHeader
 } from '@/server/httpBoundary'
 import { createProductIdentity } from '@/lib/product/productIdentity'
+import { getCapabilityMetadata } from '@/lib/capabilities/metadata'
 import {
   getActiveMcpAuthoringStage,
   type McpAuthoringStage
@@ -31,7 +32,8 @@ import {
 import {
   BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER,
   BLOCKIT_PROJECT_AFFINITY_HEADER,
-  normalizeProjectAffinityUuid
+  normalizeProjectAffinityUuid,
+  normalizeAuthoringPhaseAffinity
 } from '@/lib/runtime/affinity'
 import {
   RuntimeGenerationRetiredError,
@@ -245,7 +247,7 @@ export default function createNetServer (
           return
         }
 
-        let requestedAuthoringPhase: McpAuthoringPhase | null
+        let requestedAuthoringPhase: McpAuthoringStage | null
         try {
           requestedAuthoringPhase = normalizeAuthoringPhaseAffinity(
             request.headers[BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER] as
@@ -266,7 +268,7 @@ export default function createNetServer (
         }
 
         const effectiveAuthoringPhase =
-          requestedAuthoringPhase ?? getActiveMcpAuthoringPhase()
+          requestedAuthoringPhase ?? getActiveMcpAuthoringStage()
         const activeProfile = getActiveMcpRegistrationProfile()
 
         if (

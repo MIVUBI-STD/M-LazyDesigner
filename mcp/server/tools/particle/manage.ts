@@ -10,7 +10,6 @@ import {
   createParticleDocument,
   inspectParticleDocument,
   isBedrockParticleIdentifier,
-  parseParticleDocument,
   serializeParticleDocument,
   type JsonValue,
 } from "@/lib/particle/document";
@@ -21,12 +20,13 @@ import {
 import {
   allowParticleReplaceForExplicitSource,
   particleSourceContentForOutput,
-  requireParticleFilesystem,
   writeParticleArtifactsAtomically,
   type PlannedParticleWrite,
 } from "./fileTransaction";
 import {
   assertGeneratedTextureReady,
+  assertNativeParticlePreviewAvailable,
+  boundedContent,
   compactParticleInspectResult,
   loadNativeParticlePreview,
   readParticleSource,

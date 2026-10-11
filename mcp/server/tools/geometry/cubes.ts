@@ -18,6 +18,7 @@ import { resolveCoreCube, resolveCoreGroup } from "@/lib/core/identity";
 import { requireOpenProject } from "@/lib/core/project";
 import {
   hasFiniteCubeSpan,
+  requireFiniteCubeSpan,
   validateCubeGeometrySpan,
 } from "@/lib/geometry/cubeSpan";
 export { validateCubeGeometrySpan } from "@/lib/geometry/cubeSpan";

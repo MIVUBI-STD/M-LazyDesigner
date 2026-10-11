@@ -28,7 +28,6 @@ import {
   requireExclusivePbrMaterialState,
   type PbrMaterialChannel,
   type PbrMaterialChannelRequest,
-  type PbrMaterialTextureState,
 } from "@/lib/texture/pbrMaterialMembership";
 import {
   applyPbrMembershipChanges,
@@ -36,7 +35,6 @@ import {
   materialGroupsByUuid,
   resolvePbrMaterial,
   resolveRuntimeTextureByUuid,
-  resolveTextureToolMaterial,
   runtimePbrTextureStates,
 } from "./materialState";
 export { resolveTextureToolMaterial } from "./materialState";
@@ -399,8 +397,8 @@ export function registerTextureMaterialTools(): void {
 
         try {
           applyPbrMembershipChanges(plan.changes);
-          if (color_value !== undefined) config.color_value = [...color_value];
-          if (mer_value !== undefined) config.mer_value = [...mer_value];
+          if (color_value !== undefined) config.color_value = [color_value[0], color_value[1], color_value[2], color_value[3]];
+          if (mer_value !== undefined) config.mer_value = [mer_value[0], mer_value[1], mer_value[2]];
           if (subsurface_value !== undefined) {
             config.subsurface_value = subsurface_value;
           }

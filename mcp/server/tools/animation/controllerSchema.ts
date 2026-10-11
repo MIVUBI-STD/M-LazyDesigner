@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { ToolSpec } from "@/lib/factories";
+import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 
 const nonEmptyAuthoredString = z
   .string()

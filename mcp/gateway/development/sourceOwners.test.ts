@@ -53,7 +53,7 @@ describe("Control source-owner registry", () => {
   test("every canonical phased capability has an explicit source owner", () => {
     const explicit = listExplicitSourceOwners();
     const missing = [...CAPABILITY_CORE_MANIFEST.entries()]
-      .filter(([, entry]) => entry.phase != null)
+      .filter(([, entry]) => entry.stage != null)
       .map(([name]) => name)
       .filter((name) => explicit[name] == null)
       .sort();
@@ -189,7 +189,7 @@ describe("Control source-owner registry", () => {
   test("canonical capabilities never use the generic registration fallback", () => {
     const explicit = listExplicitSourceOwners();
     for (const [name, entry] of CAPABILITY_CORE_MANIFEST) {
-      if (entry.phase == null) continue;
+      if (entry.stage == null) continue;
       expect(explicit[name]).toBeDefined();
       expect(sourceOwnerForCapability(name).source).not.toBe(
         "mcp/server/runtime/registration.ts"

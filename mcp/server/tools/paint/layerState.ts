@@ -9,7 +9,7 @@ export type LayerMetadataBatchUpdate = {
   layer_id: string;
   name?: string;
   opacity?: number;
-  blend_mode?: string;
+  blend_mode?: TextureLayer["blend_mode"];
   target_index?: number;
 };
 

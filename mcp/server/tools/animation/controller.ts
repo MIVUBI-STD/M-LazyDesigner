@@ -1,11 +1,11 @@
 /// <reference types="blockbench-types" />
 import { animationControllerReceipt } from "@/lib/receipts/animationController";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
-import { createTool, type ToolSpec } from "@/lib/factories";
-import { STATUS_EXPERIMENTAL } from "@/lib/constants";
+import { createTool } from "@/lib/factories";
 import { resolveUuidOrUniqueName } from "@/lib/core/identity";
 import {
   manageAnimationControllerParameters,
+  animationControllerToolDocs,
 } from "./controllerSchema";
 import {
   controllerStateContinuation,

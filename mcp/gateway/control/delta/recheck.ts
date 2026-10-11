@@ -20,6 +20,16 @@ export type ControlDownstreamRecheck = {
     cube_ids?: string[];
     island_ids?: string[];
     faces?: Array<{ cube_uuid: string; face: string | null }>;
+    texture_uuid?: string;
+    affected_rect?: [number, number, number, number];
+    revision?: string;
+    animation_uuid?: string;
+    bone_ids?: string[];
+    channel?: string | null;
+    channels?: string[];
+    time_range?: [number, number];
+    controller_uuid?: string;
+    state_ids?: string[];
   };
 };
 

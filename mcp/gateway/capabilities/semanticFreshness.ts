@@ -127,7 +127,8 @@ export function semanticRefreshSurfaces(
     affectedDimensions.length === 0;
 
   if (!aggregateOnly) return refresh;
-  return [...refresh, "SEMANTIC_MANIFEST"].sort((a, b) => a.localeCompare(b));
+  const aggregateRefresh: SemanticRefreshSurface[] = [...refresh, "SEMANTIC_MANIFEST"];
+  return aggregateRefresh.sort((a, b) => a.localeCompare(b));
 }
 
 export function evaluateSemanticConsumerFreshness(
