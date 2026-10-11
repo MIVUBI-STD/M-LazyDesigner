@@ -14,30 +14,19 @@ a push does not prove executable correctness. Registration history belongs
 in `current-validation.md`. ChatGPT + GitHub/cloud work does not require
 the user's PC.
 
-## Active: test and data consolidation
+## Active: regression and data owners
 
-The canonical `mcp/gateway/development/affectedExecution.ts` planner now
-selects changed tests and all ten current JSON fixtures through existing
-consumer contracts. Golden tasks select both integrity and session-runner
-tests; the Codex policy template is evaluated in the existing Astra preflight.
-Unknown/new fixtures retain conservative full verification. Semantic-history and
-Animation/Paint/Texture/Element tests now inspect canonical migrated owners
-rather than compatibility re-exports. Duplicated semantic-policy assertions
-were consolidated.
+`mcp/gateway/development/affectedExecution.ts` selects impacted tests and all
+ten existing JSON fixture consumers. Unknown fixtures select full verification.
+The full `verify:contracts` gate now discovers all Gateway test files, not
+only historical hand-picked suites. No new verification framework or state
+registry was added. Bun/CI proof on the current source SHA is **NOT EXECUTED**.
 
-Documentation checks retain canonical hierarchy/role owners and unique
-handoff cases. Gateway recovery and routing tests consume the real error
-envelope and policy. A source-level validation pass found and repaired the
-semantic-history UI exemption that still pointed at a retired re-export
-wrapper; it now targets the canonical interaction/UI owner. This file
-remains under its existing 6 KB limit. Bun/CI proof for the current
-source revision is **NOT EXECUTED**.
+## Next REMOTE_GITHUB work
 
-## Next: exact-SHA full CI acceptance
-
-The user authorized a **full CI pass** on `Local` (2026-10-11). GitHub
-verification workflows are still manual-only; this ChatGPT GitHub connector
-cannot dispatch `workflow_dispatch`, and no Bun runner is available here.
+Full CI is user-authorized (2026-10-11) but remains manual-only. This
+GitHub connector cannot dispatch `workflow_dispatch`; no Bun runner
+is available here.
 **Not executed** is the correct evidence state, never a waived gate.
 
 On one final `Local` SHA, dispatch `MCP Verify`, `Repository Verify`,
@@ -70,39 +59,15 @@ Design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md)
 No new GPU service, Gateway tool, Runtime or persistent registry.
 Current source still lacks matching Bun/native/visual acceptance.
 
-## Data lifecycle source implementation (2026-10-11)
+## Other source lanes pending proof
 
-The source includes a read-only tracked-data/alias inventory and staged Desktop metadata replacement with fail-closed preference reads. No new knowledge registry or user asset migration. Bun, Rust, installed Desktop and native Blockbench acceptance remain **NOT EXECUTED** under REMOTE_GITHUB. Contract: `docs/04-system/data-lifecycle.md`.
-
-## Knowledge lifecycle implementation (2026-10-11)
-
-Canonical Markdown knowledge now emits content-hashed source evidence,
-pure revision deltas and explicit exact-version filtering. The existing
-`generate:knowledge-index` command can compare fingerprint-checked previous
-reports and reuse unchanged source sections without re-parsing. Upstream
-URLs/revisions remain caller-supplied and unverified until separately
-checked. This is source implementation only: matching Bun/CI and live
-Blockbench acceptance are **NOT EXECUTED**.
-
-## Safe Desktop metadata recovery (2026-10-11)
-
-Added bounded read/snapshot comparison, a rotating last-valid metadata
-checkpoint, stale-write refusal, and explicit recovery for malformed
-project pin preferences. The UI only offers restore with a validated
-recovery copy and confirmation; the corrupt original is saved separately.
-No native .bbmodel, texture, reference or workspace asset changes.
-Exact-SHA Rust/Windows/Desktop source and installed acceptance remain
-**NOT EXECUTED** under REMOTE_GITHUB. See `docs/04-system/data-lifecycle.md`.
-
-## Maintenance diagnostics (2026-10-11)
-
-`audit:data` now derives broken authored documentation links, fixture
-consumer integrity and compatibility alias chains. The existing
-`plan:affected` remains the only verification planner. Confirmed stale
-links in the product overview now resolve to tracked canonical owners.
-No background worker, registry or user asset mutation was introduced.
-Current exact-SHA Bun/Rust/Windows/Blockbench acceptance remains
-**NOT EXECUTED** under REMOTE_GITHUB.
+`docs/04-system/data-lifecycle.md` owns Desktop metadata recovery and
+inventory; source includes rotating last-valid snapshots, safe restore,
+stale-write refusal, fixture consumers and compatibility alias diagnostics.
+`mcp/lib/semantic/knowledge.ts` owns content-hashed Markdown knowledge,
+revision deltas and explicit source provenance. None of these source claims
+is Windows/Rust/Bun/native PASS; external knowledge revisions are still
+caller-provided until independently verified.
 
 ## Runtime and proof boundaries
 
