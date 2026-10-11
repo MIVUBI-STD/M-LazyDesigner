@@ -6,7 +6,7 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-Source hardening batch (2026-10-11): `af60851` reconciled stale Stage/type imports and ownership declarations. A subsequent native-lifecycle change introduces process-global bounded admission (16 waiting native calls plus one active) across Gateway clients. Both remain **source changes only** until verified on their exact commit SHA; do not mark build, long-session stability, or installed Blockbench as PASS. Prefer one matching full acceptance milestone instead of repeated full test runs.
+Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 
 
 `Local` is working source authority. GitHub Actions are **manual-only**:
@@ -33,15 +33,23 @@ wrapper; it now targets the canonical interaction/UI owner. This file
 remains under its existing 6 KB limit. Bun/CI proof for the current
 source revision is **NOT EXECUTED**.
 
-## Next REMOTE_GITHUB work
+## Next: exact-SHA full CI acceptance
 
-- Reconcile additional proven stale assertions against canonical ownership;
-  preserve independent negative and integration coverage.
-- Preserve safety, behavior, and regression coverage; do not alter a test
-  simply to obtain a green status.
-- Use existing affected/exact-SHA verification at an acceptance milestone
-  when executable cloud/CI proof is available. No new test framework,
-  database, or shadow ownership registry.
+The user authorized a **full CI pass** on `Local` (2026-10-11). GitHub
+verification workflows are still manual-only; this ChatGPT GitHub connector
+cannot dispatch `workflow_dispatch`, and no Bun runner is available here.
+**Not executed** is the correct evidence state, never a waived gate.
+
+On one final `Local` SHA, dispatch `MCP Verify`, `Repository Verify`,
+`Authoring Policy Verify`, `Dependency Security`, `MCP Conformance`,
+`Desktop Verify`, and `Managed Distribution` from the `Local` branch.
+The last workflow's release jobs skip on a branch; its Windows package smoke
+still runs. `Head Proof` is optional classification only. Do not dispatch
+`Release Verify` or `Desktop Draft Release` as a substitute for acceptance.
+Require each applicable job's successful steps and exact-SHA provenance;
+skipped required work is missing evidence. Diagnose the first actual failure
+at its canonical owner, never weaken assertions to obtain green. Only then
+proceed to disposable `LIVE_BLOCKBENCH` acceptance in the existing runbook.
 
 `docs/04-system/implementation-map.md` is the canonical development map;
 `mcp/gateway/development/sourceOwners.ts` owns capability/source anchors;
