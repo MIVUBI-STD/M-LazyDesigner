@@ -14,9 +14,10 @@ the user's PC.
 ## Active: test and data consolidation
 
 The canonical `mcp/gateway/development/affectedExecution.ts` planner now
-selects changed executable tests and routes regression, golden-task, and
-quality-benchmark corpora to their owning contract tests. Unknown fixtures
-retain conservative full verification. Semantic-history and
+selects changed tests and all ten current JSON fixtures through existing
+consumer contracts. Golden tasks select both integrity and session-runner
+tests; the Codex policy template is evaluated in the existing Astra preflight.
+Unknown/new fixtures retain conservative full verification. Semantic-history and
 Animation/Paint/Texture/Element tests now inspect canonical migrated owners
 rather than compatibility re-exports. Duplicated semantic-policy assertions
 were consolidated.
@@ -32,12 +33,13 @@ current source revision is **NOT EXECUTED**.
 
 ## Next REMOTE_GITHUB work
 
-- Identify another demonstrated stale source-text assertion or duplicate
-  test by inspecting its canonical owner and unique negative failure modes.
+- Reconcile the next demonstrated stale assertion against its canonical
+  source owner and preserve distinct negative and integration cases.
 - Preserve safety, behavior, and regression coverage; do not alter a test
   simply to obtain a green status.
-- Run existing affected verification and exact-SHA source gates only when
-  execution evidence is needed. No new test framework or data registry.
+- Use existing affected/exact-SHA verification at an acceptance milestone
+  when executable cloud/CI proof is available. No new test framework,
+  database, or shadow ownership registry.
 
 `docs/04-system/implementation-map.md` is the canonical development map;
 `mcp/gateway/development/sourceOwners.ts` owns capability/source anchors;

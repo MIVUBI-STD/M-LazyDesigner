@@ -84,9 +84,9 @@ describe("affected execution planner", () => {
     }
   });
 
-  test("repository and authoring test edits use their existing suites, without duplicate focused runs", () => {
+  test("repository and authoring test edits use their existing suites, without duplicate focused runs", async () => {
     for (const [path, suite] of [
-      ["mcp/tests/repository/semantic-policy-deduplication.test.ts", "bun run verify:repository"],
+      ["mcp/tests/repository/semantic-dependency-matrix-ownership.test.ts", "bun run verify:repository"],
       ["mcp/tests/authoring/quality-first-authoring-contract.test.ts", "bun run verify:authoring"],
     ] as const) {
       const plan = planAffectedExecution({
@@ -95,22 +95,36 @@ describe("affected execution planner", () => {
       expect(plan.fallback_full_verify, path).toBe(false);
       expect(plan.commands, path).toContain(suite);
       expect(plan.targeted_tests, path).not.toContain(path);
+      expect(await Bun.file(path.slice(4)).exists(), path).toBe(true);
     }
   });
 
-  test("known data corpus edits select their contracts; unknown fixtures fail conservatively", () => {
-    const owned: Array<[string, string]> = [
-      ["mcp/tests/fixtures/regression-cases.json", "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"],
-      ["mcp/tests/fixtures/golden-task-cases.json", "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"],
-      ["mcp/tests/fixtures/quality-benchmark-cases.json", "mcp/tests/benchmark/quality-benchmark-contract.test.ts"],
+  test("all current data fixtures select existing consumers; unknown fixtures fail conservatively", async () => {
+    const owned: Array<[string, string[]]> = [
+      ["mcp/tests/fixtures/agent-permission-cases.json", ["mcp/tests/repository/agent-permission-preflight.test.ts"]],
+      ["mcp/tests/fixtures/astra-live-golden-tasks.json", ["mcp/tests/astra-usage-validation-contract.test.ts"]],
+      ["mcp/tests/fixtures/astra-usage-validation-template.json", ["mcp/tests/astra-usage-validation-contract.test.ts"]],
+      ["mcp/tests/fixtures/codex-session-policy-input-template.json", ["mcp/tests/astra-usage-ready-contract.test.ts"]],
+      ["mcp/tests/fixtures/golden-authoring-run-template.json", ["mcp/tests/benchmark/golden-authoring-run-contract.test.ts"]],
+      ["mcp/tests/fixtures/golden-task-cases.json", ["mcp/tests/benchmark/golden-benchmark-session-runner.test.ts", "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"]],
+      ["mcp/tests/fixtures/native-acceptance-manifest.json", ["mcp/tests/native-acceptance-manifest-contract.test.ts"]],
+      ["mcp/tests/fixtures/quality-benchmark-cases.json", ["mcp/tests/benchmark/quality-benchmark-contract.test.ts"]],
+      ["mcp/tests/fixtures/regression-cases.json", ["mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"]],
+      ["mcp/tests/fixtures/skill-routing-cases.json", ["mcp/tests/repository/skill-lane-contract.test.ts"]],
     ];
-    for (const [path, owner] of owned) {
+    for (const [path, owners] of owned) {
+      expect(await Bun.file(path.slice(4)).exists(), path).toBe(true);
+      for (const owner of owners) {
+        expect(await Bun.file(owner.slice(4)).exists(), owner).toBe(true);
+      }
       const plan = planAffectedExecution({
         changedPaths: [path], semanticImpact: impact(),
       });
       expect(plan.fallback_full_verify, path).toBe(false);
-      expect(plan.targeted_tests, path).toEqual([owner]);
-      expect(plan.commands, path).toContain(`bun test ${owner.slice(4)}`);
+      expect(plan.targeted_tests, path).toEqual([...owners].sort());
+      expect(plan.commands, path).toContain(
+        `bun test ${[...owners].sort().map((owner) => owner.slice(4)).join(" ")}`
+      );
     }
     const unknown = planAffectedExecution({
       changedPaths: ["mcp/tests/fixtures/unmapped-cases.json"],

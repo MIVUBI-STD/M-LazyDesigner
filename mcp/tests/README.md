@@ -29,6 +29,7 @@ New repository-structure rules belong under `tests/repository/`. New reusable te
 ## Affected tests and data fixtures
 
 - Changes to executable `*.test.ts` files select that file directly. Tests under `tests/repository/` and `tests/authoring/` use their existing complete owner suites instead; do not execute them twice.
-- The regression, golden-task, and quality-benchmark JSON corpora have existing benchmark contract tests and select those bounded owners. A fixture without a proven owner still falls back to the full gate; never silently skip verification.
+- All ten current JSON fixtures select their actual consumer contracts through the existing affected planner; golden tasks select both corpus-integrity and session-runner tests. New/unmapped fixtures keep the full gate until an owning contract exists.
+- The Codex session-policy template is evaluated in the existing Astra preflight contract, not merely mentioned by filename; no fixture implies measured usage or native acceptance.
 - `REGRESSION_GUARDED` records an intended safeguard, not a pass at the current commit. Synthetic quality cases cannot establish live/native quality or a measured baseline.
 - Consolidate tests only after proving redundant failure modes. Keep independent negative cases and unique integration boundaries even when tests look similar. Prefer executable behavior/contracts over assertions tied to incidental source text.

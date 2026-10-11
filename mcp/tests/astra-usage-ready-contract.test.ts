@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { evaluateCodexSessionPolicy } from "../scripts/evaluate/evaluate-codex-session-policy";
 
 describe("Astra local-measurement preflight", () => {
   test("single entrypoint binds the canonical live fixtures without claiming live proof", async () => {
@@ -27,5 +28,18 @@ describe("Astra local-measurement preflight", () => {
       "bun run ./scripts/evaluate/evaluate-codex-session-policy.ts"
     );
     expect(source).not.toContain("LIVE_BLOCKBENCH_PASS");
+
+    // Validate actual policy data instead of only mentioning its filename.
+    const template = await Bun.file(
+      "tests/fixtures/codex-session-policy-input-template.json"
+    ).json();
+    expect(template.schema).toBe("lazydesigner-codex-session-policy-input-v1");
+    expect(template.telemetry_available).toBe(false);
+    expect(template.checkpoint_state).toBe("MISSING");
+    expect(evaluateCodexSessionPolicy(template)).toMatchObject({
+      proof_scope: "CLIENT_INTEGRATION_POLICY_ONLY",
+      compaction: "KEEP_CONTEXT",
+      usage_claim_allowed: false,
+    });
   });
 });

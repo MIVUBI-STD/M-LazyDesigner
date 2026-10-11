@@ -158,6 +158,40 @@ const GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH: Readonly<
 };
 
 
+const FIXTURE_CONTRACT_TESTS_BY_PATH: Readonly<Record<string, readonly string[]>> = {
+  "mcp/tests/fixtures/agent-permission-cases.json": [
+    "mcp/tests/repository/agent-permission-preflight.test.ts",
+  ],
+  "mcp/tests/fixtures/astra-live-golden-tasks.json": [
+    "mcp/tests/astra-usage-validation-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/astra-usage-validation-template.json": [
+    "mcp/tests/astra-usage-validation-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/codex-session-policy-input-template.json": [
+    "mcp/tests/astra-usage-ready-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/golden-authoring-run-template.json": [
+    "mcp/tests/benchmark/golden-authoring-run-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/golden-task-cases.json": [
+    "mcp/tests/benchmark/golden-benchmark-session-runner.test.ts",
+    "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/native-acceptance-manifest.json": [
+    "mcp/tests/native-acceptance-manifest-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/quality-benchmark-cases.json": [
+    "mcp/tests/benchmark/quality-benchmark-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/regression-cases.json": [
+    "mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts",
+  ],
+  "mcp/tests/fixtures/skill-routing-cases.json": [
+    "mcp/tests/repository/skill-lane-contract.test.ts",
+  ],
+};
+
 function sharedContractTestsForPath(path: string): readonly string[] {
   const recoveryContracts = GATEWAY_RECOVERY_CONTRACT_TESTS_BY_PATH[path];
   if (recoveryContracts) return recoveryContracts;
@@ -202,14 +236,10 @@ function sharedContractTestsForPath(path: string): readonly string[] {
     return ["mcp/tests/development/affected-execution.test.ts",
       "mcp/tests/development/affected-runner-portability.test.ts"];
   }
-  // These data fixtures have existing executable contract owners.
-  // Unknown fixtures deliberately retain the conservative full gate.
-  if (path === "mcp/tests/fixtures/regression-cases.json" ||
-      path === "mcp/tests/fixtures/golden-task-cases.json") {
-    return ["mcp/tests/benchmark/quality-benchmark-corpus-contract.test.ts"];
-  }
-  if (path === "mcp/tests/fixtures/quality-benchmark-cases.json") {
-    return ["mcp/tests/benchmark/quality-benchmark-contract.test.ts"];
+  // Select the tests that consume fixture data, not only path-name guards.
+  // An unknown fixture keeps the existing conservative full gate.
+  if (path.startsWith("mcp/tests/fixtures/")) {
+    return FIXTURE_CONTRACT_TESTS_BY_PATH[path] ?? [];
   }
   if (path.startsWith("mcp/tests/development/") &&
       path.endsWith(".test.ts")) return [path];
