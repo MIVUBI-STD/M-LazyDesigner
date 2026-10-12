@@ -466,10 +466,23 @@
       void watchSystemStatus();
     });
     statusWatcherTimer = window.setInterval(() => { void watchSystemStatus(); }, 3000);
+    let progressListenerDisposed = false;
     void listen<ManagedProgress>('managed-progress', event => {
-      if (busyAction && event.payload.action === busyAction) progressStage = event.payload.stage;
-    }).then(unlisten => { stopProgressListener = unlisten; });
+      if (!progressListenerDisposed && busyAction && event.payload.action === busyAction) {
+        progressStage = event.payload.stage;
+      }
+    }).then(unlisten => {
+      // Listener registration is asynchronous. If unmounted while awaiting,
+      // immediately release the late registration instead of leaking it.
+      if (progressListenerDisposed) unlisten();
+      else stopProgressListener = unlisten;
+    }).catch(() => {
+      // Progress messages are optional; maintenance result and refresh own truth.
+    });
     return () => {
+      progressListenerDisposed = true;
+      stopProgressListener?.();
+      stopProgressListener = null;
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('focus', onFocus);
