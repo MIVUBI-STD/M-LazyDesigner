@@ -69,6 +69,19 @@ Design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md)
 No new GPU service, Gateway tool, Runtime or persistent registry.
 Current source still lacks matching Bun/native/visual acceptance.
 
+## Optional REA external investigation — source integration
+
+The opt-in `mcp/scripts/audit/rea-application.ts` wraps REA's static
+`analyze-javascript-application` on a caller-selected built JavaScript
+directory or Electron ASAR. It retains provenance, explicit limitations and
+unknown coverage, without making visual/native PASS claims, adding Gateway
+tools, or changing normal authoring. The canonical instructions are in
+`mcp/scripts/audit/README.md`; the regression owner is
+`mcp/tests/development/rea-application-audit.test.ts`.
+This is prepared source and tests **only**. Real REA CLI execution against a
+trusted packaged artifact, native Blockbench behavior and quality acceptance
+remain **NOT EXECUTED** until independently observed.
+
 ## Other source lanes pending proof
 
 `docs/04-system/data-lifecycle.md` owns Desktop metadata recovery and
