@@ -157,6 +157,8 @@ For an unrotated Cube receiving non-zero rotation, **explicit origin/pivot requi
 
 A meaningful pivot serves rotation center, joint/articulation, attachment, or parent/group transform. A geometric center is only a provisional fallback when no material attachment/joint/parent evidence exists.
 
+Mechanical name-based rig hints (such as `door_y`, `wheel_z`, or the longest Cube axis) are advisory only. An axis token does not establish a real hinge pivot, hinge side, clearance, or intended motion. Before compiling such hints to native rig intent, resolve the actual mechanism and its side/axis from an explicit requirement, approved reference or current native evidence, and retain the specific evidence reference. Heuristic confidence is not an observed probability or a substitute for confirmed intent; do not silently default an unknown hinge to the MIN side.
+
 Pivot-only correction changes origin without changing visible placement. Group pivot changes use exact identity and native transfer-origin semantics.
 
 ## Lightweight Parametric Relationships
