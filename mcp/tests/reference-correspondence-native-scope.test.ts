@@ -46,6 +46,7 @@ function setNativeScene() {
   runtime.Project = {
     uuid: "editor-project-1",
     lazydesigner_authoring_recipe_store: serialized,
+    textures: [],
   };
   runtime.Cube = { all: cubes };
   return { source, cubes };
@@ -66,6 +67,7 @@ describe("current recipe-owned part evidence uses one native identity owner", ()
     expect(result.requested_count).toBe(2);
     expect(result.verified_count).toBe(2);
     expect(result.native_snapshot_fingerprint).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(result.capture_dependency_fingerprint).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(result.identities.identities.map((item) => ({
       native_uuid: item.native_uuid, instance_id: item.instance_id,
     }))).toEqual([
@@ -83,6 +85,67 @@ describe("current recipe-owned part evidence uses one native identity owner", ()
     const none = readRecipePartCaptureScope(source.id, []);
     expect(none.verified_count).toBe(0);
     expect(none.identities.count).toBe(0);
+  });
+
+
+  test("parent group changes invalidate capture without changing recipe/Undo identity", () => {
+    const { source, cubes } = setNativeScene();
+    const original = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    const group = { uuid: "hinge-group", origin: [0,0,0], rotation: [0,0,0],
+      visibility: true, parent: "root" };
+    (cubes[0] as typeof cubes[number] & { parent?: unknown }).parent = group;
+    const attached = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(attached.native_snapshot_fingerprint).toBe(original.native_snapshot_fingerprint);
+    expect(attached.capture_dependency_fingerprint).not.toBe(original.capture_dependency_fingerprint);
+    group.rotation[1] = 45;
+    const turned = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(turned.capture_dependency_fingerprint).not.toBe(attached.capture_dependency_fingerprint);
+    group.origin[0] = 2;
+    const pivot = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(pivot.capture_dependency_fingerprint).not.toBe(turned.capture_dependency_fingerprint);
+    group.visibility = false;
+    const hidden = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(hidden.capture_dependency_fingerprint).not.toBe(pivot.capture_dependency_fingerprint);
+    expect(hidden.native_snapshot_fingerprint).toBe(original.native_snapshot_fingerprint);
+  });
+
+  test("atlas pixels and UV edits invalidate capture dependency fingerprints", () => {
+    const { source, cubes } = setNativeScene();
+    let bitmap = "pixels-before";
+    const project = runtime.Project as { textures: Array<Record<string, unknown>> };
+    project.textures = [{
+      uuid: "atlas", width: 128, height: 128,
+      getDataURL: () => "data:image/png;base64," + Buffer.from(bitmap).toString("base64"),
+    }];
+    const before = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    bitmap = "pixels-after";
+    const after = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(after.capture_dependency_fingerprint).not.toBe(before.capture_dependency_fingerprint);
+    expect(after.native_snapshot_fingerprint).toBe(before.native_snapshot_fingerprint);
+    (cubes[0] as typeof cubes[number] & { uv_offset?: number[] }).uv_offset = [8, 4];
+    expect(readRecipePartCaptureScope(source.id, ["native-cube-0"])
+      .capture_dependency_fingerprint).not.toBe(after.capture_dependency_fingerprint);
+    project.textures = [{ uuid: "atlas", width: 128, height: 128 }];
+    expect(() => readRecipePartCaptureScope(source.id, []))
+      .toThrow("PART_CORRESPONDENCE_TEXTURE_UNREADABLE");
+  });
+
+  test("invalid hierarchy and ambiguous texture identities fail closed", () => {
+    const { source, cubes } = setNativeScene();
+    const loop: { uuid: string; origin: number[]; rotation: number[]; parent: unknown } = {
+      uuid: "loop", origin: [0,0,0], rotation: [0,0,0], parent: "root",
+    };
+    loop.parent = loop;
+    (cubes[0] as typeof cubes[number] & { parent?: unknown }).parent = loop;
+    expect(() => readRecipePartCaptureScope(source.id, []))
+      .toThrow("PART_CORRESPONDENCE_PARENT_HIERARCHY_INVALID");
+    loop.parent = "root";
+    const project = runtime.Project as { textures: Array<Record<string, unknown>> };
+    const same = { uuid: "duplicate", width: 1, height: 1,
+      getDataURL: () => "data:image/png;base64," + Buffer.from("pixel").toString("base64") };
+    project.textures = [same, same];
+    expect(() => readRecipePartCaptureScope(source.id, []))
+      .toThrow("PART_CORRESPONDENCE_TEXTURE_IDENTITY_AMBIGUOUS");
   });
 
   test("stale native geometry and missing persisted recipe fail before image capture", () => {

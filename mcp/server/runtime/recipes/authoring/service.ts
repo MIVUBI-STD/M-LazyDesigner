@@ -1,5 +1,6 @@
 /// <reference types="blockbench-types" />
 
+import { createHash } from "node:crypto";
 import { createAuthoringRecipeService } from "@/lib/authoringRecipe/service";
 import {
   assertAuthoringRecipeNativeMatchesCompiled,
@@ -40,6 +41,80 @@ export function createBlockbenchAuthoringRecipeService() {
  * It does not store evidence or promise that unrelated model/texture geometry
  * is unchanged.
  */
+
+/**
+ * Opt-in capture-only evidence identity. Do not alter the recipe source
+ * fingerprint: native Undo uses it independently of visual capture.
+ */
+function captureDependencyFingerprint(ownedUuids: ReadonlySet<string>): string {
+  const scoped = (Cube.all ?? []).filter((cube) => ownedUuids.has(cube.uuid))
+    .map((cube) => {
+      const groups: unknown[] = [];
+      const visited = new Set<object>();
+      let parent: unknown = cube.parent;
+      while (parent != null && parent !== "root") {
+        if (typeof parent !== "object" || visited.has(parent)) {
+          throw new Error("PART_CORRESPONDENCE_PARENT_HIERARCHY_INVALID");
+        }
+        visited.add(parent);
+        const group = parent as { uuid?: unknown; origin?: unknown;
+          rotation?: unknown; parent?: unknown; visibility?: boolean; export?: boolean };
+        const vec = (value: unknown): value is number[] =>
+          Array.isArray(value) && value.length === 3 &&
+          value.every((n) => typeof n === "number" && Number.isFinite(n));
+        if (typeof group.uuid !== "string" || !group.uuid ||
+            !vec(group.origin) || !vec(group.rotation)) {
+          throw new Error("PART_CORRESPONDENCE_PARENT_HIERARCHY_INVALID");
+        }
+        groups.push({
+          uuid: group.uuid, origin: [...group.origin], rotation: [...group.rotation],
+          visibility: group.visibility !== false, export: group.export !== false,
+        });
+        parent = group.parent;
+      }
+      const faces = Object.entries(cube.faces ?? {})
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([id, face]) => ({
+          id, uv: face.uv ? [...face.uv] : null,
+          rotation: face.rotation ?? 0, texture: face.texture ?? null,
+          enabled: face.enabled !== false,
+        }));
+      return {
+        uuid: cube.uuid, groups, faces, visibility: cube.visibility !== false,
+        export: cube.export !== false, box_uv: cube.box_uv ?? null,
+        autouv: cube.autouv ?? null,
+        uv_offset: cube.uv_offset ? [...cube.uv_offset] : null,
+        mirror_uv: cube.mirror_uv ?? null,
+      };
+    }).sort((l, r) => l.uuid.localeCompare(r.uuid));
+  if (scoped.length !== ownedUuids.size) {
+    throw new Error("PART_CORRESPONDENCE_NATIVE_TARGET_SCOPE_CHANGED");
+  }
+  const textures = (Project.textures ?? Texture.all) as Texture[];
+  const bitmaps = textures.map((texture) => {
+    if (!texture.uuid || typeof texture.getDataURL !== "function") {
+      throw new Error("PART_CORRESPONDENCE_TEXTURE_UNREADABLE");
+    }
+    const url = texture.getDataURL();
+    if (typeof url !== "string" ||
+        !/^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+$/i.test(url)) {
+      throw new Error("PART_CORRESPONDENCE_TEXTURE_UNREADABLE");
+    }
+    const bytes = Buffer.from(url.slice(url.indexOf(",") + 1), "base64");
+    if (!bytes.length) throw new Error("PART_CORRESPONDENCE_TEXTURE_UNREADABLE");
+    return { uuid: texture.uuid, width: texture.width, height: texture.height,
+      sha256: createHash("sha256").update(bytes).digest("hex") };
+  }).sort((l, r) => l.uuid.localeCompare(r.uuid));
+  if (new Set(bitmaps.map((x) => x.uuid)).size !== bitmaps.length) {
+    throw new Error("PART_CORRESPONDENCE_TEXTURE_IDENTITY_AMBIGUOUS");
+  }
+  return "sha256:" + createHash("sha256").update(JSON.stringify({
+    scoped, bitmaps,
+    logical_uv: [Project.texture_width ?? null, Project.texture_height ?? null],
+    view_mode: Project.view_mode ?? null,
+  })).digest("hex");
+}
+
 export function readRecipePartCaptureScope(
   recipeId: string,
   requestedCubeUuids: readonly string[]
@@ -78,6 +153,9 @@ export function readRecipePartCaptureScope(
     project_uuid: projectUuid,
     recipe_id: recipeId,
     native_snapshot_fingerprint: fingerprintAuthoringRecipeNativeSnapshot(native),
+    capture_dependency_fingerprint: captureDependencyFingerprint(
+      new Set(native.cubes.map((cube) => cube.uuid))
+    ),
     identities: resolution,
     native_scope: "RECIPE_OWNED_CUBES_ONLY" as const,
     requested_count: requestedCubeUuids.length,

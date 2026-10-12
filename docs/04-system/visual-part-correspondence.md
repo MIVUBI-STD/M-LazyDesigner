@@ -188,9 +188,14 @@ instance/native UUID identities and per-view capture image digests.
 It is a single **read-only opt-in extension of the existing capture tool**,
 not an additional Gateway capability, registry, or visual classifier.
 
-**Limitations:** recipe-owned Cube transforms are covered; unrelated
-Cubes, group-parent transformations, texture pixels and approval of source
-region boxes are **not** included in that native snapshot fingerprint.
+**Limitations:** the original recipe-native fingerprint remains unchanged for
+recipe transaction/Undo authority. A separate capture-only dependency hash now
+covers owned Cube ancestry (parent Group pivot/rotation and visibility), UV/face
+state and current loaded texture bitmap bytes. Correspondence capture rejects
+before/after dependency drift and binds this hash into the capture evidence
+handle. Unrelated Cubes, animated preview transforms, GPU material state and
+source-region visual approval are **not attested**. Texture hashing applies only
+to opt-in correspondence capture and is not the regular authoring hot path.
 Matching image/view labels does not certify source-camera calibration.
 The reviewing AI must inspect the freshly returned model pixels beside
 the actual approved source pixels. A source claim/capture never

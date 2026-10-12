@@ -993,7 +993,9 @@ export function registerCameraTools() {
         if (Project.uuid !== captureProjectUuid ||
             correspondenceBefore.project_uuid !== after.project_uuid ||
             correspondenceBefore.native_snapshot_fingerprint !==
-              after.native_snapshot_fingerprint) {
+              after.native_snapshot_fingerprint ||
+            correspondenceBefore.capture_dependency_fingerprint !==
+              after.capture_dependency_fingerprint) {
           throw new Error(
             "PART_CORRESPONDENCE_CAPTURE_STALE: recipe-owned native state or project changed during capture."
           );
@@ -1002,6 +1004,7 @@ export function registerCameraTools() {
           .update(JSON.stringify({
             project_uuid: captureProjectUuid,
             native: after.native_snapshot_fingerprint,
+            capture_dependencies: after.capture_dependency_fingerprint,
             front_direction, framing_bounds: {
               min: [...framingBounds.min], max: [...framingBounds.max],
             },
@@ -1033,13 +1036,15 @@ export function registerCameraTools() {
           project_uuid: after.project_uuid,
           recipe_id: after.recipe_id,
           native_snapshot_fingerprint: after.native_snapshot_fingerprint,
+          capture_dependency_fingerprint: after.capture_dependency_fingerprint,
           native_scope: after.native_scope,
           verified_native_target_count: after.verified_count,
           recipe_owned_snapshot_stable_during_capture: true,
+          capture_dependencies_stable_during_capture: true,
           model_scope_limits: [
             "UNRELATED_CUBES_NOT_COVERED",
-            "PARENT_GROUP_TRANSFORMS_NOT_COVERED",
-            "TEXTURE_PIXELS_NOT_COVERED",
+            "ANIMATED_PREVIEW_TRANSFORMS_NOT_COVERED",
+            "GPU_MATERIAL_STATE_NOT_ATTESTED",
           ],
           source_authority: "CALLER_SUPPLIED_NOT_VERIFIED_BY_RUNTIME" as const,
           review_state: "PENDING_ACTUAL_IMAGE_COMPARISON" as const,
