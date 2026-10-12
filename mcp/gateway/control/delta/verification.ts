@@ -7,8 +7,6 @@ import { STATE_MUTATIONS } from "./policy";
 import {
   record,
   resultCandidates,
-  materialPersistenceOnly,
-  materialPersistenceReceiptComplete,
   receiptSupportsContinuation,
 
 } from "./receipts";
@@ -132,14 +130,6 @@ export function verificationClassForResult(
     manifestEntryForBranch(capability, branch)?.verificationClass ??
     getCapabilityMetadata(capability).verificationClass;
   if (!succeeded) return fallback;
-
-  if (
-    capability === "manage_material" &&
-    materialPersistenceOnly(result) &&
-    !materialPersistenceReceiptComplete(result)
-  ) {
-    return fallback;
-  }
 
   if (
     fallback === "not_applicable" &&

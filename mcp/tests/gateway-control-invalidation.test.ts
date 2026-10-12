@@ -129,6 +129,35 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.invalidates.acceptance_gates).toBe(true);
   });
 
+  test("unverified material save cannot suppress Texture invalidation", () => {
+    const malformed = buildControlDelta({
+      capability: "manage_material",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { operation: "save", scope: "material_persistence_only" },
+    });
+    expect(malformed.invalidates.authoring_domains).toContain("TEXTURING");
+    expect(malformed.freshness.basis).not.toBe("NO_CHANGE");
+    expect(malformed.verification_class).not.toBe("receipt_only");
+
+    const verified = buildControlDelta({
+      capability: "manage_material",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        operation: "save", scope: "material_persistence_only",
+        material: {uuid:"material-a",name:"metal"},
+        file_path:"/tmp/material.texture_set.json", saved:true, file_exists:true,
+      },
+    });
+    expect(verified.invalidates.authoring_domains).toEqual([]);
+    expect(verified.verification_class).toBe("receipt_only");
+  });
+
   test("paint/material changes invalidate only Texture knowledge", () => {
     for (const capability of ["paint_with_brush", "manage_material"] as const) {
       const delta = buildControlDelta({

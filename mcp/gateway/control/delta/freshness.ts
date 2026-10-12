@@ -30,7 +30,7 @@ import {
   animationTimelineStateNeutral,
   animationControllerResourceStateNeutral,
   directAnimationStateNeutral,
-  materialPersistenceOnly,
+  materialPersistenceReceiptComplete,
 } from "./receipts";
 
 export function particleHasAuthoredEffect(value: unknown): boolean {
@@ -169,7 +169,7 @@ export function capabilityMutatesState(
   ) {
     return false;
   }
-  if (capability === "manage_material" && materialPersistenceOnly(result)) {
+  if (capability === "manage_material" && materialPersistenceReceiptComplete(result)) {
     return false;
   }
   if (capability === "save_material_config") {
@@ -273,7 +273,7 @@ export function mutationInvalidation(
   if (
     succeeded &&
     capability === "manage_material" &&
-    materialPersistenceOnly(result)
+    materialPersistenceReceiptComplete(result)
   ) {
     return {
       authoring_domains: [],

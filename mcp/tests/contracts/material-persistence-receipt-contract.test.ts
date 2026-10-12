@@ -3,6 +3,7 @@ import {
   isMaterialPersistenceReceipt,
   materialPersistenceReceipt,
 } from "@/lib/receipts/materialMutation";
+import { materialPersistenceReceiptComplete } from "@/gateway/control/delta/receipts";
 
 describe("shared material persistence receipt contract", () => {
   test("accepts verified saved file state", () => {
@@ -16,6 +17,24 @@ describe("shared material persistence receipt contract", () => {
     });
 
     expect(isMaterialPersistenceReceipt(receipt)).toBe(true);
+  });
+
+  test("Control refuses incomplete save labels without a verified persistence receipt", () => {
+    expect(materialPersistenceReceiptComplete({
+      operation: "save", scope: "material_persistence_only",
+    })).toBe(false);
+    expect(materialPersistenceReceiptComplete({
+      operation: "save", scope: "material_persistence_only",
+      material: {uuid:"material-a",name:"metal"},
+      file_path:"/tmp/material.texture_set.json",
+      saved:true, file_exists:false,
+    })).toBe(false);
+    expect(materialPersistenceReceiptComplete({
+      operation: "save", scope: "material_persistence_only",
+      material: {uuid:"material-a",name:"metal"},
+      file_path:"/tmp/material.texture_set.json",
+      saved:true, file_exists:true,
+    })).toBe(true);
   });
 
   test("rejects unverified or incomplete persistence state", () => {

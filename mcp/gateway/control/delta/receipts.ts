@@ -121,17 +121,6 @@ export function directAnimationStateNeutral(
   });
 }
 
-export function materialPersistenceOnly(value: unknown): boolean {
-  return resultCandidates(value).some(
-    (candidate) =>
-      isMaterialPersistenceReceipt(candidate) ||
-      (
-        candidate.operation === "save" &&
-        candidate.scope === "material_persistence_only"
-      )
-  );
-}
-
 export function materialPersistenceReceiptComplete(value: unknown): boolean {
   return resultCandidates(value).some(isMaterialPersistenceReceipt);
 }
