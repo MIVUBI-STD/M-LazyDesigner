@@ -46,9 +46,9 @@ source image bytes and IDs on demand.
 **Implemented Batch 1 pure owner:** `mcp/lib/reference/partCorrespondence.ts`.
 It consumes existing `imageRegionEvidence` and the already validated
 `SemanticIdentityResolution` type without creating a store, Gateway tool,
-new reference schema, router or mirrored Runtime mapping. It is not wired
-into normal authoring traffic yet; no native capture/revision truth can be
-inferred from source-only test fixtures.
+new reference schema, router or mirrored Runtime mapping. It is wired only to the opt-in `capture_model_views.reference_correspondence`
+argument through Batch 2, not to default authoring traffic. Native capture,
+revision, or visual acceptance cannot be inferred from source-only fixtures.
 
 ## High-end source evaluation — adopt contracts, not engines
 

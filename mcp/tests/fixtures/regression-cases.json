@@ -5,7 +5,7 @@
     "statuses": [
       "REGRESSION_GUARDED"
     ],
-    "rule": "Every entry names the canonical regression proof. This corpus is not a bug tracker or quality score."
+    "rule": "Every entry names a declared regression test source. REGRESSION_GUARDED means the test is present, not that it ran or passed at the current SHA. This is not an executed proof report, bug tracker or quality score."
   },
   "cases": [
     {

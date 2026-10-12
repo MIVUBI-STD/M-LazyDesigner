@@ -70,7 +70,7 @@ Which legacy BlockIT identifier must remain stable during migration?
 ## Bounded system evidence and historical plans
 
 - External source authority → [External Quality Intelligence](external-quality-intelligence.md) (not native visual acceptance).
-- Image-reference semantic region ↔ native Cube identity design → [Visual Part Correspondence](visual-part-correspondence.md) (source-reviewed design; **not** implemented or native accepted).
+- Image-reference semantic region ↔ native Cube identity design → [Visual Part Correspondence](visual-part-correspondence.md) (bounded pure/opt-in capture source implemented; **not** exact-SHA executable, native, or visually accepted).
 - Long-session context/cache semantics → [Prompt Cache and Compaction](prompt-cache-and-compaction.md).
 - Dated efficiency rationale → [Historical Zero-Waste Plan](zero-waste-token-efficiency-plan.md). This is not the current task queue; continuation remains under `docs/05-operations/next-action.md`.
 

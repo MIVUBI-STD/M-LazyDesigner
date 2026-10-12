@@ -73,9 +73,13 @@ Current source still lacks matching Bun/native/visual acceptance.
 
 The opt-in `mcp/scripts/audit/rea-application.ts` wraps REA's static
 `analyze-javascript-application` on a caller-selected built JavaScript
-directory or Electron ASAR. It retains provenance, explicit limitations and
-unknown coverage, without making visual/native PASS claims, adding Gateway
-tools, or changing normal authoring. The canonical instructions are in
+directory or Electron ASAR. Its previous projector looked for a non-existent
+`normalized_result.application_graph.coverage.state`; upstream REA uses
+`normalized_result.graph.coverage.status` and semantic graph coverage. The
+source projector and synthetic test now follow those contracts, retain
+uncertainty/contradictions, and do not claim cryptographic Evidence
+verification. No visual/native PASS claims, added Gateway tool, or normal
+authoring change. **Bun/REA/installed Blockbench NOT EXECUTED.** The canonical instructions are in
 `mcp/scripts/audit/README.md`; the regression owner is
 `mcp/tests/development/rea-application-audit.test.ts`.
 This is prepared source and tests **only**. Real REA CLI execution against a

@@ -27,7 +27,11 @@ function fixture() {
         root_artifact_sha256:sha,nodes:[{node_id:"jsrg_node_"+"e".repeat(64)}],
         unknowns:[] as unknown[],
         coverage:{status:"complete",truncated:false,omitted_nodes:0,omitted_relations:0,
-          limits:[] as unknown[],families:Array.from({length:12},(_,i)=>({name:"family-"+i,status:"complete"}))},
+          limits:[] as unknown[],families:["boundary","call-flow","child-process","closure",
+            "configuration","data-flow","event","object-flow",
+            "promise-ownership","request","resource-lifecycle","timer"].map(
+            family=>({family,status:"complete",retained_relations:0,
+              omitted_relations:0,unknown_ids:[]}))},
         limitations:[] as string[],
       },
       statistics:{parse_failures:0},integrity_contradictions:[] as unknown[],

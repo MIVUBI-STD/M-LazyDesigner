@@ -19,7 +19,7 @@ type GoldenTask = {
 };
 
 describe("quality benchmark corpus contracts", () => {
-  test("regression corpus contains only real guarded incidents with explicit proof owners", async () => {
+  test("regression corpus names existing test source files, not current-head PASS evidence", async () => {
     const corpus = await Bun.file("tests/fixtures/regression-cases.json").json() as { schema: string; cases: RegressionCase[] };
     expect(corpus.schema).toBe("lazydesigner-regression-corpus-v1");
     expect(corpus.cases.length).toBeGreaterThanOrEqual(8);
