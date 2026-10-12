@@ -209,6 +209,62 @@ same voxel/detail language
 
 Orthographic panels are views of one asset, not independently redesigned illustrations.
 
+
+### ChatGPT Canonical View Lock — Multi-View Only
+
+Use this small additional clause **only when two or more views of the same asset are requested**. It strengthens the existing Identity / Scale Locks; it is not a new generation mode, a 3D reconstruction claim, or a required intermediate image.
+
+Before generation, resolve the few object-space facts needed by the selected panels:
+
+```text
+FRONT = the object's agreed facing direction, identified by <visible front feature>
+OBJECT LEFT / OBJECT RIGHT = sides belonging to that same object, not page-relative directions
+FIXED FORM = <major masses, part count, relative dimensions and contact/attachment relationships>
+FIXED ASYMMETRY = <only confirmed side-specific part or marking locations, if any>
+SELECTED VIEWS = <front / object-left / object-right / back / top / front-left 3/4, as needed>
+```
+
+Prompt only observed or confirmed facts. If the intended front/side is materially ambiguous, resolve it before generating dependent views; do not invent an axis. If a hidden or unprovided side has identity-critical unknown structure, do not portray invented detail as approved fact. Ask when blocking; otherwise omit the view or keep non-critical interpretation provisional.
+
+For a **single generated sheet**, pass one shared object-space description to all panels, rather than repeating independent descriptions per view. When an approved source sheet or image is already available for a continuation/correction, supply that *actual image* as the visual anchor whenever supported; a filename or prose summary is not equivalent.
+
+Append a short, asset-specific clause such as:
+
+```text
+Draw ONE unchanged Minecraft/Blockbench asset, seen from the requested cameras.
+FRONT points toward <front-identifying feature>; LEFT/RIGHT are the asset's own sides.
+Keep <fixed masses / count / attachment> identical in every view.
+Keep <confirmed side-specific feature> on the same object side; never mirror it.
+Construction views use orthographic, non-perspective projection with consistent proportions.
+Only the camera rotates between panels; do not rotate/mirror parts, add accessories,
+change thickness or silhouette, or independently redesign a view.
+```
+
+Do not substitute a camera-label claim for actual geometry or calibrated projection. Text-only instructions improve direction but **cannot guarantee** true 3D consistency or recover hidden shape. Do not invent exact dimensions, angles, or occluded features from image pixels.
+
+#### Cross-View Acceptance and Correction
+
+Inspect the **actual generated panels** before calling a sheet usable, comparing the selected paired views for:
+
+1. count and identity of major parts (including parts that disappear behind other parts);
+2. consistent width/height/depth relationships, silhouette and relative spacing;
+3. the same attachment/contact topology, openings and negative spaces;
+4. stable object-left/object-right asymmetry without mirroring;
+5. unchanged identity-critical markings and Minecraft-block construction language.
+
+Choose one bounded response based on visible evidence:
+
+```text
+CONSISTENT             → send for normal user review; not automatically approved
+LOCAL VIEW DEFECT      → edit the existing image, naming CHANGE and PRESERVE
+MULTI-VIEW CONTRADICTION → regenerate the affected sheet from the same locks
+INSUFFICIENT EVIDENCE  → mark affected claim UNVERIFIED; do not invent a PASS
+```
+
+For an edit, identify the faulty panel and one concrete mismatch; preserve all unaffected panels and locked facts. Reinspect every panel touched by the edit, since image edits can affect unintended regions. Repeating the same failed correction direction twice without new evidence is a stop condition, not a reason to keep regenerating.
+
+Do not create an extra sheet, proxy mesh, camera engine, part registry, or validation score to satisfy this clause. A simple asset whose one view already answers the task does not need any multi-view work.
+
 ## 9. Negative / Do-Not-Change Rules
 
 Use only likely current failure modes.
@@ -309,6 +365,7 @@ compiled brief current
 final confirmation approved
 scale resolved enough for this artifact
 sheet purpose justified
+canonical FRONT / object-side orientation resolved when multi-view requires it
 panel plan readable
 all panels P1/P2
 identity lock explicit
@@ -326,6 +383,7 @@ identity correct
 player/world scale correct
 part count correct
 cross-view proportions consistent
+visible multi-view side identity / attachments checked against the actual generated panels
 attachments/openings consistent
 materials/colors consistent
 asymmetry preserved
