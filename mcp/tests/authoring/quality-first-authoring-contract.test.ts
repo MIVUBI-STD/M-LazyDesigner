@@ -1,10 +1,14 @@
+/**
+ * Source-policy text assertions only. A PASS here does not execute Blockbench,
+ * inspect model/reference pixels, measure fidelity, or establish acceptance.
+ */
 import { describe, expect, test } from "bun:test";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
 }
 
-describe("quality-first generic authoring contract", () => {
+describe("quality-first authoring guidance (source text only, not asset quality)", () => {
   test("bounds and visual evidence policies live in current modelling/validation owners", async () => {
     const [modelling, geometry, validation] = await Promise.all([
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),

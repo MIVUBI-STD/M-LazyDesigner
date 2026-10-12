@@ -1,3 +1,7 @@
+/**
+ * Source-policy text assertions only. A PASS here does not execute Blockbench,
+ * inspect model/reference pixels, measure fidelity, or establish acceptance.
+ */
 import { describe, expect, test } from "bun:test";
 
 async function source(path: string): Promise<string> {
@@ -8,7 +12,7 @@ function normalized(text: string): string {
   return text.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
-describe("model creation effectiveness — fidelity convergence and evaluation integrity", () => {
+describe("model-fidelity policy text (not generated-model performance)", () => {
   test("local corrections require qualitative convergence rather than mutation activity", async () => {
     const [modelling, correction, workflow] = await Promise.all([
       source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
