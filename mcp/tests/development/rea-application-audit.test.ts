@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { projectReaStaticEvidence } from "../../scripts/audit/rea-application";
+import { argsFromCli, projectReaStaticEvidence } from "../../scripts/audit/rea-application";
+import { join, parse } from "node:path";
 
 function evidence(coverage: unknown = "complete") {
   return {
@@ -13,6 +14,13 @@ function evidence(coverage: unknown = "complete") {
 }
 
 describe("optional REA static evidence audit boundary", () => {
+  test("retained Evidence respects an absolute filesystem-root output basename", () => {
+    const output = join(parse(process.cwd()).root, "rea-static-evidence.json");
+    const selection = argsFromCli([process.cwd(), "--retain-evidence", output]);
+    expect(selection.retain).toBe(output);
+  });
+
+
   test("a complete static observation does not prove a working editor or visual quality", () => {
     const report = projectReaStaticEvidence(evidence());
     expect(report).toMatchObject({

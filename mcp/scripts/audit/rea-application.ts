@@ -6,10 +6,10 @@
  * REA executes its analyzer, not the inspected JavaScript application.
  */
 import { spawn } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, openSync, closeSync,
+import { copyFileSync, mkdtempSync, openSync, closeSync,
   readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 const MAX_EVIDENCE_BYTES = 64 * 1024 * 1024;
 const ID_PATTERN = /^ev_[0-9a-f]{64}$/;
@@ -77,7 +77,7 @@ export function projectReaStaticEvidence(input: unknown) {
   } as const;
 }
 
-function argsFromCli(argv: string[]) {
+export function argsFromCli(argv: string[]) {
   const args = argv[0] === "--" ? argv.slice(1) : argv;
   if (args.length !== 1 && args.length !== 3) {
     throw new Error("USAGE: bun run audit:rea -- ABSOLUTE_TARGET [--retain-evidence ABSOLUTE_OUTPUT_JSON]");
@@ -98,7 +98,7 @@ function argsFromCli(argv: string[]) {
   if (retain !== null) {
     const root = realpathSync(resolve(import.meta.dir, "../../.."));
     const outputParent = realpathSync(dirname(retain));
-    const output = resolve(outputParent, retain.substring(dirname(retain).length + 1));
+    const output = resolve(outputParent, basename(retain));
     const insideRoot = relative(root, output);
     if (insideRoot === "" || (!insideRoot.startsWith(".."+sep) && insideRoot !== ".." && !isAbsolute(insideRoot))) {
       throw new Error("REA_AUDIT_OUTPUT_IN_REPO: keep raw Evidence outside the source checkout.");
