@@ -98,6 +98,16 @@ export type ControlReferenceProjection = {
    * subset rather than retransmitting every semantic section.
    */
   semantic_facts?: ControlReferenceSemanticFacts;
+  /** Sections omitted by bounded Control projection; source REFERENCE.json is still intact. */
+  truncated_sections?: Array<
+    | "parts"
+    | "articulation"
+    | "materials"
+    | "animation_guidance"
+    | "constraints"
+    | "unknowns.blocking"
+    | "unknowns.non_blocking"
+  >;
   unavailable_reason?:
     | "REFERENCE_PATH_UNAVAILABLE"
     | "REFERENCE_NOT_FOUND"

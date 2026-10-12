@@ -90,6 +90,7 @@ export function buildReadiness(
   const domainReady = snapshot.authoring.domain !== null;
   const contextReady = snapshot.context.required.length > 0;
   const activeReferenceBlocked = activeReferenceReadiness === "BLOCKED";
+  const projectionIncomplete = (reference.truncated_sections?.length ?? 0) > 0;
   const reasons: string[] = [];
 
   if (!snapshot.runtime.online) reasons.push("RUNTIME_OFFLINE");
@@ -98,6 +99,7 @@ export function buildReadiness(
   if (!domainReady) reasons.push("AUTHORING_DOMAIN_UNRESOLVED");
   if (!contextReady) reasons.push("REQUIRED_CONTEXT_UNRESOLVED");
   if (!reference.available) reasons.push("REFERENCE_PACKAGE_UNAVAILABLE");
+  if (projectionIncomplete) reasons.push("REFERENCE_PROJECTION_INCOMPLETE");
   if (activeReferenceBlocked) reasons.push("REFERENCE_STAGE_BLOCKED");
   reasons.push(...lifecycle.reasons.filter((reason) => !reasons.includes(reason)));
 
@@ -111,7 +113,7 @@ export function buildReadiness(
     modelling_start: blocked
       ? "BLOCKED"
       : projectReady && domainReady && contextReady &&
-          reference.available && !lifecycle.orientation_required
+          reference.available && !projectionIncomplete && !lifecycle.orientation_required
         ? "READY"
         : "NEEDS_ORIENTATION",
     runtime_ready: runtimeReady,

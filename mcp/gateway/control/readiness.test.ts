@@ -89,6 +89,18 @@ describe("Control readiness policy", () => {
     expect(present.modelling_start).toBe("READY");
   });
 
+  test("incomplete reference projection requires orientation without blocking the Runtime", () => {
+    const truncated = buildReadiness(
+      baseSnapshot(), emptyWorkspace(),
+      { ...emptyReference("REFERENCE_PATH_UNAVAILABLE"), available: true,
+        truncated_sections: ["parts"] },
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, null
+    );
+    expect(truncated.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(truncated.runtime_ready).toBe(true);
+    expect(truncated.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
+  });
+
   test("system development readiness does not require asset context", () => {
     const readiness = buildReadiness(
       baseSnapshot(),

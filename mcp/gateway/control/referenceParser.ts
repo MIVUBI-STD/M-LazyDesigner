@@ -150,6 +150,7 @@ export function emptyReference(
       animation_guidance: [],
       constraints: [],
     },
+    truncated_sections: [],
     unavailable_reason: unavailableReason,
   };
 }
@@ -167,7 +168,9 @@ export function parseReferencePackage(
   }
 
   const root = record(parsed);
-  if (!root || stringValue(root.schema) !== "lazydesigner-reference-v1") {
+  if (!root || stringValue(root.schema) !== "lazydesigner-reference-v1" ||
+      (root.images !== undefined && !Array.isArray(root.images)) ||
+      (root.parts !== undefined && !Array.isArray(root.parts))) {
     return null;
   }
 
@@ -183,18 +186,32 @@ export function parseReferencePackage(
   const assetKind =
     assetKindValue(asset?.kind) ?? (selectedProfile ? "MODEL" : null);
   const imageEntries = Array.isArray(root.images) ? root.images : [];
-  const declaredPartIdsList = (Array.isArray(root.parts) ? root.parts.slice(0, 24) : [])
-    .map(record).map((part) => stringValue(part?.id))
-    .filter((id): id is string => id !== null);
-  const declaredPartIds = new Set(declaredPartIdsList);
-  const ambiguousParts = declaredPartIds.size !== declaredPartIdsList.length;
-  let invalidLandmarks = false;
+  // Validate the complete source identity set, not just the bounded context projection.
+  const declaredPartIdsList = (Array.isArray(root.parts) ? root.parts : [])
+    .map((part) => stringValue(record(part)?.id));
+  const declaredPartIds = new Set(declaredPartIdsList.filter((id): id is string => id !== null));
+  const ambiguousParts = declaredPartIdsList.some((id) => id === null) ||
+    declaredPartIds.size !== declaredPartIdsList.length;
+  if (ambiguousParts) return null;
+  const unknownLists = [unknowns?.blocking, unknowns?.non_blocking];
+  if (unknownLists.some((value) => value !== undefined &&
+      (!Array.isArray(value) ||
+        value.some((entry) => typeof entry !== "string" || !entry.trim())))) {
+    return null;
+  }
+  let invalidImageEvidence = false;
   const images = imageEntries.flatMap((entry) => {
     const item = record(entry);
-    if (!item) return [];
+    if (!item) {
+      invalidImageEvidence = true;
+      return [];
+    }
     const id = stringValue(item.id);
     const file = stringValue(item.file);
-    if (!id || !file) return [];
+    if (!id || !file) {
+      invalidImageEvidence = true;
+      return [];
+    }
     const landmarks = parseReferenceImageLandmarks(item.landmarks);
     const regions = parseReferenceImageRegions(item.regions);
     const viewCandidate = stringValue(item.view)?.toLowerCase();
@@ -212,7 +229,7 @@ export function parseReferencePackage(
             (region.related_part_id !== null &&
               !declaredPartIds.has(region.related_part_id)))
         ))) {
-      invalidLandmarks = true;
+      invalidImageEvidence = true;
       return [];
     }
     const usedBy = (Array.isArray(item.used_by) ? item.used_by : [])
@@ -231,7 +248,23 @@ export function parseReferencePackage(
       view,
     }];
   });
-  if (invalidLandmarks) return null;
+  // Never represent a malformed source as a smaller, apparently complete reference.
+  if (invalidImageEvidence ||
+      new Set(images.map((image) => image.id)).size !== images.length) return null;
+
+  const truncatedSections: NonNullable<ControlReferenceProjection["truncated_sections"]> = [];
+  const projectionCaps = [
+    ["parts", root.parts, 24],
+    ["articulation", root.articulation, 24],
+    ["materials", root.materials, 24],
+    ["animation_guidance", root.animation_guidance, 24],
+    ["constraints", root.constraints, 24],
+    ["unknowns.blocking", unknowns?.blocking, 16],
+    ["unknowns.non_blocking", unknowns?.non_blocking, 16],
+  ] as const;
+  for (const [section, values, cap] of projectionCaps) {
+    if (Array.isArray(values) && values.length > cap) truncatedSections.push(section);
+  }
 
   return {
     available: true,
@@ -288,6 +321,7 @@ export function parseReferencePackage(
         : null,
     blocking_unknowns: stringList(unknowns?.blocking),
     non_blocking_unknowns: stringList(unknowns?.non_blocking),
+    truncated_sections: truncatedSections,
     documents: {
       ...(stringValue(documents?.geometry)
         ? { GEOMETRY: stringValue(documents?.geometry)! }

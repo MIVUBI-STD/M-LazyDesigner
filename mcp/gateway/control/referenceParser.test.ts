@@ -281,6 +281,39 @@ describe("Control reference parser", () => {
     ] }] })?.images[0]?.regions?.[0]?.box_uv).toBeNull();
   });
 
+  test("signals omitted reference facts while validating all part IDs", () => {
+    const doc = {
+      schema: "lazydesigner-reference-v1",
+      parts: Array.from({ length: 25 }, (_, i) => ({ id: "part_" + i, role: "GEOMETRY" })),
+      unknowns: { blocking: Array.from({ length: 17 }, (_, i) => "unknown " + i) },
+      images: [{
+        id: "front", file: "front.png", view: "front",
+        regions: [{ id: "last", part_id: "part_24", evidence_role: "PRIMARY_VOLUME",
+          visibility: "DIRECT", box_uv: [0.1, 0.1, 0.5, 0.5] }],
+      }],
+    };
+    const parsed = parseReferencePackage(JSON.stringify(doc), "/pkg/REFERENCE.json", "/pkg");
+    expect(parsed?.semantic_facts?.parts).toHaveLength(24);
+    expect(parsed?.images[0].regions?.[0].part_id).toBe("part_24");
+    expect(parsed?.blocking_unknowns).toHaveLength(16);
+    expect(parsed?.truncated_sections).toEqual(["parts", "unknowns.blocking"]);
+  });
+
+  test("rejects malformed and duplicate source identities instead of silently omitting them", () => {
+    const parse = (value: unknown) =>
+      parseReferencePackage(JSON.stringify(value), "/pkg/REFERENCE.json", "/pkg");
+    const base = { schema: "lazydesigner-reference-v1" };
+    expect(parse({ ...base, images: [{ id: "front" }] })).toBeNull();
+    expect(parse({ ...base, images: [null] })).toBeNull();
+    expect(parse({ ...base, images: [
+      { id: "front", file: "a.png" }, { id: "front", file: "b.png" },
+    ] })).toBeNull();
+    expect(parse({ ...base, parts: [{ id: "left" }, { id: "left" }] })).toBeNull();
+    expect(parse({ ...base, parts: [{ id: "left" }, {}] })).toBeNull();
+    expect(parse({ ...base, unknowns: { blocking: ["known", null] } })).toBeNull();
+    expect(parse({ ...base, images: "front.png" })).toBeNull();
+  });
+
   test("empty reference keeps a stable unavailable shape", () => {
     expect(emptyReference("REFERENCE_NOT_FOUND")).toMatchObject({
       available: false,
