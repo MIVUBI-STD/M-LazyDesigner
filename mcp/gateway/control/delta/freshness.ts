@@ -185,9 +185,8 @@ export function capabilityMutatesState(
 }
 
 export function effectChangedFields(value: unknown): string[] {
-  const root = record(value);
-  if (!root) return [];
-  return cubeChangedFieldsFromResult(root);
+  const authoritative = resultCandidates(value)[0];
+  return authoritative ? cubeChangedFieldsFromResult(authoritative) : [];
 }
 
 export function geometryInvalidation(

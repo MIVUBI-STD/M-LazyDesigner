@@ -29,12 +29,23 @@ export function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+/**
+ * Select exactly one producer-owned receipt interpretation.
+ *
+ * A flat structuredContent object is already the canonical payload used by
+ * GatewayCapabilityExecutor. For MCP-envelope inputs, structuredContent
+ * supersedes outer/display fields; contradictory envelopes must never make
+ * one successful "planned" or "complete" candidate win over an applied/unknown
+ * authoritative receipt. Missing or malformed inner payload fails closed.
+ */
 export function resultCandidates(value: unknown): Record<string, unknown>[] {
   const root = record(value);
   if (!root) return [];
-  return [root, record(root.structuredContent)].filter(
-    (entry): entry is Record<string, unknown> => entry !== null
-  );
+  if (Object.prototype.hasOwnProperty.call(root, "structuredContent")) {
+    const structured = record(root.structuredContent);
+    return structured ? [structured] : [];
+  }
+  return [root];
 }
 
 export function cubeStateNeutral(value: unknown): boolean {

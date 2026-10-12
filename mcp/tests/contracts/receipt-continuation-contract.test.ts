@@ -3,9 +3,35 @@ import { CAPABILITY_CORE_MANIFEST } from "@/lib/capabilities/manifest";
 import {
   CONTINUATION_RECEIPT_CAPABILITIES,
   receiptSupportsContinuation,
+  resultCandidates,
+  cubeStateNeutral,
 } from "@/gateway/control/delta/receipts";
 
 describe("continuation receipt registry", () => {
+  test("MCP wrapper has one authoritative structuredContent candidate", () => {
+    const contradictory = {
+      execution: "unchanged",
+      structuredContent: { execution: "applied", name: "new-model" },
+    };
+    expect(resultCandidates(contradictory)).toEqual([
+      { execution: "applied", name: "new-model" },
+    ]);
+    expect(cubeStateNeutral(contradictory)).toBe(false);
+    expect(resultCandidates({
+      execution: "applied",
+      structuredContent: { execution: "unchanged" },
+    })).toEqual([{ execution: "unchanged" }]);
+    expect(cubeStateNeutral({
+      execution: "applied", structuredContent: { execution: "unchanged" },
+    })).toBe(true);
+    expect(resultCandidates({ execution: "unchanged", structuredContent: null }))
+      .toEqual([]);
+    expect(cubeStateNeutral({ execution: "unchanged", structuredContent: null }))
+      .toBe(false);
+    expect(resultCandidates({ execution: "unchanged" }))
+      .toEqual([{ execution: "unchanged" }]);
+  });
+
   test("registry capabilities are canonical and verification-relevant", () => {
     expect(CONTINUATION_RECEIPT_CAPABILITIES.length).toBeGreaterThan(0);
 

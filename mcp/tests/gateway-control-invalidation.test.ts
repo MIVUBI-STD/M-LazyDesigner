@@ -146,6 +146,39 @@ describe("LazyDesigner Control minimum invalidation", () => {
     }
   });
 
+  test("contradictory MCP envelope cannot suppress Geometry invalidation", () => {
+    const delta = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "unchanged", // Non-authoritative envelope metadata.
+        structuredContent: {
+          execution: "applied",
+          geometry_effect: cubeEffect(["from", "to"]),
+        },
+      },
+    });
+    expect(delta.freshness.basis).not.toBe("NO_CHANGE");
+    expect(delta.invalidates.authoring_domains).toContain("GEOMETRY");
+    expect(delta.invalidates.authoring_domains).toContain("TEXTURING");
+  });
+
+  test("malformed inner MCP receipt fails closed rather than trusting outer no-op", () => {
+    const delta = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { execution: "unchanged", structuredContent: null },
+    });
+    expect(delta.freshness.basis).not.toBe("NO_CHANGE");
+    expect(delta.invalidates.authoring_domains).toContain("GEOMETRY");
+  });
+
   test("planned or unchanged cube simplify operations preserve state and skip visual verification", () => {
     for (const execution of ["planned", "unchanged"] as const) {
       const delta = buildControlDelta({
