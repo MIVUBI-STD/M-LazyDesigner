@@ -190,12 +190,17 @@ not an additional Gateway capability, registry, or visual classifier.
 
 **Limitations:** the original recipe-native fingerprint remains unchanged for
 recipe transaction/Undo authority. A separate capture-only dependency hash now
-covers owned Cube ancestry (parent Group pivot/rotation and visibility), UV/face
-state and current loaded texture bitmap bytes. Correspondence capture rejects
-before/after dependency drift and binds this hash into the capture evidence
-handle. Unrelated Cubes, animated preview transforms, GPU material state and
-source-region visual approval are **not attested**. Texture hashing applies only
-to opt-in correspondence capture and is not the regular authoring hot path.
+covers all native Cube geometry (including Cubes unrelated to the saved
+recipe), parent Group pivot/rotation/visibility, UV/face state, and current
+loaded texture bitmap bytes. An unrelated Cube obstructing the reference
+target therefore changes the capture fingerprint even if recipe-owned
+geometry has not changed. Correspondence capture rejects before/after
+dependency drift and binds this hash into the evidence handle; later pure
+reviews also require a matching current dependency hash supplied by the
+caller. Mesh/non-Cube geometry fails closed when present. Animated preview
+transforms, GPU material state and source-region visual approval remain
+**not attested**. Texture hashing applies only to opt-in correspondence
+capture and is not the regular authoring hot path.
 Matching image/view labels does not certify source-camera calibration.
 The reviewing AI must inspect the freshly returned model pixels beside
 the actual approved source pixels. A source claim/capture never

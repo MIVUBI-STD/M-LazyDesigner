@@ -47,8 +47,20 @@ export function createBlockbenchAuthoringRecipeService() {
  * fingerprint: native Undo uses it independently of visual capture.
  */
 function captureDependencyFingerprint(ownedUuids: ReadonlySet<string>): string {
-  const scoped = (Cube.all ?? []).filter((cube) => ownedUuids.has(cube.uuid))
-    .map((cube) => {
+  // A reference view can include geometry outside the saved recipe.
+  // Authoring/Undo remains recipe-scoped; visual capture must see the Cube scene.
+  const scene = Cube.all ?? [];
+  if (typeof Mesh !== "undefined" && Mesh.all?.length) {
+    throw new Error("PART_CORRESPONDENCE_NON_CUBE_SCENE_UNSUPPORTED");
+  }
+  const cubeIds = new Set(scene.map((cube) => cube.uuid));
+  if (cubeIds.size !== scene.length || [...ownedUuids].some((id) => !cubeIds.has(id))) {
+    throw new Error("PART_CORRESPONDENCE_NATIVE_TARGET_SCOPE_CHANGED");
+  }
+  const finiteVec = (value: unknown): value is number[] =>
+    Array.isArray(value) && value.length === 3 &&
+    value.every((n) => typeof n === "number" && Number.isFinite(n));
+  const scoped = scene.map((cube) => {
       const groups: unknown[] = [];
       const visited = new Set<object>();
       let parent: unknown = cube.parent;
@@ -59,11 +71,8 @@ function captureDependencyFingerprint(ownedUuids: ReadonlySet<string>): string {
         visited.add(parent);
         const group = parent as { uuid?: unknown; origin?: unknown;
           rotation?: unknown; parent?: unknown; visibility?: boolean; export?: boolean };
-        const vec = (value: unknown): value is number[] =>
-          Array.isArray(value) && value.length === 3 &&
-          value.every((n) => typeof n === "number" && Number.isFinite(n));
         if (typeof group.uuid !== "string" || !group.uuid ||
-            !vec(group.origin) || !vec(group.rotation)) {
+            !finiteVec(group.origin) || !finiteVec(group.rotation)) {
           throw new Error("PART_CORRESPONDENCE_PARENT_HIERARCHY_INVALID");
         }
         groups.push({
@@ -71,6 +80,11 @@ function captureDependencyFingerprint(ownedUuids: ReadonlySet<string>): string {
           visibility: group.visibility !== false, export: group.export !== false,
         });
         parent = group.parent;
+      }
+      if (!cube.uuid || !finiteVec(cube.from) || !finiteVec(cube.to) ||
+          !finiteVec(cube.origin) || !finiteVec(cube.rotation) ||
+          !Number.isFinite(cube.inflate ?? 0)) {
+        throw new Error("PART_CORRESPONDENCE_SCENE_GEOMETRY_INVALID");
       }
       const faces = Object.entries(cube.faces ?? {})
         .sort(([left], [right]) => left.localeCompare(right))
@@ -80,16 +94,17 @@ function captureDependencyFingerprint(ownedUuids: ReadonlySet<string>): string {
           enabled: face.enabled !== false,
         }));
       return {
-        uuid: cube.uuid, groups, faces, visibility: cube.visibility !== false,
+        uuid: cube.uuid, name: cube.name,
+        from: [...cube.from], to: [...cube.to], origin: [...cube.origin],
+        rotation: [...cube.rotation], inflate: cube.inflate ?? 0,
+        recipe_owned: ownedUuids.has(cube.uuid),
+        groups, faces, visibility: cube.visibility !== false,
         export: cube.export !== false, box_uv: cube.box_uv ?? null,
         autouv: cube.autouv ?? null,
         uv_offset: cube.uv_offset ? [...cube.uv_offset] : null,
         mirror_uv: cube.mirror_uv ?? null,
       };
     }).sort((l, r) => l.uuid.localeCompare(r.uuid));
-  if (scoped.length !== ownedUuids.size) {
-    throw new Error("PART_CORRESPONDENCE_NATIVE_TARGET_SCOPE_CHANGED");
-  }
   const textures = (Project.textures ?? Texture.all) as Texture[];
   const bitmaps = textures.map((texture) => {
     if (!texture.uuid || typeof texture.getDataURL !== "function") {
@@ -109,7 +124,7 @@ function captureDependencyFingerprint(ownedUuids: ReadonlySet<string>): string {
     throw new Error("PART_CORRESPONDENCE_TEXTURE_IDENTITY_AMBIGUOUS");
   }
   return "sha256:" + createHash("sha256").update(JSON.stringify({
-    scoped, bitmaps,
+    all_native_cubes: scoped, bitmaps,
     logical_uv: [Project.texture_width ?? null, Project.texture_height ?? null],
     view_mode: Project.view_mode ?? null,
   })).digest("hex");

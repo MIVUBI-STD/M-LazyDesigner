@@ -68,10 +68,13 @@ function fixture(): Editable<PartCorrespondenceInput> {
       project_uuid: "project-1", recipe_id: authored.id,
       native_snapshot_fingerprint: fingerprint,
       current_native_snapshot_fingerprint: fingerprint,
+      capture_dependency_fingerprint: "sha256:" + "d".repeat(64),
+      current_capture_dependency_fingerprint: "sha256:" + "d".repeat(64),
       identities,
       capture: {
         project_uuid: "project-1",
         native_snapshot_fingerprint: fingerprint,
+        capture_dependency_fingerprint: "sha256:" + "d".repeat(64),
         evidence_handle: CAPTURE, views: ["front"],
       },
     },
@@ -135,6 +138,14 @@ describe("pure source-image to recipe-owned Cube correspondence", () => {
     const projectChanged = fixture();
     projectChanged.model.capture.project_uuid = "other-project";
     expect(evaluate(projectChanged).reason).toBe("SOURCE_OR_MODEL_REVISION_CHANGED");
+    const staleScene = fixture();
+    staleScene.model.current_capture_dependency_fingerprint = "sha256:" + "e".repeat(64);
+    expect(evaluate(staleScene)).toMatchObject({
+      state: "UNAVAILABLE", reason: "SOURCE_OR_MODEL_REVISION_CHANGED",
+    });
+    const captureMismatch = fixture();
+    captureMismatch.model.capture.capture_dependency_fingerprint = "sha256:" + "e".repeat(64);
+    expect(evaluate(captureMismatch).reason).toBe("SOURCE_OR_MODEL_REVISION_CHANGED");
     const noView = fixture();
     noView.model.capture.views = ["left"];
     expect(evaluate(noView).reason).toBe("VIEW_NOT_CAPTURED");

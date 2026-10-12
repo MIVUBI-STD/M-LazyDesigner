@@ -148,6 +148,31 @@ describe("current recipe-owned part evidence uses one native identity owner", ()
       .toThrow("PART_CORRESPONDENCE_TEXTURE_IDENTITY_AMBIGUOUS");
   });
 
+  test("integrated scene evidence invalidates after unrelated obstruction, correction and parent movement", () => {
+    const { source } = setNativeScene();
+    const first = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    const unrelated = {
+      uuid: "foreign", name: "obstruction",
+      from: [0, 0, 0], to: [2, 4, 2],
+      origin: [1, 2, 1], rotation: [0, 0, 0], inflate: 0,
+    };
+    (runtime.Cube as { all: unknown[] }).all.push(unrelated);
+    const obstructed = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(obstructed.native_snapshot_fingerprint).toBe(first.native_snapshot_fingerprint);
+    expect(obstructed.capture_dependency_fingerprint).not.toBe(first.capture_dependency_fingerprint);
+    unrelated.from[0] = 4;
+    const corrected = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(corrected.capture_dependency_fingerprint).not.toBe(obstructed.capture_dependency_fingerprint);
+    const group = { uuid: "foreign-parent", origin: [0, 0, 0],
+      rotation: [0, 0, 0], parent: "root" };
+    (unrelated as typeof unrelated & { parent?: unknown }).parent = group;
+    const parented = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    group.rotation[1] = 45;
+    const moved = readRecipePartCaptureScope(source.id, ["native-cube-0"]);
+    expect(moved.capture_dependency_fingerprint).not.toBe(parented.capture_dependency_fingerprint);
+    expect(moved.native_snapshot_fingerprint).toBe(first.native_snapshot_fingerprint);
+  });
+
   test("stale native geometry and missing persisted recipe fail before image capture", () => {
     const { source, cubes } = setNativeScene();
     cubes[0]!.from[0] += 1;

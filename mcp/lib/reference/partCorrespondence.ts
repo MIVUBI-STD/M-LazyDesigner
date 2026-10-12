@@ -50,11 +50,15 @@ export type PartCorrespondenceInput = {
     recipe_id: string;
     native_snapshot_fingerprint: string;
     current_native_snapshot_fingerprint: string;
+    /** Read-only visual dependencies, separate from recipe/Undo identity. */
+    capture_dependency_fingerprint: string;
+    current_capture_dependency_fingerprint: string;
     /** Result of existing resolveSemanticIdentity after recipe/native validation. */
     identities: SemanticIdentityResolution;
     capture: {
       project_uuid: string;
       native_snapshot_fingerprint: string;
+      capture_dependency_fingerprint: string;
       evidence_handle: string;
       views: readonly ModelView[];
     };
@@ -199,6 +203,9 @@ export function assessVisualPartCorrespondence(input: PartCorrespondenceInput): 
     !NATIVE_FINGERPRINT.test(model.native_snapshot_fingerprint) ||
     model.native_snapshot_fingerprint !== model.current_native_snapshot_fingerprint ||
     model.capture.native_snapshot_fingerprint !== model.native_snapshot_fingerprint ||
+    !NATIVE_FINGERPRINT.test(model.capture_dependency_fingerprint) ||
+    model.capture_dependency_fingerprint !== model.current_capture_dependency_fingerprint ||
+    model.capture.capture_dependency_fingerprint !== model.capture_dependency_fingerprint ||
     model.capture.project_uuid !== model.project_uuid;
   const claimedByUuid = new Map<string, Set<string>>();
   for (const proposal of input.proposals) {
