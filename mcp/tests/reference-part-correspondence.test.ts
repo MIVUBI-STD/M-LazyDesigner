@@ -232,9 +232,59 @@ describe("pure source-image to recipe-owned Cube correspondence", () => {
     const x = fixture();
     x.reference.images.push({
       ...structuredClone(x.reference.images[0]!), id: "IMG_FRONT_2",
-      sha256: "b".repeat(64),
+      sha256: HASH,
     });
-    expect(assessVisualPartCorrespondence(x).source_views).toEqual(["front"]);
+    const result = assessVisualPartCorrespondence(x);
+    expect(result.source_views).toEqual(["front"]);
+    expect(result.claims[0]).toMatchObject({
+      state: "SUPPORTED", reason: "MATCH_REVIEWED",
+    });
+  });
+
+  test("same image bytes relabelled as different views conflict even with reported review", () => {
+    const x = fixture();
+    x.reference.images.push({
+      ...structuredClone(x.reference.images[0]!), id: "IMG_LEFT",
+      view: "left", sha256: HASH,
+    });
+    x.model.capture.views.push("left");
+    x.proposals.push({
+      ...structuredClone(x.proposals[0]!),
+      image_id: "IMG_LEFT",
+      review: {
+        ...structuredClone(x.proposals[0]!.review!),
+        source_image_id: "IMG_LEFT", model_view: "left",
+      },
+    });
+    const result = assessVisualPartCorrespondence(x);
+    expect(result.source_views).toEqual([]);
+    expect(result.visual_verdict).toBe("NOT_EVALUATED");
+    expect(result.claims.map((claim) => [claim.state, claim.reason])).toEqual([
+      ["CONFLICTING", "SOURCE_VIEW_IDENTITY_CONFLICT"],
+      ["CONFLICTING", "SOURCE_VIEW_IDENTITY_CONFLICT"],
+    ]);
+  });
+
+  test("distinct approved image bytes can support distinct reviewed view associations", () => {
+    const x = fixture();
+    const leftSha = "b".repeat(64);
+    x.reference.images.push({
+      ...structuredClone(x.reference.images[0]!), id: "IMG_LEFT",
+      view: "left", sha256: leftSha,
+    });
+    x.model.capture.views.push("left");
+    x.proposals.push({
+      ...structuredClone(x.proposals[0]!),
+      image_id: "IMG_LEFT",
+      review: {
+        ...structuredClone(x.proposals[0]!.review!),
+        source_image_id: "IMG_LEFT", source_sha256: leftSha, model_view: "left",
+      },
+    });
+    const result = assessVisualPartCorrespondence(x);
+    expect(result.source_views).toEqual(["front", "left"]);
+    expect(result.claims.map((claim) => claim.state)).toEqual(["SUPPORTED", "SUPPORTED"]);
+    expect(result.visual_verdict).toBe("NOT_EVALUATED");
   });
 
   test("rejects duplicate proposals, duplicate native identities and oversized scopes", () => {

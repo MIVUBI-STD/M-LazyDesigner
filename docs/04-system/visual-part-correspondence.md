@@ -133,7 +133,8 @@ confidence-as-probability, unbounded list, or implicit correction command.
 | Reference region is `SURFACE_DETAIL` | Texture-owner observation; **not** request to create geometry |
 | Region is `PARTIAL` or `OCCLUDED` | Unseen continuation **UNVERIFIED**; absent silhouette is not missing-part proof |
 | Source `CONTACT` or `NEGATIVE_SPACE` region | Inspect both relevant elements/empty space; never treat it as a Cube-to-create |
-| One image/view repeated under multiple IDs | Still **one independent view** |
+| One image/view repeated under multiple IDs | Still **one independent view**, even when its file has several IDs |
+| Same image SHA-256 assigned to different canonical views | `CONFLICTING / SOURCE_VIEW_IDENTITY_CONFLICT` for affected claims; exclude those bytes from `source_views` until references are disambiguated |
 | Part maps to many owned Cubes | Valid when resolved identities and relationships are explicit |
 | One Cube claims unrelated parts without a justified shared relationship | `CONFLICTING`, no silent ownership merge |
 | Model changed since capture, image SHA changed, or cameras cannot be paired | `UNAVAILABLE / PROVISIONAL`, refuse convergence/quality PASS |

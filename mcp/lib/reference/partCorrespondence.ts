@@ -81,6 +81,7 @@ export type PartCorrespondenceClaim = {
     | "MATCH_REVIEWED"
     | "SOURCE_UNAVAILABLE"
     | "SOURCE_NOT_APPROVED"
+    | "SOURCE_VIEW_IDENTITY_CONFLICT"
     | "SOURCE_OR_MODEL_REVISION_CHANGED"
     | "PART_OR_REGION_NOT_DECLARED"
     | "NO_EXPLICIT_TARGET"
@@ -114,6 +115,25 @@ function roleOwner(role: RegionRole): PartCorrespondenceClaim["owner"] {
   if (role === "PRIMARY_VOLUME") return "GEOMETRY";
   if (role === "SURFACE_DETAIL") return "TEXTURE";
   return "RELATIONSHIP";
+}
+
+/**
+ * One unchanged image cannot provide independent orthographic views merely
+ * because package entries assign it different view labels. Multiple IDs for
+ * the same bytes and same view remain one observation, not a conflict.
+ */
+function conflictingSourceViewHashes(images: readonly CorrespondenceSourceImage[]): Set<string> {
+  const viewsByHash = new Map<string, Set<ModelView>>();
+  for (const image of images) {
+    if (image.integrity !== "VERIFIED" || !image.sha256 ||
+        !SHA256.test(image.sha256) || !image.view) continue;
+    const views = viewsByHash.get(image.sha256) ?? new Set<ModelView>();
+    views.add(image.view);
+    viewsByHash.set(image.sha256, views);
+  }
+  return new Set([...viewsByHash.entries()]
+    .filter(([, views]) => views.size > 1)
+    .map(([hash]) => hash));
 }
 
 function assertBoundedInput(input: PartCorrespondenceInput): Map<string, CompactSemanticIdentity> {
@@ -172,6 +192,7 @@ export function assessVisualPartCorrespondence(input: PartCorrespondenceInput): 
   const parts = new Map(input.reference.parts.map((part) => [part.id, part.role?.toUpperCase() ?? null]));
   const ownership = summarizeReferencePartRegions(input.reference.images, input.reference.parts);
   const ownerConflicts = new Set(ownership.ownership_issues.map((issue) => issue.image_region_id));
+  const conflictingViewHashes = conflictingSourceViewHashes(input.reference.images);
   const model = input.model;
   const stale = !SHA256.test(input.reference.package_fingerprint) ||
     input.reference.package_fingerprint !== input.reference.current_package_fingerprint ||
@@ -220,6 +241,9 @@ export function assessVisualPartCorrespondence(input: PartCorrespondenceInput): 
     }
     if (!declared || !region) return result("CONFLICTING", "PART_OR_REGION_NOT_DECLARED");
     if (stale) return result("UNAVAILABLE", "SOURCE_OR_MODEL_REVISION_CHANGED");
+    if (conflictingViewHashes.has(image.sha256)) {
+      return result("CONFLICTING", "SOURCE_VIEW_IDENTITY_CONFLICT");
+    }
     if (ownerConflicts.has(image.id + ":" + region.id)) return result("CONFLICTING", "OWNER_CONFLICT");
     if (cubes.some((uuid) => (claimedByUuid.get(uuid)?.size ?? 0) > 1)) {
       return result("CONFLICTING", "CUBE_CLAIMED_BY_DIFFERENT_PARTS");
@@ -259,7 +283,8 @@ export function assessVisualPartCorrespondence(input: PartCorrespondenceInput): 
     visual_verdict: "NOT_EVALUATED",
     source_views: [...new Set(input.reference.images.flatMap((image) =>
       image.view && image.integrity === "VERIFIED" && image.sha256 &&
-      SHA256.test(image.sha256) ? [image.view] : []
+      SHA256.test(image.sha256) && !conflictingViewHashes.has(image.sha256)
+        ? [image.view] : []
     ))],
     claims,
   };
