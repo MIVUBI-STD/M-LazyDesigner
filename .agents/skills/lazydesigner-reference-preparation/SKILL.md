@@ -29,8 +29,8 @@ USER REQUEST
 → PROMPT COMPILER when normalization helps
 → CLASSIFY CAPABILITY
    ├─ VISUAL / MODEL
-   │  → bounded final confirmation when material
-   │  → image reference owners
+   │  → ask only for BLOCKING ambiguity or explicitly requested pre-generation review
+   │  → otherwise generate through image reference owners
    │  → image QA / user visual approval
    ├─ PIXEL ART
    │  → lazydesigner-pixel-art-authoring
@@ -101,29 +101,17 @@ Particle/VFX work **does not inherit the image branch's hard pre-generation conf
 
 After blocking information is resolved, use `lazydesigner-prompt-compiler` when normalization materially helps.
 
-The compiler may organize, normalize wording, remove superseded directions, and deduplicate. It may not invent dimensions, materials, topology, animation requirements, hidden structure, motion, target grid/style identity, or unsupported design choices.
+The compiler may organize, normalize wording, remove superseded directions, and deduplicate. For new creative concepts it may supply reversible appearance defaults, not source facts. It may not override a supplied image, invent numeric scale from pixels, or present unsupported source anatomy, topology, material or identity as observed.
 
 The compiled brief is internal working state and is not exported by default.
 
-## Visual/model confirmation — hard gate when material
+## Visual/model generation authorization and review
 
-For a new **visual/model** artifact whose target materially depends on user decisions, show a concise confirmation and obtain explicit approval before image generation.
+When the user requests an image or edit and no BLOCKING ambiguity remains, **generate directly**; the request itself authorizes a first pass. Do not add a second confirmation for a clear request, minor design choice, or user-requested revision.
 
-Preferred shape:
+For a genuinely blocking ambiguity, ask the smallest decision-changing question. For an explicitly requested approval-first workflow, present a concise target summary and await the user's answer; silence does not constitute approval. This is not a default visual/model gate.
 
-```text
-Konfirmasi sebelum dibuat:
-- Objek: <asset>
-- Skala: <only when material>
-- Arah: <main target>
-- Tambahan: <only material extras>
-
-Sudah sesuai?
-```
-
-Silence is not approval. A materially revised visual target requires another bounded confirmation.
-
-Do not apply this ceremony automatically to Pixel Art or Particle requests that already have no BLOCKING ambiguity.
+Review/approval of the **resulting image** is separate: an unreviewed generation cannot silently replace a previously approved visual authority. Pixel Art and Particle retain their independent routes and review needs.
 
 ## Visual/model branch
 
@@ -180,7 +168,7 @@ Missing information in one branch must not block an independent branch unless it
 
 Reference Preparation is complete when:
 - blocking information for the selected branch is resolved;
-- any branch-specific required confirmation is explicit;
+- explicitly requested pre-generation approval is honored, if applicable;
 - only required reference capabilities were used;
 - branch-specific QA is complete at the available proof ceiling;
 - any requested package passes its consistency contract;

@@ -17,12 +17,12 @@ USER REQUEST
 → missing BLOCKING information?
    ├─ YES → ASK SIMPLE QUESTIONS → USER ANSWERS → GATE AGAIN
    └─ NO
-→ PROMPT COMPILER
-→ CLEAN PRODUCTION BRIEF
+→ PROMPT COMPILER when normalization helps
+→ CLEAN VISUAL BRIEF
 → CLASSIFY REQUIRED REFERENCE CAPABILITY
    ├─ visual/model only
-   │  → FINAL CONFIRMATION when the target materially depends on user decisions
-   │  → image/
+   │  → ASK only for unresolved BLOCKING choices or requested pre-generation review
+   │  → otherwise GENERATE through image/
    ├─ particle/VFX only
    │  → particle/authoring-spec.md
    │  → no ceremonial pre-confirmation when no BLOCKING ambiguity remains
@@ -113,7 +113,7 @@ raw user intent
 → CLEAN PRODUCTION BRIEF
 ```
 
-Rejected or superseded directions are removed. The compiler may normalize wording but may not invent design, scale, materials, topology, motion, duration, or hidden structure.
+Rejected or superseded directions are removed. The compiler may organize source-backed requirements and reversible creative defaults. It may not fabricate observed source facts, override approved visuals, or invent exact dimensions from pixels. When the user asks for a new design rather than a faithful reconstruction, reasonable unsupplied colors/materials/details are creative choices, not claims about the source.
 
 The compiled brief is internal working state and is not a default handoff file.
 
@@ -121,21 +121,11 @@ The compiled brief is internal working state and is not a default handoff file.
 
 ### Visual / model reference
 
-Before generating a new visual artifact whose target materially depends on user decisions, show a concise summary and obtain explicit approval.
+A direct request to create or edit a reference image **already authorizes that generation**. If no decision-changing BLOCKING unknown remains, generate the first useful image without a ceremonial confirmation. Use reasonable, reversible creative defaults for unspecified details of a new concept; do not promote them to observed source facts.
 
-Recommended shape:
+Ask one concise question only when an unresolved decision would materially change the intended identity, required source fidelity, scale, or orientation. If the user explicitly requests a plan or approval before generation, show the bounded target summary and honor that requested review. Do not treat silence as approval in that case.
 
-```text
-Konfirmasi sebelum dibuat:
-- Objek: <target>
-- Skala: <only when material>
-- Arah: <main structural/visual direction>
-- Tambahan: <only material extras>
-
-Sudah sesuai?
-```
-
-Silence is not approval. A material revision requires a new bounded confirmation before the revised visual is generated.
+Approval of the **generated image as reference authority** is a separate, subsequent user decision when material. A user-requested correction authorizes the edit without another confirmation unless the correction itself introduces a new blocking conflict.
 
 ### Particle / VFX reference
 
@@ -192,7 +182,7 @@ A Resource Pack/ZIP, README, manifest, or `REFERENCE.json` is delivery output an
 
 Generation uses the smallest branch-ready authority set, not the uncontrolled full conversation.
 
-Visual/model generation uses the confirmed compiled brief plus approved source/reference authority and scale lock when material.
+Visual/model generation uses a concise current brief (compiled when useful), any actual source/reference image, and a scale lock when material. Keep source-observed facts distinct from creative design defaults. If the result is already requested and adequately specified, proceed directly.
 
 Particle/VFX authoring uses the normalized particle brief with BLOCKING ambiguity resolved, the minimum required particle knowledge owner(s), and reversible provisional choices where allowed.
 
@@ -208,7 +198,7 @@ For correction:
 USER DELTA
 → compile CHANGE + PRESERVE when useful
 → resolve only new blockers
-→ branch-specific confirmation only when required
+→ clarification or pre-generation review only when explicitly needed
 → bounded correction
 → causal QA
 → user review
@@ -283,7 +273,7 @@ The compiled brief organizes generation but never outranks approved user/referen
 Do not generate when:
 - a blocking requirement is unresolved;
 - materially conflicting evidence remains unresolved;
-- a branch-specific required confirmation is pending;
+- the user explicitly requested pre-generation approval and it is still pending;
 - a correction would require guessing what must be preserved;
 - the proposed artifact does not materially help the downstream decision.
 
@@ -300,7 +290,7 @@ The user should normally only need to:
 ```text
 1. describe what they want
 2. answer a few simple questions when vital information is missing
-3. approve a concise target summary only when the selected branch materially requires it
+3. review a target summary before generation only when explicitly requested
 4. review the requested reference artifact
 5. request/authorize packaging when a package is actually needed
 6. receive the completed handoff when requested

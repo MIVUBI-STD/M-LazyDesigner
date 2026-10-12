@@ -7,8 +7,9 @@ This document owns the internal prompt structure used by ChatGPT Reference Prepa
 ## Core Principle
 
 ```text
-CONFIRMED USER INTENT
-+ CLEAN COMPILED BRIEF
+CURRENT USER IMAGE REQUEST
++ CLEAN VISUAL BRIEF (compiled when useful)
++ SOURCE-BACKED FACTS / REVERSIBLE CREATIVE DEFAULTS
 + SHEET PURPOSE
 + PANEL PLAN
 + IDENTITY LOCK
@@ -24,6 +25,7 @@ Use only the minimum relevant subset of:
 
 ```text
 confirmed asset identity
+reversible creative defaults for unspecified original-design details (if applicable)
 selected profile
 approved Minecraft/Blockbench target
 explicit dimensions when relevant
@@ -68,7 +70,7 @@ One concise sentence.
 Create a Minecraft Bedrock / Blockbench reference sheet for a stylized fisherman NPC with a small bench, bucket and fishing rod.
 ```
 
-Do not add unconfirmed lore, environment, accessories, or realism.
+For source-faithful reconstruction, do not invent lore, environment, accessories or source-specific detail. For an original creative request, restrained unspecified aesthetic choices are allowed when they do not contradict the intended Minecraft/Blockbench target; keep them provisional until reviewed.
 
 ## 2. Visual Style / Render Language
 
@@ -224,7 +226,7 @@ FIXED ASYMMETRY = <only confirmed side-specific part or marking locations, if an
 SELECTED VIEWS = <front / object-left / object-right / back / top / front-left 3/4, as needed>
 ```
 
-Prompt only observed or confirmed facts. If the intended front/side is materially ambiguous, resolve it before generating dependent views; do not invent an axis. If a hidden or unprovided side has identity-critical unknown structure, do not portray invented detail as approved fact. Ask when blocking; otherwise omit the view or keep non-critical interpretation provisional.
+Preserve observed/confirmed source facts for reconstruction. For original creative design, unspecified non-critical design choices may be provisional; keep them coherent across views. If the intended front/side is materially ambiguous, resolve it before generating dependent views rather than inventing a source-backed axis. If a hidden side of an existing reference contains unknown identity-critical structure, do not portray invented detail as approved fact. Ask when blocking; otherwise omit that view or label the interpretation provisional.
 
 For a **single generated sheet**, pass one shared object-space description to all panels, rather than repeating independent descriptions per view. When an approved source sheet or image is already available for a continuation/correction, supply that *actual image* as the visual anchor whenever supported; a filename or prose summary is not equivalent.
 
@@ -237,7 +239,8 @@ Keep <fixed masses / count / attachment> identical in every view.
 Keep <confirmed side-specific feature> on the same object side; never mirror it.
 Construction views use orthographic, non-perspective projection with consistent proportions.
 Only the camera rotates between panels; do not rotate/mirror parts, add accessories,
-change thickness or silhouette, or independently redesign a view.
+or change the underlying 3D dimensions, attachments or form. A different projected
+2D silhouette is EXPECTED when the view angle changes; do not force identical outlines.
 ```
 
 Do not substitute a camera-label claim for actual geometry or calibrated projection. Text-only instructions improve direction but **cannot guarantee** true 3D consistency or recover hidden shape. Do not invent exact dimensions, angles, or occluded features from image pixels.
@@ -247,7 +250,7 @@ Do not substitute a camera-label claim for actual geometry or calibrated project
 Inspect the **actual generated panels** before calling a sheet usable, comparing the selected paired views for:
 
 1. count and identity of major parts (including parts that disappear behind other parts);
-2. consistent width/height/depth relationships, silhouette and relative spacing;
+2. consistent underlying width/height/depth relationships and relative spacing, allowing the projected 2D silhouette to differ by viewpoint;
 3. the same attachment/contact topology, openings and negative spaces;
 4. stable object-left/object-right asymmetry without mirroring;
 5. unchanged identity-critical markings and Minecraft-block construction language.
@@ -361,8 +364,8 @@ Profiles help identify high-value evidence but do not change the universal promp
 
 ```text
 blocking requirements resolved
-compiled brief current
-final confirmation approved
+current concise visual brief (compiled when materially useful)
+direct generation/edit request authorized; explicit pre-generation approval honored only when requested
 scale resolved enough for this artifact
 sheet purpose justified
 canonical FRONT / object-side orientation resolved when multi-view requires it
@@ -371,12 +374,14 @@ all panels P1/P2
 identity lock explicit
 scale lock explicit when material
 no superseded instruction remains
-no invented design fact added
+no fabricated source facts or overwritten approved design; creative defaults remain provisional
 ```
 
 If any check fails, do not generate.
 
 ## Post-Generation Check
+
+The image-generation tool may display its result immediately. This is an **after-generation inspection**, not a promise that ChatGPT can withhold a generated image until QA passes. Check the *actual visible output* when available; if the image cannot be inspected, mark visual claims UNVERIFIED rather than claiming PASS. Do not automatically regenerate for an unobserved defect.
 
 ```text
 identity correct
@@ -393,7 +398,7 @@ labels minimal/correct
 no redundant/decorative panel displaced useful evidence
 ```
 
-For Sheet 02+, compare directly against Sheet 01.
+For Sheet 02+, compare the actual output directly against the approved Sheet 01 image when accessible. If a visible material mismatch exists, use bounded CHANGE + PRESERVE editing where possible and reinspect touched panels; stop repeated corrections without new evidence. User review determines final reference approval.
 
 ## Economy Rule
 

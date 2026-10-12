@@ -7,18 +7,61 @@ async function read(path: string) {
 const REFERENCE_SKILL = "../.agents/skills/lazydesigner-reference-preparation/SKILL.md";
 
 describe("LazyDesigner reference preparation contract", () => {
-  test("reference generation is gated by blocking requirements and explicit confirmation", async () => {
-    const [skill, flow] = await Promise.all([
+  test("clear user image requests generate directly while real blockers and requested pre-review remain gated", async () => {
+    const [skill, flow, compiler, templates] = await Promise.all([
       read(REFERENCE_SKILL),
       read("../docs/02-reference/flow.md"),
+      read("../.agents/skills/lazydesigner-prompt-compiler/SKILL.md"),
+      read("../docs/02-reference/image/master-templates.md"),
     ]);
 
-    expect(skill).toContain("requirement gate");
-    expect(skill).toContain("blocking");
-    expect(skill).toContain("final confirmation");
-    expect(skill).toContain("silence is not approval");
-    expect(flow).toContain("requirement gate");
-    expect(flow).toContain("final confirmation");
+    expect(skill).toContain("generate directly");
+    expect(skill).toContain("silence does not constitute approval");
+    expect(flow).toContain("already authorizes that generation");
+    expect(flow).toContain("blocking");
+    expect(compiler).toContain("ready_for_generation");
+    expect(templates).toContain("the user requested this image or edit");
+    expect(templates).not.toContain("explicit user confirmation exists for current target");
+  });
+
+  test("creative defaults do not fabricate source-backed facts", async () => {
+    const [skill, compiler, policy] = await Promise.all([
+      read(REFERENCE_SKILL),
+      read("../.agents/skills/lazydesigner-prompt-compiler/SKILL.md"),
+      read("../docs/02-reference/policy.md"),
+    ]);
+
+    expect(skill).toContain("reversible appearance defaults");
+    expect(compiler).toContain("new creative design");
+    expect(compiler).toContain("source reconstruction");
+    expect(compiler).toContain("creative defaults");
+    expect(policy).toContain("never as observed evidence");
+    expect(compiler).not.toContain("actual generation is still forbidden until");
+  });
+
+  test("multi-view keeps the underlying 3d shape, not identical 2d silhouettes", async () => {
+    const [prompt, templates] = await Promise.all([
+      read("../docs/02-reference/image/prompt-contract.md"),
+      read("../docs/02-reference/image/master-templates.md"),
+    ]);
+
+    expect(prompt).toContain("different projected");
+    expect(prompt).toContain("underlying 3d dimensions");
+    expect(prompt).not.toContain("change thickness or silhouette");
+    expect(templates).toContain("different projected 2d silhouettes");
+    expect(templates).toContain("one pass by default");
+  });
+
+  test("visual QA follows actual image visibility and never claims a hidden pre-display gate", async () => {
+    const [prompt, templates] = await Promise.all([
+      read("../docs/02-reference/image/prompt-contract.md"),
+      read("../docs/02-reference/image/master-templates.md"),
+    ]);
+
+    expect(prompt).toContain("after-generation inspection");
+    expect(templates).toContain("may show the result immediately");
+    expect(templates).toContain("unverified");
+    expect(templates).not.toContain("before presenting the generated image, verify");
   });
 
   test("source images remain evidence while final generated sheets target Minecraft/Blockbench", async () => {

@@ -61,7 +61,7 @@ visible source evidence → may support a visual claim
 missing / conflicting evidence → UNKNOWN or ask when blocking
 ```
 
-Do not infer exact dimensions from pixels. Do not average conflicting views into invented geometry. Do not invent hidden structure, materials, articulation, animation, or identity-critical design facts.
+Do not infer exact dimensions from pixels or average conflicting views into invented geometry. For source-faithful reconstruction, do not invent hidden structure, materials, articulation, animation, or identity-critical facts. For an original creative concept, reversible choices about unspecified appearance are allowed; label them as design choices, never as observed evidence.
 
 ## Minimum-Sufficient Reference Rule
 
@@ -170,7 +170,7 @@ Do not export transcripts, compiled prompt history, generic tutorials, Tool sche
 
 A generated visual becomes approved visual authority only after explicit user acceptance when visual approval is material.
 
-A fresh material change requires a new bounded confirmation/review cycle. Never infer approval from silence.
+A fresh material change requires review of the resulting visual before it replaces approved reference authority. A clear user request to generate or revise an image does not require redundant pre-generation confirmation. Only an explicitly requested pre-generation approval or an unresolved blocking decision requires waiting; never infer approval from silence.
 
 ## Completion
 

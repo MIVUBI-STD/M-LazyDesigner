@@ -2,7 +2,7 @@
 
 Updated: 2026-09-11
 
-This document owns the compact reusable master templates used after Reference Preparation has resolved requirements, compiled a clean brief, selected useful panels, and obtained explicit user confirmation.
+This document owns compact reusable master templates after Reference Preparation resolves only blocking requirements, compiles a brief when useful, and selects relevant panels. A clear user image request already authorizes generation; extra pre-generation confirmation is needed only when explicitly requested.
 
 It complements:
 - `prompt-contract.md`
@@ -14,8 +14,8 @@ The templates are internal prompt-construction forms. They are not user-facing p
 ## Core Rule
 
 ```text
-APPROVED STATE
-+ MINIMUM RELEVANT VISUAL FACTS
+CURRENT USER REQUEST + APPROVED PRIOR STATE (WHEN PRESENT)
++ MINIMUM RELEVANT VISUAL FACTS / CREATIVE DEFAULTS
 + PANEL PLAN
 + IDENTITY LOCK
 + SCALE LOCK
@@ -337,7 +337,7 @@ whole-sheet coherence failure
 
 The master templates are structures, not text that must be copied verbatim.
 
-The final generation instruction should remove empty sections and collapse redundant facts.
+The final generation instruction should remove empty sections and collapse redundant facts. For original creative designs, use provisional choices for unspecified appearance; for source reconstruction, preserve only evidence-backed source facts and explicit constraints.
 
 Example:
 
@@ -398,41 +398,38 @@ MECHANICAL
 
 Never inject the entire profile guide into a generation prompt.
 
-# Pre-Call Gate
+# Generation Decision and Pre-Call Gate
 
-Do not invoke image generation unless all are true:
+Generate one useful image/sheet in one pass by default. Use staged generation only when materially complex multi-view evidence cannot fit readably or a concrete output failure requires separating views. Do not invent extra images, 3D proxies or intermediate assets.
 
-```text
-blocking requirement gate passed
-clean compiled brief exists
-explicit user confirmation exists for current target
-scale is resolved enough for intended asset
-sheet purpose is justified
-selected panels are P1/P2 only
-sheet escalation decision already made
-identity lock exists
-scale lock exists when material
-no superseded direction remains
-```
-
-# Post-Call Gate
-
-Before presenting the generated image, verify:
+Proceed when:
 
 ```text
-asset identity matches confirmed target
-scale relationship is correct
-cross-view proportions agree
-part count agrees
-attachments/openings agree
-materials/colors do not drift
-later sheets match Sheet 01
-motion poses use the same asset, not a redesigned version
-labels are minimal and correct
-no decorative panel displaced useful evidence
+the user requested this image or edit
+no decision-changing BLOCKING ambiguity remains
+the concise visual brief is current (compile formally only when useful)
+source evidence is preserved; optional creative defaults are not called source facts
+scale and identity are resolved enough for the requested artifact
+selected P1/P2 panels are readable and purposeful
+object-space FRONT / side direction is clear when material to multi-view
+pre-generation approval is satisfied only when explicitly requested
 ```
 
-If this fails, fix the owning issue before asking the user to approve it.
+# Post-Call Visual Inspection
+
+ChatGPT image generation may show the result immediately. Inspect the actual generated pixels when available **after generation**; do not promise a hidden pre-display QA gate.
+
+```text
+identity and scale remain consistent with the user request and visual source
+multi-view panels share one 3D form but may have different projected 2D silhouettes
+required part count and attachment relationships are consistent
+approved side-specific markings, materials and colors do not drift
+later sheets preserve actual approved Sheet 01 visual identity
+motion views use the same object rather than redesigning it
+labels and critical views remain legible, without decorative crowding
+```
+
+If a visible material defect exists, use bounded CHANGE + PRESERVE image editing when possible, then inspect every affected panel; a broad contradiction may require regenerating the sheet. If images cannot be inspected, report affected claims UNVERIFIED. Do not initiate blind retries or call an unreviewed output approved. Stop repeated same-direction edits without new evidence.
 
 # Economy Target
 
@@ -441,8 +438,8 @@ The intended result is:
 ```text
 poor or casual user prompt
 → Requirement Gate
-→ Prompt Compiler
-→ compact approved state
+→ Prompt Compiler only when useful
+→ compact current state
 → one reusable master template
 → consistent production reference
 ```

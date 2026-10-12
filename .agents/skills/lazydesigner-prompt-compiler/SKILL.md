@@ -43,12 +43,13 @@ The compiler may:
 - express unresolved information as UNKNOWN.
 
 The compiler must not:
-- invent dimensions;
-- invent materials, colors, parts, motion, anatomy, topology, style, or hidden structure;
-- silently choose among unresolved alternatives;
-- change user intent;
-- override approved images;
-- convert a guess into a requirement.
+- invent exact dimensions or source measurements;
+- present missing source material, hidden geometry or attachment details as observed;
+- override approved images, explicit user constraints, or source-backed identity;
+- silently choose between materially conflicting requirements;
+- convert a creative choice or guess into a source-backed requirement.
+
+For a **new creative design** without a source-fidelity constraint, the brief may contain restrained, reversible choices for unspecified color, material, decoration and non-critical form. Mark these as creative defaults rather than confirmed source facts. For **source reconstruction**, keep unknown source features unknown; do not hallucinate them. This distinction is based on user intent and evidence, not a separate engine or persistent mode.
 
 ## Input Gate
 
@@ -57,7 +58,7 @@ Do not compile a production brief while a blocking requirement is unresolved.
 Blocking information is anything that can materially change the generated target, such as:
 - what the asset fundamentally is;
 - the major subtype when needed for identity;
-- a required style/reference direction when multiple materially different outcomes remain possible;
+- a required style/reference direction when the user needs one specific outcome and no safe default can satisfy the request;
 - dimensions when scale is required for the requested handoff;
 - animation YES/NO when it changes reference preparation;
 - critical attachment, orientation, part-count, or action information;
@@ -88,7 +89,7 @@ Ask:
 
 ## Compiled Brief Contract
 
-The internal brief should contain only confirmed or evidence-backed information:
+The internal brief should distinguish confirmed/evidence-backed facts from reversible creative defaults:
 
 ```text
 ASSET
@@ -103,6 +104,7 @@ STRUCTURAL PRIORITIES
 MATERIAL PRIORITIES
 MOTION PRIORITIES
 PRESERVE
+CREATIVE DEFAULTS (only for open-ended generation; never source facts)
 UNKNOWN / NON-BLOCKING
 ```
 
@@ -123,22 +125,11 @@ NEW BLOCKERS
 
 Old rejected directions must not remain active merely because they occurred earlier in chat.
 
-## Final Confirmation Input
+## Output to Reference Preparation
 
-When all blocking information is resolved, produce a short `CONFIRMATION_SUMMARY` for the Reference Preparation Skill.
+Return the smallest current brief necessary to generate or edit the image. Produce a short `CONFIRMATION_SUMMARY` only when the user explicitly requested pre-generation review. No mandatory confirmation summary is generated for a clear direct image request.
 
-It should answer only:
-- what will be made;
-- the main visual/structural direction;
-- whether animation/reference extras are included when relevant.
-
-Example:
-
-```text
-Akan dibuat NPC miner bergaya Minecraft Bedrock HD, tinggi 2 blok, memakai tool referensi yang Anda kirim, dan disiapkan untuk animasi dengan perhatian pada sendi bahu, pinggul, dan lutut.
-```
-
-Do not generate images, JSON, Markdown package files, or other artifacts from this Skill.
+Do not generate images, JSON, Markdown package files, or other artifacts from this delegated Skill.
 
 ## Completion
 
@@ -146,7 +137,7 @@ Return one of:
 
 ```text
 NEEDS_USER_INPUT
-READY_FOR_CONFIRMATION
+READY_FOR_GENERATION
 ```
 
-`READY_FOR_CONFIRMATION` means the brief is internally clean and no generation-blocking requirement remains. Actual generation is still forbidden until the user explicitly confirms the final summary.
+`NEEDS_USER_INPUT` applies to a blocking ambiguity or user-requested approval-first review. `READY_FOR_GENERATION` means the direct user request authorizes generation and the brief is sufficiently resolved. Final reference approval still follows inspection of the resulting visual when material.
