@@ -9,7 +9,7 @@
 Define the minimum evidence required before LazyDesigner claims that a Blockbench
 model visually matches the requested scope.
 
-Reference preparation belongs to [04-reference-guide.md](04-reference-guide.md).
+Reference preparation belongs to [Reference Preparation](../../02-reference/README.md).
 This note validates the Blockbench result.
 Comparison captures require Shading ON. Record shading, view/front direction, and artifact revision with the image; unknown/off shading is not final comparison evidence. Use the same lighting context for before/after judgements. Blockbench preview shading supports review but does not prove actual Minecraft in-game lighting.
 
@@ -748,7 +748,7 @@ If that proof is unavailable, report `LOCAL PROOF REQUIRED` / user-facing
 
 ## Related
 
-- [Modelling Workflow](03-modelling-workflow.md)
-- [Geometry Standard](05-geometry-standard.md)
-- [Validation Report](validation-report.md)
-- [Current Flow](../knowledge/flow.md)
+- [Modelling Workflow](../modelling/README.md)
+- [Geometry Standard](../modelling/standard.md)
+- [Current Validation](../../05-operations/current-validation.md)
+- [Current Flow](../../01-product/flow.md)

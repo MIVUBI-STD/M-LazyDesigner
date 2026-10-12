@@ -103,6 +103,25 @@ describe("AI-first documentation architecture", () => {
     }
   });
 
+  test("visual validation references resolve to current canonical owners", async () => {
+    const route = "docs/03-authoring/validation/visual.md";
+    const edges = indexExplicitDocumentationEdges(
+      route, await text("../" + route)
+    );
+    for (const [label, target] of [
+      ["Reference Preparation", "docs/02-reference/README.md"],
+      ["Modelling Workflow", "docs/03-authoring/modelling/README.md"],
+      ["Geometry Standard", "docs/03-authoring/modelling/standard.md"],
+      ["Current Validation", "docs/05-operations/current-validation.md"],
+      ["Current Flow", "docs/01-product/flow.md"],
+    ] as const) {
+      const matches = edges.filter(edge => edge.label === label);
+      expect(matches, label).toHaveLength(1);
+      expect(matches[0]?.to, label).toBe(target);
+      expect(await Bun.file("../" + target).exists(), label).toBe(true);
+    }
+  });
+
   test("secondary canonical knowledge routes are explicit and resolvable", async () => {
     const routes = [
       ["docs/04-system/README.md", "External Quality Intelligence", "docs/04-system/external-quality-intelligence.md"],
