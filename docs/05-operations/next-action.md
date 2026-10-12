@@ -69,22 +69,23 @@ Design: [Visual Part Correspondence](../04-system/visual-part-correspondence.md)
 No new GPU service, Gateway tool, Runtime or persistent registry.
 Current source still lacks matching Bun/native/visual acceptance.
 
-## Optional REA external investigation — source integration
+## Optional external REA investigation
 
-The opt-in `mcp/scripts/audit/rea-application.ts` wraps REA's static
-`analyze-javascript-application` on a caller-selected built JavaScript
-directory or Electron ASAR. Its previous projector looked for a non-existent
-`normalized_result.application_graph.coverage.state`; upstream REA uses
-`normalized_result.graph.coverage.status` and semantic graph coverage. The
-source projector and synthetic test now follow those contracts, retain
-uncertainty/contradictions, and do not claim cryptographic Evidence
-verification. No visual/native PASS claims, added Gateway tool, or normal
-authoring change. **Bun/REA/installed Blockbench NOT EXECUTED.** The canonical instructions are in
-`mcp/scripts/audit/README.md`; the regression owner is
-`mcp/tests/development/rea-application-audit.test.ts`.
-This is prepared source and tests **only**. Real REA CLI execution against a
-trusted packaged artifact, native Blockbench behavior and quality acceptance
-remain **NOT EXECUTED** until independently observed.
+The former `audit:rea` wrapper, its duplicate Evidence projection, synthetic
+fixtures and child-process manager are retired. Use the upstream REA CLI
+directly according to `mcp/scripts/audit/README.md`. REA owns its artifact
+schemas, resource policies, authenticated Evidence and runtime authority.
+Select the actual layer under investigation (editor ASAR, LazyDesigner source,
+Tauri/native, or live Gateway/Blockbench); none is a substitute for another.
+REA executable analysis and native acceptance are **NOT EXECUTED** here.
+
+## Receipt authority — source hardening
+
+`mcp/gateway/control/delta/receipts.ts` selects exactly one receipt authority:
+an MCP envelope's `structuredContent`, if present; otherwise a flat Runtime
+receipt. Contradictory outer/display fields cannot vote alongside the canonical
+payload. Source regression definitions cover contradictory and malformed
+envelopes. Matching Bun/live Blockbench validation is **NOT EXECUTED**.
 
 ## Other source lanes pending proof
 

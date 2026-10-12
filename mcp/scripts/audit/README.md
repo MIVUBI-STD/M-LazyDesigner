@@ -1,21 +1,47 @@
 # Audit Scripts
 
-Static repository/capability audits live here. Audit scripts consume canonical source ownership and must not own Runtime behavior.
+Static repository/capability audits live here. Scripts consume canonical source
+ownership and must not own Runtime behavior.
 
-## Optional REA static artifact audit
+## REA: direct external investigation, not another LazyDesigner engine
 
-REA is an **optional development investigation dependency**, not an authoring engine, build dependency, Gateway tool, automatic CI step or native Blockbench validator.
+Use the upstream [REA CLI](https://github.com/morluto/rea) directly. The retired
+`audit:rea` wrapper duplicated REA's Evidence contract and process lifecycle;
+its locally invented projection could never authenticate the original Evidence.
+There is no REA Runtime, public Gateway tool, second data model, or installed
+REA dependency in LazyDesigner.
 
-After a trusted, separate REA installation has been verified, inspect an explicitly selected **built JavaScript directory or packaged Electron `.asar`** (for example, the installed Blockbench Electron app):
+### Select the authority before calling REA
+
+| Target | Appropriate REA investigation | What it cannot prove |
+| --- | --- | --- |
+| Installed Blockbench Electron ASAR | Static editor/JavaScript/Electron boundaries | LazyDesigner plugin behavior unless its exact bytes are included |
+| Actual LazyDesigner JavaScript/TypeScript source directory | Static artifact/module structure from those sources | Compiled build, Gateway/Runtime behavior, or user-accepted model quality |
+| Desktop Tauri executable | Separate authorized native-provider investigation when supported | Native Rust semantics through a JavaScript/Electron analyzer |
+| Running Blockbench with LazyDesigner loaded | Independently authorized runtime observation and own-session tests | Runtime PASS from a static graph |
+
+REA's [JavaScript artifact analysis](https://github.com/morluto/rea/blob/main/docs/javascript-artifact-reconstruction.md)
+accepts an exact absolute JavaScript directory or Electron ASAR. Example, with
+a trusted, separately installed `rea` command and an operator-selected target:
 
 ```sh
-cd mcp
-bun run audit:rea -- /absolute/path/to/app.asar
-bun run audit:rea -- /absolute/path/to/app.asar --retain-evidence /outside/repo/rea-evidence.json
+rea analyze-javascript-application /absolute/path/to/selected/app.asar --integrity-policy fail --json > /outside/checkout/rea-static-evidence.json
 ```
 
-The script calls `rea analyze-javascript-application ... --integrity-policy fail --json`, writes full CLI JSON into a private temporary file, then projects a bounded **source-reported** summary. The projection checks `normalized_result.graph.coverage.status`, `semantic_graph.coverage.status`, subject/graph bindings, omitted sources, semantic unknowns, parser failures and integrity contradictions. These format/consistency checks do **not** cryptographically authenticate the Evidence ID or prove execution. It does **not** execute the inspected application. To retain REA's complete original Evidence, supply an absolute output path **outside the checkout**. Existing output is never overwritten, temporary files are deleted, and retained Evidence must be handled as sensitive (it can contain absolute paths, strings and source data). REA's own Evidence ID is only shape-checked here; **the REA engine remains the authority** for full authenticity and graph integrity.
+Do not execute an untrusted artifact to obtain static results. Record the
+selected target type, exact bytes/digest, REA version, environment, full
+`Evidence`, `normalized_result.graph.coverage`, semantic coverage,
+limitations, integrity contradictions, source selection, and residual unknowns.
+A successful exit or complete static graph **is not** native Blockbench,
+visual-fidelity, or source-CI acceptance. Compare only observations with
+compatible target identity and authority.
 
-`application_graph_coverage=complete` means only reported static coverage. Even `REPORTED_COMPLETE_STATIC_ONLY` is not a LazyDesigner acceptance verdict. Partial or unreported coverage remains unresolved, and the script always reports native Blockbench, runtime behavior, source acceptance and visual fidelity as unverified/not evaluated. For runtime observation, process correlation, or reconstruction obligations use REA's independently authorized workflows and compare their own Evidence records; this script does not turn static evidence into runtime proof. A Tauri application is **not** an Electron application. Never claim this static command has reverse-engineered the Tauri native layer.
+For runtime questions, use REA's [runtime reconciliation](https://github.com/morluto/rea/blob/main/docs/javascript-runtime-reconciliation.md)
+or [process capture](https://github.com/morluto/rea/blob/main/docs/process-capture.md)
+with explicit permission and owned cleanup, then verify actual LazyDesigner
+Gateway/Blockbench effects in the existing
+[`LIVE_BLOCKBENCH` runbook](../../../docs/05-operations/local-acceptance-runbook.md).
 
-REA binary setup and a real target are not provided by repository CI. The synthetic fixture tests cover only the projector's contract boundary; they do not authenticate REA Evidence or exercise its real CLI. REA/Blockbench execution is NOT EXECUTED. The convenience wrapper limits retained raw JSON to 64 MiB; larger investigations should use the original REA workflow.
+**Status:** Direct REA commands, installation, analyzed artifacts and native
+Blockbench scenarios have **NOT EXECUTED** in this repository-development
+session. No static reference or synthetic fixture substitutes for them.
