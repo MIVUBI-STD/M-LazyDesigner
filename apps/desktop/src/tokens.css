@@ -12,7 +12,7 @@
   --text: #f4f6f7;
   --text-soft: #d1d5d8;
   --muted: #9ba3aa;
-  --muted-2: #747d85;
+  --muted-2: #929ba3; /* Small secondary labels meet 4.5:1 on elevated UI surfaces. */
 
   --accent: #1bd96a;
   --accent-hover: #28e477;

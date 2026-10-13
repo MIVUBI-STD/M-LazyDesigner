@@ -584,3 +584,30 @@ describe("Desktop full-status freshness and nullable project revision", () => {
     expect(ui).toContain("busy={busyAction !== null || statusProbeFailures >= 2}");
   });
 });
+
+describe("Desktop small-text contrast", () => {
+  test("muted metadata remains distinct and legible on dark elevated surfaces", async () => {
+    const css = await Bun.file("../apps/desktop/src/tokens.css").text();
+    const token = (name: string): string => {
+      const match = css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6});`));
+      if (!match) throw new Error(`Missing six-digit color token ${name}`);
+      return match[1];
+    };
+    const luminance = (hex: string): number => {
+      const linear = [1, 3, 5].map(index => {
+        const value = parseInt(hex.slice(index, index + 2), 16) / 255;
+        return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      });
+      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+    };
+    const contrast = (first: string, second: string): number => {
+      const [high, low] = [luminance(first), luminance(second)].sort((a, b) => b - a);
+      return (high + 0.05) / (low + 0.05);
+    };
+    for (const surface of ["bg", "surface", "surface-2", "surface-3"]) {
+      expect(contrast(token("muted-2"), token(surface))).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrast(token("muted"), token("surface-3")))
+      .toBeGreaterThan(contrast(token("muted-2"), token("surface-3")));
+  });
+});
