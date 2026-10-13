@@ -167,7 +167,7 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop Projects and Models stays path-hidden and Blockbench-owned", async () => {
-    const [app, navigator, rust, projectNavigation, integration, snapshot, readme] = await Promise.all([
+    const [app, navigator, rust, projectNavigation, integration, snapshot, readme, connectionWatch] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
       source("../apps/desktop/src/ProjectNavigator.svelte"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
@@ -175,6 +175,7 @@ describe("Desktop control-plane ownership", () => {
       source("plugin/blockbenchIntegration.ts"),
       source("plugin/projectNavigationSnapshot.ts"),
       source("../apps/desktop/README.md"),
+      source("../apps/desktop/src/connectionWatch.ts"),
     ]);
 
     expect(integration).toContain("setupProjectNavigationSnapshot");
@@ -237,17 +238,21 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain("manifest_identity_survives_project_move");
     expect(projectNavigation).toContain("malformed_or_unsupported_manifest_is_not_overwritten");
     expect(projectNavigation).toContain("duplicate_manifest_ids_fall_back_to_distinct_path_ids");
-    expect(navigator).toContain("Active Project");
+    expect(navigator).toContain("<h2>Current Model</h2>");
     expect(navigator).toContain("Recent Projects");
     expect(navigator).toContain("See details");
     expect(app).toContain("navigation={status.project_navigation}");
-    expect(app).toContain("project_session_live");
+    expect(app).toContain("connectionChanged(candidate, status)");
+    expect(connectionWatch).toContain("candidate.project_session_live");
+    expect(connectionWatch).toContain("current.project_navigation.session_live");
     expect(app).toContain("navigation={status.project_navigation}");
     expect(navigator).toContain("recentProjects().length > 5");
     expect(navigator).toContain("model_count > 8");
     expect(navigator).toContain("Search projects");
     expect(navigator).toContain("Search models");
-    expect(navigator).toContain("model.open ? 'Switch' : 'Open'");
+    expect(navigator).toContain("activeNavigation.saved && activeNavigation.model_id");
+    expect(navigator).toContain('disabled={!model.exists || busy}>Open</button>');
+    expect(navigator).not.toContain("model.open ? 'Switch' : 'Open'");
     expect(navigator).toContain("Active · Modified");
     expect(navigator).toContain("activeNavigation.dirty");
     expect(navigator).toContain("folder-shortcuts");
@@ -297,7 +302,7 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("<ProjectNavigator");
     expect(app).toContain("onOpenModel={openProjectModel}");
     expect(app).toContain("onProjectAction={runProjectAction}");
-    expect(navigator).toContain("Active Project");
+    expect(navigator).toContain("<h2>Current Model</h2>");
     expect(navigator).toContain("Recent Projects");
     expect(navigator).toContain("Continue");
     expect(navigator).not.toContain("invoke<");
@@ -340,25 +345,28 @@ describe("Desktop control-plane ownership", () => {
   });
 
   test("Desktop UI uses one canonical workstation readiness path", async () => {
-    const [app, main, rust, runtimeHealth] = await Promise.all([
+    const [app, main, rust, runtimeHealth, presentation, connectionWatch] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
       source("../apps/desktop/src-tauri/src/main.rs"),
       source("../apps/desktop/src-tauri/src/system_status.rs"),
       source("../apps/desktop/src-tauri/src/runtime_health.rs"),
+      source("../apps/desktop/src/desktopPresentation.ts"),
+      source("../apps/desktop/src/connectionWatch.ts"),
     ]);
 
     expect(app).toContain("invoke<EnsureReadyResult>('ensure_ready')");
     expect(app).not.toContain("invoke<BlockbenchActionResult>('open_blockbench')");
     expect(main).not.toContain("fn open_blockbench()");
     expect(rust).toContain("blockbench::open()?");
-    expect(app).toContain("value.plugin_integrity === 'modified'");
+    expect(presentation).toContain("value.plugin_integrity === 'modified'");
     expect(app).toContain("next.managed = fixture === 'fresh-install' ? null :");
     expect(app).toContain("invoke<ConnectionStatus>('connection_status')");
-    expect(app).toContain("candidate.runtime_listener_live");
+    expect(connectionWatch).toContain("candidate.runtime_listener_live");
     expect(app).not.toContain("candidate.runtime_online");
     expect(app).toContain("RUNTIME_ENDPOINT_MISMATCH");
     expect(app).toContain("RUNTIME_START_FAILED");
-    expect(app).toContain("value.product_state");
+    expect(presentation).toContain("value.product_state");
+    expect(app).toContain("from './desktopPresentation'");
     expect(rust).toContain("readiness::product_state(");
     expect(rust).toContain("readiness::readiness(");
     expect(rust).toContain("readiness::maintenance(");
