@@ -112,9 +112,11 @@ removing wrong interpretation at its existing boundaries:
   when the Runtime sends `element` and `changes` together.
 - `manage_material_instances` read/mutation intent comes from existing
   branch metadata, not a response-shaped no-op heuristic.
-  `manage_material` and direct `save_material_config` no-op both require
-  the existing typed material persistence receipt. Missing or contradictory
-  persistence evidence is conservatively stale, not a proven NO_CHANGE.
+  `manage_material(operation=save)` and direct `save_material_config` no-op
+  both require the existing typed material persistence receipt. The consolidated
+  branch must be `operation=save`; missing or mismatched branch identity
+  cannot launder an unrelated create/configure/assign mutation as NO_CHANGE.
+  Missing or contradictory persistence evidence is conservatively stale.
 - `manage_render_profile` uses the requested canonical operation branch
   together with source-owned zero-write receipts for compiled-only bind and
   assignment. A mismatched `execution: "read"` response cannot suppress

@@ -102,6 +102,26 @@ function semanticHistoryEffectFromResult(result: unknown): {
   return null;
 }
 
+/**
+ * Only the direct save tool or the consolidated save branch can use file
+ * persistence evidence to declare an authoring-state no-op. A successful
+ * configure/create/assign call with an unrelated save-shaped payload is
+ * not evidence that its authored material state was unchanged.
+ */
+function isMaterialPersistenceOnly(
+  capability: string,
+  result: unknown,
+  branch?: CapabilityBranchHint
+): boolean {
+  if (capability === "save_material_config") {
+    return materialPersistenceReceiptComplete(result);
+  }
+  return capability === "manage_material" &&
+    branch?.field === "operation" &&
+    branch.value === "save" &&
+    materialPersistenceReceiptComplete(result);
+}
+
 export function capabilityMutatesState(
   capability: string,
   succeeded: boolean,
@@ -152,12 +172,7 @@ export function capabilityMutatesState(
   ) {
     return false;
   }
-  if (
-    (capability === "manage_material" || capability === "save_material_config") &&
-    materialPersistenceReceiptComplete(result)
-  ) {
-    return false;
-  }
+  if (isMaterialPersistenceOnly(capability, result, branch)) return false;
   if (capability === "manage_render_profile") {
     return !renderProfileStateNeutral(result, branch);
   }
@@ -231,8 +246,7 @@ export function mutationInvalidation(
 
   if (
     succeeded &&
-    (capability === "manage_material" || capability === "save_material_config") &&
-    materialPersistenceReceiptComplete(result)
+    isMaterialPersistenceOnly(capability, result, branch)
   ) {
     return {
       authoring_domains: [],

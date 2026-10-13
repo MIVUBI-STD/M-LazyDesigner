@@ -173,6 +173,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
   test("unverified material save cannot suppress Texture invalidation", () => {
     const malformed = buildControlDelta({
       capability: "manage_material",
+      branch: { field: "operation", value: "save" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -185,6 +186,7 @@ describe("LazyDesigner Control minimum invalidation", () => {
 
     const verified = buildControlDelta({
       capability: "manage_material",
+      branch: { field: "operation", value: "save" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -197,6 +199,55 @@ describe("LazyDesigner Control minimum invalidation", () => {
     });
     expect(verified.invalidates.authoring_domains).toEqual([]);
     expect(verified.verification_class).toBe("receipt_only");
+  });
+
+  test("a complete material-save receipt cannot launder a different consolidated branch", () => {
+    const result = {
+      operation: "save",
+      scope: "material_persistence_only",
+      material: { uuid: "material-a", name: "metal" },
+      file_path: "/tmp/material.texture_set.json",
+      saved: true,
+      file_exists: true,
+    };
+    for (const operation of ["create", "configure", "assign_channel"] as const) {
+      const mismatched = buildControlDelta({
+        capability: "manage_material",
+        branch: { field: "operation", value: operation },
+        phaseBefore: "texturing",
+        phaseAfter: "texturing",
+        projectUuid: "project-a",
+        succeeded: true,
+        result,
+      });
+      expect(mismatched.freshness.basis, operation).not.toBe("NO_CHANGE");
+      expect(mismatched.invalidates.authoring_domains).toContain("TEXTURING");
+      expect(mismatched.invalidates.acceptance_gates).toBe(true);
+    }
+
+    const missingBranch = buildControlDelta({
+      capability: "manage_material",
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result,
+    });
+    expect(missingBranch.freshness.basis).not.toBe("NO_CHANGE");
+    expect(missingBranch.invalidates.authoring_domains).toContain("TEXTURING");
+
+    const realSave = buildControlDelta({
+      capability: "manage_material",
+      branch: { field: "operation", value: "save" },
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result,
+    });
+    expect(realSave.freshness.basis).toBe("NO_CHANGE");
+    expect(realSave.invalidates.authoring_domains).toEqual([]);
+    expect(realSave.verification_class).toBe("receipt_only");
   });
 
   test("paint/material changes invalidate only Texture knowledge", () => {
