@@ -571,3 +571,12 @@ testing must exercise an already-running minimized editor, a newly-started
 editor, two Blockbench windows, no matching top-level window, and Windows
 foreground restrictions. Never relax candidate matching just to make a test
 pass, and never kill/restart Blockbench to obtain focus.
+
+### Desktop action disclosures and keyboard
+
+More-actions popovers use native `<details><summary>` disclosure semantics
+and normal buttons, not the WAI-ARIA `menu` roles that require full arrow-key
+menu navigation. `Tab` / `Shift+Tab` move through visible actions. `Escape`
+closes open action disclosures and returns focus to the triggering summary
+when focus is inside it. Pointer interaction outside a disclosure closes it.
+Native dropdown and keyboard acceptance still require a Tauri/Windows run.

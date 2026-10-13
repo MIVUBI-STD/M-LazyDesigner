@@ -135,9 +135,9 @@
                   {/if}
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
-                    <div class="menu-popover" role="menu">
-                      <button role="menuitem" onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Reveal model file</button>
-                      <button role="menuitem" onclick={() => onCopyPath(model.id)} disabled={busy}>Copy path</button>
+                    <div class="menu-popover">
+                      <button onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Reveal model file</button>
+                      <button onclick={() => onCopyPath(model.id)} disabled={busy}>Copy path</button>
                     </div>
                   </details>
                 </div>
@@ -202,9 +202,9 @@
                   <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>Open</button>
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
-                    <div class="menu-popover" role="menu">
-                      <button role="menuitem" onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Reveal model file</button>
-                      <button role="menuitem" onclick={() => onCopyPath(model.id)} disabled={busy}>Copy path</button>
+                    <div class="menu-popover">
+                      <button onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Reveal model file</button>
+                      <button onclick={() => onCopyPath(model.id)} disabled={busy}>Copy path</button>
                     </div>
                   </details>
                 </div>

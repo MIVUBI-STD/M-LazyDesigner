@@ -199,6 +199,15 @@
     utilityMenuOpen = false;
   }
 
+  function closeActionDisclosures(restoreFocus = false) {
+    const openDisclosures = Array.from(document.querySelectorAll<HTMLDetailsElement>('details.more-menu[open]'));
+    const active = document.activeElement;
+    const focusedDisclosure = openDisclosures.find(menu => menu.contains(active));
+    for (const menu of openDisclosures) menu.open = false;
+    utilityMenuOpen = false;
+    if (restoreFocus) focusedDisclosure?.querySelector<HTMLElement>('summary')?.focus();
+  }
+
   function clearSuccessToast() {
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
     successToastTimer = null;
@@ -252,6 +261,7 @@
     if (devFixture || busyAction || statusProbeFailures >= 2) return;
     if (action === 'restore-project-preferences' &&
         !window.confirm('Restore the last saved project pins? The damaged settings file will be retained.')) return;
+    closeActionDisclosures(true);
     busyAction = 'project-action';
     error = '';
     clearSuccessToast();
@@ -307,6 +317,7 @@
   async function copyNavigationPath(id: string) {
     if (devFixture || busyAction) return;
     try {
+      closeActionDisclosures(true);
       const result = await invoke<ProjectPathResult>('project_navigation_path', { id });
       await navigator.clipboard.writeText(result.path);
       showSuccessToast('Path copied.');
@@ -474,11 +485,18 @@
 
   onMount(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') utilityMenuOpen = false;
+      if (event.key === 'Escape' && document.querySelector('details.more-menu[open]')) {
+        event.preventDefault();
+        closeActionDisclosures(true);
+      }
     };
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
-      if (utilityMenuOpen && target instanceof Element && !target.closest('.more-menu')) utilityMenuOpen = false;
+      if (!(target instanceof Element)) return;
+      for (const menu of document.querySelectorAll<HTMLDetailsElement>('details.more-menu[open]')) {
+        if (!menu.contains(target)) menu.open = false;
+      }
+      if (!target.closest('details.more-menu')) utilityMenuOpen = false;
     };
     const onVisibilityChange = () => {
       if (!document.hidden) void watchSystemStatus();
@@ -744,11 +762,11 @@
           {#if statusProbeFailures >= 2}<span class="status-probe-warning" role="status">Status unverified · Refresh to retry</span>{/if}
           {#if page === 'Overview'}
             <details class="more-menu" bind:open={utilityMenuOpen}>
-              <summary aria-label="More actions" aria-haspopup="menu" aria-expanded={utilityMenuOpen}>•••</summary>
-              <div class="menu-popover" role="menu">
-                <button role="menuitem" disabled={loading || busyAction !== null} onclick={refresh}>Refresh</button>
-                {#if status?.manager_available}<button role="menuitem" disabled={busyAction !== null} onclick={showPluginFile}>Show plugin file</button>{/if}
-                <button role="menuitem" disabled={busyAction !== null} onclick={exportDiagnostics}>Export diagnostics</button>
+              <summary aria-label="More actions">•••</summary>
+              <div class="menu-popover">
+                <button disabled={loading || busyAction !== null} onclick={refresh}>Refresh</button>
+                {#if status?.manager_available}<button disabled={busyAction !== null} onclick={showPluginFile}>Show plugin file</button>{/if}
+                <button disabled={busyAction !== null} onclick={exportDiagnostics}>Export diagnostics</button>
               </div>
             </details>
           {/if}

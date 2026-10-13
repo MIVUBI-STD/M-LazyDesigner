@@ -512,3 +512,22 @@ describe("Desktop explicit Blockbench window focus", () => {
     expect(watcher).not.toContain("focusBlockbenchAfterOpen");
   });
 });
+
+describe("Desktop disclosure keyboard and focus contract", () => {
+  test("uses native details disclosure semantics instead of incomplete ARIA menus", async () => {
+    const [app, navigator] = await Promise.all([
+      Bun.file("../apps/desktop/src/App.svelte").text(),
+      Bun.file("../apps/desktop/src/ProjectNavigator.svelte").text(),
+    ]);
+    for (const ui of [app, navigator]) {
+      expect(ui).not.toContain('role="menu"');
+      expect(ui).not.toContain('role="menuitem"');
+      expect(ui).not.toContain('aria-haspopup="menu"');
+      expect(ui).toContain('class="more-menu"');
+    }
+    expect(app).toContain("const focusedDisclosure = openDisclosures.find(menu => menu.contains(active))");
+    expect(app).toContain("focusedDisclosure?.querySelector<HTMLElement>('summary')?.focus()");
+    expect(app).toContain("event.key === 'Escape' && document.querySelector('details.more-menu[open]')");
+    expect(app).toContain("if (!menu.contains(target)) menu.open = false");
+  });
+});
