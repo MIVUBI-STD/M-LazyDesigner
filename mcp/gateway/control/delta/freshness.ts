@@ -25,6 +25,7 @@ import {
 } from "./policy";
 import { manifestEntryForBranch } from "../../capabilities/manifest";
 import type { CapabilityBranchHint } from "../../capabilities/types";
+import { isRenderProfileNoWriteReceipt } from "../../../lib/receipts/renderProfile";
 import {
   record,
   resultCandidates,
@@ -55,29 +56,19 @@ export function particleHasAuthoredEffect(value: unknown): boolean {
   );
 }
 
-export function renderProfileStateNeutral(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (candidate.execution === "read") return true;
-
-    const transaction = record(candidate.write_transaction);
-    if (
-      candidate.execution === "applied" &&
-      transaction?.state === "compile_only" &&
-      transaction.write_count === 0
-    ) {
-      return true;
-    }
-
-    if (
-      candidate.execution === "applied" &&
-      Object.prototype.hasOwnProperty.call(candidate, "write") &&
-      candidate.write === null
-    ) {
-      return true;
-    }
-
-    return false;
-  });
+export function renderProfileStateNeutral(
+  value: unknown,
+  branch?: CapabilityBranchHint
+): boolean {
+  // Inspect is a query in the branch manifest; it does not reach this mutation
+  // path. A mutation result saying "read" or omitting its operation cannot
+  // contradict the caller's requested bind/assignment and silently win.
+  return branch?.field === "operation" &&
+    resultCandidates(value).some(
+      (candidate) =>
+        candidate.operation === branch.value &&
+        isRenderProfileNoWriteReceipt(candidate)
+    );
 }
 
 export function textureLayerMetadataOnly(value: unknown): boolean {
@@ -168,7 +159,7 @@ export function capabilityMutatesState(
     return false;
   }
   if (capability === "manage_render_profile") {
-    return !renderProfileStateNeutral(result);
+    return !renderProfileStateNeutral(result, branch);
   }
   return true;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   isRenderProfileMutationReceipt,
+  isRenderProfileNoWriteReceipt,
   renderProfileWriteReceiptSchema,
 } from "@/lib/receipts/renderProfile";
 
@@ -74,6 +75,28 @@ describe("shared render-profile receipt contract", () => {
         },
       })
     ).toBe(true);
+  });
+
+  test("source-owned zero-write receipt cannot hide an actual resource write", () => {
+    const compiledBind = {
+      execution: "applied",
+      action: "render_profile",
+      operation: "bind",
+      binding: { slot: "default", minecraft_material_code: "entity" },
+      write_transaction: { state: "compile_only", write_count: 0 },
+      client_entity_write: null,
+      render_controller_write: null,
+    };
+    expect(isRenderProfileNoWriteReceipt(compiledBind)).toBe(true);
+    expect(isRenderProfileNoWriteReceipt({
+      ...compiledBind,
+      write_transaction: { state: "paired_atomic", write_count: 2 },
+    })).toBe(false);
+    expect(isRenderProfileNoWriteReceipt({
+      ...compiledBind,
+      client_entity_write: write,
+    })).toBe(false);
+    expect(isRenderProfileNoWriteReceipt({ execution: "read" })).toBe(false);
   });
 
   test("rejects incomplete writes and mismatched bind transactions", () => {

@@ -92,6 +92,57 @@ describe("render-profile branch semantics", () => {
     expect(delta.verification_class).toBe("receipt_only");
   });
 
+  test("a mutation cannot claim no-op from a read receipt or contradictory operation", () => {
+    const invoke = (
+      operation: "bind" | "assign" | "set_slot" | "unassign",
+      result: unknown
+    ) => buildControlDelta({
+      capability: "manage_render_profile",
+      branch: { field: "operation", value: operation },
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result,
+    });
+
+    const misleadingRead = invoke("bind", {
+      execution: "read", action: "render_profile", operation: "inspect",
+      summary: { slots: [], assignments: [] },
+    });
+    expect(misleadingRead.freshness.basis).not.toBe("NO_CHANGE");
+    expect(misleadingRead.invalidates.authoring_domains).toContain("TEXTURING");
+
+    const compiledBind = {
+      execution: "applied", action: "render_profile", operation: "bind",
+      binding: { slot: "default", minecraft_material_code: "entity" },
+      write_transaction: { state: "compile_only", write_count: 0 },
+      client_entity_write: null, render_controller_write: null,
+    };
+    expect(invoke("bind", compiledBind).freshness.basis).toBe("NO_CHANGE");
+    expect(invoke("assign", compiledBind).freshness.basis).not.toBe("NO_CHANGE");
+
+    const contradicted = invoke("bind", {
+      ...compiledBind,
+      render_controller_write: {
+        key: "render_controller", path: "/tmp/rp.json", byte_length: 2,
+        replaced_existing: false, transaction: "single_atomic",
+      },
+    });
+    expect(contradicted.freshness.basis).not.toBe("NO_CHANGE");
+
+    const slot = {
+      execution: "applied", action: "render_profile",
+      operation: "set_slot", slot: "default", write: null,
+    };
+    expect(invoke("set_slot", slot).freshness.basis).toBe("NO_CHANGE");
+    expect(invoke("bind", slot).freshness.basis).not.toBe("NO_CHANGE");
+    expect(invoke("set_slot", {
+      execution: "applied", action: "render_profile",
+      operation: "set_slot", write: null,
+    }).freshness.basis).not.toBe("NO_CHANGE");
+  });
+
   test("Gateway branch-query optimization applies to render-profile inspect", async () => {
     const source = await Bun.file("gateway/runtime/capabilityExecutor.ts").text();
     expect(source).toContain(
