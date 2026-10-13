@@ -115,6 +115,30 @@ removing wrong interpretation at its existing boundaries:
   `manage_material` save no-op requires the existing typed material
   persistence receipt.
 
+### Capability Graph readiness — source correction
+
+Producer/consumer contracts now distinguish a non-error call from confirmed
+authoring evidence:
+
+- `manage_cubes.create` only promotes `geometry_available` when the Cube
+  creation receipt has a coherent positive count, unique UUIDs, and finite
+  native geometry. The visual framing scope may legitimately be unavailable.
+- `manage_cubes.simplify` plans/unchanged results require the actual
+  source-shaped dry-run receipt; `NO_CHANGE` cannot be claimed from a label.
+- `manage_uv_layout.plan` only promotes `uv_plan_available` with a
+  source-fingerprint-bound, applicable plan report without hard violations.
+- `manage_uv_layout.apply` only promotes `uv_layout_current` when the
+  native transaction receipt binds to the requested source fingerprint.
+  An incomplete successful apply makes existing UV currency unknown.
+  Runtime registry/fingerprint checks remain final plan authority.
+
+Focused executable proof owners: `mcp/gateway/capabilities/graph.test.ts`,
+`mcp/tests/contracts/cube-receipt-contract.test.ts`,
+`mcp/tests/uv-plan-branch-semantics.test.ts`, and
+`mcp/tests/gateway-control-invalidation.test.ts`.
+This is **source implemented only**; these newly added checks, REA executable
+analysis and native Blockbench were **NOT EXECUTED** for this HEAD.
+
 All of the above are **SOURCE IMPLEMENTED**, not performance or native PASS.
 Focused regression definitions were added/updated at canonical consumers.
 **Bun, exact-head CI, real REA executable investigation and LIVE_BLOCKBENCH
