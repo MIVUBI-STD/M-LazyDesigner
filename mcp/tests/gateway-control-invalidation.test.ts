@@ -129,6 +129,47 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.invalidates.acceptance_gates).toBe(true);
   });
 
+  test("direct material persistence requires typed save evidence before declaring NO_CHANGE", () => {
+    const base = {
+      capability: "save_material_config",
+      phaseBefore: "texturing" as const,
+      phaseAfter: "texturing" as const,
+      projectUuid: "project-a",
+      succeeded: true,
+    };
+    const save = {
+      operation: "save",
+      scope: "material_persistence_only",
+      material: { uuid: "material-a", name: "metal" },
+      file_path: "/tmp/material.texture_set.json",
+      saved: true,
+      file_exists: true,
+    };
+    const verified = buildControlDelta({ ...base, result: save });
+    expect(verified.invalidates.authoring_domains).toEqual([]);
+    expect(verified.invalidates.workspace_projection).toBe(true);
+    expect(verified.invalidates.acceptance_gates).toBe(false);
+    expect(verified.freshness.basis).toBe("NO_CHANGE");
+    expect(verified.verification_class).toBe("receipt_only");
+
+    for (const result of [
+      undefined,
+      { operation: "save", scope: "material_persistence_only" },
+      { ...save, file_exists: false },
+      { ...save, saved: false },
+    ]) {
+      const unverified = buildControlDelta({ ...base, result });
+      expect(unverified.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+      expect(unverified.freshness.stale).toEqual([
+        "TEXTURE_APPEARANCE", "MATERIAL_RENDER",
+      ]);
+      expect(unverified.invalidates.authoring_domains).toEqual(["TEXTURING"]);
+      expect(unverified.invalidates.workspace_projection).toBe(true);
+      expect(unverified.invalidates.acceptance_gates).toBe(true);
+      expect(unverified.verification_class).toBe("focused_read");
+    }
+  });
+
   test("unverified material save cannot suppress Texture invalidation", () => {
     const malformed = buildControlDelta({
       capability: "manage_material",

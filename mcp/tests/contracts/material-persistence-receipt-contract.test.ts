@@ -57,6 +57,14 @@ describe("shared material persistence receipt contract", () => {
     ).toBe(false);
   });
 
+  test("both consolidated and direct saves share one persistence receipt owner", async () => {
+    const source = await Bun.file("gateway/control/delta/freshness.ts").text();
+    expect(source).toContain('capability === "save_material_config"');
+    expect(source).toContain('materialPersistenceReceiptComplete(result)');
+    const policy = await Bun.file("gateway/control/delta/policy.ts").text();
+    expect(policy).toContain('"persistence"');
+  });
+
   test("direct save producer and Control share the persistence receipt owner", async () => {
     const producer = await Bun.file("server/tools/texture/materials.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();

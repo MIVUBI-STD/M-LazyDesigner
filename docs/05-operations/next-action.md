@@ -112,8 +112,9 @@ removing wrong interpretation at its existing boundaries:
   when the Runtime sends `element` and `changes` together.
 - `manage_material_instances` read/mutation intent comes from existing
   branch metadata, not a response-shaped no-op heuristic.
-  `manage_material` save no-op requires the existing typed material
-  persistence receipt.
+  `manage_material` and direct `save_material_config` no-op both require
+  the existing typed material persistence receipt. Missing or contradictory
+  persistence evidence is conservatively stale, not a proven NO_CHANGE.
 
 ### Capability Graph readiness — source correction
 

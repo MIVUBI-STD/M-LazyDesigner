@@ -161,10 +161,10 @@ export function capabilityMutatesState(
   ) {
     return false;
   }
-  if (capability === "manage_material" && materialPersistenceReceiptComplete(result)) {
-    return false;
-  }
-  if (capability === "save_material_config") {
+  if (
+    (capability === "manage_material" || capability === "save_material_config") &&
+    materialPersistenceReceiptComplete(result)
+  ) {
     return false;
   }
   if (capability === "manage_render_profile") {
@@ -238,17 +238,9 @@ export function mutationInvalidation(
     if (historyInvalidation) return historyInvalidation;
   }
 
-  if (succeeded && capability === "save_material_config") {
-    return {
-      authoring_domains: [],
-      workspace_projection: true,
-      acceptance_gates: false,
-    };
-  }
-
   if (
     succeeded &&
-    capability === "manage_material" &&
+    (capability === "manage_material" || capability === "save_material_config") &&
     materialPersistenceReceiptComplete(result)
   ) {
     return {

@@ -15,7 +15,10 @@ export const STATE_MUTATIONS = new Set(
     "animation_motion",
     "animation_controller",
     "animation_effects",
-    "particle"
+    "particle",
+    // File persistence is not an appearance change when its own receipt proves
+    // the write. Without that receipt, no-op cannot be assumed.
+    "persistence"
   )
 );
 
