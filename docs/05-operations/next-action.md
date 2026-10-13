@@ -6,35 +6,43 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active development: LD-Q01 — verified PNG source evidence
+## Active development: LD-Q01 — native Cube silhouette capture (source only)
 
-This source step adds `mcp/lib/reference/pngAlphaEvidence.ts`: a bounded,
-checksum-checked, non-interlaced 8-bit RGBA PNG alpha decoder. It derives the
-SHA-256 from actual source bytes (not caller labels), supports PNG filters
-0–4 and consecutive split IDAT chunks, and rejects oversized, unsupported,
-corrupt, opaque or empty source masks. All output remains diagnostic-only.
+Source work adds `mcp/lib/blockbench/silhouetteCapture.ts` and a
+`capture_model_views` opt-in result when existing `evidence_targets` contains
+`silhouette`. It renders **clones of visible native Cube meshes** in a
+temporary transparent Three.js scene using the existing offscreen camera.
+Original materials, native objects, authored state, and the active editor
+camera are not intentionally mutated. A `finally` block restores renderer
+clear color/alpha/auto-clear and redraws the standard offscreen scene.
 
-The existing on-demand `status(include_reference_images=true)` path
-now computes a small `alpha_silhouette` descriptor per delivered source
-image, reusing `readReferenceImageEvidence` and its safe path and byte
-validation. The descriptor includes status, source image hash, bounded
-foreground count, frame, and `visual_verdict=NOT_EVALUATED` only.
-No binary mask is transmitted in structured Control context. The stable
-four-tool Gateway, client input schemas, and normal status hot path remain
-unchanged. Regression definitions cover on-demand delivery, true alpha,
-all five PNG scanline filters, IDAT splits, corrupt hashes/checksums, opaque
-images, and before/after image identity matching.
+For each eligible view, it returns a second PNG image and a bounded
+`silhouette_evidence` metadata record (SHA-256, foreground pixel count,
+native Cube count, explicit scope). Existing
+`extractVerifiedPngAlpha` validates PNG bytes before an alpha result is
+reported. Missing renderer support, empty/opaque alpha, or other errors
+produce `UNVERIFIED` metadata without fabricating a mask. Regular
+`capture_model_views` requests without the silhouette evidence target
+remain on their original single-image path; no new Gateway tool or
+schema input branch is added.
 
-**Proof:** copied decoder logic was exercised in isolated Node 22 tests
-covering PNG filters 0–4 and conservative error outcomes. Repository Bun
-tests/typecheck, native Blockbench, same-frame source-camera calibration and
-accepted visual fidelity are **NOT EXECUTED** on this source SHA.
+**Limitations:** solid Cube geometry only; texture cutouts, non-Cube meshes,
+live animation poses, source/camera alignment and visual approval are
+not established. `visual_verdict=NOT_EVALUATED`,
+`source_camera_calibrated=false`, and `automatic_correction=false`
+are deliberately retained. This is no reference-to-model IoU in Runtime.
 
-**Next:** run targeted Bun tests on the exact final source head and inspect
-any errors; then provide genuinely transparent offscreen native model capture
-evidence and independently reviewed reference/capture framing through existing
-Runtime/Control owners. Do not treat shaded model PNG alpha as segmentation,
-automatically correct geometry, or add a new MCP tool/second image engine.
+**Proof:** exact source and regression definitions are authored;
+repository Bun tests, native WebGL rendering, state restoration on real
+Blockbench, source-camera alignment, and accepted visual fidelity
+are **NOT EXECUTED** on this HEAD. Existing stale generated docs remain
+a separate prior blocker, not newly generated in this patch.
+
+**Next:** execute the focused camera silhouette and PNG reference tests on
+the exact source build, then run the existing disposable
+`LIVE_BLOCKBENCH` procedure to inspect alpha, face coverage, scene
+isolation, and safe renderer recovery. A producer-attested, same-frame
+reference/model comparison requires a later bounded evidence handoff.
 
 Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 

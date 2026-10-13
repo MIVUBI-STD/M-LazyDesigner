@@ -4,6 +4,8 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { captureScreenshot, captureAppScreenshot } from "@/lib/blockbench/capture";
+import { captureNativeCubeSilhouette } from "@/lib/blockbench/silhouetteCapture";
+import { extractVerifiedPngAlpha } from "@/lib/reference/pngAlphaEvidence";
 import { imageContent } from "@/lib/protocol/imageContent";
 import { assessVisualPartCorrespondence } from "@/lib/reference/partCorrespondence";
 import { readRecipePartCaptureScope } from "@/server/runtime/recipes/authoring/service";
@@ -949,6 +951,18 @@ export function registerCameraTools() {
         png_bytes: number;
         camera_spec: ReturnType<typeof captureCameraSpecMetadata>;
         landmark_projections?: LandmarkProjectionObservation[];
+        silhouette_evidence?: {
+          state: "AVAILABLE" | "UNVERIFIED";
+          reason: string | null;
+          scope: "VISIBLE_CUBES_SOLID_GEOMETRY";
+          image_sha256: string | null;
+          foreground_pixels: number | null;
+          native_cube_count: number | null;
+          visual_verdict: "NOT_EVALUATED";
+          source_camera_calibrated: false;
+          texture_alpha_evaluated: false;
+          automatic_correction: false;
+        };
       }> = [];
 
       for (const view of selectedViews) {
@@ -967,6 +981,59 @@ export function registerCameraTools() {
 
         content.push({ type: "text", text: `VIEW ${view}` });
         content.push(image);
+        // Opt-in only: a second transparent capture is useful for silhouette
+        // review, but must not double image/context cost for ordinary capture.
+        let silhouetteEvidence: (typeof captures)[number]["silhouette_evidence"];
+        if (evidence_targets?.includes("silhouette")) {
+          const base = {
+            scope: "VISIBLE_CUBES_SOLID_GEOMETRY" as const,
+            visual_verdict: "NOT_EVALUATED" as const,
+            source_camera_calibrated: false as const,
+            texture_alpha_evaluated: false as const,
+            automatic_correction: false as const,
+          };
+          try {
+            const native = captureNativeCubeSilhouette(capturePreview);
+            const silhouetteImage = imageContent(native.png_data_url, "image/png").content[0];
+            const pngBytes = Buffer.from(silhouetteImage.data, "base64");
+            const sha256 = createHash("sha256").update(pngBytes).digest("hex");
+            const alpha = extractVerifiedPngAlpha({
+              png_bytes: pngBytes,
+              expected_sha256: sha256,
+              view,
+              provenance: "OFFSCREEN_RENDER_ALPHA",
+            });
+            if (alpha.state === "AVAILABLE") {
+              let foreground = 0;
+              for (const pixel of alpha.mask.pixels) foreground += pixel;
+              silhouetteEvidence = {
+                ...base, state: "AVAILABLE", reason: null,
+                image_sha256: sha256,
+                foreground_pixels: foreground,
+                native_cube_count: native.rendered_cube_count,
+              };
+              content.push({ type: "text", text: `SILHOUETTE VIEW ${view}: visible solid Cube geometry only; not source-matched or visually approved.` });
+              content.push(silhouetteImage);
+            } else {
+              silhouetteEvidence = {
+                ...base, state: "UNVERIFIED", reason: alpha.reason,
+                image_sha256: sha256,
+                foreground_pixels: null,
+                native_cube_count: native.rendered_cube_count,
+              };
+            }
+          } catch {
+            // No scores or masks from native failures; retain ordinary shaded
+            // capture and expose a bounded unresolved diagnostic.
+            silhouetteEvidence = {
+              ...base, state: "UNVERIFIED",
+              reason: "NATIVE_CUBE_SILHOUETTE_UNAVAILABLE",
+              image_sha256: null,
+              foreground_pixels: null,
+              native_cube_count: null,
+            };
+          }
+        }
         if (reference_correspondence) {
           imageDigests.push({
             view,
@@ -982,6 +1049,7 @@ export function registerCameraTools() {
           png_bytes: Math.floor(image.data.length * 3 / 4) - (image.data.endsWith("==") ? 2 : image.data.endsWith("=") ? 1 : 0),
           camera_spec: captureCameraSpecMetadata(spec),
           ...(landmark_pairs?.length ? { landmark_projections: landmarkProjections } : {}),
+          ...(silhouetteEvidence ? { silhouette_evidence: silhouetteEvidence } : {}),
         });
       }
 
