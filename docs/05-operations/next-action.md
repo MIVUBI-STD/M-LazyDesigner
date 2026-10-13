@@ -6,6 +6,23 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
+## Active development: LD-Q01 silhouette evidence
+
+The first source-only LD-Q01 step adds `mcp/lib/reference/silhouetteEvidence.ts` and its
+focused regression suite as a **read-only diagnostic computation**. It compares
+caller-supplied 0/1 masks only when SHA-256 identities, canonical views, raster
+dimensions, declared same-frame review, and mask provenance are present. It
+rejects empty/full-frame masks, retains explicit `NOT_EVALUATED` visual authority,
+and never claims native camera calibration or automatic correction.
+
+This is **not yet wired to a Runtime capability**: `capture_model_views` does not
+receive approved reference pixels, so implementing a fake similarity number there
+would violate source authority. Next LD-Q01 step: design the smallest existing-
+boundary evidence handoff for source-image pixels and live capture, then run
+the pure mask test and matching `LIVE_BLOCKBENCH` review before any
+user-facing similarity or correction claim. Current source/test definitions alone
+are not Bun, native, or visual PASS.
+
 Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 
 
