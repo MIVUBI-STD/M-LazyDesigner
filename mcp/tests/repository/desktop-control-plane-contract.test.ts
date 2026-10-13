@@ -665,3 +665,34 @@ describe("Desktop pure status presentation", () => {
     expect(presentation).not.toContain("type ProductMode =");
   });
 });
+
+describe("Desktop Workspace and Support feedback integrity", () => {
+  test("keeps stale Support observations clearly unverified and recoverable", async () => {
+    const ui = await Bun.file("../apps/desktop/src/App.svelte").text();
+    const start = ui.indexOf('<main class="page-content settings-content">');
+    const support = ui.slice(start, ui.indexOf("</main>", start));
+    expect(start).toBeGreaterThan(0);
+    expect(support).toContain("{#if statusProbeFailures >= 2}");
+    expect(support).toContain("These are the last known details.");
+    expect(support).toContain('onclick={refresh}');
+    expect(support).toContain("{:else if productMode(status) !== 'ready'}");
+    const copy = ui.slice(ui.indexOf("async function copyNavigationPath("), ui.indexOf("async function watchSystemStatus()"));
+    expect(copy).toContain("statusProbeFailures >= 2");
+  });
+
+  test("never claims plugin approval is required from opening a file", async () => {
+    const ui = await Bun.file("../apps/desktop/src/App.svelte").text();
+    const show = ui.slice(ui.indexOf("async function showPluginFile()"), ui.indexOf("async function exportDiagnostics()"));
+    expect(show).toContain("pluginApprovalNeeded && productMode(status) === 'plugin-setup'");
+    expect(show).toContain("Approve it in Blockbench if prompted.");
+    expect(show).toContain("Plugin file highlighted in File Explorer.");
+    expect(show).not.toContain("Approve it once in Blockbench to complete setup.");
+  });
+
+  test("describes managed updates consistently without promising a Desktop binary update", async () => {
+    const ui = await Bun.file("../apps/desktop/src/App.svelte").text();
+    expect(ui).toContain("Updating managed components");
+    expect(ui).toContain("Update managed components");
+    expect(ui).not.toContain("Update LazyDesigner' : action === 'rollback'");
+  });
+});

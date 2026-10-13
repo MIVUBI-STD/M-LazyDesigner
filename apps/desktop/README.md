@@ -594,3 +594,14 @@ as a presentation-only input, not re-derived as another readiness policy.
 Neither module owns IPC calls, stored project state, Gateway lifecycle, or
 managed maintenance. The original messages, Tauri commands and Workspace
 interactions remain in place; only their source ownership changes.
+
+### Accurate status and action feedback
+
+When a full status observation becomes unverified, Support explicitly marks
+its data as last-known and provides a direct Refresh control. Project path
+actions remain blocked while relying on stale navigation projection. The
+utility action for displaying a plugin file does not claim that Blockbench
+approval is universally required: approval is mentioned conditionally and
+never marked complete merely because a file was highlighted. User-facing
+managed-component update progress and activity labels deliberately distinguish
+managed distribution updates from updates to the Desktop executable.

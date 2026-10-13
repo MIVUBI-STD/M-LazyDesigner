@@ -191,7 +191,7 @@
   }
 
   async function copyNavigationPath(id: string) {
-    if (devFixture || busyAction) return;
+    if (devFixture || busyAction || statusProbeFailures >= 2) return;
     try {
       closeActionDisclosures(true);
       const result = await invoke<ProjectPathResult>('project_navigation_path', { id });
@@ -300,7 +300,9 @@
     error = '';
     try {
       await invoke<PluginFileActionResult>('show_plugin_file');
-      showSuccessToast('Plugin file highlighted. Approve it once in Blockbench to complete setup.');
+      showSuccessToast(pluginApprovalNeeded && productMode(status) === 'plugin-setup'
+        ? 'Plugin file highlighted. Approve it in Blockbench if prompted.'
+        : 'Plugin file highlighted in File Explorer.');
     } catch (cause) {
       error = errorMessage(cause);
     } finally {
@@ -347,13 +349,13 @@
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
       const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
-      const actionLabel = action === 'update' ? 'Update LazyDesigner' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
+      const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       showSuccessToast(`${actionLabel} completed.`);
       recordOperation(actionLabel, 'success', receiptStatus);
       await refresh();
       if (action === 'update') updateCheck = null;
     } catch (cause) {
-      const actionLabel = action === 'update' ? 'Update LazyDesigner' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
+      const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       recordOperation(actionLabel, 'failed', errorCode(cause));
       error = errorMessage(cause);
     } finally {
@@ -617,7 +619,7 @@
           {#if busyAction && progressStage}
             <section class="task-strip" aria-live="polite">
               <span class="task-spinner"></span>
-              <span>{busyAction === 'update' ? 'Updating LazyDesigner' : busyAction === 'rollback' ? 'Restoring previous version' : busyAction === 'repair' ? 'Repairing LazyDesigner' : busyAction === 'recover' ? 'Finishing setup' : busyAction === 'setup-tls' ? 'Finishing setup' : busyAction === 'connect-blockbench' ? 'Connecting to Blockbench' : 'Working'}</span>
+              <span>{busyAction === 'update' ? 'Updating managed components' : busyAction === 'rollback' ? 'Restoring previous version' : busyAction === 'repair' ? 'Repairing LazyDesigner' : busyAction === 'recover' ? 'Finishing setup' : busyAction === 'setup-tls' ? 'Finishing setup' : busyAction === 'connect-blockbench' ? 'Connecting to Blockbench' : 'Working'}</span>
               <small>{progressLabel(progressStage)}</small>
             </section>
           {/if}
@@ -792,7 +794,13 @@
 
       {:else}
         <main class="page-content settings-content">
-          {#if productMode(status) !== 'ready'}
+          {#if statusProbeFailures >= 2}
+            <section class="support-banner" role="status">
+              <span class="support-banner-dot" aria-hidden="true"></span>
+              <div><strong>Connection status unverified</strong><span>These are the last known details. Refresh to verify the system before making changes.</span></div>
+              <button class="secondary-button small-button" onclick={refresh} disabled={loading || busyAction !== null}>Refresh</button>
+            </section>
+          {:else if productMode(status) !== 'ready'}
             <div class="support-banner">
               <span class="support-banner-dot"></span>
               <div><strong>{productHeadline(status)}</strong><span>{productMessage(status)}</span></div>
