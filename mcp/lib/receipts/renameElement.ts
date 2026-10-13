@@ -31,9 +31,13 @@ const renamePlanReceiptSchema = z.object({
   affected_animations: z.number().int().nonnegative(),
 });
 
+// A single Group rename can include BOTH final element identity and the
+// batch changes/animation-impact receipt. Parse the more specific batch
+// shape first so Zod's non-strict single-element schema cannot strip its
+// authoritative affected_animations count.
 export const renameElementReceiptSchema = z.union([
-  singleRenameReceiptSchema,
   batchRenameReceiptSchema,
+  singleRenameReceiptSchema,
   renamePlanReceiptSchema,
 ]);
 

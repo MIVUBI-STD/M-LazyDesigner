@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   isAppliedRenameElementReceipt,
   renameElementReceipt,
+  renameElementReceiptSchema,
 } from "@/lib/receipts/renameElement";
 
 describe("shared rename-element receipt contract", () => {
@@ -31,6 +32,27 @@ describe("shared rename-element receipt contract", () => {
         })
       )
     ).toBe(true);
+  });
+
+  test("Group rename with final element also retains batch animation impact", () => {
+    const producerReceipt = renameElementReceipt({
+      execution: "applied",
+      element: {
+        uuid: "group-a",
+        name: "arm_new",
+        type: "group",
+        parent: "root",
+      },
+      changes: [
+        { id: "group-a", old_name: "arm", new_name: "arm_new" },
+      ],
+      affected_animations: 0,
+    });
+    const parsed = renameElementReceiptSchema.parse(producerReceipt);
+    expect("changes" in parsed).toBe(true);
+    if (!("changes" in parsed)) throw new Error("Expected complete batch receipt");
+    expect(parsed.affected_animations).toBe(0);
+    expect(parsed.changes).toHaveLength(1);
   });
 
   test("planned and unchanged receipts are valid but not mutation-complete receipts", () => {
