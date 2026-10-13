@@ -7,10 +7,11 @@
   export let onProjectAction: (action: ProjectAction, id: string) => void | Promise<void>;
   export let onCopyPath: (id: string) => void | Promise<void>;
 
-  let expandedProjectId: string | null = null;
-  let showAllProjects = false;
-  let projectSearch = '';
-  let modelSearch = '';
+  // Bound by App: avoid losing the user's place on Support navigation.
+  export let expandedProjectId: string | null = null;
+  export let showAllProjects = false;
+  export let projectSearch = '';
+  export let modelSearch = '';
 
   const recentProjects = () =>
     navigation.projects.filter(project => !project.active);
@@ -81,7 +82,7 @@
             {/if}
           </div>
           <div class="project-actions">
-            <button class="primary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy}>{target.model.open ? 'Switch' : 'Continue'}</button>
+            <button class="primary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy}>{target.model.open ? 'Open' : 'Continue'}</button>
           </div>
         </div>
       </div>
@@ -133,7 +134,7 @@
                 </div>
                 <div class="model-actions">
                   {#if !model.active}
-                    <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>{model.open ? 'Switch' : 'Open'}</button>
+                    <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>Open</button>
                   {/if}
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
@@ -201,7 +202,7 @@
                   {#if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
                 </div>
                 <div class="model-actions">
-                  <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>{model.open ? 'Switch' : 'Open'}</button>
+                  <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>Open</button>
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
                     <div class="menu-popover" role="menu">

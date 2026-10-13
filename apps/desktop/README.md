@@ -513,3 +513,19 @@ Current safety contract:
 - Until that explicit cleanup contract exists, uninstall is conservative rather than destructive.
 
 Do not add uninstall cleanup directly to NSIS before the manager exposes a bounded ownership-aware removal command.
+
+## Workspace view continuity
+
+The Desktop has two navigation destinations: **Workspace** (internally the
+existing `Overview` route) and **Support**, displayed in a compact top bar
+so the project list has more room at the 780×560 minimum window size.
+
+Project search, expanded-project selection, show-all choice and Workspace
+scroll position survive navigating to Support and back within the same
+Desktop UI session. These are view preferences only, not persisted project
+state or a replacement for the Blockbench-owned project projection.
+
+Model actions are labeled **Open** rather than promising to switch or focus
+a particular Blockbench window. The current native launch path does not
+yet prove foreground-window activation; native Windows acceptance is
+required before stronger copy or focus behavior is introduced.

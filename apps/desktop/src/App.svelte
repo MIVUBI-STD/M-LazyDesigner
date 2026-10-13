@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api/core';
   import { listen } from '@tauri-apps/api/event';
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
   import ProjectNavigator from './ProjectNavigator.svelte';
   import { connectionChanged } from './connectionWatch';
   import type { ProjectAction, ProjectNavigation } from './projectNavigationTypes';
@@ -153,6 +153,13 @@
   let updateCheckStarted = false;
   type Page = 'Overview' | 'Support';
   let page: Page = 'Overview';
+  // Ephemeral view preferences survive Workspace/Support navigation only.
+  let expandedProjectId: string | null = null;
+  let showAllProjects = false;
+  let projectSearch = '';
+  let modelSearch = '';
+  let workspaceScrollTop = 0;
+  let workspaceMain: HTMLElement | undefined;
 
   type ManagedProgress = { schema: number; kind: 'progress'; action: string; stage: string };
   const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -174,7 +181,14 @@
 
   function navigate(next: Page) {
     utilityMenuOpen = false;
+    if (next === page) return;
+    if (page === 'Overview' && workspaceMain) workspaceScrollTop = workspaceMain.scrollTop;
     page = next;
+    if (next === 'Overview') {
+      void tick().then(() => {
+        if (page === 'Overview' && workspaceMain) workspaceMain.scrollTop = workspaceScrollTop;
+      });
+    }
   }
 
   function closeUtilityMenu() {
@@ -694,20 +708,17 @@
 
       <nav class="global-nav">
         <button class:active={page === 'Overview'} aria-current={page === 'Overview' ? 'page' : undefined} onclick={() => navigate('Overview')}>
-          <span class="nav-icon">{@render navIcon('Overview')}</span><span>Overview</span>
+          <span class="nav-icon">{@render navIcon('Overview')}</span><span>Workspace</span>
+        </button>
+        <button class:active={page === 'Support'} aria-current={page === 'Support' ? 'page' : undefined} onclick={() => navigate('Support')}>
+          <span class="nav-icon">{@render navIcon('Support')}</span><span>Support</span>
         </button>
       </nav>
-
-      <div class="navigation-spacer"></div>
-
-      <button class:active={page === 'Support'} class="support-nav" aria-current={page === 'Support' ? 'page' : undefined} onclick={() => navigate('Support')}>
-        <span class="nav-icon">{@render navIcon('Support')}</span><span>Support</span>
-      </button>
     </aside>
 
     <section id="main-content" class="main-view" tabindex="-1">
       <header class="page-toolbar">
-        <h1>{page}</h1>
+        <h1>{page === 'Overview' ? 'Workspace' : 'Support'}</h1>
         <div class="toolbar-actions">
           {#if devFixture}<span class="fixture-badge">Fixture · {devFixture}</span>{/if}
           {#if statusProbeFailures >= 2}<span class="status-probe-warning" role="status">Status unverified · Refresh to retry</span>{/if}
@@ -737,7 +748,7 @@
         </main>
 
       {:else if page === 'Overview'}
-        <main class="page-content">
+        <main class="page-content" bind:this={workspaceMain}>
           {#if busyAction && progressStage}
             <section class="task-strip" aria-live="polite">
               <span class="task-spinner"></span>
@@ -849,6 +860,10 @@
 
             <ProjectNavigator
               navigation={status.project_navigation}
+              bind:expandedProjectId
+              bind:showAllProjects
+              bind:projectSearch
+              bind:modelSearch
               busy={busyAction !== null}
               onOpenModel={openProjectModel}
               onProjectAction={runProjectAction}
@@ -987,4 +1002,19 @@
   .operation-attention{position:fixed;z-index:220;right:16px;bottom:16px;width:min(360px,calc(100vw - 32px));display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:start;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.operation-attention.success{border-color:var(--accent-border)}.operation-attention.error{border-color:#705c26}.attention-icon{width:23px;height:23px;display:grid;place-items:center;border-radius:6px;background:var(--surface-3);font-size:var(--font-sm);font-weight:800}.success .attention-icon{background:var(--accent-soft);color:#9ee8b9}.error .attention-icon{background:var(--warning-bg);color:#fde68a}.attention-copy{display:grid;gap:2px}.attention-copy strong{font-size:var(--font-sm)}.attention-copy span{color:var(--muted);font-size:var(--font-xs);line-height:1.4}.attention-actions{display:flex;gap:4px}.attention-actions button{min-height:24px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface-3);font-size:var(--font-xs);font-weight:700}.attention-actions .dismiss{width:24px;padding:0;border:0;background:transparent;color:var(--muted);font-size:15px}
   @keyframes spin{to{transform:rotate(360deg)}}
   @media(max-width:760px){.desktop-shell{grid-template-columns:62px minmax(0,1fr)}.navigation{padding-inline:7px}.navigation-brand strong,.global-nav button>span:not(.nav-icon),.support-nav>span:not(.nav-icon){display:none}.navigation-brand{justify-content:center;padding-inline:0}.global-nav button,.support-nav{justify-content:center;padding:0}.page-toolbar{padding:0 16px}.page-content{padding:20px 16px 36px}.resource-row{grid-template-columns:36px minmax(0,1fr)}.resource-actions{grid-column:1/-1;justify-content:flex-end;padding-top:2px}.setup-footer,.settings-row,.recovery-list>div{align-items:flex-start;flex-direction:column}.operation-attention{right:10px;bottom:10px;width:calc(100vw - 20px);grid-template-columns:auto minmax(0,1fr)}.attention-actions{grid-column:2}}
+  /* Workspace First: preserve content width with two top-level destinations. */
+  .desktop-shell{display:flex;flex-direction:column}
+  .navigation{min-height:56px;flex-direction:row;align-items:center;gap:20px;padding:0 24px;border-right:0;border-bottom:1px solid var(--border-soft)}
+  .navigation-brand{padding:0;flex:none}
+  .global-nav{display:flex;align-items:center;gap:4px}
+  .global-nav button{padding:0 12px;white-space:nowrap}
+  .main-view{height:auto;flex:1;min-height:0}
+  .page-toolbar{min-height:48px}
+  @media(max-width:760px){
+    .navigation{min-height:54px;padding:0 12px;gap:10px}
+    .navigation-brand{padding:0;justify-content:flex-start}
+    .navigation-brand strong,.global-nav button>span:not(.nav-icon){display:inline}
+    .global-nav button{padding:0 8px;gap:5px}
+    .page-toolbar{padding:0 16px}
+  }
 </style>

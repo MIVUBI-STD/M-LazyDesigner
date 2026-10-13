@@ -424,3 +424,22 @@ describe("Desktop release/version contract", () => {
     expect(releaseConfig).not.toContain('"plugins"');
   });
 });
+
+describe("Desktop Workspace First navigation contract", () => {
+  test("retains session-only project view state on Support navigation", async () => {
+    const [app, navigator, readme] = await Promise.all([
+      Bun.file("../apps/desktop/src/App.svelte").text(),
+      Bun.file("../apps/desktop/src/ProjectNavigator.svelte").text(),
+      Bun.file("../apps/desktop/README.md").text(),
+    ]);
+    expect(app).toContain("<span>Workspace</span>");
+    expect(app).toContain("bind:this={workspaceMain}");
+    expect(app).toContain("workspaceMain.scrollTop = workspaceScrollTop");
+    for (const field of ["expandedProjectId", "showAllProjects", "projectSearch", "modelSearch"]) {
+      expect(app).toContain(`bind:${field}`);
+      expect(navigator).toContain(`export let ${field}`);
+    }
+    expect(navigator).not.toContain("'Switch' : 'Open'");
+    expect(readme).toContain("within the same");
+  });
+});
