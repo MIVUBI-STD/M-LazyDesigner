@@ -6,57 +6,56 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 — focused native current-pose origin snapshot
+## Active: LD-Q04 — explicit native Locator candidate observations
 
-The exact existing `inspect_animation` `bone` branch now adds the
-small sibling `current_pose_snapshot` field. The original
-`focused_bone` output remains unchanged. Canonical owner
-`mcp/server/tools/animation/currentPose.ts` reads the
-currently displayed native Group's **bone origin world position**, using
-its Three.js parent hierarchy and current world matrix only when the
-requested Animation is selected and playing, the editor is in Animation
-mode, Timeline is paused, one Animation is playing, the Project and Group
-are resolved, and the Group is visibly attached to the active Canvas scene.
+The existing `inspect_animation(bone=...)` focused result retains its
+legacy `focused_bone` shape and sibling
+`current_pose_snapshot`. The canonical
+`mcp/server/tools/animation/currentPose.ts` now adds
+`locator_candidates` **inside a successfully observed current
+bone snapshot**. It enumerates only directly parented native
+`Locator` objects confirmed both by
+`Locator.all` and `group.children`, with
+visible Three.js ancestry connecting Locator mesh → focused Group mesh →
+active Canvas scene. Candidate UUIDs and world origins are read using
+the existing paused active-preview gates; no bone or marker is selected,
+moved, inferred from a name or added to the asset.
 
-There is **no Timeline.setTime, Animator.preview, keyframe mutation,
-controller switch, Group selection or animation playback**. Normal
-inspection without a focused bone and controller-state inspection remain
-unchanged. The helper only synchronizes transient native transform caches
-to read the current world position and fails closed for stale/unknown
-native identities, hidden/detached bones, multiple clips, moving timeline,
-out-of-range time, or malformed positions. The new focused result is
-bounded and contains project/animation/group IDs plus the timeline clock
-as observed.
+Each candidate is UUID-scoped and independently OBSERVED/UNVERIFIED
+with explicit reasons. Enumeration is capped at 16; excessive/duplicate
+identities fail closed, missing/hidden/detached/invalid locators cannot
+become valid coordinates, and native Locator absence remains UNVERIFIED.
+Only direct-child candidates are included; a nested child's Locator
+is not silently reassigned to the focused parent bone.
 
-Crucial semantics: `state=OBSERVED` is a snapshot of the
-current preview, **not** proof the preview was reevaluated at that
-specific Timeline time. `frame_pose_synchronized=false`,
+The returned marker `role=UNASSIGNED_CONTACT_INTENT` is
+deliberate: an authored Locator is a potential contact reference, not
+proof that it is a planted foot, tool grip, floor contact, target or end
+effector. Snapshot flags remain
+`frame_pose_synchronized=false`,
 `contact_marker_attested=false`,
 `native_animation_sampling_performed=false` and
-`visual_verdict=NOT_EVALUATED` prevent a bone pivot
-from being reinterpreted as a planted foot or a series of contact samples.
-The original `analyzeAnimationContactEvidence` does not
-ingest or upgrade this origin snapshot into a PASS.
+`visual_verdict=NOT_EVALUATED`.
+`analyzeAnimationContactEvidence` is still separate:
+a single displayed point cannot be promoted into motion-contact PASS.
 
-`mcp/tests/animation-current-pose-snapshot.test.ts` provides
-nine regression definitions covering valid paused preview reads,
-identity conflicts, multiple clips, moving Timeline, detached/hidden
-hierarchies, invalid coordinates and times, active-clip state, and
-no-timeline-mutation source assertions. Existing controller/focused
-inspection contracts are preserved.
+Existing `mcp/tests/animation-current-pose-snapshot.test.ts`
+is extended with seven targeted cases for direct native Locator identity,
+failure isolation, unknown parents, hidden and detached scene objects,
+duplicate identities, resource budgets, and nested-group exclusion.
+No new Gateway tool, new public input, generated API edit, cache,
+shadow sampler, Timeline change or persistent registry is introduced.
 
-**Proof:** authored source and mock regression definitions only;
-Bun/CI, end-to-end animation inspection, installed Blockbench, frame
-sync, playback and true contact-marker sampling are **NOT EXECUTED**.
-User local testing remains deferred. No new public tool/input fields or
-generator-owned API outputs were hand-edited.
+**Proof ceiling:** exact-HEAD source and test definitions only; Bun,
+full typecheck, native Locator/Group transforms, actual paused-preview
+consistency and end-to-end quality acceptance are **NOT EXECUTED**.
+The user's local test remains deferred.
 
-**Next:** run focused Bun inspection/snapshot tests and typechecks on an
-exact-SHA capable cloud worktree when available. For authentic contact
-verification, design only an explicitly reviewed end-effector/locator
-binding and a reversible timeline sampling transaction, proving
-restoration before exposure. Do not loop over Timeline frames from
-normal inspection or claim native contact from a displayed bone origin.
+**Next:** run targeted Bun and TypeScript tests in an authorized cloud
+checkout at the exact commit. Only once source verification succeeds,
+investigate a clearly authorized semantic marker role binding and a
+bounded, fully reversible Timeline sample transaction using existing
+animation owners, never unnamed/guesswork end effectors.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 
