@@ -196,3 +196,211 @@ export function analyzeTextureSeamContinuity(
       "Only face edges within the same Cube are paired; cross-Cube continuity is not evaluated. Seam contrast is advisory evidence, not a style score or automatic failure. Intentional face lighting/material boundaries may differ; inspect ranked candidates against the approved reference.",
   };
 }
+
+
+/**
+ * Cross-Cube evidence requires explicit semantic continuity intent.
+ * Coincident endpoints alone do not prove a shared surface, material,
+ * texture revision, or a visual defect. Native sampling is a later owner.
+ */
+export type CrossCubeSeamEdgeInput = TextureSeamEdgeInput & {
+  continuity_intent: "REQUIRED" | "INTENTIONAL_BOUNDARY" | "UNSPECIFIED";
+  surface_id: string | null;
+  material_id: string | null;
+  /** Caller-supplied world-facing normal; not native-attested by this pure helper. */
+  world_normal: readonly [number, number, number];
+};
+
+type CrossCubeSkipReason =
+  | "SAME_CUBE"
+  | "INTENTIONAL_BOUNDARY"
+  | "CONTINUITY_UNDECLARED"
+  | "SURFACE_OR_MATERIAL_MISMATCH"
+  | "WORLD_EDGE_MISMATCH"
+  | "NORMAL_ALIGNMENT_UNVERIFIED"
+  | "SAMPLE_ALIGNMENT_UNVERIFIED";
+
+const CROSS_CUBE_INPUT_LIMIT = 2048;
+const CROSS_CUBE_SAMPLE_LIMIT = 1024;
+const CROSS_CUBE_ENDPOINT_EPSILON = 1e-6;
+const CROSS_CUBE_NORMAL_DOT = 0.9999;
+
+function crossCubeEdgeKey(edge: TextureSeamEdgeInput): string {
+  const start = pointKey(edge.start);
+  const end = pointKey(edge.end);
+  return start < end ? start + "|" + end : end + "|" + start;
+}
+
+function normalizedWorldNormal(edge: CrossCubeSeamEdgeInput): [number, number, number] {
+  const n = edge.world_normal;
+  if (n.length !== 3 || n.some((v) => !Number.isFinite(v))) {
+    throw new Error("Cross-Cube seam world normal must contain three finite values.");
+  }
+  const magnitude = Math.hypot(...n);
+  if (!Number.isFinite(magnitude) || magnitude < 1e-9) {
+    throw new Error("Cross-Cube seam world normal must be non-zero and finite.");
+  }
+  return [n[0] / magnitude, n[1] / magnitude, n[2] / magnitude];
+}
+
+function requireCrossCubeEdge(edge: CrossCubeSeamEdgeInput): void {
+  requireEdge(edge);
+  if (!edge.cube_uuid.trim() || !edge.face.trim() ||
+      edge.samples.length < 2 || edge.samples.length > CROSS_CUBE_SAMPLE_LIMIT) {
+    throw new Error("Cross-Cube seam requires a Cube UUID, face, and 2..1024 pixel samples.");
+  }
+  if ([...edge.start, ...edge.end].some((v) => Math.abs(v) > 30_000_000) ||
+      squaredDistance(edge.start, edge.end) <= CROSS_CUBE_ENDPOINT_EPSILON ** 2) {
+    throw new Error("Cross-Cube seam physical edge is degenerate or out of bounds.");
+  }
+  normalizedWorldNormal(edge);
+}
+
+function crossCubeSkipReason(
+  left: CrossCubeSeamEdgeInput,
+  right: CrossCubeSeamEdgeInput
+): CrossCubeSkipReason | null {
+  if (left.cube_uuid === right.cube_uuid) return "SAME_CUBE";
+  if (left.continuity_intent === "INTENTIONAL_BOUNDARY" ||
+      right.continuity_intent === "INTENTIONAL_BOUNDARY") return "INTENTIONAL_BOUNDARY";
+  if (left.continuity_intent !== "REQUIRED" ||
+      right.continuity_intent !== "REQUIRED") return "CONTINUITY_UNDECLARED";
+  if (!left.surface_id || !right.surface_id ||
+      !left.material_id || !right.material_id ||
+      left.surface_id !== right.surface_id ||
+      left.material_id !== right.material_id) return "SURFACE_OR_MATERIAL_MISMATCH";
+
+  const epsilonSquared = CROSS_CUBE_ENDPOINT_EPSILON ** 2;
+  const same = squaredDistance(left.start, right.start) <= epsilonSquared &&
+    squaredDistance(left.end, right.end) <= epsilonSquared;
+  const reversed = squaredDistance(left.start, right.end) <= epsilonSquared &&
+    squaredDistance(left.end, right.start) <= epsilonSquared;
+  if (!same && !reversed) return "WORLD_EDGE_MISMATCH";
+
+  const a = normalizedWorldNormal(left), b = normalizedWorldNormal(right);
+  const dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  if (dot < CROSS_CUBE_NORMAL_DOT) return "NORMAL_ALIGNMENT_UNVERIFIED";
+  if (left.samples.length !== right.samples.length) return "SAMPLE_ALIGNMENT_UNVERIFIED";
+  return null;
+}
+
+/**
+ * RGB underneath fully transparent texels is not visible color evidence.
+ * Only pixels visible on BOTH adjacent surfaces enter the RGB comparison;
+ * one-sided transparency remains covered by the alpha discontinuity test.
+ */
+function crossCubeVisibleSummary(
+  left: CrossCubeSeamEdgeInput,
+  right: CrossCubeSeamEdgeInput
+) {
+  const base = seamSummary(left, right);
+  const aligned = alignedSamples(left, right);
+  const differences: number[] = [];
+  for (let i = 0; i < aligned.left.length; i++) {
+    const a = aligned.left[i], b = aligned.right[i];
+    if (a[3] > 0 && b[3] > 0) differences.push(normalizedRgbDifference(a, b));
+  }
+  const mean = differences.length
+    ? differences.reduce((sum, value) => sum + value, 0) / differences.length
+    : null;
+  return {
+    ...base,
+    rgb_evaluated_sample_count: differences.length,
+    mean_rgb_difference: mean === null ? null : Number(mean.toFixed(4)),
+    max_rgb_difference: differences.length
+      ? Number(Math.max(...differences).toFixed(4))
+      : null,
+    high_contrast: mean !== null && mean >= 0.4,
+  };
+}
+
+/**
+ * Conservative diagnostics for exactly paired, explicitly continuous,
+ * same-facing Cube surface edges. It never declares a visual PASS/FAIL,
+ * silently joins T-junctions, or calls a different-material boundary broken.
+ */
+export function analyzeCrossCubeSeamContinuity(
+  edges: readonly CrossCubeSeamEdgeInput[],
+  exampleLimit = TEXTURE_SEAM_EXAMPLE_LIMIT
+) {
+  if (edges.length > CROSS_CUBE_INPUT_LIMIT ||
+      !Number.isInteger(exampleLimit) || exampleLimit < 1 || exampleLimit > 30) {
+    throw new Error("Cross-Cube seam input/example budget exceeded.");
+  }
+  for (const edge of edges) requireCrossCubeEdge(edge);
+  const groups = new Map<string, CrossCubeSeamEdgeInput[]>();
+  for (const edge of edges) {
+    const key = crossCubeEdgeKey(edge);
+    const group = groups.get(key) ?? [];
+    group.push(edge);
+    groups.set(key, group);
+  }
+
+  const paired: Array<ReturnType<typeof crossCubeVisibleSummary> & {
+    cubes: [{ uuid: string; name: string }, { uuid: string; name: string }];
+    surface_id: string;
+    material_id: string;
+  }> = [];
+  const skips: Record<CrossCubeSkipReason, number> = {
+    SAME_CUBE: 0,
+    INTENTIONAL_BOUNDARY: 0,
+    CONTINUITY_UNDECLARED: 0,
+    SURFACE_OR_MATERIAL_MISMATCH: 0,
+    WORLD_EDGE_MISMATCH: 0,
+    NORMAL_ALIGNMENT_UNVERIFIED: 0,
+    SAMPLE_ALIGNMENT_UNVERIFIED: 0,
+  };
+  let unpaired = 0, ambiguous = 0;
+
+  for (const group of groups.values()) {
+    if (group.length === 1) { unpaired++; continue; }
+    if (group.length !== 2) { ambiguous++; continue; }
+    const [left, right] = group;
+    const reason = crossCubeSkipReason(left, right);
+    if (reason) { skips[reason]++; continue; }
+    paired.push({
+      ...crossCubeVisibleSummary(left, right),
+      cubes: [
+        { uuid: left.cube_uuid, name: left.cube_name },
+        { uuid: right.cube_uuid, name: right.cube_name },
+      ],
+      surface_id: left.surface_id!,
+      material_id: left.material_id!,
+    });
+  }
+  paired.sort((a, b) =>
+    (b.mean_rgb_difference ?? -1) - (a.mean_rgb_difference ?? -1) ||
+    b.mean_alpha_difference - a.mean_alpha_difference ||
+    a.cubes[0].uuid.localeCompare(b.cubes[0].uuid)
+  );
+  const review = paired.filter((pair) => pair.high_contrast || pair.alpha_discontinuity);
+
+  return {
+    state: edges.length === 0 ? ("not_applicable" as const) : ("available" as const),
+    scope: "cross_cube" as const,
+    cross_cube_continuity: paired.length ? ("diagnostic_only" as const) : ("not_evaluated" as const),
+    visual_verdict: "not_evaluated" as const,
+    native_sampling_attested: false as const,
+    scene_coverage_attested: false as const,
+    input_edge_count: edges.length,
+    compared_pair_count: paired.length,
+    unpaired_edge_count: unpaired,
+    ambiguous_group_count: ambiguous,
+    excluded_pair_count: Object.values(skips).reduce((sum, count) => sum + count, 0),
+    exclusions: skips,
+    review: {
+      candidate_count: review.length,
+      high_contrast_count: review.filter((row) => row.high_contrast).length,
+      alpha_discontinuity_count: review.filter((row) => row.alpha_discontinuity).length,
+      examples: review.slice(0, exampleLimit),
+      examples_truncated: review.length > exampleLimit,
+    },
+    ranked_examples: paired.slice(0, exampleLimit),
+    ranked_examples_truncated: paired.length > exampleLimit,
+    gate: {
+      state: "advisory" as const,
+      reasons: review.length ? ["CROSS_CUBE_SEAM_REVIEW"] : [],
+    },
+    note: "Only caller-declared, identical-material and surface-identity, same-facing world-edge pairs are compared. Texture provenance, in-game rendering, intended highlights, and unexamined scene edges remain unverified. This is not a visual quality verdict.",
+  };
+}

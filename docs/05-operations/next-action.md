@@ -6,31 +6,48 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active development: LD-Q01 — offscreen renderer recovery hardening
+## Active development: LD-Q02 — cross-Cube seam continuity (source only)
 
-The `captureNativeCubeSilhouette` source now collects the primary
-render/PNG error separately from restoration failures. A failed native
-`setClearColor` restore no longer skips `autoClear` restoration or
-the offscreen `preview.render()` recovery attempt. Multiple failures
-are preserved in `AggregateError.errors`, and temporary material
-cleanup remains in the outer `finally`. Three focused regression
-scenarios were added for failed clear-color restore, combined render
-and restore failure, and failed offscreen redraw.
+`mcp/lib/texture/seamContinuity.ts` now also owns
+`analyzeCrossCubeSeamContinuity`. The previous intra-Cube analyzer and its
+contract are retained unchanged. The new pure analyzer compares only two
+physically matching, same-facing Cube edge sample streams with explicitly
+declared `REQUIRED` continuity, matching non-empty surface/material IDs,
+and equal sample counts. Intentional material boundaries, unknown intent,
+different world normals, T-junctions, incomplete edges and ambiguous
+multi-edge groups are excluded or reported as unresolved rather than
+silently classified as defects.
 
-**Proof:** an isolated Node 22 mock smoke test using equivalent
-helper logic passed six scenarios, including combined errors; it
-is not a repository Bun, real WebGL, or live Blockbench PASS.
-The GitHub-side commit proves only authored source/regression intent,
-not successful exact-head native recovery.
+RGB contrast only evaluates samples with nonzero alpha on both faces;
+one-sided alpha discontinuity remains a separate advisory signal.
+The output retains `visual_verdict=not_evaluated`,
+`native_sampling_attested=false`, and
+`scene_coverage_attested=false`, with bounded examples and explicit
+exclusion counts. This has **no new Gateway tool, no persistence, no
+native mutation, and no automatic visual PASS/FAIL**.
 
-**Next:** execute the focused Bun camera silhouette tests on the exact
-current `Local` source, then test the disposable native
-`capture_model_views(evidence_targets=["silhouette"])` flow:
-visible Cube coverage, transparent PNG, existing shaded-image
-continuation, restore under controlled renderer failures, and
-no active-editor camera or model mutation. Camera-paired visual
-comparison remains UNVERIFIED until independent source/reference
-calibration exists; do not add more code without a reproduced gap.
+The existing `texture-seam-continuity.test.ts` contains four prior
+intra-Cube tests plus eleven additional cross-Cube regressions covering
+matching/reversed edges, intentional boundaries, normal mismatch, sampling,
+T-junctions, ambiguous groups, invisible RGB, alpha-only gaps and input
+budgets. An isolated Node behavior harness exercised eight representative
+cross-Cube checks, **not** the Bun suite or current installed Blockbench.
+
+**Next source proof:** execute the exact-SHA focused Bun test and TypeScript
+check in an authorized cloud environment, and inspect its first real error.
+**Later native proof:** use the existing focused texture/UV evidence owner to
+supply genuine world edge coordinates, atlas RGBA samples, material identity
+and source revision for a representative shared-surface pair. Do not claim
+live measured seam quality from synthetic fixtures.
+
+## Deferred: LD-Q01 native acceptance
+
+User cannot currently perform a local/native test. LD-Q01 changes through
+`65c261a` remain preserved; no request for user-PC installation, clone
+or testing. The native renderer, transparent PNG/coverage and
+reference-camera pairing remain **NOT EXECUTED**. Resume only when a real
+cloud or native Blockbench execution environment becomes available, while
+continuing independent source work.
 
 Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 
