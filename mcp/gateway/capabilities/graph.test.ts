@@ -570,11 +570,20 @@ describe("capability dependency graph", () => {
         animation_available: true,
         visual_evidence_current: true,
       };
-      const next = applyCapabilityGraphOutcome(prior, capability, {}, true);
+      const args = capability === "manage_animation_timeline"
+        ? { operation: "keyframes", action: "create" }
+        : {};
+      const next = applyCapabilityGraphOutcome(prior, capability, args, true);
       expect(next.animation_available).toBe(true);
       expect(next.visual_evidence_current).toBe(false);
       expect(prior.visual_evidence_current).toBe(true);
-      expect(applyCapabilityGraphOutcome(prior, capability, {}, false)).toEqual(prior);
+      expect(applyCapabilityGraphOutcome(prior, capability, args, false)).toEqual(prior);
+      if (capability === "manage_animation_timeline") {
+        // A branchless "successful mutation" is not a valid native timeline
+        // invocation and cannot establish any authored visual effect.
+        expect(applyCapabilityGraphOutcome(prior, capability, {}, true))
+          .toEqual(prior);
+      }
     }
   });
 

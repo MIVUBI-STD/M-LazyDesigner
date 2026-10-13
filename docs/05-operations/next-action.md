@@ -149,6 +149,17 @@ authoring evidence:
   codec's reported clip identity, requested name and nonnegative effect/bone
   counts. Missing identity preserves UNKNOWN; no playback or motion fidelity
   follows from creation alone.
+- `manage_animation_timeline` now projects one canonical Graph contract onto
+  all six actual Runtime branches. Mutating keyframe/graph/batch/timeline/
+  paste/properties actions require existing Animation and invalidate old visual
+  proof; requested CONTROL actions (play/selection/clipboard copy) retain it.
+  The native unchanged loop receipt only preserves proof when its requested
+  action and loop mode match. A branchless fake timeline call is not proof.
+- `manage_animation_controller(resource_kind=...)` compile-only no-change now
+  requires a matching caller branch and source-owned `runtime_resource`
+  receipt with `source_path=null` and `write=null`. An actual native
+  controller edit or mismatched resource result cannot borrow that no-op.
+  `lib/receipts/animationController.ts` owns the shared receipt schema.
 - `manage_cubes.simplify` plans/unchanged results require the actual
   source-shaped dry-run receipt; `NO_CHANGE` cannot be claimed from a label.
 - `manage_uv_layout.plan` only promotes `uv_plan_available` with a
