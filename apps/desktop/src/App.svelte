@@ -245,7 +245,7 @@
   }
 
   async function runProjectAction(action: ProjectAction, id: string) {
-    if (devFixture || busyAction) return;
+    if (devFixture || busyAction || statusProbeFailures >= 2) return;
     if (action === 'restore-project-preferences' &&
         !window.confirm('Restore the last saved project pins? The damaged settings file will be retained.')) return;
     busyAction = 'project-action';
@@ -262,7 +262,7 @@
   }
 
   async function openProjectModel(id: string) {
-    if (devFixture || busyAction || !status?.manager_available) return;
+    if (devFixture || busyAction || statusProbeFailures >= 2 || !status?.manager_available) return;
     busyAction = 'project-action';
     error = '';
     clearSuccessToast();
@@ -314,7 +314,7 @@
 
   async function connectBlockbench() {
     if (devFixture) return;
-    if (!status?.manager_available || busyAction) return;
+    if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
     closeUtilityMenu();
     busyAction = 'connect-blockbench';
     error = '';
@@ -350,7 +350,7 @@
 
   async function installLazyDesigner() {
     if (devFixture) return;
-    if (!status?.bootstrap_available || status.manager_available || busyAction) return;
+    if (!status?.bootstrap_available || status.manager_available || busyAction || statusProbeFailures >= 2) return;
     busyAction = 'install';
     error = '';
     clearSuccessToast();
@@ -428,7 +428,7 @@
 
   async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
     if (devFixture) return;
-    if (!status?.manager_available || busyAction) return;
+    if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
     closeUtilityMenu();
     busyAction = action;
     progressStage = 'preflight';
@@ -777,7 +777,7 @@
 
               <div class="setup-footer">
                 {#if productGuidance(status)}<span class="setup-warning">{productGuidance(status)}</span>{:else}<span></span>{/if}
-                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null}>{busyAction === 'install' ? 'Setting up…' : 'Set up'}</button>
+                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : 'Set up'}</button>
               </div>
             </section>
 
@@ -804,15 +804,15 @@
 
                   <div class="resource-actions">
                     {#if productMode(status) === 'ready'}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
-                      <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
+                      <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
                     {:else if productMode(status) === 'plugin-setup'}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {:else if productMode(status) === 'unsupported'}
                       <button class="secondary-button" onclick={refresh} disabled={loading || busyAction !== null}>Check again</button>
                     {:else}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {/if}
                     <button class="icon-button" aria-label="Blockbench actions" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null}>•••</button>
                   </div>
@@ -832,7 +832,7 @@
                       <strong>LazyDesigner is not active yet</strong>
                       <span>Desktop can open Blockbench and verify the Runtime automatically.</span>
                     </div>
-                    <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Prepare Blockbench'}</button>
+                    <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Prepare Blockbench'}</button>
                   {:else if readinessReason === 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING'}
                     <div>
                       <strong>Restart Blockbench to repair LazyDesigner</strong>
@@ -864,7 +864,7 @@
               bind:showAllProjects
               bind:projectSearch
               bind:modelSearch
-              busy={busyAction !== null}
+              busy={busyAction !== null || statusProbeFailures >= 2}
               onOpenModel={openProjectModel}
               onProjectAction={runProjectAction}
               onCopyPath={copyNavigationPath}
@@ -891,14 +891,14 @@
                     <span>Update</span>
                     <div class="inline-action">
                       <strong>{status.managed?.pending || updateCheck?.status === 'UPDATE_STAGED' ? 'Ready to install' : (updateCheck?.tag ?? 'Available')}</strong>
-                      <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null}>{busyAction === 'update' ? 'Updating…' : 'Update'}</button>
+                      <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'update' ? 'Updating…' : 'Update'}</button>
                     </div>
                   </div>
                 {/if}
               </div>
 
               {#if productMode(status) === 'security-setup'}
-                <div class="inline-alert"><div><strong>Finish setup</strong><span>Complete the secure local connection before using LazyDesigner.</span></div><button class="primary-button small-button" onclick={() => runManagedAction('setup-tls')} disabled={!status.maintenance.setup_tls || busyAction !== null}>Finish setup</button></div>
+                <div class="inline-alert"><div><strong>Finish setup</strong><span>Complete the secure local connection before using LazyDesigner.</span></div><button class="primary-button small-button" onclick={() => runManagedAction('setup-tls')} disabled={!status.maintenance.setup_tls || busyAction !== null || statusProbeFailures >= 2}>Finish setup</button></div>
               {:else if productMode(status) === 'client-wait'}
                 <div class="inline-note"><strong>Blockbench Runtime is ready.</strong><span>The MCP client owns the Gateway connection and can attach when needed.</span></div>
               {:else if productMode(status) === 'attention'}
@@ -945,9 +945,9 @@
               <details class="advanced-recovery">
                 <summary><span><strong>Advanced recovery</strong><small>Use only if normal setup or updates cannot finish.</small></span><span>Show</span></summary>
                 <div class="recovery-list">
-                  <div><span><strong>Restore previous version</strong><small>{status.maintenance.rollback ? 'Return to the last verified version.' : 'No previous version is available.'}</small></span><button class="secondary-button small-button" onclick={() => runManagedAction('rollback')} disabled={!status.maintenance.rollback || busyAction !== null}>Restore</button></div>
-                  <div><span><strong>Repair LazyDesigner</strong><small>{status.maintenance.repair ? 'Restore missing files from the current installation.' : 'Repair is not available right now.'}</small></span><button class="secondary-button small-button" onclick={() => runManagedAction('repair')} disabled={!status.maintenance.repair || busyAction !== null}>Repair</button></div>
-                  <div><span><strong>Finish incomplete setup</strong><small>{status.maintenance.recover ? 'Recover an interrupted installation.' : 'No interrupted setup was found.'}</small></span><button class="secondary-button small-button" onclick={() => runManagedAction('recover')} disabled={!status.maintenance.recover || busyAction !== null}>Recover</button></div>
+                  <div><span><strong>Restore previous version</strong><small>{status.maintenance.rollback ? 'Return to the last verified version.' : 'No previous version is available.'}</small></span><button class="secondary-button small-button" onclick={() => runManagedAction('rollback')} disabled={!status.maintenance.rollback || busyAction !== null || statusProbeFailures >= 2}>Restore</button></div>
+                  <div><span><strong>Repair LazyDesigner</strong><small>{status.maintenance.repair ? 'Restore missing files from the current installation.' : 'Repair is not available right now.'}</small></span><button class="secondary-button small-button" onclick={() => runManagedAction('repair')} disabled={!status.maintenance.repair || busyAction !== null || statusProbeFailures >= 2}>Repair</button></div>
+                  <div><span><strong>Finish incomplete setup</strong><small>{status.maintenance.recover ? 'Recover an interrupted installation.' : 'No interrupted setup was found.'}</small></span><button class="secondary-button small-button" onclick={() => runManagedAction('recover')} disabled={!status.maintenance.recover || busyAction !== null || statusProbeFailures >= 2}>Recover</button></div>
                 </div>
               </details>
             {/if}

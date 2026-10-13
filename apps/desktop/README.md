@@ -529,3 +529,12 @@ Model actions are labeled **Open** rather than promising to switch or focus
 a particular Blockbench window. The current native launch path does not
 yet prove foreground-window activation; native Windows acceptance is
 required before stronger copy or focus behavior is introduced.
+
+### Connection probe uncertainty
+
+After two failed lightweight connection probes, Desktop preserves the last
+observation for context but disables launch, project navigation and managed
+mutations that rely on fresh machine state. `Refresh` remains available, and
+a successful full `system_status` restores the action affordances. This UI
+gate is supplementary to the canonical Rust/manager permission and safety
+checks; it does not change Gateway ownership or authorize repair.

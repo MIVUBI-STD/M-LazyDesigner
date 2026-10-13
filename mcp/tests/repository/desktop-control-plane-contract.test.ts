@@ -443,3 +443,19 @@ describe("Desktop Workspace First navigation contract", () => {
     expect(readme).toContain("within the same");
   });
 });
+
+describe("Desktop stale connection action admission", () => {
+  test("keeps stale status visible but guards project, launch and managed mutation", async () => {
+    const app = await Bun.file("../apps/desktop/src/App.svelte").text();
+    expect(app).toContain("statusProbeFailures = Math.min(statusProbeFailures + 1, 2)");
+    expect(app).toContain("Status unverified · Refresh to retry");
+    expect(app).toContain("busy={busyAction !== null || statusProbeFailures >= 2}");
+    for (const action of ["runProjectAction", "openProjectModel", "connectBlockbench", "installLazyDesigner", "runManagedAction"]) {
+      const start = app.indexOf(`async function ${action}`);
+      expect(start).toBeGreaterThan(0);
+      expect(app.slice(start, start + 300)).toContain("statusProbeFailures >= 2");
+    }
+    expect(app).toContain("disabled={loading || busyAction !== null} onclick={refresh}");
+    expect(app).toContain("statusProbeFailures = 0;");
+  });
+});
