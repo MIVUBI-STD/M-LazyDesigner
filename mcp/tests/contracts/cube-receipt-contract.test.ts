@@ -4,6 +4,7 @@ import {
   cubeGeometryEffect,
   cubeGeometryEffectSchema,
   cubeSemanticScopesFromChangedFields,
+  isCubeNoChangeReceipt,
   cubeVisualScope,
   cubeVisualScopeFromResult,
 } from "@/lib/receipts/cubeMutation";
@@ -64,6 +65,15 @@ describe("shared Cube mutation receipt contract", () => {
         },
       })
     ).toThrow();
+  });
+
+  test("shared Cube no-op receipt refuses contradictory authored effects", () => {
+    expect(isCubeNoChangeReceipt({execution:"planned",updates:[]})).toBe(true);
+    expect(isCubeNoChangeReceipt({execution:"unchanged",updates:[]})).toBe(true);
+    expect(isCubeNoChangeReceipt({execution:"applied",updates:[]})).toBe(false);
+    expect(isCubeNoChangeReceipt({
+      execution:"unchanged",geometry_effect:{changed_fields:["rotation"]},
+    })).toBe(false);
   });
 
   test("unrecognized Cube effects fail closed instead of preserving downstream UV/Animation", () => {

@@ -96,6 +96,31 @@ describe("capability dependency graph", () => {
     ).eligibility).toBe("READY");
   });
 
+  test("Cube simplify dry runs preserve existing readiness facts", () => {
+    const original = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      geometry_available: true,
+      uv_plan_available: true,
+      uv_layout_current: true,
+      texture_alignment_current: true,
+      visual_evidence_current: true,
+    };
+    for (const execution of ["planned", "unchanged"] as const) {
+      expect(applyCapabilityGraphOutcome(
+        original, "manage_cubes", {operation:"simplify"}, true,
+        {execution, updates:[{id:"cube-a",from:[0,0,0]}]}
+      )).toEqual(original);
+    }
+    expect(applyCapabilityGraphOutcome(
+      original, "manage_cubes", {operation:"simplify"}, true,
+      {execution:"applied",modified:1}
+    ).uv_layout_current).toBe(false);
+    expect(applyCapabilityGraphOutcome(
+      original, "manage_cubes", {operation:"simplify"}, true,
+      {execution:"unchanged",effects:[{geometry_effect:{changed_fields:["from"]}}]}
+    ).uv_layout_current).toBe(false);
+  });
+
   test("Cube effects preserve unrelated UV/Texture graph facts", () => {
     const original = {
       ...seedCapabilityFacts({ projectBound: true }),

@@ -1,6 +1,7 @@
 import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
+  isCubeNoChangeReceipt,
 } from "../../lib/receipts/cubeMutation";
 import {
   CAPABILITY_BRANCH_MANIFEST,
@@ -124,6 +125,11 @@ export function applyCapabilityGraphOutcome(
   const branch = capabilityBranchFromArguments(args);
   const entry = capabilityGraphEntry(capability, branch);
   if (!entry) return previous;
+
+  // Native simplify dry-run and unchanged receipts mutate no authored state.
+  // Reuse the same receipt meaning as Control; planned updates are not writes.
+  if (capability === "manage_cubes" && branch?.value === "simplify" &&
+      isCubeNoChangeReceipt(result)) return previous;
 
   const next: CapabilityFactState = { ...previous };
   // Match Control's canonical Cube receipt semantics. Only bounded updates

@@ -46,6 +46,18 @@ export function cubeVisualScope<T extends Record<string, unknown>>(
   return scope;
 }
 
+/** Canonical flat native receipt classifier; it never guesses image quality. */
+export function isCubeNoChangeReceipt(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const receipt = value as Record<string, unknown>;
+  if (receipt.execution !== "planned" && receipt.execution !== "unchanged") {
+    return false;
+  }
+  // Simplify previews carry proposed updates, but no authored effect receipt.
+  return !["geometry_effect", "effects", "visual_scope", "after", "added", "modified"]
+    .some(key => Object.prototype.hasOwnProperty.call(receipt, key));
+}
+
 export function cubeChangedFieldsFromResult(value: unknown): string[] {
   if (!value || typeof value !== "object" || Array.isArray(value)) return [];
   const root = value as Record<string, unknown>;
