@@ -2,9 +2,40 @@ import { describe, expect, test } from "bun:test";
 import { toolManifest } from "../scripts/generate/internal/docs-manifest";
 import { z } from "zod";
 import { wiredCreateTextureParameters } from "../server/runtime/contracts/texture";
+import { getAllToolDefinitions } from "../lib/factories";
 import { manifestEntriesForCapability } from "../gateway/capabilities/manifest";
 
 describe("branch schema and semantic manifest consistency", () => {
+  test("registered Runtime definitions actually retain extension-owned variant and native properties", async () => {
+    // Import-safe default Runtime registration composes the actual executor
+    // schemas; exported union constants alone do not prove tool availability.
+    await import("../server/tools");
+    const definitions = getAllToolDefinitions();
+    const texture = definitions.create_texture;
+    const timeline = definitions.manage_animation_timeline;
+    expect(texture).toBeDefined();
+    expect(timeline).toBeDefined();
+
+    const variant = {
+      type: "variant", name: "body_alt.png",
+      source_texture_id: "base-uuid", group: "variants",
+    };
+    expect(texture.parameterSchema.safeParse(variant).success).toBe(true);
+    expect(texture.parameterSchema.safeParse({
+      ...variant, group: undefined,
+    }).success).toBe(false);
+    expect(texture.parameterSchema.safeParse({
+      ...variant, type: "unsupported",
+    }).success).toBe(false);
+
+    expect(timeline.parameterSchema.safeParse({
+      operation: "properties", length: 2,
+    }).success).toBe(true);
+    expect(timeline.parameterSchema.safeParse({
+      operation: "properties",
+    }).success).toBe(false);
+  });
+
   test("composed create_texture schema preserves all semantic type branches, including variant", () => {
     const runtime = z.toJSONSchema(wiredCreateTextureParameters, {
       io: "input",
