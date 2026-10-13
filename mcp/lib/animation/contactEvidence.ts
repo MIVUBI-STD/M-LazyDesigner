@@ -31,6 +31,8 @@ export type ContactConstraintInput = {
 };
 
 const TIME_EPSILON = 1e-6;
+export const ANIMATION_CONTACT_CONSTRAINT_LIMIT = 64;
+export const ANIMATION_CONTACT_SAMPLE_LIMIT = 2048;
 
 function validVec3(value: Vec3): boolean {
   return Array.isArray(value) && value.length === 3 && value.every(Number.isFinite);
@@ -81,6 +83,10 @@ export function analyzeAnimationContactEvidence(input: {
   if (!Number.isInteger(exampleLimit) || exampleLimit < 1 || exampleLimit > 100) {
     return { state: "unavailable" as const, reason: "example_limit_invalid" as const };
   }
+  if (!Array.isArray(input.constraints) ||
+      input.constraints.length > ANIMATION_CONTACT_CONSTRAINT_LIMIT) {
+    return { state: "unavailable" as const, reason: "contact_constraint_budget_exceeded" as const };
+  }
 
   const results: Array<{
     id: string;
@@ -98,6 +104,12 @@ export function analyzeAnimationContactEvidence(input: {
     support_plane_penetration_count: number;
     max_support_plane_penetration: number | null;
     status: "pass" | "review" | "unverified";
+    review_reasons: Array<
+      "CONTACT_DISTANCE_EXCEEDED" | "PLANTED_MARKER_DRIFT" | "SUPPORT_PLANE_PENETRATION"
+    >;
+    unverified_reasons: Array<
+      "SAMPLING_WINDOW_INCOMPLETE" | "PLANTED_NEEDS_MULTIPLE_SAMPLES"
+    >;
     violation_examples: Array<{ time: number; distance: number }>;
     violation_examples_truncated: boolean;
   }> = [];
@@ -120,6 +132,13 @@ export function analyzeAnimationContactEvidence(input: {
     // A support plane is meaningful only for an explicitly planted marker.
     if (constraint.support_plane && constraint.mode !== "planted") {
       invalid("SUPPORT_PLANE_REQUIRES_PLANTED");
+      continue;
+    }
+    // Budget and validate the entire sequence: never silently accept a
+    // truncated subset as a reliable contact or overload the evaluator.
+    if (!Array.isArray(constraint.samples) ||
+        constraint.samples.length > ANIMATION_CONTACT_SAMPLE_LIMIT) {
+      invalid("CONTACT_SAMPLE_BUDGET_EXCEEDED");
       continue;
     }
     // Never filter malformed samples and then certify the remaining subset.
@@ -172,7 +191,24 @@ export function analyzeAnimationContactEvidence(input: {
       Math.abs(samples[samples.length - 1].time - window.end) <= TIME_EPSILON &&
       maxGap <= window.max_gap_seconds + TIME_EPSILON
         ? "complete" as const : "incomplete" as const;
-    const violation = distanceViolations.length > 0 || sliding || planeViolations.length > 0;
+    const reviewReasons: Array<
+      "CONTACT_DISTANCE_EXCEEDED" | "PLANTED_MARKER_DRIFT" | "SUPPORT_PLANE_PENETRATION"
+    > = [];
+    if (distanceViolations.length > 0) reviewReasons.push("CONTACT_DISTANCE_EXCEEDED");
+    if (sliding) reviewReasons.push("PLANTED_MARKER_DRIFT");
+    if (planeViolations.length > 0) reviewReasons.push("SUPPORT_PLANE_PENETRATION");
+
+    const unverifiedReasons: Array<
+      "SAMPLING_WINDOW_INCOMPLETE" | "PLANTED_NEEDS_MULTIPLE_SAMPLES"
+    > = [];
+    if (coverage === "incomplete") unverifiedReasons.push("SAMPLING_WINDOW_INCOMPLETE");
+    // A single planted-frame position cannot establish that the marker was
+    // stationary during a stance, even without an explicit sampling_window.
+    if (constraint.mode === "planted" && samples.length < 2) {
+      unverifiedReasons.push("PLANTED_NEEDS_MULTIPLE_SAMPLES");
+    }
+    const status = reviewReasons.length > 0 ? ("review" as const) :
+      unverifiedReasons.length > 0 ? ("unverified" as const) : ("pass" as const);
 
     results.push({
       id: constraint.id,
@@ -189,7 +225,9 @@ export function analyzeAnimationContactEvidence(input: {
       max_sample_gap_seconds: samples.length >= 2 ? round(maxGap) : null,
       support_plane_penetration_count: planeViolations.length,
       max_support_plane_penetration: constraint.support_plane ? round(Math.max(...penetrations)) : null,
-      status: violation ? "review" : coverage === "incomplete" ? "unverified" : "pass",
+      status,
+      review_reasons: reviewReasons,
+      unverified_reasons: unverifiedReasons,
       violation_examples: distanceViolations.slice(0, exampleLimit).map((entry) => ({
         time: round(entry.time),
         distance: round(entry.distance),
@@ -204,6 +242,7 @@ export function analyzeAnimationContactEvidence(input: {
     state: "available" as const,
     visual_verdict: "not_evaluated" as const,
     sample_provenance: "caller_supplied_not_native_attested" as const,
+    coverage_scope: "supplied_constraints_only" as const,
     world_space_claim: "caller_declared" as const,
     constraint_count: results.length,
     invalid_constraint_count: invalidConstraintCount,

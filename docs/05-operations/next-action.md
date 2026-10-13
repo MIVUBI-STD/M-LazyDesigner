@@ -6,52 +6,46 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active development: LD-Q04 — sampled animation contact evidence
+## Active: LD-Q04 contact evidence budget and cause hardening
 
-The existing canonical `mcp/lib/animation/contactEvidence.ts` now treats
-an observed planted-marker drift above the declared tolerance as a review
-candidate **even when the supplied target follows the marker**. This
-closes a source-level false PASS for foot sliding. Existing `pair` and
-`fixed` behavior remains read-only and numerically diagnostic.
+LD-Q04 source hardening in `mcp/lib/animation/contactEvidence.ts` closes
+three deterministic gaps while retaining the original single owner, return
+shape, caller-provided sample provenance, and no new MCP capability:
 
-Two optional input fields extend the same owner without creating a new
-MCP tool, Runtime sampler, registry, or stored asset state:
+- A single planted-marker observation is now `unverified`, not a
+  numerical contact `pass`. A single fixed/pair impact remains a point
+  measurement only, not motion evidence.
+- Bounded inputs: at most 64 constraints per analysis and 2,048 samples
+  per constraint. Overflow returns `unavailable` or bounded invalid-
+  constraint evidence rather than sorting/scanning an unlimited list.
+- Each diagnostic now distinguishes `review_reasons` (distance exceeded,
+  planted drift, support-plane penetration) from `unverified_reasons`
+  (sampling window incomplete, insufficient planted observations). Observed
+  defects remain review candidates even when temporal coverage is lacking.
 
-- `sampling_window` declares the expected time range and maximum
-  interval. Missing start/end coverage or excessive gaps yields
-  `unverified`, never a synthetic contact PASS.
-- `support_plane` declares a planted-marker contact surface, allowed
-  side and penetration tolerance. Penetration is recorded separately
-  from marker-to-target distance; the marker must represent an actual
-  contact point, not an inferred bone pivot.
-
-Duplicate/nonfinite samples and invalid constraints are rejected rather
-than silently filtered to a good-looking subsequence. Observed drift,
-distance or penetration still surfaces as `review` even if temporal
-coverage is incomplete. Counts now distinguish `pass`, `review` and
-`unverified`, with bounded invalid-input evidence. Legacy callers
-without optional coverage fields keep existing numerical sample diagnostics.
-Result metadata explicitly preserves
-`sample_provenance=caller_supplied_not_native_attested`,
-`world_space_claim=caller_declared`, and
+The tests in `mcp/tests/animation-contact-evidence.test.ts` retain prior
+behavior and add six focused cases for singleton planted observations,
+single-frame moving contacts, multi-cause review reporting, both budget
+limits, and support-plane-only findings. Return metadata explicitly labels
+`coverage_scope=supplied_constraints_only` and continues to report
+`sample_provenance=caller_supplied_not_native_attested` and
 `visual_verdict=not_evaluated`.
 
-`mcp/tests/animation-contact-evidence.test.ts` retains the earlier
-three tests and adds ten focused cases for moving-target foot sliding,
-time coverage, sparse windows, floor/ceiling contact, duplicate/invalid
-samples, and source immutability.
+**Proof:** exact source/test definitions only. Bun, complete source
+typecheck, live Blockbench Timeline sampling, real world-space contact
+marker provenance, animation playback, and visual acceptance are
+**NOT EXECUTED** for the current head. The remote GitHub connection
+cannot dispatch manually gated Actions, and this environment does not
+have a matching checked-out Bun workspace. Do not request the user's
+PC, install local dependencies, or treat mock arithmetic as native proof.
 
-**Proof:** source implementation and test definitions on the exact
-`Local` commit; repository Bun/CI, real sampled native world
-transforms, in-game playback and visual quality have **NOT EXECUTED**.
-No user local testing is requested.
-
-**Next:** run targeted Bun tests and source typecheck when a connected
-cloud toolchain exists. For native sampling, use existing Blockbench
-Timeline / animated Group world-transform inspection only with
-a reversible, explicitly scoped reader and tested restoration. Never
-treat authored keyframe positions or caller supplied samples as
-native runtime/world-space evidence.
+**Next:** at a genuinely available cloud worktree, run the existing
+focused `bun test tests/animation-contact-evidence.test.ts` from
+`mcp/`, then canonical typecheck and impacted contracts. Diagnose any
+failure in its owner before broad verification. Native timeline sampling
+requires an independently reviewable, state-restoring read-only adapter
+before those observations may be called runtime-attested. Do not add
+an unconsumed shadow sampler, new Gateway tool or automatic acceptance.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 

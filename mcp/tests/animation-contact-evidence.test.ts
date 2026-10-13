@@ -277,3 +277,102 @@ test("original caller-supplied sample objects remain unchanged", () => {
   expect(result.constraints[0]?.sampling_coverage).toBe("not_evaluated");
   expect(JSON.stringify(samples)).toBe(before);
 });
+
+
+test("one sampled planted frame is unverified even without a declared time window", () => {
+  const result = analyzeAnimationContactEvidence({
+    constraints: [{
+      id: "single_stance_frame", mode: "planted", tolerance: 0.1,
+      samples: [{ time: 0, marker: [0, 0, 0], target: [0, 0, 0] }],
+    }],
+  });
+  requireAvailable(result);
+  expect(result.constraints[0]?.status).toBe("unverified");
+  expect(result.constraints[0]?.unverified_reasons).toEqual(["PLANTED_NEEDS_MULTIPLE_SAMPLES"]);
+  expect(result.unverified_constraint_count).toBe(1);
+  expect(result.pass_constraint_count).toBe(0);
+  expect(result.coverage_scope).toBe("supplied_constraints_only");
+});
+
+test("single-frame pair contact remains a numeric observation, not motion proof", () => {
+  const result = analyzeAnimationContactEvidence({
+    constraints: [{
+      id: "impact_at_t", mode: "pair", tolerance: 0.1,
+      samples: [{ time: 0.1, marker: [0, 0, 0], target: [0, 0, 0] }],
+    }],
+  });
+  requireAvailable(result);
+  expect(result.constraints[0]?.status).toBe("pass");
+  expect(result.constraints[0]?.review_reasons).toEqual([]);
+  expect(result.constraints[0]?.unverified_reasons).toEqual([]);
+  expect(result.sample_provenance).toBe("caller_supplied_not_native_attested");
+  expect(result.visual_verdict).toBe("not_evaluated");
+});
+
+test("review causes are separate for distance, planted drift and penetration", () => {
+  const result = analyzeAnimationContactEvidence({
+    constraints: [{
+      id: "multiple_contact_errors", mode: "planted", tolerance: 0.1,
+      support_plane: {
+        axis: "Y", coordinate: 0, allowed_side: "POSITIVE",
+        penetration_tolerance: 0.01,
+      },
+      samples: [
+        { time: 0, marker: [0, 0, 0], target: [0, 0, 0] },
+        { time: 0.5, marker: [1, -0.2, 0], target: [0, 0, 0] },
+      ],
+      sampling_window: { start: 0, end: 1, max_gap_seconds: 0.25 },
+    }],
+  });
+  requireAvailable(result);
+  expect(result.constraints[0]?.status).toBe("review");
+  expect(result.constraints[0]?.review_reasons).toEqual([
+    "CONTACT_DISTANCE_EXCEEDED",
+    "PLANTED_MARKER_DRIFT",
+    "SUPPORT_PLANE_PENETRATION",
+  ]);
+  expect(result.constraints[0]?.unverified_reasons).toContain("SAMPLING_WINDOW_INCOMPLETE");
+});
+
+test("oversized contact batches fail closed before allocating work", () => {
+  const result = analyzeAnimationContactEvidence({
+    constraints: Array.from({ length: 65 }, (_, i) => ({
+      id: "contact_" + i, mode: "pair" as const, tolerance: 0.1,
+      samples: [{ time: 0, marker: [0, 0, 0] as const, target: [0, 0, 0] as const }],
+    })),
+  });
+  expect(result).toMatchObject({
+    state: "unavailable", reason: "contact_constraint_budget_exceeded",
+  });
+});
+
+test("oversized per-contact sample arrays cannot become a partial pass", () => {
+  const result = analyzeAnimationContactEvidence({
+    constraints: [{
+      id: "huge_contact", mode: "planted", tolerance: 0.1,
+      samples: Array.from({ length: 2049 }, (_, i) => ({
+        time: i / 30, marker: [0, 0, 0] as const, target: [0, 0, 0] as const,
+      })),
+    }],
+  });
+  requireAvailable(result);
+  expect(result.constraint_count).toBe(0);
+  expect(result.invalid_constraint_count).toBe(1);
+  expect(result.invalid_examples[0]?.reason).toBe("CONTACT_SAMPLE_BUDGET_EXCEEDED");
+  expect(result.pass_constraint_count).toBe(0);
+});
+
+test("existing planted sliding and penetration cases report explicit review causes", () => {
+  const result = analyzeAnimationContactEvidence({
+    constraints: [{
+      id: "floor_penetration", mode: "planted", tolerance: 0.25,
+      support_plane: { axis: "Y", coordinate: 0, allowed_side: "POSITIVE", penetration_tolerance: 0.01 },
+      samples: [
+        { time: 0, marker: [0, 0, 0], target: [0, 0, 0] },
+        { time: 0.1, marker: [0, -0.05, 0], target: [0, -0.05, 0] },
+      ],
+    }],
+  });
+  requireAvailable(result);
+  expect(result.constraints[0]?.review_reasons).toEqual(["SUPPORT_PLANE_PENETRATION"]);
+});
