@@ -13,7 +13,7 @@ export type ConnectionBaseline = {
   runtime_listener_live: boolean;
   plugin_integrity: string;
   managed: { gateway_active: boolean } | null;
-  project_navigation: { revision: string; session_live: boolean };
+  project_navigation: { revision: string | null; session_live: boolean };
 };
 
 export function connectionChanged(candidate: ConnectionObservation, current: ConnectionBaseline): boolean {

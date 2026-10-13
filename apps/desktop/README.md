@@ -532,12 +532,16 @@ required before stronger copy or focus behavior is introduced.
 
 ### Connection probe uncertainty
 
-After two failed lightweight connection probes, Desktop preserves the last
+After two failed lightweight connection probes **or one failed full**
+`system_status` with a previous observation, Desktop preserves that last
 observation for context but disables launch, project navigation and managed
-mutations that rely on fresh machine state. `Refresh` remains available, and
-a successful full `system_status` restores the action affordances. This UI
-gate is supplementary to the canonical Rust/manager permission and safety
-checks; it does not change Gateway ownership or authorize repair.
+mutations that depend on fresh machine state. A subsequent successful
+lightweight probe cannot clear this gate; only the user's explicit `Refresh`
+with successful full `system_status` restores the action affordances. The
+initial state with no successful observation remains the unavailable screen.
+The project revision comparison accepts null as the legitimate no-snapshot
+baseline. These UI gates supplement the canonical Rust/manager permission
+and safety checks; they do not change Gateway ownership or authorize repair.
 
 ### Workspace healthy connection summary
 

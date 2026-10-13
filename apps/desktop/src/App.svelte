@@ -251,6 +251,9 @@
       statusProbeFailures = 0;
       if (status && devFixture) status = applyDevFixture(status, devFixture);
     } catch (cause) {
+      // A failed full observation must never leave actions enabled using
+      // the last successful snapshot. Only full status can clear this gate.
+      if (status) statusProbeFailures = 2;
       error = errorMessage(cause);
     } finally {
       loading = false;
@@ -331,8 +334,11 @@
     statusProbeInFlight = true;
     try {
       const candidate = await invoke<ConnectionStatus>('connection_status');
-      statusProbeFailures = 0;
+      // A lightweight probe cannot validate a previously failed full status
+      // observation. Keep actions disabled until the user explicitly Refreshes.
+      if (statusProbeFailures >= 2) return;
       if (connectionChanged(candidate, status)) await refresh();
+      else statusProbeFailures = 0;
     } catch {
       // Failed probes invalidate the live status, but do not trigger repairs.
       statusProbeFailures = Math.min(statusProbeFailures + 1, 2);

@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { connectionChanged, type ConnectionBaseline, type ConnectionObservation } from "../../../apps/desktop/src/connectionWatch";
+import type { ProjectNavigation } from "../../../apps/desktop/src/projectNavigationTypes";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -544,5 +546,41 @@ describe("Desktop native acceptance runbook alignment", () => {
     expect(runbook).toContain("Escape closes the disclosure and restores focus");
     expect(runbook).toContain("click Open for an already-open model");
     expect(runbook).not.toContain("click Switch for an already-open model");
+  });
+});
+
+describe("Desktop full-status freshness and nullable project revision", () => {
+  test("accepts the actual nullable initial project projection and detects a new revision", () => {
+    // This is the same ProjectNavigation type consumed by App.svelte.
+    const navigation: ProjectNavigation = {
+      revision: null, session_live: false, continue_model_id: null,
+      preferences_issue: null, active: null, projects: [],
+    };
+    const baseline: ConnectionBaseline = {
+      blockbench: { running: false },
+      runtime_listener_live: false,
+      plugin_integrity: "ready",
+      managed: null,
+      project_navigation: navigation,
+    };
+    const candidate: ConnectionObservation = {
+      blockbench_running: false, runtime_listener_live: false,
+      gateway_active: null, plugin_integrity: "ready",
+      project_revision: null, project_session_live: false,
+    };
+    expect(connectionChanged(candidate, baseline)).toBe(false);
+    expect(connectionChanged({ ...candidate, project_revision: "generation:1" }, baseline)).toBe(true);
+  });
+
+  test("does not reenable actions from a lightweight probe after full-status failure", async () => {
+    const ui = await Bun.file("../apps/desktop/src/App.svelte").text();
+    const refresh = ui.slice(ui.indexOf("async function refresh()"), ui.indexOf("async function runProjectAction"));
+    const watcher = ui.slice(ui.indexOf("async function watchSystemStatus()"), ui.indexOf("async function connectBlockbench()"));
+    expect(refresh).toContain("if (status) statusProbeFailures = 2;");
+    expect(refresh).toContain("statusProbeFailures = 0;");
+    expect(watcher).toContain("if (statusProbeFailures >= 2) return;");
+    expect(watcher.indexOf("if (statusProbeFailures >= 2) return;"))
+      .toBeLessThan(watcher.indexOf("else statusProbeFailures = 0;"));
+    expect(ui).toContain("busy={busyAction !== null || statusProbeFailures >= 2}");
   });
 });
