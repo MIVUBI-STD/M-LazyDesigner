@@ -127,6 +127,11 @@ authoring evidence:
   source-shaped dry-run receipt; `NO_CHANGE` cannot be claimed from a label.
 - `manage_uv_layout.plan` only promotes `uv_plan_available` with a
   source-fingerprint-bound, applicable plan report without hard violations.
+  **Availability boundary:** `manage_uv_layout` is still intentionally NOT
+  registered in Runtime (see `mcp/tests/uv-registration-readiness.test.ts`).
+  These Graph checks protect future wiring only; they are not a shipped or
+  live-authoring feature. Register it only with canonical generated artifacts
+  and matching native acceptance, never by bypassing docs or tests.
 - `manage_uv_layout.apply` only promotes `uv_layout_current` when the
   native transaction receipt binds to the requested source fingerprint.
   An incomplete successful apply makes existing UV currency unknown.
