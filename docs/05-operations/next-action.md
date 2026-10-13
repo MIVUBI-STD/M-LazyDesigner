@@ -98,9 +98,10 @@ removing wrong interpretation at its existing boundaries:
   evidence conservatively, not as a precise partial effect.
 - `gateway/control/delta/receipts.ts` chooses one canonical
   `structuredContent` receipt over conflicting envelope fields.
-  `gateway/capabilities/graph.ts` now shares the Cube no-change contract:
-  successful `simplify` preview/unchanged results preserve existing
-  UV/Texture readiness facts.
+  `gateway/capabilities/graph.ts` shares the Cube no-change contract; Control
+  also requires the requested `manage_cubes(operation=simplify)` branch.
+  A create/update/batch_update response cannot launder a simplify preview into
+  `NO_CHANGE`. Genuine simplify previews preserve existing UV/Texture facts.
 - `gateway/control/delta/freshness.ts` uses existing typed
   `modifyGroupReceiptSchema`, `removeElementReceiptSchema` and
   `renameElementReceiptSchema` for narrow impact/no-op declarations;

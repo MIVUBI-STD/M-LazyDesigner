@@ -338,10 +338,42 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(contradictory.freshness.basis).not.toBe("NO_CHANGE");
   });
 
+  test("Cube previews do not suppress create/update/batch_update invalidation", () => {
+    for (const operation of ["create", "update", "batch_update"] as const) {
+      for (const execution of ["planned", "unchanged"] as const) {
+        const delta = buildControlDelta({
+          capability: "manage_cubes",
+          branch: { field: "operation", value: operation },
+          phaseBefore: "geometry",
+          phaseAfter: "geometry",
+          projectUuid: "project-a",
+          succeeded: true,
+          result: { execution, updates: [] },
+        });
+        expect(delta.freshness.basis, operation).not.toBe("NO_CHANGE");
+        expect(delta.freshness.stale).toContain("GEOMETRY_STRUCTURE");
+        expect(delta.freshness.stale).toContain("UV_MAPPING");
+        expect(delta.invalidates.authoring_domains).toContain("GEOMETRY");
+        expect(delta.invalidates.authoring_domains).toContain("TEXTURING");
+        expect(delta.invalidates.acceptance_gates).toBe(true);
+      }
+    }
+    const noBranch = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { execution: "unchanged", updates: [] },
+    });
+    expect(noBranch.freshness.basis).not.toBe("NO_CHANGE");
+  });
+
   test("planned or unchanged cube simplify operations preserve state and skip visual verification", () => {
     for (const execution of ["planned", "unchanged"] as const) {
       const delta = buildControlDelta({
         capability: "manage_cubes",
+        branch: { field: "operation", value: "simplify" },
         phaseBefore: "geometry",
         phaseAfter: "geometry",
         projectUuid: "project-a",

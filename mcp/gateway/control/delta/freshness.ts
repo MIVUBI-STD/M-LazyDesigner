@@ -141,7 +141,14 @@ export function capabilityMutatesState(
     const semanticEffect = semanticHistoryEffectFromResult(result);
     if (semanticEffect && semanticEffect.stale.length === 0) return false;
   }
-  if (capability === "manage_cubes" && cubeStateNeutral(result)) return false;
+  // The native simplify branch alone produces planned/unchanged Cube previews.
+  // A preview-shaped receipt for another operation cannot preserve evidence.
+  if (
+    capability === "manage_cubes" &&
+    branch?.field === "operation" &&
+    branch.value === "simplify" &&
+    cubeStateNeutral(result)
+  ) return false;
   if (capability === "rename_element" && renameElementStateNeutral(result)) return false;
   if (
     capability === "texture_layer_management" &&
