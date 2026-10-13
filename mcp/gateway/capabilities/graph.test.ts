@@ -250,6 +250,43 @@ describe("capability dependency graph", () => {
     )).toEqual(original);
   });
 
+  test("create_texture variant preserves readiness from the Runtime extension's actual result shape", () => {
+    const prior = seedCapabilityFacts({ projectBound: true });
+    const variant = {
+      texture: {
+        uuid: "variant-1", name: "body_alt.png",
+        width: 64, height: 64, group: "variants",
+        pbr_channel: "color",
+      },
+      variant_creation: {
+        source_texture_uuid: "atlas-1",
+        source_texture_name: "atlas.png",
+        requested_name: "body_alt.png",
+        target_group_uuid: "variants",
+        target_group_name: "Variants",
+        bitmap: { width: 64, height: 64 },
+        resulting_role: "explicit_variant",
+        preserves_base_role: true,
+        mapping_contract: "same_bitmap_dimensions_and_existing_uv_mapping",
+      },
+    };
+    const succeeded = applyCapabilityGraphOutcome(
+      prior, "create_texture", { type: "variant" }, true, variant
+    );
+    expect(succeeded.texture_available).toBe(true);
+
+    const wrongBranch = applyCapabilityGraphOutcome(
+      prior, "create_texture", { type: "blank" }, true, variant
+    );
+    expect(wrongBranch.texture_available).toBe("unknown");
+
+    const mismatchedDimensions = applyCapabilityGraphOutcome(
+      prior, "create_texture", { type: "variant" }, true,
+      { ...variant, texture: { ...variant.texture, height: 32 } }
+    );
+    expect(mismatchedDimensions.texture_available).toBe("unknown");
+  });
+
   test("create_texture only promotes existence from its actual native inventory receipt", () => {
     const baseline = seedCapabilityFacts({ projectBound: true });
     const reported = {

@@ -170,7 +170,8 @@ export function applyCapabilityGraphOutcome(
       continue;
     }
     if (capability === "create_texture" &&
-        fact === "texture_available" && !isTextureCreationReceipt(result)) {
+        fact === "texture_available" &&
+        !isTextureCreationReceipt(result, branch?.value ?? "blank")) {
       // The tool can complete without proving a usable native texture.
       // Missing receipt is not permission to promote a known-absent state.
       // Already-confirmed texture existence remains true.

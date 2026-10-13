@@ -42,6 +42,25 @@ export type TextureVariantPlanInput = {
   existing_texture_names: readonly string[];
 };
 
+/**
+ * The pure variant planner owns the proof contract returned by Runtime.
+ * Consumers must not independently guess variant source/group/bitmap fields.
+ */
+export const textureVariantPlanReceiptSchema = z.object({
+  source_texture_uuid: z.string().min(1),
+  source_texture_name: z.string().min(1),
+  requested_name: z.string().min(1),
+  target_group_uuid: z.string().min(1),
+  target_group_name: z.string().min(1),
+  bitmap: z.object({
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+  }),
+  resulting_role: z.literal("explicit_variant"),
+  preserves_base_role: z.literal(true),
+  mapping_contract: z.literal("same_bitmap_dimensions_and_existing_uv_mapping"),
+});
+
 function requirePositiveBitmapDimension(value: number, label: string): void {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${label} must be a positive safe integer.`);

@@ -1,8 +1,57 @@
 import { describe, expect, test } from "bun:test";
-import { toolManifest } from "../build/docs-manifest";
+import { toolManifest } from "../scripts/generate/internal/docs-manifest";
+import { z } from "zod";
+import { wiredCreateTextureParameters } from "../server/runtime/contracts/texture";
 import { manifestEntriesForCapability } from "../gateway/capabilities/manifest";
 
 describe("branch schema and semantic manifest consistency", () => {
+  test("composed create_texture schema preserves all semantic type branches, including variant", () => {
+    const runtime = z.toJSONSchema(wiredCreateTextureParameters, {
+      io: "input",
+      target: "draft-2020-12",
+      unrepresentable: "any",
+      reused: "inline",
+    }) as Record<string, unknown>;
+    function enumValues(node: unknown): string[] {
+      if (!node || typeof node !== "object" || Array.isArray(node)) return [];
+      const item = node as Record<string, unknown>;
+      const properties = item.properties as Record<string, unknown> | undefined;
+      const type = properties?.type as Record<string, unknown> | undefined;
+      const direct = [
+        ...(typeof type?.const === "string" ? [type.const] : []),
+        ...(Array.isArray(type?.enum)
+          ? type.enum.filter((value): value is string => typeof value === "string")
+          : []),
+      ];
+      return [
+        ...direct,
+        ...["anyOf", "oneOf", "allOf"].flatMap((key) =>
+          Array.isArray(item[key])
+            ? (item[key] as unknown[]).flatMap(enumValues)
+            : []
+        ),
+      ];
+    }
+    const supported = [...new Set(enumValues(runtime))].sort();
+    const advertised = manifestEntriesForCapability("create_texture")
+      .filter((entry) => entry.branch?.field === "type")
+      .map((entry) => entry.branch!.value)
+      .sort();
+    expect(supported).toEqual(["blank", "template", "variant"]);
+    expect(advertised).toEqual(supported);
+    for (const input of [
+      { type: "blank", name: "base.png" },
+      { type: "template", name: "atlas.png" },
+      { type: "variant", name: "variant.png", source_texture_id: "base",
+        group: "variants" },
+    ]) {
+      expect(wiredCreateTextureParameters.safeParse(input).success, input.type).toBe(true);
+    }
+    expect(wiredCreateTextureParameters.safeParse({
+      type: "missing-branch", name: "x",
+    }).success).toBe(false);
+  });
+
   test("first-class runtime branches have matching semantic branch identities", () => {
     const tools = toolManifest.flatMap((group) => group.tools);
 
