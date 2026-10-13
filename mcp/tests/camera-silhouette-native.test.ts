@@ -13,7 +13,7 @@ afterEach(() => {
   globals.Canvas = oldGlobals.Canvas;
 });
 
-function setup(options: { hidden?: boolean; renderFails?: boolean; blank?: boolean } = {}) {
+function setup(options: { hidden?: boolean; renderFails?: boolean; restoreFails?: boolean; redrawFails?: boolean } = {}) {
   const scenes: any[] = [];
   const disposed: any[] = [];
   class Scene {
@@ -59,6 +59,7 @@ function setup(options: { hidden?: boolean; renderFails?: boolean; blank?: boole
     getClearColor() { return new Color(); },
     getClearAlpha() { return this.currentAlpha; },
     setClearColor(value: any, alpha: number) {
+      if (options.restoreFails && alpha === 0.7) throw new Error("restore-failure");
       this.currentColor = value;
       this.currentAlpha = alpha;
     },
@@ -71,7 +72,7 @@ function setup(options: { hidden?: boolean; renderFails?: boolean; blank?: boole
   const preview = {
     renderer, camera,
     canvas: { toDataURL() { return "data:image/png;base64," + Buffer.from("fixture").toString("base64"); } },
-    render() { redraws++; },
+    render() { redraws++; if (options.redrawFails) throw new Error("redraw-failure"); },
   };
   return { source, initialMaterial, renderer, preview, scenes, disposed, redraws: () => redraws };
 }
@@ -102,6 +103,42 @@ describe("isolated native Cube silhouette render contract", () => {
     expect(fixture.source.material).toBe(fixture.initialMaterial);
     expect(fixture.disposed).toHaveLength(1);
     expect(fixture.redraws()).toBe(1);
+  });
+
+  test("clear-color restore failure still restores autoClear and attempts redraw", () => {
+    const fixture = setup({ restoreFails: true });
+    let failure: unknown;
+    try { captureNativeCubeSilhouette(fixture.preview as any); }
+    catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors).toHaveLength(1);
+    expect(fixture.renderer.autoClear).toBe(false);
+    expect(fixture.redraws()).toBe(1);
+    expect(fixture.source.material).toBe(fixture.initialMaterial);
+    expect(fixture.disposed).toHaveLength(1);
+  });
+
+  test("both renderer and restore failures remain available for diagnosis", () => {
+    const fixture = setup({ renderFails: true, restoreFails: true });
+    let failure: unknown;
+    try { captureNativeCubeSilhouette(fixture.preview as any); }
+    catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors.map((item: Error) => item.message))
+      .toEqual(["gpu-failure", "restore-failure"]);
+    expect(fixture.renderer.autoClear).toBe(false);
+    expect(fixture.redraws()).toBe(1);
+    expect(fixture.disposed).toHaveLength(1);
+  });
+
+  test("offscreen redraw failure retains cleanup evidence without touching authored material", () => {
+    const fixture = setup({ redrawFails: true });
+    expect(() => captureNativeCubeSilhouette(fixture.preview as any))
+      .toThrow("CUBE_SILHOUETTE_RENDER_OR_RESTORE_FAILED");
+    expect(fixture.renderer.autoClear).toBe(false);
+    expect(fixture.source.material).toBe(fixture.initialMaterial);
+    expect(fixture.redraws()).toBe(1);
+    expect(fixture.disposed).toHaveLength(1);
   });
 
   test("invisible native Cube cannot generate a misleading silhouette", () => {

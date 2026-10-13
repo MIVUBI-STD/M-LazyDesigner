@@ -64,6 +64,8 @@ export function captureNativeCubeSilhouette(preview: Preview): {
     const clearColor = renderer.getClearColor(new THREE.Color()).clone();
     const clearAlpha = renderer.getClearAlpha();
     const autoClear = renderer.autoClear;
+    let primaryError: unknown = null;
+    let png_data_url: string | undefined;
 
     try {
       renderer.autoClear = true;
@@ -71,18 +73,36 @@ export function captureNativeCubeSilhouette(preview: Preview): {
       // Render the temporary isolated scene using the offscreen camera.
       // No global Canvas.scene overrides or native Cube material writes.
       renderer.render(scene, preview.camera);
-      const png_data_url = preview.canvas.toDataURL("image/png");
+      png_data_url = preview.canvas.toDataURL("image/png");
       if (!png_data_url.startsWith("data:image/png;base64,")) {
         throw new Error("CUBE_SILHOUETTE_PNG_UNAVAILABLE");
       }
-      return { png_data_url, rendered_cube_count: count };
+    } catch (error) {
+      primaryError = error;
     } finally {
-      renderer.setClearColor(clearColor, clearAlpha);
+      // Do not skip autoClear recovery or offscreen redraw if clear-color
+      // restoration fails. Retain both the primary and cleanup failures.
+      const restoreErrors: unknown[] = [];
+      try {
+        renderer.setClearColor(clearColor, clearAlpha);
+      } catch (error) {
+        restoreErrors.push(error);
+      }
       renderer.autoClear = autoClear;
-      // Leave the offscreen preview's canvas consistent with the original
-      // shaded capture. This is not the user's active editor camera.
-      preview.render();
+      try {
+        preview.render();
+      } catch (error) {
+        restoreErrors.push(error);
+      }
+      if (restoreErrors.length > 0) {
+        throw new AggregateError(
+          primaryError === null ? restoreErrors : [primaryError, ...restoreErrors],
+          "CUBE_SILHOUETTE_RENDER_OR_RESTORE_FAILED"
+        );
+      }
     }
+    if (primaryError !== null) throw primaryError;
+    return { png_data_url: png_data_url!, rendered_cube_count: count };
   } finally {
     scene.clear();
     material.dispose();
