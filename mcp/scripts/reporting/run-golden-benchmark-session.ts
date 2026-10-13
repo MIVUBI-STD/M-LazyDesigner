@@ -72,34 +72,34 @@ export function goldenSessionPaths(
 }
 
 /**
- * Pin the exact starting model once for a correction benchmark. This runs
- * only inside the benchmark process, not on the normal Codex MCP hot path.
+ * Pin an exact editable starting model for a Golden benchmark.
+ * This is benchmark-only work, never part of the normal Codex MCP hot path.
  */
 export async function fingerprintGoldenInputModel(path: string): Promise<string> {
   if (!isAbsolute(path) || extname(path).toLowerCase() !== ".bbmodel") {
-    throw new Error("Existing-model correction requires an absolute input .bbmodel file.");
+    throw new Error("Golden benchmark requires an absolute starting input .bbmodel file.");
   }
   const bytes = await readFile(path);
   if (bytes.byteLength === 0) {
-    throw new Error("Existing-model correction input .bbmodel must not be empty.");
+    throw new Error("Golden benchmark starting input .bbmodel must not be empty.");
   }
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-type LiveCorrectionBaseline = {
+type LiveStartingModelBaseline = {
   inputAssetSha256: string;
   projectUuid: string;
   runtimeBuildIdentity: string;
 };
 
 /**
- * Verify the model open in Blockbench is a clean, separately saved working
- * copy of the immutable seed. Runs only for the correction golden benchmark.
+ * Verify the active Bedrock project is an unmodified, separately saved
+ * working copy of the seed. Reuse for any seeded Golden Task.
  */
-export async function verifyGoldenCorrectionLiveProject(
+export async function verifyGoldenStartingLiveProject(
   seedPath: string,
   snapshot: unknown
-): Promise<Pick<LiveCorrectionBaseline, "inputAssetSha256" | "projectUuid">> {
+): Promise<Pick<LiveStartingModelBaseline, "inputAssetSha256" | "projectUuid">> {
   const data = snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
     ? snapshot as Record<string, unknown> : {};
   const project = data.project && typeof data.project === "object"
@@ -110,12 +110,12 @@ export async function verifyGoldenCorrectionLiveProject(
   if (format.id !== "bedrock" || project.saved !== true ||
       typeof project.uuid !== "string" || !project.uuid.trim() ||
       typeof project.save_path !== "string" || !isAbsolute(project.save_path)) {
-    throw new Error("Golden correction requires a saved, active Bedrock .bbmodel project with a stable UUID.");
+    throw new Error("Golden benchmark requires a saved, active Bedrock .bbmodel project with a stable UUID.");
   }
 
   const savedPath = project.save_path;
   if (extname(savedPath).toLowerCase() !== ".bbmodel") {
-    throw new Error("Golden correction working copy must be an editable .bbmodel.");
+    throw new Error("Golden benchmark working copy must be an editable .bbmodel.");
   }
 
   const [seedReal, savedReal] = await Promise.all([
@@ -124,7 +124,7 @@ export async function verifyGoldenCorrectionLiveProject(
   ]);
   const canonical = (path: string) => process.platform === "win32" ? path.toLowerCase() : path;
   if (canonical(seedReal) === canonical(savedReal)) {
-    throw new Error("Golden correction must edit a separate working copy, not the immutable seed.");
+    throw new Error("Golden benchmark must edit a separate working copy, not the immutable seed.");
   }
 
   const [inputAssetSha256, workingSha256] = await Promise.all([
@@ -132,13 +132,13 @@ export async function verifyGoldenCorrectionLiveProject(
     fingerprintGoldenInputModel(savedPath),
   ]);
   if (workingSha256 !== inputAssetSha256) {
-    throw new Error("Golden correction active Blockbench model differs from the starting seed bytes.");
+    throw new Error("Golden benchmark active Blockbench model differs from the starting seed bytes.");
   }
 
   return { inputAssetSha256, projectUuid: project.uuid.trim() };
 }
 
-async function preflightGoldenCorrection(seedPath: string): Promise<LiveCorrectionBaseline> {
+async function preflightGoldenStartingModel(seedPath: string): Promise<LiveStartingModelBaseline> {
   const client = new LiveMcpClient({
     expectedPhase: "geometry",
     requiredTools: ["get_project_info"],
@@ -148,7 +148,7 @@ async function preflightGoldenCorrection(seedPath: string): Promise<LiveCorrecti
     await client.callTool("get_project_info", {}, "inspection"),
     "get_project_info"
   );
-  const baseline = await verifyGoldenCorrectionLiveProject(seedPath, projectInfo);
+  const baseline = await verifyGoldenStartingLiveProject(seedPath, projectInfo);
   return { ...baseline, runtimeBuildIdentity: buildIdentity };
 }
 
@@ -229,7 +229,7 @@ async function finalizeSession(input: {
   sourceSha: string;
   paths: GoldenSessionPaths;
   startedAtMs: number;
-  correctionBaseline: LiveCorrectionBaseline | null;
+  startingBaseline: LiveStartingModelBaseline | null;
 }): Promise<void> {
   const traceFile = Bun.file(input.paths.trace);
   if (!(await traceFile.exists())) {
@@ -247,9 +247,9 @@ async function finalizeSession(input: {
     sourceSha: input.sourceSha,
     traceEvents: report.events,
     wallTimeMs,
-    inputAssetSha256: input.correctionBaseline?.inputAssetSha256,
-    inputProjectUuid: input.correctionBaseline?.projectUuid,
-    runtimeBuildIdentity: input.correctionBaseline?.runtimeBuildIdentity,
+    inputAssetSha256: input.startingBaseline?.inputAssetSha256,
+    inputProjectUuid: input.startingBaseline?.projectUuid,
+    runtimeBuildIdentity: input.startingBaseline?.runtimeBuildIdentity,
   });
 
   await Bun.write(
@@ -275,15 +275,20 @@ async function main(): Promise<void> {
   const inputModelPath = process.argv[4];
   if (!taskId) {
     throw new Error(
-      "Usage: bun run benchmark:golden-session -- <golden-task-id> [output-root] [existing-model-input.bbmodel]"
+      "Usage: bun run benchmark:golden-session -- <golden-task-id> [output-root] [starting-model-input.bbmodel]"
     );
   }
 
   const task = taskById(taskId);
   // Preflight before Gateway and any mutation. Capture only once for this
   // benchmark task; normal Codex authoring remains unchanged.
-  const correctionBaseline = task.id === "golden-existing-model-correction"
-    ? await preflightGoldenCorrection(inputModelPath ?? "")
+  // Non-correction drafts may be created without a seed, but cannot become
+  // comparable ACCEPTED runs until a verified starting .bbmodel is supplied.
+  if (task.id === "golden-existing-model-correction" && !inputModelPath) {
+    throw new Error("Golden existing-model correction requires a starting input .bbmodel.");
+  }
+  const startingBaseline = inputModelPath
+    ? await preflightGoldenStartingModel(inputModelPath)
     : null;
   const sourceSha = exactGitSha();
   const paths = goldenSessionPaths(task.id, outputRoot);
@@ -317,7 +322,7 @@ async function main(): Promise<void> {
     sourceSha,
     paths,
     startedAtMs,
-    correctionBaseline,
+    startingBaseline,
   });
 
   process.exitCode = exitCode;

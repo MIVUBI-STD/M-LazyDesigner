@@ -188,6 +188,27 @@ describe("golden authoring accepted-result benchmark", () => {
       .toThrow("input_project_uuid must be a non-empty string");
   });
 
+  test("accepted new-model tasks require a verified starting model", () => {
+    const document = acceptedRun();
+    const run = document.runs[0]!;
+    run.task_id = "golden-prop-chair";
+    run.acceptance_evidence = [
+      "silhouette", "cross_view_proportion", "part_completeness",
+      "attachment_contact", "texture_identity", "seam_control", "human_acceptance",
+    ].map((criterion) => ({
+      criterion, verdict: "PASS" as const, evidence_ref: "verified:" + criterion,
+    }));
+    run.pipeline_provenance.input_asset_sha256 = null;
+    expect(() => validateGoldenAuthoringDocument(document))
+      .toThrow("accepted result requires starting input_asset_sha256");
+    run.pipeline_provenance.input_asset_sha256 = "c".repeat(64);
+    run.pipeline_provenance.input_project_uuid = null;
+    expect(() => validateGoldenAuthoringDocument(document))
+      .toThrow("live input_project_uuid");
+    run.pipeline_provenance.input_project_uuid = "saved-chair-start";
+    expect(() => validateGoldenAuthoringDocument(document)).not.toThrow();
+  });
+
   test("rejects source-only accepted quality", () => {
     const doc = acceptedRun();
     doc.runs[0]!.proof_scope = "LOCAL_CODE";

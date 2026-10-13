@@ -27,7 +27,7 @@ export type GoldenAcceptanceEvidence = {
 };
 
 export type GoldenPipelineProvenance = {
-  /** Exact starting .bbmodel bytes; required for accepted existing-model correction. */
+  /** Exact initial .bbmodel bytes; required for comparable accepted Golden Tasks. */
   input_asset_sha256?: string | null;
   /** From the read-only live get_project_info preflight, not from filenames. */
   input_project_uuid?: string | null;
@@ -203,6 +203,14 @@ function validateRun(run: GoldenAuthoringRun, index: number): void {
       if (!provenance.input_project_uuid) {
         throw new Error(`${prefix} accepted correction requires a live input_project_uuid from Blockbench.`);
       }
+    }
+    // Require verified seed identity for every accepted task, not just
+    // corrections. Otherwise two successful runs may start from different
+    // models and make their token/call comparison meaningless.
+    if (!provenance.input_asset_sha256 || !provenance.input_project_uuid) {
+      throw new Error(
+        `${prefix} accepted result requires starting input_asset_sha256 and live input_project_uuid for model-comparable measurement.`
+      );
     }
     if (run.proof_scope !== "LIVE_BLOCKBENCH") {
       throw new Error(`${prefix} accepted result requires LIVE_BLOCKBENCH proof, not source-only execution.`);

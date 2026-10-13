@@ -7,7 +7,7 @@ import goldenCorpus from "../fixtures/golden-task-cases.json";
 import {
   buildGoldenRunDraft,
   fingerprintGoldenInputModel,
-  verifyGoldenCorrectionLiveProject,
+  verifyGoldenStartingLiveProject,
   goldenSessionPaths,
 } from "../../scripts/reporting/run-golden-benchmark-session";
 
@@ -47,7 +47,7 @@ describe("golden benchmark session runner", () => {
       await writeFile(seed, "");
       await expect(fingerprintGoldenInputModel(seed)).rejects.toThrow("must not be empty");
       await expect(fingerprintGoldenInputModel(join(dir, "input.json")))
-        .rejects.toThrow("requires an absolute input .bbmodel");
+        .rejects.toThrow("requires an absolute starting input .bbmodel");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -65,19 +65,19 @@ describe("golden benchmark session runner", () => {
     try {
       await writeFile(seed, original);
       await writeFile(copy, original);
-      const result = await verifyGoldenCorrectionLiveProject(seed, snapshot(copy));
+      const result = await verifyGoldenStartingLiveProject(seed, snapshot(copy));
       expect(result).toEqual({
         inputAssetSha256: createHash("sha256").update(original).digest("hex"),
         projectUuid: "asset-project-1",
       });
-      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(seed)))
+      await expect(verifyGoldenStartingLiveProject(seed, snapshot(seed)))
         .rejects.toThrow("separate working copy");
-      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(copy, false)))
+      await expect(verifyGoldenStartingLiveProject(seed, snapshot(copy, false)))
         .rejects.toThrow("saved, active Bedrock");
-      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(copy, true, "java_block")))
+      await expect(verifyGoldenStartingLiveProject(seed, snapshot(copy, true, "java_block")))
         .rejects.toThrow("saved, active Bedrock");
       await writeFile(copy, original.replace("chair", "table"));
-      await expect(verifyGoldenCorrectionLiveProject(seed, snapshot(copy)))
+      await expect(verifyGoldenStartingLiveProject(seed, snapshot(copy)))
         .rejects.toThrow("differs from the starting seed bytes");
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -97,6 +97,19 @@ describe("golden benchmark session runner", () => {
       runtime_build_identity: "sha256:" + "c".repeat(64),
     });
     expect(draft.runs[0]!.quality_verdict).toBe("UNVERIFIED");
+    expect(draft.runs[0]!.accepted_result).toBeNull();
+  });
+
+  test("non-correction task retains pinned starting model fingerprint", () => {
+    const other = goldenCorpus.tasks.find((item) => item.id === "golden-prop-chair")!;
+    const draft = buildGoldenRunDraft({
+      task: other, sourceSha: "f".repeat(40), traceEvents: [], wallTimeMs: 120,
+      inputAssetSha256: "b".repeat(64), inputProjectUuid: "saved-disposable-project",
+      runtimeBuildIdentity: "sha256:" + "c".repeat(64),
+    });
+    expect(draft.runs[0]!.pipeline_provenance).toMatchObject({
+      input_asset_sha256: "b".repeat(64), input_project_uuid: "saved-disposable-project",
+    });
     expect(draft.runs[0]!.accepted_result).toBeNull();
   });
 
