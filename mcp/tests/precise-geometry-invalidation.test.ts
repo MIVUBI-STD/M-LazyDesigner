@@ -238,7 +238,7 @@ describe("precise geometry invalidation from receipts", () => {
       projectUuid: "project-a", succeeded: true,
       result: {
         execution: "applied",
-        element: { type: "group", uuid: "g-a" },
+        element: { type: "group", uuid: "g-a", name: "after", parent: "root" },
         changes: [{ id: "g-a", old_name: "before", new_name: "after" }],
         affected_animations: 0,
       },
@@ -276,6 +276,30 @@ describe("precise geometry invalidation from receipts", () => {
     expect(delta.freshness.basis).toBe("CONSERVATIVE_EFFECT");
     expect(delta.freshness.stale).toContain("UV_MAPPING");
     expect(delta.invalidates.authoring_domains).toContain("TEXTURING");
+  });
+
+  test("incomplete rename receipts cannot claim no authored change or precise Animation safety", () => {
+    const invalidPlan = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: { execution: "unchanged", changes: [], affected_animations: -1 },
+    });
+    expect(invalidPlan.freshness.basis).not.toBe("NO_CHANGE");
+    expect(invalidPlan.freshness.stale).toContain("ANIMATION_MOTION");
+
+    const invalidBatch = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: {
+        execution: "applied",
+        changes: [{ id: "g-a", old_name: "before", new_name: "after" }],
+        affected_animations: -1,
+      },
+    });
+    expect(invalidBatch.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+    expect(invalidBatch.invalidates.authoring_domains).toContain("ANIMATION");
   });
 
   test("batch rename with zero affected animations preserves animation", () => {

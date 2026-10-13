@@ -248,6 +248,21 @@ describe("LazyDesigner Control minimum invalidation", () => {
     }
   });
 
+  test("a partial rename preview cannot certify a no-op", () => {
+    const delta = buildControlDelta({
+      capability: "rename_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: {
+        execution: "planned",
+        changes: [{ id: "group-a", old_name: "a", new_name: "b" }],
+        // Required affected_animations is absent; do not trust execution label.
+      },
+    });
+    expect(delta.freshness.basis).not.toBe("NO_CHANGE");
+    expect(delta.invalidates.authoring_domains).toContain("ANIMATION");
+  });
+
   test("planned or unchanged Group rename previews preserve state", () => {
     for (const execution of ["planned", "unchanged"] as const) {
       const delta = buildControlDelta({

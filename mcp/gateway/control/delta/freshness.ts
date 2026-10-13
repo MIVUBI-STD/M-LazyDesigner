@@ -13,6 +13,7 @@ import {
 } from "../../../lib/authoring/elementSemanticScopes";
 import { modifyGroupReceiptSchema } from "../../../lib/receipts/groupMutation";
 import { removeElementReceiptSchema } from "../../../lib/receipts/removeElement";
+import { renameElementReceiptSchema } from "../../../lib/receipts/renameElement";
 import type {
   ControlAuthoringDomain,
   ControlDelta,
@@ -89,10 +90,12 @@ export function textureLayerMetadataOnly(value: unknown): boolean {
 }
 
 export function renameElementStateNeutral(value: unknown): boolean {
-  return resultCandidates(value).some(
-    (candidate) =>
-      candidate.execution === "planned" || candidate.execution === "unchanged"
-  );
+  return resultCandidates(value).some((candidate) => {
+    const parsed = renameElementReceiptSchema.safeParse(candidate);
+    return parsed.success &&
+      (parsed.data.execution === "planned" ||
+        parsed.data.execution === "unchanged");
+  });
 }
 
 function semanticHistoryEffectFromResult(result: unknown): {
@@ -353,28 +356,26 @@ export function geometryFreshnessScopes(
 
   if (capability === "rename_element") {
     for (const candidate of resultCandidates(result)) {
-      // A single Group rename supplies both element and changes. Prefer
-      // actual animation-reference impact over a generic element type.
-      if (candidate.execution === "applied" && Array.isArray(candidate.changes)) {
-        const affectedAnimations =
-          typeof candidate.affected_animations === "number"
-            ? candidate.affected_animations
-            : null;
+      const parsed = renameElementReceiptSchema.safeParse(candidate);
+      if (!parsed.success || parsed.data.execution !== "applied") continue;
+      if ("changes" in parsed.data) {
+        // Batch Group renames report exact animation-reference impact.
         return {
-          stale: affectedAnimations === 0
+          stale: parsed.data.affected_animations === 0
             ? ["GEOMETRY_STRUCTURE"]
             : renamedElementSemanticScopes("group"),
-          precise: affectedAnimations !== null,
-        };
-      }
-      const element = record(candidate.element);
-      if (typeof element?.type === "string") {
-        return {
-          stale: renamedElementSemanticScopes(element.type),
           precise: true,
         };
       }
+      // Single-element rename has an explicit final native element type.
+      return {
+        stale: renamedElementSemanticScopes(parsed.data.element.type),
+        precise: true,
+      };
     }
+    // Text labels and partial element IDs cannot demonstrate that references
+    // or dependent Animation evidence stayed unchanged.
+    return { stale: capabilityDefaultStaleScopes(capability), precise: false };
   }
 
   const defaults = capabilityDefaultStaleScopes(capability);
