@@ -259,6 +259,36 @@ describe("read-only contact sampling schedule preflight", () => {
     duration_seconds: 4,
   });
 
+  test("valid source timing still fails the native restoration acceptance gate", () => {
+    const result = prepareContactSamplingPlan(request());
+    expect(result.state).toBe("PREPARED_SOURCE_ONLY");
+    expect(result.restoration_contract).toMatchObject({
+      state: "BLOCKED_NATIVE_VERIFICATION",
+      reason: "FULL_PREVIEW_RESTORATION_NOT_ATTESTED",
+      checked_source_plan: true,
+      native_sampler_enabled: false,
+      all_state_surfaces_restored: false,
+      required_surface_count: 10,
+    });
+    expect(result.restoration_contract.unresolved_surfaces.every(
+      (row) => row.native_proof === "NOT_EXECUTED"
+    )).toBe(true);
+  });
+
+  test("invalid schedule also carries recovery refusal rather than losing the gate", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(), window: { start: 3, end: 2, max_gap_seconds: 0.2 },
+    });
+    expect(result.state).toBe("UNVERIFIED");
+    expect(result.restoration_contract).toMatchObject({
+      state: "BLOCKED_NATIVE_VERIFICATION",
+      reason: "SAMPLING_PLAN_NOT_PREPARED",
+      native_sampler_enabled: false,
+      required_surface_count: 10,
+    });
+    expect(result.sample_times).toEqual([]);
+  });
+
   test("partitions an exact window without moving the Timeline or sampling poses", () => {
     const input = request();
     const before = JSON.stringify(input);

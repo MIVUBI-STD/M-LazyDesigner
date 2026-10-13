@@ -1,4 +1,5 @@
 import type { Vec3 } from "./contactEvidence";
+import { describeNativeAnimationRestorationBoundary } from "./nativeRestorationContract";
 
 /**
  * A semantic declaration by the caller, not a verified user approval.
@@ -256,6 +257,9 @@ export function prepareContactSamplingPlan(input: {
     reason,
     frame_count: 0,
     sample_count: 0,
+    restoration_contract: describeNativeAnimationRestorationBoundary({
+      state: "UNVERIFIED", ...shared, sample_count: 0,
+    }),
     sample_times: [] as number[],
     markers: [] as Array<{
       id: string; role: ExplicitContactMarkerBinding["role"]; locator_uuid: string;
@@ -326,6 +330,9 @@ export function prepareContactSamplingPlan(input: {
     ...shared,
     state: "PREPARED_SOURCE_ONLY" as const,
     reason: null,
+    restoration_contract: describeNativeAnimationRestorationBoundary({
+      state: "PREPARED_SOURCE_ONLY", ...shared, sample_count: 0,
+    }),
     project_uuid: input.snapshot.project_uuid!,
     animation_uuid: input.snapshot.animation_uuid!,
     group_uuid: input.snapshot.group_uuid!,

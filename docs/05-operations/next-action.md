@@ -6,65 +6,59 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 — native pose read-consistency fence
+## Active: LD-Q04 — native animation restoration refusal contract
 
-The existing `mcp/server/tools/animation/currentPose.ts` now
-captures a synchronous **before/after read fence** around native bone-origin
-and directly attached Locator world-position inspection. It verifies
-the Project UUID, selected Animation identity, animation UUID and length,
-exclusive clip playback, paused Timeline clock, Animation mode, Group
-identity and visibility, Canvas scene, every ancestor's parent/visibility,
-ordered direct Locator object identity/UUID/mesh/visibility/parent,
-and the focused Group's child ordering remain stable during the read.
-An active AnimationController state is rejected before any position
-reads. If a native world-position callback changes one of the guarded
-dependencies, `NATIVE_POSE_READ_CONTEXT_CHANGED` is returned as
-`UNVERIFIED`, with **no bone origin or Locator coordinates** released.
+The canonical animation domain now adds a small pure
+`mcp/lib/animation/nativeRestorationContract.ts` audit inventory,
+**consumed by the existing** `prepareContactSamplingPlan`. It lists ten
+required before/after recovery surfaces based on upstream Blockbench
+animation preview behavior: Timeline/audio playback; Animation and
+controller state; Group/Locator/mesh poses; Molang/preview variables;
+texture selection and animated frames; model scale/ground/grid; particles
+and sounds; onion skin/trails/deformation; editor selection and UI; and
+unknown display-animation-frame event/plugin listeners.
 
-This is a safety improvement on the active focused
-`inspect_animation(bone=...)` owner, not another animation engine,
-snapshot registry, client input or Gateway tool. The existing explicit
-Contact Marker role binding and bounded sampling planner consume
-the same read result: a stale pose also blocks the optional sampling
-plan, retaining `native_sampling_state=NOT_EXECUTED`.
-No Timeline advancement, animation selection, `Animator.preview()`,
-keyframe edit or native auto-retry was introduced.
+Both prepared and rejected sampling plans now include
+`restoration_contract`. A prepared source clock returns
+`state=BLOCKED_NATIVE_VERIFICATION` with reason
+`FULL_PREVIEW_RESTORATION_NOT_ATTESTED`; an invalid clock returns
+`SAMPLING_PLAN_NOT_PREPARED`. Every required surface remains
+`native_proof=NOT_EXECUTED`. The hard gate is deliberately not
+satisfied by self-reported `preview_restoration_verified`, simulated
+receipts or caller-declared PASS. It contains no native mutator,
+Timeline.seek loop, Undo/retry, second animation executor, registry,
+new Gateway tool or generated API edit.
 
-**Critical recovery boundary:** read consistency is not state
-restoration. The fence can detect changed dependencies caused by
-another callback but cannot undo their mutations. It does not prove a
-matching animated pose for Timeline time, marker contact/foot planting,
-restored texture selection/frame, controller state, scale, particle/sound
-side effects, editor UI or installed Blockbench behavior.
+The inventory is a **recovery requirement contract**, not a working
+restoration executor or proof of exhaustiveness against arbitrary
+external plugins. Blockbench `Animator.preview()` can change
+controller-driven Timeline time, bone and mesh pose, effects, texture
+selection/frame, preview scale, grid/ground, overlay resources, UI
+selection and dispatched listener behavior. `Timeline.pause()` also
+calls preview and may touch audio state. Merely returning playhead
+time in a `finally` block cannot guarantee the previous user session.
 
-Upstream Blockbench `Animator.preview()` is not a pure pose function:
-it can drive controller-selected-state time, animation/effect playback,
-ground plane/grids, texture frame and selection, model scale, and
-animation display events. Its `Timeline.pause()` also calls preview and
-can touch audio playback. Therefore a naive `setTime → preview →
-read → restoreTime` transaction is **not authorized** as reversible
-native sampling.
+New regressions: seven cases in
+`mcp/tests/animation-native-restoration-contract.test.ts` and two
+in the existing contact-marker-binding suite. They assert the ten
+nonredundant surfaces, refusal despite a valid clock, refusal of fake
+native authority, compatibility with the existing opt-in consumer,
+and deterministic nonmutating output.
 
-Regression definitions: nine new cases in
-`mcp/tests/animation-current-pose-snapshot.test.ts` covering
-controller-state preview rejection; clock, Project, Animation, bone
-hierarchy, Locator UUID and Group child-list changes within native
-read callbacks; another clip starting during Locator read; stable
-nonmutating reads; and stale evidence blocking the existing sampling
-preflight.
+**Proof ceiling:** exact GitHub source and regression definitions; Bun,
+full TypeScript/project verification, installed Blockbench, live
+preview restoration and visual acceptance **NOT EXECUTED**.
+The user cannot local-test; do not request local test or installation.
 
-**Proof:** source and regression definitions only. The current
-environment has Node 22 and TypeScript 5.8 but lacks Bun and a full
-repo checkout; focused Bun/CI, installed Blockbench and native
-restore/visual acceptance remain **NOT EXECUTED**.
-The user does not need to run local tests.
-
-**Next:** run the exact-SHA focused source tests and TypeScript gate
-in an authorized cloud checkout if available. A future live sampler
-must use isolated pose evaluation or demonstrate comprehensive
-restore across all affected native visual/editor state. Until then,
-keep `native_sampling_state=NOT_EXECUTED`; do not hide unknown
-mutations by resetting only the playhead.
+**Next:** execute the focused native-restoration and contact-marker
+tests on the exact `Local` SHA in an authorized cloud Bun worktree.
+Before any native sampler can be enabled, construct a disposable
+installed Blockbench isolation harness proving each applicable
+surface before/after under normal and failed evaluation, and explicit
+external-listener isolation. If any requirement remains unknown, keep
+`BLOCKED_NATIVE_VERIFICATION` and `native_sampling_state=NOT_EXECUTED`.
+Do not substitute `Timeline.time` restoration for real full-scene
+recovery or elevate geometric diagnostics into visual approval.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 
