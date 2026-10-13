@@ -459,3 +459,16 @@ describe("Desktop stale connection action admission", () => {
     expect(app).toContain("statusProbeFailures = 0;");
   });
 });
+
+describe("Desktop current-model presentation", () => {
+  test("prioritizes model identity and only offers saved-model launch", async () => {
+    const ui = await Bun.file("../apps/desktop/src/ProjectNavigator.svelte").text();
+    expect(ui).toContain("<h2>Current Model</h2>");
+    expect(ui).toContain("<h2>Continue working</h2>");
+    expect(ui).toContain('<div class="project-title">{activeNavigation.model_name}</div>');
+    expect(ui).toContain('<div class="project-title">{target.model.name}</div>');
+    expect(ui).toContain("activeNavigation.saved && activeNavigation.model_id");
+    expect(ui).toContain("onOpenModel(activeNavigation.model_id");
+    expect(ui).toContain("aria-expanded={expandedProjectId === project.id}");
+  });
+});

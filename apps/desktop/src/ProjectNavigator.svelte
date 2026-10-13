@@ -71,14 +71,14 @@
   {#if target}
     <section class="content-section">
       <div class="section-heading">
-        <div><h2>Continue</h2></div>
+        <div><h2>Continue working</h2></div>
       </div>
       <div class="project-list">
         <div class="project-row">
           <div class="project-main">
-            <div class="project-title">{target.project.name}</div>
+            <div class="project-title">{target.model.name}</div>
             {#if target.project.name !== target.model.name}
-              <div class="project-meta">{target.model.name}</div>
+              <div class="project-meta">{target.project.name}</div>
             {/if}
           </div>
           <div class="project-actions">
@@ -94,24 +94,21 @@
   {@const activeNavigation = navigation.active}
   <section class="content-section">
     <div class="section-heading">
-      <div><h2>Active Project</h2></div>
+      <div><h2>Current Model</h2></div>
     </div>
     <div class="project-list">
       <div class="project-row active-project-row">
         <div class="project-main">
-          <div class="project-title">{activeNavigation.project_name ?? activeNavigation.model_name}</div>
-          {#if !activeNavigation.saved}
-            <div class="project-meta">Not saved yet{activeNavigation.dirty ? ' · Modified' : ''}</div>
-          {:else if activeNavigation.project_name && activeNavigation.project_name !== activeNavigation.model_name}
-            <div class="project-meta">{activeNavigation.model_name}{activeNavigation.dirty ? ' · Modified' : ''}</div>
-          {:else if activeNavigation.dirty}
-            <div class="project-meta">Modified</div>
-          {/if}
+          <div class="project-title">{activeNavigation.model_name}</div>
+          <div class="project-meta">{activeNavigation.project_name && activeNavigation.project_name !== activeNavigation.model_name ? activeNavigation.project_name : (activeNavigation.saved ? 'Saved model' : 'Not saved yet')}{activeNavigation.dirty ? ' · Modified' : ''}</div>
         </div>
         <div class="project-actions">
+          {#if activeNavigation.saved && activeNavigation.model_id}
+            <button class="primary-button small-button" onclick={() => onOpenModel(activeNavigation.model_id ?? '')} disabled={busy}>Open model</button>
+          {/if}
           {#if activeNavigation.project_id}
             <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busy}>Open Folder</button>
-            <button class="quiet-button" onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>{expandedProjectId === activeNavigation.project_id ? 'Hide details' : 'See details'}</button>
+            <button class="quiet-button" aria-expanded={expandedProjectId === activeNavigation.project_id} onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>{expandedProjectId === activeNavigation.project_id ? 'Hide details' : 'See details'}</button>
           {/if}
         </div>
       </div>
@@ -179,12 +176,12 @@
       {#each visibleRecentProjects() as project}
         <div class="project-row">
           <div class="project-main">
-            <div class="project-title">{project.name}</div>
+            <div class="project-title" title={project.name}>{project.name}</div>
             <div class="project-meta">{project.model_count} {project.model_count === 1 ? 'model' : 'models'}{#if project.pinned}<span class="pinned-label"> · Pinned</span>{/if}</div>
           </div>
           <div class="project-actions">
             <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', project.id)} disabled={busy}>Open Folder</button>
-            <button class="quiet-button" onclick={() => toggleProjectDetails(project.id)}>{expandedProjectId === project.id ? 'Hide details' : 'See details'}</button>
+            <button class="quiet-button" aria-expanded={expandedProjectId === project.id} onclick={() => toggleProjectDetails(project.id)}>{expandedProjectId === project.id ? 'Hide details' : 'See details'}</button>
           </div>
         </div>
         {#if expandedProjectId === project.id}
@@ -250,7 +247,7 @@
   .project-row{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 12px;border-bottom:1px solid var(--border-soft)}
   .project-row:last-child{border-bottom:0}
   .project-main{min-width:0;display:grid;gap:3px}
-  .project-title{font-size:var(--font-ui);font-weight:700}
+  .project-title{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .project-meta{color:var(--muted);font-size:var(--font-sm)}
   .project-actions,.model-actions{display:flex;align-items:center;gap:6px}
   .primary-button,.secondary-button{min-height:32px;padding:6px 11px;border-radius:6px;font-size:var(--font-sm);font-weight:700;cursor:pointer}
