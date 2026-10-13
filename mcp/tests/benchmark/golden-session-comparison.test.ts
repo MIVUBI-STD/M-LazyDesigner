@@ -128,4 +128,33 @@ describe("accepted golden session comparison", () => {
       })
     ).toThrow("same golden task_id");
   });
+  test("requires identical starting asset bytes for modern Golden Tasks too", () => {
+    const baseline = accepted("1234567890abcdef1234567890abcdef12345678", 5);
+    const candidate = accepted("abcdef1234567890abcdef1234567890abcdef12", 3);
+    baseline.task_id = candidate.task_id = "A_known_transform";
+    candidate.pipeline_provenance.input_asset_sha256 = "c".repeat(64);
+    expect(() => compareAcceptedGoldenSessions({ baseline, candidate }))
+      .toThrow("same valid input_asset_sha256");
+    candidate.pipeline_provenance.input_asset_sha256 = null;
+    expect(() => compareAcceptedGoldenSessions({ baseline, candidate }))
+      .toThrow("same valid input_asset_sha256");
+    candidate.pipeline_provenance.input_asset_sha256 = baseline.pipeline_provenance.input_asset_sha256;
+    expect(compareAcceptedGoldenSessions({ baseline, candidate }).input_asset_comparable).toBe(true);
+  });
+
+  test("reports Astra/Sol provenance without inventing cost or model identity", () => {
+    const baseline = accepted("1234567890abcdef1234567890abcdef12345678", 5);
+    const candidate = accepted("abcdef1234567890abcdef1234567890abcdef12", 3);
+    baseline.usage = { model: "gpt-6-astra", telemetry_source: "codex", total_tokens: 5000 };
+    candidate.usage = { model: "gpt-6.1-sol", telemetry_source: "codex", total_tokens: 5000 };
+    const crossModel = compareAcceptedGoldenSessions({ baseline, candidate });
+    expect(crossModel.model_pair).toEqual({
+      baseline: "gpt-6-astra", candidate: "gpt-6.1-sol", state: "CROSS_MODEL",
+    });
+    expect(crossModel.api_cost_comparison).toBe("NOT_MEASURED");
+    expect(crossModel.rule).toContain("not API pricing");
+    candidate.usage.model = null;
+    expect(compareAcceptedGoldenSessions({ baseline, candidate }).model_pair.state).toBe("UNVERIFIED");
+  });
+
 });

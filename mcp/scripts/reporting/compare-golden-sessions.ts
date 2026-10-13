@@ -32,6 +32,13 @@ export type FinalGoldenSessionReport = {
     artifact_revision: string | null;
   };
   metrics: MetricSet | null;
+  // Optional telemetry emitted by the existing golden-session finalizer.
+  // Missing model data must never be interpreted as a known model identity.
+  usage?: {
+    model: string | null;
+    telemetry_source?: string | null;
+    total_tokens?: number | null;
+  } | null;
 };
 
 const METRIC_KEYS: readonly (keyof MetricSet)[] = [
@@ -100,18 +107,26 @@ export function compareAcceptedGoldenSessions(input: {
       "Accepted-session comparison requires the same reference package fingerprint."
     );
   }
-  // A correction can appear cheaper simply because the candidate started
-  // from an easier/already-fixed model. Reject unlike input bytes.
-  if (input.baseline.task_id === "golden-existing-model-correction") {
-    const first = input.baseline.pipeline_provenance.input_asset_sha256;
-    const second = input.candidate.pipeline_provenance.input_asset_sha256;
-    if (!first || !second || !/^[a-f0-9]{64}$/.test(first) ||
-      !/^[a-f0-9]{64}$/.test(second) || first !== second) {
-      throw new Error(
-        "Existing-model correction comparisons require the same valid input_asset_sha256."
-      );
-    }
+  // The same reference is insufficient when the candidate starts from an
+  // easier/already-corrected model. This applies to every Golden Task, not just
+  // the historical existing-model-correction fixture. Even fresh-asset tasks
+  // must fingerprint their initial (possibly empty) project state.
+  const firstInput = input.baseline.pipeline_provenance.input_asset_sha256;
+  const secondInput = input.candidate.pipeline_provenance.input_asset_sha256;
+  if (!firstInput || !secondInput || !/^[a-f0-9]{64}$/.test(firstInput) ||
+    !/^[a-f0-9]{64}$/.test(secondInput) || firstInput !== secondInput) {
+    throw new Error(
+      "Accepted-session comparisons require the same valid input_asset_sha256."
+    );
   }
+
+  const baselineModel = input.baseline.usage?.model?.trim() || null;
+  const candidateModel = input.candidate.usage?.model?.trim() || null;
+  const modelPairState = !baselineModel || !candidateModel
+    ? "UNVERIFIED"
+    : baselineModel === candidateModel
+      ? "SAME_MODEL"
+      : "CROSS_MODEL";
 
   const metrics = Object.fromEntries(
     METRIC_KEYS.map((key) => {
@@ -139,13 +154,18 @@ export function compareAcceptedGoldenSessions(input: {
     candidate_source_sha: input.candidate.source_sha,
     reference_package_fingerprint:
       input.baseline.pipeline_provenance.reference_package_fingerprint,
-    ...(input.baseline.task_id === "golden-existing-model-correction"
-      ? { input_asset_sha256: input.baseline.pipeline_provenance.input_asset_sha256 }
-      : {}),
+    input_asset_sha256: firstInput,
+    input_asset_comparable: true,
+    model_pair: {
+      baseline: baselineModel,
+      candidate: candidateModel,
+      state: modelPairState,
+    },
+    api_cost_comparison: "NOT_MEASURED" as const,
     quality_gate: "BOTH_ACCEPTED_PASS_SAME_REFERENCE",
     metrics,
     rule:
-      "This report presents per-metric deltas only. It does not compute a synthetic aggregate score or declare an overall winner.",
+      "This report presents per-metric deltas only. Identical input and reference are required. Model IDs come only from supplied telemetry; token deltas are not API pricing or Codex allowance savings. No aggregate score or winner is inferred.",
   };
 }
 
