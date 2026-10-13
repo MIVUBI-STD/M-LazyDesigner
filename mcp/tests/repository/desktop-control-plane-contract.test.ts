@@ -472,3 +472,16 @@ describe("Desktop current-model presentation", () => {
     expect(ui).toContain("aria-expanded={expandedProjectId === project.id}");
   });
 });
+
+describe("Desktop calm connection summary", () => {
+  test("preserves setup and error guidance and makes healthy project view primary", async () => {
+    const ui = await Bun.file("../apps/desktop/src/App.svelte").text();
+    expect(ui).toContain('class="workspace-connection"');
+    expect(ui).toContain("statusProbeFailures >= 2 ? 'Connection status unverified'");
+    expect(ui).toContain("status.project_navigation.projects.length > 0");
+    expect(ui).toContain("productMode(status) === 'ready' || productMode(status) === 'client-wait'");
+    expect(ui.indexOf("<ProjectNavigator")).toBeLessThan(ui.indexOf("<h2>Managed components</h2>"));
+    expect(ui).toContain("runManagedAction('setup-tls')");
+    expect(ui).toContain("Update components");
+  });
+});

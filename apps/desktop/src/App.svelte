@@ -748,7 +748,7 @@
         </main>
 
       {:else if page === 'Overview'}
-        <main class="page-content" bind:this={workspaceMain}>
+        <main class="page-content workspace-overview" bind:this={workspaceMain}>
           {#if busyAction && progressStage}
             <section class="task-strip" aria-live="polite">
               <span class="task-spinner"></span>
@@ -782,6 +782,20 @@
             </section>
 
           {:else}
+            {#if (productMode(status) === 'ready' || productMode(status) === 'client-wait') && (status.project_navigation.active || status.project_navigation.projects.length > 0)}
+              <section class="workspace-connection" aria-label="Connection status">
+                <span class="connection-dot" class:waiting={productMode(status) === 'client-wait'} class:unknown={statusProbeFailures >= 2} aria-hidden="true"></span>
+                <div class="connection-copy">
+                  <strong>{statusProbeFailures >= 2 ? 'Connection status unverified' : productMode(status) === 'ready' ? 'AI connected' : 'Blockbench ready'}</strong>
+                  <span>{statusProbeFailures >= 2 ? 'Refresh to verify the connection before continuing.' : productMode(status) === 'ready' ? 'Blockbench and LazyDesigner are ready.' : 'Editing is available. Connect the AI client when needed.'}</span>
+                </div>
+                {#if statusProbeFailures >= 2}
+                  <button class="secondary-button small-button" onclick={refresh} disabled={loading || busyAction !== null}>Refresh</button>
+                {:else}
+                  <button class="quiet-link" onclick={() => navigate('Support')}>Connection details</button>
+                {/if}
+              </section>
+            {:else}
             <section class="content-section">
               <div class="section-heading">
                 <div><h2>Blockbench</h2><p>Editor connection and launch status</p></div>
@@ -857,6 +871,7 @@
                 <div class="inline-alert danger-alert"><strong>Unsupported Blockbench version</strong><span>Update Blockbench to a supported version before continuing.</span></div>
               {/if}
             </section>
+            {/if}
 
             <ProjectNavigator
               navigation={status.project_navigation}
@@ -870,9 +885,10 @@
               onCopyPath={copyNavigationPath}
             />
 
+            {#if productMode(status) !== 'ready' && productMode(status) !== 'client-wait' || status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED'}
             <section class="content-section">
               <div class="section-heading">
-                <div><h2>LazyDesigner</h2><p>Local service status</p></div>
+                <div><h2>Managed components</h2><p>Connection and update status</p></div>
               </div>
 
               <div class="definition-rows">
@@ -891,7 +907,7 @@
                     <span>Update</span>
                     <div class="inline-action">
                       <strong>{status.managed?.pending || updateCheck?.status === 'UPDATE_STAGED' ? 'Ready to install' : (updateCheck?.tag ?? 'Available')}</strong>
-                      <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'update' ? 'Updating…' : 'Update'}</button>
+                      <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'update' ? 'Updating…' : 'Update components'}</button>
                     </div>
                   </div>
                 {/if}
@@ -905,6 +921,7 @@
                 <div class="inline-alert"><div><strong>Action required</strong><span>{productGuidance(status) ?? status.readiness.summary}</span></div><button class="secondary-button small-button" onclick={() => navigate('Support')}>Open Support</button></div>
               {/if}
             </section>
+            {/if}
           {/if}
         </main>
 
@@ -1017,4 +1034,16 @@
     .global-nav button{padding:0 8px;gap:5px}
     .page-toolbar{padding:0 16px}
   }
+  /* Healthy connections are summarized; setup and problems retain full guidance. */
+  .workspace-overview .content-section{margin-bottom:24px}
+  .workspace-connection{display:flex;align-items:center;gap:11px;min-height:54px;margin-bottom:22px;padding-bottom:13px;border-bottom:1px solid var(--border-soft)}
+  .connection-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--accent)}
+  .connection-dot.waiting{background:var(--info)}
+  .connection-dot.unknown{background:var(--warning)}
+  .connection-copy{display:grid;flex:1;min-width:0;gap:2px}
+  .connection-copy strong{font-size:var(--font-ui);font-weight:700}
+  .connection-copy span{font-size:var(--font-sm);color:var(--muted)}
+  .quiet-link{min-height:34px;flex:none;padding:4px 6px;border-radius:6px;background:transparent;color:var(--text-soft);font-size:var(--font-sm);font-weight:650;cursor:pointer}
+  .quiet-link:hover{background:var(--surface-2);color:var(--text)}
+  @media(max-width:760px){.workspace-connection{flex-wrap:wrap}.workspace-connection .quiet-link{margin-left:18px}}
 </style>

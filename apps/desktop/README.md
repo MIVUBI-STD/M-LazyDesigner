@@ -538,3 +538,14 @@ mutations that rely on fresh machine state. `Refresh` remains available, and
 a successful full `system_status` restores the action affordances. This UI
 gate is supplementary to the canonical Rust/manager permission and safety
 checks; it does not change Gateway ownership or authorize repair.
+
+### Workspace healthy connection summary
+
+When there is an observed active or recent project and the canonical Desktop
+state is `ready` or `client-wait`, Workspace compresses the healthy connection
+panel into one status line ahead of model navigation. On first use with no
+projects, the normal Blockbench launch card remains visible. Other
+connection/setup states keep their existing detailed guidance. On probe
+uncertainty, the line reports an unverified state and retains Refresh.
+Managed-component update notices remain visible when reported, but healthy
+technical details stay under Support.
