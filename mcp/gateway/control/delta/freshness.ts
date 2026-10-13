@@ -11,6 +11,8 @@ import {
   removedElementSemanticScopes,
   renamedElementSemanticScopes,
 } from "../../../lib/authoring/elementSemanticScopes";
+import { modifyGroupReceiptSchema } from "../../../lib/receipts/groupMutation";
+import { removeElementReceiptSchema } from "../../../lib/receipts/removeElement";
 import type {
   ControlAuthoringDomain,
   ControlDelta,
@@ -187,21 +189,8 @@ export function geometryInvalidation(
   }
 
   if (capability === "modify_group") {
-    for (const candidate of resultCandidates(result)) {
-      if (
-        candidate.execution === "applied" &&
-        Array.isArray(candidate.changed_fields)
-      ) {
-        const fields = candidate.changed_fields.filter(
-          (field): field is string => typeof field === "string"
-        );
-        const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
-        if (fields.some((field) => field === "origin" || field === "rotation")) {
-          stale.push("ANIMATION_MOTION");
-        }
-        return assetDomainsForScopes(stale);
-      }
-    }
+    // One receipt parser decides both domain and freshness precision.
+    return assetDomainsForScopes(geometryFreshnessScopes(capability, result).stale);
   }
 
   if (capability === "remove_element" || capability === "rename_element") {
@@ -323,60 +312,43 @@ export function geometryFreshnessScopes(
 
   if (capability === "modify_group") {
     for (const candidate of resultCandidates(result)) {
-      if (candidate.execution === "applied" && Array.isArray(candidate.changed_fields)) {
-        const fields = candidate.changed_fields.filter(
-          (field): field is string => typeof field === "string"
-        );
-        const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
-        if (fields.some(field => field === "origin" || field === "rotation")) {
-          stale.push("ANIMATION_MOTION");
-        }
-        return { stale, precise: true };
+      const parsed = modifyGroupReceiptSchema.safeParse(candidate);
+      if (!parsed.success) continue;
+      const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
+      if (parsed.data.changed_fields.some(
+        field => field === "origin" || field === "rotation"
+      )) {
+        stale.push("ANIMATION_MOTION");
       }
+      return { stale, precise: true };
     }
-    // Translated subtrees do not supply changed_fields: keep the
-    // conservative default until the Runtime returns better evidence.
+    // Partial, malformed, or subtree-translation receipts cannot prove that
+    // Animation was unaffected. Use the existing conservative default.
+    return { stale: capabilityDefaultStaleScopes(capability), precise: false };
   }
 
   if (capability === "remove_element") {
     for (const candidate of resultCandidates(result)) {
-      const removedRoot = record(candidate.removed_root);
-      const removedCounts = record(candidate.removed_counts);
-      const affectedAnimations =
-        typeof candidate.affected_animations === "number"
-          ? candidate.affected_animations
-          : null;
-      if (typeof removedRoot?.type === "string") {
-        if (
-          removedRoot.type === "group" &&
-          typeof removedCounts?.elements === "number"
-        ) {
-          const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
-          if (removedCounts.elements > 0) {
-            stale.push("UV_MAPPING", "TEXTURE_APPEARANCE");
-          }
-          if (affectedAnimations === null || affectedAnimations > 0) {
-            stale.push("ANIMATION_MOTION");
-          }
-          return {
-            stale,
-            precise: true,
-          };
+      const parsed = removeElementReceiptSchema.safeParse(candidate);
+      if (!parsed.success) continue;
+      const { removed_root: removedRoot, removed_counts: removedCounts,
+        affected_animations: affectedAnimations } = parsed.data;
+      if (removedRoot.type === "group") {
+        const stale: ControlFreshnessScope[] = ["GEOMETRY_STRUCTURE"];
+        if (removedCounts.elements > 0) {
+          stale.push("UV_MAPPING", "TEXTURE_APPEARANCE");
         }
-        // Group removal without element counts cannot safely exclude UV/
-        // texture effects. Treat it as uncertain, not precisely scoped.
-        if (removedRoot.type === "group") {
-          return {
-            stale: capabilityDefaultStaleScopes(capability),
-            precise: false,
-          };
-        }
-        return {
-          stale: removedElementSemanticScopes(removedRoot.type),
-          precise: true,
-        };
+        if (affectedAnimations > 0) stale.push("ANIMATION_MOTION");
+        return { stale, precise: true };
       }
+      return {
+        stale: removedElementSemanticScopes(removedRoot.type),
+        precise: true,
+      };
     }
+    // A partial count can silently drop UV/Texture/Animation changes. Only
+    // the producer-validated full receipt can justify narrow invalidation.
+    return { stale: capabilityDefaultStaleScopes(capability), precise: false };
   }
 
   if (capability === "rename_element") {

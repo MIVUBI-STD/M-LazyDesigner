@@ -39,7 +39,15 @@ describe("precise geometry invalidation from receipts", () => {
       const delta = buildControlDelta({
         capability: "modify_group", phaseBefore: "geometry", phaseAfter: "geometry",
         projectUuid: "project-a", succeeded: true,
-        result: { execution: "applied", changed_fields: fields },
+        result: {
+          execution: "applied", id: "group-a", name: "group-a",
+          changed_fields: [...fields],
+          group: {
+            uuid: "group-a", name: "group-a",
+            origin: [0, 0, 0], rotation: [0, 0, 0],
+            visibility: true, parent: "root",
+          },
+        },
       });
       expect(delta.freshness.stale).toEqual(expectedStale);
       expect(delta.invalidates.authoring_domains).toEqual(expectedDomains);
@@ -50,7 +58,29 @@ describe("precise geometry invalidation from receipts", () => {
       result: { execution: "applied", offset: [1, 0, 0], elements: 2 },
     });
     expect(subtreeTranslation.freshness.stale).toContain("GEOMETRY_STRUCTURE");
-    expect(subtreeTranslation.freshness.precise).toBe(false);
+    expect(subtreeTranslation.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+  });
+
+  test("Group changed_fields cannot suppress Animation on invalid receipt", () => {
+    const delta = buildControlDelta({
+      capability: "modify_group",
+      phaseBefore: "geometry",
+      phaseAfter: "geometry",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        execution: "applied", id: "group-a", name: "group-a",
+        changed_fields: ["visibility", "future_unknown_transform"],
+        group: {
+          uuid: "group-a", name: "group-a",
+          origin: [0, 0, 0], rotation: [0, 0, 0],
+          visibility: false, parent: "root",
+        },
+      },
+    });
+    expect(delta.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+    expect(delta.freshness.stale).toContain("ANIMATION_MOTION");
+    expect(delta.invalidates.authoring_domains).toContain("ANIMATION");
   });
 
   test("group pivot or rotation still invalidates animation motion", () => {
@@ -147,8 +177,10 @@ describe("precise geometry invalidation from receipts", () => {
       {
         capability: "remove_element",
         result: {
-          removed_root: { type: "group" },
-          removed_counts: { elements: 0 },
+          removed_root: {
+            uuid: "group-a", name: "empty", type: "group", parent: "root",
+          },
+          removed_counts: { groups: 1, elements: 0, total_nodes: 1 },
           affected_animations: 0,
         },
         scopes: ["GEOMETRY_STRUCTURE"],
@@ -157,8 +189,10 @@ describe("precise geometry invalidation from receipts", () => {
       {
         capability: "remove_element",
         result: {
-          removed_root: { type: "group" },
-          removed_counts: { elements: 3 },
+          removed_root: {
+            uuid: "group-b", name: "nonempty", type: "group", parent: "root",
+          },
+          removed_counts: { groups: 1, elements: 3, total_nodes: 4 },
           affected_animations: 0,
         },
         scopes: ["GEOMETRY_STRUCTURE", "UV_MAPPING", "TEXTURE_APPEARANCE"],
@@ -213,6 +247,22 @@ describe("precise geometry invalidation from receipts", () => {
     expect(delta.invalidates.authoring_domains).toEqual(["GEOMETRY"]);
   });
 
+  test("incomplete Group removal counts cannot preserve Texture or Animation", () => {
+    const delta = buildControlDelta({
+      capability: "remove_element",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: {
+        removed_root: { uuid: "group-a", name: "arm", type: "group", parent: "root" },
+        removed_counts: { groups: 1, elements: 0, total_nodes: 1 },
+        affected_animations: -1,
+      },
+    });
+    expect(delta.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+    expect(delta.freshness.stale).toContain("UV_MAPPING");
+    expect(delta.freshness.stale).toContain("ANIMATION_MOTION");
+  });
+
   test("Group removal without element counts remains conservative", () => {
     const delta = buildControlDelta({
       capability: "remove_element",
@@ -223,7 +273,7 @@ describe("precise geometry invalidation from receipts", () => {
         affected_animations: 0,
       },
     });
-    expect(delta.freshness.precise).toBe(false);
+    expect(delta.freshness.basis).toBe("CONSERVATIVE_EFFECT");
     expect(delta.freshness.stale).toContain("UV_MAPPING");
     expect(delta.invalidates.authoring_domains).toContain("TEXTURING");
   });
