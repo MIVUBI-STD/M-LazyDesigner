@@ -168,7 +168,7 @@ export function capabilityMutatesState(
   }
   if (
     capability === "manage_animation_controller" &&
-    animationControllerResourceStateNeutral(result)
+    animationControllerResourceStateNeutral(result, branch)
   ) {
     return false;
   }

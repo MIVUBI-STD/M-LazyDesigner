@@ -31,12 +31,15 @@ describe("animation controller resource continuation", () => {
       execution: "applied",
       action: "runtime_resource",
       resource_kind: "client_entity",
+      source_path: null,
       write: null,
       content: "{}",
       truncated: false,
     };
 
-    expect(animationControllerResourceStateNeutral(result)).toBe(true);
+    const branch = { field: "resource_kind", value: "client_entity" };
+    expect(animationControllerResourceStateNeutral(result, branch)).toBe(true);
+    expect(animationControllerResourceStateNeutral(result)).toBe(false);
 
     const delta = buildControlDelta({
       capability: "manage_animation_controller",
@@ -52,6 +55,40 @@ describe("animation controller resource continuation", () => {
     expect(delta.invalidates.authoring_domains).toEqual([]);
     expect(delta.invalidates.acceptance_gates).toBe(false);
     expect(delta.verification_class).toBe("receipt_only");
+  });
+
+  test("a compile-only receipt cannot suppress an unrelated native controller mutation", () => {
+    const compiled = {
+      execution: "applied",
+      action: "runtime_resource",
+      resource_kind: "client_entity",
+      source_path: null,
+      write: null,
+      content: "{}", truncated: false,
+    };
+    const base = {
+      capability: "manage_animation_controller",
+      phaseBefore: "animation" as const,
+      phaseAfter: "animation" as const,
+      projectUuid: "project-a",
+      succeeded: true,
+    };
+    for (const [branch, result] of [
+      [undefined, compiled],
+      [{field:"resource_kind",value:"animation_controller"}, compiled],
+      [{field:"resource_kind",value:"client_entity"},
+        {...compiled,source_path:"/tmp/client_entity.json"}],
+      [{field:"resource_kind",value:"client_entity"},
+        {...compiled,write:{path:"/tmp/output.json",byte_length:10}}],
+      [{field:"resource_kind",value:"client_entity"},
+        {...compiled,action:"updated"}],
+    ] as const) {
+      expect(animationControllerResourceStateNeutral(result, branch)).toBe(false);
+      const delta = buildControlDelta({ ...base, branch, result });
+      expect(delta.freshness.basis).not.toBe("NO_CHANGE");
+      expect(delta.freshness.stale).toContain("ANIMATION_CONTROLLER");
+      expect(delta.invalidates.authoring_domains).toEqual(["ANIMATION"]);
+    }
   });
 
   test("persisted resource write remains mutation", () => {

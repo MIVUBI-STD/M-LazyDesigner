@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   animationControllerReceipt,
   isAnimationControllerReceipt,
+  isAnimationControllerCompileOnlyResourceReceipt,
 } from "@/lib/receipts/animationController";
 
 const emptyLifecycle = {
@@ -83,6 +84,23 @@ describe("shared animation controller receipt contract", () => {
         removed: emptyLifecycle,
       })
     ).toBe(false);
+  });
+
+  test("compile-only resource receipt needs inline source and no persisted write", () => {
+    const valid = {
+      execution: "applied", action: "runtime_resource",
+      resource_kind: "client_entity",
+      source_path: null, write: null, content: "{}", truncated: false,
+    };
+    expect(isAnimationControllerCompileOnlyResourceReceipt(valid)).toBe(true);
+    for (const result of [
+      {...valid,source_path:"/tmp/client_entity.json"},
+      {...valid,write:{path:"/tmp/output.json",byte_length:8}},
+      {...valid,resource_kind:"unknown"},
+      {...valid,execution:"read"},
+      {...valid,action:"updated"},
+      {action:"runtime_resource",write:null},
+    ]) expect(isAnimationControllerCompileOnlyResourceReceipt(result)).toBe(false);
   });
 
   test("Runtime and Control share the same Animation Controller receipt owner", async () => {

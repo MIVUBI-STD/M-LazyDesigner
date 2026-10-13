@@ -2,7 +2,11 @@ import {
   isCreateProjectReceipt,
   isPhaseTransitionReceipt,
 } from "../../../lib/receipts/authorityTransition";
-import { isAnimationControllerReceipt } from "../../../lib/receipts/animationController";
+import {
+  isAnimationControllerReceipt,
+  isAnimationControllerCompileOnlyResourceReceipt,
+} from "../../../lib/receipts/animationController";
+import type { CapabilityBranchHint } from "../../capabilities/types";
 import { isAnimationEffectsReceipt } from "../../../lib/receipts/animationEffects";
 import {
   isBoneRiggingDeletionReceipt,
@@ -123,13 +127,16 @@ export function materialPersistenceReceiptComplete(value: unknown): boolean {
 }
 
 export function animationControllerResourceStateNeutral(
-  value: unknown
+  value: unknown,
+  branch?: CapabilityBranchHint
 ): boolean {
-  return resultCandidates(value).some((candidate) =>
-    candidate.execution === "applied" &&
-    candidate.action === "runtime_resource" &&
-    Object.prototype.hasOwnProperty.call(candidate, "write") &&
-    candidate.write === null
+  // A write:null label must match the requested resource branch; a native
+  // controller mutation cannot borrow a compile-only resource receipt.
+  if (branch?.field !== "resource_kind") return false;
+  return resultCandidates(value).some(
+    candidate =>
+      candidate.resource_kind === branch.value &&
+      isAnimationControllerCompileOnlyResourceReceipt(candidate)
   );
 }
 

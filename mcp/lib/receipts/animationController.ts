@@ -117,3 +117,16 @@ export function animationControllerReceipt<T extends Record<string, unknown>>(
 export function isAnimationControllerReceipt(value: unknown): boolean {
   return animationControllerReceiptSchema.safeParse(value).success;
 }
+
+/** Inline resource transformations cannot mutate native controllers or files. */
+export const animationControllerCompileOnlyResourceReceiptSchema = z.object({
+  execution: z.literal("applied"),
+  action: z.literal("runtime_resource"),
+  resource_kind: z.enum(["client_entity", "animation_controller"]),
+  source_path: z.null(),
+  write: z.null(),
+});
+
+export function isAnimationControllerCompileOnlyResourceReceipt(value: unknown): boolean {
+  return animationControllerCompileOnlyResourceReceiptSchema.safeParse(value).success;
+}
