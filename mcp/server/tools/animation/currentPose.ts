@@ -1,6 +1,11 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 
+import {
+  bindExplicitContactMarkers,
+  type ExplicitContactMarkerBinding,
+} from "@/lib/animation/contactMarkerBinding";
+
 export const CURRENT_POSE_LOCATOR_LIMIT = 16;
 
 /**
@@ -206,4 +211,18 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
   } catch {
     return unverified("NATIVE_GROUP_POSE_READ_FAILED");
   }
+}
+
+/**
+ * Scoped consumer of explicit semantic intent and the existing native pose
+ * reader. This is internal only: focused inspect_animation has no role-binding
+ * input, so it MUST NOT silently invent bindings from Locator names.
+ */
+export function resolveCurrentContactMarkerBindings(
+  animation: _Animation,
+  group: Group,
+  bindings: readonly ExplicitContactMarkerBinding[]
+) {
+  const snapshot = readCurrentBonePoseSnapshot(animation, group);
+  return bindExplicitContactMarkers({ snapshot, bindings });
 }

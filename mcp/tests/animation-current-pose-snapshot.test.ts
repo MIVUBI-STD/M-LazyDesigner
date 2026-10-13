@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { readCurrentBonePoseSnapshot } from "@/server/tools/animation/currentPose";
+import { readCurrentBonePoseSnapshot, resolveCurrentContactMarkerBindings } from "@/server/tools/animation/currentPose";
 
 const globals = globalThis as Record<string, any>;
 const keys = ["Project", "AnimationItem", "Group", "Locator", "Timeline", "Animator", "Modes", "Canvas", "THREE"] as const;
@@ -262,6 +262,56 @@ describe("focused current-native-bone pose snapshot", () => {
     const result = observedPose(animation as any, group as any);
     expect(result.locator_candidates).toMatchObject({
       state: "NONE", count: 0, observed_count: 0, candidates: [],
+    });
+  });
+
+  test("existing native pose reader can resolve an explicit UUID-bound marker without playing animation", () => {
+    const { group, animation } = setup();
+    locatorUnder(group, "locator-a", { position: [8, 2, -4] });
+    const bindings = [{
+      id: "left-plant",
+      role: "FOOT_PLANT" as const,
+      intent_authority: "DECLARED_USER_INTENT" as const,
+      evidence_ref: "user:confirmed-marker-a",
+      project_uuid: "project-uuid",
+      animation_uuid: "anim-uuid",
+      group_uuid: "bone-uuid",
+      locator_uuid: "locator-a",
+    }];
+    const result = resolveCurrentContactMarkerBindings(animation as any, group as any, bindings);
+    expect(result).toMatchObject({
+      state: "LINKED_CURRENT_PREVIEW_ONLY",
+      linked_count: 1,
+      physical_contact_verified: false,
+      frame_pose_synchronized: false,
+      native_timeline_sampling_performed: false,
+      bindings: [{
+        locator_uuid: "locator-a", role: "FOOT_PLANT",
+        intent_authority: "DECLARED_USER_INTENT",
+        world_position: [8, 2, -4],
+      }],
+    });
+    expect(globals.Timeline.time).toBe(0.5);
+  });
+
+  test("stale native preview cannot authorize even explicitly declared marker roles", () => {
+    const { group, animation } = setup();
+    locatorUnder(group, "locator-a");
+    globals.Timeline.playing = true;
+    const result = resolveCurrentContactMarkerBindings(animation as any, group as any, [{
+      id: "left-plant",
+      role: "FOOT_PLANT",
+      intent_authority: "DECLARED_REFERENCE_INTENT",
+      evidence_ref: "reference:approved-left-foot",
+      project_uuid: "project-uuid",
+      animation_uuid: "anim-uuid",
+      group_uuid: "bone-uuid",
+      locator_uuid: "locator-a",
+    }]);
+    expect(result).toMatchObject({
+      state: "UNVERIFIED",
+      reason: "CURRENT_POSE_NOT_ELIGIBLE_FOR_ROLE_LINK",
+      linked_count: 0, bindings: [],
     });
   });
 

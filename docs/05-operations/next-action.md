@@ -6,56 +6,62 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 — explicit native Locator candidate observations
+## Active: LD-Q04 — explicit contact marker role binding
 
-The existing `inspect_animation(bone=...)` focused result retains its
-legacy `focused_bone` shape and sibling
-`current_pose_snapshot`. The canonical
-`mcp/server/tools/animation/currentPose.ts` now adds
-`locator_candidates` **inside a successfully observed current
-bone snapshot**. It enumerates only directly parented native
-`Locator` objects confirmed both by
-`Locator.all` and `group.children`, with
-visible Three.js ancestry connecting Locator mesh → focused Group mesh →
-active Canvas scene. Candidate UUIDs and world origins are read using
-the existing paused active-preview gates; no bone or marker is selected,
-moved, inferred from a name or added to the asset.
+Canonical source `mcp/lib/animation/contactMarkerBinding.ts` now accepts
+**explicit declarations** associating a role (FOOT_PLANT, HAND_GRIP,
+TOOL_CONTACT, IMPACT_POINT) with exact project, animation, Group/bone and
+Locator UUIDs, plus declared intent authority and a non-empty evidence
+reference. It checks these against the existing
+`inspect_animation(bone=...)` native preview snapshot, not against Locator
+names, guessed anatomy, current selection alone, or keyframe positions.
 
-Each candidate is UUID-scoped and independently OBSERVED/UNVERIFIED
-with explicit reasons. Enumeration is capped at 16; excessive/duplicate
-identities fail closed, missing/hidden/detached/invalid locators cannot
-become valid coordinates, and native Locator absence remains UNVERIFIED.
-Only direct-child candidates are included; a nested child's Locator
-is not silently reassigned to the focused parent bone.
+The internal consumer
+`resolveCurrentContactMarkerBindings(animation, group, bindings)` in the
+existing `mcp/server/tools/animation/currentPose.ts` obtains one guarded
+native preview snapshot and passes it to the pure binding verifier.
+Results are bounded to 16 identities, retain the requested semantic role
+and declared evidence reference, and return exact current-preview
+coordinates **only** for observed UUID matches. Duplicate source/binding
+identities, missing or stale project/animation/bone/Locator IDs, invalid
+world coordinates and inconsistent candidate counts/availability fail
+closed. Unrelated invalid candidates produce explicit partial results,
+never a fabricated global PASS.
 
-The returned marker `role=UNASSIGNED_CONTACT_INTENT` is
-deliberate: an authored Locator is a potential contact reference, not
-proof that it is a planted foot, tool grip, floor contact, target or end
-effector. Snapshot flags remain
+**Proof authority:** a caller's `DECLARED_USER_INTENT` or
+`DECLARED_REFERENCE_INTENT` is NOT independently verified permission or
+reference approval. The output is at most
+`LINKED_CURRENT_PREVIEW_ONLY`, with
+`role_authority=CALLER_DECLARED_NOT_INDEPENDENTLY_VERIFIED`,
 `frame_pose_synchronized=false`,
-`contact_marker_attested=false`,
-`native_animation_sampling_performed=false` and
-`visual_verdict=NOT_EVALUATED`.
-`analyzeAnimationContactEvidence` is still separate:
-a single displayed point cannot be promoted into motion-contact PASS.
+`native_timeline_sampling_performed=false`,
+`physical_contact_verified=false`, and
+`visual_verdict=NOT_EVALUATED`. It does not imply planting, a
+physical end effector, weight transfer or observed animation motion.
 
-Existing `mcp/tests/animation-current-pose-snapshot.test.ts`
-is extended with seven targeted cases for direct native Locator identity,
-failure isolation, unknown parents, hidden and detached scene objects,
-duplicate identities, resource budgets, and nested-group exclusion.
-No new Gateway tool, new public input, generated API edit, cache,
-shadow sampler, Timeline change or persistent registry is introduced.
+Existing `inspect_animation` inputs/output remain unchanged. **Role
+binding is currently an internal source consumer**, not a newly
+advertised client input. Adding a client-facing role-binding field would
+change the public schema and require the canonical generated API
+artifacts under an executable Bun toolchain. Do not silently add that
+field or hand-edit generated files.
 
-**Proof ceiling:** exact-HEAD source and test definitions only; Bun,
-full typecheck, native Locator/Group transforms, actual paused-preview
-consistency and end-to-end quality acceptance are **NOT EXECUTED**.
-The user's local test remains deferred.
+Regression definitions: eleven focused cases in
+`mcp/tests/animation-contact-marker-binding.test.ts` plus two native
+adapter contract cases in the existing current-pose test suite. They
+cover exact user-declared roles, unknown/mismatched identities, partial
+candidates, duplicate UUIDs, malformed intent, stale clocks, mismatched
+summary counts, resource limits and explicit frame-sync limitations.
 
-**Next:** run targeted Bun and TypeScript tests in an authorized cloud
-checkout at the exact commit. Only once source verification succeeds,
-investigate a clearly authorized semantic marker role binding and a
-bounded, fully reversible Timeline sample transaction using existing
-animation owners, never unnamed/guesswork end effectors.
+**Not executed:** repository Bun/TypeScript/CI, deployed Blockbench,
+native time-to-pose alignment, user-approved binding workflow and
+reference-driven visual acceptance. User local test remains deferred.
+
+**Next:** execute the two focused suites at the exact `Local` SHA in
+a capable cloud worktree, then integrate a truly approved binding input
+only with canonical schema generation and a verified state-restoring
+native timeline sample contract. Do not promote a one-frame bound
+Locator to measured contact or invent an approval signal.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 
