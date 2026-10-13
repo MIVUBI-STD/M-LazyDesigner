@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { buildControlStageContext } from "./contextProjection";
 import type { ControlWorkspaceProjection } from "./workspace";
-import { readReferenceImageEvidence } from "./referenceImageEvidence";
+import { readReferenceImageEvidence, summarizeReferenceAlphaSilhouette } from "./referenceImageEvidence";
 import { readReferencePackageProjection } from "./referencePackage";
 
 const RED_PNG = Buffer.from(
@@ -42,6 +42,27 @@ const workspace: ControlWorkspaceProjection = {
 };
 
 describe("actual reference image evidence — Control owner", () => {
+
+  test("on-demand PNG alpha evidence remains diagnostic for opaque and changed image bytes", async () => {
+    const root = await packageRoot();
+    const current = await readReferencePackageProjection(root);
+    const [image] = await readReferenceImageEvidence(current, ["IMG_FRONT"]);
+    expect(summarizeReferenceAlphaSilhouette(image)).toMatchObject({
+      state: "UNVERIFIED", reason: "OPAQUE_OR_EMPTY_ALPHA_MASK",
+      source_image_sha256: image.sha256,
+      visual_verdict: "NOT_EVALUATED", model_comparison_performed: false,
+    });
+    expect(summarizeReferenceAlphaSilhouette({
+      ...image, data: BLUE_PNG.toString("base64"),
+    }).reason).toBe("PNG_IMAGE_IDENTITY_MISMATCH");
+    expect(summarizeReferenceAlphaSilhouette({
+      ...image, status: "DRAFT",
+    }).reason).toBe("APPROVED_SINGLE_VIEW_PNG_REQUIRED");
+    expect(summarizeReferenceAlphaSilhouette({
+      ...image, view: null,
+    }).reason).toBe("APPROVED_SINGLE_VIEW_PNG_REQUIRED");
+  });
+
   test("delivers real image bytes by stage image identity without putting pixels in JSON", async () => {
     const root = await packageRoot();
     const reference = await readReferencePackageProjection(root);

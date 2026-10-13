@@ -3,6 +3,7 @@ import { constants } from "node:fs";
 import { lstat, open, realpath } from "node:fs/promises";
 import { extname, isAbsolute, join, relative, resolve } from "node:path";
 import { canonicalJson } from "../../lib/semantic/canonical";
+import { extractVerifiedPngAlpha } from "../../lib/reference/pngAlphaEvidence";
 import type { ControlReferenceProjection } from "./referenceTypes";
 
 type ReferenceImage = ControlReferenceProjection["images"][number];
@@ -217,4 +218,41 @@ export async function readReferenceImageEvidence(
     });
   }
   return output;
+}
+
+/**
+ * On-demand, bounded alpha diagnostics for the existing Control image
+ * delivery path. No opaque-background segmentation, no model comparison,
+ * and no bulk mask payload in AI context.
+ */
+export function summarizeReferenceAlphaSilhouette(image: DeliveredReferenceImage) {
+  const common = {
+    source_image_sha256: image.sha256,
+    visual_verdict: "NOT_EVALUATED" as const,
+    model_comparison_performed: false as const,
+    approval_authority: "REFERENCE_PACKAGE_DECLARED" as const,
+  };
+  const unavailable = (reason: string) => ({
+    ...common, state: "UNVERIFIED" as const,
+    reason, foreground_pixels: null, frame: null,
+  });
+  if (image.status !== "APPROVED" || image.mime_type !== "image/png" || !image.view) {
+    return unavailable("APPROVED_SINGLE_VIEW_PNG_REQUIRED");
+  }
+  const proof = extractVerifiedPngAlpha({
+    png_bytes: Buffer.from(image.data, "base64"),
+    expected_sha256: image.sha256,
+    view: image.view,
+    provenance: "APPROVED_ALPHA",
+  });
+  if (proof.state !== "AVAILABLE") return unavailable(proof.reason);
+  let foreground = 0;
+  for (const bit of proof.mask.pixels) foreground += bit;
+  return {
+    ...common,
+    state: "AVAILABLE" as const,
+    reason: null,
+    foreground_pixels: foreground,
+    frame: { width: proof.mask.width, height: proof.mask.height },
+  };
 }

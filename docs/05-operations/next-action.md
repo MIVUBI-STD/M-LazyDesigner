@@ -6,26 +6,35 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active development: LD-Q01 silhouette evidence
+## Active development: LD-Q01 — verified PNG source evidence
 
-The source-only LD-Q01 foundation now includes mask comparison,
-`deriveAlphaSilhouetteMask` (decoded RGBA alpha, without inferred background
-segmentation), and `compareBoundSilhouetteEvidence` (identity gating against
-Control-delivered image metadata and native capture identity). It rejects
-opaque/empty alpha, stale or mismatched image/view hashes and unreviewed
-same-frame pairs. All returned overlap is `DIAGNOSTIC_ONLY`; visual verdict
-remains `NOT_EVALUATED`, camera authority `CALLER_DECLARED`, and
-automatic correction remains disabled.
+This source step adds `mcp/lib/reference/pngAlphaEvidence.ts`: a bounded,
+checksum-checked, non-interlaced 8-bit RGBA PNG alpha decoder. It derives the
+SHA-256 from actual source bytes (not caller labels), supports PNG filters
+0–4 and consecutive split IDAT chunks, and rejects oversized, unsupported,
+corrupt, opaque or empty source masks. All output remains diagnostic-only.
 
-This is NOT yet wired as a Runtime capability. The existing
-`capture_model_views` produces shaded PNGs, not attested transparent
-silhouette masks, and no producer-to-consumer RGBA decoding is established.
-A caller-provided image hash does not independently prove mask pixels were
-decoded from those image bytes. Next: verify focused Bun tests, then prove
-the minimum on-demand approved-PNG decoder + offscreen transparent capture
-path and same-frame review on the same native build. No new Gateway tool,
-second image service, or raw-pixel context dump. Bun/native/visual PASS
-has NOT been executed for this source.
+The existing on-demand `status(include_reference_images=true)` path
+now computes a small `alpha_silhouette` descriptor per delivered source
+image, reusing `readReferenceImageEvidence` and its safe path and byte
+validation. The descriptor includes status, source image hash, bounded
+foreground count, frame, and `visual_verdict=NOT_EVALUATED` only.
+No binary mask is transmitted in structured Control context. The stable
+four-tool Gateway, client input schemas, and normal status hot path remain
+unchanged. Regression definitions cover on-demand delivery, true alpha,
+all five PNG scanline filters, IDAT splits, corrupt hashes/checksums, opaque
+images, and before/after image identity matching.
+
+**Proof:** copied decoder logic was exercised in isolated Node 22 tests
+covering PNG filters 0–4 and conservative error outcomes. Repository Bun
+tests/typecheck, native Blockbench, same-frame source-camera calibration and
+accepted visual fidelity are **NOT EXECUTED** on this source SHA.
+
+**Next:** run targeted Bun tests on the exact final source head and inspect
+any errors; then provide genuinely transparent offscreen native model capture
+evidence and independently reviewed reference/capture framing through existing
+Runtime/Control owners. Do not treat shaded model PNG alpha as segmentation,
+automatically correct geometry, or add a new MCP tool/second image engine.
 
 Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 

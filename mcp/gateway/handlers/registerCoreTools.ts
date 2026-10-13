@@ -20,7 +20,7 @@ import {
 import type { LocalCapabilityRegistry } from "../providers/registry";
 import { projectGatewayStatus } from "../presentation/statusProjection";
 import { readReferencePackageProjection } from "../control/referencePackage";
-import { readReferenceImageEvidence } from "../control/referenceImageEvidence";
+import { readReferenceImageEvidence, summarizeReferenceAlphaSilhouette } from "../control/referenceImageEvidence";
 import { summarizeReferencePartRegions } from "../../lib/reference/imageRegionEvidence";
 import {
   gatewayDescribeOutputSchema,
@@ -327,6 +327,7 @@ export function registerCoreGatewayTools(
                   sha256: image.sha256,
                   mime_type: image.mime_type,
                   bytes: image.bytes,
+                  alpha_silhouette: summarizeReferenceAlphaSilhouette(image),
                 })),
               },
             } : {}),
