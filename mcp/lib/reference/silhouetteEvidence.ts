@@ -163,3 +163,100 @@ export function compareSilhouetteMaskEvidence(input: SilhouetteMaskComparisonInp
     },
   };
 }
+
+/** Parse only an already-decoded, explicit alpha channel. No flood-fill. */
+export function deriveAlphaSilhouetteMask(input: {
+  image_sha256: string;
+  view: ModelView;
+  width: number;
+  height: number;
+  rgba: Uint8Array | Uint8ClampedArray;
+  provenance: "APPROVED_ALPHA" | "OFFSCREEN_RENDER_ALPHA";
+  alpha_threshold?: number;
+}): { state: "AVAILABLE"; mask: SilhouetteMask } |
+    { state: "UNVERIFIED"; reason: "OPAQUE_OR_EMPTY_ALPHA_MASK"; mask: null } {
+  const { image_sha256, view, width, height, rgba, provenance } = input;
+  if (!SHA256.test(image_sha256) || !MODEL_VIEWS.includes(view) ||
+      !Number.isSafeInteger(width) || !Number.isSafeInteger(height) ||
+      width <= 0 || height <= 0 || width * height > MAX_MASK_PIXELS) {
+    throw new Error("Alpha silhouette requires canonical, bounded image identity.");
+  }
+  if (rgba.length !== width * height * 4) {
+    throw new Error("Alpha silhouette RGBA byte count must match image dimensions.");
+  }
+  const threshold = input.alpha_threshold ?? 128;
+  if (!Number.isInteger(threshold) || threshold < 1 || threshold > 255) {
+    throw new Error("Alpha silhouette threshold must be an integer within 1..255.");
+  }
+
+  const pixels = new Uint8Array(width * height);
+  let foreground = 0;
+  for (let i = 0; i < pixels.length; i++) {
+    const opaque = rgba[i * 4 + 3] >= threshold;
+    pixels[i] = opaque ? 1 : 0;
+    if (opaque) foreground++;
+  }
+  if (foreground === 0 || foreground === pixels.length) {
+    return { state: "UNVERIFIED", reason: "OPAQUE_OR_EMPTY_ALPHA_MASK", mask: null };
+  }
+  // Input image identity and the relationship between RGBA and original PNG
+  // bytes remain producer-owned; this helper does not verify image decoding.
+  return {
+    state: "AVAILABLE",
+    mask: { image_sha256, view, width, height, pixels, provenance },
+  };
+}
+
+/**
+ * Join existing Control reference metadata and captured-model image identity.
+ * The caller must verify bytes and camera alignment independently. This
+ * is diagnostic binding, not an attestation of source pixels or native pose.
+ */
+export function compareBoundSilhouetteEvidence(input: {
+  reference: {
+    id: string; sha256: string; integrity: "VERIFIED" | "MISSING" | "INVALID";
+    status: string | null; view: ModelView | null; mime_type: string;
+  };
+  capture: {
+    project_uuid: string; evidence_handle: string;
+    view: ModelView; image_sha256: string; width: number; height: number;
+  };
+  reference_mask: SilhouetteMask;
+  model_mask: SilhouetteMask;
+  pairing: SilhouetteMaskComparisonInput["pairing"];
+}) {
+  const unavailable = (reason: string) => ({
+    state: "UNVERIFIED" as const,
+    reason,
+    metrics: null,
+    visual_verdict: "NOT_EVALUATED" as const,
+    pairing_authority: "CALLER_DECLARED" as const,
+    source_camera_calibrated: false as const,
+    automatic_correction: false as const,
+  });
+  if (input.reference.integrity !== "VERIFIED" ||
+      input.reference.status !== "APPROVED" ||
+      input.reference.mime_type !== "image/png" ||
+      !input.reference.id.trim()) {
+    return unavailable("APPROVED_PNG_REFERENCE_UNAVAILABLE");
+  }
+  if (input.reference.sha256 !== input.reference_mask.image_sha256 ||
+      input.reference.view !== input.reference_mask.view) {
+    return unavailable("REFERENCE_IMAGE_IDENTITY_MISMATCH");
+  }
+  if (!input.capture.project_uuid.trim() ||
+      !/^modelcapture:[a-f0-9]{64}$/.test(input.capture.evidence_handle)) {
+    return unavailable("MODEL_CAPTURE_EVIDENCE_UNAVAILABLE");
+  }
+  if (input.capture.image_sha256 !== input.model_mask.image_sha256 ||
+      input.capture.view !== input.model_mask.view ||
+      input.capture.width !== input.model_mask.width ||
+      input.capture.height !== input.model_mask.height) {
+    return unavailable("MODEL_CAPTURE_IMAGE_IDENTITY_MISMATCH");
+  }
+  return compareSilhouetteMaskEvidence({
+    reference: input.reference_mask,
+    model: input.model_mask,
+    pairing: input.pairing,
+  });
+}

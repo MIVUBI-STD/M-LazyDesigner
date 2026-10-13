@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   compareSilhouetteMaskEvidence,
+  deriveAlphaSilhouetteMask,
+  compareBoundSilhouetteEvidence,
   type SilhouetteMask,
   type SilhouetteMaskComparisonInput,
 } from "@/lib/reference/silhouetteEvidence";
@@ -120,5 +122,79 @@ describe("reference silhouette mask evidence", () => {
     expect(result.metrics?.model_pixels).toBe(5);
     expect(result.metrics?.overlap_pixels).toBe(4);
     expect(result.metrics?.iou).toBeCloseTo(4 / 9, 4);
+  });
+});
+
+function alphaBuffer(rows: readonly string[]): Uint8ClampedArray {
+  const rgba = new Uint8ClampedArray(rows.join("").length * 4);
+  [...rows.join("")].forEach((pixel, i) => {
+    rgba[i * 4 + 3] = pixel === "1" ? 255 : 0;
+  });
+  return rgba;
+}
+
+describe("alpha silhouette handoff and capture identity", () => {
+  test("derives explicit transparent PNG alpha without background guessing", () => {
+    const result = deriveAlphaSilhouetteMask({
+      image_sha256: "a".repeat(64), view: "front", width: 3, height: 3,
+      rgba: alphaBuffer(["000", "010", "000"]), provenance: "APPROVED_ALPHA",
+    });
+    expect(result.state).toBe("AVAILABLE");
+    expect(result.mask?.pixels).toEqual(Uint8Array.from([0,0,0,0,1,0,0,0,0]));
+  });
+
+  test("opaque and empty alpha, malformed dimensions and invalid threshold are not silently accepted", () => {
+    const common = {
+      image_sha256: "a".repeat(64), view: "front" as const,
+      width: 3, height: 3, provenance: "APPROVED_ALPHA" as const,
+    };
+    for (const rows of [["111","111","111"], ["000","000","000"]]) {
+      expect(deriveAlphaSilhouetteMask({
+        ...common, rgba: alphaBuffer(rows),
+      })).toMatchObject({ state: "UNVERIFIED", mask: null, reason: "OPAQUE_OR_EMPTY_ALPHA_MASK" });
+    }
+    expect(() => deriveAlphaSilhouetteMask({
+      ...common, rgba: new Uint8Array(5),
+    })).toThrow();
+    expect(() => deriveAlphaSilhouetteMask({
+      ...common, rgba: alphaBuffer(["000","010","000"]), alpha_threshold: 0,
+    })).toThrow();
+  });
+
+  test("binds only approved source identity and matching capture image identity", () => {
+    const masks = fixture();
+    const bound = {
+      reference: {
+        id: "IMG_FRONT", sha256: masks.reference.image_sha256,
+        integrity: "VERIFIED" as const, status: "APPROVED",
+        view: "front" as const, mime_type: "image/png",
+      },
+      capture: {
+        project_uuid: "project-a", evidence_handle: "modelcapture:" + "c".repeat(64),
+        view: "front" as const, image_sha256: masks.model.image_sha256,
+        width: 5, height: 5,
+      },
+      reference_mask: masks.reference, model_mask: masks.model,
+      pairing: "REVIEWED_SAME_FRAME" as const,
+    };
+    const result = compareBoundSilhouetteEvidence(bound);
+    expect(result.state).toBe("DIAGNOSTIC_ONLY");
+    expect(result.metrics?.iou).toBeCloseTo(4 / 9, 4);
+    expect(result.visual_verdict).toBe("NOT_EVALUATED");
+    expect(compareBoundSilhouetteEvidence({
+      ...bound, reference: { ...bound.reference, sha256: "f".repeat(64) },
+    }).reason).toBe("REFERENCE_IMAGE_IDENTITY_MISMATCH");
+    expect(compareBoundSilhouetteEvidence({
+      ...bound, reference: { ...bound.reference, status: "DRAFT" },
+    }).reason).toBe("APPROVED_PNG_REFERENCE_UNAVAILABLE");
+    expect(compareBoundSilhouetteEvidence({
+      ...bound, capture: { ...bound.capture, image_sha256: "d".repeat(64) },
+    }).reason).toBe("MODEL_CAPTURE_IMAGE_IDENTITY_MISMATCH");
+    expect(compareBoundSilhouetteEvidence({
+      ...bound, capture: { ...bound.capture, evidence_handle: "unknown" },
+    }).reason).toBe("MODEL_CAPTURE_EVIDENCE_UNAVAILABLE");
+    expect(compareBoundSilhouetteEvidence({
+      ...bound, pairing: "UNVERIFIED" as const,
+    }).reason).toBe("CAMERA_AND_FRAMING_PAIRING_UNVERIFIED");
   });
 });
