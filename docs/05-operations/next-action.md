@@ -6,50 +6,60 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active development: LD-Q03 — single-axis rotated Cube pivots
+## Active development: LD-Q04 — sampled animation contact evidence
 
-The canonical `mcp/lib/rig/semanticRig.ts` `placementAnchor` now derives
-anchor positions from the declared Cube `from/to/origin/rotation` using a
-bounded, finite **single-axis** rotation about the existing Cube pivot.
-Zero-rotation output is preserved. The transform follows Blockbench's
-degree-based Cube rotation around its origin; single-axis semantics are
-independent of the currently selected Euler order. The same function is
-already consumed by semantic JOINT/CHAIN planning and mechanical HINGE,
-ROTATOR and SLIDER templates. No second rig planner or public MCP tool.
+The existing canonical `mcp/lib/animation/contactEvidence.ts` now treats
+an observed planted-marker drift above the declared tolerance as a review
+candidate **even when the supplied target follows the marker**. This
+closes a source-level false PASS for foot sliding. Existing `pair` and
+`fixed` behavior remains read-only and numerically diagnostic.
 
-Critical limitations are fail-closed: mixed-axis Euler rotations remain
-unsupported until the target format's transform ordering is proven;
-malformed/nonfinite geometry and angles beyond +/-360 degrees are rejected.
-The compiled Authoring Recipe does not encode native parent Group transforms,
-so these anchor results apply to the recipe's **unparented Cube space only**,
-not arbitrary existing Blockbench scene hierarchies. The implementation
-does not inspect/modify live Blockbench, alter existing saved pivots,
-promise transformed group pose playback, or infer hinge intent from names.
+Two optional input fields extend the same owner without creating a new
+MCP tool, Runtime sampler, registry, or stored asset state:
 
-`mcp/tests/semantic-rig-rotated-source.test.ts` now exercises X/Y/Z
-positive/negative rotations, off-center 45-degree pivot, JOINT/CHAIN
-propagation, immutable inputs, mixed-axis refusal and malformed values.
-`semantic-rig-mechanical.test.ts` exercises transformed hinge anchor.
+- `sampling_window` declares the expected time range and maximum
+  interval. Missing start/end coverage or excessive gaps yields
+  `unverified`, never a synthetic contact PASS.
+- `support_plane` declares a planted-marker contact surface, allowed
+  side and penetration tolerance. Penetration is recorded separately
+  from marker-to-target distance; the marker must represent an actual
+  contact point, not an inferred bone pivot.
 
-**Proof ceiling:** source and regression definitions on `Local`;
-isolated mathematical checks, where executed, are not Bun or native proof.
-Exact-commit Bun/typecheck and live Blockbench are **NOT EXECUTED**.
-The user cannot currently local-test. Do not ask for PC setup.
+Duplicate/nonfinite samples and invalid constraints are rejected rather
+than silently filtered to a good-looking subsequence. Observed drift,
+distance or penetration still surfaces as `review` even if temporal
+coverage is incomplete. Counts now distinguish `pass`, `review` and
+`unverified`, with bounded invalid-input evidence. Legacy callers
+without optional coverage fields keep existing numerical sample diagnostics.
+Result metadata explicitly preserves
+`sample_provenance=caller_supplied_not_native_attested`,
+`world_space_claim=caller_declared`, and
+`visual_verdict=not_evaluated`.
 
-**Next:** run the focused rig tests and typecheck in an available connected
-cloud worktree. Investigate any precise failure first; native rotated
-Cube/hinge evaluation remains deferred. The next independent source topic
-may be LD-Q04 sampled contact verification, but must be separately scoped.
+`mcp/tests/animation-contact-evidence.test.ts` retains the earlier
+three tests and adds ten focused cases for moving-target foot sliding,
+time coverage, sparse windows, floor/ceiling contact, duplicate/invalid
+samples, and source immutability.
 
-## Deferred: LD-Q02 native seam sampling and LD-Q01 live capture
+**Proof:** source implementation and test definitions on the exact
+`Local` commit; repository Bun/CI, real sampled native world
+transforms, in-game playback and visual quality have **NOT EXECUTED**.
+No user local testing is requested.
 
-LD-Q02 `analyzeCrossCubeSeamContinuity` remains source-only, with
-caller-provided world-edge samples and deliberate material/continuity
-matching. No native seam sampler or visual continuity acceptance has
-run. LD-Q01 changes through `65c261a` remain preserved, with native
-WebGL alpha, renderer restoration and reference-camera alignment
-`NOT EXECUTED`. Preserve these tests until a real cloud/native editor
-environment is available; do not route this work to the user's PC.
+**Next:** run targeted Bun tests and source typecheck when a connected
+cloud toolchain exists. For native sampling, use existing Blockbench
+Timeline / animated Group world-transform inspection only with
+a reversible, explicitly scoped reader and tested restoration. Never
+treat authored keyframe positions or caller supplied samples as
+native runtime/world-space evidence.
+
+## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
+
+The user cannot currently local-test. LD-Q01 silhouette captures,
+LD-Q02 real cross-Cube edge atlas sampling, and LD-Q03 rotated Cube
+pivot placement remain source-defined but **not native-accepted**.
+Their exact commits/tests are preserved; do not ask for a local
+checkout, local Blockbench, or installation as a prerequisite.
 
 Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 
