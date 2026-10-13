@@ -114,14 +114,29 @@ const compileOnlySingleReceiptSchema = z.object({
   action: z.literal("render_profile"),
   operation: z.enum(["set_slot", "assign", "unassign"]),
   write: z.null(),
+  slot: z.string().min(1).nullable().optional(),
+  render_controller: z.string().min(1).optional(),
+  bone_pattern: z.string().min(1).optional(),
 }).superRefine((receipt, ctx) => {
-  // A write-null flag without the actual operation identity is insufficient.
-  // The producer supplies a slot for set_slot/assign and a bone/controller
-  // target for assign/unassign.
-  if (receipt.operation === "set_slot" && !(
-    "slot" in receipt && typeof receipt.slot === "string" && receipt.slot.length > 0
-  )) {
-    ctx.addIssue({ code: "custom", path: ["slot"], message: "Compiled slot requires its identity." });
+  // Declare the native identity fields in the schema before validating them:
+  // Zod strips undeclared object keys before superRefine.
+  if (
+    (receipt.operation === "set_slot" || receipt.operation === "assign") &&
+    (typeof receipt.slot !== "string" || receipt.slot.length === 0)
+  ) {
+    ctx.addIssue({
+      code: "custom", path: ["slot"],
+      message: "Compiled material slot must identify the affected slot.",
+    });
+  }
+  if (
+    (receipt.operation === "assign" || receipt.operation === "unassign") &&
+    (!receipt.render_controller || !receipt.bone_pattern)
+  ) {
+    ctx.addIssue({
+      code: "custom", path: ["render_controller"],
+      message: "Compiled assignment must identify render controller and bone.",
+    });
   }
 });
 

@@ -96,6 +96,24 @@ describe("shared render-profile receipt contract", () => {
       ...compiledBind,
       client_entity_write: write,
     })).toBe(false);
+    expect(isRenderProfileNoWriteReceipt({
+      execution: "applied", action: "render_profile", operation: "set_slot",
+      slot: "default", write: null,
+    })).toBe(true);
+    expect(isRenderProfileNoWriteReceipt({
+      execution: "applied", action: "render_profile", operation: "assign",
+      slot: "default", render_controller: "controller.render.example",
+      bone_pattern: "body*", write: null,
+    })).toBe(true);
+    expect(isRenderProfileNoWriteReceipt({
+      execution: "applied", action: "render_profile", operation: "unassign",
+      slot: null, render_controller: "controller.render.example",
+      bone_pattern: "body*", write: null,
+    })).toBe(true);
+    expect(isRenderProfileNoWriteReceipt({
+      execution: "applied", action: "render_profile", operation: "assign",
+      slot: "default", write: null,
+    })).toBe(false);
     expect(isRenderProfileNoWriteReceipt({ execution: "read" })).toBe(false);
   });
 
