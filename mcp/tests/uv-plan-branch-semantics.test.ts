@@ -1,8 +1,34 @@
 import { describe, expect, test } from "bun:test";
 import { manifestEntryForBranch } from "@/gateway/capabilities/manifest";
 import { buildControlDelta } from "@/gateway/control";
+import { isUvUsablePlanReceipt } from "@/lib/uv/receipt";
 
 describe("UV plan/apply branch semantics", () => {
+  test("usable plan receipt requires both source identity and an unblocked report", () => {
+    const candidate = {
+      plan_id: "uvplan:" + "a".repeat(64),
+      source_fingerprint: "sha256:" + "b".repeat(64),
+      report: {
+        schema: 1,
+        execution: "planned",
+        apply_allowed: true,
+        hard_violations: [],
+      },
+    };
+    expect(isUvUsablePlanReceipt(candidate)).toBe(true);
+    expect(isUvUsablePlanReceipt({
+      ...candidate, report: {...candidate.report, apply_allowed: false},
+    })).toBe(false);
+    expect(isUvUsablePlanReceipt({
+      ...candidate, report: {...candidate.report, hard_violations: ["invalid UV"]},
+    })).toBe(false);
+    expect(isUvUsablePlanReceipt({...candidate, plan_id:"uvplan:malformed"}))
+      .toBe(false);
+    expect(isUvUsablePlanReceipt({
+      ...candidate, source_fingerprint: "sha256:broken",
+    })).toBe(false);
+  });
+
   test("plan is workflow CONTROL while apply is authored MUTATION", () => {
     expect(
       manifestEntryForBranch("manage_uv_layout", {

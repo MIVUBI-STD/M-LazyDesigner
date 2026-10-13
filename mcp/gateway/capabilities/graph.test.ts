@@ -65,7 +65,15 @@ describe("capability dependency graph", () => {
       facts,
       "manage_uv_layout",
       { operation: "plan" },
-      true
+      true,
+      {
+        plan_id: "uvplan:" + "a".repeat(64),
+        source_fingerprint: "sha256:" + "b".repeat(64),
+        report: {
+          schema: 1, execution: "planned",
+          apply_allowed: true, hard_violations: [],
+        },
+      }
     );
     expect(facts.uv_plan_available).toBe(true);
 
@@ -100,6 +108,44 @@ describe("capability dependency graph", () => {
     expect(evaluateCapabilityPreconditions(
       "manage_uv_layout", { field: "operation", value: "apply" }, facts
     ).eligibility).toBe("READY");
+  });
+
+  test("UV planning only promotes an available, applicable source-bound plan", () => {
+    const prior = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      geometry_available: true,
+    };
+    const valid = {
+      plan_id: "uvplan:" + "a".repeat(64),
+      source_fingerprint: "sha256:" + "b".repeat(64),
+      report: {
+        schema: 1, execution: "planned", apply_allowed: true,
+        hard_violations: [] as string[],
+      },
+    };
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_uv_layout", {operation:"plan"}, true, valid
+    ).uv_plan_available).toBe(true);
+
+    for (const result of [
+      undefined,
+      { ...valid, plan_id: "not-content-addressed" },
+      { ...valid, source_fingerprint: "unbound" },
+      { ...valid, report: {...valid.report, apply_allowed: false} },
+      { ...valid, report: {...valid.report, hard_violations: ["overlap"]} },
+    ]) {
+      const unresolved = applyCapabilityGraphOutcome(
+        prior, "manage_uv_layout", {operation:"plan"}, true, result
+      );
+      expect(unresolved.uv_plan_available).toBe("unknown");
+      expect(applyCapabilityGraphOutcome(
+        { ...prior, uv_plan_available: true },
+        "manage_uv_layout", {operation:"plan"}, true, result
+      ).uv_plan_available).toBe(true);
+    }
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_uv_layout", {operation:"plan"}, false, valid
+    )).toEqual(prior);
   });
 
   test("Cube creation never promotes missing or contradictory receipts to Geometry READY", () => {

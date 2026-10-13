@@ -4,6 +4,7 @@ import {
   isCubeCreationReceipt,
   isCubeNoChangeReceipt,
 } from "../../lib/receipts/cubeMutation";
+import { isUvUsablePlanReceipt } from "../../lib/uv/receipt";
 import {
   CAPABILITY_BRANCH_MANIFEST,
   manifestEntryForBranch,
@@ -161,6 +162,13 @@ export function applyCapabilityGraphOutcome(
       // ambiguous, not proof that geometry now exists. Preserve prior
       // confirmed existence, but revoke any stale known-absent assertion.
       if (previous.geometry_available !== true) next.geometry_available = "unknown";
+      continue;
+    }
+    if (capability === "manage_uv_layout" && branch?.value === "plan" &&
+        fact === "uv_plan_available" && !isUvUsablePlanReceipt(result)) {
+      // A missing, malformed, or blocked plan is not proof that apply can
+      // proceed. A prior usable plan is not invalidated by planning alone.
+      if (previous.uv_plan_available !== true) next.uv_plan_available = "unknown";
       continue;
     }
     next[fact] = true;

@@ -1,7 +1,28 @@
+import { z } from "zod";
 import type {
   UvLayoutPlan,
   UvLayoutReceipt,
 } from "@/lib/uv/contracts";
+
+/**
+ * A stored UV planning result is not necessarily eligible for apply.
+ * The Runtime registry and source fingerprint remain final authority at
+ * apply-time; this limited receipt is only an ephemeral Graph readiness hint.
+ */
+export const uvUsablePlanReceiptSchema = z.object({
+  plan_id: z.string().regex(/^uvplan:[a-f0-9]{64}$/),
+  source_fingerprint: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+  report: z.object({
+    schema: z.literal(1),
+    execution: z.literal("planned"),
+    apply_allowed: z.literal(true),
+    hard_violations: z.array(z.string()).length(0),
+  }),
+});
+
+export function isUvUsablePlanReceipt(value: unknown): boolean {
+  return uvUsablePlanReceiptSchema.safeParse(value).success;
+}
 
 export function buildUvLayoutReceipt(
   plan: UvLayoutPlan,
