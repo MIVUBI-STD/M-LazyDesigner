@@ -661,5 +661,7 @@ describe("Desktop pure status presentation", () => {
     expect(dto).toContain("project_navigation: ProjectNavigation");
     expect(presentation).not.toContain("invoke(");
     expect(presentation).not.toContain("ensure_ready");
+    expect(presentation).toContain("import type { Compatibility, ProductMode, SystemStatus }");
+    expect(presentation).not.toContain("type ProductMode =");
   });
 });
