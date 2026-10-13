@@ -499,6 +499,9 @@ describe("Desktop explicit Blockbench window focus", () => {
     expect(blockbench).toContain("GetWindowTextLengthW(window) <= 0");
     expect(blockbench).toContain("is_executable_name(path)");
     expect(blockbench).toContain('"AMBIGUOUS"');
+    expect(blockbench).toContain("fn unique_target<T: Copy>(windows: &[T])");
+    expect(blockbench).toContain("unique_target(&candidates.windows)");
+    expect(blockbench).toContain("unique_target::<usize>(&[])");
     expect(blockbench).toContain("if GetForegroundWindow() == target");
     expect(main).toContain("fn focus_blockbench_window()");
     expect(main).toContain("focus_blockbench_window,");

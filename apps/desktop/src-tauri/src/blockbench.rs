@@ -326,7 +326,7 @@ pub(crate) fn open() -> Result<BlockbenchActionResult, String> {
 
 #[cfg(windows)]
 mod window_focus {
-    use std::{collections::HashSet, ffi::c_void, ptr};
+    use std::{collections::HashSet, ffi::c_void};
 
     type Hwnd = *mut c_void;
     const GW_OWNER: u32 = 4;
@@ -367,6 +367,15 @@ mod window_focus {
         1
     }
 
+    // The same selection function is used by production and regression tests.
+    fn unique_target<T: Copy>(windows: &[T]) -> Result<T, &'static str> {
+        match windows {
+            [] => Err("NO_WINDOW"),
+            [window] => Ok(*window),
+            _ => Err("AMBIGUOUS"),
+        }
+    }
+
     pub(super) fn focus(allowed_pids: &HashSet<u32>) -> &'static str {
         let mut candidates = Candidates { allowed_pids, windows: Vec::new() };
         let listed = unsafe { EnumWindows(Some(collect_window), &mut candidates as *mut _ as isize) };
@@ -374,10 +383,9 @@ mod window_focus {
             return "UNKNOWN";
         }
         // Multiple Blockbench windows/profiles must not be guessed from ordering.
-        let target = match candidates.windows.as_slice() {
-            [] => return "NO_WINDOW",
-            [window] => *window,
-            _ => return "AMBIGUOUS",
+        let target = match unique_target(&candidates.windows) {
+            Ok(window) => window,
+            Err(reason) => return reason,
         };
         unsafe {
             if GetForegroundWindow() == target {
@@ -393,14 +401,9 @@ mod window_focus {
     mod tests {
         #[test]
         fn window_choice_must_be_unambiguous() {
-            let select = |count: usize| match count {
-                0 => "NO_WINDOW",
-                1 => "UNIQUE",
-                _ => "AMBIGUOUS",
-            };
-            assert_eq!(select(0), "NO_WINDOW");
-            assert_eq!(select(1), "UNIQUE");
-            assert_eq!(select(2), "AMBIGUOUS");
+            assert_eq!(super::unique_target::<usize>(&[]), Err("NO_WINDOW"));
+            assert_eq!(super::unique_target(&[11usize]), Ok(11));
+            assert_eq!(super::unique_target(&[11usize, 12]), Err("AMBIGUOUS"));
         }
     }
 }
