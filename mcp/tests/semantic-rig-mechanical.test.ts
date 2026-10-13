@@ -18,6 +18,21 @@ describe("mechanical rig templates", () => {
     expect(bone.origin).toEqual([2,4,0.5]);
   });
 
+  test("rotated mechanical hinge uses the transformed edge rather than the source bounds", () => {
+    const rotated = {
+      ...compiled,
+      placements: [{ ...compiled.placements[0]!, rotation: [0, 90, 0] as [number, number, number] }],
+    };
+    const hinge = compileMechanicalRigIntent(rotated, {
+      kind: "HINGE", id: "rotated_hinge", name: "rotated_hinge",
+      instance_id: "door", hinge_axis: "X", hinge_side: "MIN",
+    });
+    expect(hinge.origin[0]).toBeCloseTo(4, 10);
+    expect(hinge.origin[1]).toBeCloseTo(4, 10);
+    expect(hinge.origin[2]).toBeCloseTo(2.5, 10);
+    expect(hinge.source_instance_ids).toEqual(["door"]);
+  });
+
   test("uses center for rotator/slider foundations", () => {
     expect(compileMechanicalRigIntent(compiled, {
       kind:"ROTATOR", id:"wheel", name:"wheel", instance_id:"door", axis:"Z"

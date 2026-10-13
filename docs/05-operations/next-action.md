@@ -6,48 +6,50 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active development: LD-Q02 — cross-Cube seam continuity (source only)
+## Active development: LD-Q03 — single-axis rotated Cube pivots
 
-`mcp/lib/texture/seamContinuity.ts` now also owns
-`analyzeCrossCubeSeamContinuity`. The previous intra-Cube analyzer and its
-contract are retained unchanged. The new pure analyzer compares only two
-physically matching, same-facing Cube edge sample streams with explicitly
-declared `REQUIRED` continuity, matching non-empty surface/material IDs,
-and equal sample counts. Intentional material boundaries, unknown intent,
-different world normals, T-junctions, incomplete edges and ambiguous
-multi-edge groups are excluded or reported as unresolved rather than
-silently classified as defects.
+The canonical `mcp/lib/rig/semanticRig.ts` `placementAnchor` now derives
+anchor positions from the declared Cube `from/to/origin/rotation` using a
+bounded, finite **single-axis** rotation about the existing Cube pivot.
+Zero-rotation output is preserved. The transform follows Blockbench's
+degree-based Cube rotation around its origin; single-axis semantics are
+independent of the currently selected Euler order. The same function is
+already consumed by semantic JOINT/CHAIN planning and mechanical HINGE,
+ROTATOR and SLIDER templates. No second rig planner or public MCP tool.
 
-RGB contrast only evaluates samples with nonzero alpha on both faces;
-one-sided alpha discontinuity remains a separate advisory signal.
-The output retains `visual_verdict=not_evaluated`,
-`native_sampling_attested=false`, and
-`scene_coverage_attested=false`, with bounded examples and explicit
-exclusion counts. This has **no new Gateway tool, no persistence, no
-native mutation, and no automatic visual PASS/FAIL**.
+Critical limitations are fail-closed: mixed-axis Euler rotations remain
+unsupported until the target format's transform ordering is proven;
+malformed/nonfinite geometry and angles beyond +/-360 degrees are rejected.
+The compiled Authoring Recipe does not encode native parent Group transforms,
+so these anchor results apply to the recipe's **unparented Cube space only**,
+not arbitrary existing Blockbench scene hierarchies. The implementation
+does not inspect/modify live Blockbench, alter existing saved pivots,
+promise transformed group pose playback, or infer hinge intent from names.
 
-The existing `texture-seam-continuity.test.ts` contains four prior
-intra-Cube tests plus eleven additional cross-Cube regressions covering
-matching/reversed edges, intentional boundaries, normal mismatch, sampling,
-T-junctions, ambiguous groups, invisible RGB, alpha-only gaps and input
-budgets. An isolated Node behavior harness exercised eight representative
-cross-Cube checks, **not** the Bun suite or current installed Blockbench.
+`mcp/tests/semantic-rig-rotated-source.test.ts` now exercises X/Y/Z
+positive/negative rotations, off-center 45-degree pivot, JOINT/CHAIN
+propagation, immutable inputs, mixed-axis refusal and malformed values.
+`semantic-rig-mechanical.test.ts` exercises transformed hinge anchor.
 
-**Next source proof:** execute the exact-SHA focused Bun test and TypeScript
-check in an authorized cloud environment, and inspect its first real error.
-**Later native proof:** use the existing focused texture/UV evidence owner to
-supply genuine world edge coordinates, atlas RGBA samples, material identity
-and source revision for a representative shared-surface pair. Do not claim
-live measured seam quality from synthetic fixtures.
+**Proof ceiling:** source and regression definitions on `Local`;
+isolated mathematical checks, where executed, are not Bun or native proof.
+Exact-commit Bun/typecheck and live Blockbench are **NOT EXECUTED**.
+The user cannot currently local-test. Do not ask for PC setup.
 
-## Deferred: LD-Q01 native acceptance
+**Next:** run the focused rig tests and typecheck in an available connected
+cloud worktree. Investigate any precise failure first; native rotated
+Cube/hinge evaluation remains deferred. The next independent source topic
+may be LD-Q04 sampled contact verification, but must be separately scoped.
 
-User cannot currently perform a local/native test. LD-Q01 changes through
-`65c261a` remain preserved; no request for user-PC installation, clone
-or testing. The native renderer, transparent PNG/coverage and
-reference-camera pairing remain **NOT EXECUTED**. Resume only when a real
-cloud or native Blockbench execution environment becomes available, while
-continuing independent source work.
+## Deferred: LD-Q02 native seam sampling and LD-Q01 live capture
+
+LD-Q02 `analyzeCrossCubeSeamContinuity` remains source-only, with
+caller-provided world-edge samples and deliberate material/continuity
+matching. No native seam sampler or visual continuity acceptance has
+run. LD-Q01 changes through `65c261a` remain preserved, with native
+WebGL alpha, renderer restoration and reference-camera alignment
+`NOT EXECUTED`. Preserve these tests until a real cloud/native editor
+environment is available; do not route this work to the user's PC.
 
 Pre-localtest hardening (2026-10-11): `58fa7b9` closes twelve orphan Gateway test files in the full source gate using directory discovery. `d5e8862` moves Runtime URL parsing to the shared connection owner, removing the native Plugin's Gateway-barrel dependency without changing parsing behavior. Earlier Stage/type and process-global queue fixes also remain source-only until verified at the **current exact Local SHA**. No installed Blockbench, long-session, compiler or CI PASS is recorded.
 

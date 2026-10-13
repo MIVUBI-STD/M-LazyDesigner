@@ -45,36 +45,75 @@ function placementById(compiled: CompiledAuthoringRecipe): Map<string, CompiledC
   return new Map(compiled.placements.map((placement) => [placement.id, placement]));
 }
 
-function hasRotation(placement: CompiledCubePlacement): boolean {
-  return placement.rotation.some((value) => Math.abs(value) > 1e-9);
-}
+const ROTATION_EPSILON_DEGREES = 1e-9;
 
-function requireUnrotatedAnchorSource(placement: CompiledCubePlacement): void {
-  if (hasRotation(placement)) {
-    throw new Error(
-      "Semantic rig geometry-derived pivots currently require unrotated source geometry. Instance " +
-        placement.id +
-        " is rotated; transformed-anchor semantics must be explicit before deriving a joint."
-    );
+/**
+ * Authoring Recipes describe an unparented Cube's own from/to/origin/rotation,
+ * not a native Blockbench parent Group matrix. Single-axis Cube rotation has
+ * the same geometric meaning regardless of the format's Euler order; a mixed-
+ * axis rotation needs a format-bound Euler contract and remains unsupported.
+ */
+function finitePlacementVec3(
+  value: readonly number[],
+  label: string
+): asserts value is RecipeVec3 {
+  if (!Array.isArray(value) || value.length !== 3 ||
+      value.some((entry) => !Number.isFinite(entry))) {
+    throw new Error("Semantic rig " + label + " requires three finite coordinates.");
   }
 }
 
 function anchorValue(min: number, max: number, anchor: RigAnchor): number {
   if (anchor === "MIN") return min;
   if (anchor === "MAX") return max;
-  return (min + max) / 2;
+  if (anchor === "CENTER") return min + (max - min) / 2;
+  throw new Error("Semantic rig anchor must be MIN, CENTER or MAX.");
 }
 
 export function placementAnchor(
   placement: CompiledCubePlacement,
   anchor: readonly [RigAnchor, RigAnchor, RigAnchor]
 ): RecipeVec3 {
-  requireUnrotatedAnchorSource(placement);
-  return [
+  finitePlacementVec3(placement.from, "from");
+  finitePlacementVec3(placement.to, "to");
+  finitePlacementVec3(placement.origin, "origin");
+  finitePlacementVec3(placement.rotation, "rotation");
+  if (anchor.length !== 3) {
+    throw new Error("Semantic rig anchor requires exactly three axes.");
+  }
+  const source: RecipeVec3 = [
     anchorValue(placement.from[0], placement.to[0], anchor[0]),
     anchorValue(placement.from[1], placement.to[1], anchor[1]),
     anchorValue(placement.from[2], placement.to[2], anchor[2]),
   ];
+  const rotatedAxes = placement.rotation
+    .map((degrees, axis) => ({ degrees, axis }))
+    .filter(({ degrees }) => Math.abs(degrees) > ROTATION_EPSILON_DEGREES);
+  if (rotatedAxes.length === 0) return source;
+  if (rotatedAxes.length !== 1) {
+    throw new Error(
+      "Semantic rig transformed-anchor semantics require a single-axis " +
+      "Cube rotation; multi-axis Euler order needs explicit native format proof."
+    );
+  }
+  const { degrees, axis } = rotatedAxes[0]!;
+  const radians = degrees * Math.PI / 180;
+  if (!Number.isFinite(radians) || Math.abs(degrees) > 360) {
+    throw new Error("Semantic rig rotation angle is outside finite transform range.");
+  }
+  const cosine = Math.cos(radians);
+  const sine = Math.sin(radians);
+  const [ox, oy, oz] = placement.origin;
+  const dx = source[0] - ox, dy = source[1] - oy, dz = source[2] - oz;
+  const transformed: RecipeVec3 = axis === 0
+    ? [source[0], oy + cosine * dy - sine * dz, oz + sine * dy + cosine * dz]
+    : axis === 1
+      ? [ox + cosine * dx + sine * dz, source[1], oz - sine * dx + cosine * dz]
+      : [ox + cosine * dx - sine * dy, oy + sine * dx + cosine * dy, source[2]];
+  if (transformed.some((entry) => !Number.isFinite(entry))) {
+    throw new Error("Semantic rig transformed anchor is not finite.");
+  }
+  return transformed;
 }
 
 function placementCenter(placement: CompiledCubePlacement): RecipeVec3 {
