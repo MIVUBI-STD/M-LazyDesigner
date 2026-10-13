@@ -227,6 +227,25 @@ describe("LazyDesigner Control minimum invalidation", () => {
     }
   });
 
+  test("incomplete Cube preview receipts cannot suppress invalidation", () => {
+    const malformed = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: { execution: "planned" }, // Native preview must report updates.
+    });
+    expect(malformed.freshness.basis).not.toBe("NO_CHANGE");
+    expect(malformed.freshness.stale).toContain("UV_MAPPING");
+
+    const contradictory = buildControlDelta({
+      capability: "manage_cubes",
+      phaseBefore: "geometry", phaseAfter: "geometry",
+      projectUuid: "project-a", succeeded: true,
+      result: { execution: "unchanged", updates: [{id:"cube-a"}] },
+    });
+    expect(contradictory.freshness.basis).not.toBe("NO_CHANGE");
+  });
+
   test("planned or unchanged cube simplify operations preserve state and skip visual verification", () => {
     for (const execution of ["planned", "unchanged"] as const) {
       const delta = buildControlDelta({

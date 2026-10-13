@@ -3,6 +3,8 @@ import {
   cubeChangedFieldsFromResult,
   cubeGeometryEffect,
   cubeGeometryEffectSchema,
+  cubeCreationReceiptSchema,
+  isCubeCreationReceipt,
   cubeSemanticScopesFromChangedFields,
   isCubeNoChangeReceipt,
   cubeVisualScope,
@@ -67,10 +69,35 @@ describe("shared Cube mutation receipt contract", () => {
     ).toThrow();
   });
 
+  test("created-Cube evidence needs exact count, identities and finite geometry", () => {
+    const one = {
+      uuid: "cube-a", name: "body",
+      from: [0, 0, 0], to: [2, 2, 2],
+    };
+    expect(isCubeCreationReceipt({
+      execution: "applied", added: 1, cubes: [one],
+      visual_scope: null,
+    })).toBe(true);
+    expect(isCubeCreationReceipt({
+      execution: "applied", added: 2, cubes: [one],
+    })).toBe(false);
+    expect(isCubeCreationReceipt({
+      execution: "applied", added: 2, cubes: [one, one],
+    })).toBe(false);
+    expect(isCubeCreationReceipt({
+      execution: "applied", added: 1, cubes: [{...one, to: [Infinity, 2, 2]}],
+    })).toBe(false);
+    expect(cubeCreationReceiptSchema.safeParse({execution:"applied"}).success)
+      .toBe(false);
+  });
+
   test("shared Cube no-op receipt refuses contradictory authored effects", () => {
     expect(isCubeNoChangeReceipt({execution:"planned",updates:[]})).toBe(true);
     expect(isCubeNoChangeReceipt({execution:"unchanged",updates:[]})).toBe(true);
     expect(isCubeNoChangeReceipt({execution:"applied",updates:[]})).toBe(false);
+    expect(isCubeNoChangeReceipt({execution:"planned"})).toBe(false);
+    expect(isCubeNoChangeReceipt({execution:"unchanged",updates:[{id:"cube-a"}]})).toBe(false);
+    expect(isCubeNoChangeReceipt({execution:"planned",updates:[{}]})).toBe(false);
     expect(isCubeNoChangeReceipt({
       execution:"unchanged",geometry_effect:{changed_fields:["rotation"]},
     })).toBe(false);

@@ -32,6 +32,54 @@ export const cubeVisualScopeSchema = z.object({
   }),
 });
 
+/**
+ * Minimum native identity/geometry proof for a completed Cube creation.
+ * Visual scope is intentionally optional: Blockbench may be unable to frame
+ * the geometry even when the authored Cube is present.
+ */
+export const cubeCreationReceiptSchema = z.object({
+  execution: z.literal("applied"),
+  added: z.number().int().positive(),
+  cubes: z.array(z.object({
+    uuid: z.string().min(1),
+    name: z.string().min(1),
+    from: vector3Schema,
+    to: vector3Schema,
+  })).min(1),
+}).superRefine((receipt, context) => {
+  if (receipt.added !== receipt.cubes.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["added"],
+      message: "Created Cube count must match the reported native Cube identities.",
+    });
+  }
+  if (new Set(receipt.cubes.map(cube => cube.uuid)).size !== receipt.cubes.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["cubes"],
+      message: "Created Cube identities must be unique.",
+    });
+  }
+});
+
+export function isCubeCreationReceipt(value: unknown): boolean {
+  return cubeCreationReceiptSchema.safeParse(value).success;
+}
+
+export const cubeNoChangeReceiptSchema = z.strictObject({
+  execution: z.enum(["planned", "unchanged"]),
+  updates: z.array(z.object({ id: z.string().min(1) }).passthrough()),
+}).superRefine((receipt, context) => {
+  if (receipt.execution === "unchanged" && receipt.updates.length !== 0) {
+    context.addIssue({
+      code: "custom",
+      path: ["updates"],
+      message: "Unchanged simplification cannot contain pending corrections.",
+    });
+  }
+});
+
 export function cubeGeometryEffect<T extends Record<string, unknown>>(
   effect: T
 ): T {
@@ -46,16 +94,9 @@ export function cubeVisualScope<T extends Record<string, unknown>>(
   return scope;
 }
 
-/** Canonical flat native receipt classifier; it never guesses image quality. */
+/** Source-verified simplify preview; a label alone is never no-change proof. */
 export function isCubeNoChangeReceipt(value: unknown): boolean {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const receipt = value as Record<string, unknown>;
-  if (receipt.execution !== "planned" && receipt.execution !== "unchanged") {
-    return false;
-  }
-  // Simplify previews carry proposed updates, but no authored effect receipt.
-  return !["geometry_effect", "effects", "visual_scope", "after", "added", "modified"]
-    .some(key => Object.prototype.hasOwnProperty.call(receipt, key));
+  return cubeNoChangeReceiptSchema.safeParse(value).success;
 }
 
 export function cubeChangedFieldsFromResult(value: unknown): string[] {

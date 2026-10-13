@@ -50,7 +50,13 @@ describe("capability dependency graph", () => {
       facts,
       "manage_cubes",
       { operation: "create" },
-      true
+      true,
+      {
+        execution: "applied",
+        added: 1,
+        cubes: [{ uuid: "cube-a", name: "body", from: [0, 0, 0], to: [2, 2, 2] }],
+        visual_scope: null,
+      }
     );
     expect(facts.geometry_available).toBe(true);
     expect(facts.uv_layout_current).toBe(false);
@@ -96,6 +102,47 @@ describe("capability dependency graph", () => {
     ).eligibility).toBe("READY");
   });
 
+  test("Cube creation never promotes missing or contradictory receipts to Geometry READY", () => {
+    const previous = seedCapabilityFacts({ projectBound: true });
+    const valid = {
+      execution: "applied",
+      added: 1,
+      cubes: [{ uuid: "cube-a", name: "body", from: [0, 0, 0], to: [1, 1, 1] }],
+      visual_scope: null, // Capture availability is not native existence proof.
+    };
+    const created = applyCapabilityGraphOutcome(
+      previous, "manage_cubes", { operation: "create" }, true, valid
+    );
+    expect(created.geometry_available).toBe(true);
+    expect(created.uv_layout_current).toBe(false);
+
+    for (const result of [
+      undefined,
+      { execution: "applied", added: 1, cubes: [] },
+      { execution: "applied", added: 2, cubes: valid.cubes },
+      { execution: "applied", added: 2, cubes: [valid.cubes[0], valid.cubes[0]] },
+    ]) {
+      const unresolved = applyCapabilityGraphOutcome(
+        previous, "manage_cubes", { operation: "create" }, true, result
+      );
+      expect(unresolved.geometry_available).toBe("unknown");
+      expect(unresolved.uv_layout_current).toBe(false);
+      const knownAbsent = applyCapabilityGraphOutcome(
+        { ...previous, geometry_available: false },
+        "manage_cubes", { operation: "create" }, true, result
+      );
+      expect(knownAbsent.geometry_available).toBe("unknown");
+      const knownPresent = applyCapabilityGraphOutcome(
+        { ...previous, geometry_available: true },
+        "manage_cubes", { operation: "create" }, true, result
+      );
+      expect(knownPresent.geometry_available).toBe(true);
+    }
+    expect(applyCapabilityGraphOutcome(
+      previous, "manage_cubes", { operation: "create" }, false, valid
+    )).toEqual(previous);
+  });
+
   test("Cube simplify dry runs preserve existing readiness facts", () => {
     const original = {
       ...seedCapabilityFacts({ projectBound: true }),
@@ -108,9 +155,14 @@ describe("capability dependency graph", () => {
     for (const execution of ["planned", "unchanged"] as const) {
       expect(applyCapabilityGraphOutcome(
         original, "manage_cubes", {operation:"simplify"}, true,
-        {execution, updates:[{id:"cube-a",from:[0,0,0]}]}
+        {execution, updates: execution === "planned"
+          ? [{id:"cube-a",from:[0,0,0]}] : []}
       )).toEqual(original);
     }
+    expect(applyCapabilityGraphOutcome(
+      original, "manage_cubes", {operation:"simplify"}, true,
+      {execution:"unchanged", updates:[{id:"cube-a",from:[0,0,0]}]}
+    ).uv_layout_current).toBe(false);
     expect(applyCapabilityGraphOutcome(
       original, "manage_cubes", {operation:"simplify"}, true,
       {execution:"applied",modified:1}

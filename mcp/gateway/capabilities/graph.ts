@@ -1,6 +1,7 @@
 import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
+  isCubeCreationReceipt,
   isCubeNoChangeReceipt,
 } from "../../lib/receipts/cubeMutation";
 import {
@@ -153,7 +154,17 @@ export function applyCapabilityGraphOutcome(
       !staleScopes.includes("TEXTURE_APPEARANCE")) continue;
     next[fact] = false;
   }
-  for (const fact of entry.produces ?? []) next[fact] = true;
+  for (const fact of entry.produces ?? []) {
+    if (capability === "manage_cubes" && branch?.value === "create" &&
+        fact === "geometry_available" && !isCubeCreationReceipt(result)) {
+      // A non-error MCP response without a native creation receipt is
+      // ambiguous, not proof that geometry now exists. Preserve prior
+      // confirmed existence, but revoke any stale known-absent assertion.
+      if (previous.geometry_available !== true) next.geometry_available = "unknown";
+      continue;
+    }
+    next[fact] = true;
+  }
   return next;
 }
 
