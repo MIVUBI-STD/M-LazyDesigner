@@ -115,6 +115,15 @@ removing wrong interpretation at its existing boundaries:
   `manage_material` and direct `save_material_config` no-op both require
   the existing typed material persistence receipt. Missing or contradictory
   persistence evidence is conservatively stale, not a proven NO_CHANGE.
+- `manage_render_profile` uses the requested canonical operation branch
+  together with source-owned zero-write receipts for compiled-only bind and
+  assignment. A mismatched `execution: "read"` response cannot suppress
+  invalidation of an authoring mutation. Actual inspect remains a QUERY with
+  `verification_class=not_applicable`.
+- Two legacy source-string tests were corrected to inspect the current
+  `gateway/execution/capabilityExecutor.ts` owner rather than the
+  compatibility-only `gateway/runtime/capabilityExecutor.ts` facade.
+  This is a source/test-representativeness correction, not an executed PASS.
 
 ### Capability Graph readiness — source correction
 

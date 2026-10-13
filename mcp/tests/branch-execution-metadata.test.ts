@@ -65,7 +65,7 @@ describe("branch execution metadata", () => {
   });
 
   test("Gateway executor derives branch before invocation continuation and suppresses query-branch delta", async () => {
-    const source = await Bun.file("gateway/runtime/capabilityExecutor.ts").text();
+    const source = await Bun.file("gateway/execution/capabilityExecutor.ts").text();
     expect(source).toContain("const branch = capabilityBranchFromArguments(args)");
     expect(source).toContain("manifestEntryForBranch(capability, branch)?.operationClass === \"QUERY\"");
     expect(source).toContain("const effectiveReadOnly = readOnly || branchReadOnly");

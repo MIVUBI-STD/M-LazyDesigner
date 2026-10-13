@@ -89,7 +89,7 @@ describe("render-profile branch semantics", () => {
 
     expect(delta.freshness.basis).toBe("NO_CHANGE");
     expect(delta.invalidates.authoring_domains).toEqual([]);
-    expect(delta.verification_class).toBe("receipt_only");
+    expect(delta.verification_class).toBe("not_applicable");
   });
 
   test("a mutation cannot claim no-op from a read receipt or contradictory operation", () => {
@@ -144,7 +144,7 @@ describe("render-profile branch semantics", () => {
   });
 
   test("Gateway branch-query optimization applies to render-profile inspect", async () => {
-    const source = await Bun.file("gateway/runtime/capabilityExecutor.ts").text();
+    const source = await Bun.file("gateway/execution/capabilityExecutor.ts").text();
     expect(source).toContain(
       'manifestEntryForBranch(capability, branch)?.operationClass === "QUERY"'
     );
