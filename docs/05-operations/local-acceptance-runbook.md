@@ -199,6 +199,77 @@ restart Desktop while Blockbench/Runtime are already healthy
 → state reconstructs correctly
 ```
 
+### Explicit Open / native foreground focus
+
+Run these on a disposable Windows Desktop installation built from the exact
+current `Local` SHA. Do not infer foreground success from a spawned process,
+the `ensure_ready` result, or a positive `SetForegroundWindow` return code.
+
+```text
+one visible Blockbench main window, currently behind LazyDesigner
+→ choose Open (or Open model)
+→ the explicit focus attempt targets only the Blockbench executable PID
+→ FOCUSED only if GetForegroundWindow matches that same window
+
+one minimized Blockbench main window
+→ choose Open
+→ restore is requested
+→ report FOCUSED only when the foreground window really matches
+
+Blockbench closed, then opened through ensure_ready
+→ no background-only focus action is attempted
+→ a window that is not yet discoverable returns a non-FOCUSED outcome
+→ the UI does not claim foreground success
+
+two eligible Blockbench windows (same or different profiles)
+→ AMBIGUOUS; never choose the first window or guess a project/profile
+
+another process with a window titled "Blockbench"
+→ never use that window as a candidate without Blockbench.exe PID identity
+
+no eligible Blockbench top-level window
+→ NO_WINDOW or NOT_RUNNING
+→ user can select Blockbench from the taskbar when it is actually running
+
+Windows denies foreground activation
+→ DENIED, not FOCUSED
+→ no forced process termination or window stealing retries
+
+opening a saved .bbmodel that is already open
+→ existing Blockbench project/tab behavior is inspected separately
+→ no duplicate tab and no unsaved change loss
+→ a foreground match alone is not evidence the model finished opening
+```
+
+Record the focus status returned by `focus_blockbench_window` in each relevant
+case, along with the foreground HWND/process identity where observable.
+`UNKNOWN` or a Windows-rejected focus request is **not** a proof PASS.
+The ordinary UI intentionally reports fallback guidance instead of pretending
+that it has confirmed the model tab. Never enable background focus polling.
+
+### Workspace interaction / accessibility
+
+At both 980×680 and 780×560, test navigation and action disclosures using
+keyboard-only input:
+
+```text
+search and expand a project → move to Support → return to Workspace
+→ search text, expansion and Workspace scroll remain in the UI session
+
+open the More actions disclosure with Enter/Space
+→ Tab/Shift+Tab visit the available action buttons
+→ Escape closes the disclosure and restores focus to its summary
+→ a pointer click outside closes the disclosure
+
+trigger Open model when its source file no longer exists
+→ no false claim that the model opened
+→ Blockbench project data is not changed by the Desktop
+
+repeated connection probes fail
+→ stale status is identified and unsafe-to-guess actions are disabled
+→ Refresh remains available
+```
+
 ### Recovery matrix
 
 Prove each applicable state independently:
@@ -280,7 +351,7 @@ open Model A
 
 open Model B in another Blockbench tab
 → Model B appears in the same Project
-→ non-active open model uses Switch, not duplicate Open
+→ non-active open model offers Open; the native existing-tab guard must prevent a duplicate
 
 switch A ↔ B in Blockbench
 → Desktop follows automatically without manual Refresh
@@ -297,7 +368,7 @@ close one model
 → its open state clears
 → recent saved navigation remains available
 
-click Switch for an already-open model
+click Open for an already-open model
 → Blockbench selects the existing tab
 → no duplicate project tab is created
 

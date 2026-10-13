@@ -531,3 +531,18 @@ describe("Desktop disclosure keyboard and focus contract", () => {
     expect(app).toContain("if (!menu.contains(target)) menu.open = false");
   });
 });
+
+describe("Desktop native acceptance runbook alignment", () => {
+  test("requires actual foreground proof, avoids outdated Switch labels and covers keyboard", async () => {
+    const runbook = await Bun.file("../docs/05-operations/local-acceptance-runbook.md").text();
+    expect(runbook).toContain("### Explicit Open / native foreground focus");
+    expect(runbook).toContain("GetForegroundWindow");
+    expect(runbook).toContain("AMBIGUOUS");
+    expect(runbook).toContain("DENIED, not FOCUSED");
+    expect(runbook).toContain("opening a saved .bbmodel that is already open");
+    expect(runbook).toContain("### Workspace interaction / accessibility");
+    expect(runbook).toContain("Escape closes the disclosure and restores focus");
+    expect(runbook).toContain("click Open for an already-open model");
+    expect(runbook).not.toContain("click Switch for an already-open model");
+  });
+});
