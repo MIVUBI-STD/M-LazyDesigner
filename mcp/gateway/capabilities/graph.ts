@@ -13,6 +13,7 @@ import {
 import {
   CAPABILITY_BRANCH_MANIFEST,
   manifestEntryForBranch,
+  nestedOperationClassForArguments,
   type CapabilityGraphSpec,
 } from "./manifest";
 import type {
@@ -132,6 +133,32 @@ export function applyCapabilityGraphOutcome(
   const branch = capabilityBranchFromArguments(args);
   const entry = capabilityGraphEntry(capability, branch);
   if (!entry) return previous;
+
+  if (capability === "manage_animation_timeline") {
+    // The same branch manifest controls both nested operation class and Graph
+    // readiness. Playback, selection and clipboard-only actions must never
+    // invalidate accepted visual evidence; native mutations must do so.
+    if (nestedOperationClassForArguments(capability, args) !== "MUTATION") {
+      return previous;
+    }
+
+    // The native timeline loop executor can return a successful, unchanged
+    // loop receipt. Require a matching requested action and resulting mode;
+    // a generic "changed: false" label cannot suppress other mutations.
+    if (branch?.value === "timeline" && args.action === "loop" &&
+        result && typeof result === "object" && !Array.isArray(result)) {
+      const receipt = result as Record<string, unknown>;
+      const animation = receipt.animation;
+      if (receipt.action === "loop" && receipt.changed === false &&
+          typeof args.loop_mode === "string" &&
+          receipt.loop_mode === args.loop_mode &&
+          animation && typeof animation === "object" && !Array.isArray(animation) &&
+          typeof (animation as Record<string, unknown>).uuid === "string" &&
+          ((animation as Record<string, unknown>).uuid as string).length > 0) {
+        return previous;
+      }
+    }
+  }
 
   // Native simplify dry-run and unchanged receipts mutate no authored state.
   // Reuse the same receipt meaning as Control; planned updates are not writes.

@@ -486,6 +486,79 @@ describe("capability dependency graph", () => {
     }
   });
 
+  test("real Animation timeline branches share native readiness requirements", () => {
+    const incomplete = {
+      project_bound: true as const, animation_available: false as const,
+    };
+    for (const operation of [
+      "keyframes", "graph", "timeline", "batch", "copy_paste", "properties",
+    ]) {
+      const blocked = evaluateCapabilityPreconditions(
+        "manage_animation_timeline",
+        { field: "operation", value: operation },
+        incomplete
+      );
+      expect(blocked.eligibility, operation).toBe("BLOCKED");
+      expect(blocked.missing, operation).toContain("animation_available");
+    }
+  });
+
+  test("native Animation timeline mutations invalidate old visual proof but controls do not", () => {
+    const prior = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      animation_available: true,
+      visual_evidence_current: true,
+    };
+    for (const args of [
+      { operation: "keyframes", action: "create" },
+      { operation: "graph", action: "smooth" },
+      { operation: "batch", batch_operation: "offset" },
+      { operation: "timeline", action: "set_length" },
+      { operation: "copy_paste", action: "paste" },
+      { operation: "properties", length: 2 },
+    ]) {
+      const updated = applyCapabilityGraphOutcome(
+        prior, "manage_animation_timeline", args, true,
+        { action: args.action ?? "properties" }
+      );
+      expect(updated.visual_evidence_current, args.operation).toBe(false);
+      expect(updated.animation_available).toBe(true);
+      expect(applyCapabilityGraphOutcome(
+        prior, "manage_animation_timeline", args, false
+      )).toEqual(prior);
+    }
+
+    for (const args of [
+      { operation: "timeline", action: "play" },
+      { operation: "timeline", action: "select_range" },
+      { operation: "timeline", action: "expand_bones" },
+      { operation: "copy_paste", action: "copy" },
+      { operation: "keyframes", action: "select" },
+    ]) {
+      expect(applyCapabilityGraphOutcome(
+        prior, "manage_animation_timeline", args, true,
+        { action: args.action }
+      )).toEqual(prior);
+    }
+
+    const loop = { operation: "timeline", action: "loop", loop_mode: "loop" };
+    const unchanged = {
+      action: "loop", changed: false,
+      animation: { uuid: "clip-a", name: "walk" }, loop_mode: "loop",
+    };
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_animation_timeline", loop, true, unchanged
+    )).toEqual(prior);
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_animation_timeline",
+      { ...loop, loop_mode: "once" }, true, unchanged
+    ).visual_evidence_current).toBe(false);
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_animation_timeline", loop, true,
+      { ...unchanged, action: "set_length" }
+    ).visual_evidence_current).toBe(false);
+  });
+
   test("animation timeline, effects and controllers invalidate previous visual evidence", () => {
     for (const capability of [
       "manage_animation_timeline",

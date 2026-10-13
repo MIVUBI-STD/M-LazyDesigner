@@ -54,6 +54,14 @@ export type CapabilityBranchManifestEntry = {
  *
  * Runtime executor schemas remain authoritative for validation.
  */
+// One readiness contract for every native timeline editing branch. Branch
+// input schemas and the nested action manifest remain the execution authority.
+const ANIMATION_TIMELINE_GRAPH: CapabilityGraphSpec = {
+  requires: ["project_bound", "animation_available"],
+  produces: ["animation_available"],
+  invalidates: ["visual_evidence_current"],
+};
+
 const CAPABILITY_BRANCH_SPECS: readonly Omit<
   CapabilityBranchManifestEntry,
   "id"
@@ -494,8 +502,15 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "keyframes" },
+    graph: ANIMATION_TIMELINE_GRAPH,
     schemaFields: ["operation", "animation_id", "action", "bone_name", "channel", "keyframes"],
     operationClass: "MUTATION",
+    nestedActions: {
+      select: "CONTROL",
+      create: "MUTATION",
+      edit: "MUTATION",
+      delete: "MUTATION",
+    },
     semantic: {
       intents: ["edit animation keyframes", "add or remove keyframes"],
       nouns: ["animation", "keyframe", "bone", "channel"],
@@ -505,6 +520,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "graph" },
+    graph: ANIMATION_TIMELINE_GRAPH,
     schemaFields: ["operation", "animation_id", "bone_name", "channel", "axis", "action", "keyframe_range", "custom_curve"],
     operationClass: "MUTATION",
     semantic: {
@@ -516,6 +532,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "timeline" },
+    graph: ANIMATION_TIMELINE_GRAPH,
     schemaFields: ["operation", "animation_id", "action", "time", "length", "fps", "loop_mode", "range", "molang", "easing", "bone_ids"],
     nestedActions: {
       select: "CONTROL",
@@ -542,6 +559,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "batch" },
+    graph: ANIMATION_TIMELINE_GRAPH,
     schemaFields: ["operation", "animation_id", "batch_operation", "selection", "range", "pattern", "parameters"],
     operationClass: "MUTATION",
     semantic: {
@@ -553,6 +571,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "copy_paste" },
+    graph: ANIMATION_TIMELINE_GRAPH,
     schemaFields: ["operation", "action", "source", "target"],
     nestedActions: {
       copy: "CONTROL",
@@ -569,6 +588,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
   {
     capability: "manage_animation_timeline",
     branch: { field: "operation", value: "properties" },
+    graph: ANIMATION_TIMELINE_GRAPH,
     schemaFields: [
       "operation", "animation_id", "length", "fps", "loop_mode",
       "anim_time_update", "blend_weight", "start_delay", "loop_delay",
@@ -671,11 +691,7 @@ const CAPABILITY_BRANCH_SPECS: readonly Omit<
       nouns: ["animation", "timeline", "keyframe", "easing", "bone"],
       verbs: ["edit", "add", "change", "animate"],
     },
-    graph: {
-      requires: ["project_bound", "animation_available"],
-      produces: ["animation_available"],
-      invalidates: ["visual_evidence_current"],
-    },
+    graph: ANIMATION_TIMELINE_GRAPH,
   },
   {
     capability: "manage_animation_effects",
