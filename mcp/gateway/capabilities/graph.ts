@@ -1,3 +1,4 @@
+import { isTextureCreationReceipt } from "../../lib/receipts/textureCreation";
 import {
   cubeChangedFieldsFromResult,
   cubeSemanticScopesFromChangedFields,
@@ -165,6 +166,14 @@ export function applyCapabilityGraphOutcome(
       // ambiguous, not proof that geometry now exists. Preserve prior
       // confirmed existence, but revoke any stale known-absent assertion.
       if (previous.geometry_available !== true) next.geometry_available = "unknown";
+      continue;
+    }
+    if (capability === "create_texture" &&
+        fact === "texture_available" && !isTextureCreationReceipt(result)) {
+      // The tool can complete without proving a usable native texture.
+      // Missing receipt is not permission to promote a known-absent state.
+      // Already-confirmed texture existence remains true.
+      if (previous.texture_available !== true) next.texture_available = "unknown";
       continue;
     }
     if (capability === "manage_uv_layout" && branch?.value === "plan" &&

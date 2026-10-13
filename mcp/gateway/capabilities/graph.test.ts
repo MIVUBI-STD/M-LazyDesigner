@@ -211,6 +211,54 @@ describe("capability dependency graph", () => {
     )).toEqual(prior);
   });
 
+  test("create_texture only promotes existence from its actual native inventory receipt", () => {
+    const baseline = seedCapabilityFacts({ projectBound: true });
+    const reported = {
+      texture: {
+        uuid: "texture-a",
+        name: "base.png",
+        bitmap: { width: 64, height: 64 },
+      },
+    };
+
+    for (const type of ["blank", "template"] as const) {
+      const created = applyCapabilityGraphOutcome(
+        baseline, "create_texture", { type }, true, reported
+      );
+      expect(created.texture_available).toBe(true);
+      expect(created.visual_evidence_current).toBe(false);
+
+      for (const partial of [
+        undefined,
+        { success: true },
+        { texture: { name: "base.png" } },
+        { texture: { uuid: "texture-a", name: "base.png",
+          bitmap: { width: 0, height: 64 } } },
+      ]) {
+        const unresolved = applyCapabilityGraphOutcome(
+          baseline, "create_texture", { type }, true, partial
+        );
+        expect(unresolved.texture_available).toBe("unknown");
+        expect(unresolved.visual_evidence_current).toBe(false);
+
+        const priorAbsent = applyCapabilityGraphOutcome(
+          { ...baseline, texture_available: false },
+          "create_texture", { type }, true, partial
+        );
+        expect(priorAbsent.texture_available).toBe("unknown");
+
+        const priorPresent = applyCapabilityGraphOutcome(
+          { ...baseline, texture_available: true },
+          "create_texture", { type }, true, partial
+        );
+        expect(priorPresent.texture_available).toBe(true);
+      }
+      expect(applyCapabilityGraphOutcome(
+        baseline, "create_texture", { type }, false, reported
+      )).toEqual(baseline);
+    }
+  });
+
   test("Cube creation never promotes missing or contradictory receipts to Geometry READY", () => {
     const previous = seedCapabilityFacts({ projectBound: true });
     const valid = {

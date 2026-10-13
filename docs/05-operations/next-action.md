@@ -123,6 +123,10 @@ authoring evidence:
 - `manage_cubes.create` only promotes `geometry_available` when the Cube
   creation receipt has a coherent positive count, unique UUIDs, and finite
   native geometry. The visual framing scope may legitimately be unavailable.
+- `create_texture` only promotes `texture_available` after an actual
+  native texture inventory receipt supplies its UUID, name and valid bitmap
+  dimensions; incomplete success is UNKNOWN unless previous existence was
+  independently established. This is not proof of painting/UV visual quality.
 - `manage_cubes.simplify` plans/unchanged results require the actual
   source-shaped dry-run receipt; `NO_CHANGE` cannot be claimed from a label.
 - `manage_uv_layout.plan` only promotes `uv_plan_available` with a
