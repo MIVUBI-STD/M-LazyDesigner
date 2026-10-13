@@ -611,3 +611,55 @@ describe("Desktop small-text contrast", () => {
       .toBeGreaterThan(contrast(token("muted-2"), token("surface-3")));
   });
 });
+
+describe("Desktop pure status presentation", () => {
+  test("preserves all canonical product headlines and compatibility labels", async () => {
+    const { productHeadline, productMessage, compatibilityLabel } = await import("../../../apps/desktop/src/desktopPresentation");
+    for (const [mode, headline] of [
+      ["welcome", "Welcome to LazyDesigner"], ["security-setup", "Finish setup"],
+      ["unsupported", "Blockbench version not supported"], ["ready-start", "Ready to start"],
+      ["plugin-setup", "Connect LazyDesigner to Blockbench"],
+      ["client-wait", "Blockbench ready"], ["ready", "Ready to use"],
+      ["attention", "Action required"],
+    ] as const) {
+      expect(productHeadline({ product_state: mode } as never)).toBe(headline);
+    }
+    expect(productMessage({ product_state: "attention", readiness: { summary: "Rust summary" } } as never)).toBe("Rust summary");
+    expect(compatibilityLabel("compatible-unverified")).toBe("Compatible · unverified");
+    expect(compatibilityLabel(undefined)).toBe("Unavailable");
+  });
+
+  test("keeps plugin approval, mismatch, and security guidance precedence", async () => {
+    const { productGuidance } = await import("../../../apps/desktop/src/desktopPresentation");
+    const status = (mode: string, patch: Record<string, unknown> = {}) => ({
+      product_state: mode, bootstrap_available: true,
+      maintenance: { setup_tls: true, blocked_reason: null },
+      runtime_endpoint_match: null, plugin_integrity: "ready",
+      gateway: { action: null }, blockbench: { diagnostic: null }, diagnostic: null,
+      ...patch,
+    });
+    expect(productGuidance(status("plugin-setup", { runtime_endpoint_match: false }) as never, true)).toContain("different local connection settings");
+    expect(productGuidance(status("plugin-setup") as never, true)).toContain("one-time approval");
+    expect(productGuidance(status("welcome", { bootstrap_available: false }) as never, false)).toContain("does not contain");
+    expect(productGuidance(status("security-setup", { maintenance: { setup_tls: false, blocked_reason: "Busy runtime" } }) as never, false)).toBe("Busy runtime");
+    expect(productGuidance(status("attention", { plugin_integrity: "modified" }) as never, false)).toContain("modified");
+    expect(productGuidance(status("attention", { gateway: { action: "Reconnect" } }) as never, false)).toBe("Reconnect");
+    expect(productGuidance(status("ready") as never, false)).toBeNull();
+  });
+
+  test("delegates IPC types and display-only mapping out of App.svelte", async () => {
+    const [svelte, dto, presentation] = await Promise.all([
+      Bun.file("../apps/desktop/src/App.svelte").text(),
+      Bun.file("../apps/desktop/src/desktopTypes.ts").text(),
+      Bun.file("../apps/desktop/src/desktopPresentation.ts").text(),
+    ]);
+    expect(svelte).toContain("from './desktopTypes'");
+    expect(svelte).toContain("from './desktopPresentation'");
+    expect(svelte).not.toContain("type SystemStatus =");
+    expect(svelte).not.toContain("function productHeadline(");
+    expect(svelte).toContain("productGuidance(status, pluginApprovalNeeded)");
+    expect(dto).toContain("project_navigation: ProjectNavigation");
+    expect(presentation).not.toContain("invoke(");
+    expect(presentation).not.toContain("ensure_ready");
+  });
+});

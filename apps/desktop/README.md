@@ -584,3 +584,13 @@ menu navigation. `Tab` / `Shift+Tab` move through visible actions. `Escape`
 closes open action disclosures and returns focus to the triggering summary
 when focus is inside it. Pointer interaction outside a disclosure closes it.
 Native dropdown and keyboard acceptance still require a Tauri/Windows run.
+
+### Desktop presentation ownership
+
+`src/desktopTypes.ts` holds the existing serialized Rust/Tauri data types.
+`src/desktopPresentation.ts` holds pure user-facing labels and contextual
+guidance derived from canonical Rust product state. Plugin approval is passed
+as a presentation-only input, not re-derived as another readiness policy.
+Neither module owns IPC calls, stored project state, Gateway lifecycle, or
+managed maintenance. The original messages, Tauri commands and Workspace
+interactions remain in place; only their source ownership changes.

@@ -4,140 +4,14 @@
   import { onDestroy, onMount, tick } from 'svelte';
   import ProjectNavigator from './ProjectNavigator.svelte';
   import { connectionChanged } from './connectionWatch';
-  import type { ProjectAction, ProjectNavigation } from './projectNavigationTypes';
-
-  type Compatibility = {
-    status: 'validated' | 'compatible-unverified' | 'review-required' | 'unsupported' | 'invalid';
-    minimum_version: string;
-    review_boundary_version: string;
-    source_type_baseline: string;
-    live_validated: boolean;
-  };
-
-  type BlockbenchState = {
-    running: boolean;
-    version: string | null;
-    compatibility: Compatibility | null;
-    diagnostic: string | null;
-  };
-
-  type ManagedStatus = {
-    schema: number;
-    installed: { source_sha: string } | null;
-    pending: boolean;
-    gateway_active: boolean;
-    runtime_online: boolean;
-    runtime_url: string;
-    tls_ready: boolean;
-    tls_error: string | null;
-    rollback?: { available: boolean; previous_source_sha: string | null; transaction: string | null };
-  };
-
-  type MaintenanceAvailability = {
-    update: boolean;
-    rollback: boolean;
-    repair: boolean;
-    recover: boolean;
-    setup_tls: boolean;
-    blocked_reason: string | null;
-  };
-
-  type GatewaySupervision = {
-    ownership: 'client-owned';
-    state: 'healthy' | 'waiting-runtime' | 'client-disconnected' | 'runtime-offline' | 'idle' | 'unknown';
-    action: string | null;
-  };
-
-  type ReadinessProjection = {
-    state: 'ready' | 'ready-to-start' | 'needs-connection' | 'needs-attention' | 'setup-required';
-    summary: string;
-    ready: boolean;
-  };
-
-  type ConnectionStatus = {
-    schema: number;
-    observed_at_unix_ms: number;
-    blockbench_running: boolean;
-    runtime_listener_live: boolean;
-    gateway_active: boolean | null;
-    plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
-    project_revision: string | null;
-    project_session_live: boolean;
-  };
-
-  type SystemStatus = {
-    schema: number;
-    product_state: ProductMode;
-    plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
-    observed_at_unix_ms: number;
-    readiness: ReadinessProjection;
-    blockbench: BlockbenchState;
-    gateway: GatewaySupervision;
-    maintenance: MaintenanceAvailability;
-    manager_available: boolean;
-    bootstrap_available: boolean;
-    runtime_listener_live: boolean;
-    runtime_endpoint_match: boolean | null;
-    runtime_ready: boolean;
-    managed: ManagedStatus | null;
-    project_navigation: ProjectNavigation;
-    diagnostic: string | null;
-  };
-
-  type PluginFileActionResult = {
-    status: 'SHOWN';
-  };
-
-  type BootstrapActionResult = {
-    action: 'install';
-    receipt: Record<string, unknown>;
-  };
-
-  type ManagedActionResult = {
-    action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls';
-    receipt: Record<string, unknown>;
-  };
-
-  type ManagedUpdateCheck = {
-    status: 'NOT_INSTALLED' | 'UP_TO_DATE' | 'UPDATE_AVAILABLE' | 'UPDATE_STAGED';
-    installed_source_sha: string | null;
-    available_source_sha: string | null;
-    tag: string | null;
-    published_at: string | null;
-  };
-
-  type BlockbenchFocusResult = {
-    status: 'FOCUSED' | 'NO_WINDOW' | 'AMBIGUOUS' | 'DENIED' | 'UNKNOWN' | 'NOT_RUNNING' | 'UNSUPPORTED';
-  };
-
-  type EnsureReadyResult = {
-    status: 'READY' | 'RUNTIME_READY' | 'APPROVAL_REQUIRED' | 'NEEDS_ATTENTION';
-    reason: string;
-    runtime_online: boolean;
-    gateway_active: boolean;
-    blockbench_running: boolean;
-    plugin_integrity: 'ready' | 'missing' | 'modified' | 'invalid' | 'unknown';
-    manual_plugin_approval_recommended: boolean;
-  };
-
-  type DesktopCommandError = {
-    code: string;
-    message: string;
-    recoverable: boolean;
-  };
-
-  type DiagnosticExportResult = {
-    status: 'EXPORTED' | 'CANCELLED';
-    path: string | null;
-  };
-
-  type ProjectNavigationActionResult = {
-    status: 'OPENED' | 'REVEALED' | 'PINNED' | 'UNPINNED' | 'RESTORED';
-  };
-
-  type ProjectPathResult = {
-    path: string;
-  };
+  import type { ProjectAction } from './projectNavigationTypes';
+  import type {
+    SystemStatus, ConnectionStatus, PluginFileActionResult, BootstrapActionResult,
+    ManagedActionResult, ManagedUpdateCheck, BlockbenchFocusResult, EnsureReadyResult,
+    DesktopCommandError, DiagnosticExportResult, ProjectNavigationActionResult,
+    ProjectPathResult, ManagedProgress,
+  } from './desktopTypes';
+  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance } from './desktopPresentation';
 
   let status: SystemStatus | null = null;
   let loading = true;
@@ -165,7 +39,6 @@
   let workspaceScrollTop = 0;
   let workspaceMain: HTMLElement | undefined;
 
-  type ManagedProgress = { schema: number; kind: 'progress'; action: string; stage: string };
   const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 
   type OperationRecord = {
@@ -555,17 +428,6 @@
     if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
   });
 
-  const compatibilityLabel = (value: Compatibility['status'] | undefined) => {
-    if (value === 'validated') return 'Validated';
-    if (value === 'compatible-unverified') return 'Compatible · unverified';
-    if (value === 'review-required') return 'Review required';
-    if (value === 'unsupported') return 'Unsupported';
-    if (value === 'invalid') return 'Unknown version';
-    return 'Unavailable';
-  };
-
-  type ProductMode = 'welcome' | 'security-setup' | 'unsupported' | 'ready-start' | 'plugin-setup' | 'client-wait' | 'ready' | 'attention';
-
   type DevFixture = 'ready' | 'fresh-install' | 'approval-required' | 'plugin-missing' | 'plugin-modified' | 'runtime-offline' | 'client-wait' | 'unsupported' | 'repair-blocked';
   let devFixture: DevFixture | null = null;
 
@@ -679,47 +541,6 @@
     return allowed.includes(value as DevFixture) ? value as DevFixture : null;
   }
 
-  const productMode = (value: SystemStatus): ProductMode => value.product_state;
-
-  function productHeadline(value: SystemStatus) {
-    const mode = productMode(value);
-    if (mode === 'welcome') return 'Welcome to LazyDesigner';
-    if (mode === 'security-setup') return 'Finish setup';
-    if (mode === 'unsupported') return 'Blockbench version not supported';
-    if (mode === 'ready-start') return 'Ready to start';
-    if (mode === 'plugin-setup') return 'Connect LazyDesigner to Blockbench';
-    if (mode === 'client-wait') return 'Blockbench ready';
-    if (mode === 'ready') return 'Ready to use';
-    return 'Action required';
-  }
-
-  function productMessage(value: SystemStatus) {
-    const mode = productMode(value);
-    if (mode === 'welcome') return 'Set up LazyDesigner once, then continue your work in Blockbench.';
-    if (mode === 'security-setup') return 'Complete the secure local setup required for LazyDesigner to connect safely.';
-    if (mode === 'unsupported') return 'This Blockbench version cannot be used safely with the current LazyDesigner build.';
-    if (mode === 'ready-start') return 'Everything is installed. Open Blockbench when you are ready to work.';
-    if (mode === 'plugin-setup') return 'LazyDesigner will try to connect to Blockbench automatically.';
-    if (mode === 'client-wait') return 'LazyDesigner is active in Blockbench and will connect when an MCP client starts a session.';
-    if (mode === 'ready') return 'Everything is working. Continue in Blockbench.';
-    return value.readiness.summary;
-  }
-
-  function productGuidance(value: SystemStatus) {
-    const mode = productMode(value);
-    if (mode === 'welcome' && !value.bootstrap_available) return 'This Desktop build does not contain the setup package. Open Support and export diagnostics.';
-    if (mode === 'security-setup' && !value.maintenance.setup_tls) return value.maintenance.blocked_reason ?? 'Secure setup is temporarily unavailable. Close active authoring tasks and try again.';
-    if (mode === 'unsupported') return 'Update Blockbench to a supported version, then refresh this page.';
-    if (mode === 'plugin-setup' && value.runtime_endpoint_match === false) return 'Blockbench and the MCP client use different local connection settings. Open Support before trying again.';
-    if (mode === 'plugin-setup' && pluginApprovalNeeded) return 'Blockbench needs one-time approval for the LazyDesigner plugin.';
-    if (mode === 'attention' && value.plugin_integrity === 'modified') return 'The managed Blockbench plugin was modified. Review or repair it before starting Blockbench.';
-    if (mode === 'attention' && value.plugin_integrity === 'invalid') return 'The managed Blockbench plugin state is invalid. Open Support for recovery.';
-    if (mode === 'attention') return value.gateway.action ?? value.blockbench.diagnostic ?? value.diagnostic ?? 'Open Support for troubleshooting tools.';
-    return null;
-  }
-
-
-
 
 </script>
 
@@ -820,7 +641,7 @@
               </div>
 
               <div class="setup-footer">
-                {#if productGuidance(status)}<span class="setup-warning">{productGuidance(status)}</span>{:else}<span></span>{/if}
+                {#if productGuidance(status, pluginApprovalNeeded)}<span class="setup-warning">{productGuidance(status, pluginApprovalNeeded)}</span>{:else}<span></span>{/if}
                 <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : 'Set up'}</button>
               </div>
             </section>
@@ -962,7 +783,7 @@
               {:else if productMode(status) === 'client-wait'}
                 <div class="inline-note"><strong>Blockbench Runtime is ready.</strong><span>The MCP client owns the Gateway connection and can attach when needed.</span></div>
               {:else if productMode(status) === 'attention'}
-                <div class="inline-alert"><div><strong>Action required</strong><span>{productGuidance(status) ?? status.readiness.summary}</span></div><button class="secondary-button small-button" onclick={() => navigate('Support')}>Open Support</button></div>
+                <div class="inline-alert"><div><strong>Action required</strong><span>{productGuidance(status, pluginApprovalNeeded) ?? status.readiness.summary}</span></div><button class="secondary-button small-button" onclick={() => navigate('Support')}>Open Support</button></div>
               {/if}
             </section>
             {/if}
