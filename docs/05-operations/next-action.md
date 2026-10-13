@@ -87,6 +87,47 @@ receipt. Contradictory outer/display fields cannot vote alongside the canonical
 payload. Source regression definitions cover contradictory and malformed
 envelopes. Matching Bun/live Blockbench validation is **NOT EXECUTED**.
 
+## REA-informed authoring evidence hardening — source only
+
+Current `Local` retains the single Gateway/Runtime/Control architecture while
+removing wrong interpretation at its existing boundaries:
+
+- `lib/receipts/cubeMutation.ts` owns the explicit native Cube changed-field
+  vocabulary and canonical simplify no-change semantics. Unknown or
+  mixed-malformed geometry effects invalidate dependent UV/Texture/Animation
+  evidence conservatively, not as a precise partial effect.
+- `gateway/control/delta/receipts.ts` chooses one canonical
+  `structuredContent` receipt over conflicting envelope fields.
+  `gateway/capabilities/graph.ts` now shares the Cube no-change contract:
+  successful `simplify` preview/unchanged results preserve existing
+  UV/Texture readiness facts.
+- `gateway/control/delta/freshness.ts` uses existing typed
+  `modifyGroupReceiptSchema`, `removeElementReceiptSchema` and
+  `renameElementReceiptSchema` for narrow impact/no-op declarations;
+  malformed or incomplete results use existing conservative default
+  invalidation. `geometryInvalidation` and freshness no longer separately
+  interpret Group changed fields.
+- `lib/receipts/renameElement.ts` parses batch Group rename before its
+  overlapping single-element shape, preserving `affected_animations`
+  when the Runtime sends `element` and `changes` together.
+- `manage_material_instances` read/mutation intent comes from existing
+  branch metadata, not a response-shaped no-op heuristic.
+  `manage_material` save no-op requires the existing typed material
+  persistence receipt.
+
+All of the above are **SOURCE IMPLEMENTED**, not performance or native PASS.
+Focused regression definitions were added/updated at canonical consumers.
+**Bun, exact-head CI, real REA executable investigation and LIVE_BLOCKBENCH
+were NOT EXECUTED** for these commits. Do not claim fewer tool calls, better
+visual fidelity, current Blockbench compatibility or successful native Undo
+until the corresponding measured/installed evidence exists.
+
+Next practical proof priority: first resolve generator-owned stale
+`mcp/docs/api.json` and `mcp/docs/index.html` through the canonical Bun
+generator (never hand-edit compiled docs), then run the exact final-HEAD
+source gate and only subsequently the native acceptance runbook. Keep the
+source/cost/visual proof levels separate; no new auditing framework needed.
+
 ## Other source lanes pending proof
 
 `docs/04-system/data-lifecycle.md` owns Desktop metadata recovery and
