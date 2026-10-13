@@ -49,11 +49,13 @@ export function resultCandidates(value: unknown): Record<string, unknown>[] {
 }
 
 export function cubeStateNeutral(value: unknown): boolean {
-  return resultCandidates(value).some(
-    (candidate) =>
-      candidate.execution === "planned" ||
-      candidate.execution === "unchanged"
-  );
+  return resultCandidates(value).some((candidate) => (
+    (candidate.execution === "planned" || candidate.execution === "unchanged") &&
+    // Actual simplify previews contain updates only; effect/after/target
+    // evidence mixed with a no-op label is contradictory, not proof of safety.
+    !["geometry_effect", "effects", "visual_scope", "after", "added", "modified"]
+      .some((key) => Object.prototype.hasOwnProperty.call(candidate, key))
+  ));
 }
 
 export function locatorReceiptComplete(value: unknown): boolean {

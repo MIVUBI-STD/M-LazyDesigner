@@ -3,8 +3,15 @@ import { z } from "zod";
 const vector2Schema = z.array(z.number().finite()).length(2);
 const vector3Schema = z.array(z.number().finite()).length(3);
 
+/** Exact authored fields emitted by the native Cube geometry-effect producer. */
+export const CUBE_CHANGED_FIELDS = [
+  "name", "from", "to", "origin", "rotation", "inflate",
+  "box_uv", "uv_offset", "mirror_uv", "autouv", "visibility", "faces",
+] as const;
+const KNOWN_CUBE_CHANGED_FIELDS: ReadonlySet<string> = new Set(CUBE_CHANGED_FIELDS);
+
 export const cubeGeometryEffectSchema = z.object({
-  changed_fields: z.array(z.string()),
+  changed_fields: z.array(z.enum(CUBE_CHANGED_FIELDS)),
   center_delta: vector3Schema,
   size_delta: vector3Schema,
   origin_delta: vector3Schema,
@@ -44,21 +51,34 @@ export function cubeChangedFieldsFromResult(value: unknown): string[] {
   const root = value as Record<string, unknown>;
   const fields = new Set<string>();
 
-  const add = (candidate: unknown) => {
+  let malformedEffect = false;
+  const add = (candidate: unknown, required: boolean) => {
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+      if (required) malformedEffect = true;
       return;
     }
-    const effect = (candidate as Record<string, unknown>).geometry_effect;
-    const parsed = cubeGeometryEffectSchema.safeParse(effect);
-    if (!parsed.success) return;
+    const item = candidate as Record<string, unknown>;
+    if (!Object.prototype.hasOwnProperty.call(item, "geometry_effect")) {
+      if (required) malformedEffect = true;
+      return;
+    }
+    const parsed = cubeGeometryEffectSchema.safeParse(item.geometry_effect);
+    if (!parsed.success) {
+      malformedEffect = true;
+      return;
+    }
     for (const field of parsed.data.changed_fields) fields.add(field);
   };
 
-  add(root);
+  add(root, false);
   if (Array.isArray(root.effects)) {
-    for (const effect of root.effects) add(effect);
+    for (const effect of root.effects) add(effect, true);
+  } else if (root.effects !== undefined) {
+    malformedEffect = true;
   }
-  return [...fields];
+  // A mixed valid/malformed batch cannot be precisely scoped: return an empty
+  // set so the canonical Control fallback invalidates every dependent scope.
+  return malformedEffect ? [] : [...fields];
 }
 
 export function cubeVisualScopeFromResult(value: unknown) {
@@ -97,7 +117,8 @@ const CUBE_MOTION_READINESS_FIELDS = new Set([
 export function cubeSemanticScopesFromChangedFields(
   changedFields: readonly string[]
 ): CubeSemanticScope[] {
-  if (changedFields.length === 0) {
+  if (changedFields.length === 0 ||
+      changedFields.some((field) => !KNOWN_CUBE_CHANGED_FIELDS.has(field))) {
     return [
       "GEOMETRY_STRUCTURE",
       "UV_MAPPING",

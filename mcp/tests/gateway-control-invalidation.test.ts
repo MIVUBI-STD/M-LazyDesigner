@@ -208,6 +208,25 @@ describe("LazyDesigner Control minimum invalidation", () => {
     expect(delta.invalidates.authoring_domains).toContain("GEOMETRY");
   });
 
+  test("a Cube no-op label with actual effect evidence must not keep downstream proof fresh", () => {
+    for (const execution of ["planned", "unchanged"] as const) {
+      const delta = buildControlDelta({
+        capability: "manage_cubes",
+        phaseBefore: "geometry",
+        phaseAfter: "geometry",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          execution,
+          geometry_effect: cubeEffect(["from", "to"]),
+        },
+      });
+      expect(delta.freshness.basis).not.toBe("NO_CHANGE");
+      expect(delta.freshness.stale).toContain("UV_MAPPING");
+      expect(delta.freshness.stale).toContain("ANIMATION_MOTION");
+    }
+  });
+
   test("planned or unchanged cube simplify operations preserve state and skip visual verification", () => {
     for (const execution of ["planned", "unchanged"] as const) {
       const delta = buildControlDelta({

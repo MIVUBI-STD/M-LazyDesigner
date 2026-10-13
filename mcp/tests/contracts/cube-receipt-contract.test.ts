@@ -66,6 +66,28 @@ describe("shared Cube mutation receipt contract", () => {
     ).toThrow();
   });
 
+  test("unrecognized Cube effects fail closed instead of preserving downstream UV/Animation", () => {
+    const base = {
+      changed_fields: ["rotation"],
+      center_delta: [0, 0, 0], size_delta: [0, 0, 0],
+      origin_delta: [0, 0, 0], rotation_delta: [0, 45, 0],
+      inflate_delta: 0, uv_offset_delta: [0, 0],
+      mirror_uv_changed: false, autouv_changed: false,
+      visibility_changed: false, faces_changed: false,
+    };
+    const unknown = { ...base, changed_fields: ["new_editor_field"] };
+    expect(cubeGeometryEffectSchema.safeParse(unknown).success).toBe(false);
+    expect(cubeChangedFieldsFromResult({
+      effects: [{ geometry_effect: base }, { geometry_effect: unknown }],
+    })).toEqual([]);
+    expect(cubeChangedFieldsFromResult({
+      effects: [{ geometry_effect: base }, { geometry_effect: null }],
+    })).toEqual([]);
+    expect(cubeSemanticScopesFromChangedFields(["rotation", "new_editor_field"])).toEqual([
+      "GEOMETRY_STRUCTURE", "UV_MAPPING", "TEXTURE_APPEARANCE", "ANIMATION_MOTION",
+    ]);
+  });
+
   test("changed fields map to bounded semantic scopes", () => {
     expect(cubeSemanticScopesFromChangedFields(["visibility"])).toEqual([
       "GEOMETRY_STRUCTURE",

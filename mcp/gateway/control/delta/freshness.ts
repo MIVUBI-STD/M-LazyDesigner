@@ -52,19 +52,6 @@ export function particleHasAuthoredEffect(value: unknown): boolean {
   );
 }
 
-export function materialInstancesStateNeutral(value: unknown): boolean {
-  return resultCandidates(value).some((candidate) => {
-    if (
-      Array.isArray(candidate.material_instances) &&
-      typeof candidate.total_unique_instances === "number"
-    ) {
-      return true;
-    }
-    return record(candidate.cube) !== null && record(candidate.faces) !== null &&
-      typeof candidate.operation !== "string";
-  });
-}
-
 export function renderProfileStateNeutral(value: unknown): boolean {
   return resultCandidates(value).some((candidate) => {
     if (candidate.execution === "read") return true;
@@ -174,9 +161,6 @@ export function capabilityMutatesState(
   }
   if (capability === "save_material_config") {
     return false;
-  }
-  if (capability === "manage_material_instances") {
-    return !materialInstancesStateNeutral(result);
   }
   if (capability === "manage_render_profile") {
     return !renderProfileStateNeutral(result);

@@ -37,6 +37,39 @@ describe("material-instance bounded continuation", () => {
     expect(parsed.face_count).toBe(2);
   });
 
+  test("a mutation branch cannot become a no-op merely because its response resembles a list", () => {
+    for (const operation of ["set", "bulk_set", "clear"] as const) {
+      const delta = buildControlDelta({
+        capability: "manage_material_instances",
+        branch: { field: "operation", value: operation },
+        phaseBefore: "texturing",
+        phaseAfter: "texturing",
+        projectUuid: "project-a",
+        succeeded: true,
+        result: {
+          // Read-shaped data in an incomplete mutation receipt is not
+          // evidence that the actual mutation had no effects.
+          total_unique_instances: 0,
+          material_instances: [],
+        },
+      });
+      expect(delta.invalidates.authoring_domains).toContain("TEXTURING");
+      expect(delta.freshness.stale).toContain("MATERIAL_RENDER");
+      expect(delta.freshness.basis).not.toBe("NO_CHANGE");
+    }
+    const list = buildControlDelta({
+      capability: "manage_material_instances",
+      branch: { field: "operation", value: "list" },
+      phaseBefore: "texturing",
+      phaseAfter: "texturing",
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { total_unique_instances: 0, material_instances: [] },
+    });
+    expect(list.invalidates.authoring_domains).toEqual([]);
+    expect(list.freshness.basis).toBe("NO_CHANGE");
+  });
+
   test("MATERIAL_RENDER recheck carries affected cube and face target", () => {
     const delta = buildControlDelta({
       capability: "manage_material_instances",
