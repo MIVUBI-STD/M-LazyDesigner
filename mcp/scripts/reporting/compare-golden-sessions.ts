@@ -75,6 +75,12 @@ function validateAcceptedReport(
       `${label} must be an ACCEPTED golden-session-final report with PASS quality and metrics.`
     );
   }
+  // Two independently supplied usage records must not report contradictory
+  // token totals as a cross-model efficiency comparison.
+  if (value.usage?.total_tokens != null && value.metrics.total_tokens != null &&
+      value.usage.total_tokens !== value.metrics.total_tokens) {
+    throw new Error(`${label} golden metrics total_tokens conflicts with usage telemetry.`);
+  }
   if (!/^[0-9a-f]{40}$/.test(value.source_sha)) {
     throw new Error(`${label}.source_sha must be an exact 40-character Git SHA.`);
   }

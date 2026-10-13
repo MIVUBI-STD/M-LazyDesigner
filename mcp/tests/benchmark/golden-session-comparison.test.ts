@@ -62,6 +62,16 @@ describe("accepted golden session comparison", () => {
     expect(report).not.toHaveProperty("winner");
   });
 
+  test("rejects golden metrics conflicting with supplied model usage", () => {
+    const baseline = accepted("1234567890abcdef1234567890abcdef12345678", 5);
+    const candidate = accepted("abcdef1234567890abcdef1234567890abcdef12", 3);
+    candidate.usage = { model: "gpt-6.1-sol", total_tokens: 300 };
+    expect(() => compareAcceptedGoldenSessions({ baseline, candidate }))
+      .toThrow("golden metrics total_tokens conflicts");
+    candidate.usage.total_tokens = 5000;
+    expect(() => compareAcceptedGoldenSessions({ baseline, candidate })).not.toThrow();
+  });
+
   test("rejects comparisons that changed the reference authority", () => {
     const baseline = accepted(
       "1234567890abcdef1234567890abcdef12345678",

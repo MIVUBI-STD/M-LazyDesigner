@@ -115,6 +115,29 @@ describe("golden session finalizer", () => {
     ).toThrow("does not match golden run");
   });
 
+  test("rejects inconsistent model identity across golden and client telemetry", () => {
+    const goldenRun = golden();
+    goldenRun.runs[0]!.model = "gpt-6.1-sol";
+    expect(() => finalizeGoldenSession({
+      golden: goldenRun,
+      usage: usage("1234567890abcdef1234567890abcdef12345678"),
+    })).toThrow("model identity conflicts");
+  });
+
+  test("rejects contradictory source-provided token totals", () => {
+    const goldenRun = golden();
+    goldenRun.runs[0]!.token_usage!.total_tokens = 100;
+    const measured = usage("1234567890abcdef1234567890abcdef12");
+    measured.runs[0]!.usage.total_tokens = 200;
+    expect(() => finalizeGoldenSession({
+      golden: goldenRun, usage: measured,
+    })).toThrow("source_sha");
+    measured.source_sha = "1234567890abcdef1234567890abcdef12345678";
+    expect(() => finalizeGoldenSession({
+      golden: goldenRun, usage: measured,
+    })).toThrow("total_tokens conflicts");
+  });
+
   test("merges same-SHA telemetry without upgrading quality", () => {
     const report = finalizeGoldenSession({
       golden: golden(),

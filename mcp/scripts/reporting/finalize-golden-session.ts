@@ -71,6 +71,13 @@ export function finalizeGoldenSession(input: {
       );
     }
 
+    // The Golden run and client/provider telemetry must describe the same
+    // model. A mismatched model label would make a valid run look like Sol/Astra.
+    if (run.model !== null && input.usage.model !== null &&
+        run.model.trim() !== input.usage.model.trim()) {
+      throw new Error("Golden run model identity conflicts with usage telemetry model.");
+    }
+
     const variant = input.usageVariant ?? "zero_waste";
     const usageRun = matchingUsageRun(input.usage, run.task_id, variant);
     if (!usageRun) {
@@ -91,11 +98,17 @@ export function finalizeGoldenSession(input: {
       }
     }
 
+    const usageTotal = effectiveTotalTokens(usageRun);
+    const goldenTotal = run.token_usage?.total_tokens ?? null;
+    if (usageTotal !== null && goldenTotal !== null && usageTotal !== goldenTotal) {
+      throw new Error("Golden run total_tokens conflicts with usage telemetry total_tokens.");
+    }
+
     usage = {
       variant,
       model: input.usage.model,
       telemetry_source: input.usage.telemetry_source,
-      total_tokens: effectiveTotalTokens(usageRun),
+      total_tokens: usageTotal,
       calls_total: usageRun.calls.total,
       user_corrections: usageRun.user_corrections,
     };
