@@ -13,19 +13,19 @@ const renameChangeSchema = z.object({
   new_name: z.string().min(1),
 });
 
-const singleRenameReceiptSchema = z.object({
+const singleRenameReceiptSchema = z.strictObject({
   execution: z.literal("applied"),
   element: elementIdentitySchema,
 });
 
-const batchRenameReceiptSchema = z.object({
+const batchRenameReceiptSchema = z.strictObject({
   execution: z.literal("applied"),
   changes: z.array(renameChangeSchema).min(1),
   affected_animations: z.number().int().nonnegative(),
   element: elementIdentitySchema.optional(),
 });
 
-const renamePlanReceiptSchema = z.object({
+const renamePlanReceiptSchema = z.strictObject({
   execution: z.enum(["planned", "unchanged"]),
   changes: z.array(renameChangeSchema),
   affected_animations: z.number().int().nonnegative(),

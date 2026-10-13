@@ -64,6 +64,23 @@ describe("shared rename-element receipt contract", () => {
     expect(isAppliedRenameElementReceipt(planned)).toBe(false);
   });
 
+  test("malformed Group batch cannot be laundered into a single-element receipt", () => {
+    const element = {
+      uuid: "group-a", name: "after", type: "group", parent: "root",
+    };
+    expect(isAppliedRenameElementReceipt({
+      execution: "applied",
+      element,
+      changes: [{id:"group-a",old_name:"before",new_name:"after"}],
+      affected_animations: -1,
+    })).toBe(false);
+    expect(renameElementReceiptSchema.safeParse({
+      execution: "planned",
+      changes: [], affected_animations: 0,
+      unknown_mutation_evidence: true,
+    }).success).toBe(false);
+  });
+
   test("rejects malformed applied identities and empty applied batches", () => {
     expect(
       isAppliedRenameElementReceipt({
