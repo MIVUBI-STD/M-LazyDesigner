@@ -127,6 +127,10 @@ authoring evidence:
   native texture inventory receipt supplies its UUID, name and valid bitmap
   dimensions; incomplete success is UNKNOWN unless previous existence was
   independently established. This is not proof of painting/UV visual quality.
+- `create_animation` only promotes `animation_available` with the native
+  codec's reported clip identity, requested name and nonnegative effect/bone
+  counts. Missing identity preserves UNKNOWN; no playback or motion fidelity
+  follows from creation alone.
 - `manage_cubes.simplify` plans/unchanged results require the actual
   source-shaped dry-run receipt; `NO_CHANGE` cannot be claimed from a label.
 - `manage_uv_layout.plan` only promotes `uv_plan_available` with a

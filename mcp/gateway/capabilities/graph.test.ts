@@ -211,6 +211,45 @@ describe("capability dependency graph", () => {
     )).toEqual(prior);
   });
 
+  test("create_animation only promotes a native clip with a coherent codec receipt", () => {
+    const original = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      geometry_available: true,
+    };
+    const createdClip = {
+      animation: { uuid: "clip-a", name: "animation.model.walk" },
+      requested_name: "animation.model.walk",
+      requested_bone_count: 1,
+      requested_particle_effect_count: 0,
+      requested_sound_effect_count: 0,
+    };
+    expect(applyCapabilityGraphOutcome(
+      original, "create_animation", { name: "model.walk" }, true, createdClip
+    ).animation_available).toBe(true);
+
+    for (const candidate of [
+      undefined,
+      { animation: { name: "animation.model.walk" } },
+      { ...createdClip, requested_bone_count: -1 },
+      { ...createdClip, animation: {uuid:"",name:"animation.model.walk"} },
+    ]) {
+      expect(applyCapabilityGraphOutcome(
+        original, "create_animation", { name: "model.walk" }, true, candidate
+      ).animation_available).toBe("unknown");
+      expect(applyCapabilityGraphOutcome(
+        { ...original, animation_available: true },
+        "create_animation", { name: "model.walk" }, true, candidate
+      ).animation_available).toBe(true);
+      expect(applyCapabilityGraphOutcome(
+        { ...original, animation_available: false },
+        "create_animation", { name: "model.walk" }, true, candidate
+      ).animation_available).toBe("unknown");
+    }
+    expect(applyCapabilityGraphOutcome(
+      original, "create_animation", { name: "model.walk" }, false, createdClip
+    )).toEqual(original);
+  });
+
   test("create_texture only promotes existence from its actual native inventory receipt", () => {
     const baseline = seedCapabilityFacts({ projectBound: true });
     const reported = {

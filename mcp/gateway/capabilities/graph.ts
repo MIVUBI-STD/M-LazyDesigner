@@ -1,3 +1,4 @@
+import { isAnimationCreationReceipt } from "../../lib/receipts/animationCreation";
 import { isTextureCreationReceipt } from "../../lib/receipts/textureCreation";
 import {
   cubeChangedFieldsFromResult,
@@ -174,6 +175,13 @@ export function applyCapabilityGraphOutcome(
       // Missing receipt is not permission to promote a known-absent state.
       // Already-confirmed texture existence remains true.
       if (previous.texture_available !== true) next.texture_available = "unknown";
+      continue;
+    }
+    if (capability === "create_animation" &&
+        fact === "animation_available" && !isAnimationCreationReceipt(result)) {
+      // Codec success without a native clip identity cannot prove that an
+      // Animation exists. Preserve prior known existence, not prior absence.
+      if (previous.animation_available !== true) next.animation_available = "unknown";
       continue;
     }
     if (capability === "manage_uv_layout" && branch?.value === "plan" &&
