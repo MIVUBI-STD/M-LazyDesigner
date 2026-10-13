@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "zod";
-import { toolManifest } from "@/build/docs-manifest";
+import { toolManifest } from "../scripts/generate/internal/docs-manifest";
 import { projectCapabilityInputSchema } from "@/gateway/capabilities/schemaProjection";
 
 function jsonSchema(schema: z.ZodType): Record<string, unknown> {

@@ -7,7 +7,7 @@ const sdkBoundaryProbe = String.raw`
 import assert from "node:assert/strict";
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { projectCapabilityInputSchema } from "./gateway/schemaProjection.ts";
-import { toolManifest } from "./build/docs-manifest.ts";
+import { toolManifest } from "./scripts/generate/internal/docs-manifest.ts";
 import { z } from "zod";
 import { createServer } from "./server/server.ts";
 import {

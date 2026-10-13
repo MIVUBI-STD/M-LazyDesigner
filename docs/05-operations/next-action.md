@@ -123,10 +123,15 @@ authoring evidence:
 - `manage_cubes.create` only promotes `geometry_available` when the Cube
   creation receipt has a coherent positive count, unique UUIDs, and finite
   native geometry. The visual framing scope may legitimately be unavailable.
-- `create_texture` only promotes `texture_available` after an actual
-  native texture inventory receipt supplies its UUID, name and valid bitmap
-  dimensions; incomplete success is UNKNOWN unless previous existence was
-  independently established. This is not proof of painting/UV visual quality.
+- `create_texture` only promotes `texture_available` from the actual
+  branch-specific Runtime result: `blank/template` return nested native
+  inventory `bitmap` metadata, while the **shipped** `variant` branch returns
+  flat texture dimensions and a source-owned variant plan. The variant receipt
+  must bind the new UUID, target group, name and source bitmap coherently.
+  The `variant` executor is composed by
+  `server/runtime/contracts/texture.ts`; it is **not** dead or unsupported.
+  Incomplete success is UNKNOWN unless prior texture existence was proven.
+  No texture receipt implies painting/UV visual approval.
 - `create_animation` only promotes `animation_available` with the native
   codec's reported clip identity, requested name and nonnegative effect/bone
   counts. Missing identity preserves UNKNOWN; no playback or motion fidelity
@@ -144,6 +149,15 @@ authoring evidence:
   native transaction receipt binds to the requested source fingerprint.
   An incomplete successful apply makes existing UV currency unknown.
   Runtime registry/fingerprint checks remain final plan authority.
+
+**Capability/schema audit:** a stale `build/docs-manifest` import in branch
+tests and the SDK subprocess test has been corrected to the canonical
+`scripts/generate/internal/docs-manifest.ts` owner. The old
+`semantic-history-contract` file-name assertion is replaced with actual
+Control-delta behavior for valid and malformed Undo receipts. Branch consistency
+checks read the composed Runtime texture schema, including the active
+`type=variant` branch; normal runtime extensions also own animation properties.
+These source tests still require Bun execution; their presence is not PASS.
 
 Focused executable proof owners: `mcp/gateway/capabilities/graph.test.ts`,
 `mcp/tests/contracts/cube-receipt-contract.test.ts`,

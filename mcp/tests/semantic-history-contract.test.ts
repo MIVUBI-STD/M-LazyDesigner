@@ -3,7 +3,8 @@ import {
   isSemanticHistoryEffect,
   semanticHistoryEffectSchema,
   type SemanticHistoryEffect,
-} from "@/lib/semanticHistory";
+} from "@/lib/authoring/semanticHistory";
+import { buildControlDelta } from "@/gateway/control";
 
 describe("shared semantic history effect contract", () => {
   test("accepts canonical bounded stale scopes", () => {
@@ -44,13 +45,37 @@ describe("shared semantic history effect contract", () => {
     ).toBe(false);
   });
 
-  test("Control consumes the shared history-effect schema", async () => {
-    const source = await Bun.file("gateway/control/delta/freshness.ts").text();
-    expect(source).toContain(
-      'from "../../../lib/semanticHistory"'
-    );
-    expect(source).toContain(
-      "isSemanticHistoryEffect(candidate.semantic_effect)"
-    );
+  test("Control invalidation uses the canonical history receipt rather than filename text", () => {
+    const receipt: SemanticHistoryEffect = {
+      stale: ["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"],
+      workspace_projection: true,
+      acceptance_gates: true,
+    };
+    const completed = buildControlDelta({
+      capability: "undo",
+      phaseBefore: null, phaseAfter: null,
+      projectUuid: "project-a",
+      succeeded: true,
+      result: { semantic_effect: receipt },
+    });
+    expect(completed.freshness.basis).toBe("PRECISE_EFFECT");
+    expect(completed.freshness.stale).toEqual(receipt.stale);
+    expect(completed.invalidates.authoring_domains).toEqual(["GEOMETRY", "ANIMATION"]);
+
+    const malformed = buildControlDelta({
+      capability: "undo",
+      phaseBefore: null, phaseAfter: null,
+      projectUuid: "project-a",
+      succeeded: true,
+      result: {
+        semantic_effect: {
+          ...receipt,
+          stale: ["FUTURE_UNKNOWN_SCOPE"],
+        },
+      },
+    });
+    expect(malformed.freshness.basis).toBe("CONSERVATIVE_EFFECT");
+    expect(malformed.freshness.stale).toContain("TEXTURE_APPEARANCE");
+    expect(malformed.invalidates.authoring_domains).toContain("TEXTURING");
   });
 });
