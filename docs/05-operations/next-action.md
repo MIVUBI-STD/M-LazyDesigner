@@ -6,59 +6,56 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 — native animation restoration refusal contract
+## Active: LD-Q04 — exact-source restoration difference diagnostics
 
-The canonical animation domain now adds a small pure
-`mcp/lib/animation/nativeRestorationContract.ts` audit inventory,
-**consumed by the existing** `prepareContactSamplingPlan`. It lists ten
-required before/after recovery surfaces based on upstream Blockbench
-animation preview behavior: Timeline/audio playback; Animation and
-controller state; Group/Locator/mesh poses; Molang/preview variables;
-texture selection and animated frames; model scale/ground/grid; particles
-and sounds; onion skin/trails/deformation; editor selection and UI; and
-unknown display-animation-frame event/plugin listeners.
+The existing canonical `mcp/lib/animation/nativeRestorationContract.ts`
+now owns `compareNativeAnimationRestoreSnapshots`. It accepts a
+caller-supplied before/after digest for the SAME exact Project UUID,
+Animation UUID and evaluation identity. It enumerates the ten existing
+required state domains in canonical order as `MATCHED`, `CHANGED`, or
+`MISSING`; validates SHA-256 representations and rejects unknown,
+duplicate, malformed or over-budget surface IDs. A changed domain is
+ranked as a difference even when other domains are missing. Missing
+evidence cannot silently count as successful restoration.
 
-Both prepared and rejected sampling plans now include
-`restoration_contract`. A prepared source clock returns
-`state=BLOCKED_NATIVE_VERIFICATION` with reason
-`FULL_PREVIEW_RESTORATION_NOT_ATTESTED`; an invalid clock returns
-`SAMPLING_PLAN_NOT_PREPARED`. Every required surface remains
-`native_proof=NOT_EXECUTED`. The hard gate is deliberately not
-satisfied by self-reported `preview_restoration_verified`, simulated
-receipts or caller-declared PASS. It contains no native mutator,
-Timeline.seek loop, Undo/retry, second animation executor, registry,
-new Gateway tool or generated API edit.
+`describeNativeAnimationRestorationBoundary(plan, snapshots?)` accepts
+an **optional** diagnostic pair, reusing the existing restoration owner.
+Without snapshots, the original response remains unchanged. With them,
+it attaches `supplied_state_comparison`. In both cases it remains
+`BLOCKED_NATIVE_VERIFICATION`,
+`native_sampler_enabled=false`,
+`live_blockbench_restore_executed=false` and
+`all_state_surfaces_restored=false`. Even ten identical supplied
+digests are only `DIAGNOSTIC_ONLY`, never trusted native proof,
+scene/extension coverage, approval or permission to run the Timeline.
 
-The inventory is a **recovery requirement contract**, not a working
-restoration executor or proof of exhaustiveness against arbitrary
-external plugins. Blockbench `Animator.preview()` can change
-controller-driven Timeline time, bone and mesh pose, effects, texture
-selection/frame, preview scale, grid/ground, overlay resources, UI
-selection and dispatched listener behavior. `Timeline.pause()` also
-calls preview and may touch audio state. Merely returning playhead
-time in a `finally` block cannot guarantee the previous user session.
+**Executable proof obtained in cloud container** for the exact new
+`nativeRestorationContract.ts` Git blob
+`879b92273b5266df104cd2462e3ad379cf73a674`:
+`git hash-object` matched the created GitHub blob; TypeScript 5.8.3
+`--strict --target ES2022 --module commonjs --noEmit` passed in
+isolation. Nine Node 22 behavior checks on the compiled exact source
+passed (matching/changed/missing digests, identity mismatches,
+malformed inputs, stable/nonmutating results and the unchanged blocked
+native gate). The predecessor blob
+`65d1cd31092e0f551dbd9ef1a9201a4585ce0618` also passed six
+focused Node checks and strict isolated TypeScript.
 
-New regressions: seven cases in
-`mcp/tests/animation-native-restoration-contract.test.ts` and two
-in the existing contact-marker-binding suite. They assert the ten
-nonredundant surfaces, refusal despite a valid clock, refusal of fake
-native authority, compatibility with the existing opt-in consumer,
-and deterministic nonmutating output.
+Nine corresponding repository Bun regressions were authored in
+`mcp/tests/animation-native-restoration-diff.test.ts`.
+**Not executed:** exact-head Bun test suites, complete project
+TypeScript/verifier, installed Blockbench, native before/after capture,
+externally attested acquisition, animation sampling, full recovery or
+visual acceptance. Those are distinct from isolated source checks.
 
-**Proof ceiling:** exact GitHub source and regression definitions; Bun,
-full TypeScript/project verification, installed Blockbench, live
-preview restoration and visual acceptance **NOT EXECUTED**.
-The user cannot local-test; do not request local test or installation.
-
-**Next:** execute the focused native-restoration and contact-marker
-tests on the exact `Local` SHA in an authorized cloud Bun worktree.
-Before any native sampler can be enabled, construct a disposable
-installed Blockbench isolation harness proving each applicable
-surface before/after under normal and failed evaluation, and explicit
-external-listener isolation. If any requirement remains unknown, keep
-`BLOCKED_NATIVE_VERIFICATION` and `native_sampling_state=NOT_EXECUTED`.
-Do not substitute `Timeline.time` restoration for real full-scene
-recovery or elevate geometric diagnostics into visual approval.
+**Next:** run the two relevant Bun restoration suites and impacted
+MCP typecheck in a capable cloud checkout, then inspect any concrete
+failures. Native capture remains prohibited until an isolated pose
+evaluation/harness proves exact before/after recovery including
+controller, texture, audio/particle, overlays, UI and arbitrary
+extension side effects. Do not add another restoration gate or
+nominal approval proxy instead of completing this proof. User-local
+tests remain deferred.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 
