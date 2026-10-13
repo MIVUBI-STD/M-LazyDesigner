@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { manifestEntryForBranch } from "@/gateway/capabilities/manifest";
 import { buildControlDelta } from "@/gateway/control";
-import { isUvUsablePlanReceipt } from "@/lib/uv/receipt";
+import {
+  isUvAppliedPlanReceipt,
+  isUvUsablePlanReceipt,
+} from "@/lib/uv/receipt";
 
 describe("UV plan/apply branch semantics", () => {
   test("usable plan receipt requires both source identity and an unblocked report", () => {
@@ -27,6 +30,31 @@ describe("UV plan/apply branch semantics", () => {
     expect(isUvUsablePlanReceipt({
       ...candidate, source_fingerprint: "sha256:broken",
     })).toBe(false);
+  });
+
+  test("apply receipt must identify the requested source revision", () => {
+    const request = {
+      plan_id: "uvplan:" + "a".repeat(64),
+      expected_source_fingerprint: "sha256:" + "b".repeat(64),
+    };
+    const candidate = {
+      receipt: {
+        schema: 1,
+        source_fingerprint_before: request.expected_source_fingerprint,
+        source_fingerprint_after: "sha256:" + "c".repeat(64),
+        changed_island_ids: [],
+        changed_cube_ids: [],
+        moved: [],
+      },
+    };
+    expect(isUvAppliedPlanReceipt(candidate, request)).toBe(true);
+    expect(isUvAppliedPlanReceipt(candidate, {
+      ...request, expected_source_fingerprint: "sha256:" + "d".repeat(64),
+    })).toBe(false);
+    expect(isUvAppliedPlanReceipt(candidate, {
+      ...request, plan_id: "missing",
+    })).toBe(false);
+    expect(isUvAppliedPlanReceipt({ receipt: { schema: 1 } }, request)).toBe(false);
   });
 
   test("plan is workflow CONTROL while apply is authored MUTATION", () => {

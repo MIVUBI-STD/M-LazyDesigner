@@ -4,7 +4,10 @@ import {
   isCubeCreationReceipt,
   isCubeNoChangeReceipt,
 } from "../../lib/receipts/cubeMutation";
-import { isUvUsablePlanReceipt } from "../../lib/uv/receipt";
+import {
+  isUvAppliedPlanReceipt,
+  isUvUsablePlanReceipt,
+} from "../../lib/uv/receipt";
 import {
   CAPABILITY_BRANCH_MANIFEST,
   manifestEntryForBranch,
@@ -169,6 +172,13 @@ export function applyCapabilityGraphOutcome(
       // A missing, malformed, or blocked plan is not proof that apply can
       // proceed. A prior usable plan is not invalidated by planning alone.
       if (previous.uv_plan_available !== true) next.uv_plan_available = "unknown";
+      continue;
+    }
+    if (capability === "manage_uv_layout" && branch?.value === "apply" &&
+        fact === "uv_layout_current" && !isUvAppliedPlanReceipt(result, args)) {
+      // An uncertain apply may have changed existing UV state, so even prior
+      // proof of current layout cannot be reused without a bound receipt.
+      next.uv_layout_current = "unknown";
       continue;
     }
     next[fact] = true;

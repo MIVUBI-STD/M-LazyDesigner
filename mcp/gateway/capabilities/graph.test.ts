@@ -87,8 +87,20 @@ describe("capability dependency graph", () => {
     facts = applyCapabilityGraphOutcome(
       facts,
       "manage_uv_layout",
-      { operation: "apply" },
-      true
+      { operation: "apply",
+        plan_id: "uvplan:" + "a".repeat(64),
+        expected_source_fingerprint: "sha256:" + "b".repeat(64) },
+      true,
+      {
+        receipt: {
+          schema: 1,
+          source_fingerprint_before: "sha256:" + "b".repeat(64),
+          source_fingerprint_after: "sha256:" + "c".repeat(64),
+          changed_island_ids: ["cube-a:north"],
+          changed_cube_ids: ["cube-a"],
+          moved: [{ island_id: "cube-a:north" }],
+        },
+      }
     );
     expect(facts.uv_layout_current).toBe(true);
     expect(facts.texture_alignment_current).toBe(false);
@@ -102,12 +114,63 @@ describe("capability dependency graph", () => {
     expect(repeatApply.missing).toContain("uv_plan_available");
     // Replanning restores graph readiness without changing accepted UV.
     facts = applyCapabilityGraphOutcome(
-      facts, "manage_uv_layout", { operation: "plan" }, true
+      facts, "manage_uv_layout", { operation: "plan" }, true,
+      {
+        plan_id: "uvplan:" + "d".repeat(64),
+        source_fingerprint: "sha256:" + "c".repeat(64),
+        report: {
+          schema: 1, execution: "planned",
+          apply_allowed: true, hard_violations: [],
+        },
+      }
     );
     expect(facts.uv_plan_available).toBe(true);
     expect(evaluateCapabilityPreconditions(
       "manage_uv_layout", { field: "operation", value: "apply" }, facts
     ).eligibility).toBe("READY");
+  });
+
+  test("UV apply requires an outcome receipt bound to the requested plan source", () => {
+    const prior = {
+      ...seedCapabilityFacts({ projectBound: true }),
+      geometry_available: true,
+      uv_plan_available: true,
+      uv_layout_current: true,
+    };
+    const args = {
+      operation: "apply",
+      plan_id: "uvplan:" + "a".repeat(64),
+      expected_source_fingerprint: "sha256:" + "b".repeat(64),
+    };
+    const valid = {
+      receipt: {
+        schema: 1,
+        source_fingerprint_before: args.expected_source_fingerprint,
+        source_fingerprint_after: "sha256:" + "c".repeat(64),
+        changed_island_ids: ["cube-a:north"],
+        changed_cube_ids: ["cube-a"],
+        moved: [{ island_id: "cube-a:north" }],
+      },
+    };
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_uv_layout", args, true, valid
+    ).uv_layout_current).toBe(true);
+
+    for (const evidence of [
+      undefined,
+      { receipt: { changed_island_ids: ["cube-a:north"] } },
+      { receipt: { ...valid.receipt, source_fingerprint_before: "sha256:" + "d".repeat(64) } },
+    ]) {
+      const next = applyCapabilityGraphOutcome(
+        prior, "manage_uv_layout", args, true, evidence
+      );
+      expect(next.uv_layout_current).toBe("unknown");
+      expect(next.uv_plan_available).toBe(false);
+      expect(next.texture_alignment_current).toBe(false);
+    }
+    expect(applyCapabilityGraphOutcome(
+      prior, "manage_uv_layout", args, false, valid
+    )).toEqual(prior);
   });
 
   test("UV planning only promotes an available, applicable source-bound plan", () => {

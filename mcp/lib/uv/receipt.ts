@@ -24,6 +24,35 @@ export function isUvUsablePlanReceipt(value: unknown): boolean {
   return uvUsablePlanReceiptSchema.safeParse(value).success;
 }
 
+/**
+ * Observed plan-apply receipt identity; a successful tool response alone
+ * cannot assert that UV mapping is current. The native UV transaction owns
+ * the postcondition, with request/source binding checked at the Graph edge.
+ */
+export const uvAppliedPlanReceiptSchema = z.object({
+  receipt: z.object({
+    schema: z.literal(1),
+    source_fingerprint_before: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    source_fingerprint_after: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    changed_island_ids: z.array(z.string().min(1)),
+    changed_cube_ids: z.array(z.string().min(1)),
+    moved: z.array(z.object({ island_id: z.string().min(1) })),
+  }),
+});
+
+export function isUvAppliedPlanReceipt(
+  value: unknown,
+  args: Readonly<Record<string, unknown>>
+): boolean {
+  const parsed = uvAppliedPlanReceiptSchema.safeParse(value);
+  return parsed.success &&
+    typeof args.plan_id === "string" &&
+    /^uvplan:[a-f0-9]{64}$/.test(args.plan_id) &&
+    typeof args.expected_source_fingerprint === "string" &&
+    args.expected_source_fingerprint ===
+      parsed.data.receipt.source_fingerprint_before;
+}
+
 export function buildUvLayoutReceipt(
   plan: UvLayoutPlan,
   sourceFingerprintBefore: string,
