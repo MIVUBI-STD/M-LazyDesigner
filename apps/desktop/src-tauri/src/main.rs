@@ -46,6 +46,12 @@ fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError
 }
 
 #[tauri::command]
+fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
+    // Only called from a direct user Open action; never from the status watcher.
+    blockbench::focus_window()
+}
+
+#[tauri::command]
 fn check_managed_update() -> Result<ManagedUpdateCheck, DesktopError> {
     system_status::check_managed_update()
         .map_err(|message| DesktopError::recoverable("UPDATE_CHECK_FAILED", message))
@@ -115,6 +121,7 @@ fn main() {
             system_status,
             connection_status,
             ensure_ready,
+            focus_blockbench_window,
             check_managed_update,
             managed_action,
             bootstrap_install,

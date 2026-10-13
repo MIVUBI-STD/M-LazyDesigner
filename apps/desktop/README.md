@@ -549,3 +549,25 @@ connection/setup states keep their existing detailed guidance. On probe
 uncertainty, the line reports an unverified state and retains Refresh.
 Managed-component update notices remain visible when reported, but healthy
 technical details stay under Support.
+
+### Explicit native Blockbench window focus
+
+A direct user `Open` / model-open action first follows the canonical existing
+`ensure_ready` and model file-open boundaries. It then asks the Desktop for a
+single *best-effort* Windows foreground-window activation. It never runs from
+startup, the connection heartbeat, a background repair, or update discovery.
+
+The Win32 target must be a visible, unowned top-level window belonging to a
+running process whose executable is actually named `Blockbench.exe`. If there
+are zero or multiple matching windows (including multiple Blockbench profiles),
+no window is chosen. Windows may also deny a foreground request; only an actual
+`GetForegroundWindow` match is reported as `FOCUSED`. The UI tells the user
+to select Blockbench on the taskbar otherwise. A spawned model-open request is
+not evidence that the model tab has finished loading, and foreground activation
+is not proof of model persistence or save.
+
+This is a source implementation, not native acceptance. Windows/Tauri smoke
+testing must exercise an already-running minimized editor, a newly-started
+editor, two Blockbench windows, no matching top-level window, and Windows
+foreground restrictions. Never relax candidate matching just to make a test
+pass, and never kill/restart Blockbench to obtain focus.

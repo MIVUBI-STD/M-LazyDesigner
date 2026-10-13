@@ -61,6 +61,13 @@ pub struct BlockbenchActionResult {
     pub status: &'static str,
 }
 
+/// Outcome of an explicit user-requested editor-window focus attempt.
+/// Never treat opening a process or issuing a Win32 request as verified foreground focus.
+#[derive(Debug, Serialize)]
+pub struct BlockbenchFocusResult {
+    pub status: &'static str,
+}
+
 fn compatibility_manifest() -> Result<BlockbenchCompatibilityManifest, String> {
     serde_json::from_str(include_str!("../../../../mcp/compatibility/blockbench.json"))
         .map_err(|_| "LazyDesigner Blockbench compatibility manifest is invalid.".to_string())
@@ -314,6 +321,114 @@ pub(crate) fn open() -> Result<BlockbenchActionResult, String> {
         .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
 
     Ok(BlockbenchActionResult { status: "STARTED" })
+}
+
+
+#[cfg(windows)]
+mod window_focus {
+    use std::{collections::HashSet, ffi::c_void, ptr};
+
+    type Hwnd = *mut c_void;
+    const GW_OWNER: u32 = 4;
+    const SW_RESTORE: i32 = 9;
+
+    #[link(name = "user32")]
+    unsafe extern "system" {
+        fn EnumWindows(callback: Option<unsafe extern "system" fn(Hwnd, isize) -> i32>, param: isize) -> i32;
+        fn GetWindowThreadProcessId(window: Hwnd, process_id: *mut u32) -> u32;
+        fn IsWindowVisible(window: Hwnd) -> i32;
+        fn GetWindow(window: Hwnd, command: u32) -> Hwnd;
+        fn GetWindowTextLengthW(window: Hwnd) -> i32;
+        fn GetForegroundWindow() -> Hwnd;
+        fn ShowWindowAsync(window: Hwnd, command: i32) -> i32;
+        fn SetForegroundWindow(window: Hwnd) -> i32;
+    }
+
+    struct Candidates<'a> {
+        allowed_pids: &'a HashSet<u32>,
+        windows: Vec<Hwnd>,
+    }
+
+    unsafe extern "system" fn collect_window(window: Hwnd, parameter: isize) -> i32 {
+        let candidates = &mut *(parameter as *mut Candidates<'_>);
+        // Only visible, unowned top-level windows with a title can be candidates.
+        // Do not search by window title: another application can use the same title.
+        if IsWindowVisible(window) == 0
+            || !GetWindow(window, GW_OWNER).is_null()
+            || GetWindowTextLengthW(window) <= 0
+        {
+            return 1;
+        }
+        let mut pid = 0u32;
+        GetWindowThreadProcessId(window, &mut pid);
+        if candidates.allowed_pids.contains(&pid) {
+            candidates.windows.push(window);
+        }
+        1
+    }
+
+    pub(super) fn focus(allowed_pids: &HashSet<u32>) -> &'static str {
+        let mut candidates = Candidates { allowed_pids, windows: Vec::new() };
+        let listed = unsafe { EnumWindows(Some(collect_window), &mut candidates as *mut _ as isize) };
+        if listed == 0 {
+            return "UNKNOWN";
+        }
+        // Multiple Blockbench windows/profiles must not be guessed from ordering.
+        let target = match candidates.windows.as_slice() {
+            [] => return "NO_WINDOW",
+            [window] => *window,
+            _ => return "AMBIGUOUS",
+        };
+        unsafe {
+            if GetForegroundWindow() == target {
+                return "FOCUSED";
+            }
+            let _ = ShowWindowAsync(target, SW_RESTORE);
+            let _ = SetForegroundWindow(target);
+            if GetForegroundWindow() == target { "FOCUSED" } else { "DENIED" }
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        #[test]
+        fn window_choice_must_be_unambiguous() {
+            let select = |count: usize| match count {
+                0 => "NO_WINDOW",
+                1 => "UNIQUE",
+                _ => "AMBIGUOUS",
+            };
+            assert_eq!(select(0), "NO_WINDOW");
+            assert_eq!(select(1), "UNIQUE");
+            assert_eq!(select(2), "AMBIGUOUS");
+        }
+    }
+}
+
+/// Best-effort, explicit window focus; does not start a new Blockbench process.
+/// The caller must handle non-FOCUSED outcomes without claiming a foreground switch.
+pub(crate) fn focus_window() -> BlockbenchFocusResult {
+    #[cfg(windows)]
+    {
+        use std::collections::HashSet;
+        let mut system = System::new_all();
+        system.refresh_processes();
+        let allowed: HashSet<u32> = system.processes().iter()
+            .filter(|(_, process)| {
+                let name = process.name().to_ascii_lowercase();
+                (name == "blockbench.exe" || name == "blockbench")
+                    && process.exe().is_some_and(|path| path.is_file() && is_executable_name(path))
+            })
+            .map(|(pid, _)| pid.as_u32())
+            .collect();
+        return BlockbenchFocusResult {
+            status: if allowed.is_empty() { "NOT_RUNNING" } else { window_focus::focus(&allowed) },
+        };
+    }
+    #[cfg(not(windows))]
+    {
+        BlockbenchFocusResult { status: "UNSUPPORTED" }
+    }
 }
 
 #[cfg(test)]

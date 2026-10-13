@@ -106,6 +106,10 @@
     published_at: string | null;
   };
 
+  type BlockbenchFocusResult = {
+    status: 'FOCUSED' | 'NO_WINDOW' | 'AMBIGUOUS' | 'DENIED' | 'UNKNOWN' | 'NOT_RUNNING' | 'UNSUPPORTED';
+  };
+
   type EnsureReadyResult = {
     status: 'READY' | 'RUNTIME_READY' | 'APPROVAL_REQUIRED' | 'NEEDS_ATTENTION';
     reason: string;
@@ -261,6 +265,16 @@
     }
   }
 
+  async function focusBlockbenchAfterOpen(): Promise<boolean> {
+    // Windows may deny foreground activation. The editor launch is still valid.
+    try {
+      const result = await invoke<BlockbenchFocusResult>('focus_blockbench_window');
+      return result.status === 'FOCUSED';
+    } catch {
+      return false;
+    }
+  }
+
   async function openProjectModel(id: string) {
     if (devFixture || busyAction || statusProbeFailures >= 2 || !status?.manager_available) return;
     busyAction = 'project-action';
@@ -278,7 +292,11 @@
         return;
       }
       await invoke<ProjectNavigationActionResult>('project_navigation_action', { action: 'open-model', id });
+      const focused = await focusBlockbenchAfterOpen();
       await refresh();
+      showSuccessToast(focused
+        ? 'Model open request sent to Blockbench. Window focus confirmed.'
+        : 'Model open request sent. Select Blockbench from the taskbar if needed.');
     } catch (cause) {
       error = errorMessage(cause);
     } finally {
@@ -324,10 +342,12 @@
       pluginApprovalNeeded = result.manual_plugin_approval_recommended;
       readinessReason = result.reason;
       await refresh();
-      if (result.status === 'READY') {
-        showSuccessToast('LazyDesigner is ready.');
-      } else if (result.status === 'RUNTIME_READY') {
-        showSuccessToast('Blockbench is ready. The MCP client can connect when needed.');
+      if (result.status === 'READY' || result.status === 'RUNTIME_READY') {
+        const focused = await focusBlockbenchAfterOpen();
+        const connection = result.status === 'READY' ? 'AI connection is ready.' : 'AI client can connect when needed.';
+        showSuccessToast(focused
+          ? `Blockbench window focus confirmed. ${connection}`
+          : `Blockbench is ready. Select it from the taskbar if needed. ${connection}`);
       } else if (result.status === 'NEEDS_ATTENTION' && result.reason !== 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING') {
         error = result.reason === 'PLUGIN_INTEGRITY'
           ? 'The managed Blockbench plugin was modified and needs review.'

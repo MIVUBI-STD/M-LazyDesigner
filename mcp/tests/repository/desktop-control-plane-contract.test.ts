@@ -485,3 +485,27 @@ describe("Desktop calm connection summary", () => {
     expect(ui).toContain("Update components");
   });
 });
+
+describe("Desktop explicit Blockbench window focus", () => {
+  test("verifies a unique Blockbench-owned foreground window without changing Gateway ownership", async () => {
+    const [blockbench, main, app] = await Promise.all([
+      Bun.file("../apps/desktop/src-tauri/src/blockbench.rs").text(),
+      Bun.file("../apps/desktop/src-tauri/src/main.rs").text(),
+      Bun.file("../apps/desktop/src/App.svelte").text(),
+    ]);
+    expect(blockbench).toContain("fn EnumWindows(");
+    expect(blockbench).toContain("fn GetWindowThreadProcessId(");
+    expect(blockbench).toContain("fn GetForegroundWindow()");
+    expect(blockbench).toContain("GetWindowTextLengthW(window) <= 0");
+    expect(blockbench).toContain("is_executable_name(path)");
+    expect(blockbench).toContain('"AMBIGUOUS"');
+    expect(blockbench).toContain("if GetForegroundWindow() == target");
+    expect(main).toContain("fn focus_blockbench_window()");
+    expect(main).toContain("focus_blockbench_window,");
+    expect(app).toContain("async function focusBlockbenchAfterOpen()");
+    expect(app).toContain("result.status === 'FOCUSED'");
+    expect(app).toContain("Select Blockbench from the taskbar if needed.");
+    const watcher = app.slice(app.indexOf("async function watchSystemStatus()"), app.indexOf("async function connectBlockbench()"));
+    expect(watcher).not.toContain("focusBlockbenchAfterOpen");
+  });
+});
