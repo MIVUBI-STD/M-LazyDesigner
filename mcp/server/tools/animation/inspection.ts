@@ -3,6 +3,7 @@
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
 import { inspectAnimationParameters } from "./inspectionSchema";
+import { readCurrentBonePoseSnapshot } from "./currentPose";
 export { inspectAnimationParameters } from "./inspectionSchema";
 
 
@@ -506,6 +507,7 @@ export function registerAnimationInspectionTools() {
             authored_space: "blockbench_animation" as const,
             animation: animationSummary,
             focused_bone: focusedBone,
+            current_pose_snapshot: readCurrentBonePoseSnapshot(animation, group),
             ...(include_effect_keyframes
               ? { effects: inspectParticleEffects(animation, true) }
               : {}),

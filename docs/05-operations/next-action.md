@@ -6,46 +6,57 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 contact evidence budget and cause hardening
+## Active: LD-Q04 — focused native current-pose origin snapshot
 
-LD-Q04 source hardening in `mcp/lib/animation/contactEvidence.ts` closes
-three deterministic gaps while retaining the original single owner, return
-shape, caller-provided sample provenance, and no new MCP capability:
+The exact existing `inspect_animation` `bone` branch now adds the
+small sibling `current_pose_snapshot` field. The original
+`focused_bone` output remains unchanged. Canonical owner
+`mcp/server/tools/animation/currentPose.ts` reads the
+currently displayed native Group's **bone origin world position**, using
+its Three.js parent hierarchy and current world matrix only when the
+requested Animation is selected and playing, the editor is in Animation
+mode, Timeline is paused, one Animation is playing, the Project and Group
+are resolved, and the Group is visibly attached to the active Canvas scene.
 
-- A single planted-marker observation is now `unverified`, not a
-  numerical contact `pass`. A single fixed/pair impact remains a point
-  measurement only, not motion evidence.
-- Bounded inputs: at most 64 constraints per analysis and 2,048 samples
-  per constraint. Overflow returns `unavailable` or bounded invalid-
-  constraint evidence rather than sorting/scanning an unlimited list.
-- Each diagnostic now distinguishes `review_reasons` (distance exceeded,
-  planted drift, support-plane penetration) from `unverified_reasons`
-  (sampling window incomplete, insufficient planted observations). Observed
-  defects remain review candidates even when temporal coverage is lacking.
+There is **no Timeline.setTime, Animator.preview, keyframe mutation,
+controller switch, Group selection or animation playback**. Normal
+inspection without a focused bone and controller-state inspection remain
+unchanged. The helper only synchronizes transient native transform caches
+to read the current world position and fails closed for stale/unknown
+native identities, hidden/detached bones, multiple clips, moving timeline,
+out-of-range time, or malformed positions. The new focused result is
+bounded and contains project/animation/group IDs plus the timeline clock
+as observed.
 
-The tests in `mcp/tests/animation-contact-evidence.test.ts` retain prior
-behavior and add six focused cases for singleton planted observations,
-single-frame moving contacts, multi-cause review reporting, both budget
-limits, and support-plane-only findings. Return metadata explicitly labels
-`coverage_scope=supplied_constraints_only` and continues to report
-`sample_provenance=caller_supplied_not_native_attested` and
-`visual_verdict=not_evaluated`.
+Crucial semantics: `state=OBSERVED` is a snapshot of the
+current preview, **not** proof the preview was reevaluated at that
+specific Timeline time. `frame_pose_synchronized=false`,
+`contact_marker_attested=false`,
+`native_animation_sampling_performed=false` and
+`visual_verdict=NOT_EVALUATED` prevent a bone pivot
+from being reinterpreted as a planted foot or a series of contact samples.
+The original `analyzeAnimationContactEvidence` does not
+ingest or upgrade this origin snapshot into a PASS.
 
-**Proof:** exact source/test definitions only. Bun, complete source
-typecheck, live Blockbench Timeline sampling, real world-space contact
-marker provenance, animation playback, and visual acceptance are
-**NOT EXECUTED** for the current head. The remote GitHub connection
-cannot dispatch manually gated Actions, and this environment does not
-have a matching checked-out Bun workspace. Do not request the user's
-PC, install local dependencies, or treat mock arithmetic as native proof.
+`mcp/tests/animation-current-pose-snapshot.test.ts` provides
+nine regression definitions covering valid paused preview reads,
+identity conflicts, multiple clips, moving Timeline, detached/hidden
+hierarchies, invalid coordinates and times, active-clip state, and
+no-timeline-mutation source assertions. Existing controller/focused
+inspection contracts are preserved.
 
-**Next:** at a genuinely available cloud worktree, run the existing
-focused `bun test tests/animation-contact-evidence.test.ts` from
-`mcp/`, then canonical typecheck and impacted contracts. Diagnose any
-failure in its owner before broad verification. Native timeline sampling
-requires an independently reviewable, state-restoring read-only adapter
-before those observations may be called runtime-attested. Do not add
-an unconsumed shadow sampler, new Gateway tool or automatic acceptance.
+**Proof:** authored source and mock regression definitions only;
+Bun/CI, end-to-end animation inspection, installed Blockbench, frame
+sync, playback and true contact-marker sampling are **NOT EXECUTED**.
+User local testing remains deferred. No new public tool/input fields or
+generator-owned API outputs were hand-edited.
+
+**Next:** run focused Bun inspection/snapshot tests and typechecks on an
+exact-SHA capable cloud worktree when available. For authentic contact
+verification, design only an explicitly reviewed end-effector/locator
+binding and a reversible timeline sampling transaction, proving
+restoration before exposure. Do not loop over Timeline frames from
+normal inspection or claim native contact from a displayed bone origin.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 
