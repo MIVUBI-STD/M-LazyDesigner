@@ -6,64 +6,65 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 — bounded non-mutating Timeline sampling preflight
+## Active: LD-Q04 — native pose read-consistency fence
 
-The canonical `mcp/lib/animation/contactMarkerBinding.ts` now owns
-`prepareContactSamplingPlan`. This is **a plan, not a native sampler**.
-It derives an immutable, uniformly partitioned set of times from an
-explicit `start/end/max_gap_seconds` window and already linked exact
-project/Animation/Group/Locator UUID bindings. Both endpoints are included,
-the maximum requested spacing is preserved without accumulation drift,
-and at most 121 time points across a bounded 120-second timeline may be
-planned. The native resolver supplies the authored Animation duration, and
-the requested window must fit completely within that clip. Malformed windows, frame-budget overruns, stale/mismatched
-marker identities or partial role bindings fail closed: no partial
-motion result is silently approved or downsampled.
+The existing `mcp/server/tools/animation/currentPose.ts` now
+captures a synchronous **before/after read fence** around native bone-origin
+and directly attached Locator world-position inspection. It verifies
+the Project UUID, selected Animation identity, animation UUID and length,
+exclusive clip playback, paused Timeline clock, Animation mode, Group
+identity and visibility, Canvas scene, every ancestor's parent/visibility,
+ordered direct Locator object identity/UUID/mesh/visibility/parent,
+and the focused Group's child ordering remain stable during the read.
+An active AnimationController state is rejected before any position
+reads. If a native world-position callback changes one of the guarded
+dependencies, `NATIVE_POSE_READ_CONTEXT_CHANGED` is returned as
+`UNVERIFIED`, with **no bone origin or Locator coordinates** released.
 
-The existing internal
-`resolveCurrentContactMarkerBindings(animation,group,bindings,window?)`
-consumes the new planner only when an explicit window is supplied.
-No window preserves the old return shape. With a window it appends
-`sampling_preflight`, retaining existing role/locator links. The
-schedule contains only times and reference identities, NOT stale
-single-frame coordinates repeated across timestamps.
+This is a safety improvement on the active focused
+`inspect_animation(bone=...)` owner, not another animation engine,
+snapshot registry, client input or Gateway tool. The existing explicit
+Contact Marker role binding and bounded sampling planner consume
+the same read result: a stale pose also blocks the optional sampling
+plan, retaining `native_sampling_state=NOT_EXECUTED`.
+No Timeline advancement, animation selection, `Animator.preview()`,
+keyframe edit or native auto-retry was introduced.
 
-`sampling_authority=NO_RUNTIME_SAMPLING_AUTHORIZED`,
-`native_sampling_state=NOT_EXECUTED`,
-`preview_restoration_verified=false`,
-`full_motion_coverage_verified=false`, and
-`visual_verdict=NOT_EVALUATED` are invariant. A plan is not contact
-evidence and never sets user acceptance/Animation-quality PASS.
+**Critical recovery boundary:** read consistency is not state
+restoration. The fence can detect changed dependencies caused by
+another callback but cannot undo their mutations. It does not prove a
+matching animated pose for Timeline time, marker contact/foot planting,
+restored texture selection/frame, controller state, scale, particle/sound
+side effects, editor UI or installed Blockbench behavior.
 
-Upstream Blockbench source review found why this must not be promoted
-blindly to runtime: `Animator.preview()` can reset pose, change
-Timeline time for controller states, drive animation effects, ground
-plane offsets, texture selection/frame, model scale and event
-dispatch. Restoring only `Timeline.time` is insufficient to
-guarantee undo of all transient editor/UI state. No full-frame native
-iteration has been activated in LazyDesigner.
+Upstream Blockbench `Animator.preview()` is not a pure pose function:
+it can drive controller-selected-state time, animation/effect playback,
+ground plane/grids, texture frame and selection, model scale, and
+animation display events. Its `Timeline.pause()` also calls preview and
+can touch audio playback. Therefore a naive `setTime → preview →
+read → restoreTime` transaction is **not authorized** as reversible
+native sampling.
 
-Eleven new focused regression cases in
-`mcp/tests/animation-contact-marker-binding.test.ts`, plus two
-internal consumer tests in
-`mcp/tests/animation-current-pose-snapshot.test.ts`, cover
-deterministic schedules, optional backwards compatibility, exact
-identity/role constraints, stale input, safety budgets, and no
-reused pose coordinates.
+Regression definitions: nine new cases in
+`mcp/tests/animation-current-pose-snapshot.test.ts` covering
+controller-state preview rejection; clock, Project, Animation, bone
+hierarchy, Locator UUID and Group child-list changes within native
+read callbacks; another clip starting during Locator read; stable
+nonmutating reads; and stale evidence blocking the existing sampling
+preflight.
 
-**Proof:** exact source and regression definitions committed to
-`Local`; Bun tests, full TypeScript check, installed Blockbench,
-actual Timeline sampling, renderer/editor restore and visual
-acceptance are **NOT EXECUTED** in this context. User-local testing
-remains deferred.
+**Proof:** source and regression definitions only. The current
+environment has Node 22 and TypeScript 5.8 but lacks Bun and a full
+repo checkout; focused Bun/CI, installed Blockbench and native
+restore/visual acceptance remain **NOT EXECUTED**.
+The user does not need to run local tests.
 
-**Next:** in an authorized cloud worktree, execute the focused
-binding/current-pose suites at the exact HEAD and then impacted
-TypeScript checks. Only after real native exploration demonstrates
-comprehensive state-isolated animation frame evaluation should a
-reversible sampler be implemented and explicitly enabled. Do not
-build a parallel authoring engine, normal-inspection timeline loop
-or new Gateway tool.
+**Next:** run the exact-SHA focused source tests and TypeScript gate
+in an authorized cloud checkout if available. A future live sampler
+must use isolated pose evaluation or demonstrate comprehensive
+restore across all affected native visual/editor state. Until then,
+keep `native_sampling_state=NOT_EXECUTED`; do not hide unknown
+mutations by resetting only the playhead.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 

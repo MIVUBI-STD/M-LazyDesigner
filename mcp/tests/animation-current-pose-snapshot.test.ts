@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readCurrentBonePoseSnapshot, resolveCurrentContactMarkerBindings } from "@/server/tools/animation/currentPose";
 
 const globals = globalThis as Record<string, any>;
-const keys = ["Project", "AnimationItem", "Group", "Locator", "Timeline", "Animator", "Modes", "Canvas", "THREE"] as const;
+const keys = ["Project", "AnimationItem", "AnimationController", "Group", "Locator", "Timeline", "Animator", "Modes", "Canvas", "THREE"] as const;
 const original = Object.fromEntries(keys.map((key) => [key, globals[key]]));
 afterEach(() => { for (const key of keys) globals[key] = original[key]; });
 
@@ -26,6 +26,7 @@ function setup() {
   let currentTime = 0.5;
   globals.Project = { uuid: "project-uuid" };
   globals.AnimationItem = { selected: animation, all: [animation] };
+  globals.AnimationController = { selected: null };
   globals.Group = { all: [group] };
   globals.Locator = { all: [] as any[] };
   globals.Timeline = {
@@ -370,6 +371,129 @@ describe("focused current-native-bone pose snapshot", () => {
         sample_times: [],
       },
     });
+    expect(globals.Timeline.time).toBe(0.5);
+  });
+
+  test("active controller selected state is refused before any world read", () => {
+    const { animation, group, events } = setup();
+    globals.AnimationController.selected = { selected_state: { uuid: "state-1" } };
+    expect(readCurrentBonePoseSnapshot(animation as any, group as any))
+      .toMatchObject({ state: "UNVERIFIED", reason: "ANIMATION_CONTROLLER_PREVIEW_ACTIVE" });
+    expect(events).toEqual([]);
+  });
+
+  test("timeline clock changes during synchronous native read discard the snapshot", () => {
+    const { animation, group, mesh, setTime } = setup();
+    mesh.getWorldPosition = (output: any) => {
+      setTime(0.75);
+      Object.assign(output, { x: 2, y: 5, z: -3 });
+      return output;
+    };
+    const result = readCurrentBonePoseSnapshot(animation as any, group as any);
+    expect(result).toMatchObject({
+      state: "UNVERIFIED", reason: "NATIVE_POSE_READ_CONTEXT_CHANGED",
+      visual_verdict: "NOT_EVALUATED",
+    });
+    expect(result).not.toHaveProperty("bone_origin_world");
+  });
+
+  test("switching project or selected animation inside native position callback invalidates evidence", () => {
+    for (const action of ["project", "animation"]) {
+      const { animation, group, mesh } = setup();
+      mesh.getWorldPosition = (output: any) => {
+        if (action === "project") globals.Project.uuid = "another-project";
+        else globals.AnimationItem.selected = { uuid: "other" };
+        Object.assign(output, { x: 0, y: 0, z: 0 });
+        return output;
+      };
+      expect(readCurrentBonePoseSnapshot(animation as any, group as any))
+        .toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_POSE_READ_CONTEXT_CHANGED" });
+    }
+  });
+
+  test("native Group hierarchy changes during world read are rejected even if the world position is finite", () => {
+    const { animation, group, mesh } = setup();
+    mesh.getWorldPosition = (output: any) => {
+      mesh.parent = { visible: true, parent: null };
+      Object.assign(output, { x: 2, y: 5, z: -3 });
+      return output;
+    };
+    expect(readCurrentBonePoseSnapshot(animation as any, group as any))
+      .toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_POSE_READ_CONTEXT_CHANGED" });
+  });
+
+  test("Locator identity changes while reading invalidate the entire snapshot", () => {
+    const { animation, group } = setup();
+    const locator = locatorUnder(group, "contact-locator", { position: [1, 2, 3] });
+    locator.mesh.getWorldPosition = (output: any) => {
+      locator.uuid = "changed-mid-read";
+      Object.assign(output, { x: 1, y: 2, z: 3 });
+      return output;
+    };
+    const result = readCurrentBonePoseSnapshot(animation as any, group as any);
+    expect(result).toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_POSE_READ_CONTEXT_CHANGED" });
+    expect(result).not.toHaveProperty("locator_candidates");
+  });
+
+  test("child-list mutation during Locator callback rejects apparently complete candidate inventory", () => {
+    const { animation, group } = setup();
+    const locator = locatorUnder(group, "one", { position: [1, 2, 3] });
+    locator.mesh.getWorldPosition = (output: any) => {
+      group.children.pop();
+      Object.assign(output, { x: 1, y: 2, z: 3 });
+      return output;
+    };
+    expect(readCurrentBonePoseSnapshot(animation as any, group as any))
+      .toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_POSE_READ_CONTEXT_CHANGED" });
+  });
+
+  test("a second active animation during Locator read cannot be treated as exclusive pose", () => {
+    const { animation, group } = setup();
+    const locator = locatorUnder(group, "one");
+    locator.mesh.getWorldPosition = (output: any) => {
+      globals.AnimationItem.all.push({ uuid: "other", playing: true });
+      Object.assign(output, { x: 0, y: 1, z: 0 });
+      return output;
+    };
+    expect(readCurrentBonePoseSnapshot(animation as any, group as any))
+      .toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_POSE_READ_CONTEXT_CHANGED" });
+  });
+
+  test("a stale mid-read pose also blocks the existing sampling preflight", () => {
+    const { animation, group, mesh, setTime } = setup();
+    locatorUnder(group, "locator-a");
+    mesh.getWorldPosition = (output: any) => {
+      setTime(0.8);
+      Object.assign(output, { x: 2, y: 5, z: -3 });
+      return output;
+    };
+    const result = resolveCurrentContactMarkerBindings(animation as any, group as any, [{
+      id: "foot-binding", role: "FOOT_PLANT",
+      intent_authority: "DECLARED_USER_INTENT", evidence_ref: "user:explicit-contact",
+      project_uuid: "project-uuid", animation_uuid: "anim-uuid",
+      group_uuid: "bone-uuid", locator_uuid: "locator-a",
+    }], { start: 0, end: 1, max_gap_seconds: 0.25 });
+    expect(result).toMatchObject({
+      state: "UNVERIFIED",
+      reason: "CURRENT_POSE_NOT_ELIGIBLE_FOR_ROLE_LINK",
+      linked_count: 0,
+      sampling_preflight: {
+        state: "UNVERIFIED",
+        reason: "CONTACT_MARKERS_NOT_FULLY_LINKED",
+        native_sampling_state: "NOT_EXECUTED",
+        sample_times: [],
+      },
+    });
+  });
+
+  test("read consistency remains observational and does not advance playback", () => {
+    const { animation, group, events } = setup();
+    locatorUnder(group, "stable", { position: [7, 8, 9] });
+    const result = observedPose(animation as any, group as any);
+    expect(result.locator_candidates).toMatchObject({
+      state: "AVAILABLE", candidates: [{ uuid: "stable", world_position: [7, 8, 9] }],
+    });
+    expect(events).toEqual(["world_matrix:true:false", "world_position"]);
     expect(globals.Timeline.time).toBe(0.5);
   });
 

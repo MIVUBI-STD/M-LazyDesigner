@@ -121,6 +121,83 @@ function readDirectLocatorCandidates(group: Group) {
 }
 
 /**
+ * A passive read fence. We only certify that the editor identities and
+ * structural snapshot dependencies did not change during synchronous native
+ * position reads. It does not attest pose/time synchronization.
+ */
+function captureCurrentPoseReadFence(animation: _Animation, group: Group) {
+  const projectUuid = Project.uuid;
+  const animationUuid = animation.uuid;
+  const animationLength = animation.length;
+  const timelineTime = Timeline.time;
+  const scene = Canvas.scene;
+  const mesh = group.mesh;
+  const chain: Array<{ node: THREE.Object3D; parent: THREE.Object3D | null; visible: boolean }> = [];
+  let cursor: THREE.Object3D | null = mesh;
+  while (cursor) {
+    chain.push({ node: cursor, parent: cursor.parent, visible: cursor.visible });
+    if (cursor === scene) break;
+    cursor = cursor.parent;
+  }
+
+  const directLocators =
+    typeof Locator !== "undefined" && Array.isArray(Locator.all)
+      ? Locator.all.filter((locator) => locator.parent === group).map((locator) => ({
+          instance: locator,
+          uuid: locator.uuid,
+          mesh: locator.mesh,
+          parent: locator.parent,
+          visible: locator.visibility,
+          meshParent: locator.mesh?.parent,
+          meshVisible: locator.mesh?.visible,
+        }))
+      : null;
+  const children =
+    Array.isArray(group.children) ? [...group.children] : null;
+
+  return () => {
+    if (Project.uuid !== projectUuid ||
+        AnimationItem.selected !== animation ||
+        !AnimationItem.all.includes(animation) ||
+        animation.uuid !== animationUuid ||
+        animation.length !== animationLength ||
+        animation.playing !== true ||
+        AnimationItem.all.some((item) =>
+          item !== animation && item.playing === true) ||
+        (typeof AnimationController !== "undefined" &&
+          Boolean(AnimationController.selected?.selected_state)) ||
+        Timeline.playing !== false ||
+        Timeline.time !== timelineTime ||
+        !Animator.open || Modes.animate !== true ||
+        Group.all.includes(group) === false ||
+        group.mesh !== mesh || group.visibility === false ||
+        Canvas.scene !== scene ||
+        chain.some((part) =>
+          part.node.parent !== part.parent || part.node.visible !== part.visible)
+    ) return false;
+
+    if (children !== null &&
+        (!Array.isArray(group.children) ||
+          group.children.length !== children.length ||
+          children.some((child, i) => group.children[i] !== child))) return false;
+    if (directLocators !== null) {
+      if (typeof Locator === "undefined" || !Array.isArray(Locator.all)) return false;
+      const current = Locator.all.filter((locator) => locator.parent === group);
+      if (current.length !== directLocators.length ||
+          directLocators.some((before, i) =>
+            current[i] !== before.instance ||
+            current[i]?.uuid !== before.uuid ||
+            current[i]?.mesh !== before.mesh ||
+            current[i]?.parent !== before.parent ||
+            current[i]?.visibility !== before.visible ||
+            current[i]?.mesh?.parent !== before.meshParent ||
+            current[i]?.mesh?.visible !== before.meshVisible)) return false;
+    }
+    return true;
+  };
+}
+
+/**
  * Reads the native world position of a selected bone's existing preview
  * origin. It does not change Timeline.time, re-evaluate animations, invoke
  * Animator.preview, move a bone, or claim an end-effector contact point.
@@ -155,6 +232,10 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
     return unverified("INSPECTED_ANIMATION_NOT_ACTIVE_PREVIEW");
   }
   if (Timeline.playing) return unverified("TIMELINE_PLAYING");
+  if (typeof AnimationController !== "undefined" &&
+      AnimationController.selected?.selected_state) {
+    return unverified("ANIMATION_CONTROLLER_PREVIEW_ACTIVE");
+  }
   if (!Number.isFinite(Timeline.time) || Timeline.time < 0 ||
       !Number.isFinite(animation.length) || Timeline.time > animation.length) {
     return unverified("TIMELINE_TIME_INVALID");
@@ -182,6 +263,7 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
   }
   if (!attached) return unverified("GROUP_OUTSIDE_ACTIVE_SCENE");
 
+  const unchanged = captureCurrentPoseReadFence(animation, group);
   try {
     // Updates Three.js transient transform caches, not authored geometry or
     // animation keyframes. Never interpret this as reevaluating Timeline.time.
@@ -190,6 +272,10 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
     const world = [position.x, position.y, position.z];
     if (world.some((value) => !Number.isFinite(value))) {
       return unverified("NATIVE_GROUP_WORLD_POSITION_INVALID");
+    }
+    const locator_candidates = readDirectLocatorCandidates(group);
+    if (!unchanged()) {
+      return unverified("NATIVE_POSE_READ_CONTEXT_CHANGED");
     }
     return {
       state: "OBSERVED" as const,
@@ -200,7 +286,7 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
       group_uuid: group.uuid,
       timeline_time_observed: Timeline.time,
       bone_origin_world: world as [number, number, number],
-      locator_candidates: readDirectLocatorCandidates(group),
+      locator_candidates,
       frame_pose_synchronized: false as const,
       contact_marker_attested: false as const,
       native_animation_sampling_performed: false as const,
