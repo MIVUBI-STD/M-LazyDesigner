@@ -3,6 +3,8 @@
 
 import {
   bindExplicitContactMarkers,
+  prepareContactSamplingPlan,
+  type ContactSamplingWindow,
   type ExplicitContactMarkerBinding,
 } from "@/lib/animation/contactMarkerBinding";
 
@@ -221,8 +223,17 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
 export function resolveCurrentContactMarkerBindings(
   animation: _Animation,
   group: Group,
-  bindings: readonly ExplicitContactMarkerBinding[]
+  bindings: readonly ExplicitContactMarkerBinding[],
+  sampling_window?: ContactSamplingWindow
 ) {
   const snapshot = readCurrentBonePoseSnapshot(animation, group);
-  return bindExplicitContactMarkers({ snapshot, bindings });
+  const bound = bindExplicitContactMarkers({ snapshot, bindings });
+  if (!sampling_window) return bound;
+  return {
+    ...bound,
+    sampling_preflight: prepareContactSamplingPlan({
+      snapshot, bindings, window: sampling_window,
+      duration_seconds: animation.length,
+    }),
+  };
 }

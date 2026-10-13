@@ -315,6 +315,64 @@ describe("focused current-native-bone pose snapshot", () => {
     });
   });
 
+  test("explicit optional timing window attaches plan without changing linked marker semantics", () => {
+    const { group, animation } = setup();
+    locatorUnder(group, "locator-a", { position: [1, 2, 3] });
+    const roles = [{
+      id: "foot-contact",
+      role: "FOOT_PLANT" as const,
+      intent_authority: "DECLARED_USER_INTENT" as const,
+      evidence_ref: "user:foot",
+      project_uuid: "project-uuid",
+      animation_uuid: "anim-uuid",
+      group_uuid: "bone-uuid",
+      locator_uuid: "locator-a",
+    }];
+    const withWindow = resolveCurrentContactMarkerBindings(animation as any, group as any, roles, {
+      start: 0, end: 1, max_gap_seconds: 0.25,
+    });
+    expect(withWindow).toMatchObject({
+      state: "LINKED_CURRENT_PREVIEW_ONLY",
+      linked_count: 1,
+      physical_contact_verified: false,
+      sampling_preflight: {
+        state: "PREPARED_SOURCE_ONLY",
+        sample_times: [0, 0.25, 0.5, 0.75, 1],
+        native_sampling_state: "NOT_EXECUTED",
+        preview_restoration_verified: false,
+        sample_count: 0,
+      },
+    });
+    expect(globals.Timeline.time).toBe(0.5);
+    const without = resolveCurrentContactMarkerBindings(animation as any, group as any, roles);
+    expect(without).not.toHaveProperty("sampling_preflight");
+    expect(without).toMatchObject({
+      state: "LINKED_CURRENT_PREVIEW_ONLY",
+      bindings: [{ locator_uuid: "locator-a" }],
+    });
+  });
+
+  test("invalid optional timing window remains UNVERIFIED without moving the editor", () => {
+    const { group, animation } = setup();
+    locatorUnder(group, "locator-a");
+    const result = resolveCurrentContactMarkerBindings(animation as any, group as any, [{
+      id: "impact", role: "IMPACT_POINT",
+      intent_authority: "DECLARED_REFERENCE_INTENT",
+      evidence_ref: "reference:contact",
+      project_uuid: "project-uuid", animation_uuid: "anim-uuid",
+      group_uuid: "bone-uuid", locator_uuid: "locator-a",
+    }], { start: 0, end: 200, max_gap_seconds: 0.1 });
+    expect(result).toMatchObject({
+      state: "LINKED_CURRENT_PREVIEW_ONLY",
+      sampling_preflight: {
+        state: "UNVERIFIED",
+        reason: "CONTACT_SAMPLING_WINDOW_INVALID",
+        sample_times: [],
+      },
+    });
+    expect(globals.Timeline.time).toBe(0.5);
+  });
+
   test("source integration is focused and introduces no keyframe/timeline mutator", async () => {
     const code = await Bun.file("server/tools/animation/inspection.ts").text();
     const snapshot = await Bun.file("server/tools/animation/currentPose.ts").text();

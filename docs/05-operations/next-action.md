@@ -6,62 +6,64 @@ in `docs/05-operations/current-validation.md`.
 
 ## Current direction
 
-## Active: LD-Q04 — explicit contact marker role binding
+## Active: LD-Q04 — bounded non-mutating Timeline sampling preflight
 
-Canonical source `mcp/lib/animation/contactMarkerBinding.ts` now accepts
-**explicit declarations** associating a role (FOOT_PLANT, HAND_GRIP,
-TOOL_CONTACT, IMPACT_POINT) with exact project, animation, Group/bone and
-Locator UUIDs, plus declared intent authority and a non-empty evidence
-reference. It checks these against the existing
-`inspect_animation(bone=...)` native preview snapshot, not against Locator
-names, guessed anatomy, current selection alone, or keyframe positions.
+The canonical `mcp/lib/animation/contactMarkerBinding.ts` now owns
+`prepareContactSamplingPlan`. This is **a plan, not a native sampler**.
+It derives an immutable, uniformly partitioned set of times from an
+explicit `start/end/max_gap_seconds` window and already linked exact
+project/Animation/Group/Locator UUID bindings. Both endpoints are included,
+the maximum requested spacing is preserved without accumulation drift,
+and at most 121 time points across a bounded 120-second timeline may be
+planned. The native resolver supplies the authored Animation duration, and
+the requested window must fit completely within that clip. Malformed windows, frame-budget overruns, stale/mismatched
+marker identities or partial role bindings fail closed: no partial
+motion result is silently approved or downsampled.
 
-The internal consumer
-`resolveCurrentContactMarkerBindings(animation, group, bindings)` in the
-existing `mcp/server/tools/animation/currentPose.ts` obtains one guarded
-native preview snapshot and passes it to the pure binding verifier.
-Results are bounded to 16 identities, retain the requested semantic role
-and declared evidence reference, and return exact current-preview
-coordinates **only** for observed UUID matches. Duplicate source/binding
-identities, missing or stale project/animation/bone/Locator IDs, invalid
-world coordinates and inconsistent candidate counts/availability fail
-closed. Unrelated invalid candidates produce explicit partial results,
-never a fabricated global PASS.
+The existing internal
+`resolveCurrentContactMarkerBindings(animation,group,bindings,window?)`
+consumes the new planner only when an explicit window is supplied.
+No window preserves the old return shape. With a window it appends
+`sampling_preflight`, retaining existing role/locator links. The
+schedule contains only times and reference identities, NOT stale
+single-frame coordinates repeated across timestamps.
 
-**Proof authority:** a caller's `DECLARED_USER_INTENT` or
-`DECLARED_REFERENCE_INTENT` is NOT independently verified permission or
-reference approval. The output is at most
-`LINKED_CURRENT_PREVIEW_ONLY`, with
-`role_authority=CALLER_DECLARED_NOT_INDEPENDENTLY_VERIFIED`,
-`frame_pose_synchronized=false`,
-`native_timeline_sampling_performed=false`,
-`physical_contact_verified=false`, and
-`visual_verdict=NOT_EVALUATED`. It does not imply planting, a
-physical end effector, weight transfer or observed animation motion.
+`sampling_authority=NO_RUNTIME_SAMPLING_AUTHORIZED`,
+`native_sampling_state=NOT_EXECUTED`,
+`preview_restoration_verified=false`,
+`full_motion_coverage_verified=false`, and
+`visual_verdict=NOT_EVALUATED` are invariant. A plan is not contact
+evidence and never sets user acceptance/Animation-quality PASS.
 
-Existing `inspect_animation` inputs/output remain unchanged. **Role
-binding is currently an internal source consumer**, not a newly
-advertised client input. Adding a client-facing role-binding field would
-change the public schema and require the canonical generated API
-artifacts under an executable Bun toolchain. Do not silently add that
-field or hand-edit generated files.
+Upstream Blockbench source review found why this must not be promoted
+blindly to runtime: `Animator.preview()` can reset pose, change
+Timeline time for controller states, drive animation effects, ground
+plane offsets, texture selection/frame, model scale and event
+dispatch. Restoring only `Timeline.time` is insufficient to
+guarantee undo of all transient editor/UI state. No full-frame native
+iteration has been activated in LazyDesigner.
 
-Regression definitions: eleven focused cases in
-`mcp/tests/animation-contact-marker-binding.test.ts` plus two native
-adapter contract cases in the existing current-pose test suite. They
-cover exact user-declared roles, unknown/mismatched identities, partial
-candidates, duplicate UUIDs, malformed intent, stale clocks, mismatched
-summary counts, resource limits and explicit frame-sync limitations.
+Eleven new focused regression cases in
+`mcp/tests/animation-contact-marker-binding.test.ts`, plus two
+internal consumer tests in
+`mcp/tests/animation-current-pose-snapshot.test.ts`, cover
+deterministic schedules, optional backwards compatibility, exact
+identity/role constraints, stale input, safety budgets, and no
+reused pose coordinates.
 
-**Not executed:** repository Bun/TypeScript/CI, deployed Blockbench,
-native time-to-pose alignment, user-approved binding workflow and
-reference-driven visual acceptance. User local test remains deferred.
+**Proof:** exact source and regression definitions committed to
+`Local`; Bun tests, full TypeScript check, installed Blockbench,
+actual Timeline sampling, renderer/editor restore and visual
+acceptance are **NOT EXECUTED** in this context. User-local testing
+remains deferred.
 
-**Next:** execute the two focused suites at the exact `Local` SHA in
-a capable cloud worktree, then integrate a truly approved binding input
-only with canonical schema generation and a verified state-restoring
-native timeline sample contract. Do not promote a one-frame bound
-Locator to measured contact or invent an approval signal.
+**Next:** in an authorized cloud worktree, execute the focused
+binding/current-pose suites at the exact HEAD and then impacted
+TypeScript checks. Only after real native exploration demonstrates
+comprehensive state-isolated animation frame evaluation should a
+reversible sampler be implemented and explicitly enabled. Do not
+build a parallel authoring engine, normal-inspection timeline loop
+or new Gateway tool.
 
 ## Deferred native verification — LD-Q01, LD-Q02 and LD-Q03
 

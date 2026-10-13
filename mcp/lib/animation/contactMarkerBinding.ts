@@ -220,3 +220,123 @@ export function bindExplicitContactMarkers(input: {
     bindings,
   };
 }
+
+
+/**
+ * Bounded, immutable timeline sampling PLAN only. Nothing here samples a
+ * runtime frame or authorizes a Timeline/Animator mutation. A planned clock
+ * must never be mistaken for sampled world-space contact evidence.
+ */
+export type ContactSamplingWindow = {
+  start: number;
+  end: number;
+  max_gap_seconds: number;
+};
+
+export const CONTACT_SAMPLING_MAX_FRAMES = 121;
+export const CONTACT_SAMPLING_MAX_END_SECONDS = 120;
+const CONTACT_SAMPLING_MIN_GAP_SECONDS = 1e-4;
+
+export function prepareContactSamplingPlan(input: {
+  snapshot: ContactMarkerPoseSnapshot;
+  bindings: readonly ExplicitContactMarkerBinding[];
+  window: ContactSamplingWindow;
+  duration_seconds: number;
+}) {
+  const shared = {
+    sampling_authority: "NO_RUNTIME_SAMPLING_AUTHORIZED" as const,
+    native_sampling_state: "NOT_EXECUTED" as const,
+    preview_restoration_verified: false as const,
+    full_motion_coverage_verified: false as const,
+    visual_verdict: "NOT_EVALUATED" as const,
+  };
+  const unavailable = (reason: string) => ({
+    ...shared,
+    state: "UNVERIFIED" as const,
+    reason,
+    frame_count: 0,
+    sample_count: 0,
+    sample_times: [] as number[],
+    markers: [] as Array<{
+      id: string; role: ExplicitContactMarkerBinding["role"]; locator_uuid: string;
+      evidence_ref: string; intent_authority: ExplicitContactMarkerBinding["intent_authority"];
+    }>,
+  });
+
+  const window = input.window;
+  if (!window || !Number.isFinite(window.start) ||
+      !Number.isFinite(window.end) ||
+      !Number.isFinite(window.max_gap_seconds) ||
+      window.start < 0 || window.end <= window.start ||
+      window.end > CONTACT_SAMPLING_MAX_END_SECONDS ||
+      window.max_gap_seconds < CONTACT_SAMPLING_MIN_GAP_SECONDS) {
+    return unavailable("CONTACT_SAMPLING_WINDOW_INVALID");
+  }
+
+  if (!Number.isFinite(input.duration_seconds) ||
+      input.duration_seconds <= 0 ||
+      input.duration_seconds > CONTACT_SAMPLING_MAX_END_SECONDS) {
+    return unavailable("AUTHORED_ANIMATION_DURATION_INVALID");
+  }
+  if (window.end > input.duration_seconds + 1e-9) {
+    return unavailable("CONTACT_SAMPLING_OUTSIDE_ANIMATION");
+  }
+
+  const linked = bindExplicitContactMarkers({
+    snapshot: input.snapshot,
+    bindings: input.bindings,
+  });
+  if (!Array.isArray(input.bindings) ||
+      linked.state !== "LINKED_CURRENT_PREVIEW_ONLY" ||
+      linked.linked_count !== input.bindings.length) {
+    return unavailable("CONTACT_MARKERS_NOT_FULLY_LINKED");
+  }
+
+  const segments = Math.ceil((window.end - window.start) / window.max_gap_seconds);
+  if (!Number.isSafeInteger(segments) || segments < 1 ||
+      segments + 1 > CONTACT_SAMPLING_MAX_FRAMES) {
+    return unavailable("CONTACT_SAMPLING_FRAME_BUDGET_EXCEEDED");
+  }
+
+  // Integer-indexed partition prevents cumulative floating-point drift.
+  // Include both endpoints, never sample arbitrary extra times.
+  const sample_times = Array.from({ length: segments + 1 }, (_, index) =>
+    index === segments ? window.end :
+      window.start + (window.end - window.start) * index / segments
+  );
+  if (sample_times.some((time, index) =>
+    !Number.isFinite(time) ||
+    (index > 0 && time <= sample_times[index - 1]) ||
+    (index > 0 &&
+      time - sample_times[index - 1] > window.max_gap_seconds + 1e-9)
+  )) {
+    return unavailable("CONTACT_SAMPLING_CLOCK_NOT_REPRESENTABLE");
+  }
+
+  // Do not carry a single displayed world position forward as if it were
+  // observed at future/earlier samples. Keep only identity and explicit role.
+  const markers = input.bindings.map((binding) => ({
+    id: binding.id,
+    role: binding.role,
+    locator_uuid: binding.locator_uuid,
+    evidence_ref: binding.evidence_ref,
+    intent_authority: binding.intent_authority,
+  }));
+  return {
+    ...shared,
+    state: "PREPARED_SOURCE_ONLY" as const,
+    reason: null,
+    project_uuid: input.snapshot.project_uuid!,
+    animation_uuid: input.snapshot.animation_uuid!,
+    group_uuid: input.snapshot.group_uuid!,
+    frame_count: sample_times.length,
+    sample_count: 0,
+    sample_times,
+    markers,
+    maximum_gap_seconds: window.max_gap_seconds,
+    planned_window: { ...window },
+    sampling_basis: "DECLARED_UNIFORM_PARTITION" as const,
+    authored_animation_duration_seconds: input.duration_seconds,
+    note: "A timing plan only; no pose interpolation, marker positions at planned times, native scene restoration or actual physical contact is demonstrated.",
+  };
+}

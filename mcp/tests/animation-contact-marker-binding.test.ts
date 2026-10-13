@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   bindExplicitContactMarkers,
+  prepareContactSamplingPlan,
   CONTACT_MARKER_BINDING_LIMIT,
+  CONTACT_SAMPLING_MAX_FRAMES,
   type ContactMarkerPoseSnapshot,
   type ExplicitContactMarkerBinding,
 } from "@/lib/animation/contactMarkerBinding";
@@ -245,5 +247,188 @@ describe("explicit native Locator contact-role binding", () => {
     );
     expect(bindExplicitContactMarkers({ snapshot: largeSnapshot, bindings: [role()] }).reason)
       .toBe("DIRECT_NATIVE_LOCATOR_EVIDENCE_UNAVAILABLE");
+  });
+});
+
+
+describe("read-only contact sampling schedule preflight", () => {
+  const request = () => ({
+    snapshot: pose(),
+    bindings: [role()],
+    window: { start: 0, end: 1, max_gap_seconds: 0.25 },
+    duration_seconds: 4,
+  });
+
+  test("partitions an exact window without moving the Timeline or sampling poses", () => {
+    const input = request();
+    const before = JSON.stringify(input);
+    const result = prepareContactSamplingPlan(input);
+    expect(result).toMatchObject({
+      state: "PREPARED_SOURCE_ONLY",
+      native_sampling_state: "NOT_EXECUTED",
+      sampling_authority: "NO_RUNTIME_SAMPLING_AUTHORIZED",
+      visual_verdict: "NOT_EVALUATED",
+      preview_restoration_verified: false,
+      full_motion_coverage_verified: false,
+      frame_count: 5,
+      sample_count: 0,
+      sample_times: [0, 0.25, 0.5, 0.75, 1],
+      markers: [{
+        id: "foot-left-binding",
+        role: "FOOT_PLANT",
+        locator_uuid: "locator-a",
+        evidence_ref: "user:explicit-foot-choice",
+      }],
+    });
+    expect(JSON.stringify(result)).not.toContain("world_position");
+    expect(JSON.stringify(input)).toBe(before);
+  });
+
+  test("nonzero time offsets and nondivisible intervals include both endpoints", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(), window: { start: 1.5, end: 2.5, max_gap_seconds: 0.4 },
+    });
+    expect(result.state).toBe("PREPARED_SOURCE_ONLY");
+    expect(result.sample_times).toHaveLength(4);
+    expect(result.sample_times[0]).toBe(1.5);
+    expect(result.sample_times.at(-1)).toBe(2.5);
+    for (let i = 1; i < result.sample_times.length; i++) {
+      expect(result.sample_times[i]! - result.sample_times[i - 1]!)
+        .toBeLessThanOrEqual(0.4 + 1e-9);
+    }
+  });
+
+  test("nominal 30 fps four-second window fits the bounded 121-frame budget", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(), window: { start: 0, end: 4, max_gap_seconds: 1 / 30 },
+    });
+    expect(result.state).toBe("PREPARED_SOURCE_ONLY");
+    expect(result.sample_times).toHaveLength(CONTACT_SAMPLING_MAX_FRAMES);
+    expect(result.sample_times.at(-1)).toBe(4);
+  });
+
+  test("a requested 240-frame timeline is rejected, not silently downsampled", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(), duration_seconds: 8,
+      window: { start: 0, end: 8, max_gap_seconds: 1 / 30 },
+    });
+    expect(result).toMatchObject({
+      state: "UNVERIFIED",
+      reason: "CONTACT_SAMPLING_FRAME_BUDGET_EXCEEDED",
+      native_sampling_state: "NOT_EXECUTED",
+      sample_count: 0, sample_times: [], markers: [],
+    });
+  });
+
+  test("nonfinite, reversed and too-small timing windows fail closed", () => {
+    for (const window of [
+      { start: -1, end: 1, max_gap_seconds: 0.25 },
+      { start: 1, end: 1, max_gap_seconds: 0.25 },
+      { start: 1, end: 0, max_gap_seconds: 0.25 },
+      { start: 0, end: Number.NaN, max_gap_seconds: 0.25 },
+      { start: 0, end: 121, max_gap_seconds: 1 },
+      { start: 0, end: 1, max_gap_seconds: 1e-6 },
+      { start: 0, end: 1, max_gap_seconds: Infinity },
+    ]) {
+      expect(prepareContactSamplingPlan({ ...request(), window })).toMatchObject({
+        state: "UNVERIFIED", reason: "CONTACT_SAMPLING_WINDOW_INVALID",
+      });
+    }
+  });
+
+  test("time window cannot exceed the authored native clip duration", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(),
+      duration_seconds: 2,
+      window: { start: 0, end: 2.1, max_gap_seconds: 0.25 },
+    });
+    expect(result).toMatchObject({
+      state: "UNVERIFIED",
+      reason: "CONTACT_SAMPLING_OUTSIDE_ANIMATION",
+      sample_times: [],
+      native_sampling_state: "NOT_EXECUTED",
+    });
+  });
+
+  test("nonfinite or invalid authored animation duration cannot authorize sampling", () => {
+    for (const duration_seconds of [0, -1, NaN, Infinity, 121]) {
+      const result = prepareContactSamplingPlan({
+        ...request(), duration_seconds,
+      });
+      expect(result).toMatchObject({
+        state: "UNVERIFIED", reason: "AUTHORED_ANIMATION_DURATION_INVALID",
+      });
+    }
+  });
+
+  test("a stale project/animation/bone or unknown Locator cannot authorize a sampling plan", () => {
+    for (const change of [
+      { project_uuid: "stale-project" },
+      { animation_uuid: "stale-animation" },
+      { group_uuid: "stale-group" },
+      { locator_uuid: "stale-locator" },
+    ]) {
+      expect(prepareContactSamplingPlan({
+        ...request(), bindings: [role(change)],
+      })).toMatchObject({
+        state: "UNVERIFIED",
+        reason: "CONTACT_MARKERS_NOT_FULLY_LINKED",
+        markers: [], sample_times: [],
+      });
+    }
+  });
+
+  test("partial contact role binding blocks the whole schedule", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(),
+      bindings: [
+        role(),
+        role({ id: "second", locator_uuid: "missing", role: "HAND_GRIP" }),
+      ],
+    });
+    expect(result.state).toBe("UNVERIFIED");
+    expect(result.reason).toBe("CONTACT_MARKERS_NOT_FULLY_LINKED");
+    expect(result.sample_times).toEqual([]);
+  });
+
+  test("unverified active preview or forged frame synchronization never schedules", () => {
+    for (const change of [
+      { state: "UNVERIFIED" as const },
+      { frame_pose_synchronized: true },
+      { native_animation_sampling_performed: true },
+    ]) {
+      const result = prepareContactSamplingPlan({
+        ...request(),
+        snapshot: { ...pose(), ...change } as ContactMarkerPoseSnapshot,
+      });
+      expect(result).toMatchObject({
+        state: "UNVERIFIED", reason: "CONTACT_MARKERS_NOT_FULLY_LINKED",
+      });
+    }
+  });
+
+  test("plan retains both declared target roles without copying snapshot pixels or positions", () => {
+    const result = prepareContactSamplingPlan({
+      ...request(),
+      bindings: [
+        role(),
+        role({
+          id: "hand-contact",
+          role: "HAND_GRIP",
+          locator_uuid: "locator-b",
+          intent_authority: "DECLARED_REFERENCE_INTENT",
+          evidence_ref: "reference:approved-grip",
+        }),
+      ],
+    });
+    expect(result.state).toBe("PREPARED_SOURCE_ONLY");
+    expect(result.markers.map((item) => [item.role, item.locator_uuid]))
+      .toEqual([["FOOT_PLANT", "locator-a"], ["HAND_GRIP", "locator-b"]]);
+    expect(result.markers[1]).toMatchObject({
+      intent_authority: "DECLARED_REFERENCE_INTENT",
+      evidence_ref: "reference:approved-grip",
+    });
+    expect(JSON.stringify(result)).not.toContain("world_position");
+    expect(result.native_sampling_state).toBe("NOT_EXECUTED");
   });
 });
