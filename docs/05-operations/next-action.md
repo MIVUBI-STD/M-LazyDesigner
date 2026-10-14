@@ -47,6 +47,18 @@ unavailable, record `NOT_EXECUTED` and transfer only that execution residue
 to an available **cloud** environment. User-local testing is deferred; do
 not require the user's PC.
 
+## Pre-local UI handoff — SOURCE ONLY
+
+User-facing Blockbench/ Desktop fixes now present in `Local` source:
+
+- Plugin panel hydrates actual Runtime status on mount; it must not display a fabricated `Runtime ready` before native readiness.
+- Desktop About derives its version from the package source, and the Blockbench plugin-file shortcut is labeled as an action rather than a three-dot menu.
+- Desktop update outcomes distinguish `INSTALLED`, `STAGED`, `NO_PENDING_UPDATE`, and unexpected manager receipts. A staged update is not a completed installation.
+- Project model search retains keyboard `focus-visible` outline; regression definitions are in `mcp/tests/human-ui-surface.test.ts`.
+- UI/native acceptance steps use the existing `docs/05-operations/local-acceptance-runbook.md`, especially Section 6A.
+
+These fixes are **SOURCE IMPLEMENTED**, not Bun/Svelte/Rust PASS or visual approval. Before starting the native check, use a Bun/Node-compatible checkout and finish the already recorded canonical generated-artifact closure; generator-owned API files remain stale and public docs still have pre-rename display strings. Do not modify generated JSON/HTML by hand. Run the relevant full MCP source gate and Desktop `verify:source` on an exact final SHA, then check the UI states and interactions in Windows/Blockbench. Report any missed checks as `NOT_EXECUTED`, not PASS. Keep `main` unchanged.
+
 ## Active animation safety — LD-Q04
 
 `mcp/lib/animation/nativeRestorationContract.ts` compares caller-supplied
@@ -72,7 +84,7 @@ or bypass the existing gate.
 
 Only exact installed-build Undo/Redo, save/reopen, playback, reconnect and
 visual-review evidence from the existing runbook can close native claims.
-The user cannot currently local-test; this does not waive proof.
+The user has elected to bring the current branch to a Windows PC for local testing. This is an intended next execution context, not evidence that native testing has already run.
 
 ## Separate bounded source boundaries
 
