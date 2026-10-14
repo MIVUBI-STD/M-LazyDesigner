@@ -4,7 +4,7 @@ describe("Gateway capability discovery contract", () => {
   test("routing invokes known capabilities directly and defers discovery only for unknown/stale capability", async () => {
     const [policy, routedEval, catalog, protocol] = await Promise.all([
       Bun.file("gateway/control/routingPolicy.ts").text(),
-      Bun.file("scripts/evaluate-routed-tool-loading.ts").text(),
+      Bun.file("scripts/evaluate/evaluate-routed-tool-loading.ts").text(),
       Bun.file("gateway/capabilities/catalog.ts").text(),
       Bun.file("gateway/contracts/protocol.ts").text(),
     ]);

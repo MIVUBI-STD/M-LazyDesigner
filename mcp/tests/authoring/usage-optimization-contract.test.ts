@@ -17,10 +17,10 @@ describe("usage optimization contract", () => {
   test("known coherent creation stays specialist-owned while Control avoids broad discovery", async () => {
     const [agents, modelling, control] = await Promise.all([
       source("../AGENTS.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("gateway/control/routingPolicy.ts"),
     ]);
-    expect(agents).toContain("exact known Runtime capability");
+    expect(agents).toContain("exact known capability");
     expect(modelling).toContain("one coherent `manage_cubes` batch");
     expect(control).toContain('strategy: "DIRECT_FIRST"');
     expect(control).toContain('unknown_capability: "SEARCH_CAPABILITIES"');
@@ -28,12 +28,12 @@ describe("usage optimization contract", () => {
   });
 
   test("local correction reuses fresh affected evidence before broader recapture", async () => {
-    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
-    expect(modelling).toContain("Reuse fresh affected pre-correction evidence");
-    expect(modelling).toContain("capture before mutation only when none exists");
-    expect(modelling).toContain("After mutation, recapture affected view(s)");
-    expect(modelling).toMatch(/expand.*cross-view regression risk/);
-    expect(modelling).toMatch(/without regression elsewhere/);
+    const modelling = await Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n"));
+    expect(modelling).toContain("Reuse fresh exact authored state");
+    expect(modelling).toContain("otherwise inspect once");
+    expect(modelling).toContain("After mutation, recapture only affected evidence");
+    expect(modelling).toMatch(/If provenance is incomplete, recapture conservatively/);
+    expect(modelling).toMatch(/with no material regression/);
   });
 
   test("authoring efficiency requires accepted quality plus observable runtime cost", async () => {
@@ -68,7 +68,7 @@ describe("usage optimization contract", () => {
 
   test("prompt and tool surface stay evidence-gated rather than becoming an optimization profile", async () => {
     const [profile, prompts, brief] = await Promise.all([
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
       source("server/prompts.ts"),
       source("../.agents/skills/lazydesigner-development-brief/SKILL.md"),
     ]);

@@ -67,7 +67,7 @@ describe("context and payload cleanup", () => {
   test("animation summary keeps particle-effect keyframes lazy by default", async () => {
     expect(inspectAnimationParameters.parse({}).include_effect_keyframes).toBe(false);
     expect(inspectAnimationParameters.parse({ include_effect_keyframes: true }).include_effect_keyframes).toBe(true);
-    const inspection = await source("server/tools/animation-inspection.ts");
+    const inspection = await source("server/tools/animation/inspection.ts");
     expect(inspection).toContain("inspectParticleEffects(animation, include_effect_keyframes)");
     expect(inspection).toContain("sound_count");
     expect(inspection).toContain("existingEffects.sound");
@@ -92,7 +92,7 @@ describe("context and payload cleanup", () => {
   });
 
   test("texture creation and material reads avoid redundant image/JSON payloads", async () => {
-    const texture = await source("server/tools/texture-create.ts");
+    const texture = await source("server/tools/texture/create.ts");
     const createBlock = texture;
     expect(createBlock).not.toContain("texture.getDataURL()");
     expect(createBlock).toContain("structuredContent: result");
@@ -127,7 +127,7 @@ describe("context and payload cleanup", () => {
 
   test("capture_screenshot is current-view only and does not select projects", async () => {
     expect(captureScreenshotParameters.parse({})).toEqual({});
-    const camera = await source("server/tools/camera.ts");
+    const camera = await source("server/tools/inspection/camera.ts");
     const util = await source("lib/util.ts");
     const start = camera.indexOf("createTool(cameraToolDocs[0].name");
     const end = camera.indexOf("createTool(cameraToolDocs[1].name", start);

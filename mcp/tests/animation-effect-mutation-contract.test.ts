@@ -78,24 +78,24 @@ describe("existing animation effect mutation contract", () => {
 
   test("source keeps one-Undo preflight, native datapoint cap, preview-file preservation, and inspect-compatible continuation", async () => {
     const [source, registrations, docsManifest, inspection] = await Promise.all([
-      Bun.file("server/tools/animation-effects.ts").text(),
+      Promise.all(["server/tools/animation/effects.ts", "server/tools/animation/effectState.ts"].map((path) => Bun.file(path).text())).then((parts) => parts.join("\n")),
       Bun.file("server/runtime/registration.ts").text(),
-      Bun.file("build/docs-manifest.ts").text(),
-      Bun.file("server/tools/animation-inspection.ts").text(),
+      Bun.file("scripts/generate/internal/docs-manifest.ts").text(),
+      Bun.file("server/tools/animation/inspectionSchema.ts").text(),
     ]);
 
     expect(source).toContain("const targeted = new Set<string>()");
     expect(source).toContain("moving does not implicitly merge identities");
     expect(source).toContain("native maximum of 1000 data points");
     expect(source).toContain('file: typeof point.file === "string" ? point.file : ""');
-    expect(source).toContain("bind_to_actor: snapshot.bind_to_actor === false ? false : null");
-    expect(source).toContain("pre_effect_script: normalizeEffectiveParticleScript(snapshot.script)");
+    expect(source).toMatch(/bind_to_actor:\s*snapshot\.bind_to_actor === false \? false : null/);
+    expect(source).toMatch(/pre_effect_script:\s*normalizeEffectiveParticleScript\(snapshot\.script\)/);
     expect(source).toContain("Undo.initEdit({ animations: [animation] })");
     expect(source.match(/Undo\.initEdit/g)?.length).toBe(1);
     expect(source).not.toContain("MolangParser");
     expect(registrations).toContain("registerAnimationEffectTools();");
     expect(registrations).toContain("registerAnimationFamilyTools");
-    expect(docsManifest).toContain('import { animationEffectToolDocs } from "../server/tools/animation-effects";');
+    expect(docsManifest).toContain('import { animationEffectToolDocs } from "../../../server/tools/animation-effects";');
     expect(docsManifest).toContain("...animationEffectToolDocs");
     expect(inspection).toContain("particle/sound/timeline effect keyframes");
   });

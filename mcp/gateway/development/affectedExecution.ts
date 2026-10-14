@@ -55,6 +55,10 @@ export const RECEIPT_CONTRACT_TESTS_BY_PATH: Readonly<
     "mcp/tests/contracts/animation-controller-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
   ],
+  "mcp/lib/receipts/animationCreation.ts": [
+    "mcp/tests/contracts/animation-creation-receipt-contract.test.ts",
+    RECEIPT_CONTINUATION_TEST,
+  ],
   "mcp/lib/receipts/animationEffects.ts": [
     "mcp/tests/contracts/animation-effects-receipt-contract.test.ts",
     RECEIPT_CONTINUATION_TEST,
@@ -102,6 +106,10 @@ export const RECEIPT_CONTRACT_TESTS_BY_PATH: Readonly<
   ],
   "mcp/lib/receipts/renderProfile.ts": [
     "mcp/tests/contracts/render-profile-receipt-contract.test.ts",
+    TEXTURE_CONTINUATION_TEST,
+  ],
+  "mcp/lib/receipts/textureCreation.ts": [
+    "mcp/tests/contracts/texture-creation-receipt-contract.test.ts",
     TEXTURE_CONTINUATION_TEST,
   ],
   "mcp/lib/receipts/textureGroup.ts": [

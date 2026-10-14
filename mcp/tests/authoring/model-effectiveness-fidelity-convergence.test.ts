@@ -15,7 +15,7 @@ function normalized(text: string): string {
 describe("model-fidelity policy text (not generated-model performance)", () => {
   test("local corrections require qualitative convergence rather than mutation activity", async () => {
     const [modelling, correction, workflow] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../.agents/skills/lazydesigner-modelling/references/correction.md"),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
@@ -23,11 +23,11 @@ describe("model-fidelity policy text (not generated-model performance)", () => {
       expect(text).toContain("IMPROVED | UNCHANGED | REGRESSED");
       const lower = normalized(text);
       expect(lower).toContain("regressed");
-      expect(lower).toContain("same causal correction");
+      expect(lower).toContain("same causal direction");
       expect(lower).toContain("blocked");
     }
     expect(normalized(modelling)).toContain("require `improved` without regression elsewhere");
-    expect(normalized(correction)).toMatch(/require.*`improved`/);
+    expect(normalized(correction)).toMatch(/progress requires improvement/);
   });
 
   test("correction reuses fresh pre-correction evidence instead of recapturing ceremonially", async () => {
@@ -53,9 +53,9 @@ describe("model-fidelity policy text (not generated-model performance)", () => {
 
   test("fidelity hardening adds no scorer, planner, runtime profile, or fixture-specific law", async () => {
     const [profile, cubes, modelling, workflow] = await Promise.all([
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
       source("server/tools/geometry/cubes.ts"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
     for (const forbidden of ["reference_eval", "fidelity_profile", "vision_score", "fidelity_score"]) {

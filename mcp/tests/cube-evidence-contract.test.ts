@@ -72,7 +72,7 @@ describe("shared Cube mutation evidence contract", () => {
   test("derives one canonical semantic scope set from Cube changed fields", () => {
     expect(
       cubeSemanticScopesFromChangedFields(["rotation", "visibility"])
-    ).toEqual(["GEOMETRY_STRUCTURE"]);
+    ).toEqual(["GEOMETRY_STRUCTURE", "ANIMATION_MOTION"]);
 
     expect(
       cubeSemanticScopesFromChangedFields(["faces"])

@@ -201,7 +201,7 @@ export function measureAstraContextPayloads(): PayloadMeasurement[] {
         },
         control: {
           authoring_domain: "GEOMETRY",
-          source_owner: { source: "mcp/server/tools/element-inspection.ts", specialist: null, test_owner: null },
+          source_owner: { source: "mcp/server/tools/element-inspection.ts", specialist: null, anchor_test: null },
         },
       },
     },

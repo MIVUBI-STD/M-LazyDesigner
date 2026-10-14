@@ -139,7 +139,10 @@ describe("zero-waste authoring execution", () => {
   });
 
   test("delta verification propagates risk directly into geometry evidence requests", () => {
-    const low = compileDeltaVerificationPlan(planAuthoringImpact(recipe(4), recipe(5)));
+    const lowImpact = planAuthoringImpact(recipe(4), recipe(4));
+    // An isolated geometry scope exercises the low-risk evidence contract.
+    lowImpact.geometry.upsert_instance_ids = ["arms:0"];
+    const low = compileDeltaVerificationPlan(lowImpact);
     const lowGeometry = low.evidence_requests.find(
       (request) => request.domain === "GEOMETRY"
     );

@@ -73,7 +73,8 @@ describe("verification evidence compaction", () => {
     expect(compact.state).toBe("BLOCKED");
     expect(compact.discrepancy_count).toBe(10);
     expect(compact.discrepancies).toHaveLength(6);
-    expect(compact.discrepancies[0]).toMatchObject({
+    expect(compact.discrepancies[0]).toMatchObject({ code: "D9", severity: "BLOCKING" });
+    expect(compact.discrepancies.find((entry) => entry.code === "D0")).toMatchObject({
       views: ["front"],
       evidence_targets: ["width"],
     });

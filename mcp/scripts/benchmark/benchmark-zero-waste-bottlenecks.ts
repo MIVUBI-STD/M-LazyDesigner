@@ -128,8 +128,7 @@ export function rankZeroWasteBottlenecks(): BottleneckReport {
     .filter(
       (row) =>
         row.removed_bytes > 0 ||
-        row.removed_calls > 0 ||
-        row.redundant_baseline_calls > 0
+        row.removed_calls > 0
     )
     .sort(
       (left, right) =>

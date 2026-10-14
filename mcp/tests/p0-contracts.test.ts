@@ -326,9 +326,10 @@ describe("P0 MCP contract regressions", () => {
     expect(requestConstruction).toBeGreaterThan(originGuard);
     expect(transportDispatch).toBeGreaterThan(requestConstruction);
 
-    expect(netSource).toContain("hostname === 'localhost'");
-    expect(netSource).toContain("hostname === '127.0.0.1'");
-    expect(netSource).toContain("hostname === '[::1]'");
-    expect(netSource).toContain("hostname === '::1'");
+    const boundarySource = await readFile(new URL("../server/httpBoundary.ts", import.meta.url), "utf8");
+    expect(boundarySource).toContain('hostname === "localhost"');
+    expect(boundarySource).toContain('hostname === "127.0.0.1"');
+    expect(boundarySource).toContain('hostname === "[::1]"');
+    expect(boundarySource).toContain('hostname === "::1"');
   });
 });

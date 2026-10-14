@@ -25,7 +25,7 @@ describe("texture transaction dirty-region path", () => {
   });
 
   test("transaction applies only the dirty canvas region but keeps full postcondition proof", async () => {
-    const src = await source("server/tools/paint-texture-transaction.ts");
+    const src = await source("server/tools/paint/textureTransaction.ts");
 
     expect(src).toContain("const dirtyRegion = cropRgbaRect(");
     expect(src).toContain("env.ctx.createImageData(");
@@ -40,7 +40,7 @@ describe("texture transaction dirty-region path", () => {
   });
 
   test("deterministic transaction remains selection-neutral", async () => {
-    const src = await source("server/tools/paint-texture-transaction.ts");
+    const src = await source("server/tools/paint/textureTransaction.ts");
 
     expect(src).toContain("resolvePaintTexture(texture_id)");
     expect(src).not.toContain("getAndActivateTexture(texture_id)");

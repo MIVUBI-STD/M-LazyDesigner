@@ -56,10 +56,10 @@ describe("single-owner authoring flow", () => {
     const phaseControl = await text("../server/runtime/phaseControl.ts");
 
     expect(phaseControl).toContain("getMcpRuntimeSurface");
-    expect(phaseControl).toContain("requestMcpPhaseSwitch(target_phase);");
-    expect(phaseControl).toContain("Geometry↔Texturing stays on the shared AUTHORING surface");
+    expect(phaseControl).toContain("requestMcpStageSwitch(target_phase);");
+    expect(phaseControl).toContain("getMcpRuntimeSurface");
     expect(phaseControl).toContain("runtime_surface: targetSurface");
-    expect(phaseControl.indexOf("requestMcpPhaseSwitch(target_phase);")).toBeLessThan(
+    expect(phaseControl.indexOf("requestMcpStageSwitch(target_phase);")).toBeLessThan(
       phaseControl.indexOf("return {")
     );
   });

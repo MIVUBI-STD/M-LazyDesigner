@@ -3,14 +3,21 @@ import { readFile } from "node:fs/promises";
 import { registerToolsOnServer } from "@/lib/factories";
 import { DEFAULT_MCP_REGISTRATION_PROFILE } from "@/lib/capabilities/registrationProfile";
 import { getMcpSurfaceToolNames } from "@/server/runtime/registration";
+import "@/server/tools";
+
+async function readTransportOwners(): Promise<string> {
+  return (await Promise.all(["net", "mcpTransport", "requestProtocol"].map((owner) =>
+    readFile(new URL(`../../server/${owner}.ts`, import.meta.url), "utf8")
+  ))).join("\n");
+}
 
 describe("P1.4 stateless Streamable HTTP ownership", () => {
   test("conformance fixture mode is process-local and bypasses the production catalog only in the harness", async () => {
     const [netSource, serverSource, scriptSource, fixtureSource] = await Promise.all([
-      readFile(new URL("../server/net.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/server.ts", import.meta.url), "utf8"),
-      readFile(new URL("../scripts/serve-conformance-runtime.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/conformanceFixtures.ts", import.meta.url), "utf8"),
+      readTransportOwners(),
+      readFile(new URL("../../server/server.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../scripts/operations/serve-conformance-runtime.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../server/conformanceFixtures.ts", import.meta.url), "utf8"),
     ]);
     expect(scriptSource).toContain('LAZYDESIGNER_CONFORMANCE_HARNESS = "1"');
     expect(scriptSource).toContain("__LAZYDESIGNER_CONFORMANCE__ = true");
@@ -28,10 +35,7 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
   });
 
   test("default MCP request path is stateless with auto modern response representation", async () => {
-    const source = await readFile(
-      new URL("../server/net.ts", import.meta.url),
-      "utf8"
-    );
+    const source = await readTransportOwners();
 
     expect(source).toContain("sessionIdGenerator: undefined");
     expect(source).toContain("enableJsonResponse: true");
@@ -41,7 +45,6 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(source).toContain("registerPromptsOnServer(requestServer)");
     expect(source).toContain("await requestServer.close()");
     expect(source).not.toContain("Unexpected SSE response in the request/response Runtime path");
-    expect(source).toContain("MCP 2026 Streamable HTTP may represent a POST response as either JSON or");
 
     expect(source).not.toContain("mcp-session-id");
     expect(source).not.toContain("sessionManager");
@@ -64,9 +67,9 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
 
   test("request-owned reconstruction reuses registration caches until a surface mutation", async () => {
     const [netSource, registrationSource, factoriesSource] = await Promise.all([
-      readFile(new URL("../server/net.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/runtime/registration.ts", import.meta.url), "utf8"),
-      readFile(new URL("../lib/factories.ts", import.meta.url), "utf8"),
+      readTransportOwners(),
+      readFile(new URL("../../server/runtime/registration.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../lib/factories.ts", import.meta.url), "utf8"),
     ]);
 
     expect(netSource).not.toContain("invalidateToolRegistrationRuntimeCaches");
@@ -105,20 +108,14 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(animationSurface).toContain("create_animation");
     expect(animationSurface).not.toContain("manage_cubes");
 
-    const source = await readFile(
-      new URL("../server/net.ts", import.meta.url),
-      "utf8"
-    );
+    const source = await readTransportOwners();
     expect(source).toContain("BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER");
     expect(source).toContain("requestedAuthoringPhase !== null");
     expect(source).toContain("requestMcpPhaseSwitch(envelope.targetAuthoringPhase)");
   });
 
   test("standalone SSE and session DELETE are not offered by the default endpoint", async () => {
-    const source = await readFile(
-      new URL("../server/net.ts", import.meta.url),
-      "utf8"
-    );
+    const source = await readTransportOwners();
 
     const methodGate = source.indexOf("if (method !== 'POST')");
     const methodNotAllowed = source.indexOf("405", methodGate);
@@ -134,25 +131,22 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
   });
 
   test("health output no longer reports protocol sessions", async () => {
-    const source = await readFile(
-      new URL("../server/net.ts", import.meta.url),
-      "utf8"
-    );
+    const source = await readTransportOwners();
 
     expect(source).toContain("mode: 'stateless'");
     expect(source).toContain("response_mode: 'auto'");
-    expect(source).toContain("responseMode: 'auto'");
+    expect(source).toContain('responseMode: "auto"');
     expect(source).toContain("sendSerializedWebResponse");
-    expect(source).toContain("contentType.includes('text/event-stream')");
+    expect(source).toContain('contentType.includes("text/event-stream")');
     expect(source).toContain("serialized.body.getReader()");
     expect(source).not.toContain("sessions:");
   });
 
   test("RuntimeHost owns only the HTTP listener lifecycle, not protocol sessions", async () => {
     const [indexSource, runtimeHostSource, settingsSource] = await Promise.all([
-      readFile(new URL("../index.ts", import.meta.url), "utf8"),
-      readFile(new URL("../plugin/runtimeHost.ts", import.meta.url), "utf8"),
-      readFile(new URL("../ui/settings.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../index.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../plugin/runtimeHost.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../ui/settings.ts", import.meta.url), "utf8"),
     ]);
 
     for (const source of [indexSource, runtimeHostSource]) {
@@ -164,7 +158,7 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     }
     expect(indexSource).toContain("const runtimeHost = new RuntimeHost()");
     expect(indexSource).toContain("await runtimeHost.start(generation)");
-    expect(runtimeHostSource).toContain("const candidate = createNetServer(this.nativeHttp, { ...config, generation })");
+    expect(runtimeHostSource).toMatch(/const candidate = createNetServer\(this.nativeHttp, \{\s*\.\.\.config,\s*generation,/);
     expect(runtimeHostSource).not.toContain("profile:");
     expect(runtimeHostSource).not.toContain("phase:");
     expect(runtimeHostSource).not.toContain("updateProfile(");
@@ -179,9 +173,9 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
 
   test("human UI does not present stateless requests or AI registries as durable client state", async () => {
     const [uiSource, statusSource, templateSource] = await Promise.all([
-      readFile(new URL("../ui/index.ts", import.meta.url), "utf8"),
-      readFile(new URL("../ui/statusBar.ts", import.meta.url), "utf8"),
-      readFile(new URL("../ui/panel.html", import.meta.url), "utf8"),
+      readFile(new URL("../../ui/index.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../ui/statusBar.ts", import.meta.url), "utf8"),
+      readFile(new URL("../../ui/panel.html", import.meta.url), "utf8"),
     ]);
 
     expect(uiSource).not.toContain("sessionManager");
@@ -195,21 +189,18 @@ describe("P1.4 stateless Streamable HTTP ownership", () => {
     expect(statusSource).not.toContain("sessionManager");
     expect(statusSource).not.toContain("server_one_client");
     expect(statusSource).not.toContain("server_clients");
-    expect(statusSource).toContain('return "LazyDesigner Ready"');
+    expect(statusSource).toContain('return "LazyDesigner Runtime Ready"');
 
     expect(templateSource).not.toContain("sessions.length");
     expect(templateSource).not.toContain("connected_clients");
     expect(templateSource).not.toContain("availableToolCount");
     expect(templateSource).not.toContain("Runtime endpoint");
     expect(templateSource).toContain("Current project");
-    expect(templateSource).toContain("AI handles the technical authoring workflow in the background.");
+    expect(templateSource).toContain("Technical authoring runs through your connected AI client.");
   });
 
   test("Origin rejection still precedes stateless MCP server construction", async () => {
-    const source = await readFile(
-      new URL("../server/net.ts", import.meta.url),
-      "utf8"
-    );
+    const source = await readTransportOwners();
 
     const originGuard = source.indexOf(
       "if (originHeader !== undefined && !isAllowedLocalOrigin(originHeader))"

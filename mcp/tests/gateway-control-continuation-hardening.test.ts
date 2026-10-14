@@ -26,7 +26,7 @@ describe("LazyDesigner Control continuation hardening", () => {
     for (const capability of STATE_MUTATIONS) {
       expect(manifestNames.has(capability), capability).toBe(true);
       const entry = CAPABILITY_CORE_MANIFEST.get(capability);
-      expect(entry?.phase, capability).toBeDefined();
+      expect(entry?.stage, capability).toBeDefined();
       expect(entry?.verificationClass, capability).not.toBeUndefined();
       expect(entry?.verificationClass, capability).not.toBe("not_applicable");
     }
@@ -39,7 +39,7 @@ describe("LazyDesigner Control continuation hardening", () => {
 
     for (const [capability, entry] of CAPABILITY_CORE_MANIFEST) {
       if (
-        entry.phase == null ||
+        entry.stage == null ||
         entry.verificationClass == null ||
         entry.verificationClass === "not_applicable" ||
         nonAuthoredVerificationExceptions.has(capability)
@@ -433,6 +433,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       succeeded: true,
       result: {
         execution: "applied",
+        action: "updated",
         operation_count: 1,
         controller: {
           uuid: "controller-a",
@@ -666,6 +667,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       projectUuid: "project-a",
       succeeded: true,
       result: {
+        execution: "applied",
         element: {
           uuid: "cube-a",
           name: "body_renamed",
@@ -683,6 +685,7 @@ describe("LazyDesigner Control continuation hardening", () => {
       projectUuid: "project-a",
       succeeded: true,
       result: {
+        execution: "applied",
         element: {
           uuid: "locator-a",
           name: "muzzle_renamed",
@@ -979,7 +982,7 @@ describe("LazyDesigner Control continuation hardening", () => {
 
   test("gateway captures phase-before only when the canonical receipt owner requires it", async () => {
     const source = await Bun.file(
-      "gateway/runtime/capabilityExecutor.ts"
+      "gateway/execution/capabilityExecutor.ts"
     ).text();
     expect(source).toContain("capabilityNeedsPhaseSnapshot(capability)");
     expect(source).toContain("deriveControlReceipt");

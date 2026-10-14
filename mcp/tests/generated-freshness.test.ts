@@ -38,6 +38,7 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
       "docs",
       "prompts",
       "gateway/experimental/generated",
+      "lib/capabilities",
     ]) {
       await mkdir(join(root, directory), { recursive: true });
     }
@@ -60,6 +61,7 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
       "bun run ./fixture-generator.ts hybrid";
     scripts["generate:owned-artifacts"] =
       "bun run docs:build && bun run prompts:build && bun run generate:hybrid4-schemas";
+    scripts["verify:types"] = "bun run ./type-check.ts";
     await Bun.write(join(root, "package.json"), JSON.stringify({ private: true, type: "module", scripts }));
     await copyFile(
       join(packageRoot, "scripts/verify/verify-generated-artifacts-fresh.ts"),
@@ -67,6 +69,8 @@ async function withFixture(run: (root: string) => Promise<void>): Promise<void> 
     );
     await Bun.write(join(root, "expected.json"), JSON.stringify(generated));
     await Bun.write(join(root, "other-check.ts"), 'await Bun.write("other-check-ran", "yes");\n');
+    await Bun.write(join(root, "type-check.ts"), 'await Bun.write("type-check-ran", "yes");\n');
+    await Bun.write(join(root, "lib/capabilities/manifest.test.ts"), 'import { test } from "bun:test"; test("fixture", () => {});\n');
     await Bun.write(join(root, "build/index.ts"), 'await Bun.write("build-ran", "yes");\n');
     await Bun.write(join(root, "fixture-generator.ts"), `
 const stage = process.argv[2];

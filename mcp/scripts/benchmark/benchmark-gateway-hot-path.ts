@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { toolManifest } from "@/build/docs-manifest";
+import { toolManifest } from "@/scripts/generate/internal/docs-manifest";
 import { HYBRID_4_EXPERIMENTAL_DIRECT_CAPABILITIES } from "@/gateway/experimental/hybridProfile";
-import { GATEWAY_REPLAY_CORPUS } from "@/benchmarks/gatewayReplayCorpus";
+import { GATEWAY_REPLAY_CORPUS } from "./fixtures/gateway-replay-corpus";
 import { shadowReplayCaseForDirectSet } from "@/gateway/experimental/shadowRouting";
 
 

@@ -344,6 +344,17 @@ function decide(
 }
 
 const tools = runtimeTools();
+// UV Graph contracts are prewired, but manage_uv_layout is not registered.
+// Keep these scenarios visible without claiming executable Runtime coverage.
+const unavailableCases = CASES.filter((testCase) =>
+  !tools.some((tool) => tool.name === testCase.expectedCapability)
+);
+if (unavailableCases.some((testCase) => testCase.expectedCapability !== "manage_uv_layout")) {
+  throw new Error("Unexpected missing registered capability in evaluation corpus.");
+}
+const executableCases = CASES.filter((testCase) =>
+  !unavailableCases.includes(testCase)
+);
 let correctCapability = 0;
 let correctBranch = 0;
 let explicitBranchCases = 0;
@@ -358,7 +369,7 @@ let totalSearchBytes = 0;
 let totalPreInvokeCalls = 0;
 let totalExpectedPreInvokeCalls = 0;
 
-const cases = CASES.map((testCase) => {
+const cases = executableCases.map((testCase) => {
   const decision = decide(tools, testCase);
   const capabilityCorrect =
     decision.selected?.capability_id === testCase.expectedCapability;
@@ -441,12 +452,13 @@ const cases = CASES.map((testCase) => {
   };
 });
 
-const count = CASES.length;
+const count = executableCases.length;
 const report = {
   proof:
     "Deterministic Gateway decision-path benchmark. Measures local routing/control behavior only; not live model token telemetry or native Blockbench latency.",
   catalog_tool_count: tools.length,
   case_count: count,
+  unavailable_cases: unavailableCases.map((testCase) => ({ id: testCase.id, capability: testCase.expectedCapability, status: "NOT_REGISTERED" })),
   metrics: {
     capability_accuracy: Number(
       (correctCapability / Math.max(count, 1)).toFixed(4)
@@ -493,6 +505,8 @@ const report = {
   },
   cases,
 };
+
+console.log(JSON.stringify(report, null, 2));
 
 if (tools.length !== 54) {
   throw new Error(
@@ -545,5 +559,3 @@ if (confusionCases < 10) {
     `Decision benchmark needs at least 10 confusion cases, got ${confusionCases}`
   );
 }
-
-console.log(JSON.stringify(report, null, 2));

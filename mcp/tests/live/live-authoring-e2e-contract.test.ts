@@ -167,7 +167,7 @@ describe("live authoring harness static contract", () => {
     );
     expect(pkg.scripts["verify:lift-static"]).toBeUndefined();
     expect(pkg.scripts["deploy:verified"]).toBe(
-      "bun run ./scripts/verified-build-artifact.ts deploy"
+      "bun run ./scripts/operations/verified-build-artifact.ts deploy"
     );
     expect(pkg.scripts["verify:authoring-live"]).toBeUndefined();
   });

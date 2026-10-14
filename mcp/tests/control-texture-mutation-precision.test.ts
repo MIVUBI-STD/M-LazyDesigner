@@ -247,13 +247,14 @@ describe("Control Texture mutation precision", () => {
       },
     });
 
-    expect(delta.freshness.basis).toBe("NO_CHANGE");
+    expect(delta.freshness.basis).toBe("CONSERVATIVE_EFFECT");
     expect(delta.verification_class).toBe("focused_read");
   });
 
   test("material save keeps authored freshness but requires complete persistence proof", () => {
     const incomplete = buildControlDelta({
       capability: "manage_material",
+      branch: { field: "operation", value: "save" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -264,16 +265,17 @@ describe("Control Texture mutation precision", () => {
       },
     });
 
-    expect(incomplete.invalidates.authoring_domains).toEqual([]);
+    expect(incomplete.invalidates.authoring_domains).toEqual(["TEXTURING"]);
     expect(incomplete.invalidates.workspace_projection).toBe(true);
-    expect(incomplete.invalidates.acceptance_gates).toBe(false);
-    expect(incomplete.freshness.basis).toBe("NO_CHANGE");
-    expect(incomplete.freshness.stale).toEqual([]);
-    expect(incomplete.freshness.fresh).toHaveLength(8);
+    expect(incomplete.invalidates.acceptance_gates).toBe(true);
+    expect(incomplete.freshness.basis).toBe("PRECISE_EFFECT");
+    expect(incomplete.freshness.stale).toEqual(["MATERIAL_RENDER"]);
+    expect(incomplete.freshness.fresh).toHaveLength(7);
     expect(incomplete.verification_class).toBe("focused_read");
 
     const complete = buildControlDelta({
       capability: "manage_material",
+      branch: { field: "operation", value: "save" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -329,6 +331,7 @@ describe("Control Texture mutation precision", () => {
   test("material-instance reads preserve authored freshness while writes stay scoped", () => {
     const list = buildControlDelta({
       capability: "manage_material_instances",
+      branch: { field: "operation", value: "list" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -341,10 +344,11 @@ describe("Control Texture mutation precision", () => {
     expect(list.invalidates.authoring_domains).toEqual([]);
     expect(list.freshness.basis).toBe("NO_CHANGE");
     expect(list.freshness.fresh).toHaveLength(8);
-    expect(list.verification_class).toBe("receipt_only");
+    expect(list.verification_class).toBe("not_applicable");
 
     const get = buildControlDelta({
       capability: "manage_material_instances",
+      branch: { field: "operation", value: "get" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -356,10 +360,11 @@ describe("Control Texture mutation precision", () => {
     });
     expect(get.invalidates.authoring_domains).toEqual([]);
     expect(get.freshness.basis).toBe("NO_CHANGE");
-    expect(get.verification_class).toBe("receipt_only");
+    expect(get.verification_class).toBe("not_applicable");
 
     const write = buildControlDelta({
       capability: "manage_material_instances",
+      branch: { field: "operation", value: "set" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -377,6 +382,7 @@ describe("Control Texture mutation precision", () => {
 
     const completeWrite = buildControlDelta({
       capability: "manage_material_instances",
+      branch: { field: "operation", value: "set" },
       phaseBefore: "texturing",
       phaseAfter: "texturing",
       projectUuid: "project-a",
@@ -401,6 +407,7 @@ describe("Control Texture mutation precision", () => {
 
   test("render-profile inspect and compile-only results preserve authored freshness", () => {
     const inspect = buildControlDelta({
+      branch: { field: "operation", value: "inspect" },
       capability: "manage_render_profile",
       phaseBefore: "texturing",
       phaseAfter: "texturing",
@@ -414,9 +421,10 @@ describe("Control Texture mutation precision", () => {
     });
     expect(inspect.invalidates.authoring_domains).toEqual([]);
     expect(inspect.freshness.basis).toBe("NO_CHANGE");
-    expect(inspect.verification_class).toBe("receipt_only");
+    expect(inspect.verification_class).toBe("not_applicable");
 
     const compileOnly = buildControlDelta({
+      branch: { field: "operation", value: "bind" },
       capability: "manage_render_profile",
       phaseBefore: "texturing",
       phaseAfter: "texturing",
@@ -425,6 +433,9 @@ describe("Control Texture mutation precision", () => {
       result: {
         execution: "applied",
         action: "render_profile",
+        operation: "bind",
+        binding: { slot: "default", minecraft_material_code: "entity" },
+        client_entity_write: null, render_controller_write: null,
         write_transaction: { state: "compile_only", write_count: 0 },
       },
     });
@@ -433,6 +444,7 @@ describe("Control Texture mutation precision", () => {
     expect(compileOnly.verification_class).toBe("receipt_only");
 
     const singleCompileOnly = buildControlDelta({
+      branch: { field: "operation", value: "set_slot" },
       capability: "manage_render_profile",
       phaseBefore: "texturing",
       phaseAfter: "texturing",
@@ -441,6 +453,7 @@ describe("Control Texture mutation precision", () => {
       result: {
         execution: "applied",
         action: "render_profile",
+        operation: "set_slot", slot: "default",
         write: null,
       },
     });

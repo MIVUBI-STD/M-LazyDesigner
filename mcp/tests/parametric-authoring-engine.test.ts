@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { AuthoringRecipe } from "@/lib/authoringRecipe/contracts";
 import { compileAuthoringRecipe } from "@/lib/authoringRecipe/compiler";
 import { expandRecipePattern } from "@/lib/authoringRecipe/patterns";
-import { runParametricEfficiencyBenchmark } from "@/scripts/benchmark-parametric-authoring";
+import { runParametricEfficiencyBenchmark } from "@/scripts/benchmark/benchmark-parametric-authoring";
 
 describe("Parametric Authoring Engine G0-G2", () => {
   test("linear/grid/radial patterns expand deterministically", () => {

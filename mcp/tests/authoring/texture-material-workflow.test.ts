@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("texture material workflow and diagnostics", () => {
   test("texturing guidance keeps the established material facade and bounded diagnostics", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
 
     expect(skill).toContain("PBR/material semantics → manage_material / manage_material_instances");
     expect(skill).toContain("list_materials");
@@ -23,7 +23,7 @@ describe("texture material workflow and diagnostics", () => {
       source("../docs/03-authoring/texture/material.md"),
       source("../docs/03-authoring/texture/render-profile.md"),
       source("../docs/03-authoring/texture/surface-pattern.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(pbr).toContain("MER texture + subsurface_value>0");
@@ -53,7 +53,7 @@ describe("texture material workflow and diagnostics", () => {
 
   test("runtime augments existing texture/material tools instead of adding another MCP surface", async () => {
     const [runtime, bootstrap] = await Promise.all([
-      source("server/tools/texture-authoring-runtime.ts"),
+      source("server/runtime/extensions/texture/authoring.ts"),
       source("server/runtime/extensions.ts"),
     ]);
 

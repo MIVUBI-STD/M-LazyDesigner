@@ -11,7 +11,7 @@ function lower(text: string): string {
 describe("model creation effectiveness — professional construction without presets", () => {
   test("professional construction stays reasoning-based rather than preset-based", async () => {
     const [modelling, workflow, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
@@ -35,7 +35,7 @@ describe("model creation effectiveness — professional construction without pre
 
   test("representation stays 3D-need-first while the small-detail threshold remains a guardrail", async () => {
     const [modelling, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
@@ -52,7 +52,7 @@ describe("model creation effectiveness — professional construction without pre
 
   test("representation eligibility keeps the complete canonical ladder and bounded escalation", async () => {
     const [modelling, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
@@ -76,7 +76,7 @@ describe("model creation effectiveness — professional construction without pre
 
   test("surface integrity distinguishes required closure from intentional openings and intersections", async () => {
     const [modelling, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
@@ -90,7 +90,7 @@ describe("model creation effectiveness — professional construction without pre
 
   test("transform ownership distinguishes local Cube transforms from shared Group/Bone transforms", async () => {
     const [modelling, workflow, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
@@ -107,8 +107,8 @@ describe("model creation effectiveness — professional construction without pre
 
   test("research-backed ownership reuse stays compact and avoids action-driven rig growth", async () => {
     const [modelling, animationSkill, geometry, animation] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
       source("../docs/03-authoring/animation/standard.md"),
     ]);
@@ -137,8 +137,8 @@ describe("model creation effectiveness — professional construction without pre
   test("durable authoring policy stays in docs while Skills remain hot-path execution projections", async () => {
     const [taxonomy, modelling, animationSkill] = await Promise.all([
       source("../docs/04-system/skill-taxonomy.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(taxonomy).toContain("Docs   = durable semantic policy / contracts");
@@ -188,8 +188,8 @@ describe("model creation effectiveness — professional construction without pre
 
   test("runtime-facing guidance keeps one normal hierarchy path and parent-driven Locator motion", async () => {
     const [modelling, animationSkill, animationPolicy, animationSource, consolidated] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/animation/standard.md"),
       source("server/tools/animation/rigging.ts"),
       source("server/runtime/consolidatedTools.ts"),
@@ -218,10 +218,10 @@ describe("model creation effectiveness — professional construction without pre
 
   test("professional samples never become callable presets, profiles, or fixture anatomy", async () => {
     const [profile, cubes, element, modelling, workflow] = await Promise.all([
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
       source("server/tools/geometry/cubes.ts"),
       source("server/tools/element.ts"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
 
@@ -237,7 +237,7 @@ describe("model creation effectiveness — professional construction without pre
   });
   test("Bedrock export hygiene stays compatibility-aware without distorting valid Geometry", async () => {
     const [modelling, geometry, hierarchy, locators] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
       source("server/tools/element/hierarchy.ts"),
       source("server/tools/geometry/locators.ts"),
@@ -257,7 +257,7 @@ describe("model creation effectiveness — professional construction without pre
 
   test("visible-bounds metadata remains a protected gap rather than a geometry workaround", async () => {
     const [modelling, workflow] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
 

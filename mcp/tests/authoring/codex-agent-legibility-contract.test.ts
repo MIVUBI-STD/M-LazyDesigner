@@ -44,9 +44,9 @@ describe("Codex Bedrock agent legibility contract", () => {
     const [agents, control, modelling, texturing, animation] = await Promise.all([
       source("../AGENTS.md"),
       source("gateway/control/packet.ts"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(agents).toContain("LazyDesigner Control");
@@ -56,7 +56,7 @@ describe("Codex Bedrock agent legibility contract", () => {
       ".agents/skills/lazydesigner-modelling/SKILL.md",
       ".agents/skills/lazydesigner-texturing/SKILL.md",
       ".agents/skills/lazydesigner-animation/SKILL.md",
-    ]) expect(agents).toContain(path);
+    ]) expect(await source("gateway/context/authoring.ts")).toContain(path);
 
     expect(control).toContain('mode: ControlTaskMode');
     expect(control).toContain("buildControlStageContext");
@@ -71,7 +71,7 @@ describe("Codex Bedrock agent legibility contract", () => {
   test("common Geometry choices remain explicit in the modelling specialist while coordinate semantics stay centrally owned", async () => {
     const [control, modelling] = await Promise.all([
       source("gateway/control/packet.ts"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(control).toContain("contextForAuthoringDomain");
@@ -83,13 +83,13 @@ describe("Codex Bedrock agent legibility contract", () => {
   });
 
   test("Texturing exposes hard entry gate, UV gate, Painter intent, and blank-atlas guard", async () => {
-    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const texturing = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
 
     expect(texturing).toContain("Geometry APPROVED + UV Layout PASS");
     expect(texturing).toMatch(/Entry:.*Geometry APPROVED \+ UV Layout PASS/);
     expect(texturing).toContain("`uv_audit.production_gate`");
-    expect(texturing).toMatch(/provisional.*16×16.*blank/);
-    expect(texturing).toContain("not omit blank Atlas size");
+    expect(texturing).toMatch(/16×16 blank default[^\n]*compatibility\/provisional/);
+    expect(texturing).toContain("do not rely on omitted size");
     expect(texturing).toContain("128×128 default, 256×256 opt-in");
     expect(texturing).toMatch(/`gradient_tool`.*reference-supported continuous transition/);
   });

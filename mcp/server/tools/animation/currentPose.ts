@@ -1,6 +1,8 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
 
+declare const THREE: typeof import("three");
+
 import {
   bindExplicitContactMarkers,
   prepareContactSamplingPlan,
@@ -165,7 +167,7 @@ function captureCurrentPoseReadFence(animation: _Animation, group: Group) {
         AnimationItem.all.some((item) =>
           item !== animation && item.playing === true) ||
         (typeof AnimationController !== "undefined" &&
-          Boolean(AnimationController.selected?.selected_state)) ||
+          Boolean((AnimationController.selected as (_Animation & { selected_state?: unknown }) | null)?.selected_state)) ||
         Timeline.playing !== false ||
         Timeline.time !== timelineTime ||
         !Animator.open || Modes.animate !== true ||
@@ -233,7 +235,7 @@ export function readCurrentBonePoseSnapshot(animation: _Animation, group: Group)
   }
   if (Timeline.playing) return unverified("TIMELINE_PLAYING");
   if (typeof AnimationController !== "undefined" &&
-      AnimationController.selected?.selected_state) {
+      (AnimationController.selected as (_Animation & { selected_state?: unknown }) | null)?.selected_state) {
     return unverified("ANIMATION_CONTROLLER_PREVIEW_ACTIVE");
   }
   if (!Number.isFinite(Timeline.time) || Timeline.time < 0 ||

@@ -60,7 +60,7 @@ describe("Gateway index boundary", () => {
       "this.session.synchronizeProject(receipt.projectUuid)"
     );
     expect(source).toContain(
-      "executor.invoke(capability, args, context)"
+      "executor.invoke(capability, args, context, controlOptions)"
     );
   });
 });

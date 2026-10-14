@@ -8,8 +8,8 @@ narratives remain in Git history, not this active queue.
 
 ## Current direction
 
-**Current priority:** reconcile generated MCP artifacts and obtain exact-HEAD
-source verification. The persistent Gateway owns client stability and Runtime
+**Current priority:** complete Windows local acceptance one stage at a time.
+The persistent Gateway owns client stability and Runtime
 recovery; Control owns context/readiness; Runtime/Plugin own Blockbench.
 Retain exactly four public Gateway tools and the existing source owners.
 
@@ -19,45 +19,36 @@ not proven native quality or measured AI savings.
 
 ## Next REMOTE_GITHUB work
 
-1. **Generated sources:** In a Bun-capable cloud checkout run
-   `cd mcp && bun install --frozen-lockfile`, then
-   `bun run generate:owned-artifacts`. Current `mcp/docs/api.json` omits
-   `capture_model_views.reference_correspondence`; `mcp/docs/index.html`
-   includes stale listener guidance. Only the canonical generators may
-   update these artifacts; include prompt manifest and Hybrid-4 schemas.
-   Verify with `bun run docs:check` before any full gate.
-2. **Focused regression first:** Run the existing Golden Task runner,
-   finalizer, comparator and authoring contracts and both animation native
-   restoration source suites. Diagnose and fix the first real failure at its
-   canonical source owner. Never weaken assertions merely to pass.
-3. **Exact-head verification:** Run `bun run verify:full` on the final
-   `Local` SHA. If available dispatch registered, manual-only GitHub workflows
-   for MCP, repository, authoring, security, conformance, Desktop and
-   distribution; preserve exact SHA, job/steps, artifact provenance and
-   result. A push, historical PASS, skipped check, or generated fixture is
-   not an executable current-source PASS. Do not change `main` to enable CI.
-4. **Model-cost comparison:** Reuse Golden Tasks. Require same approved
-   reference and starting `.bbmodel` fingerprint, source/build identity,
-   actual Astra/Sol model label, quality acceptance and client telemetry.
-   Missing token values remain null; tool-result bytes or API pricing are
-   not Codex allowance savings.
+The user explicitly activated Windows local testing. Remote verification remains
+optional and manual-only; do not change `main` or settings to enable workflows.
+Reuse matching exact-SHA source proof and never substitute ancestor results.
 
-GitHub Actions remain **manual-only**. If Bun or workflow dispatch is
-unavailable, record `NOT_EXECUTED` and transfer only that execution residue
-to an available **cloud** environment. User-local testing is deferred; do
-not require the user's PC.
+## Active Windows sequence
 
-## Pre-local UI handoff — SOURCE ONLY
+Baseline checkout: `c03fc30915868def461532d37c6f8b70e12a3507`, branch `Local`.
+Use Bun 1.3.14, Node 24 and Rust 1.98.1. Local repairs are not baseline-SHA proof.
 
-User-facing Blockbench/ Desktop fixes now present in `Local` source:
+1. Source closure passed locally: `bun run verify:full` completed through build.
+   Canonical generated artifacts pass `docs:check`. Only the canonical generators may
+   update these artifacts. Pin the repair commit and retain its clean exact-SHA
+   gate log before packaging; the initial SHA remains unaccepted.
+2. Desktop `verify:source` passed locally, including 49 Rust tests. Complete
+   the repair baseline before building the exact-SHA managed package;
+   packaging requires a clean tracked checkout.
+3. Follow runbook Section 6A on a disposable profile: install, first/repeat
+   launch, Smart Open, keyboard navigation, stale-state behavior and two-model
+   synchronization. Check Runtime status hydration, About version, Plugin file
+   action and staged-update reporting against observed native behavior.
+4. Prove matching Gateway/plugin identity and project affinity, then execute
+   Geometry → Texturing → Animation → Particle and persistence prepare/reopen/
+   verify. Keep the shared fixture and Gateway; run independent fixtures later.
+5. Test recovery, then compare Golden Tasks only after quality passes. Require
+   identical reference/model fingerprints, source/build, model/client identity
+   and actual telemetry. Missing tokens remain null.
 
-- Plugin panel hydrates actual Runtime status on mount; it must not display a fabricated `Runtime ready` before native readiness.
-- Desktop About derives its version from the package source, and the Blockbench plugin-file shortcut is labeled as an action rather than a three-dot menu.
-- Desktop update outcomes distinguish `INSTALLED`, `STAGED`, `NO_PENDING_UPDATE`, and unexpected manager receipts. A staged update is not a completed installation.
-- Project model search retains keyboard `focus-visible` outline; regression definitions are in `mcp/tests/human-ui-surface.test.ts`.
-- UI/native acceptance steps use the existing `docs/05-operations/local-acceptance-runbook.md`, especially Section 6A.
-
-These fixes are **SOURCE IMPLEMENTED**, not Bun/Svelte/Rust PASS or visual approval. Before starting the native check, use a Bun/Node-compatible checkout and finish the already recorded canonical generated-artifact closure; generator-owned API files remain stale and public docs still have pre-rename display strings. Do not modify generated JSON/HTML by hand. Run the relevant full MCP source gate and Desktop `verify:source` on an exact final SHA, then check the UI states and interactions in Windows/Blockbench. Report any missed checks as `NOT_EXECUTED`, not PASS. Keep `main` unchanged.
+Use the existing runbook and proof owner rather than adding a parallel ledger.
+Do not repeat accepted source gates merely because they ran elsewhere. Native
+and visual checks remain NOT_EXECUTED until actually observed.
 
 ## Active animation safety — LD-Q04
 
@@ -84,7 +75,7 @@ or bypass the existing gate.
 
 Only exact installed-build Undo/Redo, save/reopen, playback, reconnect and
 visual-review evidence from the existing runbook can close native claims.
-The user has elected to bring the current branch to a Windows PC for local testing. This is an intended next execution context, not evidence that native testing has already run.
+Windows LOCAL_CODE is active. Source verification is local evidence; native testing has not run.
 
 ## Separate bounded source boundaries
 

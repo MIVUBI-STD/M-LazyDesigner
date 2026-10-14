@@ -55,7 +55,7 @@ describe("texturing authoring contract", () => {
 
   test("fill surface omits unsupported synthetic tolerance", async () => {
     expect(Object.keys(paintFillToolParameters.shape)).not.toContain("tolerance");
-    const paint = await source("server/tools/paint-primitives.ts");
+    const paint = await source("server/tools/paint/primitives.ts");
     const fill = paint;
     expect(fill).not.toContain("tolerance");
     expect(fill).not.toContain("requireNativeFillTolerance");
@@ -73,7 +73,7 @@ describe("texturing authoring contract", () => {
   // Native stroke lifecycle is verified by paint-stroke and paint-tool-selection executors.
 
   test("brush and eraser honor connected versus separated stroke semantics", async () => {
-    const paint = await source("server/tools/paint-brush.ts");
+    const paint = await source("server/tools/paint/brush.ts");
 
     const eraser = paint;
     expect(eraser).toContain('requirePaintCoordinates(coordinates, "eraser_tool")');
@@ -136,7 +136,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("place_cube returns packed Box UV continuation state without locking geometry early", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     for (const marker of [
       "packBoxUvOffsets(",
       "currentBoxUvOccupancy()",
@@ -169,7 +169,7 @@ describe("texturing authoring contract", () => {
       requireFiniteInspectableFaceUv([0, 0, 4, Number.POSITIVE_INFINITY], "fixture")
     ).toThrow();
 
-    const inspection = await source("server/tools/element-inspection.ts");
+    const inspection = await source("server/tools/element/inspection.ts");
     for (const marker of [
       "CUBE_FACE_KEYS",
       'mode: cube.box_uv ? ("box_uv" as const) : ("per_face" as const)',
@@ -236,7 +236,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("Cube inspection exposes semantic texture-space mapping state for every face", async () => {
-    const inspection = await source("server/tools/element-inspection.ts");
+    const inspection = await source("server/tools/element/inspection.ts");
 
     for (const marker of [
       "Texture.getDefault()",
@@ -299,7 +299,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("T3 bounded shape authoring passes an exact clip through native Painter", async () => {
-    const paint = await source("server/tools/paint-primitives.ts");
+    const paint = await source("server/tools/paint/primitives.ts");
     const shape = paint;
 
     for (const marker of [
@@ -367,7 +367,7 @@ describe("texturing authoring contract", () => {
       )
     ).toThrow("outside texture bounds");
 
-    const paint = await source("server/tools/paint-brush.ts");
+    const paint = await source("server/tools/paint/brush.ts");
     const brush = paint;
     for (const marker of [
       "isExactPixelAuthoringRequest(coordinates",
@@ -510,7 +510,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("create_texture sizes its fresh canvas to authored dimensions before filling", async () => {
-    const textureSource = await source("server/tools/texture-create.ts");
+    const textureSource = await source("server/tools/texture/create.ts");
     const executeStart = textureSource.indexOf("async execute({");
     const executeEnd = textureSource.indexOf("const result = {", executeStart);
     expect(executeStart).toBeGreaterThanOrEqual(0);
@@ -528,7 +528,7 @@ describe("texturing authoring contract", () => {
   });
 
   test("flatten_layers uses native Blockbench semantics and rejects approximation", async () => {
-    const paint = await source("server/tools/paint-selection-layers.ts");
+    const paint = await source("server/tools/paint/selectionLayers.ts");
     const start = paint.indexOf('if (action === "flatten_layers")');
     const block = paint.slice(start);
     expect(block).toContain('typeof nativeTexture.flatten !== "function"');

@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 describe("Blockbench UV runtime adapter ownership", () => {
   test("native adapter stays a narrow translation/Undo boundary", async () => {
     const source = await Bun.file(
-      "server/runtime/uvLayoutRuntime.ts"
+      "server/runtime/uv/layoutRuntime.ts"
     ).text();
 
     for (const marker of [
@@ -32,8 +32,8 @@ describe("Blockbench UV runtime adapter ownership", () => {
 
   test("existing production UV owners are not silently replaced", async () => {
     const [cubes, textureCreate] = await Promise.all([
-      Bun.file("server/tools/cubes.ts").text(),
-      Bun.file("server/tools/texture-create.ts").text(),
+      Bun.file("server/tools/geometry/cubes.ts").text(),
+      Bun.file("server/tools/texture/create.ts").text(),
     ]);
     expect(cubes).toContain("packBoxUvOffsets");
     expect(textureCreate).toContain(

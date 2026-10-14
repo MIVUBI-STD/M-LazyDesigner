@@ -9,7 +9,7 @@ describe("model creation effectiveness — tool routing", () => {
   test("Geometry focus gets complete AUTHORING guidance without Animation tools", async () => {
     const [controlRegistry, modelling, workflow] = await Promise.all([
       source("gateway/control/registry.ts"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
     const geometryRuntime = selectMcpPhaseWorkflowBody(workflow, "geometry");
@@ -29,8 +29,8 @@ describe("model creation effectiveness — tool routing", () => {
 
   test("specialists reuse known state instead of forcing lifecycle/discovery rereads", async () => {
     const [animation, texturing] = await Promise.all([
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
     const normalizedAnimation = animation.toLowerCase().replaceAll("`", "");
     const normalizedTexturing = texturing.toLowerCase();
@@ -44,9 +44,9 @@ describe("model creation effectiveness — tool routing", () => {
 
   test("convenience tools retain branch-only roles and are not promoted by Control", async () => {
     const [camera, elements, history, contract] = await Promise.all([
-      source("server/tools/camera.ts"),
-      source("server/tools/element-mutation.ts"),
-      source("server/tools/history.ts"),
+      source("server/tools/inspection/camera.ts"),
+      source("server/tools/element/mutation.ts"),
+      source("server/tools/state/history.ts"),
       source("gateway/contract.ts"),
     ]);
 
@@ -65,7 +65,7 @@ describe("model creation effectiveness — tool routing", () => {
   });
 
   test("routing hardening preserves the existing Bedrock registration profile", async () => {
-    const profile = await source("lib/registrationProfile.ts");
+    const profile = await source("lib/capabilities/registrationProfile.ts");
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
     expect(profile).toContain('"animation"');
     expect(profile).toContain('"paint"');

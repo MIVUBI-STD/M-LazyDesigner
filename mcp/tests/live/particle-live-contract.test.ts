@@ -18,7 +18,7 @@ describe("particle live verifier contract (source harness, not live proof)", () 
 
   test("prebuilds one math-driven create-patch-save-preview path", () => {
     const source = readFileSync(
-      new URL("../scripts/verify/verify-particle-live.ts", import.meta.url),
+      new URL("../../scripts/verify/verify-particle-live.ts", import.meta.url),
       "utf8"
     );
     expect(source).toContain("minecraft:particle_motion_parametric");
@@ -32,7 +32,7 @@ describe("particle live verifier contract (source harness, not live proof)", () 
 
   test("package exposes the explicit particle live command", () => {
     const pkg = JSON.parse(
-      readFileSync(new URL("../package.json", import.meta.url), "utf8")
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8")
     ) as { scripts?: Record<string, string> };
     expect(pkg.scripts?.["verify:particle-live"]).toBe(
       "bun run ./scripts/verify/verify-particle-live.ts"

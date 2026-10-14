@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "rootDir": ".",
     "outDir": ".cache/runtime-project",
     "tsBuildInfoFile": ".cache/runtime-project.tsbuildinfo",
     "declaration": true,
@@ -40,11 +41,13 @@
     ".cache/**",
     "lib/semantic/**",
     "lib/runtime/fetch.ts",
+    "lib/runtime/authorization.ts",
     "lib/runtime/connection.ts",
     "lib/runtime/affinity.ts",
     "lib/capabilities/metadata.ts",
     "lib/capabilities/manifest.ts",
     "lib/capabilities/authoringPhase.ts",
+    "lib/capabilities/authoringStage.ts",
     "lib/capabilities/registrationProfile.ts"
   ]
 }

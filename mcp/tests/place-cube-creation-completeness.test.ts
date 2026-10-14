@@ -53,7 +53,7 @@ describe("place_cube creation completeness", () => {
   });
 
   test("all explicit parent references are preflighted before Undo", async () => {
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     const start = cubes.indexOf("const executeCreateCubes");
     const undo = cubes.indexOf("Undo.initEdit", start);
     const defaultPreflight = cubes.indexOf("resolvePlacementGroup(group)", start);
@@ -72,7 +72,7 @@ describe("place_cube creation completeness", () => {
       "manage_cubes",
     ]);
 
-    const cubes = await source("server/tools/cubes.ts");
+    const cubes = await source("server/tools/geometry/cubes.ts");
     for (const forbidden of [
       "professional_preset",
       "construction_preset",

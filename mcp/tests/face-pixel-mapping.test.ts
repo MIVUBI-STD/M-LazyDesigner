@@ -7,7 +7,7 @@ import {
   requireFiniteFaceUv,
   requirePositiveTextureMetric,
   requireSupportedFaceRotation,
-} from "@/lib/facePixelMapping";
+} from "@/lib/uv/facePixelMapping";
 
 async function source(path: string): Promise<string> {
   return Bun.file(path).text();
@@ -130,8 +130,8 @@ describe("face pixel mapping ownership", () => {
   });
 
   test("inspect_element consumes the shared mapping owner instead of carrying a second implementation", async () => {
-    const inspection = await source("server/tools/element-inspection.ts");
-    expect(inspection).toContain('from "@/lib/facePixelMapping"');
+    const inspection = await source("server/tools/element/inspection.ts");
+    expect(inspection).toContain('from "@/lib/uv/facePixelMapping"');
     expect(inspection).toContain("mapFaceUvToTexturePixels(");
     expect(inspection).not.toContain("function roundNativePainterCoordinate");
     expect(inspection).not.toContain("function requirePositiveTextureMetric");

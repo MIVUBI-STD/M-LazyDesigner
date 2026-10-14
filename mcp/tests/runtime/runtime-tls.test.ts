@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { existsSync, readdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { IncomingMessage } from "node:http";
 import { Agent as HttpsAgent, createServer, request as httpsRequest } from "node:https";
 import { performance } from "node:perf_hooks";
 import type { AddressInfo } from "node:net";
@@ -105,14 +106,17 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
       runtimeAuthorizationPath()
     );
     const agent = new HttpsAgent({ keepAlive: true, maxSockets: 1, ca: cert });
-    let secureConnections = 0;
-    const onSecureConnection = () => { secureConnections += 1; };
-    server.on("secureConnection", onSecureConnection);
+    const secureConnections = new Set<number>();
+    const onSecureConnection = (request: IncomingMessage) => {
+      expect(request.socket.remotePort).toBeDefined();
+      secureConnections.add(request.socket.remotePort!);
+    };
+    server.on("request", onSecureConnection);
     try {
       const samples: number[] = [];
       for (let i = 0; i < 4; i++) {
         const started = performance.now();
-        const observed = await new Promise<{ status: number; reusedSocket: boolean; connection: string | undefined }>((resolve, reject) => {
+        const observed = await new Promise<{ status: number; connection: string | undefined }>((resolve, reject) => {
           const request = httpsRequest(`${url}/health`, {
             method: "GET",
             agent,
@@ -126,7 +130,6 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
               expect(body.status).toBe("ok");
               resolve({
                 status: response.statusCode ?? 0,
-                reusedSocket: request.reusedSocket,
                 connection: response.headers.connection,
               });
             });
@@ -136,13 +139,13 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
         });
         samples.push(performance.now() - started);
         expect(observed.status).toBe(200);
-        expect(observed.reusedSocket).toBe(i > 0);
+        expect(secureConnections.size).toBe(1);
         expect(observed.connection).not.toBe("close");
       }
-      expect(secureConnections).toBe(1);
+      expect(secureConnections.size).toBe(1);
       console.log(`[tls-connection-bench] https_health_reuse=3/4 secure_connections=1 sample_ms=${samples.map(n => n.toFixed(2)).join(",")}`);
     } finally {
-      server.off("secureConnection", onSecureConnection);
+      server.off("request", onSecureConnection);
       agent.destroy();
     }
 

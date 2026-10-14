@@ -42,7 +42,7 @@ const animationPreviewParameters = z
     animation_id: z
       .string()
       .min(1)
-      .describe("Exact authored Animation UUID or unique exact name."),
+      .describe("Authored Animation UUID or unique exact name."),
     times: z
       .array(z.number().finite().min(0).max(10000))
       .min(1)
@@ -50,7 +50,7 @@ const animationPreviewParameters = z
       .refine((times) => new Set(times).size === times.length, {
         message: "Animation preview times must be unique.",
       })
-      .describe("One to five explicit animation sample times in seconds."),
+      .describe("Explicit animation sample times (seconds)."),
   })
   .strict();
 
@@ -58,7 +58,7 @@ const captureModelViewsWithAnimationBase = captureModelViewsParameters.extend({
   animation_preview: animationPreviewParameters
     .optional()
     .describe(
-      "Optional bounded authored-Animation pose sampling. Capture cost is views × times and must not exceed 8 images."
+      "Optional authored-Animation pose samples; views × times must be ≤8 images."
     ),
 });
 

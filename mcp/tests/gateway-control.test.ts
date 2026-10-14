@@ -1,3 +1,4 @@
+import { GatewayOperationQueue } from "@/gateway/runtime/operationQueue";
 import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -39,7 +40,8 @@ const onlineStatus: GatewayRuntimeStatus = {
     last_ready_at: "2026-09-12T00:00:00.000Z", last_transition_at: "2026-09-12T00:00:00.000Z",
     reconnect: { failures: 0, retry_after_ms: 0 },
   },
-  operations: { active: 0, queued: 0, max_queue_depth: 8, completed: 2, failed: 0, timed_out: 0, rejected_busy: 0 },
+  operations: {
+    ...new GatewayOperationQueue(8).snapshot(), active: 0, queued: 0, max_queue_depth: 8, completed: 2, failed: 0, timed_out: 0, rejected_busy: 0 },
   last_error: null,
 };
 
@@ -91,7 +93,7 @@ describe("LazyDesigner Control", () => {
     expect(delta.next_intent).toBe("VERIFY_OR_CONTINUE_GEOMETRY");
     expect(delta.verification_class).toBe("visual");
 
-    const handoff = buildControlDelta({ capability: "switch_authoring_phase", phaseBefore: "texturing", phaseAfter: "animation", projectUuid: "project-a", succeeded: true });
+    const handoff = buildControlDelta({ capability: "switch_authoring_phase", phaseBefore: "texturing", phaseAfter: "animation", projectUuid: "project-a", succeeded: true, result: { phase: "animation", runtime_surface: "ANIMATION", reason: "fixture", resume_from: "animation", readiness_summary: null, surface_changed: true, reload_required: false, action: "continue" } });
     expect(handoff.requires_status_refresh).toBe(true);
     expect(handoff.changed).toContain("authoring_phase");
     expect(handoff.verification_class).toBe("receipt_only");
@@ -119,10 +121,12 @@ describe("LazyDesigner Control", () => {
   });
 
   test("Reference Package projects Geometry context and exactly one selected profile", async () => {
-    const { mkdtemp, writeFile } = await import("node:fs/promises");
+    const { mkdtemp, mkdir, writeFile } = await import("node:fs/promises");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
     const directory = await mkdtemp(join(tmpdir(), "lazydesigner-reference-"));
+    await mkdir(join(directory, "images"));
+    await writeFile(join(directory, "images/01-main-reference.png"), Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR4nGP8z8Dwn4GBgYGJAQoAHxcCAk+Uzr4AAAAASUVORK5CYII=", "base64"));
     await writeFile(join(directory, "REFERENCE.json"), JSON.stringify({
       schema: "lazydesigner-reference-v1",
       asset: { name: "farmer_npc", profile: "HUMANOID", task: "NEW_ASSET", intent: "Farmer NPC harvesting cinnamon" },

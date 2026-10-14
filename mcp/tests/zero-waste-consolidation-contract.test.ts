@@ -43,7 +43,7 @@ describe("zero-waste consolidation contract", () => {
 
   test("continuation benchmark keeps one transport workflow plus grouping", async () => {
     const benchmark = await repoFile(
-      "mcp/scripts/benchmark-zero-waste-workflow.ts"
+      "mcp/scripts/benchmark/benchmark-zero-waste-workflow.ts"
     );
 
     expect(benchmark).toContain('"correction_continuation_transport"');
@@ -60,9 +60,7 @@ describe("zero-waste consolidation contract", () => {
 
   test("hot-path continuation instructions are consolidated once per owner", async () => {
     const prompt = await repoFile("mcp/prompts/bedrock_entity_workflow.md");
-    const skill = await repoFile(
-      ".agents/skills/lazydesigner-modelling/SKILL.md"
-    );
+    const skill = await Promise.all([repoFile(".agents/skills/lazydesigner-modelling/SKILL.md"), repoFile(".agents/skills/lazydesigner-modelling/references/verification.md"), repoFile(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n"));
     const heading = "Correction continuation is runtime-owned and incremental";
 
     expect(occurrences(prompt, heading)).toBe(1);

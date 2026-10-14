@@ -178,7 +178,7 @@ async function postMcpWithAgent(
   id: number,
   method: "initialize" | "tools/list",
   forceClose = false
-): Promise<{ status: number; reusedSocket: boolean; connection: string | undefined; result: Record<string, unknown> }> {
+): Promise<{ status: number; connection: string | undefined; result: Record<string, unknown> }> {
   const body = JSON.stringify({
     jsonrpc: "2.0",
     id,
@@ -207,7 +207,6 @@ async function postMcpWithAgent(
         try {
           resolve({
             status: response.statusCode ?? 0,
-            reusedSocket: request.reusedSocket,
             connection: response.headers.connection,
             result: JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>,
           });
@@ -711,6 +710,7 @@ describe("P1.4 raw-net stateless integration", () => {
 
   test("finite MCP requests reuse a bounded socket and explicit close still closes", async () => {
     const agent = new HttpAgent({ keepAlive: true, maxSockets: 1 });
+    const coldAgent = new HttpAgent({ keepAlive: false, maxSockets: 1 });
     let connections = 0;
     const onConnection = () => { connections += 1; };
     server.on("connection", onConnection);
@@ -722,7 +722,7 @@ describe("P1.4 raw-net stateless integration", () => {
         warmDurations.push(performance.now() - started);
         expect(response.status).toBe(200);
         expect(response.result).toHaveProperty("result");
-        expect(response.reusedSocket).toBe(i > 0);
+        expect(connections).toBe(1);
         expect(response.connection).not.toBe("close");
       }
       expect(connections).toBe(1);
@@ -732,10 +732,10 @@ describe("P1.4 raw-net stateless integration", () => {
       const coldDurations: number[] = [];
       for (let i = 0; i < 5; i++) {
         const started = performance.now();
-        const response = await postMcpWithAgent(agent, 5100 + i, "tools/list", true);
+        const response = await postMcpWithAgent(coldAgent, 5100 + i, "tools/list", true);
         coldDurations.push(performance.now() - started);
         expect(response.status).toBe(200);
-        expect(response.reusedSocket).toBe(false);
+        expect(connections).toBe(i + 2);
         expect(response.connection).toBe("close");
       }
       expect(connections).toBe(6);
@@ -746,6 +746,7 @@ describe("P1.4 raw-net stateless integration", () => {
     } finally {
       server.off("connection", onConnection);
       agent.destroy();
+      coldAgent.destroy();
     }
   });
 

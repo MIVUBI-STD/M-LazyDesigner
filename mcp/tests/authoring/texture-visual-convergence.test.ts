@@ -7,10 +7,10 @@ async function source(path: string): Promise<string> {
 describe("texture visual convergence contract", () => {
   test("active guidance requires fresh atlas and mapped model-view evidence", async () => {
     const [skill, workflow, texture, camera] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
       source("server/tools/texture/read.ts"),
-      source("server/tools/camera.ts"),
+      source("server/tools/inspection/camera.ts"),
     ]);
 
     for (const text of [skill, workflow]) {
@@ -37,8 +37,8 @@ describe("texture visual convergence contract", () => {
 
   test("paint transaction returns bounded post-mutation texture evidence without a full-atlas reread", async () => {
     const [transaction, bitmap] = await Promise.all([
-      source("server/tools/paint-texture-transaction.ts"),
-      source("lib/textureBitmapRuntime.ts"),
+      source("server/tools/paint/textureTransaction.ts"),
+      source("lib/texture/bitmapRuntime.ts"),
     ]);
     expect(transaction).toContain("const dirtyRegion = cropRgbaRect(");
     expect(transaction).toContain("env.ctx.putImageData(imageData, localX, localY)");
@@ -53,7 +53,7 @@ describe("texture visual convergence contract", () => {
 
   test("local texture correction proves qualitative direction instead of mutation activity", async () => {
     const [skill, workflow, validation] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
       source("../docs/03-authoring/validation/visual.md"),
     ]);
@@ -70,8 +70,8 @@ describe("texture visual convergence contract", () => {
 
   test("visual convergence stays on existing evidence and Painter surfaces", async () => {
     const [profile, skill, workflow] = await Promise.all([
-      source("lib/registrationProfile.ts"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      source("lib/capabilities/registrationProfile.ts"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("prompts/bedrock_entity_workflow.md"),
     ]);
 

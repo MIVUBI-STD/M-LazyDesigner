@@ -69,9 +69,9 @@ describe("Bedrock prompt and skill surface", () => {
     const [root, control, modelling, texturing, animation] = await Promise.all([
       source("../AGENTS.md"),
       source("gateway/control/README.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(root).toContain("LazyDesigner Control is the canonical routing/context authority");
@@ -89,9 +89,9 @@ describe("Bedrock prompt and skill surface", () => {
     const [root, context, modelling, texturing, animation] = await Promise.all([
       source("../AGENTS.md"),
       source("../CONTEXT.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(root).toContain("not Minecraft add-on development");
@@ -102,7 +102,7 @@ describe("Bedrock prompt and skill surface", () => {
     expect(modelling).toContain("rotated Cubes");
     expect(modelling).toContain("per-face UV");
     expect(modelling).toContain("Locator = lightweight attachment/effect anchor");
-    expect(modelling).toContain("Visible Bounds");
+    expect(modelling).toContain("visible_bounds_*");
 
     expect(texturing).toContain("Asset-Only Visual Runtime Boundary");
     expect(texturing).toContain("Texture variants");
@@ -117,7 +117,7 @@ describe("Bedrock prompt and skill surface", () => {
   test("reference-driven modelling keeps a difference-first three-state visual verdict", async () => {
     const [workflow, modelling, validation] = await Promise.all([
       source("prompts/bedrock_entity_workflow.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/validation/visual.md"),
     ]);
     for (const text of [workflow, modelling, validation]) {

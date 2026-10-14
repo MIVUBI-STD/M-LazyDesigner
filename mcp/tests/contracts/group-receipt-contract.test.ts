@@ -89,7 +89,7 @@ describe("shared group mutation receipt contract", () => {
   });
 
   test("Runtime and Control share the group receipt owner", async () => {
-    const producer = await Bun.file("server/tools/element-hierarchy.ts").text();
+    const producer = await Bun.file("server/tools/element/hierarchy.ts").text();
     const control = await Bun.file("gateway/control/delta/receipts.ts").text();
 
     expect(producer).toContain('from "@/lib/receipts/groupMutation"');

@@ -16,9 +16,9 @@ test("external quality intelligence stays advisory and provenance-bound", async 
 
 test("quality integrations reuse existing ownership instead of creating a second workflow", async () => {
   const doc = await source("../docs/04-system/external-quality-intelligence.md");
-  expect(doc).toContain("mcp/lib/referenceCrossViewEvidence.ts");
-  expect(doc).toContain("mcp/lib/minecraftStyleEvidence.ts");
-  expect(doc).toContain("mcp/lib/animationContactEvidence.ts");
+  expect(doc).toContain("mcp/lib/reference/crossViewEvidence.ts");
+  expect(doc).toContain("mcp/lib/reference/minecraftStyleEvidence.ts");
+  expect(doc).toContain("mcp/lib/animation/contactEvidence.ts");
   expect(doc).toContain("Control → Gateway → Runtime → Plugin");
   expect(doc).toContain("a second Director/workflow engine");
 });

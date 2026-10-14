@@ -9,7 +9,7 @@ describe("validator routing efficiency", () => {
     const [validator, gateway, verdict] = await Promise.all([
       source("server/resources/validator.ts"),
       source("gateway/index.ts"),
-      source("lib/validationVerdict.ts"),
+      source("lib/authoring/validationVerdict.ts"),
     ]);
 
     expect(gateway).toContain("Runtime resources and prompts are not proxied");

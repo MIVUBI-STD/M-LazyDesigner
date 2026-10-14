@@ -74,12 +74,12 @@ describe("REMOTE_GITHUB authoring handoff contracts", () => {
     expect(continuation.length).toBeLessThan(8_000);
     for (const marker of [
       "REMOTE_GITHUB",
-      "generated freshness PASS",
-      "modern MCP 2026 negotiation/list/call PASS",
-      "legacy 2025 JSON initialize/list/call PASS",
-      "LOCAL_CODE",
+      "docs:check",
+      "verify:full",
+      "NOT_EXECUTED",
+      "Windows",
       "LIVE_BLOCKBENCH",
-      "no second Control/router/profile/state system",
+      "No second engine, router",
     ]) {
       expect(continuation.toLowerCase()).toContain(marker.toLowerCase());
     }
@@ -95,7 +95,7 @@ describe("REMOTE_GITHUB authoring handoff contracts", () => {
     ]) {
       expect(continuation).not.toContain(retired);
     }
-    expect(continuation).toContain("persistent Gateway survives Runtime/plugin reload");
-    expect(continuation).toContain("no claim of Bun/typecheck/CI/local/live PASS until that proof actually ran");
+    expect(continuation).toContain("The persistent Gateway owns client stability and Runtime");
+    expect(continuation).toContain("Native\nand visual checks remain NOT_EXECUTED until actually observed");
   });
 });

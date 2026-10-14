@@ -267,8 +267,8 @@ describe("texture atlas integrity", () => {
 
   test("texture creation preflight runs before Undo and prevents atlas fragmentation", async () => {
     const [texture, atlas] = await Promise.all([
-      source("server/tools/texture-create.ts"),
-      source("server/tools/texture-atlas.ts"),
+      source("server/tools/texture/create.ts"),
+      source("server/tools/texture/atlas.ts"),
     ]);
     const createBlock = texture;
 
@@ -290,8 +290,8 @@ describe("texture atlas integrity", () => {
 
   test("list_textures exposes atlas inventory and global UV gate without a new tool", async () => {
     const [texture, atlas] = await Promise.all([
-      source("server/tools/texture-read.ts"),
-      source("server/tools/texture-atlas.ts"),
+      source("server/tools/texture/read.ts"),
+      source("server/tools/texture/atlas.ts"),
     ]);
     const listBlock = texture.slice(
       texture.indexOf("createTool(listTexturesToolDoc.name"),
@@ -324,7 +324,7 @@ describe("texture atlas integrity", () => {
   });
 
   test("painting requires explicit texture identity when multiple textures are loaded", async () => {
-    const util = await source("lib/util.ts");
+    const util = await source("lib/texture/selection.ts");
     expect(util).toContain("available.length > 1");
     expect(util).toContain("Pass texture_id explicitly");
     expect(util).toContain("implicit selected/default state");
@@ -333,8 +333,8 @@ describe("texture atlas integrity", () => {
 
   test("full-atlas image evidence is explicit in multi-texture state and returns density metadata", async () => {
     const [texture, atlas] = await Promise.all([
-      source("server/tools/texture-read.ts"),
-      source("server/tools/texture-atlas.ts"),
+      source("server/tools/texture/read.ts"),
+      source("server/tools/texture/atlas.ts"),
     ]);
     const block = texture.slice(texture.indexOf("createTool(getTextureToolDoc.name"));
 

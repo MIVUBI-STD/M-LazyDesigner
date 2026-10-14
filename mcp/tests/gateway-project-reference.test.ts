@@ -25,7 +25,7 @@ describe("Gateway TypeScript project reference", () => {
     expect(gateway.compilerOptions.emitDeclarationOnly).toBe(true);
     expect(gateway.compilerOptions.outDir).toBe("../.cache/gateway-project");
     expect(gateway.include).toContain("../package.json");
-    expect(gateway.include).not.toContain("../lib/capabilityMetadata.ts");
+    expect(gateway.include).not.toContain("../lib/capabilities/metadata.ts");
   });
 
   test("CI and canonical MCP verification execute the composite graph", async () => {
@@ -37,6 +37,6 @@ describe("Gateway TypeScript project reference", () => {
     );
     expect(pkg.scripts["verify:mcp"]).toContain("bun run verify:types");
     expect(pkg.scripts["verify:types"]).toContain("bun run verify:project-graph");
-    expect(workflow).toContain("bun run verify:project-graph");
+    expect(workflow).toContain("bun run verify:full");
   });
 });

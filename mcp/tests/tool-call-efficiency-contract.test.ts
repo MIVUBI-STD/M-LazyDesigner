@@ -12,9 +12,9 @@ function normalized(value: string): string {
 describe("authoring tool-call efficiency contract", () => {
   test("active specialists expose minimum necessary call paths without fixed quotas", async () => {
     const [modelling, texturing, animation, evaluation] = await Promise.all([
-      read(".agents/skills/lazydesigner-modelling/SKILL.md"),
-      read(".agents/skills/lazydesigner-texturing/SKILL.md"),
-      read(".agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([read(".agents/skills/lazydesigner-modelling/SKILL.md"), read(".agents/skills/lazydesigner-modelling/references/verification.md"), read(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n")),
+      Promise.all([read(".agents/skills/lazydesigner-texturing/SKILL.md"), read(".agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([read(".agents/skills/lazydesigner-animation/SKILL.md"), read(".agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       read("mcp/docs/TOOL_CALL_EFFICIENCY.md"),
     ]).then((values) => values.map(normalized));
 
@@ -41,9 +41,9 @@ describe("authoring tool-call efficiency contract", () => {
 
   test("efficiency contract preserves bounded discovery and convergence rules", async () => {
     const [modelling, texturing, animation, source] = await Promise.all([
-      read(".agents/skills/lazydesigner-modelling/SKILL.md"),
-      read(".agents/skills/lazydesigner-texturing/SKILL.md"),
-      read(".agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([read(".agents/skills/lazydesigner-modelling/SKILL.md"), read(".agents/skills/lazydesigner-modelling/references/verification.md"), read(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n")),
+      Promise.all([read(".agents/skills/lazydesigner-texturing/SKILL.md"), read(".agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([read(".agents/skills/lazydesigner-animation/SKILL.md"), read(".agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       read("mcp/docs/TOOL_CALL_EFFICIENCY.md"),
     ]).then((values) => values.map(normalized));
 

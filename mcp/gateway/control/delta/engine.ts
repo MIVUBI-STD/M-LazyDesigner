@@ -3,7 +3,7 @@ import {
   sourceOwnerForCapability,
 } from "../../development/sourceOwners";
 import type { ControlDelta } from "../types";
-import type { BlockitAuthoringPhaseAffinity } from "../../runtime/projectAffinity";
+import type { BlockitAuthoringPhaseAffinity } from "../../../lib/runtime/affinity";
 import type { CapabilityBranchHint } from "../../capabilities/types";
 import {
   authoritativeRevisionEvidence,

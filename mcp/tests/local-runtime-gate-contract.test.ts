@@ -4,7 +4,7 @@ import { getMcpSurfaceToolNames } from "@/server/tools";
 import {
   classifyPreflightFailure,
   getLocalSmokeDiagnostic,
-} from "../scripts/verify-stateless-local";
+} from "../scripts/verify/verify-stateless-local";
 
 const REQUIRED_GEOMETRY_TOOLS = [
   "create_project",

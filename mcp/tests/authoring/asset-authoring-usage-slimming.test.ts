@@ -10,25 +10,25 @@ describe("pre-local asset-authoring usage slimming", () => {
   test("asset authoring bypasses repository-development boot and routes through Control to one active specialist", async () => {
     const agents = await source("../AGENTS.md");
     expect(agents).toContain("### Asset Authoring");
-    expect(agents).toMatch(/do not automatically load/i);
-    expect(agents).toMatch(/asset authoring is not software \*\*Development\*\*/i);
-    expect(agents).toMatch(/do not route it through `lazydesigner-development-brief`/i);
+    expect(agents).toMatch(/Normal asset authoring does not load repository history/i);
+    expect(agents).toMatch(/unless bounded evidence proves a product\/runtime defect/i);
+    expect(agents).toMatch(/does not load[^\n]*`lazydesigner-development-brief`/i);
     expect(agents).toContain("LazyDesigner Control");
     expect(agents).toContain("exactly one active specialist");
-    expect(agents).toContain(".agents/skills/lazydesigner-modelling/SKILL.md");
-    expect(agents).toContain(".agents/skills/lazydesigner-texturing/SKILL.md");
-    expect(agents).toContain(".agents/skills/lazydesigner-animation/SKILL.md");
+    expect(await source("gateway/context/authoring.ts")).toContain(".agents/skills/lazydesigner-modelling/SKILL.md");
+    expect(await source("gateway/context/authoring.ts")).toContain(".agents/skills/lazydesigner-texturing/SKILL.md");
+    expect(await source("gateway/context/authoring.ts")).toContain(".agents/skills/lazydesigner-animation/SKILL.md");
     expect(agents).not.toContain(".agents/skills/blockit-bedrock-entity-mcp/SKILL.md");
   });
 
   test("normal authoring context stays compact while hard gates and specialist judgement remain present", async () => {
     const [control, modelling, texturing] = await Promise.all([
       source("gateway/control/packet.ts"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
 
-    expect(texturing.length).toBeLessThan(13_200);
+    expect((await source("../.agents/skills/lazydesigner-texturing/SKILL.md")).length).toBeLessThan(13_200);
     expect(control).toContain("buildControlStageContext");
     expect(control).toContain("contextForAuthoringDomain");
     expect(control).toContain("stage_context");
@@ -37,12 +37,12 @@ describe("pre-local asset-authoring usage slimming", () => {
     expect(control).toContain("reference");
 
     for (const required of [
-      "Primary Mass / Proportion / Depth",
+      "cross-view proportions / identity landmarks",
       "Surface Coverage / Negative Space",
-      "Geometry Detail Budget",
+      "primary PASS precedes identity-weighted secondary geometry",
       "User Geometry APPROVED is required",
       "Native UV Layout / Texel Integrity",
-      "geometry_effect",
+      "Use the returned identities/effects",
     ]) expect(modelling).toContain(required);
     expect(modelling.toLowerCase()).toContain("difference-first");
 
@@ -70,7 +70,7 @@ describe("pre-local asset-authoring usage slimming", () => {
   });
 
   test("filesystem export preserves native target semantics and verifies writes", async () => {
-    const exportSource = await source("server/tools/export.ts");
+    const exportSource = await source("server/tools/io/export.ts");
     for (const marker of [
       'destructiveHint: true',
       'codec_id === "bedrock" && destinationExisted',
@@ -112,17 +112,17 @@ describe("pre-local asset-authoring usage slimming", () => {
 
   test("create_texture converts RGBA byte alpha to TinyColor alpha range", async () => {
     expect(createTextureParameters.safeParse({ name: "translucent", fill_color: [255, 0, 0, 128], layer_name: "base" }).success).toBe(true);
-    const texture = await source("server/tools/texture-create.ts");
+    const texture = await source("server/tools/texture/create.ts");
     expect(texture).toContain("a: Number(fill_color[3] ?? 255) / 255");
   });
 
   test("high-frequency reads stay compact and Control avoids redundant search/status chatter", async () => {
     const files = await Promise.all([
-      source("server/tools/element-inspection.ts"),
-      source("server/tools/project.ts"),
+      source("server/tools/element/inspection.ts"),
+      source("server/tools/project/project.ts"),
       source("server/tools/animation.ts"),
-      source("server/tools/animation-inspection.ts"),
-      source("server/tools/locators.ts"),
+      source("server/tools/animation/inspection.ts"),
+      source("server/tools/geometry/locators.ts"),
     ]);
     for (const text of files) expect(text).not.toContain("JSON.stringify(result, null, 2)");
     const locatorSource = files[4];
@@ -154,7 +154,7 @@ describe("pre-local asset-authoring usage slimming", () => {
     const [index, settings, profile] = await Promise.all([
       source("index.ts"),
       source("ui/settings.ts"),
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
     ]);
 
     expect(index).not.toContain('new Action("blockit_enable_extended"');
@@ -167,7 +167,7 @@ describe("pre-local asset-authoring usage slimming", () => {
   });
 
   test("capability architecture keeps the existing registration profile", async () => {
-    const profile = await source("lib/registrationProfile.ts");
+    const profile = await source("lib/capabilities/registrationProfile.ts");
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
     expect(profile).not.toContain("asset_authoring_profile");
   });

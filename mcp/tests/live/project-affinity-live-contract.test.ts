@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-const scriptUrl = new URL("../scripts/verify/verify-project-affinity-live.ts", import.meta.url);
+const scriptUrl = new URL("../../scripts/verify/verify-project-affinity-live.ts", import.meta.url);
 
 describe("project-affinity live acceptance contract", () => {
   test("live verifier exercises two Gateway instances without inventing a new Runtime surface", async () => {

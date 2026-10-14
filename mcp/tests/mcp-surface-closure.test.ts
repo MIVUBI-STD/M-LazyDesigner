@@ -14,7 +14,7 @@ import {
   isCatalogToolEnabled,
   tools,
 } from "@/server/tools";
-import { toolManifest, resourceDocs } from "@/build/docs-manifest";
+import { toolManifest, resourceDocs } from "@/scripts/generate/internal/docs-manifest";
 import { particleToolDocs } from "@/server/tools/particle";
 import { particleReferenceResourceDocs } from "@/server/resources/particle";
 

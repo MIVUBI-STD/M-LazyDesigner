@@ -6,8 +6,8 @@ async function source(path: string): Promise<string> {
 
 describe("peer-inspired authoring efficiency routing", () => {
   test("Geometry reuses fresh cohort state and batches deterministic corrections", async () => {
-    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
-    expect(modelling).toContain("TRANSLATE placement");
+    const modelling = await Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n"));
+    expect(modelling).toContain("TRANSLATE→TRANSLATE");
     expect(modelling).toContain("Reuse fresh exact authored state");
     expect(modelling).toContain("manage_cubes");
     expect(modelling).toContain("one coherent `manage_cubes` batch");
@@ -16,17 +16,17 @@ describe("peer-inspired authoring efficiency routing", () => {
   });
 
   test("Texturing keeps atlas lifecycle idempotent and avoids the provisional blank default", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
     expect(skill).toMatch(/blank atlas resolution unknown\s+→ get_project_info once/i);
     expect(skill).toMatch(/Pin atlas UUID[^\n]*texture_id/i);
-    expect(skill).toMatch(/\breuse (?:existing atlas|its) UUID\b/i);
-    expect(skill).toContain("not omit blank Atlas size");
+    expect(skill).toMatch(/Reuse an already-approved atlas UUID/i);
+    expect(skill).toContain("do not rely on omitted size");
     expect(skill).toContain("smallest bounded causal correction");
     expect(skill).toContain("fresh affected evidence");
   });
 
   test("Animation uses one coherent batch transform instead of per-key loops", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-animation/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n"));
     expect(skill).toMatch(/manage_animation_timeline \(operation: keyframes\|graph\|timeline\|batch\|copy_paste\)/i);
     expect(skill).toMatch(/`batch`.*coherent cohort.*not loops per key/i);
     expect(skill).toMatch(/Controller\/effect\/graph\/copy-paste.*conditional/i);

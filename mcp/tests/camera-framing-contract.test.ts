@@ -276,7 +276,7 @@ describe("capture_model_views explicit framing contract", () => {
     for(const size of [0,31,1025,48.5])expect(captureModelViewsParameters.safeParse({...baseInput,size}).success).toBe(false);
   });
   test("uses overflow-safe midpoint math for accepted explicit envelopes", async () => {
-    const cameraSource = await Bun.file(new URL("../server/tools/camera.ts", import.meta.url)).text();
+    const cameraSource = await Bun.file(new URL("../server/tools/inspection/camera.ts", import.meta.url)).text();
     expect(cameraSource).toContain("min[0] + size[0] / 2");
     expect(cameraSource).toContain("min[1] + size[1] / 2");
     expect(cameraSource).toContain("min[2] + size[2] / 2");
@@ -296,7 +296,7 @@ describe("capture_model_views explicit framing contract", () => {
 
   test("keeps model and explicit framing Cube-owned after retirement of 3D-assisted evidence", async () => {
     const cameraSource = await Bun.file(
-      new URL("../server/tools/camera.ts", import.meta.url)
+      new URL("../server/tools/inspection/camera.ts", import.meta.url)
     ).text();
     expect(cameraSource).not.toContain("BlockItThreeDAssistedReference");
     expect(cameraSource).not.toContain("3D-Assisted Evidence");

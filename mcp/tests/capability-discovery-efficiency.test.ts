@@ -198,7 +198,12 @@ describe("capability discovery efficiency", () => {
         .map((entry) => entry.capability_id)
     ).not.toContain("configure_material");
 
-    expect(searchCapabilityCatalog(catalog, "configure_material", 8)[0]?.capability_id)
+    const legacyCatalog = [...catalog, {
+      name: "configure_material",
+      description: definitions.configure_material.description,
+      annotations: definitions.configure_material.annotations,
+    }];
+    expect(searchCapabilityCatalog(legacyCatalog, "configure_material", 8)[0]?.capability_id)
       .toBe("configure_material");
   });
 
@@ -210,4 +215,22 @@ describe("capability discovery efficiency", () => {
       expect(isMcpToolExposedForPhase(capability, "elements", "animation")).toBe(false);
     }
   });
+});
+
+// Exercise the real catalog: unrelated Paint metadata must not outrank creation.
+test("texture creation intent wins over pixel editing in the registered catalog", () => {
+  const catalog = Object.entries(getAllToolDefinitions()).filter(([name]) => getMcpSurfaceToolNames("bedrock_entity", "texturing").includes(name)).map(([name, definition]) => ({ name, description: definition.description, annotations: definition.annotations }));
+  for (const [query, type] of [["create a blank texture", "blank"], ["create texture from model template", "template"], ["make a texture variant from the source texture", "variant"]]) {
+    const [result] = searchCapabilityCatalog(catalog, query!, 4, { authoringPhase: "texturing", facts: { project_bound: true } });
+    expect(result?.capability_id, query).toBe("create_texture");
+    expect(result?.branch, query).toEqual({ field: "type", value: type });
+  }
+});
+
+test("lexical metadata does not override explicit transform or gradient intent", () => {
+  const catalog = Object.entries(getAllToolDefinitions()).filter(([name]) => getMcpSurfaceToolNames("bedrock_entity", "texturing").includes(name)).map(([name, definition]) => ({ name, description: definition.description, annotations: definition.annotations }));
+  for (const [query, expected] of [["move this cube slightly forward without changing its parent", "manage_cubes"], ["paint a smooth gradient across the existing texture", "gradient_tool"]]) {
+    const [result] = searchCapabilityCatalog(catalog, query!, 4, { facts: { project_bound: true, geometry_available: true, texture_available: true } });
+    expect(result?.capability_id, query).toBe(expected);
+  }
 });

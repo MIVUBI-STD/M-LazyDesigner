@@ -62,8 +62,8 @@ describe("P1.2 MCP family gates", () => {
 
   test("dangerous fallback tools remain disabled", async () => {
     const [importSource, uiSource] = await Promise.all([
-      readFile(new URL("../server/tools/import.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/ui.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/io/import.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/interaction/ui.ts", import.meta.url), "utf8"),
     ]);
     expect(importSource).toContain("importToolDocs[0].status, false");
     expect(uiSource).toContain("uiToolDocs[1].status");

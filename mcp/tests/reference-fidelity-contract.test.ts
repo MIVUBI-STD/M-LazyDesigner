@@ -20,24 +20,19 @@ describe("LazyDesigner reference fidelity contract", () => {
   });
 
   test("geometry blocks material construction gaps before primary batch", async () => {
-    const modelling = await readRepo(
-      ".agents/skills/lazydesigner-modelling/SKILL.md"
-    );
+    const modelling = await Promise.all([readRepo(".agents/skills/lazydesigner-modelling/SKILL.md"), readRepo(".agents/skills/lazydesigner-modelling/references/verification.md"), readRepo(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n"));
 
-    expect(modelling).toContain("### Reference Evidence Contract");
-    expect(modelling).toContain("primary mass inventory + required visible part count");
-    expect(modelling).toContain("attachment/topology graph");
-    expect(modelling).toContain("primary-part checklist");
-    expect(modelling).toContain("No silent omission");
-    expect(modelling).toContain("Depth rule");
+    expect(modelling).toContain("## Reference Grounding");
+    expect(modelling).toContain("silhouette, primary masses/count, topology, attachment, negative spaces, visible depth");
+    expect(modelling).toContain("account for each visible part");
+    expect(modelling).toContain("GEOMETRY | TEXTURE | ANIMATION | OMIT(with reason)");
+    expect(modelling).toContain("Missing approved evidence blocks dependent Geometry");
     expect(modelling).toContain("Largest-difference-first");
     expect(modelling).toContain("Cross-view regression rule");
   });
 
   test("fidelity remains qualitative and causal instead of scalar", async () => {
-    const modelling = await readRepo(
-      ".agents/skills/lazydesigner-modelling/SKILL.md"
-    );
+    const modelling = await Promise.all([readRepo(".agents/skills/lazydesigner-modelling/SKILL.md"), readRepo(".agents/skills/lazydesigner-modelling/references/verification.md"), readRepo(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n"));
     const reference = await readRepo("docs/02-reference/image/standard.md");
 
     expect(modelling).toContain("observed difference | severity | owning cause");

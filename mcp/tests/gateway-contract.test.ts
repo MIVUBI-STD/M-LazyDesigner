@@ -43,7 +43,7 @@ describe("BlockIT Gateway contract", () => {
     expect(describeBlock).toContain("inputSchema: projection.inputSchema");
     expect(describeBlock).toContain("semantic_revision:");
     expect(describeBlock).toContain("semantic_id:");
-    expect(describeBlock).toContain("verification_class: metadata.verificationClass");
+    expect(describeBlock).toMatch(/verification_class:\s*semanticRecord\?\.verificationClass \?\? metadata.verificationClass/);
     expect(describeBlock).toMatch(/source_owner:\s*sourceOwnerForCapability\(capability\)/);
   });
 
@@ -211,8 +211,8 @@ describe("BlockIT Gateway contract", () => {
     expect(source).toContain("const metadata = getCapabilityMetadata(capability)");
     expect(source).toContain('detail === "full"');
     expect(source).toContain("lifecycle: metadata.lifecycle");
-    expect(source).toContain("execution_class: metadata.executionClass");
-    expect(source).toContain("verification_class: metadata.verificationClass");
+    expect(source).toMatch(/execution_class:\s*semanticRecord\?\.executionClass \?\? metadata.executionClass/);
+    expect(source).toMatch(/verification_class:\s*semanticRecord\?\.verificationClass \?\? metadata.verificationClass/);
     expect(source).toMatch(/source_owner:\s*sourceOwnerForCapability\(capability\)/);
 
     const searchBlock = source.slice(

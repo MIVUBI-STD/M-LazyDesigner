@@ -85,7 +85,7 @@ describe("nested animation action semantics", () => {
   });
 
   test("Gateway suppresses successful CONTROL continuation but not failures", async () => {
-    const source = await Bun.file("gateway/runtime/capabilityExecutor.ts").text();
+    const source = await Bun.file("gateway/execution/capabilityExecutor.ts").text();
     expect(source).toContain("nestedOperationClassForArguments(capability, args)");
     expect(source).toContain('const branchControl = nestedOperationClass === "CONTROL"');
     expect(source).toContain("effectiveReadOnly || branchControl");

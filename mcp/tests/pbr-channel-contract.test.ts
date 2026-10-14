@@ -17,7 +17,7 @@ describe("PBR channel identity preflight", () => {
     expect(importedTextureGroupName("/packs/skin.texture_set.json")).toBe("skin.png material");
     expect(importedTextureGroupName("C:\\packs\\skin.texture_set.json")).toBe("skin.png material");
 
-    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const source = await Bun.file(new URL("../server/tools/texture/materials.ts", import.meta.url)).text();
     const block = source;
     expect(block).toContain("isMinecraftTextureSetDocument(document)");
     expect(block).toContain("hasExactTextureGroupNameCollision(TextureGroup.all, expectedGroupName)");
@@ -30,11 +30,13 @@ describe("PBR channel identity preflight", () => {
     expect(() => requireMaterialConfigSavePostcondition(false, true, "/tmp/mat.texture_set.json")).toThrow("save was not confirmed");
     expect(() => requireMaterialConfigSavePostcondition(true, false, "/tmp/mat.texture_set.json")).toThrow("save was not confirmed");
 
-    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const source = await Bun.file(new URL("../server/tools/texture/materials.ts", import.meta.url)).text();
     const block = source;
     expect(block).toContain("textureGroup.material_config.save()");
     expect(block).toContain("fs.existsSync(filePath)");
-    expect(block.indexOf("requireMaterialConfigSavePostcondition")).toBeLessThan(block.indexOf("return `Saved material config"));
+    const confirmation = block.indexOf("requireMaterialConfigSavePostcondition(", block.indexOf("textureGroup.material_config.save()"));
+    expect(confirmation).toBeGreaterThan(-1);
+    expect(confirmation).toBeLessThan(block.indexOf("materialPersistenceReceipt({", confirmation));
   });
 
   test("TextureGroup creation rejects exact name collisions", async () => {
@@ -42,8 +44,8 @@ describe("PBR channel identity preflight", () => {
     expect(hasExactTextureGroupNameCollision([{ name: "body" }], "Body")).toBe(false);
 
     const [assignment, materials] = await Promise.all([
-      Bun.file(new URL("../server/tools/texture-assignment.ts", import.meta.url)).text(),
-      Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text(),
+      Bun.file(new URL("../server/tools/texture/assignment.ts", import.meta.url)).text(),
+      Bun.file(new URL("../server/tools/texture/materials.ts", import.meta.url)).text(),
     ]);
     const addBlock = assignment;
     expect(addBlock.indexOf("hasExactTextureGroupNameCollision")).toBeLessThan(addBlock.indexOf("Undo.initEdit"));
@@ -54,8 +56,8 @@ describe("PBR channel identity preflight", () => {
 
   test("new textures and texture groups publish native Undo post-state", async () => {
     const [textureBlock, assignment] = await Promise.all([
-      Bun.file(new URL("../server/tools/texture-create.ts", import.meta.url)).text(),
-      Bun.file(new URL("../server/tools/texture-assignment.ts", import.meta.url)).text(),
+      Bun.file(new URL("../server/tools/texture/create.ts", import.meta.url)).text(),
+      Bun.file(new URL("../server/tools/texture/assignment.ts", import.meta.url)).text(),
     ]);
     expect(textureBlock).toContain("textures: [texture]");
 
@@ -67,7 +69,7 @@ describe("PBR channel identity preflight", () => {
   });
 
   test("PBR material creation uses native channel assignment and atomic Undo ownership", async () => {
-    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const source = await Bun.file(new URL("../server/tools/texture/materials.ts", import.meta.url)).text();
     const block = source;
 
     expect(block).toContain('colorTexture.group = textureGroup.uuid');
@@ -79,14 +81,15 @@ describe("PBR channel identity preflight", () => {
     const configureStart = source.indexOf("createTool(textureMaterialToolDocs[1].name");
     const configureEnd = source.indexOf("createTool(textureMaterialToolDocs[2].name", configureStart);
     const configureBlock = source.slice(configureStart, configureEnd);
-    expect(configureBlock).toContain('normalTexture.group = textureGroup.uuid');
+    expect(configureBlock).toContain("planPbrMaterialConfiguration(");
+    expect(configureBlock).toContain("applyPbrMembershipChanges(plan.changes)");
     expect(configureBlock).not.toContain("normalTexture.extend(");
 
     const assignStart = source.indexOf("createTool(textureMaterialToolDocs[5].name");
     const assignEnd = source.indexOf("createTool(textureMaterialToolDocs[6].name", assignStart);
     const assignBlock = source.slice(assignStart, assignEnd);
-    expect(assignBlock).toContain("tex.group = textureGroup.uuid");
-    expect(assignBlock).toContain("tex.pbr_channel = channel");
+    expect(assignBlock).toContain("planExclusivePbrMaterialAssignment(");
+    expect(assignBlock).toContain("applyPbrMembershipChanges(plan.changes)");
     expect(assignBlock).not.toContain("tex.extend(");
   });
 
@@ -123,15 +126,14 @@ describe("PBR channel identity preflight", () => {
   });
 
   test("assign texture channel rejects an exact no-op before Undo", async () => {
-    const source = await Bun.file(new URL("../server/tools/texture-materials.ts", import.meta.url)).text();
+    const source = await Bun.file(new URL("../server/tools/texture/materials.ts", import.meta.url)).text();
     const assignStart = source.indexOf("createTool(textureMaterialToolDocs[5].name");
     const assignEnd = source.indexOf("createTool(textureMaterialToolDocs[6].name", assignStart);
     const block = source.slice(assignStart, assignEnd);
-    expect(block).toContain("tex.group === textureGroup.uuid");
-    expect(block).toContain("tex.pbr_channel === channel");
-    expect(block).toContain("resetTextures.length === 0");
+    expect(block).toContain("planExclusivePbrMaterialAssignment(");
+    expect(block).toContain("plan.changes.length === 0");
     expect(block).toContain("no authored change is required");
-    expect(block.indexOf("resetTextures.length === 0")).toBeLessThan(block.indexOf("Undo.initEdit"));
+    expect(block.indexOf("plan.changes.length === 0")).toBeLessThan(block.indexOf("Undo.initEdit"));
   });
   test("rejects configure calls with no authored change", () => {
     expect(configureMaterialParameters.safeParse({ material: "mat-1" }).success).toBe(false);

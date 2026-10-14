@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { classifyMcpToolPhaseByName } from "@/lib/authoringPhase";
+import { classifyMcpToolStageByName } from "@/lib/authoringPhase";
 import { authoringDomainForCapability } from "@/gateway/control";
 
 describe("LazyDesigner Control canonical phase classification", () => {
@@ -18,18 +18,20 @@ describe("LazyDesigner Control canonical phase classification", () => {
     ] as const;
 
     for (const [capability, phase, domain] of cases) {
-      expect(classifyMcpToolPhaseByName(capability), capability).toBe(phase);
+      expect(classifyMcpToolStageByName(capability), capability).toBe(phase);
       expect(authoringDomainForCapability(capability), capability).toBe(domain);
     }
   });
 
   test("Control manifest owns phase projection without duplicate capability sets", async () => {
-    const [sourceOwners, projection] = await Promise.all([
+    const [sourceOwners, projection, domain] = await Promise.all([
       Bun.file("gateway/development/sourceOwners.ts").text(),
       Bun.file("gateway/control/capabilityProjection.ts").text(),
+      Bun.file("gateway/context/authoring.ts").text(),
     ]);
-    expect(projection).toContain("classifyMcpToolPhaseByName");
-    expect(sourceOwners).toContain("getControlCapabilityProjection");
+    expect(projection).toContain("getCapabilityMetadata(name)");
+    expect(domain).toContain("classifyMcpToolStageByName");
+    expect(sourceOwners).toContain("resolveAuthoringDomainForCapability(capability)");
     for (const source of [sourceOwners, projection]) {
       expect(source).not.toContain("GEOMETRY_CAPABILITIES");
       expect(source).not.toContain("TEXTURING_CAPABILITIES");

@@ -44,7 +44,7 @@ export class GatewayOperationQueue {
   private readonly queueWaitSamples: number[] = [];
   private readonly durationSamples: number[] = [];
   private lastQueueWaitMs: number | null = null;
-  private maxQueueWaitMs = 0;
+  private maxObservedQueueWaitMs = 0;
   private lastOperationDurationMs: number | null = null;
   private maxOperationDurationMs = 0;
 
@@ -74,7 +74,7 @@ export class GatewayOperationQueue {
       duration_p50_ms: percentile(this.durationSamples, 0.5),
       duration_p95_ms: percentile(this.durationSamples, 0.95),
       last_queue_wait_ms: this.lastQueueWaitMs,
-      max_queue_wait_ms: this.maxQueueWaitMs,
+      max_queue_wait_ms: this.maxObservedQueueWaitMs,
       last_duration_ms: this.lastOperationDurationMs,
       max_duration_ms: this.maxOperationDurationMs,
     };
@@ -103,7 +103,7 @@ export class GatewayOperationQueue {
       this.activeOperations = 1;
       const waited = Math.max(0, Date.now() - next.enqueuedAt);
       this.lastQueueWaitMs = waited;
-      this.maxQueueWaitMs = Math.max(this.maxQueueWaitMs, waited);
+      this.maxObservedQueueWaitMs = Math.max(this.maxObservedQueueWaitMs, waited);
       appendSample(this.queueWaitSamples, waited);
       // execute() settles only after releasing the active slot.
       // This ensures a follow-up call made immediately after await can enter.

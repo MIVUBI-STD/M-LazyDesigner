@@ -147,7 +147,7 @@ describe("shared Cube mutation receipt contract", () => {
   });
 
   test("Cube producer and Control consume the shared receipt owner", async () => {
-    const producer = await Bun.file("server/tools/cubes.ts").text();
+    const producer = await Bun.file("server/tools/geometry/cubes.ts").text();
     const freshness = await Bun.file("gateway/control/delta/freshness.ts").text();
     const verification = await Bun.file("gateway/control/delta/verification.ts").text();
 

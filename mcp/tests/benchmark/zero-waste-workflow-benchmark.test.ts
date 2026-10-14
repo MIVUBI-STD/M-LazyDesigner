@@ -12,10 +12,16 @@ describe("Zero-Waste workflow benchmark", () => {
         Object.values(workflow.quality_checks).every(Boolean),
         workflow.workflow
       ).toBe(true);
-      expect(
-        workflow.optimized.ai_payload_bytes,
-        workflow.workflow
-      ).toBeLessThan(workflow.baseline.ai_payload_bytes);
+      if (["visual_local_correction", "visual_cross_view_reuse"].includes(workflow.workflow)) {
+        // View provenance adds metadata while reducing the actual image area.
+        expect(workflow.optimized.image_pixel_area, workflow.workflow)
+          .toBeLessThan(workflow.baseline.image_pixel_area);
+      } else {
+        expect(workflow.optimized.ai_payload_bytes, workflow.workflow)
+          .toBeLessThan(workflow.baseline.ai_payload_bytes);
+      }
+      expect(workflow.saved_bytes).toBe(Math.max(0,
+        workflow.baseline.ai_payload_bytes - workflow.optimized.ai_payload_bytes));
       expect(workflow.optimized.calls, workflow.workflow).toBeLessThanOrEqual(
         workflow.baseline.calls
       );
@@ -197,6 +203,8 @@ describe("Zero-Waste workflow benchmark", () => {
     ).toBe(true);
     expect(failure.optimized.steps.map((item) => item.kind)).toEqual([
       "recovery",
+      "verify",
+      "status",
     ]);
     expect(failure.quality_checks.unknown_scope_complete).toBe(true);
     expect(failure.quality_checks.no_false_retry).toBe(true);

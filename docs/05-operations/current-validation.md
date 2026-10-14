@@ -27,6 +27,16 @@ Geometry and Texturing share the AUTHORING Runtime surface. Animation is the
 separate ANIMATION surface. Canonical Control source is
 `mcp/gateway/control/`. The retired Navigator source remains removed.
 
+## Windows source checkpoint — 2026-10-14
+
+Initial Local SHA: `c03fc30915868def461532d37c6f8b70e12a3507`; the first Runtime suite had 196 failures. That SHA is not source-accepted.
+
+The repair commit containing this entry passed `bun run verify:full` locally before commit; repeat on its clean SHA before packaging. Resolve that SHA with Git, not the initial baseline. Bun 1.3.14, Node 24.14.1, Rust 1.98.1. Desktop `npm run verify:source` also passed (49 Rust tests).
+
+Local logs under `mcp/.cache/`: `localtest-full-closure.log`, `localtest-full-exact-sha.log`, `localtest-desktop-verification.log`. Logs are ignored machine evidence; only a completed exit-0 run proves PASS. Existing grounded-image/continuation growth has measured surface guard baselines; no token savings are claimed. Unregistered `manage_uv_layout` cases are explicitly NOT_REGISTERED, not executed coverage.
+
+Managed install, native and visual acceptance: **NOT_EXECUTED**.
+
 ## Current proof matrix
 
 | Surface | Canonical proof | Status authority |

@@ -144,7 +144,7 @@ A material conflict stays `CONFLICTING` and blocks dependent construction until 
 Canonical executable owner:
 
 ```text
-mcp/lib/minecraftStyleEvidence.ts
+mcp/lib/reference/minecraftStyleEvidence.ts
 ```
 
 Evidence classes:
@@ -163,7 +163,7 @@ This evidence is conditional on a Minecraft-native style requirement. Explicit n
 Canonical executable owner:
 
 ```text
-mcp/lib/animationContactEvidence.ts
+mcp/lib/animation/contactEvidence.ts
 ```
 
 Contact evidence requires caller-supplied sampled world positions from real editor/runtime state. Supported constraint semantics:
@@ -242,8 +242,8 @@ Current remote comparison against the experimental `Ref` research branch and `A-
 | persistent approved-asset / quality-profile registry | REJECTED | would create a second durable authority; approved reference/current workspace already own task truth |
 | always-loaded normalized knowledge corpus / `bb_knowledge` equivalent | REJECTED | bounded external retrieval is preferred; no hot-path corpus/database |
 | cross-view reference comparator | IMPLEMENTED | `mcp/lib/reference/crossViewEvidence.ts` |
-| Minecraft-native representation/style evidence | IMPLEMENTED | `mcp/lib/minecraftStyleEvidence.ts` |
-| animation/contact geometric evidence | IMPLEMENTED | `mcp/lib/animationContactEvidence.ts` plus native playback boundary |
+| Minecraft-native representation/style evidence | IMPLEMENTED | `mcp/lib/reference/minecraftStyleEvidence.ts` |
+| animation/contact geometric evidence | IMPLEMENTED | `mcp/lib/animation/contactEvidence.ts` plus native playback boundary |
 | surface / physical UV / motion-craft diagnostics | IMPLEMENTED | existing Runtime evidence augmentation; no new public tools |
 | synthetic benchmark ≠ measured baseline | IMPLEMENTED | existing six-case benchmark explicitly remains synthetic and categorical |
 | fixed cuboid/bone/keyframe targets or aggregate quality score | REJECTED | complexity must be causal; quality remains vector/categorical |

@@ -205,10 +205,15 @@ describe("actual reference image evidence — Control owner", () => {
     const root = await packageRoot([
       { id: "ESCAPE", file: "../outside.png", used_by: ["GEOMETRY"] },
       { id: "FAKE", file: "images/fake.png", used_by: ["GEOMETRY"] },
-      { id: "LINK", file: "images/link.png", used_by: ["GEOMETRY"] },
+      { id: "LINK", file: process.platform === "win32" ? "images/link/front.png" : "images/link.png", used_by: ["GEOMETRY"] },
     ]);
     await writeFile(join(root, "images/fake.png"), Buffer.from("not a PNG"));
-    await symlink(join(root, "images/front.png"), join(root, "images/link.png"));
+    if (process.platform === "win32") {
+      // Junctions exercise the ancestor-link guard without file-symlink privileges.
+      await symlink(join(root, "images"), join(root, "images/link"), "junction");
+    } else {
+      await symlink(join(root, "images/front.png"), join(root, "images/link.png"));
+    }
     const reference = await readReferencePackageProjection(root);
     expect(reference.images.map((x) => x.integrity)).toEqual([
       "INVALID", "INVALID", "INVALID",

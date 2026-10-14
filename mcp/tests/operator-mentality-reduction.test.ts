@@ -51,11 +51,12 @@ describe("operator mentality reduction foundations",()=>{
     expect(decision.selected.id).toBe("bounded");
   });
 
-  test("functional rig inference compiles through existing add_group contract",()=>{
+  test("functional name hints cannot compile an unreviewed mechanism",()=>{
     const compiled=compileAuthoringRecipe(recipeFixture());
     const plan=compileFunctionalRigToAddGroupBatch(compiled);
-    expect(plan.compiled_intent_count).toBe(1);
-    expect(plan.groups[0].name).toContain("door_pattern");
+    expect(plan.compiled_intent_count).toBe(0);
+    expect(plan.groups).toEqual([]);
+    expect(plan.hints.some((hint) => hint.kind === "HINGE")).toBe(true);
   });
 
   test("secondary motion compiles through existing animation plan",()=>{

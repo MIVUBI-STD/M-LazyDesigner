@@ -13,6 +13,7 @@ type ReasoningClass = "LOW" | "MEDIUM" | "HIGH" | "NONE";
 
 type WorkflowStep = {
   kind: StepKind;
+  payload: unknown;
   ai_payload_bytes: number;
   required_for_decision: boolean;
   reason: string;
@@ -67,6 +68,7 @@ function step(
 ): WorkflowStep {
   return {
     kind,
+    payload,
     ai_payload_bytes: payloadBytes(payload),
     required_for_decision: requiredForDecision,
     reason,
@@ -775,7 +777,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     "correction_continuation_transport",
     [
       step(
-        "verify",
+        "status",
         {
           correction_state: {
             mode_choice: "model-selected",
@@ -795,7 +797,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "MEDIUM" }
       ),
       step(
-        "verify",
+        "status",
         {
           continuation: {
             unresolved: ["SHOULDER_CONTACT"],
@@ -811,7 +813,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "LOW" }
       ),
       step(
-        "verify",
+        "status",
         {
           continuation: {
             unresolved: ["SHOULDER_CONTACT"],
@@ -829,7 +831,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     ],
     [
       step(
-        "verify",
+        "status",
         {
           continuation_id: "correctionctx:ready",
           mode: "PRUNED_READY",
@@ -845,7 +847,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "LOW" }
       ),
       step(
-        "verify",
+        "status",
         {
           continuation_id: "correctionctx:ready",
           delivery: "CACHED",
@@ -856,7 +858,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "NONE" }
       ),
       step(
-        "verify",
+        "status",
         {
           continuation_id: "correctionctx:ready-next",
           delivery: "DELTA",
@@ -890,7 +892,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     "correction_semantic_delta_grouping",
     [
       step(
-        "verify",
+        "status",
         {
           updates: [
             { kind: "same_boundary_micro_update", field: "summary" },
@@ -904,7 +906,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "LOW" }
       ),
       step(
-        "verify",
+        "status",
         {
           transition: "CANDIDATE_CONTEXT -> VERIFY_PENDING",
           delivery: "immediate",
@@ -916,7 +918,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
     ],
     [
       step(
-        "verify",
+        "status",
         {
           group: "VERIFICATION_COHORT",
           same_boundary_updates: 3,
@@ -928,7 +930,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "NONE" }
       ),
       step(
-        "verify",
+        "status",
         {
           transition: "CANDIDATE_CONTEXT -> VERIFY_PENDING",
           delivery: "immediate",
@@ -973,7 +975,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         "Baseline incorrectly treats expired evidence as reusable."
       ),
       step(
-        "verify",
+        "status",
         {
           continuation_base: "missing",
           action: "apply delta without base",
@@ -1001,7 +1003,7 @@ export function runZeroWasteWorkflowBenchmark(): WorkflowGoldenResult[] {
         { reasoningClass: "LOW" }
       ),
       step(
-        "verify",
+        "status",
         {
           continuation_base: "missing",
           delivery: "FULL",

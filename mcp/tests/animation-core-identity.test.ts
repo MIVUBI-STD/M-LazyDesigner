@@ -42,7 +42,7 @@ describe("authored Animation identity separation", () => {
   });
 
   test("resolver stays import-safe while filtering controller items at execution", async () => {
-    const source = await Bun.file("lib/coreIdentity.ts").text();
+    const source = await Bun.file("lib/core/identity.ts").text();
     expect(source).toContain('typeof AnimationController !== "undefined"');
     expect(source).toContain("currentCoreAuthoredAnimations");
     expect(source).toContain("!isCoreAnimationControllerItem(item)");

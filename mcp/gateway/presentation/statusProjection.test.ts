@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { projectGatewayStatus } from "./statusProjection";
+import { GatewayOperationQueue } from "../runtime/operationQueue";
 
 describe("projectGatewayStatus", () => {
   test("keeps stable runtime identity without exposing raw health", () => {
@@ -37,6 +38,7 @@ describe("projectGatewayStatus", () => {
         reconnect: { failures: 0, retry_after_ms: 0 },
       },
       operations: {
+        ...new GatewayOperationQueue(8).snapshot(),
         active: 0,
         queued: 0,
         max_queue_depth: 8,

@@ -37,7 +37,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   test("Locator motion stays parent-driven rather than a second animation target system", async () => {
     const [locatorSource, animationSource] = await Promise.all([
       source("server/tools/geometry/locators.ts"),
-      source("server/tools/animation-create.ts"),
+      source("server/tools/animation/create.ts"),
     ]);
 
     expect(locatorSource).toContain("parent the Locator to the animated Group/Bone");
@@ -48,7 +48,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
   test("Locator tools stay inside the existing elements family", async () => {
     const registration = await source("server/runtime/registration.ts");
-    expect(registration).toContain('import { registerLocatorTools } from "../tools/locators"');
+    expect(registration).toContain('import { registerLocatorTools } from "../tools/geometry/locators"');
     expect(registration).toContain("registerElementTools();\n  registerLocatorTools();");
     expect(registration).toContain("elements: registerElementFamilyTools");
   });
@@ -64,7 +64,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
 
   test("generic remove_element snapshots recursive deletion state and returns a compact receipt", async () => {
-    const elementSource = await source("server/tools/element-mutation.ts");
+    const elementSource = await source("server/tools/element/mutation.ts");
     const start = elementSource.indexOf("createTool(elementMutationToolDocs[0].name");
     const end = elementSource.indexOf("createTool(elementMutationToolDocs[1].name", start);
     const block = elementSource.slice(start, end);
@@ -82,7 +82,7 @@ describe("Bedrock Locator / Null Object direct coverage", () => {
   });
 
   test("inspect_element exposes authored Locator and Null Object state", async () => {
-    const inspection = await source("server/tools/element-inspection.ts");
+    const inspection = await source("server/tools/element/inspection.ts");
     expect(inspection).toContain("...Locator.all");
     expect(inspection).toContain("...NullObject.all");
     expect(inspection).toContain('type: "locator" as const');

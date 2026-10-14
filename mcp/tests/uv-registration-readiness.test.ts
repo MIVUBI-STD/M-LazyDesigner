@@ -17,7 +17,7 @@ describe("UV Runtime registration readiness", () => {
     expect(classifyMcpToolPhaseByName("manage_uv_layout")).toBe("texturing");
     expect(authoringDomainForCapability("manage_uv_layout")).toBe("TEXTURING");
     expect(sourceOwnerForCapability("manage_uv_layout")).toEqual({
-      source: "mcp/server/runtime/uvLayoutService.ts",
+      source: "mcp/server/runtime/uv/layoutService.ts",
       specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
       anchor_test: "mcp/tests/uv-registration-readiness.test.ts",
     });

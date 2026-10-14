@@ -3,6 +3,10 @@ import { buildDevelopmentContextPlan } from "../../scripts/development/plan-deve
 import { buildAffectedExecutionPlan } from "../../scripts/development/plan-affected-execution";
 import { evaluatePreflight } from "../../../.agents/permissions/preflight.mjs";
 
+// These integration cases build real TypeScript programs on Windows. The limit
+// bounds cold compiler/IO work; correctness and payload budgets remain asserted.
+const INTEGRATION_TIMEOUT_MS = 20_000;
+
 describe("development context planner", () => {
   test("combines intent routing, bounded symbols and semantic impact", async () => {
     const plan = await buildDevelopmentContextPlan({
@@ -28,7 +32,7 @@ describe("development context planner", () => {
         0
       )
     ).toBeLessThanOrEqual(600);
-  });
+  }, INTEGRATION_TIMEOUT_MS);
 
   test("direct changed-path ownership outranks ambiguous keyword routing", async () => {
     const plan = await buildDevelopmentContextPlan({
@@ -51,7 +55,7 @@ describe("development context planner", () => {
     expect(plan.read_targets.specialists).toEqual([
       ".agents/skills/lazydesigner-modelling/SKILL.md",
     ]);
-  });
+  }, INTEGRATION_TIMEOUT_MS);
 
   test("uncertain development intent follows only authored canonical document links", async () => {
     const plan = await buildDevelopmentContextPlan({
@@ -74,7 +78,7 @@ describe("development context planner", () => {
     expect(plan.knowledge_sections.every(
       (section) => section.source !== "docs/04-system/README.md"
     )).toBe(true);
-  });
+  }, INTEGRATION_TIMEOUT_MS);
 
   test("known source ownership avoids an extra documentation graph traversal", async () => {
     const plan = await buildDevelopmentContextPlan({
@@ -85,7 +89,7 @@ describe("development context planner", () => {
     expect(plan.routing.confidence).toBe("EXACT");
     expect(plan.documentation_route).toBeNull();
     expect(plan.read_targets.source).toContain("mcp/server/tools/geometry/cubes.ts");
-  });
+  }, INTEGRATION_TIMEOUT_MS);
 
   test("method flow connects exact owner, bounded impact, verifier consumers and Local permission", async () => {
     const changedPath = "mcp/server/tools/geometry/cubes.ts";
@@ -131,7 +135,7 @@ describe("development context planner", () => {
       ...explicitScope,
       path: "mcp/server/tools/texture/create.ts",
     }).decision).toBe("deny");
-  });
+  }, INTEGRATION_TIMEOUT_MS);
 
   test("omits semantic impact when there is no change set", async () => {
     const plan = await buildDevelopmentContextPlan({
@@ -141,5 +145,5 @@ describe("development context planner", () => {
 
     expect(plan.semantic_impact).toBeNull();
     expect(plan.read_targets.source.length).toBeGreaterThan(0);
-  });
+  }, INTEGRATION_TIMEOUT_MS);
 });

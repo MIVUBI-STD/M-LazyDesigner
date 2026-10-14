@@ -40,7 +40,7 @@ describe("animation Molang property mutation", () => {
   });
 
   test("timeline source preserves Molang text and rejects no-op before Undo", async () => {
-    const source = await Bun.file("server/tools/animation-timeline.ts").text();
+    const source = await Bun.file("server/tools/animation/timeline.ts").text();
     const block = source;
     const molangCase = block.slice(block.indexOf('case "set_anim_time_update":'));
 

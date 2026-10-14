@@ -34,7 +34,8 @@ describe("pre-local plugin runtime cleanup", () => {
     const bindCleanup = runtimeHost.indexOf("candidate.closeActiveSockets()", candidateCreated);
     const failedReturn = runtimeHost.indexOf("return false;", bindCleanup);
     const startCall = index.indexOf("if (!(await runtimeHost.start(generation))) return;");
-    const readyUi = index.indexOf("blockbenchIntegration.setupUi(");
+    const readyUi = runtimeHost.indexOf('setStatusBarState("running"');
+    const listenerReady = runtimeHost.indexOf("await this.waitForListening(candidate)");
 
     expect(index).toContain('BBPlugin.register("blockit_mcp"');
     expect(candidateCreated).toBeGreaterThan(-1);
@@ -44,11 +45,12 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(bindCleanup).toBeGreaterThan(candidateCreated);
     expect(failedReturn).toBeGreaterThan(bindCleanup);
     expect(startCall).toBeGreaterThan(-1);
-    expect(readyUi).toBeGreaterThan(startCall);
+    expect(listenerReady).toBeGreaterThan(candidateOwned);
+    expect(readyUi).toBeGreaterThan(listenerReady);
 
-    expect(phaseControl).toMatch(/if \(!phaseSwitchHandler\).*throw/s);
+    expect(phaseControl).toMatch(/if \(!stageSwitchHandler\).*throw/s);
     expect(phaseControl).toContain("requestMcpPhaseSwitch");
-    expect(phaseControl).toContain("phaseSwitchHandler(phase)");
+    expect(phaseControl).toContain("stageSwitchHandler(stage)");
     expect(net).toContain("requestedAuthoringPhase === null");
     expect(net).toContain("requestMcpPhaseSwitch(envelope.targetAuthoringPhase)");
     expect(tools).not.toContain("surface_changed: true");
@@ -74,7 +76,7 @@ describe("pre-local plugin runtime cleanup", () => {
 
   test("Blockbench lifecycle callbacks stay synchronous while async teardown is coordinator-owned", async () => {
     const index = await source("index.ts");
-    const lifecycle = await source("lib/runtimeLifecycle.ts");
+    const lifecycle = await source("lib/runtime/lifecycle.ts");
 
     expect(index).toContain("onload() {");
     expect(index).toContain("onunload() {");
@@ -121,7 +123,7 @@ describe("pre-local plugin runtime cleanup", () => {
 
   test("native tool serialization survives listener replacement through the global coordinator", async () => {
     const net = await source("server/net.ts");
-    const lifecycle = await source("lib/runtimeLifecycle.ts");
+    const lifecycle = await source("lib/runtime/lifecycle.ts");
 
     expect(net).toContain("runRuntimeOperationExclusive(generation");
     expect(net).not.toContain("let runtimeRequestTail: Promise<void>");

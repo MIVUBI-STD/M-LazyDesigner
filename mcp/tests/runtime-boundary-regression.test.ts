@@ -21,26 +21,26 @@ describe("Runtime boundary regressions", () => {
   });
 
   test("Runtime prefers modern SDK handling and keeps only a bounded SDK legacy JSON shim", async () => {
-    const source = await repoFile("server/net.ts");
+    const source = await repoFile("server/mcpTransport.ts");
 
     expect(source).toContain("createMcpHandler");
-    expect(source).toContain("legacy: 'reject'");
-    expect(source).toContain("responseMode: 'auto'");
+    expect(source).toContain('legacy: "reject"');
+    expect(source).toContain('responseMode: "auto"');
     expect(source).toContain("isLegacyRequest");
     expect(source).toContain("WebStandardStreamableHTTPServerTransport");
     expect(source).toContain("enableJsonResponse: true");
-    expect(source).toContain("server v2.0.0 does not yet");
+    expect(source).toContain("handleLegacyJsonMcpRequest");
     expect(source).not.toContain("custom legacy parser");
   });
 
   test("retired Runtime generations cannot publish late operation results", async () => {
-    const source = await repoFile("lib/runtimeLifecycle.ts");
+    const source = await repoFile("lib/runtime/lifecycle.ts");
     const operationIndex = source.indexOf("const result = await operation();");
     const postCheckIndex = source.indexOf(
       "coordinator.ownerGeneration !== generation",
       operationIndex
     );
-    const returnIndex = source.indexOf("return result;", operationIndex);
+    const returnIndex = source.indexOf("resolve(result);", operationIndex);
 
     expect(operationIndex).toBeGreaterThan(-1);
     expect(postCheckIndex).toBeGreaterThan(operationIndex);

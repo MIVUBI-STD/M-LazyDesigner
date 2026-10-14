@@ -7,7 +7,7 @@ import {
   buildMcpPhasePromptHeader,
   classifyMcpToolPhase,
   getMcpPhaseReadinessSummary,
-  resolveMcpAuthoringPhase,
+  resolveMcpAuthoringStage,
 } from "@/lib/authoringPhase";
 import { getEnabledToolDefinitions } from "@/lib/factories";
 import { buildMcpServerInstructions } from "@/server/server";
@@ -35,11 +35,11 @@ async function source(path: string): Promise<string> {
 describe("authoring stage MCP surface", () => {
   test("stage setting remains backward compatible and defaults to Geometry focus", () => {
     expect(DEFAULT_MCP_AUTHORING_PHASE).toBe("geometry");
-    expect(resolveMcpAuthoringPhase(undefined)).toBe("geometry");
-    expect(resolveMcpAuthoringPhase(null)).toBe("geometry");
-    expect(resolveMcpAuthoringPhase("texturing")).toBe("texturing");
-    expect(resolveMcpAuthoringPhase("animation")).toBe("animation");
-    expect(() => resolveMcpAuthoringPhase("texturingg")).toThrow("Invalid MCP Authoring Phase");
+    expect(resolveMcpAuthoringStage(undefined)).toBe("geometry");
+    expect(resolveMcpAuthoringStage(null)).toBe("geometry");
+    expect(resolveMcpAuthoringStage("texturing")).toBe("texturing");
+    expect(resolveMcpAuthoringStage("animation")).toBe("animation");
+    expect(() => resolveMcpAuthoringStage("texturingg")).toThrow("Invalid MCP Authoring Stage");
   });
 
   test("Geometry and Texturing startup stages expose one shared AUTHORING surface", () => {
@@ -209,7 +209,7 @@ describe("authoring stage MCP surface", () => {
 
     expect(modelling).toContain("Geometry↔Texturing stays shared AUTHORING");
     expect(modelling).toContain("AUTHORING↔Animation");
-    expect(texturing).toContain("No Geometry↔Texturing phase switch");
+    expect(texturing).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(texturing).toContain("manage_material");
     expect(animation).toContain("manage_animation_timeline");
     expect(animation).toContain("inspect_particle / manage_particle");
@@ -220,8 +220,8 @@ describe("authoring stage MCP surface", () => {
       Bun.file("index.ts").text(),
       Bun.file("ui/settings.ts").text(),
     ]);
-    expect(indexSource).toContain("resolveMcpAuthoringPhase");
-    expect(indexSource).toContain("applyMcpToolSurface(registrationProfile, authoringPhase)");
+    expect(indexSource).toContain("resolveMcpAuthoringStage");
+    expect(indexSource).toContain("applyMcpToolSurface(registrationProfile, authoringStage)");
     expect(settingsSource).toContain('name: "Startup Focus (Advanced)"');
     expect(settingsSource).toContain("AI switches between authoring and animation automatically during normal use.");
     expect(settingsSource).toContain("requires_restart: true");

@@ -1,3 +1,4 @@
+import { GatewayOperationQueue } from "@/gateway/runtime/operationQueue";
 import { measureModelContextFootprint } from "../measure/measure-model-context-footprint";
 import { runZeroWasteWorkflowBenchmark } from "./benchmark-zero-waste-workflow";
 import {
@@ -44,6 +45,7 @@ const status: GatewayRuntimeStatus = {
     reconnect: { failures: 0, retry_after_ms: 0 },
   },
   operations: {
+    ...new GatewayOperationQueue(8).snapshot(),
     active: 0,
     queued: 0,
     max_queue_depth: 8,

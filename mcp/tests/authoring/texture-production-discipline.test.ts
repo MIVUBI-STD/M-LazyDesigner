@@ -33,7 +33,7 @@ describe("texture production discipline", () => {
       })
     ).toThrow("owns bitmap generation");
 
-    const texture = await source("server/tools/texture-create.ts");
+    const texture = await source("server/tools/texture/create.ts");
     for (const marker of [
       'if (type === "template")',
       "TextureGenerator",
@@ -52,7 +52,7 @@ describe("texture production discipline", () => {
   test("texture creation keeps 16x16 provisional defaults while production sizing and UV ownership stay explicit", async () => {
     const [standard, skill] = await Promise.all([
       source("../docs/03-authoring/texture/standard.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
     const provisional = createTextureParameters.parse({ name: "fixture" });
     const shape = paintToolDocs.find((tool) => tool.name === "draw_shape_tool");
@@ -83,7 +83,7 @@ describe("texture production discipline", () => {
   test("Texture Styling cannot be completed by technical state or placeholder fill", async () => {
     const [standard, skill] = await Promise.all([
       source("../docs/03-authoring/texture/standard.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
     expect(standard).toContain("A placeholder/flat fill may make geometry readable early");
     expect(standard).toContain("is not production completion");
@@ -147,7 +147,7 @@ describe("texture production discipline", () => {
   });
 
   test("texturing skill routes global audit first and face inspection conditionally", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
     expect(skill).toMatch(/readiness\s+→ list_textures\(diagnostics=true, diagnostic_scope=uv\|coverage\|seam\|pbr\|full\)/i);
     expect(skill).toMatch(/discovery\s+→ list_textures\(\)/i);
     expect(skill).toMatch(/face mapping\s+→ inspect_elements\(mode=detail\) only when needed/i);
@@ -157,7 +157,7 @@ describe("texture production discipline", () => {
 
   test("texturing uses consolidated material facade instead of public primitive aliases", async () => {
     const [skill, docs] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("docs/api.json"),
     ]);
     expect(skill).toContain("manage_material");
@@ -170,7 +170,7 @@ describe("texture production discipline", () => {
   });
 
   test("Texturing keeps semantic ownership while using shared AUTHORING capabilities for upstream correction", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
     expect(skill).toContain("Geometry/UV capabilities remain callable for bounded upstream correction");
     expect(skill).toContain("must not borrow Cube mutation");
     expect(skill).toContain("No Geometry↔Texturing Runtime Surface switch");

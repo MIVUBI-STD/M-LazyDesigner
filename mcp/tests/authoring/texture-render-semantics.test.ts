@@ -7,7 +7,7 @@ async function source(path: string): Promise<string> {
 describe("texture render and material quality closure", () => {
   test("specialist closes technical alignment after face coverage without adding visual-score proxies", async () => {
     const [skill, standard] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/texture/standard.md"),
     ]);
     for (const marker of [
@@ -38,23 +38,26 @@ describe("texture render and material quality closure", () => {
   });
 
   test("texture alignment stays metadata-only and material corrections reuse existing MCP surfaces", async () => {
-    const [alignment, runtime, bootstrap] = await Promise.all([
-      source("lib/textureProductionAlignment.ts"),
-      source("server/tools/texture-quality-runtime.ts"),
+    const [alignment, runtime, bootstrap, material, validation] = await Promise.all([
+      source("lib/texture/productionAlignment.ts"),
+      source("server/runtime/extensions/texture/quality.ts"),
       source("server/runtime/extensions.ts"),
+      source("server/tools/texture/materials.ts"),
+      source("server/tools/texture/materialValidation.ts"),
     ]);
     expect(alignment).toContain("metadata_only: true");
     expect(alignment).toContain("extra_pixel_scan: false");
     expect(alignment).toContain("PBR_MATERIAL_CHANNEL_CONFLICT");
     expect(runtime).toContain('runtimeDefinition("list_textures")');
-    expect(runtime).toContain('runtimeDefinition("manage_material")');
-    expect(runtime).toContain("planPbrMaterialConfiguration");
-    expect(runtime).toContain('color_texture="none"');
+    expect(runtime).not.toContain('runtimeDefinition("manage_material")');
+    expect(material).toContain('createTool(');
+    expect(material).toContain("planPbrMaterialConfiguration");
+    expect(validation).toContain('color_texture="none"');
     expect(bootstrap).toContain("apply: wireTextureQualityRuntime");
   });
   test("format-sensitive render profiles stay explicit in the texturing hot path", async () => {
     const [skill, renderProfile] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/texture/render-profile.md"),
     ]);
 

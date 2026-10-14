@@ -1,13 +1,13 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-09-29T06:34:38.143Z",
+  "generatedAt": "2026-10-14T10:30:16.948Z",
   "semantic": {
     "semantic_revision_schema": 1,
     "revisions": {
-      "routing": "f26e54d7f0302aea3f2d30e16bd22042a79479e50987dc0071ef32c731d2c04f",
-      "graph": "3c66a80655b098aa31a1a2b4b44beb761bbe908aedd6adabdb17c2bd5085b273",
+      "routing": "e3b4df5015294b045e084a4d118148d8b7c3f19bb4f07010efe5f80399802cbf",
+      "graph": "d238a53ebacaf03b0fb7f509df2c01bf2446701c858ebdfedd93bab462cb3433",
       "schema_projection": "64569b45b225760e778d935d732d1112b06cf2e9e1cb08cddd4f408ee5ad54be",
-      "aggregate": "1eb2ef1f889b2707116044f0e936ad2c3d7995b2844a501220f20197576403c1"
+      "aggregate": "08389866680ad64b883dba0df7a8fa3579fd85602c251146888e2c0d87541e51"
     },
     "artifact_kind": "DOCS_API"
   },
@@ -677,7 +677,7 @@
     {
       "name": "capture_model_views",
       "title": "Capture Model Views",
-      "description": "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk so runtime selects views and 256/384/512 evidence resolution deterministically. Explicit size overrides automatic resolution; explicit views without evidence_targets retain 512×512. Returns observation only; no score/PASS/FAIL.",
+      "description": "Captures deterministic labeled square PNG views without changing the active editor camera. Provide explicit views, or evidence_targets plus optional verification_risk. Optional landmark_pairs project rendered Cube centers; optional reference_correspondence attaches current saved recipe-owned Cube identity and provisional source-region associations to the same fresh capture. Both are read-only diagnostics, never solved camera calibration, automatic geometric correction, or visual PASS.",
       "status": "stable",
       "category": "Camera & Screenshots",
       "annotations": {
@@ -688,18 +688,344 @@
         "type": "object",
         "properties": {
           "size": {
-            "description": "Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only.",
+            "description": "PNG square size. Omitted: 256/384/512 by evidence_targets detail/risk, else 512. 32-64: icons only.",
             "type": "integer",
             "minimum": 32,
             "maximum": 1024
           },
           "highlight_missing_textures": {
             "default": false,
-            "description": "Diagnostic capture: brighten native missing-texture materials temporarily. Restores state; not a normal shaded comparison or flashing UI.",
+            "description": "Temporarily brighten missing-texture materials, then restore. Diagnostic only: no shaded comparison/UI flash.",
             "type": "boolean"
           },
+          "reference_correspondence": {
+            "description": "Opt-in region→saved recipe Cube UUID candidates. Use current status image metadata. Verify recipe/native identity; PROVISIONAL capture provenance, never visual PASS or mutation.",
+            "type": "object",
+            "properties": {
+              "recipe_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "reference": {
+                "type": "object",
+                "properties": {
+                  "package_fingerprint": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "current_package_fingerprint": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "images": {
+                    "minItems": 1,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160
+                        },
+                        "sha256": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[a-f0-9]{64}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "integrity": {
+                          "type": "string",
+                          "enum": [
+                            "VERIFIED",
+                            "MISSING",
+                            "INVALID"
+                          ]
+                        },
+                        "status": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "view": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "front",
+                                "back",
+                                "left",
+                                "right",
+                                "top",
+                                "bottom",
+                                "front_left_3q",
+                                "front_right_3q"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "regions": {
+                          "maxItems": 16,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 96
+                              },
+                              "part_id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 96
+                              },
+                              "evidence_role": {
+                                "type": "string",
+                                "enum": [
+                                  "PRIMARY_VOLUME",
+                                  "SURFACE_DETAIL",
+                                  "CONTACT",
+                                  "NEGATIVE_SPACE"
+                                ]
+                              },
+                              "visibility": {
+                                "type": "string",
+                                "enum": [
+                                  "DIRECT",
+                                  "PARTIAL",
+                                  "OCCLUDED"
+                                ]
+                              },
+                              "box_uv": {
+                                "anyOf": [
+                                  {
+                                    "type": "array",
+                                    "prefixItems": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ],
+                                    "items": false,
+                                    "minItems": 4,
+                                    "maxItems": 4
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "related_part_id": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 96
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "part_id",
+                              "evidence_role",
+                              "visibility",
+                              "box_uv",
+                              "related_part_id"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "sha256",
+                        "integrity",
+                        "status",
+                        "view",
+                        "regions"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "parts": {
+                    "maxItems": 24,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 96
+                        },
+                        "role": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "role"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "package_fingerprint",
+                  "current_package_fingerprint",
+                  "images",
+                  "parts"
+                ],
+                "additionalProperties": false
+              },
+              "proposals": {
+                "minItems": 1,
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "image_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "region_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 96
+                    },
+                    "part_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 96
+                    },
+                    "native_cube_uuids": {
+                      "maxItems": 64,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      }
+                    }
+                  },
+                  "required": [
+                    "image_id",
+                    "region_id",
+                    "part_id",
+                    "native_cube_uuids"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "recipe_id",
+              "reference",
+              "proposals"
+            ],
+            "additionalProperties": false
+          },
+          "landmark_pairs": {
+            "description": "Read-only projected Cube-center→image ID/SHA-256 pairs. Explicit views required; no calibration/visual verdict.",
+            "minItems": 1,
+            "maxItems": 16,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "reference_image_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "reference_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "landmark_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "reference_uv": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "view": {
+                  "type": "string",
+                  "enum": [
+                    "front",
+                    "back",
+                    "left",
+                    "right",
+                    "top",
+                    "bottom",
+                    "front_left_3q",
+                    "front_right_3q"
+                  ]
+                },
+                "model_cube_uuid": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                }
+              },
+              "required": [
+                "reference_image_id",
+                "reference_sha256",
+                "landmark_id",
+                "reference_uv",
+                "view",
+                "model_cube_uuid"
+              ],
+              "additionalProperties": false
+            }
+          },
           "views": {
-            "description": "Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set.",
+            "description": "Canonical views; omit for minimum evidence_targets coverage.",
             "minItems": 1,
             "maxItems": 5,
             "type": "array",
@@ -718,7 +1044,7 @@
             }
           },
           "evidence_targets": {
-            "description": "Current unanswered visual claim(s). When views is omitted, runtime deterministically selects canonical views that cover these targets.",
+            "description": "Unanswered visual claims. Omitted views deterministically cover these targets.",
             "minItems": 1,
             "maxItems": 13,
             "type": "array",
@@ -743,7 +1069,7 @@
           },
           "verification_risk": {
             "default": "LOW",
-            "description": "Risk-aware evidence expansion. LOW keeps minimum useful views; MEDIUM adds one orthogonal view; HIGH ensures front/left/top core coverage when possible.",
+            "description": "LOW=minimal; MEDIUM=+1 orthogonal; HIGH=front/left/top if possible.",
             "type": "string",
             "enum": [
               "LOW",
@@ -757,7 +1083,7 @@
               "+z",
               "-z"
             ],
-            "description": "Explicit object front direction; no default, preventing mirrored comparisons."
+            "description": "Explicit object front, no default: prevents mirrored comparison."
           },
           "framing": {
             "default": {
@@ -827,13 +1153,13 @@
             ]
           },
           "animation_preview": {
-            "description": "Optional bounded authored-Animation pose sampling. Capture cost is views × times and must not exceed 8 images.",
+            "description": "Optional authored-Animation pose samples; views × times must be ≤8 images.",
             "type": "object",
             "properties": {
               "animation_id": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Exact authored Animation UUID or unique exact name."
+                "description": "Authored Animation UUID or unique exact name."
               },
               "times": {
                 "minItems": 1,
@@ -844,7 +1170,7 @@
                   "minimum": 0,
                   "maximum": 10000
                 },
-                "description": "One to five explicit animation sample times in seconds."
+                "description": "Explicit animation sample times (seconds)."
               }
             },
             "required": [
@@ -6299,7 +6625,7 @@
     {
       "name": "switch_authoring_phase",
       "title": "switch_authoring_phase",
-      "description": "Changes authoring focus in the same task. Geometry↔Texturing stays on the shared AUTHORING surface; AUTHORING↔Animation is the actual Runtime surface handoff. Animation requires a saved checkpoint, UV Layout PASS, no blockers, and either explicit user Geometry+Texture approval or explicitly authorized autonomous verification with current-revision evidence. Internal diagnostic PASS never equals user approval.",
+      "description": "Changes the Authoring Stage in the same task. Geometry↔Texturing stays on the shared AUTHORING Runtime Surface; AUTHORING↔Animation is the only Runtime Surface handoff. Animation requires a saved checkpoint, UV Layout PASS, no blockers, and either explicit user Geometry+Texture approval or explicitly authorized autonomous verification with current-revision evidence. Internal diagnostic PASS never equals user approval.",
       "status": "stable",
       "category": "Project",
       "annotations": {},

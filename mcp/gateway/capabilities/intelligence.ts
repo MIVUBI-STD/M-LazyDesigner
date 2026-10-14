@@ -52,7 +52,6 @@ const SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   narrower: ["resize", "width", "proportions"],
   move: ["position", "translate", "shift", "geser"],
   rotate: ["rotation", "turn"],
-  texture: ["paint", "color", "colour", "pixel", "material"],
   gradient: ["shade", "blend", "transition"],
   uv: ["mapping", "unwrap", "island", "atlas", "texel"],
   animation: ["animate", "timeline", "keyframe", "motion"],

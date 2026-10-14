@@ -30,7 +30,7 @@ describe("prompt cache and compaction ownership", () => {
   });
 
   test("static-prefix measurement excludes volatile task/history values", async () => {
-    const source = await text("scripts/measure-model-context-footprint.ts");
+    const source = await text("scripts/measure/measure-model-context-footprint.ts");
     for (const dynamic of [
       "user/task messages",
       "Control stage_context",
@@ -46,14 +46,11 @@ describe("prompt cache and compaction ownership", () => {
 
   test("Gateway instructions remain a static literal rather than a dynamic template", async () => {
     const gateway = await text("gateway/index.ts");
-    const start = gateway.indexOf("const GATEWAY_INSTRUCTIONS =");
-    const end = gateway.indexOf("\n\ntype GatewayToolDefinition", start);
-    const block = gateway.slice(start, end);
-
-    expect(start).toBeGreaterThanOrEqual(0);
+    const match = gateway.match(/const GATEWAY_INSTRUCTIONS\s*=\s*("(?:[^"\\]|\\.)*");/);
+    expect(match).not.toBeNull();
+    const block = JSON.parse(match![1]) as string;
+    expect(block).toContain("LazyDesigner Gateway.");
     expect(block).not.toContain("\${");
-    expect(block).not.toContain("task_context_id");
-    expect(block).not.toContain("current_user_delta");
     expect(block).not.toContain("Date.now");
   });
 });

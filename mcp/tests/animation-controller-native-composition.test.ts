@@ -110,7 +110,7 @@ describe("native Bedrock controller composition", () => {
 
   test("advanced controller support does not expand MCP tool count", async () => {
     const [source, server, bootstrap] = await Promise.all([
-      Bun.file("server/tools/animation-controller-native-intelligence.ts").text(),
+      Bun.file("server/runtime/extensions/animation/controllerNativeIntelligence.ts").text(),
       Bun.file("server/server.ts").text(),
       Bun.file("server/runtime/extensions.ts").text(),
     ]);

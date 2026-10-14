@@ -1,3 +1,4 @@
+import { GatewayOperationQueue } from "@/gateway/runtime/operationQueue";
 import { describe, expect, test } from "bun:test";
 import {
   buildControlPacket,
@@ -47,7 +48,7 @@ describe("LazyDesigner Control status economy", () => {
   test("status reads remain explicit for orientation and canonical phase snapshot only", async () => {
     const [registration, executor] = await Promise.all([
       Bun.file("gateway/handlers/registerCoreTools.ts").text(),
-      Bun.file("gateway/runtime/capabilityExecutor.ts").text(),
+      Bun.file("gateway/execution/capabilityExecutor.ts").text(),
     ]);
     expect(registration).toContain("await backend.getStatus()");
     expect(executor).toContain("capabilityNeedsPhaseSnapshot(capability)");
@@ -84,6 +85,7 @@ const projectionStatus: GatewayRuntimeStatus = {
     reconnect: { failures: 0, retry_after_ms: 0 },
   },
   operations: {
+    ...new GatewayOperationQueue(8).snapshot(),
     active: 0, queued: 0, max_queue_depth: 8, completed: 0,
     failed: 0, timed_out: 0, rejected_busy: 0,
   },

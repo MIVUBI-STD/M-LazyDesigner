@@ -36,7 +36,7 @@ describe("optional diagnostic execution", () => {
       expect(result.state).not.toHaveProperty("root_motion");
       expect(result.state).not.toHaveProperty("animation_quality");
     }
-    expect(results[2].reads).toBe(4);
+    expect(results[2].reads).toBe(6);
     expect(results[2].state.animation_quality.state).toBe("available");
     expect(results[2].state.animation.uuid).toBe("target");
     expect(results[0].bytes).toBeLessThan(results[2].bytes);
@@ -132,7 +132,7 @@ describe("optional diagnostic execution", () => {
   test("registered metadata matches canonical generated ToolSpecs", () => {
     const mismatches = probe(`
       import "./server/server.ts";
-      import {toolManifest} from "./build/docs-manifest.ts";
+      import {toolManifest} from "./scripts/generate/internal/docs-manifest.ts";
       import {getAllToolDefinitions} from "./lib/factories.ts";
       const defs=getAllToolDefinitions();
       console.log(JSON.stringify(toolManifest.flatMap(g=>g.tools).filter(s=>defs[s.name] &&

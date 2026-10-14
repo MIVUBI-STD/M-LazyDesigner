@@ -19,7 +19,7 @@ import {
   deployArtifact,
   extractBuildIdentity,
   resolveDeployTarget,
-} from "@/scripts/deploy-local";
+} from "@/scripts/operations/deploy-local";
 
 describe("developer loop", () => {
   test("authoritative typecheck reuses only ignored local incremental state", async () => {
@@ -79,19 +79,19 @@ describe("developer loop", () => {
   test("dev sync owns build, atomic deploy, native reload, and live freshness", async () => {
     const [packageJson, buildSource, entrySource, devSyncSource, deploySource, readme] = await Promise.all([
       Bun.file("package.json").json(),
-      Bun.file("build/index.ts").text(),
+      Bun.file("scripts/operations/dev-sync.ts").text(),
       Bun.file("index.ts").text(),
       Bun.file("plugin/devSync.ts").text(),
-      Bun.file("scripts/deploy-local.ts").text(),
+      Bun.file("scripts/operations/deploy-local.ts").text(),
       Bun.file("README.md").text(),
     ]);
 
     expect(packageJson.scripts["dev:sync"]).toBe(
-      "bun run prompts:build && bun run ./build --sourcemap --watch --sync"
+      "bun run ./scripts/operations/dev-sync.ts"
     );
-    expect(buildSource).toContain('const isSyncMode = Bun.argv.includes("--sync")');
-    expect(buildSource).toContain("resolveDeployTarget(syncTargetArgs(), process.env)");
-    expect(buildSource).toContain("deployArtifact(syncArtifactPath, target)");
+    expect(buildSource).toContain('["run", "dev:watch"]');
+    expect(buildSource).toContain("resolveDeployTarget(Bun.argv.slice(2), process.env)");
+    expect(buildSource).toContain("deployArtifact(ARTIFACT_PATH, target)");
     expect(buildSource).toContain("waitForLiveBuildIdentity(receipt.build_identity)");
     expect(buildSource).toContain("LIVE_SYNCED");
     expect(buildSource).toContain("STALE_BUILD");
@@ -153,7 +153,7 @@ describe("developer loop", () => {
       const source = join(sourceDir, "blockit_mcp.js");
       const target = join(installDir, "blockit_mcp.js");
       const stagedTarget = `${target}.next-${process.pid}`;
-      const identity = `sha256:${"a".repeat(64)}`;
+      const identity = `sha256:${"a".repeat(64)}` as const;
       const content = `globalThis.__BLOCKIT_BUILD_ID__ = ${JSON.stringify(identity)};\nconsole.log("fixture");\n`;
       await Bun.write(source, content);
       await Bun.write(target, "old complete plugin\n");

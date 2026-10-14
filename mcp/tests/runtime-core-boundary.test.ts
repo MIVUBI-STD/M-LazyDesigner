@@ -24,12 +24,12 @@ describe("Runtime core project boundary", () => {
 
   test("Runtime transport consumes shared affinity from lib rather than Gateway facade", async () => {
     const net = await Bun.file("server/net.ts").text();
-    const shared = await Bun.file("lib/runtimeAffinity.ts").text();
+    const shared = await Bun.file("lib/runtime/affinity.ts").text();
     const facade = await Bun.file("gateway/runtime/projectAffinity.ts").text();
 
-    expect(net).toContain("@/lib/runtimeAffinity");
+    expect(net).toContain("@/lib/runtime/affinity");
     expect(net).not.toContain("@/gateway/projectAffinity");
     expect(shared).toContain("BLOCKIT_PROJECT_AFFINITY_HEADER");
-    expect(facade).toContain('export * from "../../lib/runtimeAffinity"');
+    expect(facade).toContain('export * from "../../lib/runtime/affinity"');
   });
 });

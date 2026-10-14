@@ -22,7 +22,7 @@ describe("continuation receipt registry", () => {
       structuredContent: { execution: "unchanged" },
     })).toEqual([{ execution: "unchanged" }]);
     expect(cubeStateNeutral({
-      execution: "applied", structuredContent: { execution: "unchanged" },
+      execution: "applied", structuredContent: { execution: "unchanged", updates: [] },
     })).toBe(true);
     expect(resultCandidates({ execution: "unchanged", structuredContent: null }))
       .toEqual([]);
@@ -38,7 +38,7 @@ describe("continuation receipt registry", () => {
     for (const capability of CONTINUATION_RECEIPT_CAPABILITIES) {
       const entry = CAPABILITY_CORE_MANIFEST.get(capability);
       expect(entry, capability).toBeDefined();
-      expect(entry?.phase, capability).toBeDefined();
+      expect(entry?.stage, capability).toBeDefined();
       expect(entry?.verificationClass, capability).not.toBe("not_applicable");
     }
   });

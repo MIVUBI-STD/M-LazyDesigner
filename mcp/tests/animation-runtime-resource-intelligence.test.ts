@@ -61,7 +61,7 @@ describe("Bedrock animation runtime resources",()=>{
   const [server,extensions,source,skill]=await Promise.all([
     Bun.file("server/server.ts").text(),
     Bun.file("server/runtime/extensions.ts").text(),
-    Bun.file("server/tools/animation-runtime-resource-intelligence.ts").text(),
+    Bun.file("server/runtime/extensions/animation/runtimeResourceIntelligence.ts").text(),
     Bun.file("../.agents/skills/lazydesigner-animation/SKILL.md").text()
   ]);
   expect(server).toContain("initializeRuntimeCapabilityWiring");

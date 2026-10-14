@@ -32,7 +32,7 @@ describe("animation effect summary semantics", () => {
   });
 
   test("summary uses export-semantic helpers while retaining authored datapoints", async () => {
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     expect(source).toContain("countEffectiveEffectDataPoints(keyframe.particles)");
     expect(source).toContain("countEffectiveEffectDataPoints(keyframe.sounds)");
     expect(source).toContain("countEffectiveTimelineScriptLines(keyframe.scripts)");

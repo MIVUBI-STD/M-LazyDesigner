@@ -122,9 +122,12 @@ describe("native Runtime operation queue", () => {
     });
     const replacementGeneration = claimRuntimeGeneration("new").generation;
     const fresh = runRuntimeOperationExclusive(replacementGeneration, async () => "new");
+    const retired = Promise.allSettled([first, oldQueued]);
     gate.release();
-    await expect(first).rejects.toBeInstanceOf(RuntimeGenerationRetiredError);
-    await expect(oldQueued).rejects.toBeInstanceOf(RuntimeGenerationRetiredError);
+    expect(await retired).toEqual([
+      { status: "rejected", reason: expect.any(RuntimeGenerationRetiredError) },
+      { status: "rejected", reason: expect.any(RuntimeGenerationRetiredError) },
+    ]);
     expect(await fresh).toBe("new");
     expect(oldWaitingCalls).toBe(0);
   });

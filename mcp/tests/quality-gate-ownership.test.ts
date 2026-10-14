@@ -7,7 +7,7 @@ async function source(path: string): Promise<string> {
 
 describe("quality diagnostics vs gate ownership", () => {
   test("quality intelligence remains evidence-only", async () => {
-    const quality = await source("../server/tools/quality-intelligence.ts");
+    const quality = await source("../server/tools/validation/qualityIntelligence.ts");
 
     for (const field of [
       "geometry_hygiene",
@@ -35,7 +35,7 @@ describe("quality diagnostics vs gate ownership", () => {
 
   test("handoff approval semantics live in the readiness owner", async () => {
     const [readiness, phaseControl] = await Promise.all([
-      source("../lib/authoringReadiness.ts"),
+      source("../lib/authoring/authoringReadiness.ts"),
       source("../server/runtime/phaseControl.ts"),
     ]);
 

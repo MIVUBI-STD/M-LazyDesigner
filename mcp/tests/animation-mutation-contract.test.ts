@@ -60,8 +60,8 @@ describe("animation mutation contract", () => {
     ).toBe(false);
 
     const [animationSource, inspectionSource] = await Promise.all([
-      Bun.file("server/tools/animation-keyframes.ts").text(),
-      Bun.file("server/tools/animation-inspection.ts").text(),
+      Bun.file("server/tools/animation/keyframes.ts").text(),
+      Bun.file("server/tools/animation/inspection.ts").text(),
     ]);
     expect(animationSource).toContain("values: number | string | Array<number | string> | undefined");
     expect(animationSource).toContain('typeof values === "number" || typeof values === "string"');
@@ -233,7 +233,7 @@ describe("animation mutation contract", () => {
       }).success
     ).toBe(true);
 
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     expect(source).toContain("action === \"mirror_paste\" ? target.mirror_axis! : null");
     expect(source).not.toContain("target.mirror_axis || \"x\"");
   });
@@ -283,13 +283,13 @@ describe("animation mutation contract", () => {
       "same existing keyframe"
     );
 
-    const source = await Bun.file("server/tools/animation-keyframes.ts").text();
+    const source = await Bun.file("server/tools/animation/keyframes.ts").text();
     expect(source).toContain("interpolation: kf.interpolation ?? \"linear\"");
     expect(source).toContain("const targetKeyframes = action === \"create\" ? [] : resolveRequestedTargets()");
   });
 
   test("manage_keyframes returns exact affected identity/time state and preflights snapped create times", async () => {
-    const source = await Bun.file("server/tools/animation-keyframes.ts").text();
+    const source = await Bun.file("server/tools/animation/keyframes.ts").text();
     const block = source;
 
     expect(source).toContain("function keyframeContinuationState(keyframe: _Keyframe)");
@@ -320,14 +320,14 @@ describe("animation mutation contract", () => {
       requireValidPlannedKeyframeTimes([1, 1], "test scale", true)
     ).toThrow("collapse multiple selected keyframes");
 
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     expect(source).toContain("keyframe.time + parameters.offset_time!");
     expect(source).toContain("keyframe.time = plannedTimes[index]");
     expect(source).toContain("\"Batch keyframe scale\",");
   });
 
   test("batch offset mirrors native time-drag collision cleanup and Undo casualty ownership", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
     const offsetStart = block.indexOf('if (operation === "offset" || operation === "mirror")');
     const offsetEnd = block.indexOf('if (operation === "bake")', offsetStart);
@@ -353,16 +353,19 @@ describe("animation mutation contract", () => {
   });
 
   test("batch mirror maps schema axis to native numeric flip index and excludes native no-op keyframes", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
     const mirrorStart = block.indexOf('if (operation === "offset" || operation === "mirror")');
     const mirrorEnd = block.indexOf('if (operation === "bake")', mirrorStart);
     const mirrorBlock = block.slice(mirrorStart, mirrorEnd);
 
     expect(mirrorBlock).toContain("const mirrorKeyframes =");
-    expect(mirrorBlock).toContain('kf.transform && kf.channel !== "scale"');
-    expect(mirrorBlock).toContain('operation === "mirror" && mirrorKeyframes.length === 0');
-    expect(mirrorBlock.indexOf("mirrorKeyframes.length === 0")).toBeLessThan(
+    expect(mirrorBlock).toContain("planMirroredBatchKeyframes(keyframes)");
+    expect(await Bun.file("lib/animation/batchPlanning.ts").text()).toContain('Boolean(keyframe.transform) && keyframe.channel !== "scale"');
+    const { planMirroredBatchKeyframes } = await import("../lib/animation/batchPlanning");
+    expect(() => planMirroredBatchKeyframes([{ transform: true, channel: "scale" }]))
+      .toThrow("No position or rotation transform keyframes");
+    expect(mirrorBlock.indexOf("planMirroredBatchKeyframes(keyframes)")).toBeLessThan(
       mirrorBlock.indexOf("Undo.initEdit")
     );
     expect(mirrorBlock).toContain('keyframes: operation === "mirror" ? mirrorKeyframes : keyframes');
@@ -374,7 +377,7 @@ describe("animation mutation contract", () => {
   });
 
   test("batch scale reports bounded overwrite count from native replaceOthers", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
     const scaleStart = block.indexOf('if (operation === "scale")');
     const scaleEnd = block.indexOf('if (operation === "reverse")', scaleStart);
@@ -393,7 +396,7 @@ describe("animation mutation contract", () => {
   });
 
   test("batch bake reports actual created keyframes without returning an unbounded keyframe list", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
     const bakeStart = block.indexOf('if (operation === "bake")');
     const bakeEnd = block.indexOf('if (operation === "scale")', bakeStart);
@@ -421,13 +424,13 @@ describe("animation mutation contract", () => {
       requireValidPlannedPasteChannelTimes({ rotation: [1, 1] })
     ).toThrow("collapse multiple selected keyframes");
 
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     expect(source).toContain("requireValidPlannedPasteChannelTimes(plannedPasteTimesByChannel)");
     expect(source).toContain("plannedPasteTimesByChannel[channel][index]");
   });
 
   test("animation paste reports bounded pasted/overwrite counts from native replaceOthers", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
 
     expect(block).toContain("const pastedKeyframeCount = countAnimationClipboardKeyframes(");
@@ -441,7 +444,7 @@ describe("animation mutation contract", () => {
   });
 
   test("animation copy snapshots Bezier handles instead of retaining live source references", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
 
     expect(block).toContain("bezier_left_time: toArrayVector3(kf.bezier_left_time)");
@@ -455,7 +458,7 @@ describe("animation mutation contract", () => {
   });
 
   test("animation copy/paste preserves every transform data point without widening clipboard payload", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
 
     expect(block).toContain("data_points: kf.data_points.map((_, dataPointIndex) => {");
@@ -468,7 +471,7 @@ describe("animation mutation contract", () => {
   });
 
   test("mirror_paste delegates transform and Bezier mirroring to native Keyframe.flip without mutating clipboard handles", async () => {
-    const source = await Bun.file("server/tools/animation-batch.ts").text();
+    const source = await Bun.file("server/tools/animation/batch.ts").text();
     const block = source;
 
     expect(block).toContain("const mirrorAxisIndex =");

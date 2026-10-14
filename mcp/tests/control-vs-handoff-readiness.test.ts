@@ -16,7 +16,7 @@ describe("Control lifecycle readiness vs Runtime handoff authorization", () => {
 
   test("Animation handoff still owns checkpoint and authorization proof", async () => {
     const [readiness, phaseControl] = await Promise.all([
-      source("../lib/authoringReadiness.ts"),
+      source("../lib/authoring/authoringReadiness.ts"),
       source("../server/runtime/phaseControl.ts"),
     ]);
 

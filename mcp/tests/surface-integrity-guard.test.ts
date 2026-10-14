@@ -130,21 +130,21 @@ describe("advertised surface and fail-closed integrity guards", () => {
   });
 
   test("mutation families keep their no-op and consent rejections", async () => {
-    const locatorSource = await source("server/tools/locators.ts");
+    const locatorSource = await source("server/tools/geometry/locators.ts");
     expect(locatorSource).toContain("No-op update rejected");
 
-    const historySource = await source("server/tools/history.ts");
+    const historySource = await source("server/tools/state/history.ts");
     expect(historySource).toContain("Cannot undo");
     expect(historySource).toContain("Cannot redo");
 
-    const elementSource = await source("server/tools/element-shared.ts");
+    const elementSource = await source("server/tools/element/shared.ts");
     expect(elementSource).toContain("isRoot && newName");
 
-    const projectSource = await source("server/tools/project.ts");
+    const projectSource = await source("server/tools/project/project.ts");
     expect(projectSource).toContain("discard_unsaved");
     expect(projectSource).toContain("has unsaved changes");
 
-    const exportSource = await source("server/tools/export.ts");
+    const exportSource = await source("server/tools/io/export.ts");
     expect(exportSource).toContain("overwrite !== true");
     expect(exportSource).toContain(
       "Refusing to replace the existing .bbmodel"
@@ -157,15 +157,15 @@ describe("advertised surface and fail-closed integrity guards", () => {
     expect(exportSource).not.toContain("manage_geometry_reference");
 
     const paintSource = [
-      await source("server/tools/paint-primitives.ts"),
-      await source("server/tools/paint-brush.ts"),
+      await source("server/tools/paint/primitives.ts"),
+      await source("server/tools/paint/brush.ts"),
     ].join("\n");
     const boundsCalls = (
       paintSource.match(/requirePixelsWithinTexture\(texture/g) ?? []
     ).length;
     expect(boundsCalls).toBeGreaterThanOrEqual(6);
 
-    const controllerSource = await source("server/tools/animation-controller.ts");
+    const controllerSource = await source("server/tools/animation/controller.ts");
     expect(controllerSource).not.toContain(
       "text: JSON.stringify(result)"
     );

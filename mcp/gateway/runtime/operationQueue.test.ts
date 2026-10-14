@@ -3,6 +3,14 @@ import { GatewayOperationQueue } from "./operationQueue";
 import { GatewayBackendError } from "./backendContract";
 
 describe("Gateway operation queue", () => {
+  test("keeps the configured deadline separate from observed wait metrics", async () => {
+    const queue = new GatewayOperationQueue(1, 1_000);
+    expect(queue.snapshot().max_queue_wait_ms).toBe(0);
+    await queue.run(async () => "done");
+    expect(queue.maxQueueWaitMs).toBe(1_000);
+    expect(queue.snapshot().max_queue_wait_ms).toBeLessThan(1_000);
+  });
+
   test("serializes operations and records metrics", async () => {
     const queue = new GatewayOperationQueue(2);
     const order: string[] = [];
@@ -60,18 +68,22 @@ describe("Gateway operation queue", () => {
       const expired = queue.run(async () => {
         executed.push("expired");
       });
-      const rejected = expect(expired).rejects.toMatchObject({
-        code: "GATEWAY_QUEUE_EXPIRED",
-        safeToRetry: true,
-        details: { executed: false, queue_wait_timeout_ms: 1_000 },
-      });
+      const settled = Promise.allSettled([expired]);
 
       // Advance the wall clock without running timers: the first completion
       // schedules the second job as a microtask before its timer fires.
       now += 1_001;
       release();
       await first;
-      await rejected;
+      const [outcome] = await settled;
+      expect(outcome).toMatchObject({
+        status: "rejected",
+        reason: {
+          code: "GATEWAY_QUEUE_EXPIRED",
+          safeToRetry: true,
+          details: { executed: false, queue_wait_timeout_ms: 1_000 },
+        },
+      });
 
       expect(executed).toEqual(["first"]);
       expect(queue.snapshot()).toMatchObject({

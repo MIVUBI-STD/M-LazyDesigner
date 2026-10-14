@@ -116,7 +116,8 @@ export function analyzeAnimationContactEvidence(input: {
   let invalidConstraintCount = 0;
   const invalidExamples: Array<{ id: string; reason: string }> = [];
 
-  for (const constraint of input.constraints) {
+  const constraints: readonly ContactConstraintInput[] = input.constraints;
+  for (const constraint of constraints) {
     const invalid = (reason: string) => {
       invalidConstraintCount++;
       if (invalidExamples.length < exampleLimit) {
@@ -142,14 +143,15 @@ export function analyzeAnimationContactEvidence(input: {
       continue;
     }
     // Never filter malformed samples and then certify the remaining subset.
-    if (!constraint.samples.length || constraint.samples.some(
+    const contactSamples: readonly ContactSample[] = constraint.samples;
+    if (!contactSamples.length || contactSamples.some(
       (sample) => !Number.isFinite(sample.time) || sample.time < 0 ||
         !validVec3(sample.marker) || !validVec3(sample.target)
     )) {
       invalid("INVALID_CONTACT_SAMPLES");
       continue;
     }
-    const samples = constraint.samples.slice().sort((a, b) => a.time - b.time);
+    const samples = contactSamples.slice().sort((a, b) => a.time - b.time);
     if (samples.some((sample, index) => index > 0 && sample.time === samples[index - 1].time)) {
       invalid("DUPLICATE_SAMPLE_TIMESTAMPS");
       continue;

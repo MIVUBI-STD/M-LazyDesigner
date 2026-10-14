@@ -8,7 +8,7 @@ async function source(path: string): Promise<string> {
 describe("model creation effectiveness — semantic form, rotation, pivot and contact", () => {
   test("semantic/construction reasoning exists before exact Cube coordinates", async () => {
     const [modelling, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
@@ -27,7 +27,7 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
 
   test("native Geometry stays quality-first without per-Cube planning or five-view capture ceremony", async () => {
     const [modelling, verification] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../.agents/skills/lazydesigner-modelling/references/verification.md"),
     ]);
 
@@ -50,9 +50,9 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
 
   test("small-detail budget stays texture-first while alpha carriers avoid micro-Cubes", async () => {
     const [modelling, geometry, texturing, textureStandard] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/texture/standard.md"),
     ]);
 
@@ -78,7 +78,7 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
 
   test("rotation is an explicit modelling decision instead of zero-rotation default bias", async () => {
     const [modelling, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
@@ -95,7 +95,7 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
 
   test("pivot and contact preserve declared relationships instead of technical touching", async () => {
     const [modelling, geometry] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
     ]);
 
@@ -109,7 +109,7 @@ describe("model creation effectiveness — semantic form, rotation, pivot and co
   test("semantic hardening stays in modelling judgement instead of self-reported MCP fields", async () => {
     const [cubes, profile] = await Promise.all([
       source("server/tools/geometry/cubes.ts"),
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
     ]);
     const start = cubes.indexOf("export const placeCubeParameters");
     const end = cubes.indexOf("export const modifyCubeParameters", start);

@@ -157,7 +157,7 @@ const describeInput = z.object({
     })
     .strict()
     .optional()
-    .describe("Optional consolidated schema branch."),
+    .describe("Consolidated schema branch."),
 });
 
 const invokeInput = z.object({

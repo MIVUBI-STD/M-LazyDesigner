@@ -177,14 +177,14 @@ describe("P1.3 core identity ownership", () => {
 
   test("retained core callers consume shared identity ownership", async () => {
     const [cubes, elementShared, textureAssignment, textureCreate, textureRead, animationShared, materialInstances, util] = await Promise.all([
-      readFile(new URL("../server/tools/cubes.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/element-shared.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/texture-assignment.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/texture-create.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/texture-read.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/animation-shared.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/material-instances.ts", import.meta.url), "utf8"),
-      readFile(new URL("../lib/util.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/geometry/cubes.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element/shared.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture/assignment.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture/create.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture/read.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/animation/shared.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/texture/materialInstances.ts", import.meta.url), "utf8"),
+      readFile(new URL("../lib/texture/selection.ts", import.meta.url), "utf8"),
     ]);
 
     expect(cubes).toContain("resolveCoreCube, resolveCoreGroup");
@@ -208,11 +208,11 @@ describe("P1.3 core identity ownership", () => {
 
   test("identity-returning core mutations expose structured continuation state", async () => {
     const [cubes, hierarchy, mutation, elementShared, project] = await Promise.all([
-      readFile(new URL("../server/tools/cubes.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/element-hierarchy.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/element-mutation.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/element-shared.ts", import.meta.url), "utf8"),
-      readFile(new URL("../server/tools/project.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/geometry/cubes.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element/hierarchy.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element/mutation.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/element/shared.ts", import.meta.url), "utf8"),
+      readFile(new URL("../server/tools/project/project.ts", import.meta.url), "utf8"),
     ]);
 
     expect(cubes).toContain("structuredContent: result");

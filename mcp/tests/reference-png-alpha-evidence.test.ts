@@ -135,7 +135,7 @@ describe("verified PNG alpha for reference silhouette", () => {
     expect(extract(Buffer.from("not png")).reason).toBe("PNG_INVALID_OR_OVERSIZE");
     const png = pngFromAlpha(["01", "10"]);
     const huge = Buffer.from(png);
-    huge.writeUInt32BE(10_000, 16);
+    huge.writeUInt32BE(1_000_000, 16);
     huge.writeUInt32BE(crc32(huge.subarray(12, 29)), 29);
     expect(extract(huge).reason).toBe("PNG_IMAGE_DIMENSIONS_UNSUPPORTED");
   });

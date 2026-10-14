@@ -99,6 +99,8 @@ export function searchCapabilityCatalog(
   );
   const hasQuery = normalizeCapabilityQuery(query).length > 0;
   const bm25Scores = bm25CapabilityScores(tools, query);
+  // Lexical relevance is a bounded secondary signal, not an intent override.
+  const maxBm25 = Math.max(1, ...bm25Scores.values());
 
   return tools
     .map((tool) => {
@@ -135,7 +137,7 @@ export function searchCapabilityCatalog(
         preconditions,
         score:
           semantic.score +
-          bm25 * 12 +
+          (bm25 / maxBm25) * 12 +
           nearName +
           eligibilityAdjustment +
           CAPABILITY_TIER_BOOST[tier] +

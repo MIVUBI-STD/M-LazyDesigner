@@ -50,7 +50,7 @@ describe("static footprint budget", () => {
     expect(workflow.length).toBeLessThan(15_000);
 
     for (const [skill, terms] of [
-      [modelling, ["selected_profile", "PROFILE_RECLASSIFICATION_REQUIRED", "approved reference evidence"]],
+      [modelling, ["selected_profile", "do not independently classify", "reference evidence contract"]],
       [texturing, ["stage-specific Texturing projection", "Geometry APPROVED + UV Layout PASS", "request only that exact context", "Pixel Art is conditional reference evidence", "never load the full Pixel Art corpus"]],
       [animation, ["stage-specific Animation projection", "participating semantic IDs", "request only that exact context"]],
     ] as const) {
@@ -58,14 +58,15 @@ describe("static footprint budget", () => {
     }
     const gateway = await source("gateway/index.ts");
     const instructionStart = gateway.indexOf("const GATEWAY_INSTRUCTIONS =");
-    const instructionEnd = gateway.indexOf("\n\ntype GatewayToolDefinition", instructionStart);
+    const instructionEnd = gateway.indexOf("\n\ntype ExperimentalHybridRegistrar", instructionStart);
     const instructionBlock = gateway.slice(instructionStart, instructionEnd);
     expect(instructionStart).toBeGreaterThanOrEqual(0);
     expect(instructionEnd).toBeGreaterThan(instructionStart);
     expect(instructionBlock.length).toBeLessThan(1_100);
-    const schemaStart = gateway.indexOf("const statusInput =");
-    const schemaEnd = gateway.indexOf("\n\nfunction buildGatewayServer", schemaStart);
-    const gatewaySchemaBlock = gateway.slice(schemaStart, schemaEnd);
+    const schemaOwner = await source("gateway/handlers/registerCoreTools.ts");
+    const schemaStart = schemaOwner.indexOf("const statusInput =");
+    const schemaEnd = schemaOwner.indexOf("\n\nexport function registerCoreGatewayTools", schemaStart);
+    const gatewaySchemaBlock = schemaOwner.slice(schemaStart, schemaEnd);
     expect(schemaStart).toBeGreaterThanOrEqual(0);
     expect(schemaEnd).toBeGreaterThan(schemaStart);
     expect(gatewaySchemaBlock.length).toBeLessThan(2_900);
@@ -96,7 +97,8 @@ describe("static footprint budget", () => {
     expect(implementation).toContain("one authoring system");
     expect(implementation).not.toContain("Static Footprint");
     expect(runbook.toLowerCase()).toContain("authoring efficiency");
-    expect(validation.toLowerCase()).toContain("static character counts or source size alone cannot prove end-to-end usage improvement");
+    expect(validation).toContain("Do not strengthen source/static claims");
+    expect((await source("../AGENTS.md"))).toContain("**Authoring Efficiency** = cost to accepted result; **Static Footprint** = guardrail only");
   });
 
   test("normal discovery and recovery reads default to compact bounds", () => {
@@ -134,9 +136,9 @@ describe("static footprint budget", () => {
 
   test("optional Texture identity guidance is shared across Paint and texture reads", async () => {
     const [paintBrush, paintPrimitives, paintSelectionLayers, textureRead] = await Promise.all([
-      source("server/tools/paint-brush.ts"),
-      source("server/tools/paint-primitives.ts"),
-      source("server/tools/paint-selection-layers.ts"),
+      source("server/tools/paint/brush.ts"),
+      source("server/tools/paint/primitives.ts"),
+      source("server/tools/paint/selectionLayers.ts"),
       source("server/tools/texture/read.ts"),
     ]);
     const paint = [paintBrush, paintPrimitives, paintSelectionLayers].join("\n");
@@ -145,7 +147,7 @@ describe("static footprint budget", () => {
   });
 
   test("undo and redo return compact recovery position without a stack reread", async () => {
-    const history = await source("server/tools/history.ts");
+    const history = await source("server/tools/state/history.ts");
     const undoStart = history.indexOf("createTool(historyToolDocs[0].name");
     const redoStart = history.indexOf("createTool(historyToolDocs[1].name", undoStart);
     const stackStart = history.indexOf("createTool(historyToolDocs[2].name", redoStart);
@@ -171,7 +173,7 @@ describe("static footprint budget", () => {
   });
 
   test("project info stays lifecycle/counts-only and structured result mirrors stay compact", async () => {
-    const [project, factories] = await Promise.all([source("server/tools/project.ts"), source("lib/factories.ts")]);
+    const [project, factories] = await Promise.all([source("server/tools/project/project.ts"), source("lib/factories.ts")]);
     expect(project).not.toContain("ROOT_GROUP_SUMMARY_LIMIT");
     expect(project).not.toContain("root_groups_truncated");
     expect(project).not.toContain("root_groups: rootGroups");

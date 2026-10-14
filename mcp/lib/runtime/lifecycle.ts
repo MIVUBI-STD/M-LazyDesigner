@@ -171,11 +171,11 @@ function getNativeQueue(coordinator: RuntimeLifecycleCoordinator): RuntimeNative
     void previousTail.then(
       () => {
         queue.active = false;
-        startNextRuntimeOperation(coordinator, queue);
+        startNextRuntimeOperation(queue);
       },
       () => {
         queue.active = false;
-        startNextRuntimeOperation(coordinator, queue);
+        startNextRuntimeOperation(queue);
       }
     );
   }
@@ -192,7 +192,6 @@ function settleNativeDrainIfIdle(
 }
 
 function startNextRuntimeOperation(
-  coordinator: RuntimeLifecycleCoordinator,
   queue: RuntimeNativeQueue
 ): void {
   if (queue.active) return;
@@ -250,7 +249,7 @@ export function runRuntimeOperationExclusive<T>(
           0, (coordinator.pendingOperations ?? 1) - 1
         );
         reject(new RuntimeQueuedOperationAbandonedError());
-        startNextRuntimeOperation(coordinator, queue);
+        startNextRuntimeOperation(queue);
       },
       start: () => {
         void (async () => {
@@ -276,7 +275,7 @@ export function runRuntimeOperationExclusive<T>(
               0, (coordinator.pendingOperations ?? 1) - 1
             );
             queue.active = false;
-            startNextRuntimeOperation(coordinator, queue);
+            startNextRuntimeOperation(queue);
           }
         })();
       },
@@ -287,7 +286,7 @@ export function runRuntimeOperationExclusive<T>(
       signal.addEventListener("abort", item.cancel, { once: true });
       if (signal.aborted) item.cancel();
     }
-    startNextRuntimeOperation(coordinator, queue);
+    startNextRuntimeOperation(queue);
   });
 }
 

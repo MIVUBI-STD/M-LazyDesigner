@@ -54,11 +54,11 @@ describe("tool execution path contract", () => {
 
   test("mouse and generic dialog emulation stay isolated from representative normal owners", async () => {
     const [ui, cubes, paint, animation, particle] = await Promise.all([
-      text("server/tools/ui.ts"),
-      text("server/tools/cubes.ts"),
-      Promise.all([text("server/tools/paint-brush.ts"), text("server/tools/paint-primitives.ts")]).then((parts) => parts.join("\n")),
-      text("server/tools/animation-timeline.ts"),
-      text("server/tools/particle.ts"),
+      text("server/tools/interaction/ui.ts"),
+      text("server/tools/geometry/cubes.ts"),
+      Promise.all([text("server/tools/paint/brush.ts"), text("server/tools/paint/primitives.ts")]).then((parts) => parts.join("\n")),
+      text("server/tools/animation/timeline.ts"),
+      text("server/tools/particle/manage.ts"),
     ]);
 
     expect(ui).toContain('new MouseEvent("click"');
@@ -72,10 +72,10 @@ describe("tool execution path contract", () => {
 
   test("native Painter and Timeline use subsystem APIs rather than mouse emulation", async () => {
     const [paintBrush, paintPrimitives, animation, paintStroke] = await Promise.all([
-      text("server/tools/paint-brush.ts"),
-      text("server/tools/paint-primitives.ts"),
-      text("server/tools/animation-timeline.ts"),
-      text("lib/paintStroke.ts"),
+      text("server/tools/paint/brush.ts"),
+      text("server/tools/paint/primitives.ts"),
+      text("server/tools/animation/timeline.ts"),
+      text("lib/texture/paintStroke.ts"),
     ]);
     const paint = `${paintBrush}\n${paintPrimitives}`;
 
@@ -129,7 +129,7 @@ describe("tool execution path contract", () => {
   });
 
   test("normal registration excludes generic UI/import fallback families", async () => {
-    const profile = await text("lib/registrationProfile.ts");
+    const profile = await text("lib/capabilities/registrationProfile.ts");
 
     const normalFamilyBlock = profile.match(
       /BEDROCK_ENTITY_REGISTRATION_FAMILIES = \[([\s\S]*?)\] as const/

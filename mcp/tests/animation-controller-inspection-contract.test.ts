@@ -9,7 +9,7 @@ describe("AnimationController inspection closure", () => {
   test("adds a focused controller-state selector without a new tool", async () => {
     expect(inspectAnimationParameters.parse({ state: "idle" }).state).toBe("idle");
     expect(inspectAnimationParameters.safeParse({ state: "" }).success).toBe(false);
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     expect(source).toContain("instanceof AnimationController");
     expect(source).toContain('authored_space: "blockbench_animation_controller"');
     expect(source).toContain("animation_key");
@@ -40,7 +40,7 @@ describe("AnimationController inspection closure", () => {
   });
 
   test("focused state inspection omits the redundant all-state summary", async () => {
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     const start = source.indexOf("function inspectAnimationController");
     const end = source.indexOf("function inspectKeyframe", start);
     const controllerInspection = source.slice(start, end);
@@ -54,7 +54,7 @@ describe("AnimationController inspection closure", () => {
   });
 
   test("focused state exposes exact identities and preserves numeric zero", async () => {
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     const start = source.indexOf("function inspectControllerState");
     const end = source.indexOf("function inspectAnimationController", start);
     const focusedState = source.slice(start, end);
@@ -73,7 +73,7 @@ describe("AnimationController inspection closure", () => {
         .include_effect_keyframes
     ).toBe(true);
 
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     const start = source.indexOf("function inspectParticleEffects");
     const end = source.indexOf("function summarizeBoneAnimators", start);
     const effects = source.slice(start, end);
@@ -87,7 +87,7 @@ describe("AnimationController inspection closure", () => {
   });
 
   test("authored animation summary preserves animation-level Molang controls", async () => {
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     const executeStart = source.indexOf("const animationSummary = {");
     const focusedStart = source.indexOf("if (bone !== undefined)", executeStart);
     const summary = source.slice(executeStart, focusedStart);
@@ -98,7 +98,7 @@ describe("AnimationController inspection closure", () => {
   });
 
   test("focused authored-bone inspection omits animation-wide summaries", async () => {
-    const source = await Bun.file("server/tools/animation-inspection.ts").text();
+    const source = await Bun.file("server/tools/animation/inspection.ts").text();
     const executeStart = source.indexOf("async execute({ animation_id, bone, state, include_effect_keyframes })");
     const focusedStart = source.indexOf("if (bone !== undefined)", executeStart);
     const summaryStart = source.indexOf("const boneAnimators = summarizeBoneAnimators(animation)", focusedStart);

@@ -1,3 +1,4 @@
+import { GatewayOperationQueue } from "@/gateway/runtime/operationQueue";
 import { describe, expect, test } from "bun:test";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -37,6 +38,7 @@ const baseStatus: GatewayRuntimeStatus = {
     reconnect: { failures: 0, retry_after_ms: 0 },
   },
   operations: {
+    ...new GatewayOperationQueue(8).snapshot(),
     active: 0,
     queued: 0,
     max_queue_depth: 8,

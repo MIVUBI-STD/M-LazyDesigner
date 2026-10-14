@@ -1,5 +1,5 @@
 import "@/server/tools";
-import { promptDocs, resourceDocs } from "@/build/docs-manifest";
+import { promptDocs, resourceDocs } from "@/scripts/generate/internal/docs-manifest";
 import {
   MCP_AUTHORING_PHASES,
   type McpAuthoringPhase,
@@ -34,19 +34,25 @@ const PROTOCOL_VERSION = "2025-06-18";
 // exact Paint transaction schemas are larger because their strict bounded branches
 // are now fully advertised rather than hidden. Measured loopback: 112225 response /
 // 94873 schema. Keep narrow regression headroom instead of weakening the guard.
+// 2026-10-14: accept the already-shipped grounded-image correspondence,
+// landmark/silhouette schemas and correction-continuation guidance. Local
+// loopback measured 117671 response / 98626 schema / 12974 prompt source /
+// 11404 AUTHORING prompt chars; capture payload is 6631 including metadata.
+// Preserve strict branch validation and image provenance; this is a measured
+// coverage baseline update, not token savings or native acceptance.
 const SURFACE_BUDGET = {
   tool_count: 54,
   initialize_instructions_chars: 700,
-  tools_list_response_chars: 113_000,
-  input_schema_chars: 95_500,
+  tools_list_response_chars: 118_000,
+  input_schema_chars: 99_000,
   description_chars: 11_500,
   max_tool_payload_chars: 3_200,
   prompt_spec_count: 1,
   resource_spec_count: 10,
-  canonical_prompt_source_chars: 10_000,
+  canonical_prompt_source_chars: 13_000,
   phase_prompt_body_chars: {
-    geometry: 8_500,
-    texturing: 8_500,
+    geometry: 11_500,
+    texturing: 11_500,
     animation: 3_000,
   } satisfies Record<McpAuthoringPhase, number>,
   prompt_catalog_chars: 380,
@@ -323,6 +329,7 @@ function assertWithinSurfaceBudget(
       manage_cubes: 8_400, manage_render_profile: 5_200, manage_particle: 6_500,
       manage_material: 3_800, create_animation: 3_450, create_texture: 3_450,
       manage_material_instances: 3_400,
+      capture_model_views: 6_700,
       // Explicit palette/sampler and bounded noise/copy/Cube AO inputs.
       paint_settings: 3_500, paint_texture_transaction: 5_600,
     };

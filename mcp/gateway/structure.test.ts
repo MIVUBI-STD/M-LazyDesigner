@@ -171,7 +171,8 @@ describe("Gateway structural ownership", () => {
   test("Gateway execution stays above Runtime transport", async () => {
     const executor = await Bun.file("gateway/execution/capabilityExecutor.ts").text();
     expect(executor).toContain('from "../runtime/backend"');
-    expect(executor).toContain('from "../control"');
+    expect(executor).toContain('from "../control/delta/engine"');
+    expect(executor).toContain('from "../control/delta/projection"');
     expect(executor).toContain('from "../capabilities/graph"');
     expect(executor).toContain('from "../providers/registry"');
     expect(executor).toContain('from "../session/state"');

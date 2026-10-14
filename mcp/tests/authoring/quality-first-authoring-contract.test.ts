@@ -11,7 +11,7 @@ async function source(path: string): Promise<string> {
 describe("quality-first authoring guidance (source text only, not asset quality)", () => {
   test("bounds and visual evidence policies live in current modelling/validation owners", async () => {
     const [modelling, geometry, validation] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/modelling/standard.md"),
       source("../docs/03-authoring/validation/visual.md"),
     ]);
@@ -23,11 +23,11 @@ describe("quality-first authoring guidance (source text only, not asset quality)
 
   test("reference and production UV policy preserve explicit authority without blocking nonvisual edits", async () => {
     const [modelling, reference, texture] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/02-reference/policy.md"),
       source("../docs/03-authoring/texture/standard.md"),
     ]);
-    expect(modelling).toMatch(/nonvisual edits[^\n]*current authored state/i);
+    expect(modelling).toMatch(/Reuse fresh exact authored state; otherwise inspect once/i);
     expect(reference.toLowerCase()).toMatch(/user requirement|approved reference|source/);
     expect(texture).not.toContain("GEOMETRY PASS");
     expect(texture).toMatch(/128[^\n]*default[^\n]*256[^\n]*opt-in/);
@@ -36,8 +36,8 @@ describe("quality-first authoring guidance (source text only, not asset quality)
   test("supported controller editing and fresh state are not blocked by stale workflow rules", async () => {
     const [workflow, animation, texture] = await Promise.all([
       source("prompts/bedrock_entity_workflow.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
     const gaps = workflow.split("Protected gaps remain")[1] ?? "";
     expect(gaps).not.toContain("controller blend-curve mutation");
@@ -56,9 +56,9 @@ describe("quality-first authoring guidance (source text only, not asset quality)
 
   test("review boundaries preserve rejection and require current differences and playable motion", async () => {
     const [geometry, texture, animation, flow, validation] = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       source("../docs/01-product/flow.md"),
       source("../docs/03-authoring/validation/visual.md"),
     ]);
@@ -70,23 +70,23 @@ describe("quality-first authoring guidance (source text only, not asset quality)
   });
 
   test("Geometry protects assembly, mapped resize, motion readiness, and requested atlas constraints", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n"));
 
     for (const marker of [
-      "motion-ready structure",
-      "required surface class",
-      "PRESERVE_MAPPING | PRESERVE_DENSITY | RELAYOUT",
+      "transform ownership + required attachment/contact target/invariant",
+      "required negative spaces / continuous surfaces",
+      "mapped/textured `RESIZE` preflights UV/pixel impact",
       "Requested atlas size and density are constraints",
-      "whole assembly boundary",
+      "preserve assembly boundaries/openings",
     ]) expect(skill).toContain(marker);
 
-    expect(skill).toMatch(/known rig\/contact defect[^\n]*does not wait for Animation/i);
-    expect(skill).toMatch(/RESIZE[^\n]*mapped\/textured Geometry[\s\S]*UV\/pixel impact/i);
+    expect(skill).toContain("shared orientation/attachment/articulation is **Group/Bone-owned**");
+    expect(skill).toMatch(/mapped\/textured `RESIZE` preflights UV\/pixel impact/i);
     expect(skill).toMatch(/Do not silently enlarge the atlas/i);
   });
 
   test("Texturing proves material intent before propagation and protects variants and live authority", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
 
     for (const marker of [
       "representative patch/cohort",
@@ -102,11 +102,11 @@ describe("quality-first authoring guidance (source text only, not asset quality)
   });
 
   test("Animation proves rig readiness, caller semantics, and time-based quality", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-animation/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n"));
 
     for (const marker of [
       "representative extreme poses",
-      "external query/variable caller semantics",
+      "External gameplay callers remain integration contracts",
       "signed reverse semantics",
       "repeated full-loop playback",
       "three static snapshots do not prove",
@@ -122,7 +122,7 @@ describe("quality-first authoring guidance (source text only, not asset quality)
     ]);
 
     expect(root).toContain("At `FINALIZATION`, load only `docs/03-authoring/finalization/standard.md`");
-    expect(root).toMatch(/do not load it during earlier authoring stages/i);
+    expect(finalization).toContain("Load this file only at `Current Stage: FINALIZATION`");
 
     for (const marker of [
       "Requested Deliverable Contract",
@@ -143,9 +143,9 @@ describe("quality-first authoring guidance (source text only, not asset quality)
 
   test("quality hardening remains generic rather than fixture or object specific", async () => {
     const files = await Promise.all([
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/finalization/standard.md"),
     ]);
 

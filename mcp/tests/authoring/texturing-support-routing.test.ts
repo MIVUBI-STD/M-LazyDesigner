@@ -6,7 +6,7 @@ async function source(path: string): Promise<string> {
 
 describe("texturing hot-path routing", () => {
   test("advanced editor-state tools stay conditional while consolidated material authoring stays primary", async () => {
-    const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const skill = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
     const supportStart = skill.indexOf("## Conditional Support — Not Default Routing");
     const support = skill.slice(supportStart);
 

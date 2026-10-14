@@ -38,7 +38,7 @@ describe("generic semantics narrowing contract", () => {
     expect(() => requireFiniteTranslatedElementVector3([1e308, 0, 0], [1e308, 0, 0], "test")).toThrow("non-finite authored coordinate");
     const [mutation, shared] = await Promise.all([
       source("server/tools/element/mutation.ts"),
-      source("server/tools/element-shared.ts"),
+      source("server/tools/element/shared.ts"),
     ]);
     expect(mutation).toContain("preflightFaithfulDuplicate(element, offset, newName)");
     expect(shared).toContain("preflightDuplicateTranslation(element, offset)");
@@ -128,7 +128,7 @@ describe("generic semantics narrowing contract", () => {
   });
 
   test("fixed export-format discovery is default-disabled without removing export capability", async () => {
-    const exportSource = await source("server/tools/export.ts");
+    const exportSource = await source("server/tools/io/export.ts");
     expect(exportSource).toContain("exportToolDocs[0].status,\n    false");
     expect(exportSource).toContain("BLOCKIT_MODEL_CODEC_IDS = [\"bedrock\", \"project\"]");
     expect(exportSource).toContain("const blockitModelCodecEnum = z.enum(BLOCKIT_MODEL_CODEC_IDS)");
@@ -137,14 +137,14 @@ describe("generic semantics narrowing contract", () => {
   });
 
   test("generic full-app capture and editor-camera mutation are default-disabled", async () => {
-    const camera = await source("server/tools/camera.ts");
+    const camera = await source("server/tools/inspection/camera.ts");
     expect(camera).toContain("cameraToolDocs[1].status, false");
     expect(camera).toContain("cameraToolDocs[2].status, false");
     expect(camera).toContain("capture_model_views");
   });
 
   test("generic per-face texture apply is disabled for Bedrock single-texture authoring", async () => {
-    const texture = await source("server/tools/texture-assignment.ts");
+    const texture = await source("server/tools/texture/assignment.ts");
     const skill = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
     expect(texture).toContain("applyTextureToolDoc.status, false");
     expect(texture).toContain("Legacy per-face texture wrapper. Disabled on the normal Bedrock Entity surface; use activate_texture.");

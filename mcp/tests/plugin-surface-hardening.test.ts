@@ -10,7 +10,7 @@ describe("LazyDesigner plugin surface hardening", () => {
   test("surface manifest distinguishes phase, exposed, disabled, and catalog entries deterministically", () => {
     const manifest = createSurfaceManifest({
       profile: "bedrock_entity",
-      phase: "geometry",
+      stage: "geometry",
       tools: {
         exposed_b: { name: "exposed_b", description: "", enabled: true, status: "stable" },
         disabled_a: { name: "disabled_a", description: "", enabled: false, status: "experimental" },
@@ -50,7 +50,7 @@ describe("LazyDesigner plugin surface hardening", () => {
 
   test("panel identity stays minimal without build fingerprint state", async () => {
     const [panel, uiSource, identitySource, buildSource] = await Promise.all([
-      source("ui/panel.html"), source("ui/index.ts"), source("lib/productIdentity.ts"), source("build/index.ts"),
+      source("ui/panel.html"), source("ui/index.ts"), source("lib/product/productIdentity.ts"), source("build/index.ts"),
     ]);
     expect(panel).not.toContain("<dt>Build</dt>");
     expect(uiSource).not.toContain("PRODUCT_BUILD_REVISION");
@@ -62,13 +62,13 @@ describe("LazyDesigner plugin surface hardening", () => {
     const [panel, uiSource, identitySource] = await Promise.all([
       source("ui/panel.html"),
       source("ui/index.ts"),
-      source("lib/productIdentity.ts"),
+      source("lib/product/productIdentity.ts"),
     ]);
 
     expect(panel).toContain("runtimeStatusLabel(runtime.state)");
     expect(panel).toContain("Current project");
     expect(panel).toContain("Open Project Folder");
-    expect(panel).toContain("AI handles the technical authoring workflow in the background.");
+    expect(panel).toContain("Technical authoring runs through your connected AI client.");
     expect(panel).not.toContain("availableToolCount");
     expect(panel).not.toContain("resources.length");
     expect(panel).not.toContain("availablePromptCount");
@@ -84,17 +84,17 @@ describe("LazyDesigner plugin surface hardening", () => {
     expect(uiSource).toContain("void input.prompts");
     expect(uiSource).not.toContain("availableToolCount");
     expect(uiSource).not.toContain("createSurfaceManifest");
-    expect(identitySource).toContain("authoring_phase: authoringPhase");
+    expect(identitySource).toContain("authoring_phase: authoringStage");
   });
 
   test("status bar and plugin summary use user-facing LazyDesigner readiness language", async () => {
     const [statusSource, statusCss, identitySource] = await Promise.all([
       source("ui/statusBar.ts"),
       source("ui/statusBar.css"),
-      source("lib/productIdentity.ts"),
+      source("lib/product/productIdentity.ts"),
     ]);
 
-    expect(statusSource).toContain('return "LazyDesigner Ready"');
+    expect(statusSource).toContain('return "LazyDesigner Runtime Ready"');
     expect(statusSource).toContain("BLOCKIT_RUNTIME_STATUS_CHANGED");
     expect(statusSource).not.toContain("serverInfo");
     expect(statusCss).not.toContain("mcp-server-info");

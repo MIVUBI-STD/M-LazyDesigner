@@ -18,7 +18,7 @@ describe("Geometry inspection completeness", () => {
   });
 
   test("inspect_element reports mutation-relevant Cube and export state", async () => {
-    const source = await Bun.file("server/tools/element-inspection.ts").text();
+    const source = await Bun.file("server/tools/element/inspection.ts").text();
     expect(source).toContain("inflate: requireFiniteInspectableScalar");
     expect(source).toContain("export: cube.export !== false");
     expect(source).toContain("export: group.export !== false");

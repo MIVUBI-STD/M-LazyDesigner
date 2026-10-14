@@ -11,8 +11,8 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
       source("../docs/01-product/flow.md"),
       source("../workspace/README.md"),
       source("gateway/control/readiness.ts"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
     for (const text of [agents, workspace]) {
@@ -27,7 +27,7 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
     expect(readiness).toContain("UV_LAYOUT_PASS_REQUIRED");
     expect(readiness).toContain("TEXTURE_APPROVAL_REQUIRED");
 
-    expect(agents).toContain("AUTHORING↔Animation handoff through Gateway");
+    expect(agents).toContain("AUTHORING↔Animation handoff when required");
     for (const text of [texturing, animation]) {
       expect(text).toContain("switch_authoring_phase");
       expect(text).toContain("Gateway");
@@ -39,15 +39,15 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
   });
 
   test("existing-asset baseline policy stays with the modelling owner", async () => {
-    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
+    const modelling = await Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n"));
     expect(modelling).toMatch(/Existing geometry is a baseline, not fidelity proof/);
     expect(modelling).toContain("Existing Assets / Shared Session");
   });
 
   test("Texturing can correct upstream Geometry/UV in-session; Animation still hands back", async () => {
     const [texturing, animation] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(texturing).toMatch(/unlocked\/invalid UV\s+→ Geometry owner \+ bounded UV correction; no Runtime Surface switch/);
@@ -60,8 +60,8 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
 
   test("texture and animation guidance remains evidence-based without preset density metrics", async () => {
     const [texturing, animation, texturePolicy] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/texture/standard.md"),
     ]);
 
@@ -84,7 +84,7 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
   });
 
   test("sequencing remains instruction/stage ownership rather than a registration profile", async () => {
-    const profile = await source("lib/registrationProfile.ts");
+    const profile = await source("lib/capabilities/registrationProfile.ts");
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
     expect(profile).not.toContain("sequencing_profile");
     expect(profile).not.toContain("readiness_profile");

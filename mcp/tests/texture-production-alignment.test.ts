@@ -213,19 +213,21 @@ describe("texture production alignment", () => {
 });
 
 describe("texture production alignment wiring", () => {
-  test("runtime adds metadata alignment and exclusive manage_material without a new MCP tool", async () => {
-    const [runtime, server, bootstrap] = await Promise.all([
-      Bun.file("server/tools/texture-quality-runtime.ts").text(),
+  test("runtime diagnostics and canonical material tools share alignment ownership", async () => {
+    const [runtime, server, bootstrap, material, validation] = await Promise.all([
+      Bun.file("server/runtime/extensions/texture/quality.ts").text(),
       Bun.file("server/server.ts").text(),
       Bun.file("server/runtime/extensions.ts").text(),
+      Bun.file("server/tools/texture/materials.ts").text(),
+      Bun.file("server/tools/texture/materialValidation.ts").text(),
     ]);
     expect(runtime).toContain('runtimeDefinition("list_textures")');
-    expect(runtime).toContain('runtimeDefinition("manage_material")');
+    expect(runtime).not.toContain('runtimeDefinition("manage_material")');
     expect(runtime).toContain("production_alignment");
-    expect(runtime).toContain("planPbrMaterialConfiguration");
-    expect(runtime).toContain("planExclusivePbrMaterialAssignment");
-    expect(runtime).toContain('color_texture="none"');
-    expect(runtime).toContain('mer_texture="none"');
+    expect(material).toContain("planPbrMaterialConfiguration");
+    expect(material).toContain("planExclusivePbrMaterialAssignment");
+    expect(validation).toContain('color_texture="none"');
+    expect(validation).toContain('mer_texture="none"');
     expect(server).toContain("initializeRuntimeCapabilityWiring();");
     expect(bootstrap).toContain("apply: wireTextureQualityRuntime");
   });

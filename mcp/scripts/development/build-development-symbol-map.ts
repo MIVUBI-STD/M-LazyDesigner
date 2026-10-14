@@ -19,7 +19,7 @@ export type DevelopmentFileMap = {
   path: string;
   imports: string[];
   symbols: DevelopmentSymbol[];
-  test_owner: string | null;
+  anchor_test: string | null;
 };
 
 export type DevelopmentSymbolMap = {
@@ -223,7 +223,7 @@ function mapSourceFile(
   source: ts.SourceFile,
   path: string,
   checker?: ts.TypeChecker
-): Omit<DevelopmentFileMap, "test_owner"> {
+): Omit<DevelopmentFileMap, "anchor_test"> {
   const imports: string[] = [];
   const symbols: DevelopmentSymbol[] = [];
 
@@ -267,7 +267,7 @@ function mapSourceFile(
 export function mapTypeScriptSource(
   sourceText: string,
   path = "fixture.ts"
-): Omit<DevelopmentFileMap, "test_owner"> {
+): Omit<DevelopmentFileMap, "anchor_test"> {
   const source = ts.createSourceFile(
     path,
     sourceText,
@@ -282,7 +282,7 @@ export function mapTypeScriptProgramFile(
   program: ts.Program,
   fileName: string,
   path = fileName
-): Omit<DevelopmentFileMap, "test_owner"> {
+): Omit<DevelopmentFileMap, "anchor_test"> {
   const absolute = resolve(fileName);
   const source =
     program.getSourceFile(absolute) ??
@@ -358,7 +358,7 @@ export async function buildDevelopmentSymbolMap(
 
   for (const owner of resolution.source_owners) {
     const local = localPath(owner.source);
-    let mapped: Omit<DevelopmentFileMap, "test_owner"> | null = null;
+    let mapped: Omit<DevelopmentFileMap, "anchor_test"> | null = null;
     const program = programForPath(programs, local);
 
     if (program) {
@@ -385,7 +385,7 @@ export async function buildDevelopmentSymbolMap(
 
     const file: DevelopmentFileMap = {
       ...mapped,
-      test_owner: owner.anchor_test,
+      anchor_test: owner.anchor_test,
     };
 
     const wholeCandidate = { ...base, files: [...base.files, file] };
@@ -398,7 +398,7 @@ export async function buildDevelopmentSymbolMap(
       path: file.path,
       imports: [],
       symbols: [],
-      test_owner: file.test_owner,
+      anchor_test: file.anchor_test,
     };
     for (const imported of file.imports) {
       const nextFile = {

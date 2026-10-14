@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { manageAnimationControllerParameters } from "@/server/tools/animation-controller";
 
 async function source(path: string): Promise<string> {
-  return Bun.file(path).text();
+  const paths = path === "server/tools/animation/controller.ts" ? ["server/tools/animation/controller.ts","server/tools/animation/controllerSchema.ts","server/tools/animation/controllerState.ts","server/tools/animation/controllerPlanner.ts"] : [path];
+  return (await Promise.all(paths.map((owner) => Bun.file(owner).text()))).join("\n");
 }
 
 describe("AnimationController mutation closure", () => {
@@ -91,12 +92,13 @@ describe("AnimationController mutation closure", () => {
   test("implementation preflights a plan then applies one native Undo transaction", async () => {
     const controller = await source("server/tools/animation/controller.ts");
     expect(controller).toContain("applyOperationToPlan");
-    expect(controller).toContain("validateFinalPlan(plan)");
+    expect(controller).toContain("validateFinalControllerPlan(plan)");
     expect(controller).toContain("Undo.initEdit({ animation_controllers:");
     expect(controller).toContain("controller.extend as");
     expect(controller).toContain("controller.add(false)");
     expect(controller).toContain("Undo.cancelEdit(true)");
-    expect(controller).toContain('execution: "applied" as const');
+    expect(controller).toContain('execution: "applied"');
+    expect(controller).toContain("animationControllerReceipt({");
     expect(controller).toContain("structuredContent: result");
     expect(controller).not.toContain(".addTransition(");
     expect(controller).not.toContain(".addAnimation(");
@@ -123,7 +125,7 @@ describe("AnimationController mutation closure", () => {
 
   test("mutation stays inside the existing animation family and generated docs owner", async () => {
     const [registration, manifest, inspection] = await Promise.all([
-      source("server/runtime/registration.ts"), source("build/docs-manifest.ts"), source("server/tools/animation-inspection.ts"),
+      source("server/runtime/registration.ts"), source("scripts/generate/internal/docs-manifest.ts"), source("server/tools/animation/inspection.ts"),
     ]);
     expect(registration).toContain("registerAnimationControllerTools");
     expect(registration).toContain("registerAnimationFamilyTools");

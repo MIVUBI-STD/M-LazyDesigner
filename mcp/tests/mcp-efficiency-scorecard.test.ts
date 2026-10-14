@@ -150,7 +150,7 @@ describe("MCP efficiency scorecard", () => {
   test("implemented optimizations reuse the existing Runtime surface", () => {
     const report = runMcpEfficiencyScorecard();
 
-    expect(report.static_surface.runtime_tool_count).toBe(54);
+    expect(report.static_surface.runtime_tool_count).toBe(47);
     expect(report.static_surface.reused_primitive_count).toBe(12);
     expect(report.static_surface.new_public_capabilities_required).toBe(0);
     expect(report.static_surface.reused_primitive_static_bytes).toBeGreaterThan(0);

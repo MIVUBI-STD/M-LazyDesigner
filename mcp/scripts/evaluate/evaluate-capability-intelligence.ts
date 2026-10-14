@@ -100,6 +100,17 @@ function round(value: number): number {
 }
 
 const tools = runtimeTools();
+// UV Graph contracts are prewired, but manage_uv_layout is not registered.
+// Keep these scenarios visible without claiming executable Runtime coverage.
+const unavailableCases = BRANCH_CASES.filter((testCase) =>
+  !tools.some((tool) => tool.name === testCase.expected)
+);
+if (unavailableCases.some((testCase) => testCase.expected !== "manage_uv_layout")) {
+  throw new Error("Unexpected missing registered capability in evaluation corpus.");
+}
+const executableCases = BRANCH_CASES.filter((testCase) =>
+  !unavailableCases.includes(testCase)
+);
 let top1 = 0;
 let top3 = 0;
 let resultChars = 0;
@@ -144,7 +155,7 @@ const branchMisses: Array<{
   actual: unknown;
 }> = [];
 
-for (const testCase of BRANCH_CASES) {
+for (const testCase of executableCases) {
   const [result] = searchCapabilityCatalog(
     tools,
     testCase.query,
@@ -174,11 +185,12 @@ const report = {
   proof: "actual Gateway capability retrieval path; local deterministic search, no model/API/embedding call",
   catalog_tool_count: tools.length,
   case_count: caseCount,
-  branch_case_count: BRANCH_CASES.length,
+  branch_case_count: executableCases.length,
+  unavailable_cases: unavailableCases.map((testCase) => ({ query: testCase.query, capability: testCase.expected, status: "NOT_REGISTERED" })),
   metrics: {
     top_1_accuracy: round(top1 / Math.max(caseCount, 1)),
     top_3_recall: round(top3 / Math.max(caseCount, 1)),
-    branch_accuracy: round(branchCorrect / BRANCH_CASES.length),
+    branch_accuracy: round(branchCorrect / executableCases.length),
     average_projected_search_chars: Math.round(resultChars / Math.max(resultCount, 1)),
     precondition_mode: "three_state_ready_unknown_blocked",
   },
@@ -186,6 +198,8 @@ const report = {
   misses,
   branch_misses: branchMisses,
 };
+
+console.log(JSON.stringify(report, null, 2));
 
 if (report.catalog_tool_count !== 54) {
   throw new Error(
@@ -205,5 +219,3 @@ if (report.metrics.average_projected_search_chars > 1800) {
     `Capability search projection exceeded compact-output guard: ${report.metrics.average_projected_search_chars} chars`
   );
 }
-
-console.log(JSON.stringify(report, null, 2));

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { evaluateCodexSessionPolicy } from "@/scripts/evaluate-codex-session-policy";
+import { evaluateCodexSessionPolicy } from "@/scripts/evaluate/evaluate-codex-session-policy";
 
 const base = {
   task_class: "DIRECT",

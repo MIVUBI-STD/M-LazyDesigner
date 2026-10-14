@@ -3,7 +3,7 @@ import {
   RuntimeProjectContextError,
   getRuntimeProjectHealth,
   runWithRuntimeProjectAffinity,
-} from "@/server/net";
+} from "@/server/projectAffinity";
 
 const originalProject = (globalThis as any).Project;
 const originalModelProject = (globalThis as any).ModelProject;

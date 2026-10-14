@@ -26,7 +26,7 @@ describe("cross-phase reference fidelity contract", () => {
 
   test("texturing preserves geometry ownership and judges mapped-surface fidelity", async () => {
     const source = normalized(
-      await repoFile(".agents/skills/lazydesigner-texturing/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-texturing/SKILL.md"), repoFile(".agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"))
     );
 
     expect(source).toContain("reference fidelity contract");
@@ -38,7 +38,7 @@ describe("cross-phase reference fidelity contract", () => {
 
   test("animation uses reference poses but refuses to compensate for a wrong rig", async () => {
     const source = normalized(
-      await repoFile(".agents/skills/lazydesigner-animation/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-animation/SKILL.md"), repoFile(".agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n"))
     );
 
     expect(source).toContain("keyframe reference fidelity contract");
@@ -50,13 +50,13 @@ describe("cross-phase reference fidelity contract", () => {
 
   test("reference fidelity remains qualitative and first-cause ordered across phases", async () => {
     const geometry = normalized(
-      await repoFile(".agents/skills/lazydesigner-modelling/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-modelling/SKILL.md"), repoFile(".agents/skills/lazydesigner-modelling/references/verification.md"), repoFile(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n"))
     );
     const texturing = normalized(
-      await repoFile(".agents/skills/lazydesigner-texturing/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-texturing/SKILL.md"), repoFile(".agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"))
     );
     const animation = normalized(
-      await repoFile(".agents/skills/lazydesigner-animation/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-animation/SKILL.md"), repoFile(".agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n"))
     );
 
     expect(geometry).toContain("correct first cause");

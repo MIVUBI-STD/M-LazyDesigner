@@ -9,7 +9,7 @@ describe("on-demand texture authoring knowledge", () => {
     const [resource, index, skill] = await Promise.all([
       source("server/resources/texture-authoring-knowledge.ts"),
       source("server/index.ts"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
     ]);
 
     expect(index).toContain('import "./resources/texture-authoring-knowledge"');
@@ -27,7 +27,7 @@ describe("on-demand texture authoring knowledge", () => {
   });
 
   test("knowledge remains reference grammar instead of copied image assets or network dependency", async () => {
-    const vanilla = await source("lib/textureVanillaKnowledge.ts");
+    const vanilla = await source("lib/texture/vanillaKnowledge.ts");
     expect(vanilla).toContain("runtime_network_required: false");
     expect(vanilla).toContain("copied_texture_assets_required: false");
     expect(vanilla).toContain("inferring render_profile from surface_pattern");

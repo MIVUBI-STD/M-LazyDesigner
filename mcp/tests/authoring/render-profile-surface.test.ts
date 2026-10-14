@@ -40,7 +40,7 @@ describe("render profile authoring surface", () => {
 
   test("texturing guidance routes runtime render behavior without renaming the PBR facade", async () => {
     const [skill, renderStandard, surfaceStandard] = await Promise.all([
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
       source("../docs/03-authoring/texture/render-profile.md"),
       source("../docs/03-authoring/texture/surface-pattern.md"),
     ]);

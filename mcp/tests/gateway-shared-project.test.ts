@@ -13,9 +13,9 @@ describe("Gateway shared TypeScript project", () => {
       expect.arrayContaining([
         "lib/runtime/fetch.ts",
         "lib/runtime/connection.ts",
-        "lib/capabilityMetadata.ts",
+        "lib/capabilities/metadata.ts",
         "lib/capabilities/manifest.ts",
-        "lib/authoringPhase.ts",
+        "lib/capabilities/authoringStage.ts",
         "lib/capabilities/registrationProfile.ts",
       ])
     );

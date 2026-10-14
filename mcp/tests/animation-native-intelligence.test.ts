@@ -239,10 +239,10 @@ describe("Bedrock animation native intelligence", () => {
 
   test("runtime wiring expands capability without adding another MCP tool", async () => {
     const [runtime, bootstrap, server, skill] = await Promise.all([
-      Bun.file("server/tools/animation-native-intelligence.ts").text(),
+      Bun.file("server/runtime/extensions/animation/nativeIntelligence.ts").text(),
       Bun.file("server/runtime/extensions.ts").text(),
       Bun.file("server/server.ts").text(),
-      Bun.file("../.agents/skills/lazydesigner-animation/SKILL.md").text(),
+      Promise.all([Bun.file("../.agents/skills/lazydesigner-animation/SKILL.md").text(), Bun.file("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md").text()]).then((parts) => parts.join("\n")),
     ]);
 
     expect(runtime).toContain('operation: z.literal("properties")');
@@ -259,7 +259,7 @@ describe("Bedrock animation native intelligence", () => {
   });
 
   test("graph editor preserves continuation evidence for bounded visual verification", async () => {
-    const source = await Bun.file("server/tools/animation-keyframes.ts").text();
+    const source = await Bun.file("server/tools/animation/keyframes.ts").text();
     const graphStart = source.indexOf("animationGraphEditorToolDoc.name");
     const graphBody = source.slice(graphStart);
 

@@ -9,9 +9,9 @@ describe("LazyDesigner asset routing", () => {
     const root = await source("../AGENTS.md");
 
     expect(root).toContain("LazyDesigner Control is the canonical routing/context authority");
-    expect(root).toContain("Control active stage/context");
-    expect(root).toContain("exact known Runtime capability");
-    expect(root).toContain("reuse returned state + control_delta");
+    expect(root).toContain("Control stage/context");
+    expect(root).toContain("exact known capability");
+    expect(root).toContain("reuse returned state/control_delta");
     expect(root).not.toContain("→ .agents/skills/blockit-bedrock-entity-mcp/SKILL.md");
     expect(root).not.toContain("router + matching specialist");
   });
@@ -34,7 +34,7 @@ describe("LazyDesigner asset routing", () => {
 
   test("authoring context loads only the active specialist and one Geometry profile", async () => {
     const [contexts, root] = await Promise.all([
-      source("gateway/control/contexts.ts"),
+      Promise.all([source("gateway/control/contexts.ts"), source("gateway/context/authoring.ts")]).then((parts) => parts.join("\n")),
       source("../AGENTS.md"),
     ]);
 
@@ -42,19 +42,19 @@ describe("LazyDesigner asset routing", () => {
     expect(contexts).toContain('.agents/skills/lazydesigner-texturing/SKILL.md');
     expect(contexts).toContain('.agents/skills/lazydesigner-animation/SKILL.md');
     expect(contexts).toContain("PROFILE_PATHS[selectedProfile]");
-    expect(root).toContain("exactly one selected modelling profile");
+    expect(await source("../.agents/skills/lazydesigner-modelling/SKILL.md")).toContain("exactly one selected profile");
     expect(root).toContain("Do not preload sibling specialists or all profiles");
   });
 
   test("Geometry and Texturing share AUTHORING while Animation remains the handoff boundary", async () => {
     const [root, texturing, animation] = await Promise.all([
       source("../AGENTS.md"),
-      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
-      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n")),
+      Promise.all([source("../.agents/skills/lazydesigner-animation/SKILL.md"), source("../.agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n")),
     ]);
 
-    expect(root).toContain("Geometry↔Texturing use the shared AUTHORING Runtime Surface");
-    expect(root).toContain("Animation remains the only Runtime Surface handoff boundary");
+    expect(root).toContain("Geometry↔Texturing share the AUTHORING Runtime Surface");
+    expect(root).toContain("Animation is the Runtime Surface handoff boundary");
     expect(texturing).toContain("No Geometry↔Texturing Runtime Surface switch");
     expect(animation).toContain("HANDOFF_REQUIRED");
     expect(animation).toContain("switch_authoring_phase");
@@ -82,7 +82,7 @@ describe("LazyDesigner asset routing", () => {
     const [root, controlReadme, modelling] = await Promise.all([
       source("../AGENTS.md"),
       source("gateway/control/README.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n")),
     ]);
 
     for (const owner of [root, controlReadme, modelling]) {
@@ -95,7 +95,7 @@ describe("LazyDesigner asset routing", () => {
 
   test("internal extended registration identifier remains developer compatibility only", async () => {
     const [profile, settings] = await Promise.all([
-      source("lib/registrationProfile.ts"),
+      source("lib/capabilities/registrationProfile.ts"),
       source("ui/settings.ts"),
     ]);
 

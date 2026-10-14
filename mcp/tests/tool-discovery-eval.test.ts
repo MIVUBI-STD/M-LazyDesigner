@@ -97,7 +97,7 @@ describe("tool discovery eval", () => {
     );
 
     expect(raw.enabled_tool_count).toBe(54);
-    expect(raw.expected_tool_count).toBe(38);
+    expect(raw.expected_tool_count).toBe(40);
     expect(raw.case_count).toBe(108);
     expect(raw.missing_expected_tools).toEqual([]);
     expect(raw.upstream_reference.default_limit).toBe(8);

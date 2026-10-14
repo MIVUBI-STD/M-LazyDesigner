@@ -44,11 +44,11 @@ describe("adaptive cuboid budget policy", () => {
     expect(skill).toContain("representation choice");
     expect(skill).toContain("No per-Cube plan");
     expect(skill).toContain("No orphan/filler Cube");
-    expect(skill).toContain("Decide representation **before** counting Cubes");
-    expect(skill).toContain("anti-overcube guardrail, not a classifier");
+    expect(skill).toContain("Before exact coordinates, determine:");
+    expect(skill).toContain("docs/03-authoring/modelling/standard.md");
     expect(skill).toContain("PLANAR_CUTOUT_CARRIER");
     expect(skill).toContain("SEGMENTED_FORM");
-    expect(skill).toContain("simplest recognizable Blockbench-buildable interpretation");
+    expect(skill).toContain("representation: geometry | texture | animation | omit");
     expect(skill).toMatch(/do not create one Cube per MCP call/i);
   });
 });

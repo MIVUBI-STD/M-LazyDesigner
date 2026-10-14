@@ -25,7 +25,7 @@ describe("LazyDesigner correction convergence contract", () => {
 
   test("geometry reuses exact state and blocks repeated same-cause correction", async () => {
     const geometry = normalized(
-      await repoFile(".agents/skills/lazydesigner-modelling/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-modelling/SKILL.md"), repoFile(".agents/skills/lazydesigner-modelling/references/verification.md"), repoFile(".agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n"))
     );
 
     expect(geometry).toContain("local correction / convergence");
@@ -36,7 +36,7 @@ describe("LazyDesigner correction convergence contract", () => {
 
   test("texturing refreshes only stale evidence and does not guess a third variant", async () => {
     const texturing = normalized(
-      await repoFile(".agents/skills/lazydesigner-texturing/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-texturing/SKILL.md"), repoFile(".agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"))
     );
 
     expect(texturing).toContain("correction convergence");
@@ -48,7 +48,7 @@ describe("LazyDesigner correction convergence contract", () => {
 
   test("animation reuses timeline state and refuses denser-key retry loops", async () => {
     const animation = normalized(
-      await repoFile(".agents/skills/lazydesigner-animation/SKILL.md")
+      await Promise.all([repoFile(".agents/skills/lazydesigner-animation/SKILL.md"), repoFile(".agents/skills/lazydesigner-animation/references/fidelity-correction-evidence.md")]).then((parts) => parts.join("\n"))
     );
 
     expect(animation).toContain("correction convergence");

@@ -561,9 +561,9 @@ export function assertToolDiscoveryEvalIntegrity(
   if (report.case_count < 100 || report.case_count > 150) {
     failures.push(`case_count=${report.case_count}; expected 100..150`);
   }
-  if (report.expected_tool_count !== 38) {
+  if (report.expected_tool_count !== 40) {
     failures.push(
-      `expected_tool_count=${report.expected_tool_count}; expected 38`
+      `expected_tool_count=${report.expected_tool_count}; expected 40`
     );
   }
   if (report.missing_expected_tools.length > 0) {

@@ -77,7 +77,8 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(verify.removed_calls).toBe(0);
     expect(verify.added_calls).toBe(0);
     expect(verify.net_call_delta).toBe(0);
-    expect(verify.redundant_baseline_calls).toBe(0);
+    // The unsafe expired-evidence reuse is replaced by a fresh verification.
+    expect(verify.redundant_baseline_calls).toBe(1);
     expect(
       report.eliminated_waste_ranking.some((row) => row.kind === "verify")
     ).toBe(false);
@@ -106,7 +107,10 @@ describe("Zero-Waste bottleneck ranking", () => {
     expect(
       report.totals.removed_calls - report.totals.added_calls
     ).toBe(report.totals.net_saved_calls);
-    expect(mutate.removed_bytes).toBeGreaterThan(0);
+    expect(mutate.removed_bytes).toBe(Math.max(0,
+      mutate.baseline_bytes - mutate.optimized_bytes));
+    expect(mutate.added_bytes).toBe(Math.max(0,
+      mutate.optimized_bytes - mutate.baseline_bytes));
     expect(recovery.added_bytes).toBeGreaterThan(0);
     expect(
       report.totals.removed_bytes - report.totals.added_bytes

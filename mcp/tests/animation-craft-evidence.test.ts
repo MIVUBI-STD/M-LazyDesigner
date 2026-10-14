@@ -119,8 +119,8 @@ test("speed-shape variability is bounded diagnostic evidence, not an automatic f
       keyframes: [
         { time: 0, value: [0, 0, 0] },
         { time: 0.1, value: [10, 0, 0] },
-        { time: 0.9, value: [11, 0, 0] },
-        { time: 1, value: [21, 0, 0] },
+        { time: 0.9, value: [10.1, 0, 0] },
+        { time: 1, value: [10.11, 0, 0] },
       ],
     }],
   });

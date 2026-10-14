@@ -1,5 +1,7 @@
 /// <reference types="blockbench-types" />
 
+declare const THREE: typeof import("three");
+
 /**
  * Captures solid Cube geometry from the existing offscreen Preview without
  * touching authored meshes, materials, group visibility, or the editor camera.

@@ -44,8 +44,8 @@ function setup(options: { hidden?: boolean; renderFails?: boolean; restoreFails?
       return {
         isMesh: true, geometry: this.geometry,
         material: this.material, visible: this.visible,
-        matrixAutoUpdate: true, matrix: { copy(matrix: any) { this.matrixSource = matrix; } },
-        matrixWorld: { copy(matrix: any) { this.matrixSource = matrix; } },
+        matrixAutoUpdate: true, matrix: { matrixSource: undefined as unknown, copy(matrix: any) { this.matrixSource = matrix; } },
+        matrixWorld: { matrixSource: undefined as unknown, copy(matrix: any) { this.matrixSource = matrix; } },
         frustumCulled: true,
       };
     },

@@ -37,7 +37,7 @@ describe("Geometry identity and duplication hardening", () => {
   test("duplicate_element delegates property fidelity to native duplication and supports anchors", async () => {
     const [source, shared] = await Promise.all([
       Bun.file("server/tools/element/mutation.ts").text(),
-      Bun.file("server/tools/element-shared.ts").text(),
+      Bun.file("server/tools/element/shared.ts").text(),
     ]);
     const start = source.indexOf("createTool(elementMutationToolDocs[1].name");
     const end = source.indexOf("createTool(elementMutationToolDocs[2].name", start);

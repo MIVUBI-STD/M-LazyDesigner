@@ -115,12 +115,12 @@ describe("resolveGatewayCapabilityEffects", () => {
   test("accepts complete affinity receipts", () => {
     const created = resolveGatewayCapabilityEffects(
       "create_project",
-      { project: { uuid: "project-123" } },
+      { project: { uuid: "project-123", name: "fixture", save_path: null, export_path: null, export_codec: null, saved: false }, format: { id: "bedrock" }, resolution: { texture_width: 128, texture_height: 128 } },
       null
     );
     const switched = resolveGatewayCapabilityEffects(
       "switch_authoring_phase",
-      { phase: "animation", surface_changed: true },
+      { phase: "animation", surface_changed: true, runtime_surface: "ANIMATION", reason: "fixture", resume_from: "animation", readiness_summary: null, reload_required: false, action: "handoff" },
       "geometry"
     );
 

@@ -66,9 +66,12 @@ describe("BlockIT plugin lifecycle coordinator", () => {
     );
     const second = claimRuntimeGeneration(`sha256:${"4".repeat(64)}`);
 
+    const retired = Promise.allSettled([active, staleQueued]);
     release.resolve();
-    await expect(active).rejects.toBeInstanceOf(RuntimeGenerationRetiredError);
-    await expect(staleQueued).rejects.toBeInstanceOf(RuntimeGenerationRetiredError);
+    expect(await retired).toEqual([
+      { status: "rejected", reason: expect.any(RuntimeGenerationRetiredError) },
+      { status: "rejected", reason: expect.any(RuntimeGenerationRetiredError) },
+    ]);
     expect(
       await runRuntimeOperationExclusive(second.generation, async () => "new-generation")
     ).toBe("new-generation");

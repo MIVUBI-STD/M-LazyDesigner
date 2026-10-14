@@ -3,7 +3,6 @@ import {
   describeNativeAnimationRestorationBoundary,
   NATIVE_ANIMATION_RESTORE_REQUIREMENTS,
 } from "@/lib/animation/nativeRestorationContract";
-import { prepareContactSamplingPlan } from "@/lib/animation/contactMarkerBinding";
 
 const validPlan = {
   state: "PREPARED_SOURCE_ONLY",

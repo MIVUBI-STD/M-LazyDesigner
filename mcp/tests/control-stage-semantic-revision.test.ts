@@ -1,13 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { emptyReference } from "../gateway/control/referenceParser";
 import { buildControlStageContext } from "../gateway/control/contextProjection";
 import { CAPABILITY_SEMANTIC_CATALOG_REVISIONS } from "../gateway/capabilities/semanticRegistry";
 
 describe("control stage semantic revision", () => {
   test("AI stage context carries the canonical semantic revision", () => {
     const context = buildControlStageContext({
-      domain: null,
+      domain: "GEOMETRY",
       currentUserDelta: null,
       reference: {
+        ...emptyReference("REFERENCE_PATH_UNAVAILABLE"),
         version: 1,
         fingerprint: "ref",
         intent: "test",
@@ -25,6 +27,9 @@ describe("control stage semantic revision", () => {
         non_blocking_unknowns: [],
       } as any,
       workspace: {
+        available: false,
+        source_path: null,
+        blockers: [],
         fingerprint: "workspace",
         asset: null,
         current_stage: null,

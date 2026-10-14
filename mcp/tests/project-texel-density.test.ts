@@ -80,11 +80,9 @@ describe("model-wide texel density diagnostics", () => {
   });
 
   test("Texturing routes undersized UV islands upstream instead of painting around them", async () => {
-    const skill = await Bun.file(
-      "../.agents/skills/lazydesigner-texturing/SKILL.md"
-    ).text();
+    const skill = await Promise.all([Bun.file("../.agents/skills/lazydesigner-texturing/SKILL.md").text(), Bun.file("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md").text()]).then((parts) => parts.join("\n"));
     const inspection = await Bun.file(
-      "server/tools/element-inspection.ts"
+      "server/tools/element/inspection.ts"
     ).text();
 
     expect(skill).toMatch(/^## UV(?: Layout Quality)? Gate$/m);

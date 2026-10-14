@@ -1,5 +1,6 @@
 /// <reference types="three" />
 /// <reference types="blockbench-types" />
+declare const THREE: typeof import("three");
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { createTool, type ToolSpec } from "@/lib/factories";
@@ -393,16 +394,16 @@ const uniqueModelViewsSchema = z
 
 export const captureModelViewsParameters = z
   .object({
-  size: z.number().int().min(32).max(1024).optional().describe("Explicit square PNG pixels override. When omitted with evidence_targets, runtime selects 256/384/512 from evidence detail and verification risk. Explicit views without evidence_targets retain the 512 default. 32-64 remains for intentional icons only."),
-  highlight_missing_textures: z.boolean().default(false).describe("Diagnostic capture: brighten native missing-texture materials temporarily. Restores state; not a normal shaded comparison or flashing UI."),
+  size: z.number().int().min(32).max(1024).optional().describe("PNG square size. Omitted: 256/384/512 by evidence_targets detail/risk, else 512. 32-64: icons only."),
+  highlight_missing_textures: z.boolean().default(false).describe("Temporarily brighten missing-texture materials, then restore. Diagnostic only: no shaded comparison/UI flash."),
   reference_correspondence: referenceCorrespondenceSchema.optional().describe(
-    "Opt-in source-region → saved recipe-owned Cube UUID candidate assessment. Source metadata must come from current status image delivery; Runtime verifies current recipe/native Cube identity and returns PROVISIONAL candidates with capture provenance only. No visual PASS or auto-mutation."
+    "Opt-in region→saved recipe Cube UUID candidates. Use current status image metadata. Verify recipe/native identity; PROVISIONAL capture provenance, never visual PASS or mutation."
   ),
   landmark_pairs: z.array(landmarkPairSchema).min(1).max(16).optional().describe(
-    "Optional read-only projected Cube-center landmarks, paired to specific source-image IDs and SHA-256. Requires explicit views; does not calibrate the source camera or judge visual similarity."
+    "Read-only projected Cube-center→image ID/SHA-256 pairs. Explicit views required; no calibration/visual verdict."
   ),
   views: uniqueModelViewsSchema.optional().describe(
-    "Explicit one-to-five canonical views. Omit when evidence_targets can deterministically select the minimum useful set."
+    "Canonical views; omit for minimum evidence_targets coverage."
   ),
   evidence_targets: z
     .array(visualEvidenceTargetEnum)
@@ -410,18 +411,18 @@ export const captureModelViewsParameters = z
     .max(13)
     .optional()
     .describe(
-      "Current unanswered visual claim(s). When views is omitted, runtime deterministically selects canonical views that cover these targets."
+      "Unanswered visual claims. Omitted views deterministically cover these targets."
     ),
   verification_risk: z
     .enum(["LOW", "MEDIUM", "HIGH"])
     .default("LOW")
     .describe(
-      "Risk-aware evidence expansion. LOW keeps minimum useful views; MEDIUM adds one orthogonal view; HIGH ensures front/left/top core coverage when possible."
+      "LOW=minimal; MEDIUM=+1 orthogonal; HIGH=front/left/top if possible."
     ),
   front_direction: z
     .enum(["+z", "-z"])
     .describe(
-      "Explicit object front direction; no default, preventing mirrored comparisons."
+      "Explicit object front, no default: prevents mirrored comparison."
     ),
   framing: z
     .union([
@@ -898,8 +899,8 @@ export function registerCameraTools() {
       const selectedViews = selection.views;
       // Validate actual native recipe ownership before doing expensive captures.
       const requestedCorrespondenceUuids = reference_correspondence
-        ? [...new Set(reference_correspondence.proposals.flatMap(
-            (claim) => claim.native_cube_uuids
+        ? [...new Set<string>(reference_correspondence.proposals.flatMap(
+            (claim: z.infer<typeof referenceCorrespondenceSchema>["proposals"][number]) => claim.native_cube_uuids
           ))]
         : [];
       const correspondenceBefore = reference_correspondence

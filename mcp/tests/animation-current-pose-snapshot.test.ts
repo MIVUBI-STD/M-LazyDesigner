@@ -248,11 +248,11 @@ describe("focused current-native-bone pose snapshot", () => {
   test("missing Locator runtime and missing Group children stay unverified", () => {
     const { animation, group } = setup();
     globals.Locator = undefined;
-    expect(readCurrentBonePoseSnapshot(animation as any, group as any).locator_candidates)
+    expect(observedPose(animation as any, group as any).locator_candidates)
       .toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_LOCATOR_LIST_UNAVAILABLE" });
     globals.Locator = { all: [] };
     (group as any).children = undefined;
-    expect(readCurrentBonePoseSnapshot(animation as any, group as any).locator_candidates)
+    expect(observedPose(animation as any, group as any).locator_candidates)
       .toMatchObject({ state: "UNVERIFIED", reason: "NATIVE_GROUP_CHILDREN_UNAVAILABLE" });
   });
 

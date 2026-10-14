@@ -7,6 +7,8 @@ import {
   projectControlDeltaForGateway,
 } from "../../gateway/control";
 import { projectCapabilityInputSchema } from "../../gateway/capabilities/schemaProjection";
+import { materialMutationReceipt } from "../../lib/receipts/materialMutation";
+import { animationEffectsReceipt as createAnimationEffectsReceipt } from "../../lib/receipts/animationEffects";
 
 export type GoldenTaskResult = {
   task: string;
@@ -176,25 +178,26 @@ function hierarchyReceipt(): GoldenTaskResult {
 }
 
 function materialReceipt(): GoldenTaskResult {
-  const runtime = {
+  const runtime = materialMutationReceipt({
     operation: "configure",
     material: {
       uuid: "mat-a",
       name: "body",
+      is_material: true,
       channels: {
-        color: "tex-color",
+        color: { uuid: "tex-color", name: "body.png" },
         normal: null,
         height: null,
         mer: null,
       },
       config: {
-        color_value: null,
-        mer_value: null,
-        subsurface_value: null,
+        color_value: [255, 255, 255, 255],
+        mer_value: [0, 0, 0],
+        subsurface_value: 0,
         saved: false,
       },
     },
-  };
+  });
   const verboseContent = [
     { type: "text", text: 'Configured material "body".' },
   ];
@@ -226,7 +229,7 @@ function materialReceipt(): GoldenTaskResult {
       material_identity:
         runtime.material.uuid === "mat-a" && runtime.material.name === "body",
       channel_state_preserved:
-        runtime.material.channels.color === "tex-color" &&
+        runtime.material.channels.color.uuid === "tex-color" &&
         runtime.material.config.saved === false,
       receipt_gate_preserved:
         delta.verification_class === "receipt_only" &&
@@ -239,7 +242,7 @@ function materialReceipt(): GoldenTaskResult {
 }
 
 function animationEffectsReceipt(): GoldenTaskResult {
-  const runtime = {
+  const runtime = createAnimationEffectsReceipt({
     animation: { uuid: "anim-a", name: "idle" },
     operation_count: 1,
     results: [
@@ -250,9 +253,11 @@ function animationEffectsReceipt(): GoldenTaskResult {
         data_point_index: 0,
         effect: "mivubi:dust",
         locator: "hand",
+        bind_to_actor: true,
+        pre_effect_script: null,
       },
     ],
-  };
+  });
   const verboseContent = [
     { type: "text", text: "Managed 1 animation effect operation(s)." },
   ];

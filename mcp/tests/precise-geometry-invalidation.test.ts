@@ -49,8 +49,8 @@ describe("precise geometry invalidation from receipts", () => {
           },
         },
       });
-      expect(delta.freshness.stale).toEqual(expectedStale);
-      expect(delta.invalidates.authoring_domains).toEqual(expectedDomains);
+      expect(delta.freshness.stale).toEqual([...expectedStale]);
+      expect(delta.invalidates.authoring_domains).toEqual([...expectedDomains]);
     }
     const subtreeTranslation = buildControlDelta({
       capability: "modify_group", phaseBefore: "geometry", phaseAfter: "geometry",

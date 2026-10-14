@@ -149,7 +149,7 @@ describe("model creation effectiveness — correction accuracy", () => {
   test("modelling owner requires a declared invariant before numeric correction", async () => {
     const [geometry, modelling] = await Promise.all([
       source("../docs/03-authoring/modelling/standard.md"),
-      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md")]).then((parts) => parts.join("\n")),
     ]);
     for (const text of [geometry, modelling]) {
       expect(text.toLowerCase()).toContain("invariant");
@@ -158,9 +158,10 @@ describe("model creation effectiveness — correction accuracy", () => {
       expect(text).toContain("ROTATE");
     }
     expect(geometry).toContain("geometry_effect");
-    expect(modelling).toContain("State target UUID(s), cause, intended change, invariant");
+    expect(modelling).toContain("geometry_operations = exact semantic operation(s)");
+    expect(modelling).toContain("invariant");
     expect(modelling).toContain(
-      "Reuse fresh exact authored state; otherwise `inspect_elements(mode=detail)` once."
+      "Reuse fresh exact authored state; otherwise inspect once."
     );
   });
 

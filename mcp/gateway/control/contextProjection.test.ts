@@ -194,6 +194,8 @@ describe("Control stage semantic projection", () => {
         parent: "torso",
         motion: "ARTICULATED",
         evidence: "SUPPORTED",
+        uv_cohort: "limb", uv_density_multiplier: 1,
+        uv_identity_priority: "LOW", uv_reuse_policy: "ALLOW_REUSE",
       },
     ]);
     expect(geometry.articulation?.[0]).toEqual({

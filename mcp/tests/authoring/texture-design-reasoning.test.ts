@@ -7,8 +7,8 @@ async function source(path: string): Promise<string> {
 describe("texture design reasoning", () => {
   test("canonical texture standard separates UV Layout, Texture Atlas, Texture Styling, and Texture Verify", async () => {
     const standard = await source("../docs/03-authoring/texture/standard.md");
-    const modelling = await source("../.agents/skills/lazydesigner-modelling/SKILL.md");
-    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const modelling = await Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n"));
+    const texturing = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
 
     for (const term of [
       "UV LAYOUT",
@@ -23,13 +23,14 @@ describe("texture design reasoning", () => {
     ]) expect(standard.toUpperCase()).toContain(term.toUpperCase());
 
     expect(standard).toContain("Texture Styling supports geometry; it does not repair geometry");
-    expect(modelling).toContain("Use texture for surface information");
+    expect(modelling).toContain("surface-only detail reserved for Texture");
+    expect(await source("../docs/03-authoring/modelling/standard.md")).toContain("Use Texture for surface information");
     expect(texturing.toLowerCase()).toContain("atlas");
     expect(texturing).toContain("Texture Styling");
   });
 
   test("texture workflow requires staged material and form reasoning rather than a flat color fill", async () => {
-    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const texturing = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
 
     for (const term of [
       "palette",
@@ -55,7 +56,7 @@ describe("texture design reasoning", () => {
   });
 
   test("texturing specialist closes a face coverage ledger before visual approval", async () => {
-    const texturing = await source("../.agents/skills/lazydesigner-texturing/SKILL.md");
+    const texturing = await Promise.all([source("../.agents/skills/lazydesigner-texturing/SKILL.md"), source("../.agents/skills/lazydesigner-texturing/references/fidelity-styling-verification.md")]).then((parts) => parts.join("\n"));
 
     expect(texturing).toContain("Face Coverage Ledger");
     for (const state of [
@@ -75,7 +76,7 @@ describe("texture design reasoning", () => {
   test("workflow prompt contains texture material and form stages", async () => {
     const [workflow, contract] = await Promise.all([
       source("prompts/bedrock_entity_workflow.md"),
-      source("lib/promptContract.ts"),
+      source("lib/prompts/contract.ts"),
     ]);
 
     expect(workflow).toContain("## Texture Styling");
