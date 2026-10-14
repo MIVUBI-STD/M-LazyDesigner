@@ -8,6 +8,7 @@ import { createTool } from "@/lib/factories";
 import createNetServer, { type NetServer } from "@/server/net"; 
 import { RUNTIME_AUTH_HEADER } from "@/lib/runtime/authorization";
 import { MCP_SERVER_INSTRUCTIONS } from "@/server/server";
+import { readRequestEnvelope, validateMcpRoutingHeaders } from "@/server/requestProtocol";
 
 const HOST = "127.0.0.1";
 const ENDPOINT = "/bb-mcp";
@@ -340,7 +341,60 @@ describe("P1.4 raw-net stateless integration", () => {
     );
 
     expect(rawHttpStatus(response)).toBe(400);
-    expect(response).toContain("routing headers disagree");
+    expect(response).toContain('"code":-32020');
+    expect(response).toContain('"id":88');
+  });
+
+  test("2026 missing routing headers fail closed while legacy clients remain accepted", async () => {
+    const body = JSON.stringify({
+      jsonrpc: "2.0", id: 602, method: "tools/call",
+      params: {
+        name: FIXTURE_TOOL, arguments: { value: "not-run" },
+        _meta: {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientCapabilities": {},
+        },
+      },
+    });
+    for (const omitted of ["mcp-method", "mcp-name", "mcp-protocol-version"]) {
+      const headers = closedHeaders({
+        "content-type": "application/json",
+        accept: "application/json, text/event-stream",
+        "mcp-protocol-version": "2026-07-28",
+        "mcp-method": "tools/call",
+        "mcp-name": FIXTURE_TOOL,
+      });
+      headers.delete(omitted);
+      const response = await fetch(`${baseUrl}${ENDPOINT}`, { method: "POST", headers, body });
+      expect(response.status).toBe(400);
+      const result = await bodyJson(response);
+      expect((result.error as { code?: number }).code).toBe(-32020);
+      expect(result.id).toBe(602);
+    }
+    const legacy = await postMcp({
+      jsonrpc: "2.0", id: 603, method: "tools/list", params: {},
+    }, { protocolVersion: true });
+    expect(legacy.status).toBe(200);
+  });
+
+  test("2026 routing guard decodes Mcp-Name but refuses malformed/mismatched base64", () => {
+    const envelope = readRequestEnvelope(JSON.stringify({
+      jsonrpc: "2.0", id: 604, method: "tools/call",
+      params: {
+        name: FIXTURE_TOOL, arguments: { value: "base64" },
+        _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28" },
+      },
+    }));
+    const headers = { protocolVersion: "2026-07-28", method: "tools/call" };
+    expect(validateMcpRoutingHeaders(envelope, {
+      ...headers, name: `=?base64?${Buffer.from(FIXTURE_TOOL).toString("base64")}?=`,
+    })).toBeNull();
+    expect(validateMcpRoutingHeaders(envelope, {
+      ...headers, name: "=?base64?!!?=",
+    })).toMatchObject({ code: -32020 });
+    expect(validateMcpRoutingHeaders(envelope, {
+      ...headers, name: `=?base64?${Buffer.from("another_tool").toString("base64")}?=`,
+    })).toMatchObject({ code: -32020 });
   });
 
   test("modern 2026 POST accepts JSON or SSE representation without outer rejection", async () => {

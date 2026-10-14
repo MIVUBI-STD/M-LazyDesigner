@@ -49,7 +49,8 @@ import {
 import {
   isSuccessfulToolCallResponse,
   projectContextErrorBody,
-  readRequestEnvelope
+  readRequestEnvelope,
+  validateMcpRoutingHeaders
 } from '@/server/requestProtocol'
 import {
   handleStatelessMcpRequest,
@@ -138,6 +139,7 @@ export default function createNetServer (
           rawHeaderCount(request, 'host') > 1 ||
           rawHeaderCount(request, 'origin') > 1 || 
           rawHeaderCount(request, RUNTIME_AUTH_HEADER) > 1 ||
+          rawHeaderCount(request, 'mcp-protocol-version') > 1 ||
           rawHeaderCount(request, 'mcp-method') > 1 ||
           rawHeaderCount(request, 'mcp-name') > 1 ||
           (request.httpVersion === '1.1' && hostHeader === undefined)
@@ -386,27 +388,26 @@ export default function createNetServer (
         const routedMethodHeader = singleRequestHeader(request, 'mcp-method')
         const routedNameHeader = singleRequestHeader(request, 'mcp-name')
 
-        if (
-          (routedMethodHeader && envelope.method && routedMethodHeader !== envelope.method) ||
-          (
-            routedNameHeader &&
-            envelope.capability &&
-            routedNameHeader !== envelope.capability
-          )
-        ) {
+        const routingFailure = validateMcpRoutingHeaders(envelope, {
+          protocolVersion: singleRequestHeader(request, 'mcp-protocol-version'),
+          method: routedMethodHeader,
+          name: routedNameHeader
+        })
+        if (routingFailure) {
           sendNodeResponse(
             response,
             400,
             { 'content-type': 'application/json' },
-            jsonErrorBody('Bad Request: MCP routing headers disagree with the JSON-RPC body'),
+            jsonErrorBody(routingFailure.message, envelope.id, routingFailure.code),
             true
           )
           return
         }
 
-        const routedMethod = routedMethodHeader ?? envelope.method
+        // Trust the parsed JSON-RPC body for all native routing decisions.
+        const routedMethod = envelope.method
         const routedCapability = routedMethod === 'tools/call'
-          ? routedNameHeader ?? envelope.capability
+          ? envelope.capability
           : null
         const capabilityEffects = routedCapability
           ? getCapabilityMetadata(routedCapability).effects
