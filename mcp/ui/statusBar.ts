@@ -16,6 +16,12 @@ export const BLOCKIT_RUNTIME_STATUS_CHANGED = "blockit-runtime-status-changed";
 
 let currentStatus: BlockItRuntimeStatusDetail = { state: "starting" };
 
+// A panel mounted after a state transition must not fabricate Runtime readiness.
+// Return a defensive snapshot; the status bar remains the single status owner.
+export function getStatusBarState(): { state: McpServerStatus; detail: string } {
+  return { state: currentStatus.state, detail: currentStatus.detail ?? "" };
+}
+
 function statusLabel(state: McpServerStatus): string {
   if (state === "starting") return "LazyDesigner Starting";
   if (state === "failed") return "LazyDesigner Needs Attention";

@@ -4,6 +4,28 @@ const source = (relative: string) =>
   Bun.file(new URL(`../${relative}`, import.meta.url)).text();
 
 describe("human-facing Blockbench UI", () => {
+  test("late-mounted plugin panels never default to false Runtime-ready status", async () => {
+    const [ui, bar] = await Promise.all([source("ui/index.ts"), source("ui/statusBar.ts")]);
+    expect(bar).toContain("export function getStatusBarState()");
+    expect(bar).toContain("state: currentStatus.state");
+    expect(bar).toContain('detail: currentStatus.detail ?? ""');
+    expect(ui).toContain("runtime: getStatusBarState()");
+    expect(ui).toContain("const current = getStatusBarState()");
+    expect(ui).toContain("vm.runtime.state = current.state");
+    expect(ui).not.toContain('state: "running" as McpServerStatus');
+  });
+
+  test("Desktop UI labels versions and actions without presenting a fake menu", async () => {
+    const app = await Bun.file(new URL("../../apps/desktop/src/App.svelte", import.meta.url)).text();
+    expect(app).toContain("import { version as desktopVersion } from '../package.json'");
+    expect(app).toContain("<strong>{desktopVersion}</strong>");
+    expect(app).toContain("LazyDesigner Desktop version");
+    expect(app).not.toContain("<strong>0.1.0</strong>");
+    expect(app).toContain('title="Show Blockbench plugin file"');
+    expect(app).toContain(">Plugin file</button>");
+    expect(app).not.toContain('aria-label="Blockbench actions"');
+  });
+
   test("normal panel exposes only human status and useful project actions", async () => {
     const panel = await source("ui/panel.html");
 

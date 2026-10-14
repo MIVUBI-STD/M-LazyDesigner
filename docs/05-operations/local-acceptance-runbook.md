@@ -270,6 +270,23 @@ repeated connection probes fail
 → Refresh remains available
 ```
 
+### UI status and labeling checks before native sign-off
+
+In Blockbench, open the LazyDesigner panel while the Runtime is starting,
+then after a deliberate Runtime startup failure on a disposable test profile.
+The status-bar button and a newly mounted panel must agree: **Starting** or
+**Needs attention** until the Runtime actually reports ready. The panel must
+not start at **Runtime ready** merely because it mounted after the status event.
+Confirm the recovery action and copied error details remain available.
+
+In Desktop, verify the About section displays the Desktop package version,
+not a hard-coded version or the managed component build identity. The
+Blockbench **Plugin file** action must directly reveal the plugin file and
+must not appear as a menu disclosure. A failed status observation must
+keep stale-state actions disabled while **Refresh** and diagnostic export
+remain available. Treat a screenshot or source test as preparation, not a
+substitute for user observation.
+
 ### Recovery matrix
 
 Prove each applicable state independently:

@@ -7,6 +7,7 @@ import {
 } from "@/plugin/reload";
 import {
   BLOCKIT_RUNTIME_STATUS_CHANGED,
+  getStatusBarState,
   statusBarSetup,
   statusBarTeardown,
   type BlockItRuntimeStatusDetail,
@@ -134,6 +135,10 @@ export function uiSetup(input: UiSetupInput) {
           vm.runtime.detail = detail.detail ?? "";
         };
         document.addEventListener(BLOCKIT_RUNTIME_STATUS_CHANGED, statusHandler);
+        // Catch any transition that happened before this panel mounted.
+        const current = getStatusBarState();
+        vm.runtime.state = current.state;
+        vm.runtime.detail = current.detail;
         runtimeStatusListener?.();
         runtimeStatusListener = () =>
           document.removeEventListener(BLOCKIT_RUNTIME_STATUS_CHANGED, statusHandler);
@@ -155,10 +160,7 @@ export function uiSetup(input: UiSetupInput) {
         projectStateListener = undefined;
       },
       data: () => ({
-        runtime: {
-          state: "running" as McpServerStatus,
-          detail: "",
-        },
+        runtime: getStatusBarState(),
         project: readHumanProjectState(),
         canReload: canReloadLazyDesignerPlugin(),
       }),

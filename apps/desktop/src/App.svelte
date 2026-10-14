@@ -3,6 +3,7 @@
   import { listen } from '@tauri-apps/api/event';
   import { onDestroy, onMount, tick } from 'svelte';
   import ProjectNavigator from './ProjectNavigator.svelte';
+  import { version as desktopVersion } from '../package.json';
   import { connectionChanged } from './connectionWatch';
   import type { ProjectAction } from './projectNavigationTypes';
   import type {
@@ -695,7 +696,7 @@
                     {:else}
                       <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {/if}
-                    <button class="icon-button" aria-label="Blockbench actions" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null}>•••</button>
+                    <button class="secondary-button small-button" title="Show Blockbench plugin file" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Plugin file</button>
                   </div>
                 </div>
               </div>
@@ -765,10 +766,6 @@
                     {statusProbeFailures >= 2 ? 'Status unverified' : productMode(status) === 'ready' ? 'Ready' : productMode(status) === 'client-wait' ? 'Waiting for MCP client' : productHeadline(status)}
                   </strong>
                 </div>
-                <div class="definition-row">
-                  <span>Version</span>
-                  <strong>0.1.0</strong>
-                </div>
                 {#if status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED'}
                   <div class="definition-row update-definition">
                     <span>Update</span>
@@ -810,7 +807,7 @@
           <section class="settings-section">
             <h2>About</h2>
             <div class="definition-rows">
-              <div class="definition-row"><span>LazyDesigner version</span><strong>0.1.0</strong></div>
+              <div class="definition-row"><span>LazyDesigner Desktop version</span><strong>{desktopVersion}</strong></div>
               <div class="definition-row"><span>Blockbench version</span><strong>{status.blockbench.version ?? 'Unavailable'}</strong></div>
               {#if status.managed?.installed?.source_sha}<div class="definition-row"><span>Managed build</span><code>{status.managed.installed.source_sha.slice(0,12)}</code></div>{/if}
               {#if status.plugin_integrity !== 'ready'}<div class="definition-row"><span>Blockbench plugin</span><strong class="status-warning">{status.plugin_integrity === 'missing' ? 'Repairing / missing' : status.plugin_integrity === 'modified' ? 'Modified' : 'Needs attention'}</strong></div>{/if}
