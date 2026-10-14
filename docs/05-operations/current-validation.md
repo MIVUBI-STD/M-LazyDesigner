@@ -29,15 +29,13 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested executable: Local `823aaf98827c2ece7c9b0327674e97e13d3e4d8f`. Clean exact-SHA `bun run verify:full` and `npm run build:app` PASS. Desktop source proof: 51 Rust tests at b8e791bd (unchanged Rust), including actual PowerShell no-console/output probe. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1.
+Tested executable: Local `ae096f7c01b9812c87cc7aefcedf93d992a35feb`. Clean exact-SHA `bun run verify:full`, Desktop `verify:source` (51 Rust tests), and `npm run build:app` PASS. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. NSIS/canonical install exit 0; bundled/installed manifest and plugin hashes match. Plugin identity: `sha256:c7ccc600eafdb10856de986ce587eded8ee1a22188839c56176f7191ae63948f`.
 
-NSIS/canonical managed install exit 0. Data profile `mcp/.cache/local-acceptance/d824b35c`; Desktop/evidence `823aaf98` (same Windows account). Installed plugin hash matches package; identity `sha256:c7ccc600eafdb10856de986ce587eded8ee1a22188839c56176f7191ae63948f`. Blockbench remains 5.2.0. About: Desktop 0.1.0. Plugin file opens folder.
+Disposable data: `mcp/.cache/local-acceptance/d824b35c`; latest Desktop/evidence: `ae096f7c` (same Windows account). About observes Desktop 0.1.0, Blockbench 5.2.0, managed ae096f7c. Plugin file reveals its folder directly. Native startup/reload has one panel; no console flashes in bounded checks. Lease repair 823aaf98 retains heartbeat beyond TTL before/after reload (34/48 seconds); unchanged Runtime source reused here. Desktop restart preserves Runtime PID/instance and reconstructs active desktop-9 without approval.
 
-Native one-panel startup/reload PASS. Lease heartbeat remains fresh after 34 seconds before and 48 seconds after reload (new instance); Desktop stays Ready. Scoped FS repair avoids missing utimesSync and broken asynchronous rmSync. No flashes observed. Project A↔B follows on focus without manual Refresh. Smart Open preserves two tabs and unsaved cube rename; Modified appears before save and clears after save. Saved B retains change; source unchanged.
+Native Desktop checks PASS: model search filters nine fixtures while typing; keyboard Workspace↔Support preserves search/expansion at 980×680 and 780×560; disclosure Enter/Tab/Shift+Tab/Escape focus works. Missing last-model fixture hides Continue without guessing; restoration returns the same target; Continue launches that model. A↔B, Smart Open without duplicate tab/unsaved loss, Modified/save, Save As identity and close/recent navigation observed on disposable copies. Original asset unchanged. Legacy Svelte helper inputs now participate in reactivity.
 
-Stage 3 search failed: typing into the nine-model filter did not update the list. Compiled legacy Svelte excluded helper-internal reads. Repair passes explicit reactive inputs through existing helpers; Desktop source verification PASS, replacement native proof pending. Recovery, Gateway/affinity and authoring/visual proof: NOT_EXECUTED. Compatibility unverified.
-
-Ignored evidence: `mcp/.cache/localtest-lease-{exact,build,targeted}.log`, `localtest-search-desktop.log`, and `local-acceptance/823aaf98/` identity/heartbeat/Smart Open JSON. Docs-only recording does not relabel tested executable SHA. No token savings claimed.
+Remaining Section 6A fault/focus/profile cases and Gateway/affinity, authoring/persistence/visual proof remain NOT_EXECUTED. Compatibility unverified. Ignored logs: `mcp/.cache/localtest-{lease,search}-*.log`; identity/heartbeat/Smart Open/Save As evidence under corresponding profile directories. Docs-only recording does not relabel executable proof. No token savings claimed.
 
 ## Current proof matrix
 
@@ -65,10 +63,6 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 ### Optional Head Proof
 
 `Head Proof` is manual-only. It classifies the selected commit relative to its parent. A docs-only head classification means only that executable source did not change relative to its parent. Head Proof is source-equivalence evidence, never a fresh compiler/test/build, native or visual PASS. Source-impacting heads continue to require exact-SHA executable verification; docs-only head evidence never substitutes for that proof.
-
-### Default-branch registration
-
-Ten manual workflows were registered by historical main commit `1d026a1754033bb8c206b7f25660a906552ad72c`. Registration proves no execution. Development stays on Local; main/settings require separate authority.
 
 Current compatibility authority: the historical Blockbench 5.2.0 native
 test does not confer `validated` on newer LazyDesigner builds. Only
