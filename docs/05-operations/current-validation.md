@@ -29,15 +29,15 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Installed source: fcf6617982d94a4e5ddb8162956a00f0c0d99d55, Local. Exact-SHA bun run verify:full, Desktop verify:source (52 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24, Rust 1.98.1. Evidence: mcp/.cache/local-acceptance/fcf66179/; data d824b35c. Desktop 0.1.0, Blockbench 5.2.0. Runtime identity de0efeb7 unchanged.
+Installed source fcf6617982d94a4e5ddb8162956a00f0c0d99d55: exact-SHA verify:full, Desktop verify:source (52 Rust tests), build/install PASS. Harness 6afc89893f640a093b24f946289e96f6e65bda70: exact-SHA bun run verify:full PASS; three UV-diagnostic verifier calls fixed, shipped code unchanged. Desktop 0.1.0, Blockbench 5.2.0; Runtime de0efeb7. Evidence: mcp/.cache/local-acceptance/fcf66179/acceptance-summary.json; data d824b35c.
 
-Packaged Control/context loading PASS; package includes profiles/references. Project-affinity live PASS (8 calls). Gateway 35728 remains alive across native normal close and Desktop Open; offline/online and catalog recovery observed; Desktop automatically Not running → AI connected. Automatic Updates and Automatic Plugin Updates OFF on the primary disposable profile; editor remains 5.2.0.
+All 12 native steps PASS: project affinity, Geometry, Texturing, Animation, Particle, persistence prepare/reopen, surface-gap, template, UV-density prepare/reopen, texture-runtime. Targeting/history/playback, thin UVs, variant isolation, stale revisions and reopen equality proven. Texturing first failure retained; clean repeat PASS after harness correction. Technical proof is not visual approval.
 
-Foreign snapshot isolation PASS with native plugin producer 29c76cf1 and foreign-snapshot model; primary c8d1fd9e navigation/Continue retained, no foreign Current Model or false Runtime Ready. User accepted fresh-profile native permissions. Proof: foreign-snapshot-isolation.json and gateway-close-open.json.
+Packaged Control contexts load; profiles/references included. Native foreign snapshot isolation PASS; user completed fresh-profile permissions. Automatic app/plugin updates OFF on primary disposable profile. Normal close/Desktop Open PASS, version unchanged, automatic Desktop status updates.
 
-Geometry live PASS including Undo/Redo, render change and thin per-face preservation. Texturing first failure: final UV audit absent because verifier requested inventory-only list_textures. Focused native diagnostics reports available/ready, all 12 faces valid. Current harness-only repair requests UV diagnostics in Texturing, persistence and UV-density consumers; gate/retest pending. Installed Gateway/Runtime code is unchanged by this harness repair. No visual approval or token savings.
+Gateway35728 survives close/open, AUTHORING↔Animation, reload and disable/enable. Project/counts/two PNG hashes preserved; expired lease clears active state, keeps recent navigation. Separate detach/attach PASS: same Runtime/project, Desktop Ready → AI connected. Recovery JSONs indexed by acceptance-summary.json; fixture checkpoints preserved, original LIFT unchanged.
 
-Prior controller/integrity/focus evidence remains under ee167ae3/77e52fc5/ae096f7c. Custom endpoint reload passed and defaults restored. Native Settings search must refresh after reload. IPC rejection and residual OS focus coverage remain unproven; brief stale lease/Desktop disappearance unexplained. Authoring beyond Geometry, persistence/additional fixtures, remaining recovery, visual and Golden Tasks incomplete.
+Remaining: native IPC rejection and residual focus cases NOT_EXECUTED; visual acceptance UNVERIFIED; six Golden Task pairs NOT_EXECUTED pending eligible reference/accepted quality. LIFT excluded from quality/efficiency benchmarks. verify:astra-usage-ready PASS is preparation only; tokens null, no savings claim. Prior stale lease/Desktop disappearance unexplained; latest bounded recovery passed. Earlier proof retained; refresh native Settings search after reload.
 
 ## Current proof matrix
 
