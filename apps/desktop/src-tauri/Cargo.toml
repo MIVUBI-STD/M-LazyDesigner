@@ -26,3 +26,4 @@ zip = { version = "2.2", default-features = false, features = ["deflate"] }
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+native-acceptance = []

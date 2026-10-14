@@ -1,5 +1,11 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
+#[cfg(all(feature = "native-acceptance", not(debug_assertions)))]
+compile_error!("native-acceptance is debug-only and must never ship in a release");
+
+#[cfg(all(feature = "native-acceptance", debug_assertions))]
+mod native_acceptance;
+
 mod blockbench;
 mod desktop_error;
 mod desktop_instance;
@@ -17,15 +23,23 @@ use diagnostics::DiagnosticExportResult;
 use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, ManagedUpdateCheck, PluginFileActionResult, ProjectNavigationActionResult, ProjectPathResult, SystemStatus};
 
 #[tauri::command]
-fn system_status(app: tauri::AppHandle) -> SystemStatus {
+fn system_status(app: tauri::AppHandle) -> Result<SystemStatus, DesktopError> {
+    #[cfg(all(feature = "native-acceptance", debug_assertions))]
+    if native_acceptance::enabled("full-error") {
+        return Err(DesktopError::recoverable("ACCEPTANCE_IPC_ERROR", "Injected native full-status rejection".to_string()));
+    }
     let mut status = system_status::collect();
     status.bootstrap_available = system_status::bootstrap_available(&app);
-    status
+    Ok(status)
 }
 
 #[tauri::command]
-fn connection_status() -> ConnectionStatus {
-    system_status::collect_connection_status()
+fn connection_status() -> Result<ConnectionStatus, DesktopError> {
+    #[cfg(all(feature = "native-acceptance", debug_assertions))]
+    if native_acceptance::enabled("probe-error") {
+        return Err(DesktopError::recoverable("ACCEPTANCE_IPC_ERROR", "Injected native probe rejection".to_string()));
+    }
+    Ok(system_status::collect_connection_status())
 }
 
 #[tauri::command]
@@ -47,6 +61,12 @@ fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError
 
 #[tauri::command]
 fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
+    #[cfg(all(feature = "native-acceptance", debug_assertions))]
+    for (fault, status) in [("focus-denied", "DENIED"), ("focus-no-window", "NO_WINDOW")] {
+        if native_acceptance::enabled(fault) {
+            return blockbench::BlockbenchFocusResult { status };
+        }
+    }
     // Only called from a direct user Open action; never from the status watcher.
     blockbench::focus_window()
 }
@@ -116,6 +136,14 @@ fn main() {
         desktop_instance::InstanceAcquire::Secondary => return,
     };
 
+    let pid = std::process::id().to_string();
+    operation_log::record("desktop:start", &pid);
+    let previous_panic_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        operation_log::record("desktop:panic", &std::process::id().to_string());
+        previous_panic_hook(info);
+    }));
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             system_status,
@@ -130,6 +158,19 @@ fn main() {
             show_plugin_file,
             export_diagnostics
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running LazyDesigner Desktop");
+        .build(tauri::generate_context!())
+        .expect("error while building LazyDesigner Desktop")
+        .run(move |_, event| {
+            let name = match event {
+                tauri::RunEvent::Ready => "desktop:ready",
+                tauri::RunEvent::ExitRequested { .. } => "desktop:exit-requested",
+                tauri::RunEvent::Exit => "desktop:exit",
+                tauri::RunEvent::WindowEvent { label, event: tauri::WindowEvent::CloseRequested { .. }, .. }
+                    if label == "main" => "desktop:close-requested",
+                tauri::RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. }
+                    if label == "main" => "desktop:destroyed",
+                _ => return,
+            };
+            operation_log::record(name, &pid);
+        });
 }

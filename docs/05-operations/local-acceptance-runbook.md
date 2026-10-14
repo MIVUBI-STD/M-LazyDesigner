@@ -649,6 +649,37 @@ source-provided total_tokens when available
 
 If token telemetry is unavailable, report `token_claim_available=false` and retain the existing call/payload proxy evidence without upgrading it into a model-usage claim.
 
+## 10B. Controlled native Desktop failures
+
+Use the existing disposable profile and a separate debug executable. From
+`apps/desktop/`, build with `cargo build --locked --manifest-path src-tauri/Cargo.toml --features native-acceptance`.
+Default features exclude this harness; release builds explicitly refuse it.
+No public IPC command or production runtime setting enables faults.
+
+Set `LAZYDESIGNER_NATIVE_ACCEPTANCE_FILE` only in the test child's environment
+to an absolute disposable text-file path. Start with an empty file and preserve
+the healthy Desktop observation. Set the file to one exact value:
+
+- `probe-error`: two native `connection_status` rejections must show unverified
+  status and disable model actions. Clearing the file alone cannot unlock them;
+  a successful full Refresh must recover.
+- `full-error`: an explicit Refresh must show the native error and preserve the
+  stale-status gate; clear the file and Refresh to recover.
+- `focus-denied` or `focus-no-window`: explicit Open must retain the editor/model
+  and offer the taskbar fallback without claiming confirmed focus.
+
+These are real native Tauri IPC tests with injected backend outcomes. They do
+not prove that Windows physically rejected foreground activation or that a
+real Blockbench process lost every eligible window.
+
+For disappearance diagnosis, the bounded metadata-only `desktop.log` now records
+start/ready, main-window close/destroy, exit request/exit and panic with PID.
+Normal close must have an exit trail. Terminating only the disposable test
+Desktop should leave no normal exit trail; Runtime/model state must survive.
+This verifies diagnosis readiness, not the cause of a historical disappearance.
+Finish by closing the debug build and restoring the ordinary release build;
+the same fault-file environment variable must have no effect on that release.
+
 ## 11. Failure / Completion
 
 Targeted quality work uses disposable face/contact, adjoining texture and limb-cycle fixtures under the current specialist gates. Keep rejected assets frozen. Native and user visual proof remain separate from source tests.
