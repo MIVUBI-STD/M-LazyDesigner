@@ -59,15 +59,29 @@ fn ensure_ready(app: tauri::AppHandle) -> Result<EnsureReadyResult, DesktopError
     result.map_err(|message| DesktopError::recoverable("ENSURE_READY_FAILED", message))
 }
 
+#[cfg(not(all(feature = "native-acceptance", debug_assertions)))]
 #[tauri::command]
 fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
-    #[cfg(all(feature = "native-acceptance", debug_assertions))]
+    // Only called from a direct user Open action; never from the status watcher.
+    blockbench::focus_window()
+}
+
+#[cfg(all(feature = "native-acceptance", debug_assertions))]
+#[tauri::command]
+async fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
+    if native_acceptance::enabled("focus-delayed-real") {
+        let result = tauri::async_runtime::spawn_blocking(|| {
+            std::thread::sleep(std::time::Duration::from_secs(8));
+            blockbench::focus_window()
+        }).await.unwrap_or(blockbench::BlockbenchFocusResult { status: "UNKNOWN" });
+        operation_log::record("acceptance:real-focus", result.status);
+        return result;
+    }
     for (fault, status) in [("focus-denied", "DENIED"), ("focus-no-window", "NO_WINDOW")] {
         if native_acceptance::enabled(fault) {
             return blockbench::BlockbenchFocusResult { status };
         }
     }
-    // Only called from a direct user Open action; never from the status watcher.
     blockbench::focus_window()
 }
 
