@@ -13,31 +13,32 @@
   export let projectSearch = '';
   export let modelSearch = '';
 
-  const recentProjects = () =>
-    navigation.projects.filter(project => !project.active);
+  // Legacy Svelte tracks template arguments, not reads hidden inside helpers.
+  const recentProjects = (state: ProjectNavigation) =>
+    state.projects.filter(project => !project.active);
 
-  const visibleRecentProjects = () => {
-    const query = projectSearch.trim().toLowerCase();
-    const projects = recentProjects().filter(project =>
+  const visibleRecentProjects = (state: ProjectNavigation, search: string, showAll: boolean) => {
+    const query = search.trim().toLowerCase();
+    const projects = recentProjects(state).filter(project =>
       !query
       || project.name.toLowerCase().includes(query)
       || project.models.some(model => model.name.toLowerCase().includes(query))
     );
-    return query || showAllProjects ? projects : projects.slice(0, 5);
+    return query || showAll ? projects : projects.slice(0, 5);
   };
 
-  const visibleProjectModels = (project: ProjectNavigationProject) => {
-    const query = modelSearch.trim().toLowerCase();
+  const visibleProjectModels = (project: ProjectNavigationProject, search: string) => {
+    const query = search.trim().toLowerCase();
     return query
       ? project.models.filter(model => model.name.toLowerCase().includes(query))
       : project.models;
   };
 
-  const continueTarget = () => {
-    if (navigation.active) return null;
-    const modelId = navigation.continue_model_id;
+  const continueTarget = (state: ProjectNavigation) => {
+    if (state.active) return null;
+    const modelId = state.continue_model_id;
     if (!modelId) return null;
-    for (const project of navigation.projects) {
+    for (const project of state.projects) {
       const model = project.models.find(candidate => candidate.id === modelId && candidate.exists);
       if (model) return { project, model };
     }
@@ -66,8 +67,8 @@
   </section>
 {/if}
 
-{#if !navigation.active && continueTarget()}
-  {@const target = continueTarget()}
+{#if !navigation.active && continueTarget(navigation)}
+  {@const target = continueTarget(navigation)}
   {#if target}
     <section class="content-section">
       <div class="section-heading">
@@ -123,7 +124,7 @@
                 <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
               {/if}
             </div>
-            {#each visibleProjectModels(activeProject) as model}
+            {#each visibleProjectModels(activeProject, modelSearch) as model}
               <div class="model-row">
                 <div class="model-main">
                   <strong>{model.name}</strong>
@@ -143,7 +144,7 @@
                 </div>
               </div>
             {/each}
-            {#if visibleProjectModels(activeProject).length === 0}
+            {#if visibleProjectModels(activeProject, modelSearch).length === 0}
               <div class="project-empty">No models found.</div>
             {/if}
             {#if activeProject.folders.length > 0}
@@ -164,16 +165,16 @@
   </section>
 {/if}
 
-{#if recentProjects().length > 0}
+{#if recentProjects(navigation).length > 0}
   <section class="content-section">
     <div class="section-heading">
       <div><h2>Recent Projects</h2></div>
-      {#if recentProjects().length > 5}
+      {#if recentProjects(navigation).length > 5}
         <input class="compact-search project-search" type="search" placeholder="Search projects" aria-label="Search projects" bind:value={projectSearch} />
       {/if}
     </div>
     <div class="project-list">
-      {#each visibleRecentProjects() as project}
+      {#each visibleRecentProjects(navigation, projectSearch, showAllProjects) as project}
         <div class="project-row">
           <div class="project-main">
             <div class="project-title" title={project.name}>{project.name}</div>
@@ -192,7 +193,7 @@
                 <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
               {/if}
             </div>
-            {#each visibleProjectModels(project) as model}
+            {#each visibleProjectModels(project, modelSearch) as model}
               <div class="model-row">
                 <div class="model-main">
                   <strong>{model.name}</strong>
@@ -210,7 +211,7 @@
                 </div>
               </div>
             {/each}
-            {#if visibleProjectModels(project).length === 0}
+            {#if visibleProjectModels(project, modelSearch).length === 0}
               <div class="project-empty">No models found.</div>
             {/if}
             {#if project.folders.length > 0}
@@ -227,11 +228,11 @@
           </div>
         {/if}
       {/each}
-      {#if visibleRecentProjects().length === 0}
+      {#if visibleRecentProjects(navigation, projectSearch, showAllProjects).length === 0}
         <div class="project-empty project-empty-list">No projects found.</div>
       {/if}
     </div>
-    {#if recentProjects().length > 5 && !projectSearch.trim()}
+    {#if recentProjects(navigation).length > 5 && !projectSearch.trim()}
       <button class="show-more-button" onclick={() => { showAllProjects = !showAllProjects; if (!showAllProjects) expandedProjectId = null; }}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
     {/if}
   </section>

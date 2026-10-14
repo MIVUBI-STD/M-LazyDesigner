@@ -246,7 +246,7 @@ describe("Desktop control-plane ownership", () => {
     expect(connectionWatch).toContain("candidate.project_session_live");
     expect(connectionWatch).toContain("current.project_navigation.session_live");
     expect(app).toContain("navigation={status.project_navigation}");
-    expect(navigator).toContain("recentProjects().length > 5");
+    expect(navigator).toContain("recentProjects(navigation).length > 5");
     expect(navigator).toContain("model_count > 8");
     expect(navigator).toContain("Search projects");
     expect(navigator).toContain("Search models");
@@ -267,9 +267,9 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain("continue_model_id_for_path");
     expect(projectNavigation).toContain("continue_model_id");
     expect(projectNavigation).toContain("continue_model_requires_the_exact_last_saved_model_to_exist");
-    expect(navigator).toContain("navigation.continue_model_id");
+    expect(navigator).toContain("state.continue_model_id");
     expect(navigator).toContain("candidate.id === modelId && candidate.exists");
-    expect(navigator).toContain("!navigation.active && continueTarget()");
+    expect(navigator).toContain("!navigation.active && continueTarget(navigation)");
     expect(navigator).toContain("candidate.exists");
     expect(app).not.toContain("project.root_path");
     expect(readme).toContain("Paths stay hidden in the normal UI");

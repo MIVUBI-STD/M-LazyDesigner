@@ -29,15 +29,15 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested executable baseline: Local `b8e791bd8fe6b2857b2628b2861530aed9ce03a7`, clean checkout. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Exact-SHA `bun run verify:full` PASS; Desktop `npm run verify:source` PASS (51 Rust tests, including a real PowerShell no-console/output probe); `npm run build:app` PASS.
+Tested executable: Local `823aaf98827c2ece7c9b0327674e97e13d3e4d8f`. Clean exact-SHA `bun run verify:full` and `npm run build:app` PASS. Desktop source proof: 51 Rust tests at b8e791bd (unchanged Rust), including actual PowerShell no-console/output probe. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1.
 
-Installed Desktop under `mcp/.cache/local-acceptance/b8e791bd`, retaining the disposable data profile `d824b35c` (same Windows account). NSIS and canonical managed install exit 0. Installed bundle, manifest and plugin hashes match. Plugin identity: `sha256:29876f61613ab31559d07a4e03c80c1131a2976203ebbe09d1c511b02294138b`.
+NSIS/canonical managed install exit 0. Data profile `mcp/.cache/local-acceptance/d824b35c`; Desktop/evidence `823aaf98` (same Windows account). Installed plugin hash matches package; identity `sha256:c7ccc600eafdb10856de986ce587eded8ee1a22188839c56176f7191ae63948f`. Blockbench remains 5.2.0. About: Desktop 0.1.0. Plugin file opens folder.
 
-Native Blockbench 5.2.0 startup: one visible LazyDesigner panel, Runtime ready; Desktop converges to Ready. Installed plugin list has one entry. Reload retains one panel/indicator; dock visible at full size. Desktop later loses Ready: scoped FS lacks utimesSync; its rmSync is async. Lease repair uses owned-file rewrite and unlinkSync; regression and typecheck PASS, new native proof pending. Takeover regression: red before repair, green after. Lifecycle retires old integration/listener; Desktop helpers use CREATE_NO_WINDOW. No flashes observed during bounded startup/reload.
+Native one-panel startup/reload PASS. Lease heartbeat remains fresh after 34 seconds before and 48 seconds after reload (new instance); Desktop stays Ready. Scoped FS repair avoids missing utimesSync and broken asynchronous rmSync. No flashes observed. Project A↔B follows on focus without manual Refresh. Smart Open preserves two tabs and unsaved cube rename; Modified appears before save and clears after save. Saved B retains change; source unchanged.
 
-Old test PID stopped at pending editor-update notice; editor remains 5.2.0.0. Healthy Gateway/project-affinity and authoring/persistence/visual acceptance remain NOT_EXECUTED. Compatibility remains unverified.
+Stage 3 search failed: typing into the nine-model filter did not update the list. Compiled legacy Svelte excluded helper-internal reads. Repair passes explicit reactive inputs through existing helpers; Desktop source verification PASS, replacement native proof pending. Recovery, Gateway/affinity and authoring/visual proof: NOT_EXECUTED. Compatibility unverified.
 
-Ignored evidence: `mcp/.cache/localtest-duplicate-console-{exact,desktop,build}.log` and `local-acceptance/b8e791bd/{managed-install,component-identity}.json`. Docs-only recording preserves tested SHA; no token savings claimed.
+Ignored evidence: `mcp/.cache/localtest-lease-{exact,build,targeted}.log`, `localtest-search-desktop.log`, and `local-acceptance/823aaf98/` identity/heartbeat/Smart Open JSON. Docs-only recording does not relabel tested executable SHA. No token savings claimed.
 
 ## Current proof matrix
 
