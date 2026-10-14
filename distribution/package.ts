@@ -1,6 +1,6 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { REPOSITORY, SKILLS, sha256, verifyPackage, type Manifest } from "./managed-install";
+import { REPOSITORY, PACKAGE_SOURCE_PATHS, sha256, verifyPackage, type Manifest } from "./managed-install";
 import {
   extractLegacyMcpBuildIdentity,
   LEGACY_MCP_BUNDLE_FILENAME,
@@ -32,13 +32,7 @@ async function main(): Promise<void> {
   const smoke = JSON.parse(await run([join(packageDir, "blockit.exe"), "self-test"]));
   if (smoke.status !== "PASS" || smoke.platform !== "win32" || smoke.arch !== "x64") throw new Error("Compiled manager failed its platform smoke test.");
   await writeFile(join(packageDir, LEGACY_MCP_BUNDLE_FILENAME), plugin);
-  const sources = [
-    "LICENSE",
-    "workspace/README.md",
-    "docs/03-authoring/finalization/standard.md",
-    ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`),
-  ];
-  for (const path of sources) { await mkdir(dirname(join(packageDir, path)), { recursive: true }); await cp(join(repo, path), join(packageDir, path)); }
+  for (const path of PACKAGE_SOURCE_PATHS) { await mkdir(dirname(join(packageDir, path)), { recursive: true }); await cp(join(repo, path), join(packageDir, path)); }
   await cp(join(repo, "distribution/authoring-AGENTS.md"), join(packageDir, "AGENTS.md"));
   const bunLicense = await fetch(`https://raw.githubusercontent.com/oven-sh/bun/bun-v${Bun.version}/LICENSE.md`);
   if (!bunLicense.ok) throw new Error("Pinned Bun license notice is unavailable; refusing an incomplete distribution.");
@@ -87,13 +81,30 @@ async function main(): Promise<void> {
   const gateway = Bun.spawn([gatewayExecutable, "mcp", "--root", join(smokeRoot, "installed")], { env: smokeEnv, stdin: "pipe", stdout: "pipe", stderr: "inherit" });
   gateway.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "managed-package-smoke", version: "1" } } }) + "\n");
   const reader = gateway.stdout.getReader(); let buffer = ""; let timer: ReturnType<typeof setTimeout> | undefined;
+  async function responseLine(): Promise<any> {
+    while (!buffer.includes("\n")) {
+      const chunk = await reader.read();
+      if (chunk.done) throw new Error("Compiled Gateway closed before its response.");
+      buffer += new TextDecoder().decode(chunk.value);
+      if (buffer.length > 128_000) throw new Error("Unexpected Gateway stdout.");
+    }
+    const end = buffer.indexOf("\n");
+    const result = JSON.parse(buffer.slice(0, end));
+    buffer = buffer.slice(end + 1);
+    return result;
+  }
   try {
     await Promise.race([
-      (async () => { while (!buffer.includes("\n")) { const chunk = await reader.read(); if (chunk.done) throw new Error("Compiled Gateway closed before initialization."); buffer += new TextDecoder().decode(chunk.value); if (buffer.length > 32_000) throw new Error("Unexpected Gateway stdout."); } })(),
-      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Compiled Gateway initialize timed out.")), 15_000); }),
+      (async () => {
+        const initialized = await responseLine();
+        if (initialized.id !== 1 || !initialized.result?.serverInfo) throw new Error("Compiled Gateway protocol smoke failed.");
+        gateway.stdin.write(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }) + "\n");
+        gateway.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "status", arguments: {} } }) + "\n");
+        const status = await responseLine();
+        if (status.id !== 2 || status.error || !status.result || status.result.isError) throw new Error(`Compiled Gateway Control smoke failed: ${JSON.stringify(status)}`);
+      })(),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Compiled Gateway smoke timed out.")), 30_000); }),
     ]);
-    const initialized = JSON.parse(buffer.split("\n")[0]!);
-    if (initialized.id !== 1 || !initialized.result?.serverInfo) throw new Error("Compiled Gateway protocol smoke failed.");
   } finally {
     if (timer) clearTimeout(timer);
     reader.releaseLock(); gateway.stdin.end();

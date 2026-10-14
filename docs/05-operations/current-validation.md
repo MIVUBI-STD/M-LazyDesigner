@@ -29,21 +29,15 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested Local executable: `77e52fc5f22b4324ffaa4877f3dd2564615d46b9`. Exact-SHA `bun run verify:full`, Desktop `verify:source` (52 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24, Rust 1.98.1. Evidence: `mcp/.cache/local-acceptance/77e52fc5/`; data `d824b35c`. Desktop 0.1.0, Blockbench 5.2.0; Runtime hash unchanged.
+Tested executable: ee167ae33b508a0d0a7a3a53e15ec22fe1a9f0fc. Exact-SHA bun run verify:full, Desktop verify:source (52 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24, Rust 1.98.1. Evidence: mcp/.cache/local-acceptance/ee167ae3/; data d824b35c. Desktop 0.1.0, Blockbench 5.2.0.
 
-Prior ae096f7c: one panel, no console flashes, lease beyond TTL, Desktop restart preserves Runtime/model, Plugin file reveals folder.
+Native custom endpoint PASS: Settings 3011 + /acceptance-test, plugin reload, matching listener/lease and Desktop ready. Restored 3000 + /bb-mcp and exact client config; Desktop ready. Native Settings search caches deleted Setting objects after reload; refreshing its search reveals current values. Regression/fix retains master settings without profile overrides.
 
-Prior flow PASS: search/keyboard, A↔B, Smart Open tabs/edits, Modified/save, Save As, close/recent, missing/restored Continue. Disposable only.
+Compiled Gateway status FAIL on that executable: ENOENT at virtual B: context path. Current repair selects immutable executable sibling contexts and includes seven profiles/five specialist references in the canonical package. Targeted installation/context tests PASS (26); full gate/build/native retest pending. No functioning Gateway acceptance yet.
 
-Prior integrity PASS: modified Open refused; no overwrite/forced close; online repair refused; offline missing repair restores hash. Fault copies outside plugins.
+Prior 77e52fc5/ae096f7c evidence retained: one panel/no bounded console flashes, lease beyond TTL, Desktop restart preserves Runtime/model; search/keyboard, A↔B, Smart Open tabs/edits, Modified/save, Save As, close/recent and missing/restored Continue. Integrity refuses modified/missing running-plugin repairs and restores canonical missing plugin offline. Focus background/minimized and ambiguous fallback, missing model refusal, pin/Continue after runner stop pass. Metadata failure disables launch; two profiles refuse setup; endpoint mismatch/occupied port/failed-bind statuses agree. Evidence in their cache directories; these are prior-build observations, not fresh native proof.
 
-Prior focus PASS: background/minimized restore, one tab; ambiguous fallback; missing-after-render refuses model change. Evidence: ae096f7c/focus-missing-model.json.
-
-Prior pin/Continue PASS after runner stop; normal close deferred by updater. Evidence: ae096f7c/integrity-pin-continue.json. Brief stale lease unresolved; 36s minimized reproduction fresh.
-
-New native PASS: two profiles refuse setup; malformed installed.json yields attention/disabled launch with Refresh/diagnostics. Endpoint mismatch identified; unrelated TCP occupancy never Ready; failed bind panel/status agree Needs attention (RUNTIME_START_FAILED). Port cleanup + plugin reload creates live lease; relaunched Desktop Ready. Config/plugin restored. Evidence: 77e52fc5/{metadata-fault,endpoint-mismatch,occupied-port-bind-failure}.json; profile refusal under ae096f7c/profile-isolation/. Logs `mcp/.cache/localtest-observation-complete-*.log`.
-
-Remaining: IPC failure, foreign snapshot producer, custom endpoint/focus cases, normal close, Gateway/authoring/persistence/visual. Desktop disappeared during focus recovery: cause unknown; no automatic watcher PASS. No native sign-off, validated compatibility or token savings. Docs-only recording preserves executable SHA.
+Remaining: IPC failure, foreign snapshot producer, residual focus cases, normal close (pending updater), Gateway/authoring/persistence/visual. Brief stale lease and earlier Desktop disappearance remain unexplained. No native sign-off, validated compatibility or token savings.
 
 ## Current proof matrix
 

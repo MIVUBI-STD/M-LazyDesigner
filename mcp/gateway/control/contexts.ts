@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import type { ControlAuthoringDomain, ControlContextHandle } from "./types";
 import {
   semanticDependenciesForOwner,
@@ -58,6 +60,11 @@ function contextLabel(path: string): string {
 }
 
 function repoFile(path: string): URL {
+  // Bun compile stores modules in a virtual root; packaged contexts live beside
+  // the immutable managed executable, independently of the caller's cwd.
+  if (/(?:^|[\\/])(?:~BUN|\$bunfs)[\\/]/.test(fileURLToPath(import.meta.url))) {
+    return pathToFileURL(join(dirname(process.execPath), path));
+  }
   return new URL(`../../../${path}`, import.meta.url);
 }
 

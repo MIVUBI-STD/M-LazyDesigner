@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
 test("installation identity survives native Windows path virtualization", async () => {
@@ -21,7 +21,7 @@ test("installation identity survives native Windows path virtualization", async 
 });
 
 async function fixture(directory: string, digit = "a"): Promise<Manifest> {
-  const paths = ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "workspace/README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt", "docs/03-authoring/finalization/standard.md", ...SKILLS.map(s => `.agents/skills/${s}/SKILL.md`)];
+  const paths = ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS];
   const manifest: Manifest = { schema: 1, repository: REPOSITORY, source_sha: digit.repeat(40), build_identity: "sha256:" + digit.repeat(64), platform: "windows-x64", files: [] };
   for (const path of paths) {
     const bytes = Buffer.from(path === "blockit_mcp.js" ? `globalThis.__BLOCKIT_BUILD_ID__="${manifest.build_identity}";` : `Fixture ${path} ${digit}\n`);
@@ -37,7 +37,10 @@ async function sandbox(work: (directory: string, options: InstallOptions) => Pro
 }
 
 test("package paths and complete required files are fail-closed", async () => sandbox(async d => {
-  const manifest = await fixture(join(d, "pkg")); assert.equal(parseManifest(manifest).files.length, 7 + SKILLS.length);
+  const manifest = await fixture(join(d, "pkg")); assert.equal(parseManifest(manifest).files.length, 4 + PACKAGE_SOURCE_PATHS.length);
+  for (const required of [".agents/skills/lazydesigner-modelling/references/uv-layout.md", "docs/03-authoring/modelling/profiles/generic.md"]) {
+    assert.throws(() => parseManifest({ ...manifest, files: manifest.files.filter(file => file.path !== required) }), /Incomplete package/);
+  }
   for (const path of ["../config.toml", "C:/evil.exe", ".agents/skills/other/SKILL.md", "workspace/active/model.bbmodel"]) {
     assert.throws(() => parseManifest({ ...manifest, files: [...manifest.files, { path, size: 1, sha256: "a".repeat(64) }] }));
   }
