@@ -229,7 +229,6 @@
 
   async function connectBlockbench() {
     if (devFixture) return;
-    if (!status?.manager_available) return;
     if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
     closeUtilityMenu();
     busyAction = 'connect-blockbench';
