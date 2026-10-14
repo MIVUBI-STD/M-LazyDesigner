@@ -43,8 +43,9 @@ type NativeFs = Pick<
 >;
 
 let listeners: Array<{ delete(): void }> = [];
-let timer: ReturnType<typeof setTimeout> | null = null;
-let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+let nativeTimers: typeof import("node:timers") | null = null;
+let timer: ReturnType<typeof import("node:timers").setTimeout> | null = null;
+let heartbeatTimer: ReturnType<typeof import("node:timers").setInterval> | null = null;
 let fs: NativeFs | null = null;
 let nativeCrypto: NativeCrypto | null = null;
 let outputPath: string | null = null;
@@ -205,8 +206,8 @@ function writeSnapshot(): void {
 }
 
 function scheduleSnapshot(): void {
-  if (timer) clearTimeout(timer);
-  timer = setTimeout(() => {
+  if (timer) nativeTimers?.clearTimeout(timer);
+  timer = nativeTimers!.setTimeout(() => {
     timer = null;
     writeSnapshot();
   }, 60);
@@ -237,6 +238,8 @@ export function setupProjectNavigationSnapshot(): void {
     optional: true,
   }) as NativeFs | null;
   if (!fs) return;
+  // Safe native timers keep snapshots fresh even with a throttled renderer.
+  nativeTimers = requireNativeModule("timers");
 
   // crypto is a Blockbench safe native API and does not add a new permission prompt.
   // @ts-ignore - requireNativeModule is a Blockbench desktop global.
@@ -266,13 +269,13 @@ export function setupProjectNavigationSnapshot(): void {
     Blockbench.on("update_recent_project_data", scheduleSnapshot),
   );
   writeSnapshot();
-  heartbeatTimer = setInterval(heartbeatSnapshot, 10_000);
+  heartbeatTimer = nativeTimers.setInterval(heartbeatSnapshot, 10_000);
 }
 
 export function teardownProjectNavigationSnapshot(): void {
-  if (timer) clearTimeout(timer);
+  if (timer) nativeTimers?.clearTimeout(timer);
   timer = null;
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  if (heartbeatTimer) nativeTimers?.clearInterval(heartbeatTimer);
   heartbeatTimer = null;
   for (const listener of listeners.splice(0)) listener.delete();
   fs = null;
@@ -280,4 +283,5 @@ export function teardownProjectNavigationSnapshot(): void {
   outputPath = null;
   profileId = null;
   lastModelPath = null;
+  nativeTimers = null;
 }

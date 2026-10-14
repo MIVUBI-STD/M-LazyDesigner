@@ -1,9 +1,11 @@
 import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { startRuntimeSessionLease, stopRuntimeSessionLease, type RuntimeSessionFs } from "@/plugin/runtimeSessionLease";
+import { setupProjectNavigationSnapshot, teardownProjectNavigationSnapshot } from "@/plugin/projectNavigationSnapshot";
 
 test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fresh and removes only its own instance synchronously", () => {
   const originalInterval = globalThis.setInterval;
+  const originalRequire = (globalThis as any).requireNativeModule;
   const originalInfo = (globalThis as any).SystemInfo;
   const originalLocal = process.env.LOCALAPPDATA;
   let tick: (() => void) | undefined;
@@ -19,10 +21,14 @@ test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fres
   try {
     process.env.LOCALAPPDATA = "C:\\fixture\\Local";
     (globalThis as any).SystemInfo = { user_data_directory: "C:\\fixture\\Blockbench" };
-    globalThis.setInterval = ((callback: () => void) => {
+    globalThis.setInterval = (() => { throw Error("Renderer timers are suspended"); }) as typeof setInterval;
+    (globalThis as any).requireNativeModule = (name: string) => {
+      expect(name).toBe("timers");
+      return { setInterval: (callback: () => void) => {
       tick = callback;
       return originalInterval(() => {}, 60_000);
-    }) as typeof setInterval;
+      }, clearInterval };
+    };
     expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp")).toBe(true);
     const path = [...files.keys()][0]!;
     const first = files.get(path);
@@ -41,7 +47,68 @@ test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fres
   } finally {
     stopRuntimeSessionLease();
     globalThis.setInterval = originalInterval;
+    (globalThis as any).requireNativeModule = originalRequire;
     (globalThis as any).SystemInfo = originalInfo;
+    if (originalLocal === undefined) delete process.env.LOCALAPPDATA;
+    else process.env.LOCALAPPDATA = originalLocal;
+  }
+});
+
+test("navigation heartbeat and change debounce use native timers and clean them up", () => {
+  const keys = ["requireNativeModule", "SystemInfo", "Blockbench", "Project", "setInterval", "setTimeout"];
+  const original = new Map(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  const originalLocal = process.env.LOCALAPPDATA;
+  const files = new Map<string, string>();
+  let writes = 0, deleted = 0;
+  const events: Record<string, () => void> = {};
+  let heartbeat!: () => void, debounce!: () => void;
+  const cleared: number[] = [];
+  const nativeTimers = {
+    setInterval(callback: () => void) { heartbeat = callback; return 1; },
+    setTimeout(callback: () => void) { debounce = callback; return 2; },
+    clearInterval(id: number) { cleared.push(id); },
+    clearTimeout(id: number) { cleared.push(id); },
+  };
+  const fs = {
+    mkdirSync() {},
+    readFileSync(path: string) { if (!files.has(path)) throw Error("ENOENT"); return files.get(path)!; },
+    writeFileSync(path: string, bytes: string) { files.set(path, bytes); writes++; },
+    renameSync(from: string, to: string) { files.set(to, files.get(from)!); files.delete(from); },
+    utimesSync() { throw Error("Scoped FS does not provide utimesSync"); },
+  };
+  try {
+    process.env.LOCALAPPDATA = "C:\\fixture\\Local";
+    Object.assign(globalThis, {
+      SystemInfo: { user_data_directory: "C:\\fixture\\Blockbench" },
+      Project: null,
+      Blockbench: { on(event: string, callback: () => void) { events[event] = callback; return { delete() { deleted++; } }; } },
+      requireNativeModule(name: string) {
+        if (name === "fs") return fs;
+        if (name === "crypto") return { createHash };
+        if (name === "timers") return nativeTimers;
+        throw Error(`Unexpected native module: ${name}`);
+      },
+      setInterval() { throw Error("Renderer timers are suspended"); },
+      setTimeout() { throw Error("Renderer timers are suspended"); },
+    });
+    setupProjectNavigationSnapshot();
+    expect(writes).toBe(1);
+    heartbeat();
+    expect(writes).toBe(2);
+    events.select_project!();
+    debounce();
+    expect(writes).toBe(3);
+    events.saved_state_changed!();
+    teardownProjectNavigationSnapshot();
+    expect(cleared).toContain(1);
+    expect(cleared).toContain(2);
+    expect(deleted).toBe(8);
+  } finally {
+    teardownProjectNavigationSnapshot();
+    for (const [key, descriptor] of original) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
     if (originalLocal === undefined) delete process.env.LOCALAPPDATA;
     else process.env.LOCALAPPDATA = originalLocal;
   }

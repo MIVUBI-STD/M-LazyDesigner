@@ -20,10 +20,11 @@ let fs: RuntimeSessionFs | null = null;
 let outputPath: string | null = null;
 let instanceId: string | null = null;
 let leaseContents: string | null = null;
-let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+let nativeTimers: typeof import("node:timers") | null = null;
+let heartbeatTimer: ReturnType<typeof import("node:timers").setInterval> | null = null;
 
 function clearHeartbeat(): void {
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  if (heartbeatTimer) nativeTimers?.clearInterval(heartbeatTimer);
   heartbeatTimer = null;
 }
 
@@ -106,7 +107,9 @@ export function startRuntimeSessionLease(
   outputPath = pathName;
   instanceId = lease.instance_id;
   leaseContents = contents;
-  heartbeatTimer = setInterval(heartbeat, HEARTBEAT_MS);
+  // Renderer timers are throttled while Blockbench is minimized/backgrounded.
+  nativeTimers = requireNativeModule("timers");
+  heartbeatTimer = nativeTimers.setInterval(heartbeat, HEARTBEAT_MS);
   return true;
 }
 
@@ -124,4 +127,5 @@ export function stopRuntimeSessionLease(): void {
   outputPath = null;
   instanceId = null;
   leaseContents = null;
+  nativeTimers = null;
 }
