@@ -29,15 +29,15 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested executable: ee167ae33b508a0d0a7a3a53e15ec22fe1a9f0fc. Exact-SHA bun run verify:full, Desktop verify:source (52 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24, Rust 1.98.1. Evidence: mcp/.cache/local-acceptance/ee167ae3/; data d824b35c. Desktop 0.1.0, Blockbench 5.2.0.
+Installed source: fcf6617982d94a4e5ddb8162956a00f0c0d99d55, Local. Exact-SHA bun run verify:full, Desktop verify:source (52 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24, Rust 1.98.1. Evidence: mcp/.cache/local-acceptance/fcf66179/; data d824b35c. Desktop 0.1.0, Blockbench 5.2.0. Runtime identity de0efeb7 unchanged.
 
-Native custom endpoint PASS: Settings 3011 + /acceptance-test, plugin reload, matching listener/lease and Desktop ready. Restored 3000 + /bb-mcp and exact client config; Desktop ready. Native Settings search caches deleted Setting objects after reload; refreshing its search reveals current values. Regression/fix retains master settings without profile overrides.
+Packaged Control/context loading PASS; package includes profiles/references. Project-affinity live PASS (8 calls). Gateway 35728 remains alive across native normal close and Desktop Open; offline/online and catalog recovery observed; Desktop automatically Not running → AI connected. Automatic Updates and Automatic Plugin Updates OFF on the primary disposable profile; editor remains 5.2.0.
 
-Compiled Gateway status FAIL on that executable: ENOENT at virtual B: context path. Current repair selects immutable executable sibling contexts and includes seven profiles/five specialist references in the canonical package. Targeted installation/context tests PASS (26); full gate/build/native retest pending. No functioning Gateway acceptance yet.
+Foreign snapshot isolation PASS with native plugin producer 29c76cf1 and foreign-snapshot model; primary c8d1fd9e navigation/Continue retained, no foreign Current Model or false Runtime Ready. User accepted fresh-profile native permissions. Proof: foreign-snapshot-isolation.json and gateway-close-open.json.
 
-Prior 77e52fc5/ae096f7c evidence retained: one panel/no bounded console flashes, lease beyond TTL, Desktop restart preserves Runtime/model; search/keyboard, A↔B, Smart Open tabs/edits, Modified/save, Save As, close/recent and missing/restored Continue. Integrity refuses modified/missing running-plugin repairs and restores canonical missing plugin offline. Focus background/minimized and ambiguous fallback, missing model refusal, pin/Continue after runner stop pass. Metadata failure disables launch; two profiles refuse setup; endpoint mismatch/occupied port/failed-bind statuses agree. Evidence in their cache directories; these are prior-build observations, not fresh native proof.
+Geometry live PASS including Undo/Redo, render change and thin per-face preservation. Texturing first failure: final UV audit absent because verifier requested inventory-only list_textures. Focused native diagnostics reports available/ready, all 12 faces valid. Current harness-only repair requests UV diagnostics in Texturing, persistence and UV-density consumers; gate/retest pending. Installed Gateway/Runtime code is unchanged by this harness repair. No visual approval or token savings.
 
-Remaining: IPC failure, foreign snapshot producer, residual focus cases, normal close (pending updater), Gateway/authoring/persistence/visual. Brief stale lease and earlier Desktop disappearance remain unexplained. No native sign-off, validated compatibility or token savings.
+Prior controller/integrity/focus evidence remains under ee167ae3/77e52fc5/ae096f7c. Custom endpoint reload passed and defaults restored. Native Settings search must refresh after reload. IPC rejection and residual OS focus coverage remain unproven; brief stale lease/Desktop disappearance unexplained. Authoring beyond Geometry, persistence/additional fixtures, remaining recovery, visual and Golden Tasks incomplete.
 
 ## Current proof matrix
 

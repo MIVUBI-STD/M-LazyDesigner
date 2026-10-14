@@ -14,7 +14,7 @@ const client = new LiveMcpClient({ expectedPhase: "geometry", requiredTools: [
   "inspect_elements", "get_project_info", "export_model", "undo", "redo",
 ] });
 async function inventory() {
-  return structuredObject(await client.callTool("list_textures", {}, "inspection"), "list_textures");
+  return structuredObject(await client.callTool("list_textures", { diagnostics: true, diagnostic_scope: "uv" }, "inspection"), "list_textures");
 }
 async function fingerprint() {
   const atlas = await inventory();

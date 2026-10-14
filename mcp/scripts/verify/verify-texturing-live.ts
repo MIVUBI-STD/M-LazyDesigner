@@ -527,7 +527,7 @@ async function main(): Promise<void> {
   );
 
   const finalInventory = structuredObject(
-    await client.callTool("list_textures", {}, "inspection"),
+    await client.callTool("list_textures", { diagnostics: true, diagnostic_scope: "uv" }, "inspection"),
     "list_textures"
   );
   const finalAudit = (finalInventory.uv_audit ?? {}) as JsonObject;

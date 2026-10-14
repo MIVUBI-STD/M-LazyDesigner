@@ -25,12 +25,12 @@ Reuse matching exact-SHA source proof and never substitute ancestor results.
 
 ## Active Windows sequence
 
-Tested executable: `ee167ae33b508a0d0a7a3a53e15ec22fe1a9f0fc`, Local. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
+Installed executable: `fcf6617982d94a4e5ddb8162956a00f0c0d99d55`, Local. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
 
 1. Exact-SHA `bun run verify:full`, Desktop `verify:source` (52 Rust tests), managed build/install PASS. `docs:check` passes; Only the canonical generators may update these artifacts. Preserve artifact SHA across docs-only recording.
 2. Stage 2 setup/relaunch and main Stage 3 flow observed: one plugin/panel, healthy lease beyond TTL, no bounded console flashes; search fixed, keyboard navigation/filter retention at both sizes, Smart Open preserves tabs/unsaved edits, Modified/save, Save As and close/recent navigation pass. Continue hides when its exact last model is missing, resumes that same model after restoration. Desktop restart retains Runtime PID/instance and reconstructs current model without approval.
-3. **Section 6A:** prior controller/integrity/focus proof retained under 77e52fc5/ae096f7c. New ee167ae3 custom endpoint reload PASS after settings teardown fix; defaults/config restored, Desktop Ready. Refresh native Settings search after plugin reload to avoid its stale objects. Remaining: IPC failure, foreign snapshot producer, residual focus, normal close (pending updater). Earlier stale lease/Desktop disappearance unexplained. Data d824b35c; Blockbench 5.2.0. Matrix incomplete.
-4. Compiled status reproduced ENOENT at virtual B: context root. Current repair: executable sibling contexts; canonical package adds profiles/specialist references; 26 targeted tests pass. Commit, close exact-SHA full/Desktop gates, rebuild/install, repeat compiled Control probe. Then prove matching Gateway/plugin and project affinity before Geometry → Texturing → Animation → Particle, persistence and additional fixtures. Do not repeat accepted gates without input changes.
+3. **Section 6A:** foreign native snapshot isolation and normal close/Desktop Open now PASS; primary automatic app/plugin updates OFF, editor 5.2.0. Persistent Gateway PID35728 survives offline/online and catalog recovery. Prior custom endpoint PASS. Remaining controller coverage: IPC rejection/residual OS focus; prior stale lease/Desktop disappearance unresolved. Data d824b35c; evidence fcf66179/foreign-snapshot-isolation.json and gateway-close-open.json.
+4. Packaged Control and project-affinity live PASS. Geometry PASS. Texturing failed only at final audit: inventory-only request omitted UV diagnostics; direct UV inspection ready/12 valid faces. Harness-only fix updates Texturing, persistence and UV-density to explicit diagnostics. Commit + exact-SHA source gate, recreate disposable Geometry, rerun Texturing; installed Gateway/Runtime source unaffected. Save blockit_geometry_e2e_disposable checkpoint, hand off via existing Gateway, then Animation/Particle, persistence and additional fixtures. Preserve original failed log before retry.
 5. Test recovery, then Golden Tasks after quality passes, with matching reference/model fingerprints, build/client/model identity and actual telemetry. Missing tokens remain null.
 
 Use existing runbook and proof owners. Setup/UI observations above are partial. Native
@@ -61,7 +61,7 @@ or bypass the existing gate.
 
 Only exact installed-build Undo/Redo, save/reopen, playback, reconnect and
 visual-review evidence from the existing runbook can close native claims.
-Windows LOCAL_CODE is active. Native setup is partial; functioning LIVE_BLOCKBENCH connection has not yet been proven.
+Windows LIVE_BLOCKBENCH connection is proven; native quality/visual acceptance remains incomplete.
 
 ## Separate bounded source boundaries
 

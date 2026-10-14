@@ -147,7 +147,7 @@ async function snapshot(client: LiveMcpClient) {
     `Expected disposable project ${AUTHORING_E2E_PROJECT_NAME}; current=${String(projectRoot.name)}.`
   );
   const textures = structuredObject(
-    await client.callTool("list_textures", {}, "inspection"),
+    await client.callTool("list_textures", { diagnostics: true, diagnostic_scope: "uv" }, "inspection"),
     "list_textures"
   );
   return {
