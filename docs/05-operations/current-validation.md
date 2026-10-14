@@ -6,7 +6,7 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 Branch authority: `Local`.
 
-Current source architecture:
+Source architecture:
 
 ```text
 ChatGPT Reference Preparation
@@ -25,6 +25,8 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
+The [Windows report](native-acceptance.md#consolidated-windows-local-test-report--2026-10-14) covers seven stages, hashes, repairs, evidence and open claims.
+
 Installed e9b3bca57a954fa858d4a077ceb000fedf10a627: exact-SHA verify:full, Desktop verify:source (52 Rust tests), package/Desktop build and managed install PASS. Debug: 53 tests PASS. Desktop 0.1.0, editor 5.2.0, Runtime b436485f. Proof: mcp/.cache/local-acceptance/e9b3bca5/; data d824b35c.
 
 Prior fcf66179 + harness 6afc8989: exact-SHA full gates and 12 main native steps PASS; fcf66179/acceptance-summary.json. This is historical coverage, not twelve current-build passes. LIFT and saved fixtures preserved. Technical proof is not visual approval.
@@ -35,15 +37,14 @@ Native IPC PASS on e9b3bca5: probe/full-status rejection locks actions until ful
 
 Prior fcf66179 recovery PASS: profile isolation, close/open, surface handoff, reload, disable/enable and Gateway replacement. Subsequent fixes bound status IPC waits and use native background timers with teardown coverage.
 
-Prior fcf66179 PASS: input guards, JSON/PNG delivery, overwrite protection; export leaves saved .bbmodel bytes unchanged.
 
-MOCKED IPC timeout/six-focus proof retained. Fault seam is debug-only and forbidden in release; ordinary release ignores its input. Native normal/forced termination trails distinguish exit paths; Runtime/model survive. Bounded logs record lifecycle/panic PID metadata.
+MOCKED IPC timeout/six-focus proof retained. Debug fault seam is forbidden in release. Native normal/forced exit trails distinguish paths; Runtime/model survive. Bounded logs record lifecycle/panic PID metadata.
 
 Historical disappearance UNKNOWN: installed e9b3bca5 survived 120 samples/120s, all responding. Minimized Desktop became targetable on relaunch with the same primary PID. Two-day Desktop/WebView fault and display-reset query found no matching entries. Proof: 59f0a6c2/desktop-{stability-observation,visibility-recovery,webview-fault-check}.json. This does not identify the old cause.
 
 Source 561ee8e4d906654deed8bec6fadef6f8618a88ed: exact-SHA verify:full PASS; .cache/localtest-final-focus-full.log. Earlier combined-runtime installer timeouts are retained in localtest-real-focus-full*.log. Separate Bun processes preserve all 2060 runtime tests and deadlines (2039 + 21 PASS). Installed release remains e9b3bca5; later edits affect debug testing/test composition only.
 
-Golden F lacks reference; six efficiency pairs NOT_EXECUTED, visual UNVERIFIED, tokens null; LIFT excluded. User priority remains disappearance/focus only.
+Golden F lacks reference; six efficiency pairs NOT_EXECUTED, visual UNVERIFIED, tokens null; LIFT excluded. Reporting is complete; historical disappearance remains UNKNOWN.
 
 ## Current proof matrix
 

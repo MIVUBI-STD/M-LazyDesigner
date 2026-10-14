@@ -4,7 +4,7 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Current direction
 
-**Current priority:** finish disappearance/focus items 1–2 before other acceptance.
+**Current priority:** consolidated local-test reporting is complete; retain the exact remaining evidence boundaries.
 The persistent Gateway owns client stability and Runtime
 recovery; Control owns context/readiness; Runtime/Plugin own Blockbench.
 Retain exactly four public Gateway tools and the existing source owners.
@@ -21,13 +21,13 @@ Reuse matching exact-SHA source proof and never substitute ancestor results.
 
 Installed executable: `e9b3bca57a954fa858d4a077ceb000fedf10a627`, Local. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
 
-1. Exact-SHA `bun run verify:full`, Desktop `verify:source` (52 Rust tests), managed build/install PASS. `docs:check` passes; Only the canonical generators may update these artifacts. Preserve artifact SHA across docs-only recording.
-2. Prior setup/relaunch and main Desktop flow PASS: one plugin/panel, lease beyond TTL, no bounded console flashes; search/keyboard/filter, Smart Open, unsaved edits, save/Save As, close/recent and exact-model Continue. Desktop restart retains Runtime PID/instance and current model.
-3. Prior fcf66179 recovery PASS: profile isolation, close/open, reload, disable/enable, surface handoff and Gateway replacement. Data d824b35c, updates OFF, editor 5.2.0. Reproduced background lease expiry fixed by 4cd2fd06 native Runtime/navigation timers; historical disappearance unexplained.
-4. Prior fcf66179 + harness 6afc8989: 12 main native steps PASS; fcf66179/acceptance-summary.json. Not twelve current-build passes. Later targeted proof: 4cd2fd06/; no token claim.
-5. Current e9b3bca5 source/build/install PASS. Native debug acceptance: injected probe/full IPC rejection, stale-action lock and full Refresh recovery PASS; DENIED/NO_WINDOW fallback PASS, model unchanged. Debug feature is forbidden in release; ordinary release ignores fault-file input. Hanging-read timeout proof retained from 4cd2fd06.
-6. Physical Windows focus PASS, debug 59f0a6c2: unchanged native owner returned DENIED and NO_WINDOW without result substitution; suspended real-editor fixture removed, saved models reopened. Proof: 59f0a6c2/physical-focus-acceptance.json. Normal/forced exit trails PASS. Installed e9 survived 120s; minimized/relaunch retained primary PID. No matching two-day Desktop/WebView/display fault entries. Historical disappearance remains UNKNOWN; lifecycle/panic metadata supports a future captured recurrence. No broader work yet.
-7. Source 561ee8e4: exact-SHA verify:full PASS (.cache/localtest-final-focus-full.log). Combined installer suite repeatedly timed out; separate Bun processes pass all 2060 runtime tests without changed assertions/deadlines. Installed e9 unchanged; later source affects debug tests/test composition. Golden F lacks reference; visual/six efficiency pairs deferred, tokens null; sampler blocked.
+The [consolidated Windows report](native-acceptance.md#consolidated-windows-local-test-report--2026-10-14) records every stage, repair, build/hash and local evidence location. No raw private profile, TLS, model or binary artifacts are published.
+
+1. Source `561ee8e4d906654deed8bec6fadef6f8618a88ed`: exact-SHA `bun run verify:full` PASS; all 2060 runtime tests retained in separate Bun processes with unchanged deadlines/assertions. Installed e9 release: Desktop `verify:source` 52 Rust tests and managed/Desktop build/install PASS. `docs:check` passed in full gate. Only the canonical generators may update these artifacts.
+2. Main twelve native steps and recovery PASS on fcf66179 with 6afc8989 harness; later targeted heartbeat/persistence/affinity/single-instance PASS on 4cd2fd06. Native IPC fault/recovery and release isolation PASS on e9b3bca5. These are named-build results, not twelve current-build passes.
+3. Actual Windows DENIED/NO_WINDOW PASS on debug 59f0a6c2; process fixture removed and saved models reopened. Historical disappearance UNKNOWN: e9 responded for 120s, minimized/relaunch retained PID, no matching two-day fault entries. A future recurrence needs timestamp/PID/window state plus bounded lifecycle log; do not infer its cause from absence of faults.
+4. Remaining: human visual acceptance (LD-Q01–Q03); six quality-gated Golden comparisons (F lacks reference); tokens unavailable; native sampler blocked (LD-Q04); newer Blockbench compatibility unvalidated. No further asset mutation or unrelated repair is implied by this reporting task. Data d824b35c, editor 5.2.0, updates OFF; ordinary e9 release retained.
+
 Use existing runbook and proof owners. Setup/UI observations above are partial. Native
 and visual checks remain NOT_EXECUTED until actually observed.
 
