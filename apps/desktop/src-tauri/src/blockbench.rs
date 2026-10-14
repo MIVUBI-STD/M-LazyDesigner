@@ -207,6 +207,16 @@ pub(crate) fn is_executable_name(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+fn normalize_product_version(value: &str) -> String {
+    // Windows PE metadata adds a revision; compatibility uses the editor release.
+    let parts: Vec<_> = value.split('.').collect();
+    if parts.len() == 4 && parts.iter().all(|part| part.parse::<u64>().is_ok()) {
+        parts[..3].join(".")
+    } else {
+        value.to_string()
+    }
+}
+
 fn version(executable: &Path) -> Result<String, String> {
     if !is_executable_name(executable) {
         return Err("Discovered Blockbench path does not end in Blockbench.exe.".to_string());
@@ -230,7 +240,7 @@ if ($info.ProductName -ne 'Blockbench') { exit 2 }
     }
 
     let raw = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    let version = raw.split_whitespace().next().unwrap_or("").to_string();
+    let version = normalize_product_version(raw.split_whitespace().next().unwrap_or(""));
     if version.is_empty() {
         return Err("Blockbench version information is empty.".to_string());
     }
@@ -491,6 +501,15 @@ mod tests {
     fn executable_identity_requires_blockbench_filename() {
         assert!(is_executable_name(Path::new("C:/Apps/Blockbench.exe")));
         assert!(!is_executable_name(Path::new("C:/Apps/not-blockbench.exe")));
+    }
+
+    #[test]
+    fn windows_product_revision_does_not_make_supported_editor_invalid() {
+        let version = normalize_product_version("5.2.0.0");
+        assert_eq!(version, "5.2.0");
+        assert_eq!(evaluate_compatibility(&version).unwrap().status, "compatible-unverified");
+        assert_eq!(normalize_product_version("5.2.0-beta.2"), "5.2.0-beta.2");
+        assert_eq!(parse_version(&normalize_product_version("5.2.bad.0")), None);
     }
 
     #[test]
