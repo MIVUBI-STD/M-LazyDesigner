@@ -38,6 +38,18 @@ describe("Gateway operation queue", () => {
     });
   });
 
+  test("releases capacity and final metrics before resolving an operation", async () => {
+    const queue = new GatewayOperationQueue(0);
+    await expect(queue.run(async () => "first")).resolves.toBe("first");
+    expect(queue.snapshot()).toMatchObject({
+      active: 0, queued: 0, completed: 1, duration_sample_count: 1,
+    });
+    await expect(queue.run(async () => "second")).resolves.toBe("second");
+    expect(queue.snapshot()).toMatchObject({
+      active: 0, queued: 0, completed: 2, duration_sample_count: 2,
+    });
+  });
+
   test("rejects work beyond configured queue depth", async () => {
     const queue = new GatewayOperationQueue(0);
     let release!: () => void;

@@ -95,11 +95,9 @@ export class GatewayOperationQueue {
       this.lastQueueWaitMs = waited;
       this.maxQueueWaitMs = Math.max(this.maxQueueWaitMs, waited);
       appendSample(this.queueWaitSamples, waited);
-      // execute() captures all operation failures and settles the caller.
-      void next.execute().finally(() => {
-        this.activeOperations = 0;
-        this.scheduleNext();
-      });
+      // execute() settles only after releasing the active slot.
+      // This ensures a follow-up call made immediately after await can enter.
+      void next.execute();
     });
   }
 
@@ -171,11 +169,15 @@ export class GatewayOperationQueue {
         },
         execute: async () => {
           const startedAt = Date.now();
+          let result: T | undefined;
+          let failed = false;
+          let failure: unknown;
           try {
-            const result = await operation();
+            result = await operation();
             this.completedOperations += 1;
-            resolve(result);
           } catch (error) {
+            failed = true;
+            failure = error;
             this.failedOperations += 1;
             if (error instanceof GatewayBackendError) {
               if (typeof error.details.timeout_ms === "number") {
@@ -188,13 +190,18 @@ export class GatewayOperationQueue {
                 this.interruptedReadOperations += 1;
               }
             }
-            reject(error);
           } finally {
             const elapsedMs = Math.max(0, Date.now() - startedAt);
             this.lastOperationDurationMs = elapsedMs;
             this.maxOperationDurationMs = Math.max(this.maxOperationDurationMs, elapsedMs);
             appendSample(this.durationSamples, elapsedMs);
+            this.activeOperations = 0;
+            this.scheduleNext();
           }
+          // Do not make the completion observable before the queue has
+          // released its active slot and recorded final duration metrics.
+          if (failed) reject(failure);
+          else resolve(result as T);
         },
       };
 
