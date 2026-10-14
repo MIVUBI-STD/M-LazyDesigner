@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { convertDocSchema } from "./internal/doc-schema";
 import { toolManifest, promptDocs, resourceDocs } from "./internal/docs-manifest";
 import type { ToolSpec, PromptSpec, ResourceSpec } from "../../lib/factories";
 import { version } from "../../package.json";
@@ -51,20 +51,6 @@ interface DocOutput {
 // Schema Conversion
 // ============================================================================
 
-function convertSchema(name: string, schema: z.ZodType): object {
-  try {
-    return z.toJSONSchema(schema, {
-      io: "input",
-      target: "draft-2020-12",
-      unrepresentable: "any",
-      reused: "inline",
-    });
-  } catch (err) {
-    console.warn(`Warning: Failed to convert schema for "${name}":`, err);
-    return { type: "object", description: "Schema conversion failed" };
-  }
-}
-
 function convertToolSpec(spec: ToolSpec, category: string): ToolDocEntry {
   return {
     name: spec.name,
@@ -77,7 +63,7 @@ function convertToolSpec(spec: ToolSpec, category: string): ToolDocEntry {
       readOnlyHint: spec.annotations?.readOnlyHint,
       openWorldHint: spec.annotations?.openWorldHint,
     },
-    parameters: convertSchema(spec.name, spec.parameters),
+    parameters: convertDocSchema(spec.name, spec.parameters),
   };
 }
 
@@ -87,7 +73,7 @@ function convertPromptSpec(spec: PromptSpec): PromptDocEntry {
     title: spec.title ?? spec.name,
     description: spec.description,
     status: spec.status,
-    arguments: spec.argsSchema ? convertSchema(spec.name, spec.argsSchema) : null,
+    arguments: spec.argsSchema ? convertDocSchema(spec.name, spec.argsSchema) : null,
   };
 }
 
