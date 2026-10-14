@@ -37,11 +37,11 @@ Accept `selected_profile` from Control, sourced from the current Reference Packa
 
 ## Reference Grounding
 
-Use the actual approved image in active multimodal context; a path or description is not visual evidence. Missing approved evidence blocks dependent Geometry. The approved image owns appearance; exact user dimensions own numeric scale.
+Use the actual approved reference image in active multimodal context; path/prose/memory is not visual evidence. Missing approved evidence blocks dependent Geometry. The approved image owns appearance; exact user dimensions own numeric scale.
 
 Before the first batch, establish silhouette, primary masses/count, topology, attachment, negative spaces, visible depth and motion-critical pivots. Treat conflicting/unavailable required evidence as `BLOCKED`; account for each visible part as `GEOMETRY | TEXTURE | ANIMATION | OMIT(with reason)`.
 
-At material model/reference comparison, request `status(reference_package_path=..., include_reference_images=true)` and pair fresh `capture_model_views` with actual compatible source views. `reference_correspondence` and `landmark_pairs` provide bounded provisional diagnostics, not visual PASS or automatic correction. Load `references/verification.md` for region/part ownership, landmark matching and evidence limits; load `references/correction.md` only for an active correction loop. Reuse fresh images and avoid capture-per-Cube.
+At material model/reference comparison, request `status(reference_package_path=..., include_reference_images=true)` and pair fresh `capture_model_views` with actual compatible source views. `capture_model_views.reference_correspondence` and `landmark_pairs` provide bounded provisional diagnostics, not visual PASS or automatic correction. Load `references/verification.md` for region/part ownership, landmark matching and evidence limits; load `references/correction.md` only for an active correction loop. Reuse fresh images and avoid capture-per-Cube. Evidence: `SUPPORTED | PROVISIONAL | CONFLICTING | UNAVAILABLE`. View Pair Map only for material front/back, depth, attachment or 3/4 ambiguity.
 
 ## Geometry Hot Path
 `reference evidence contract → selected profile guidance → semantic form → representation choice → primary batch → Core View Triad → conditional surface integrity → causal correction → Geometry PASS → UV preflight → user review`.
