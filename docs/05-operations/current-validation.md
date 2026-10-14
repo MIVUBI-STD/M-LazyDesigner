@@ -25,13 +25,13 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Installed source 4cd2fd06895a7a99c3d382c97ba27c5f856cf23f: exact-SHA verify:full, Desktop verify:source (52 Rust tests), canonical package/Desktop build and managed install PASS. Desktop 0.1.0, Blockbench 5.2.0, Runtime b436485f. Evidence: mcp/.cache/local-acceptance/4cd2fd06/; same disposable data d824b35c. Package smoke uses an isolated endpoint; a live default Runtime correctly stages install instead of overwriting it.
+Installed 4cd2fd06895a7a99c3d382c97ba27c5f856cf23f: exact-SHA verify:full, Desktop verify:source (52 Rust tests), package/Desktop build and managed install PASS. Desktop 0.1.0, Blockbench 5.2.0, Runtime b436485f. Evidence: mcp/.cache/local-acceptance/4cd2fd06/; data d824b35c. Package smoke uses an isolated endpoint.
 
 Prior executable fcf66179 and harness 6afc8989 have exact-SHA full gates and all 12 main native steps PASS, indexed by fcf66179/acceptance-summary.json. This is historical bounded coverage, not twelve fresh passes on 4cd2fd06. Original LIFT and saved fixture files remain preserved. Technical proof is not visual approval.
 
 Current Desktop/native Open and Continue PASS with the new plugin. Automatic app/plugin updates remain OFF. Native foreign-title focus PASS: Notepad Blockbench.txt remained open while the actual Blockbench window became foreground; no title-based target selection. Proof: foreign-title-focus.json.
 
-Current native PASS: minimized 128s (Runtime age <3.1s, navigation <5.2s), persistence prepare/native reopen and two-Gateway project affinity. Proof: minimized-heartbeat.json and verify-*-live.log under 4cd2fd06.
+Current native PASS: minimized 128s (Runtime age <3.1s, navigation <5.2s), persistence/native reopen, two-Gateway affinity and 16 duplicate Desktop launches (same primary PID, restored window). Native focus module returns NO_WINDOW for a real windowless process; this is module integration, not Desktop IPC end-to-end. Proof: 4cd2fd06/acceptance-summary.json.
 
 Prior recovery PASS on fcf66179: foreign-profile isolation, close/open, AUTHORING↔Animation, reload, disable/enable and Gateway detach/attach. Two issues subsequently reproduced and corrected: pending read-only status IPC retained healthy actions indefinitely; renderer timers let Runtime/navigation health expire while backgrounded. Current source uses bounded status waits and safe native timers with teardown coverage.
 
@@ -39,7 +39,7 @@ Prior supplemental native PASS on fcf66179: discovery/input guards, Bedrock JSON
 
 Built frontend MOCKED IPC PASS: hanging probes and full refresh expire, actions lock, successful full refresh recovers. Previous rejection/Support/six-focus-result checks retained. Native IPC failure injection and Windows foreground denial remain NOT_EXECUTED; no production fault seam added.
 
-No reference: Golden F deferred by user; independent checks continued. Six efficiency pairs NOT_EXECUTED, visual acceptance UNVERIFIED, tokens null; LIFT excluded. verify:astra-usage-ready proves preparation only. Background timer expiry now reproduced; earlier Desktop disappearance remains unexplained.
+No reference: Golden F deferred; six efficiency pairs NOT_EXECUTED, visual acceptance UNVERIFIED, tokens null; LIFT excluded. usage-ready proves preparation only. Earlier Desktop disappearance remains unreproduced; 16-launch stress PASS and no matching Application fault events in two days do not establish its cause.
 
 ## Current proof matrix
 
