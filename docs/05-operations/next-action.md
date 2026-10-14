@@ -19,14 +19,14 @@ Reuse matching exact-SHA source proof and never substitute ancestor results.
 
 ## Active Windows sequence
 
-Installed executable: `4cd2fd06895a7a99c3d382c97ba27c5f856cf23f`, Local. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
+Installed executable: `e9b3bca57a954fa858d4a077ceb000fedf10a627`, Local. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
 
 1. Exact-SHA `bun run verify:full`, Desktop `verify:source` (52 Rust tests), managed build/install PASS. `docs:check` passes; Only the canonical generators may update these artifacts. Preserve artifact SHA across docs-only recording.
 2. Stage 2 setup/relaunch and main Stage 3 flow observed: one plugin/panel, healthy lease beyond TTL, no bounded console flashes; search fixed, keyboard navigation/filter retention at both sizes, Smart Open preserves tabs/unsaved edits, Modified/save, Save As and close/recent navigation pass. Continue hides when its exact last model is missing, resumes that same model after restoration. Desktop restart retains Runtime PID/instance and reconstructs current model without approval.
 3. Prior fcf66179 recovery matrix PASS: foreign profile, close/open, reload, disable/enable, surface handoff and Gateway replacement. Data d824b35c, updates OFF, editor 5.2.0. Background stale lease reproduced: renderer timers throttled while Gateway remained online; 4cd2fd06 uses safe native timers for Runtime/navigation. Earlier Desktop disappearance remains unexplained.
 4. Prior fcf66179 + harness 6afc8989: all 12 main native steps PASS, including UV diagnostics correction and native reopen. Evidence fcf66179/acceptance-summary.json. These are not twelve fresh current-build passes. Current targeted proof and first failures: 4cd2fd06/; no token claim.
-5. Current source/build/install PASS. Hanging read-only IPC expires (probe 10s, full 30s), pauses after two failures, recovers after full Refresh. MOCKED IPC hang/recovery PASS. Native PASS: Open/Continue, foreign-title focus, minimized heartbeat 128s, fresh persistence prepare/reopen and two-Gateway affinity. Keep native OS failure claims separate.
-6. Further proof: 16 duplicate launches preserve the primary PID and restore minimized Desktop; native focus module NO_WINDOW integration PASS. Full Desktop no-window/Windows-denial/native IPC injection remain unexecuted. These are acceptance gaps, not confirmed defects. Disappearance unreproduced; no matching Application fault events in two days. Golden F lacks reference; visual/six efficiency gates deferred, tokens null; sampler blocked. No production fault backdoor.
+5. Current e9b3bca5 source/build/install PASS. Native debug acceptance: injected probe/full IPC rejection, stale-action lock and full Refresh recovery PASS; DENIED/NO_WINDOW fallback PASS, model unchanged. Debug feature is forbidden in release; ordinary release ignores fault-file input. Hanging-read timeout proof retained from 4cd2fd06.
+6. Normal-close versus forced-test-termination trails PASS; Runtime/model survive. Lifecycle/panic PID metadata now supports disappearance diagnosis; historical cause remains unreproduced. Physical Windows denial remains unobserved despite controlled native fallback PASS. Use runbook 10B; never ship the debug harness. Golden F lacks reference; visual/six efficiency gates deferred, tokens null; sampler blocked.
 Use existing runbook and proof owners. Setup/UI observations above are partial. Native
 and visual checks remain NOT_EXECUTED until actually observed.
 

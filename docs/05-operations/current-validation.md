@@ -25,21 +25,21 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Installed 4cd2fd06895a7a99c3d382c97ba27c5f856cf23f: exact-SHA verify:full, Desktop verify:source (52 Rust tests), package/Desktop build and managed install PASS. Desktop 0.1.0, Blockbench 5.2.0, Runtime b436485f. Evidence: mcp/.cache/local-acceptance/4cd2fd06/; data d824b35c. Package smoke uses an isolated endpoint.
+Installed e9b3bca57a954fa858d4a077ceb000fedf10a627: exact-SHA verify:full, Desktop verify:source (52 Rust tests), package/Desktop build and managed install PASS. Debug: 53 tests PASS. Desktop 0.1.0, editor 5.2.0, Runtime b436485f. Proof: mcp/.cache/local-acceptance/e9b3bca5/; data d824b35c.
 
-Prior executable fcf66179 and harness 6afc8989 have exact-SHA full gates and all 12 main native steps PASS, indexed by fcf66179/acceptance-summary.json. This is historical bounded coverage, not twelve fresh passes on 4cd2fd06. Original LIFT and saved fixture files remain preserved. Technical proof is not visual approval.
+Prior fcf66179 + harness 6afc8989: exact-SHA full gates and 12 main native steps PASS; fcf66179/acceptance-summary.json. This is historical coverage, not twelve current-build passes. LIFT and saved fixtures preserved. Technical proof is not visual approval.
 
-Current Desktop/native Open and Continue PASS with the new plugin. Automatic app/plugin updates remain OFF. Native foreign-title focus PASS: Notepad Blockbench.txt remained open while the actual Blockbench window became foreground; no title-based target selection. Proof: foreign-title-focus.json.
+Prior 4cd2fd06 native PASS: Open/Continue, foreign-title focus, minimized 128s (Runtime age <3.1s, navigation <5.2s), persistence/reopen, two-Gateway affinity and 16 duplicate launches. Canonical focus module NO_WINDOW integration PASS. Proof: 4cd2fd06/acceptance-summary.json. Updates remain OFF.
 
-Current native PASS: minimized 128s (Runtime age <3.1s, navigation <5.2s), persistence/native reopen, two-Gateway affinity and 16 duplicate Desktop launches (same primary PID, restored window). Native focus module returns NO_WINDOW for a real windowless process; this is module integration, not Desktop IPC end-to-end. Proof: 4cd2fd06/acceptance-summary.json.
+Current native acceptance build PASS: real Tauri probe/full-status rejection locks actions; clearing fault retains lock until full Refresh recovers. Injected DENIED/NO_WINDOW show taskbar fallback without confirmed-focus claim; model unchanged. These inject backend outcomes, not physical Windows denial/window loss.
 
 Prior recovery PASS on fcf66179: foreign-profile isolation, close/open, AUTHORING↔Animation, reload, disable/enable and Gateway detach/attach. Two issues subsequently reproduced and corrected: pending read-only status IPC retained healthy actions indefinitely; renderer timers let Runtime/navigation health expire while backgrounded. Current source uses bounded status waits and safe native timers with teardown coverage.
 
 Prior supplemental native PASS on fcf66179: discovery/input guards, Bedrock JSON/PNG delivery and overwrite protection with unchanged file hashes. Export updates in-memory project metadata through native lifecycle; it does not rewrite the saved .bbmodel.
 
-Built frontend MOCKED IPC PASS: hanging probes and full refresh expire, actions lock, successful full refresh recovers. Previous rejection/Support/six-focus-result checks retained. Native IPC failure injection and Windows foreground denial remain NOT_EXECUTED; no production fault seam added.
+Prior MOCKED IPC hang/timeout and six-focus-result proof retained. Current fault seam is nondefault debug-only; release compilation explicitly rejects it. Ordinary release ignores the fault-file environment and contains no injection markers. Native normal-close and forced-test-termination trails distinguish exit paths; Runtime/model survive Desktop termination. The existing bounded log now records lifecycle/panic PID metadata.
 
-No reference: Golden F deferred; six efficiency pairs NOT_EXECUTED, visual acceptance UNVERIFIED, tokens null; LIFT excluded. usage-ready proves preparation only. Earlier Desktop disappearance remains unreproduced; 16-launch stress PASS and no matching Application fault events in two days do not establish its cause.
+No reference: Golden F deferred; six efficiency pairs NOT_EXECUTED, visual acceptance UNVERIFIED, tokens null; LIFT excluded. usage-ready proves preparation only. Historical Desktop disappearance remains unreproduced: diagnosis readiness is proven, its original cause is not. Physical Windows foreground denial remains unobserved.
 
 ## Current proof matrix
 
@@ -165,7 +165,7 @@ Do not infer current-head protocol PASS from historical evidence.
 
 ## Last reusable proven source baseline
 
-The Windows checkpoint is the reusable source baseline; older evidence does not transfer. Remaining proof: native IPC/focus fault cases, visual acceptance and real cost-to-accepted-result telemetry. Follow the existing local acceptance runbook.
+Reuse the Windows checkpoint only within its proof scope. Remaining: physical Windows denial, historical disappearance cause, visual acceptance and real cost-to-accepted-result telemetry. Follow the runbook.
 
 ## Proof boundary
 
