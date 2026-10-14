@@ -40,6 +40,20 @@ describe("Gateway remote fault-injection contract", () => {
     });
   });
 
+  test("pre-execution queue expiry and cancellation are conclusive, not OUTCOME_UNKNOWN", () => {
+    for (const code of ["GATEWAY_QUEUE_EXPIRED", "GATEWAY_QUEUE_CANCELLED"]) {
+      expect(recoveryForGatewayError(code, true)).toMatchObject({
+        safe_to_retry: true,
+        state_uncertain: false,
+        requires_status_refresh: false,
+      });
+    }
+    expect(recoveryForGatewayError("OUTCOME_UNKNOWN", false)).toMatchObject({
+      safe_to_retry: false,
+      state_uncertain: true,
+    });
+  });
+
   test("lost bound project fails closed and requires explicit rebind", () => {
     expect(() =>
       resolveProjectAffinity(

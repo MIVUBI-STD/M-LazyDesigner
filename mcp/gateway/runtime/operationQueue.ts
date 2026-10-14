@@ -11,12 +11,17 @@ export class GatewayOperationQueue {
   private failedOperations = 0;
   private timedOutOperations = 0;
   private rejectedBusyOperations = 0;
+  private expiredBeforeStart = 0;
+  private cancelledBeforeStart = 0;
   private lastQueueWaitMs: number | null = null;
   private maxQueueWaitMs = 0;
   private lastOperationDurationMs: number | null = null;
   private maxOperationDurationMs = 0;
 
-  constructor(readonly maxQueueDepth: number) {}
+  constructor(
+    readonly maxQueueDepth: number,
+    readonly maxQueueWaitMs: number = 30_000
+  ) {}
 
   snapshot(): GatewayRuntimeStatus["operations"] {
     return {
@@ -30,6 +35,8 @@ export class GatewayOperationQueue {
       failed: this.failedOperations,
       timed_out: this.timedOutOperations,
       rejected_busy: this.rejectedBusyOperations,
+      expired_before_start: this.expiredBeforeStart,
+      cancelled_before_start: this.cancelledBeforeStart,
       last_queue_wait_ms: this.lastQueueWaitMs,
       max_queue_wait_ms: this.maxQueueWaitMs,
       last_duration_ms: this.lastOperationDurationMs,
@@ -37,7 +44,19 @@ export class GatewayOperationQueue {
     };
   }
 
-  run<T>(operation: () => Promise<T>): Promise<T> {
+  run<T>(
+    operation: () => Promise<T>,
+    options: { signal?: AbortSignal } = {}
+  ): Promise<T> {
+    if (options.signal?.aborted) {
+      this.cancelledBeforeStart += 1;
+      return Promise.reject(new GatewayBackendError(
+        "GATEWAY_QUEUE_CANCELLED",
+        "Gateway request was cancelled before native execution began.",
+        true,
+        { executed: false }
+      ));
+    }
     if (this.pendingOperations >= this.maxQueueDepth + 1) {
       this.rejectedBusyOperations += 1;
       return Promise.reject(
@@ -52,8 +71,66 @@ export class GatewayOperationQueue {
 
     const enqueuedAt = Date.now();
     this.pendingOperations += 1;
+    let started = false;
+    let discarded = false;
+    let deadline: ReturnType<typeof setTimeout> | null = null;
+    let failWaiting!: (reason: unknown) => void;
+    const waitingFailure = new Promise<never>((_resolve, reject) => {
+      failWaiting = reject;
+    });
+
+    const cleanup = () => {
+      if (deadline !== null) {
+        clearTimeout(deadline);
+        deadline = null;
+      }
+      options.signal?.removeEventListener("abort", onAbort);
+    };
+    const rejectBeforeStart = (code: "GATEWAY_QUEUE_EXPIRED" | "GATEWAY_QUEUE_CANCELLED") => {
+      // Once execution begins, cancellation is uncertain. Never interrupt
+      // or auto-replay an in-flight native mutation.
+      if (started || discarded) return;
+      discarded = true;
+      const elapsedMs = Math.max(0, Date.now() - enqueuedAt);
+      this.pendingOperations = Math.max(0, this.pendingOperations - 1);
+      if (code === "GATEWAY_QUEUE_EXPIRED") this.expiredBeforeStart += 1;
+      else this.cancelledBeforeStart += 1;
+      cleanup();
+      failWaiting(new GatewayBackendError(
+        code,
+        code === "GATEWAY_QUEUE_EXPIRED"
+          ? "Gateway queue wait expired before native execution began."
+          : "Gateway request was cancelled before native execution began.",
+        true,
+        {
+          executed: false,
+          queue_wait_ms: elapsedMs,
+          ...(code === "GATEWAY_QUEUE_EXPIRED"
+            ? { queue_wait_timeout_ms: this.maxQueueWaitMs }
+            : {}),
+        }
+      ));
+    };
+    const onAbort = () => rejectBeforeStart("GATEWAY_QUEUE_CANCELLED");
+    if (options.signal) {
+      options.signal.addEventListener("abort", onAbort, { once: true });
+      if (options.signal.aborted) onAbort();
+    }
+    if (!discarded && this.maxQueueWaitMs > 0) {
+      deadline = setTimeout(
+        () => rejectBeforeStart("GATEWAY_QUEUE_EXPIRED"),
+        this.maxQueueWaitMs
+      );
+    }
 
     const execute = async (): Promise<T> => {
+      if (discarded) {
+        // The caller has already received a conclusive no-execution error.
+        // Keep the existing serialization tail intact and skip this task.
+        throw new Error("Discarded Gateway queue entry was never executed.");
+      }
+      started = true;
+      cleanup();
       const startedAt = Date.now();
       const queueWaitMs = Math.max(0, startedAt - enqueuedAt);
       this.lastQueueWaitMs = queueWaitMs;
@@ -96,6 +173,6 @@ export class GatewayOperationQueue {
       () => undefined,
       () => undefined
     );
-    return run;
+    return Promise.race([run, waitingFailure]).finally(cleanup);
   }
 }

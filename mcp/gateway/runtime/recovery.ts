@@ -81,6 +81,19 @@ export function recoveryForGatewayError(
     };
   }
 
+  if (code === "GATEWAY_QUEUE_EXPIRED" || code === "GATEWAY_QUEUE_CANCELLED") {
+    return {
+      category: code === "GATEWAY_QUEUE_EXPIRED" ? "CAPACITY" : "TRANSPORT",
+      safe_to_retry: true,
+      state_uncertain: false,
+      requires_status_refresh: false,
+      requires_user_action: false,
+      action: code === "GATEWAY_QUEUE_EXPIRED"
+        ? "retry when the Gateway queue has cleared; no native operation began"
+        : "request was cancelled before native execution; retry only if still wanted",
+    };
+  }
+
   if (code === "GATEWAY_BUSY") {
     return {
       category: "CAPACITY",

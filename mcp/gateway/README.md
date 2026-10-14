@@ -209,6 +209,12 @@ Finite MCP responses can reuse the same authenticated loopback HTTPS connection 
 
 Focused Runtime tests compare reused versus fresh connections and verify HTTPS certificate/token protection. Recorded p95/sample latencies are observations, **not** guaranteed improvements or native Blockbench acceptance. Health probing before an authoring invocation is retained because Runtime generation and active-project affinity may change outside Gateway control. Do not remove that probe merely to increase a synthetic cache-hit rate.
 
+## Pre-execution Queue Cancellation
+
+Gateway's serialized operation queue now distinguishes **waiting** from **started** work. Waiting work expires after 30 seconds by default (`BLOCKIT_GATEWAY_MAX_QUEUE_WAIT_MS`; independently configurable from the 120-second native call timeout). The MCP v2 request abort signal can release a waiting slot immediately. Neither action invokes Blockbench; the result is `GATEWAY_QUEUE_EXPIRED` or `GATEWAY_QUEUE_CANCELLED` with `executed=false`, `safe_to_retry=true`, and separate `expired_before_start` / `cancelled_before_start` counters.
+
+Once a queued operation starts, Gateway **does not** abort or replay the native mutation. Cancellation or timeout after execution starts can still produce `OUTCOME_UNKNOWN` and requires state inspection before any replay. Queued work expiry/cancellation is not treated as proof that an already-running native operation was undone. This is a bounded admission policy, not guaranteed cancellation of Blockbench's native API.
+
 ## Reliability Invariants
 
 - Gateway startup does not require Blockbench to be open.

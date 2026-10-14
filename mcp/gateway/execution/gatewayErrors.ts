@@ -5,6 +5,7 @@ import { recoveryForGatewayError } from "../runtime/recovery";
 export type GatewayToolContext = {
   mcpReq?: {
     _meta?: Record<string, unknown>;
+    signal?: AbortSignal;
   };
 };
 

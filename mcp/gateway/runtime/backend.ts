@@ -124,6 +124,12 @@ export class BlockitRuntimeBackend {
         options.maxQueueDepth ??
           Number(process.env.BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH ?? 8),
         8
+      ),
+      normalizePositiveInteger(
+        options.maxQueueWaitMs ??
+          Number(process.env.BLOCKIT_GATEWAY_MAX_QUEUE_WAIT_MS ?? 30_000),
+        30_000,
+        1
       )
     );
     this.catalogLeaseMs = normalizePositiveInteger(
@@ -135,8 +141,11 @@ export class BlockitRuntimeBackend {
     this.onRuntimeGenerationChange = options.onRuntimeGenerationChange;
   }
 
-  private runExclusive<T>(operation: () => Promise<T>): Promise<T> {
-    return this.operationQueue.run(operation);
+  private runExclusive<T>(
+    operation: () => Promise<T>,
+    signal?: AbortSignal
+  ): Promise<T> {
+    return this.operationQueue.run(operation, { signal });
   }
 
   private operationStatus(): GatewayRuntimeStatus["operations"] {
@@ -537,7 +546,8 @@ export class BlockitRuntimeBackend {
   async invokeCapabilityWithMetadata(
     capability: string,
     args: JsonRecord = {},
-    requestMeta?: JsonRecord
+    requestMeta?: JsonRecord,
+    signal?: AbortSignal
   ): Promise<GatewayRuntimeInvocation> {
     return this.runExclusive(async () => {
       const capabilityMetadata = getCapabilityMetadata(capability);
@@ -680,7 +690,7 @@ export class BlockitRuntimeBackend {
           }
         );
       }
-    });
+    }, signal);
   }
 
   async close(): Promise<void> {

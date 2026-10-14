@@ -13,7 +13,9 @@ export type GatewayBackendErrorCode =
   | "BACKEND_CALL_INTERRUPTED"
   | "OUTCOME_UNKNOWN"
   | "PROJECT_CONTEXT_LOST"
-  | "GATEWAY_BUSY";
+  | "GATEWAY_BUSY"
+  | "GATEWAY_QUEUE_EXPIRED"
+  | "GATEWAY_QUEUE_CANCELLED";
 
 export class GatewayBackendError extends Error {
   constructor(
@@ -57,6 +59,8 @@ export type GatewayRuntimeStatus = {
     failed: number;
     timed_out: number;
     rejected_busy: number;
+    expired_before_start: number;
+    cancelled_before_start: number;
     last_queue_wait_ms?: number | null;
     max_queue_wait_ms?: number;
     last_duration_ms?: number | null;
@@ -88,6 +92,7 @@ export type BlockitRuntimeBackendOptions = {
   callTimeoutMs?: number;
   closeTimeoutMs?: number;
   maxQueueDepth?: number;
+  maxQueueWaitMs?: number;
   catalogLeaseMs?: number;
   onRuntimeGenerationChange?: (event: RuntimeGenerationChangeEvent) => void;
 };

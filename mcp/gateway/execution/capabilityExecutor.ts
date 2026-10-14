@@ -1,4 +1,5 @@
 import type { BlockitRuntimeBackend } from "../runtime/backend";
+import { GatewayBackendError } from "../runtime/backendContract";
 import type { JsonRecord } from "../contracts/protocol";
 import {
   compactGatewayCapabilityContent,
@@ -119,13 +120,22 @@ export class GatewayCapabilityExecutor {
         ? (await this.backend.getStatus()).affinity.authoring_phase
         : null;
 
+      if (context?.mcpReq?.signal?.aborted) {
+        throw new GatewayBackendError(
+          "GATEWAY_QUEUE_CANCELLED",
+          "Gateway request was cancelled before native execution began.",
+          true,
+          { executed: false }
+        );
+      }
       const localResult = await this.localCapabilities.invoke(capability, args);
       const runtimeInvocation = localResult
         ? null
         : await this.backend.invokeCapabilityWithMetadata(
             capability,
             args,
-            traceMeta
+            traceMeta,
+            context?.mcpReq?.signal
           );
       const result = localResult ?? runtimeInvocation!.result;
       const readOnly =
