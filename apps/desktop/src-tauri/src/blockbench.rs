@@ -2,7 +2,7 @@ use crate::process::run_output;
 use serde::{Deserialize, Serialize};
 use std::{
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
     time::Duration,
 };
 use sysinfo::System;
@@ -297,6 +297,17 @@ pub(crate) fn detect() -> BlockbenchState {
     }
 }
 
+// GUI children must not inherit Desktop's absent/closed console handles, and
+// must reopen the same profile that owns the managed plugin and model state.
+fn launch_command(executable: &Path) -> Result<Command, String> {
+    let user_data = crate::system_status::managed_blockbench_user_data_dir()
+        .ok_or_else(|| "Managed Blockbench profile is unavailable.".to_string())?;
+    let mut command = Command::new(executable);
+    command.arg("--userData").arg(user_data)
+        .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    Ok(command)
+}
+
 pub(crate) fn open_model(path: &Path) -> Result<(), String> {
     if !path.is_file() {
         return Err("Model file is unavailable.".to_string());
@@ -306,7 +317,7 @@ pub(crate) fn open_model(path: &Path) -> Result<(), String> {
     let executable = discover_executable(&system)?
         .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
     version(&executable)?;
-    Command::new(executable)
+    launch_command(&executable)?
         .arg(path)
         .spawn()
         .map_err(|error| format!("Unable to open the model in Blockbench: {error}"))?;
@@ -328,7 +339,7 @@ pub(crate) fn open() -> Result<BlockbenchActionResult, String> {
         .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
     version(&executable)?;
 
-    Command::new(&executable)
+    launch_command(&executable)?
         .spawn()
         .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
 

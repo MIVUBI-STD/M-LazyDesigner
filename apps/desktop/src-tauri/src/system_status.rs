@@ -157,7 +157,7 @@ fn valid_navigation_profile_id(value: &str) -> bool {
     value.len() == 32 && value.chars().all(|ch| ch.is_ascii_hexdigit())
 }
 
-fn managed_blockbench_user_data_dir() -> Option<PathBuf> {
+pub(crate) fn managed_blockbench_user_data_dir() -> Option<PathBuf> {
     let root = managed_root()?;
     let bytes = fs::read(root.join("installed.json")).ok()?;
     let installed: InstalledState = serde_json::from_slice(&bytes).ok()?;
