@@ -38,6 +38,27 @@ test("Runtime URL normalization is shared without loading Gateway internals", ()
   expect(() => normalizeRuntimeUrl("https://user:password@localhost:3000/bb-mcp")).toThrow("credentials");
 });
 
+test("normal Gateway startup rejects HTTP configuration without breaking explicit HTTP fixtures", () => {
+  const previous = process.env.BLOCKIT_RUNTIME_URL;
+  try {
+    process.env.BLOCKIT_RUNTIME_URL = "http://127.0.0.1:3000/bb-mcp";
+    expect(() => new BlockitRuntimeBackend()).toThrow("requires HTTPS");
+    expect(() => new BlockitRuntimeBackend(undefined)).toThrow("requires HTTPS");
+
+    // Existing isolated stateless protocol fixtures explicitly inject HTTP.
+    const fixture = new BlockitRuntimeBackend("http://127.0.0.1:3000/bb-mcp");
+    expect(fixture.runtimeUrl).toBe("http://127.0.0.1:3000/bb-mcp");
+
+    process.env.BLOCKIT_RUNTIME_URL = "https://localhost:3000/bb-mcp";
+    expect(new BlockitRuntimeBackend().runtimeUrl).toBe(
+      "https://localhost:3000/bb-mcp"
+    );
+  } finally {
+    if (previous === undefined) delete process.env.BLOCKIT_RUNTIME_URL;
+    else process.env.BLOCKIT_RUNTIME_URL = previous;
+  }
+});
+
 test("HTTPS canonical handler and Gateway validate trust; hostile origin and untrusted peer fail", async () => {
   const directory = mkdtempSync(join(tmpdir(), "lazydesigner-tls-test-"));
   const previous = process.env.BLOCKIT_TLS_DIR;

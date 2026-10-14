@@ -85,11 +85,21 @@ export class BlockitRuntimeBackend {
   private lastError: string | null = null;
 
   constructor(
-    runtimeUrl: string = process.env.BLOCKIT_RUNTIME_URL ?? DEFAULT_RUNTIME_URL,
+    runtimeUrl?: string,
     healthTimeoutMs: number = Number(process.env.BLOCKIT_RUNTIME_TIMEOUT_MS ?? 1500),
     options: BlockitRuntimeBackendOptions = {}
   ) {
-    this.runtimeUrl = normalizeRuntimeUrl(runtimeUrl);
+    this.runtimeUrl = normalizeRuntimeUrl(
+      runtimeUrl ?? process.env.BLOCKIT_RUNTIME_URL ?? DEFAULT_RUNTIME_URL
+    );
+    // The normal long-lived Gateway is configured through BLOCKIT_RUNTIME_URL.
+    // Never silently downgrade that connection to cleartext HTTP. Isolated
+    // protocol fixtures may still pass an explicit loopback HTTP URL in code.
+    if (runtimeUrl === undefined && new URL(this.runtimeUrl).protocol !== "https:") {
+      throw new Error(
+        "LazyDesigner Gateway requires HTTPS for its configured Runtime URL. Explicit HTTP URLs are reserved for isolated protocol tests."
+      );
+    }
     this.healthTimeoutMs = normalizePositiveInteger(healthTimeoutMs, 1500, 100);
     this.connectTimeoutMs = normalizePositiveInteger(
       options.connectTimeoutMs ??

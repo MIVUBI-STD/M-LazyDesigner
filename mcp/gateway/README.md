@@ -235,7 +235,7 @@ https://127.0.0.1:3000/bb-mcp
 
 Internal package/server identifiers may still contain legacy `blockit-*` names during migration. Do not treat them as a second product.
 
-Run `bun run setup:tls` before native testing; see [Runtime TLS setup](../README.md#normal-client-boundary). The Bun Gateway uses the machine-local certificate for both health probes and SDK requests, with certificate validation enabled. `BLOCKIT_RUNTIME_URL` overrides the endpoint; `BLOCKIT_TLS_DIR` selects the shared certificate directory. Replacing an old HTTP Gateway process with this HTTPS-aware version requires one client reconnect; subsequent Runtime reloads recover beneath that process as before.
+Run `bun run setup:tls` before native testing; see [Runtime TLS setup](../README.md#normal-client-boundary). The Bun Gateway uses the machine-local certificate for both health probes and SDK requests, with certificate validation enabled. `BLOCKIT_RUNTIME_URL` overrides the endpoint **only with a loopback HTTPS URL** during normal Gateway startup; a configured HTTP endpoint fails closed. Explicit HTTP URLs remain available only to isolated protocol tests that construct a backend directly. `BLOCKIT_TLS_DIR` selects the shared certificate directory. Replacing an old HTTP Gateway process with this HTTPS-aware version requires one client reconnect; subsequent Runtime reloads recover beneath that process as before.
 
 ## Current Source Surface
 
