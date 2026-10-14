@@ -38,6 +38,55 @@ describe("Gateway operation queue", () => {
     });
   });
 
+  test("expires work at dispatch even when the timer callback has not run", async () => {
+    const queue = new GatewayOperationQueue(1, 1_000);
+    const originalNow = Date.now;
+    let now = 10_000;
+    let release!: () => void;
+    let markStarted!: () => void;
+    const started = new Promise<void>((resolve) => { markStarted = resolve; });
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const executed: string[] = [];
+
+    Date.now = () => now;
+    try {
+      const first = queue.run(async () => {
+        executed.push("first");
+        markStarted();
+        await gate;
+      });
+      await started;
+
+      const expired = queue.run(async () => {
+        executed.push("expired");
+      });
+      const rejected = expect(expired).rejects.toMatchObject({
+        code: "GATEWAY_QUEUE_EXPIRED",
+        safeToRetry: true,
+        details: { executed: false, queue_wait_timeout_ms: 1_000 },
+      });
+
+      // Advance the wall clock without running timers: the first completion
+      // schedules the second job as a microtask before its timer fires.
+      now += 1_001;
+      release();
+      await first;
+      await rejected;
+
+      expect(executed).toEqual(["first"]);
+      expect(queue.snapshot()).toMatchObject({
+        completed: 1,
+        expired_before_start: 1,
+        cancelled_before_start: 0,
+        queued: 0,
+        active: 0,
+      });
+    } finally {
+      release();
+      Date.now = originalNow;
+    }
+  });
+
   test("releases capacity and final metrics before resolving an operation", async () => {
     const queue = new GatewayOperationQueue(0);
     await expect(queue.run(async () => "first")).resolves.toBe("first");

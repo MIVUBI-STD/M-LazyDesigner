@@ -86,8 +86,18 @@ export class GatewayOperationQueue {
     queueMicrotask(() => {
       this.dispatchScheduled = false;
       if (this.activeOperations > 0) return;
-      const next = this.waiting.shift();
+      const next = this.waiting[0];
       if (!next) return;
+      // Timers can run later than queued microtasks after a busy event loop.
+      // Enforce the deadline at admission, not only from the expiry timer.
+      if (
+        this.maxQueueWaitMs > 0 &&
+        Date.now() - next.enqueuedAt >= this.maxQueueWaitMs
+      ) {
+        this.discardWaiting(next, "GATEWAY_QUEUE_EXPIRED");
+        return;
+      }
+      this.waiting.shift();
       // After this point no caller cancellation can claim executed=false.
       next.cleanup();
       this.activeOperations = 1;
