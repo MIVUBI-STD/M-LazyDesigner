@@ -29,17 +29,21 @@ Installed e9b3bca57a954fa858d4a077ceb000fedf10a627: exact-SHA verify:full, Deskt
 
 Prior fcf66179 + harness 6afc8989: exact-SHA full gates and 12 main native steps PASS; fcf66179/acceptance-summary.json. This is historical coverage, not twelve current-build passes. LIFT and saved fixtures preserved. Technical proof is not visual approval.
 
-Prior 4cd2fd06 native PASS: Open/Continue, foreign-title focus, minimized 128s (Runtime age <3.1s, navigation <5.2s), persistence/reopen, two-Gateway affinity and 16 duplicate launches. Canonical focus module NO_WINDOW integration PASS. Proof: 4cd2fd06/acceptance-summary.json. Updates remain OFF.
+Prior 4cd2fd06 PASS: Open/Continue, foreign-title focus, minimized 128s, persistence/reopen, two-Gateway affinity, 16 duplicate launches and NO_WINDOW integration. Proof: 4cd2fd06/acceptance-summary.json. Updates OFF.
 
-Current native acceptance build PASS: real Tauri probe/full-status rejection locks actions; clearing fault retains lock until full Refresh recovers. Injected DENIED/NO_WINDOW show taskbar fallback without confirmed-focus claim; model unchanged. These inject backend outcomes, not physical Windows denial/window loss.
+Native IPC PASS on e9b3bca5: probe/full-status rejection locks actions until full Refresh recovers; injected DENIED/NO_WINDOW retain fallback/model. Physical Windows PASS on debug 59f0a6c2: delayed unchanged focus owner returned DENIED with another foreground window and NO_WINDOW with a real suspended Blockbench process after saved windows closed. Fixture removed; both models reopened. Proof: 59f0a6c2/physical-focus-acceptance.json. Default release focus owner unchanged.
 
-Prior recovery PASS on fcf66179: foreign-profile isolation, close/open, AUTHORING↔Animation, reload, disable/enable and Gateway detach/attach. Two issues subsequently reproduced and corrected: pending read-only status IPC retained healthy actions indefinitely; renderer timers let Runtime/navigation health expire while backgrounded. Current source uses bounded status waits and safe native timers with teardown coverage.
+Prior fcf66179 recovery PASS: profile isolation, close/open, surface handoff, reload, disable/enable and Gateway replacement. Subsequent fixes bound status IPC waits and use native background timers with teardown coverage.
 
-Prior supplemental native PASS on fcf66179: discovery/input guards, Bedrock JSON/PNG delivery and overwrite protection with unchanged file hashes. Export updates in-memory project metadata through native lifecycle; it does not rewrite the saved .bbmodel.
+Prior fcf66179 PASS: input guards, JSON/PNG delivery, overwrite protection; export leaves saved .bbmodel bytes unchanged.
 
-Prior MOCKED IPC hang/timeout and six-focus-result proof retained. Current fault seam is nondefault debug-only; release compilation explicitly rejects it. Ordinary release ignores the fault-file environment and contains no injection markers. Native normal-close and forced-test-termination trails distinguish exit paths; Runtime/model survive Desktop termination. The existing bounded log now records lifecycle/panic PID metadata.
+MOCKED IPC timeout/six-focus proof retained. Fault seam is debug-only and forbidden in release; ordinary release ignores its input. Native normal/forced termination trails distinguish exit paths; Runtime/model survive. Bounded logs record lifecycle/panic PID metadata.
 
-No reference: Golden F deferred; six efficiency pairs NOT_EXECUTED, visual acceptance UNVERIFIED, tokens null; LIFT excluded. usage-ready proves preparation only. Historical Desktop disappearance remains unreproduced: diagnosis readiness is proven, its original cause is not. Physical Windows foreground denial remains unobserved.
+Historical disappearance UNKNOWN: installed e9b3bca5 survived 120 samples/120s, all responding. Minimized Desktop became targetable on relaunch with the same primary PID. Two-day Desktop/WebView fault and display-reset query found no matching entries. Proof: 59f0a6c2/desktop-{stability-observation,visibility-recovery,webview-fault-check}.json. This does not identify the old cause.
+
+Source 561ee8e4d906654deed8bec6fadef6f8618a88ed: exact-SHA verify:full PASS; .cache/localtest-final-focus-full.log. Earlier combined-runtime installer timeouts are retained in localtest-real-focus-full*.log. Separate Bun processes preserve all 2060 runtime tests and deadlines (2039 + 21 PASS). Installed release remains e9b3bca5; later edits affect debug testing/test composition only.
+
+Golden F lacks reference; six efficiency pairs NOT_EXECUTED, visual UNVERIFIED, tokens null; LIFT excluded. User priority remains disappearance/focus only.
 
 ## Current proof matrix
 
@@ -57,7 +61,7 @@ Read current `Local` SHA/checks before claiming current-head PASS; only complete
 
 ## Exact-SHA source acceptance
 
-All normal verification workflows are manual-only. A `Local` push does not create executable acceptance evidence. `MCP Verify` checks the selected exact `github.sha`, executes `bun run verify:full`, then produces a read-only identified build artifact on a successful run. It does not run live Blockbench acceptance.
+Verification workflows are manual-only. A push is not acceptance. `MCP Verify` runs `bun run verify:full` on exact `github.sha`, then emits an identified read-only build; no live Blockbench acceptance.
 
 Narrow claims can use the appropriate targeted script. The affected-execution planner remains available locally/on demand; the old push-specific affected/full CI decision path is retired. A successful `verify:repository` plus `verify:mcp` on one SHA is composite source evidence, not an executed `verify:full`.
 
@@ -165,7 +169,7 @@ Do not infer current-head protocol PASS from historical evidence.
 
 ## Last reusable proven source baseline
 
-Reuse the Windows checkpoint only within its proof scope. Remaining: physical Windows denial, historical disappearance cause, visual acceptance and real cost-to-accepted-result telemetry. Follow the runbook.
+Reuse each Windows checkpoint within its exact scope. Remaining: historical disappearance cause, visual acceptance and real cost-to-accepted-result telemetry. Follow the runbook.
 
 ## Proof boundary
 

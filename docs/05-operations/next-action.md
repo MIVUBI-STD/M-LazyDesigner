@@ -4,7 +4,7 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Current direction
 
-**Current priority:** complete Windows local acceptance one stage at a time.
+**Current priority:** finish disappearance/focus items 1–2 before other acceptance.
 The persistent Gateway owns client stability and Runtime
 recovery; Control owns context/readiness; Runtime/Plugin own Blockbench.
 Retain exactly four public Gateway tools and the existing source owners.
@@ -22,11 +22,12 @@ Reuse matching exact-SHA source proof and never substitute ancestor results.
 Installed executable: `e9b3bca57a954fa858d4a077ceb000fedf10a627`, Local. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
 
 1. Exact-SHA `bun run verify:full`, Desktop `verify:source` (52 Rust tests), managed build/install PASS. `docs:check` passes; Only the canonical generators may update these artifacts. Preserve artifact SHA across docs-only recording.
-2. Stage 2 setup/relaunch and main Stage 3 flow observed: one plugin/panel, healthy lease beyond TTL, no bounded console flashes; search fixed, keyboard navigation/filter retention at both sizes, Smart Open preserves tabs/unsaved edits, Modified/save, Save As and close/recent navigation pass. Continue hides when its exact last model is missing, resumes that same model after restoration. Desktop restart retains Runtime PID/instance and reconstructs current model without approval.
-3. Prior fcf66179 recovery matrix PASS: foreign profile, close/open, reload, disable/enable, surface handoff and Gateway replacement. Data d824b35c, updates OFF, editor 5.2.0. Background stale lease reproduced: renderer timers throttled while Gateway remained online; 4cd2fd06 uses safe native timers for Runtime/navigation. Earlier Desktop disappearance remains unexplained.
-4. Prior fcf66179 + harness 6afc8989: all 12 main native steps PASS, including UV diagnostics correction and native reopen. Evidence fcf66179/acceptance-summary.json. These are not twelve fresh current-build passes. Current targeted proof and first failures: 4cd2fd06/; no token claim.
+2. Prior setup/relaunch and main Desktop flow PASS: one plugin/panel, lease beyond TTL, no bounded console flashes; search/keyboard/filter, Smart Open, unsaved edits, save/Save As, close/recent and exact-model Continue. Desktop restart retains Runtime PID/instance and current model.
+3. Prior fcf66179 recovery PASS: profile isolation, close/open, reload, disable/enable, surface handoff and Gateway replacement. Data d824b35c, updates OFF, editor 5.2.0. Reproduced background lease expiry fixed by 4cd2fd06 native Runtime/navigation timers; historical disappearance unexplained.
+4. Prior fcf66179 + harness 6afc8989: 12 main native steps PASS; fcf66179/acceptance-summary.json. Not twelve current-build passes. Later targeted proof: 4cd2fd06/; no token claim.
 5. Current e9b3bca5 source/build/install PASS. Native debug acceptance: injected probe/full IPC rejection, stale-action lock and full Refresh recovery PASS; DENIED/NO_WINDOW fallback PASS, model unchanged. Debug feature is forbidden in release; ordinary release ignores fault-file input. Hanging-read timeout proof retained from 4cd2fd06.
-6. Normal-close versus forced-test-termination trails PASS; Runtime/model survive. Lifecycle/panic PID metadata now supports disappearance diagnosis; historical cause remains unreproduced. Physical Windows denial remains unobserved despite controlled native fallback PASS. Use runbook 10B; never ship the debug harness. Golden F lacks reference; visual/six efficiency gates deferred, tokens null; sampler blocked.
+6. Physical Windows focus PASS, debug 59f0a6c2: unchanged native owner returned DENIED and NO_WINDOW without result substitution; suspended real-editor fixture removed, saved models reopened. Proof: 59f0a6c2/physical-focus-acceptance.json. Normal/forced exit trails PASS. Installed e9 survived 120s; minimized/relaunch retained primary PID. No matching two-day Desktop/WebView/display fault entries. Historical disappearance remains UNKNOWN; lifecycle/panic metadata supports a future captured recurrence. No broader work yet.
+7. Source 561ee8e4: exact-SHA verify:full PASS (.cache/localtest-final-focus-full.log). Combined installer suite repeatedly timed out; separate Bun processes pass all 2060 runtime tests without changed assertions/deadlines. Installed e9 unchanged; later source affects debug tests/test composition. Golden F lacks reference; visual/six efficiency pairs deferred, tokens null; sampler blocked.
 Use existing runbook and proof owners. Setup/UI observations above are partial. Native
 and visual checks remain NOT_EXECUTED until actually observed.
 

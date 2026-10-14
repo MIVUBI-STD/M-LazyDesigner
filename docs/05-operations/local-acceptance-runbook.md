@@ -671,9 +671,13 @@ the healthy Desktop observation. Set the file to one exact value:
   real Windows focus owner and record `acceptance:real-focus`. This permits an
   OS menu or window-lifecycle precondition without substituting a result.
 
-These are real native Tauri IPC tests with injected backend outcomes. They do
-not prove that Windows physically rejected foreground activation or that a
-real Blockbench process lost every eligible window.
+The injected modes prove native Tauri IPC/fallback handling, not physical
+Windows outcomes. For `focus-delayed-real`, record the actual foreground/window
+precondition and returned result. Use saved disposable models; clean any
+windowless process fixture and reopen the models afterward. Do not substitute
+an injected result for this proof. Avoid Alt+Space where a global app shortcut
+owns it. The 59f0a6c2 eight-second build already produced both real outcomes;
+the later twenty-second delay is operator convenience, not a necessary fix.
 
 For disappearance diagnosis, the bounded metadata-only `desktop.log` now records
 start/ready, main-window close/destroy, exit request/exit and panic with PID.
