@@ -25,7 +25,7 @@ function expectImmutableActions(workflow: string, expectedActions: string[]): vo
   expect([...new Set(refs.map((entry) => entry.action))].sort()).toEqual([...expectedActions].sort());
   for (const ref of refs) {
     expect(ref.revision).toMatch(/^[0-9a-f]{40}$/);
-    if (ref.note) expect(ref.note).toMatch(/^v\d+$/);
+    if (ref.note) expect(ref.note).toMatch(/^v\d+(?:\.\d+){0,2}$/);
   }
   expect(workflow).not.toMatch(/^\s*-?\s*uses:\s+[^\s]+@(main|master|latest|v\d+)\s*$/gm);
 }

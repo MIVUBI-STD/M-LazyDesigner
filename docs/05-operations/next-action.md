@@ -83,7 +83,7 @@ The user cannot currently local-test; this does not waive proof.
 - `mcp/gateway/control/delta/receipts.ts` uses canonical
   `structuredContent`; unknown mutation results invalidate conservatively.
 - `mcp/gateway/development/affectedExecution.ts` owns affected tests;
-  `mcp/scripts/development/data-inventory.ts` is read-only derived audit,
+  `mcp/scripts/development/audit-data-inventory.ts` is read-only derived audit,
   not a separate registry.
 - REA can investigate a concrete binary or runtime gap directly upstream.
   No REA execution is current-head native acceptance.

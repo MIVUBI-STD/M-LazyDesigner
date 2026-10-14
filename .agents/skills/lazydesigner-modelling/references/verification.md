@@ -21,3 +21,74 @@ Before user review, state the largest remaining reference differences at compara
 
 **UV Readiness Preflight** checks thin/Box-UV collapse, aspect/representation, seam/unique-region blockers. Read-only: no production UV/`UV Layout PASS`. **User Geometry APPROVED is required** before production UV.
 Layered contacts and exposed undersides need an affected side/bottom view when front/three-quarter views conceal the boundary. Distinguish dark material from actual missing surface; a prior approval does not clear a newly observed major defect.
+
+## Reference Grounding (Detailed Evidence)
+
+For reference-driven visual work, the **actual approved reference image** must be in **active multimodal context**; path/prose/memory is not visual evidence. Unavailable → `BLOCKED`. Approved image owns visuals; explicit dimensions own numeric scale.
+
+When using the stable Gateway with a Reference Package, explicitly request
+`status(reference_package_path=..., include_reference_images=true)` at a
+visual review boundary, selecting only relevant active-stage image IDs if
+more than four are present. Compare delivered MCP reference image content
+with fresh `capture_model_views` image content under compatible views and
+framing. Reuse unchanged images in the active review context; do not fetch
+them at every Cube edit. The returned SHA-256/ID/approval fields establish
+source identity, not visual quality or native camera calibration.
+
+For an approved single-view image with actual visually inspected regions,
+reuse the existing source-image delivery's `regions` and
+`semantic_part_grounding`: distinguish visible primary volume from
+surface texture, direct from partly occluded from unobserved shape, and
+same-view repetition from independent cross-view evidence. Check
+`ownership_issues` before building or correcting a part. Region bounding
+boxes are proposal metadata, never automatic masks, scale measurements,
+3D reconstruction or authority for hidden surfaces. Do not add a
+segmentation-model dependency to the normal Gateway.
+
+At a material Geometry part-identification boundary, use the **existing**
+`capture_model_views.reference_correspondence` opt-in with the current
+`REFERENCE.json` source metadata delivered by Gateway `status` and
+explicit native recipe-owned Cube UUID proposals. One capture returns both
+the actual model image and a bounded `part_correspondence` observation.
+The Runtime validates native recipe ownership/current Cube state, **not**
+whether the source image was approved, the annotations were accurate,
+parent group transforms or texture material changed. Correspondence
+output is provisional until actual source/model pixels are directly
+reviewed. Never infer missing geometry from an unmatched part, submit
+invented `review` fields to capture, or loop repeated captures merely
+to collect candidate labels. No new Gateway capability is required.
+
+For a small number of reference-critical **mass-center** landmarks, reuse
+`images[].landmarks` and the same `capture_model_views` call with
+`landmark_pairs`: source image ID/hash, visible source UV, canonical view,
+and exact target Cube UUID. Request only a bounded meaningful subset. The
+result is a normalized 2D projection residual from the rendered Cube center;
+do not turn this into a guessed 3D move, camera calibration, visual PASS or
+second correction planner. Skip landmark measurement when the visible feature
+is an edge/joint/detail rather than the Cube center, or the camera cannot
+actually be paired.
+
+When a correction has known semantic cause and a stable camera, the
+read-only `assessLandmarkCorrectionDelta` diagnostic can compare previous
+and new capture landmark residuals. Only compare the **same** source image
+SHA, exact Cube UUID, framing envelope, camera plan and covered view.
+Pass that measurement through existing correction-loop evidence updates only
+as a veto; any worsened point or uncomparable camera must stop the correction,
+leave convergence pending and request undo/recapture at the actual native
+execution owner. Do not claim this helper performs Undo, changes the model,
+automatically grants clearance, or produces a fidelity score.
+
+Evidence states remain `SUPPORTED | PROVISIONAL | CONFLICTING | UNAVAILABLE`. View Pair Map is conditional only for material front/back, depth, attachment, or 3/4 ambiguity.
+
+Before the first primary batch, resolve only decision-changing structure:
+
+```text
+identity-bearing silhouette
+primary masses + required visible part count
+topology / attachment / required negative spaces
+cross-view width-height-depth evidence
+Geometry-vs-Texture ownership of identity landmarks
+motion participation + pivot/contact/clearance when animation is required
+```
+
+Material `CONFLICTING` or `UNAVAILABLE` evidence blocks dependent construction. A visible required part must be accounted for as `GEOMETRY | TEXTURE | ANIMATION | OMIT(with reason)`; no silent omission, filler mass, or unsupported hidden structure. Front agreement never certifies unresolved material depth.

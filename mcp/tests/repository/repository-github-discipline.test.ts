@@ -95,7 +95,7 @@ describe("repository GitHub discipline", () => {
     expect(packageRules).toMatch(/Never hand-edit generated API\/prompt output/i);
     expect(packageRules).toMatch(/owning generator path|canonical generator/i);
     expect(specialist).toContain("Preflight generated ownership");
-    expect(next).toMatch(/No hand-editing generated docs\/output/i);
+    expect(next).toMatch(/Only the canonical generators may\s+update these artifacts/i);
     expect(compatibility).toContain("Generated Documentation Boundary");
     expect(compatibility).toContain("bun run docs:build");
     expect(compatibility).toContain("bun run docs:check");

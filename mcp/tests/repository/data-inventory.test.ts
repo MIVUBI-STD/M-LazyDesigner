@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildDataInventory, classifyDataSourcePath, compatibilityAliasTarget } from "../../scripts/development/data-inventory";
+import { buildDataInventory, classifyDataSourcePath, compatibilityAliasTarget } from "../../scripts/development/audit-data-inventory";
 
 describe("read-only data-source inventory", () => {
   test("separates authored sources from user assets", () => {

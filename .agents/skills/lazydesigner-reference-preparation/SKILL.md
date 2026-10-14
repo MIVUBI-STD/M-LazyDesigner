@@ -22,30 +22,16 @@ Single ChatGPT-side orchestration authority for preparing references before opti
 ## Route
 
 ```text
-USER REQUEST
-→ UNDERSTAND
-→ REQUIREMENT GATE
-→ resolve BLOCKING unknowns only
-→ PROMPT COMPILER when normalization helps
-→ CLASSIFY CAPABILITY
-   ├─ VISUAL / MODEL
-   │  → ask only for BLOCKING ambiguity or explicitly requested pre-generation review
-   │  → otherwise generate through image reference owners
-   │  → image QA / user visual approval
-   ├─ PIXEL ART
-   │  → lazydesigner-pixel-art-authoring
-   │  → integer-grid / silhouette / cluster / palette contract
-   │  → pixel QA / review
-   ├─ PARTICLE / VFX
-   │  → lazydesigner-particle-reference-authoring
-   │  → no ceremonial pre-confirmation when no BLOCKING ambiguity remains
-   │  → particle QA / target-environment review when material
-   └─ COMPOSED
-      → use each branch only for the dependency it owns
-→ PACKAGE ONLY WHEN REQUESTED
-→ CONSISTENCY GATE when a package/handoff exists
-→ OPTIONAL DOWNSTREAM HANDOFF
+USER REQUEST → REQUIREMENT GATE (only BLOCKING unknowns)
+→ PROMPT COMPILER if normalization helps → CLASSIFY CAPABILITY:
+  VISUAL / MODEL → generate image reference → QA / user visual acceptance
+  PIXEL ART → lazydesigner-pixel-art-authoring → grid/palette QA
+  PARTICLE / VFX → lazydesigner-particle-reference-authoring → VFX QA
+  COMPOSED → minimum required branches, each retaining ownership
+→ PACKAGE ONLY WHEN REQUESTED → consistency check when handing off
 ```
+
+Do not require ceremonial confirmation for non-blocking visual or particle choices.
 
 ## Canonical owners
 
@@ -85,17 +71,15 @@ Never infer numeric scale from pixels. Never silently average materially conflic
 
 ## Requirement gate
 
-Classify missing information as `BLOCKING | USEFUL | OPTIONAL`. Resolve only `BLOCKING` unknowns that can materially change identity, primary structure, scale/viewing distance, required motion/articulation, target grid/style mode, or another major branch decision.
-
-Ask the fewest simple decision-changing questions. Never ask the user for topology, pivot ownership, UV strategy, Molang implementation, or prompting terminology.
+Classify unknowns as `BLOCKING | USEFUL | OPTIONAL`. Ask only when the missing fact changes identity, primary structure, scale/view, articulation, grid/style mode or another material branch decision. Never require users to decide topology, pivots, UV, Molang or prompt-engineering internals.
 
 ### Pixel-art fast path
 
-No BLOCKING pixel-art ambiguity → delegate directly to `lazydesigner-pixel-art-authoring`. Do not treat the word `pixel` as sufficient classification: actual Blockbench atlas/UV/Painter mutation belongs to `lazydesigner-texturing`.
+When no BLOCKING pixel-art unknown remains, delegate directly to `lazydesigner-pixel-art-authoring`. The word `pixel` alone is insufficient; Blockbench texture atlas/UV/Painter mutation belongs to `lazydesigner-texturing`.
 
 ### Particle-only exception
 
-Particle/VFX work **does not inherit the image branch's hard pre-generation confirmation ceremony**. No BLOCKING particle ambiguity → delegate directly to `lazydesigner-particle-reference-authoring` and allow only reversible `PROVISIONAL` non-blocking choices. Do not guess hidden geometry, runtime truth, or performance.
+Particle/VFX skips visual-branch pre-generation confirmation. When unblocked, delegate to `lazydesigner-particle-reference-authoring`; mark reversible non-blocking choices `PROVISIONAL`, never invent hidden geometry, runtime truth, or performance.
 
 ## Prompt compiler
 
