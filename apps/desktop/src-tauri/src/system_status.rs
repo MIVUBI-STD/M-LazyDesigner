@@ -481,12 +481,18 @@ fn observed_at_unix_ms() -> u64 {
         .min(u64::MAX as u128) as u64
 }
 
+fn installation_present(root: Option<&Path>, manager_available: bool) -> bool {
+    // Unreadable existing metadata is a damaged installation, never first run.
+    manager_available || root.is_some_and(|root| root.join("installed.json").try_exists().unwrap_or(true))
+}
+
 fn compose_status(
     blockbench: BlockbenchState,
     manager_available: bool,
     managed: Option<ManagedStatus>,
     diagnostic: Option<String>,
 ) -> SystemStatus {
+    let installation_present = installation_present(managed_root().as_deref(), manager_available);
     let plugin_integrity = managed_root()
         .as_deref()
         .map(managed_plugin_integrity)
@@ -508,13 +514,13 @@ fn compose_status(
         managed_runtime_url,
         &runtime_session,
     );
-    let gateway = if manager_available && managed.is_none() {
+    let gateway = if installation_present && managed.is_none() {
         readiness::unknown_gateway()
     } else {
         readiness::gateway(managed.as_ref(), blockbench.running, runtime_ready)
     };
     let readiness = readiness::readiness(
-        manager_available,
+        installation_present,
         managed.as_ref(),
         blockbench.running,
         runtime_ready,
@@ -532,7 +538,7 @@ fn compose_status(
         navigation_profile_id.as_deref(),
     );
     let product_state = readiness::product_state(
-        manager_available,
+        installation_present,
         managed.as_ref(),
         &blockbench,
         runtime_ready,
@@ -876,6 +882,26 @@ pub fn run_managed_action(app: &AppHandle, action: &str) -> Result<ManagedAction
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn damaged_installation_is_attention_instead_of_first_run() {
+        let root = env::temp_dir().join(format!("lazydesigner-status-{}-{}", std::process::id(), observed_at_unix_ms()));
+        fs::create_dir_all(&root).unwrap();
+        let blockbench = BlockbenchState { running: true, version: None, compatibility: None, diagnostic: None };
+        let gateway = readiness::unknown_gateway();
+        assert!(!installation_present(Some(&root), false));
+        assert_eq!(readiness::product_state(false, None, &blockbench, false, &gateway, "unknown"), "welcome");
+
+        fs::write(root.join("installed.json"), b"{\"fault_injection\":").unwrap();
+        assert!(manager_executable(&root).is_err());
+        let present = installation_present(Some(&root), false);
+        let state = readiness::product_state(present, None, &blockbench, false, &gateway, "unknown");
+        let readiness = readiness::readiness(present, None, true, false, &gateway, "unknown");
+        fs::remove_dir_all(root).unwrap();
+        assert_eq!(state, "attention");
+        assert_eq!(readiness.state, "needs-attention");
+        assert!(!readiness.ready);
+    }
 
     #[test]
     fn missing_installation_is_diagnostic_not_panic() {
