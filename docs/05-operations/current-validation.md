@@ -29,13 +29,15 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested source/build: Local `d824b35cda3da0471d6934a43eedd87f342ff403`, clean checkout. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. `bun run verify:full` PASS (exit 0); Desktop `npm run verify:source` PASS (50 Rust tests); `npm run build:app` PASS. Initial `c03fc30915868def461532d37c6f8b70e12a3507` had 196 Runtime failures and remains unaccepted.
+Tested executable baseline: Local `b8e791bd8fe6b2857b2628b2861530aed9ce03a7`, clean checkout. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Exact-SHA `bun run verify:full` PASS; Desktop `npm run verify:source` PASS (51 Rust tests, including a real PowerShell no-console/output probe); `npm run build:app` PASS. 
 
-NSIS silent install and Desktop Set up succeeded in disposable data profile `mcp/.cache/local-acceptance/d824b35c` (same Windows account). Installer SHA256: `cbf4e1b4e1cdb734f4284d422b275b4efc69bc9bbdf877c94b403f1181e54da7`. Installed manifest/package/plugin match. Plugin identity: `sha256:105f3976de412843219411c20d0bedb7ba8142577e37e281b812b576cb0716ca`.
+Installed Desktop under `mcp/.cache/local-acceptance/b8e791bd`, retaining the disposable data profile `d824b35c` (same Windows account). NSIS and canonical managed install exit 0. Installed bundle, manifest and plugin hashes match. Plugin identity: `sha256:29876f61613ab31559d07a4e03c80c1131a2976203ebbe09d1c511b02294138b`.
 
-Earlier repairs cover CLI import, editor discovery, managed `--userData`/stdio and Windows version parsing. Native Blockbench 5.2.0 opened the disposable profile without the previous EPIPE. After user interaction, two panels and conflicting Ready/Needs attention statuses appeared; Desktop retained APPROVAL_REQUIRED. No healthy connection claimed. Follow-up source repair retires the previous bundle through the shared lifecycle and hides background helper consoles. 18 targeted lifecycle tests and 51 Desktop tests pass; replacement native proof remains pending.
+Native Blockbench 5.2.0 startup: one visible LazyDesigner panel, Runtime ready; Desktop converges to Ready. Installed plugin list has one entry. Native Reload: one panel/indicator in accessibility; dock visibility needs review. Takeover regression: red before repair, green after. Lifecycle retires old integration/listener; Desktop helpers use CREATE_NO_WINDOW. No flashes observed during bounded startup/reload.
 
-Ignored machine evidence in `mcp/.cache/`: `localtest-stage2-source-gate.log`, `localtest-desktop-launch-source.log`, `localtest-desktop-build.log`, and profile `component-identity.json`. Documentation-only continuation commits do not change the tested executable SHA. No token savings claimed.
+Old test PID stopped at pending editor-update notice; editor remains 5.2.0.0. Healthy Gateway/project-affinity and authoring/persistence/visual acceptance remain NOT_EXECUTED. Compatibility remains unverified.
+
+Ignored evidence: `mcp/.cache/localtest-duplicate-console-{exact,desktop,build}.log` and `local-acceptance/b8e791bd/{managed-install,component-identity}.json`. Docs-only recording preserves tested SHA; no token savings claimed.
 
 ## Current proof matrix
 
