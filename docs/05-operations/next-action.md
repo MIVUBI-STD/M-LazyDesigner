@@ -25,29 +25,15 @@ Reuse matching exact-SHA source proof and never substitute ancestor results.
 
 ## Active Windows sequence
 
-Baseline checkout: `c03fc30915868def461532d37c6f8b70e12a3507`, branch `Local`.
-Use Bun 1.3.14, Node 24 and Rust 1.98.1. Local repairs are not baseline-SHA proof.
+Tested executable baseline: `d824b35cda3da0471d6934a43eedd87f342ff403`, branch `Local`. Bun 1.3.14 baseline, Node 24, Rust 1.98.1.
 
-1. Source closure passed locally: `bun run verify:full` completed through build.
-   Canonical generated artifacts pass `docs:check`. Only the canonical generators may
-   update these artifacts. Pin the repair commit and retain its clean exact-SHA
-   gate log before packaging; the initial SHA remains unaccepted.
-2. Desktop `verify:source` passed locally, including 49 Rust tests. Complete
-   the repair baseline before building the exact-SHA managed package;
-   packaging requires a clean tracked checkout.
-3. Follow runbook Section 6A on a disposable profile: install, first/repeat
-   launch, Smart Open, keyboard navigation, stale-state behavior and two-model
-   synchronization. Check Runtime status hydration, About version, Plugin file
-   action and staged-update reporting against observed native behavior.
-4. Prove matching Gateway/plugin identity and project affinity, then execute
-   Geometry → Texturing → Animation → Particle and persistence prepare/reopen/
-   verify. Keep the shared fixture and Gateway; run independent fixtures later.
-5. Test recovery, then compare Golden Tasks only after quality passes. Require
-   identical reference/model fingerprints, source/build, model/client identity
-   and actual telemetry. Missing tokens remain null.
+1. Source gate closed: clean exact-SHA `bun run verify:full` PASS, including canonical `docs:check`; only the canonical generators may update these artifacts; Desktop `verify:source` PASS (50 Rust tests). Managed build/install and Desktop Set up succeeded. Reuse this evidence for unchanged executable inputs; documentation-only recording does not relabel the tested artifact.
+2. **Stage 2 active:** Blockbench 5.2.0 opened with managed `--userData` on disposable profile `mcp/.cache/local-acceptance/d824b35c`, without EPIPE. The exact installed plugin is selected; its native trust dialog awaits the user's own OK. Computer Use cannot act on security permission requests. After that action, observe load outcome and Desktop Runtime status, confirm About/location/identity, and close Stage 2 only with actual results.
+3. Follow runbook Section 6A: repeat launch, Smart Open, Workspace/Support, search/keyboard, stale status and two-model synchronization. Inspect observed helper-console focus flashes if reproducible.
+4. Before authoring, resolve the observed managed-package omission of specialist reference files; reproduce compiled Gateway context loading before any packaged Control readiness claim. Prove matching Gateway/plugin identity and project affinity, then Geometry → Texturing → Animation → Particle and persistence prepare/reopen/verify with disposable fixtures.
+5. Test recovery, then compare Golden Tasks only after quality passes, with matching reference/model fingerprints, build, client/model identity and actual telemetry. Missing tokens remain null.
 
-Use the existing runbook and proof owner rather than adding a parallel ledger.
-Do not repeat accepted source gates merely because they ran elsewhere. Native
+Use existing runbook and proof owners. Setup/UI observations above are partial. Native
 and visual checks remain NOT_EXECUTED until actually observed.
 
 ## Active animation safety — LD-Q04
@@ -75,7 +61,7 @@ or bypass the existing gate.
 
 Only exact installed-build Undo/Redo, save/reopen, playback, reconnect and
 visual-review evidence from the existing runbook can close native claims.
-Windows LOCAL_CODE is active. Source verification is local evidence; native testing has not run.
+Windows LOCAL_CODE is active. Native setup is partial; functioning LIVE_BLOCKBENCH connection has not yet been proven.
 
 ## Separate bounded source boundaries
 

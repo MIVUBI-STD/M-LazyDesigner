@@ -27,15 +27,15 @@ Geometry and Texturing share the AUTHORING Runtime surface. Animation is the
 separate ANIMATION surface. Canonical Control source is
 `mcp/gateway/control/`. The retired Navigator source remains removed.
 
-## Windows source checkpoint — 2026-10-14
+## Windows checkpoint — 2026-10-14
 
-Initial Local SHA: `c03fc30915868def461532d37c6f8b70e12a3507`; the first Runtime suite had 196 failures. That SHA is not source-accepted.
+Tested source/build: Local `d824b35cda3da0471d6934a43eedd87f342ff403`, clean checkout. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. `bun run verify:full` PASS (exit 0); Desktop `npm run verify:source` PASS (50 Rust tests); `npm run build:app` PASS. Initial `c03fc30915868def461532d37c6f8b70e12a3507` had 196 Runtime failures and remains unaccepted.
 
-The repair commit containing this entry passed `bun run verify:full` locally before commit; repeat on its clean SHA before packaging. Resolve that SHA with Git, not the initial baseline. Bun 1.3.14, Node 24.14.1, Rust 1.98.1. Desktop `npm run verify:source` also passed (49 Rust tests).
+NSIS silent install and Desktop Set up succeeded in disposable data profile `mcp/.cache/local-acceptance/d824b35c` (same Windows account). Installer SHA256: `cbf4e1b4e1cdb734f4284d422b275b4efc69bc9bbdf877c94b403f1181e54da7`. Installed manifest/package/plugin match. Plugin identity: `sha256:105f3976de412843219411c20d0bedb7ba8142577e37e281b812b576cb0716ca`.
 
-Local logs under `mcp/.cache/`: `localtest-full-closure.log`, `localtest-full-exact-sha.log`, `localtest-desktop-verification.log`. Logs are ignored machine evidence; only a completed exit-0 run proves PASS. Existing grounded-image/continuation growth has measured surface guard baselines; no token savings are claimed. Unregistered `manage_uv_layout` cases are explicitly NOT_REGISTERED, not executed coverage.
+Source repairs cover managed CLI import, installed-editor discovery, explicit managed `--userData` with null stdio, and Windows four-component version normalization. Native Blockbench 5.2.0 opened the disposable profile without the previous EPIPE. First plugin load now awaits the observed native trust dialog; no permission accepted by automation. Runtime connection and later native/visual acceptance remain NOT_EXECUTED; compatibility remains unverified.
 
-Managed install, native and visual acceptance: **NOT_EXECUTED**.
+Ignored machine evidence in `mcp/.cache/`: `localtest-stage2-source-gate.log`, `localtest-desktop-launch-source.log`, `localtest-desktop-build.log`, and profile `component-identity.json`. Documentation-only continuation commits do not change the tested executable SHA. No token savings claimed.
 
 ## Current proof matrix
 
@@ -79,7 +79,7 @@ evidence of reduced Codex tokens. Source/static changes here are not
 matching-Bun or live-Blockbench PASS.
 
 ## Current source contracts 
-Local source now declares an additional machine-local Runtime authorization credential on the native HTTPS listener and known-missing prerequisite enforcement for the normal four-tool Gateway invocation path. This is **source-level behavior and prepared regression evidence**, not an executed current-SHA Bun, native transport, or Blockbench PASS.
+Local source now declares an additional machine-local Runtime authorization credential on the native HTTPS listener and known-missing prerequisite enforcement for the normal four-tool Gateway invocation path. This has source regression proof at the Windows checkpoint above; native transport and Blockbench execution remain unproven.
 
 
 
@@ -173,32 +173,7 @@ Do not infer current-head protocol PASS from historical evidence.
 
 ## Last reusable proven source baseline
 
-A previous exact source baseline was recorded at:
-
-```text
-Local SHA: 7d3abf40238373461085fac179fcbbc07a7da300
-Head Proof: PASS
-MCP Verify: PASS
-MCP Conformance: PASS
-Managed Distribution: PASS
-```
-
-That evidence is historical. It does not transfer to changed source SHAs.
-
-## Historical local/live evidence
-
-Historical Windows/Blockbench acceptance exists for earlier source/build
-identities and remains useful only as prior evidence that the tested workflows
-once functioned in a real environment. It does not prove the current `Local`
-head.
-
-Current local/live residue includes installed build identity, Runtime rebuild
-and reconnect behavior, native Undo/Redo/persistence, app close/open recovery,
-visual/reference acceptance, interrupted-mutation recovery and real
-cost-to-accepted-result telemetry.
-
-Use `docs/05-operations/local-acceptance-runbook.md` when that residue is
-reactivated.
+The Windows checkpoint above is the reusable source baseline; older evidence does not transfer. Remaining native proof includes Runtime reconnect, Undo/Redo/persistence, playback, close/open recovery, visual acceptance and real cost-to-accepted-result telemetry. Follow the existing local acceptance runbook.
 
 ## Proof boundary
 
