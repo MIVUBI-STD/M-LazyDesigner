@@ -3,7 +3,7 @@ import { profileIdentity, type NativeCrypto } from "@/plugin/profileIdentity";
 
 export type RuntimeSessionFs = Pick<
   typeof import("node:fs"),
-  "mkdirSync" | "writeFileSync" | "readFileSync" | "rmSync" | "utimesSync"
+  "mkdirSync" | "writeFileSync" | "readFileSync" | "unlinkSync"
 >;
 
 type RuntimeSessionLease = {
@@ -19,6 +19,7 @@ const HEARTBEAT_MS = 5_000;
 let fs: RuntimeSessionFs | null = null;
 let outputPath: string | null = null;
 let instanceId: string | null = null;
+let leaseContents: string | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
 function clearHeartbeat(): void {
@@ -37,14 +38,14 @@ function currentLeaseOwned(): boolean {
 }
 
 function heartbeat(): void {
-  if (!fs || !outputPath || !instanceId) return;
+  if (!fs || !outputPath || !instanceId || !leaseContents) return;
   if (!currentLeaseOwned()) {
     clearHeartbeat();
     return;
   }
   try {
-    const now = new Date();
-    fs.utimesSync(outputPath, now, now);
+    // Blockbench's permission-scoped FS does not expose utimesSync.
+    fs.writeFileSync(outputPath, leaseContents, "utf8");
   } catch {
     clearHeartbeat();
   }
@@ -93,9 +94,10 @@ export function startRuntimeSessionLease(
     localAppData.replace(/[\\/]$/, "") + "\\LazyDesigner\\runtime-session";
   const pathName = directory + "\\" + profileId + ".json";
 
+  const contents = JSON.stringify(lease);
   try {
     fsApi.mkdirSync(directory, { recursive: true });
-    fsApi.writeFileSync(pathName, JSON.stringify(lease), "utf8");
+    fsApi.writeFileSync(pathName, contents, "utf8");
   } catch {
     return false;
   }
@@ -103,6 +105,7 @@ export function startRuntimeSessionLease(
   fs = fsApi;
   outputPath = pathName;
   instanceId = lease.instance_id;
+  leaseContents = contents;
   heartbeatTimer = setInterval(heartbeat, HEARTBEAT_MS);
   return true;
 }
@@ -111,7 +114,8 @@ export function stopRuntimeSessionLease(): void {
   clearHeartbeat();
   if (currentLeaseOwned() && fs && outputPath) {
     try {
-      fs.rmSync(outputPath, { force: true });
+      // Scoped rmSync in Blockbench 5.2 invokes async rm without a callback.
+      fs.unlinkSync(outputPath);
     } catch {
       // Freshness timeout is the crash-safe fallback.
     }
@@ -119,4 +123,5 @@ export function stopRuntimeSessionLease(): void {
   fs = null;
   outputPath = null;
   instanceId = null;
+  leaseContents = null;
 }

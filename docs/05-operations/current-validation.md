@@ -29,11 +29,11 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested executable baseline: Local `b8e791bd8fe6b2857b2628b2861530aed9ce03a7`, clean checkout. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Exact-SHA `bun run verify:full` PASS; Desktop `npm run verify:source` PASS (51 Rust tests, including a real PowerShell no-console/output probe); `npm run build:app` PASS. 
+Tested executable baseline: Local `b8e791bd8fe6b2857b2628b2861530aed9ce03a7`, clean checkout. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Exact-SHA `bun run verify:full` PASS; Desktop `npm run verify:source` PASS (51 Rust tests, including a real PowerShell no-console/output probe); `npm run build:app` PASS.
 
 Installed Desktop under `mcp/.cache/local-acceptance/b8e791bd`, retaining the disposable data profile `d824b35c` (same Windows account). NSIS and canonical managed install exit 0. Installed bundle, manifest and plugin hashes match. Plugin identity: `sha256:29876f61613ab31559d07a4e03c80c1131a2976203ebbe09d1c511b02294138b`.
 
-Native Blockbench 5.2.0 startup: one visible LazyDesigner panel, Runtime ready; Desktop converges to Ready. Installed plugin list has one entry. Native Reload: one panel/indicator in accessibility; dock visibility needs review. Takeover regression: red before repair, green after. Lifecycle retires old integration/listener; Desktop helpers use CREATE_NO_WINDOW. No flashes observed during bounded startup/reload.
+Native Blockbench 5.2.0 startup: one visible LazyDesigner panel, Runtime ready; Desktop converges to Ready. Installed plugin list has one entry. Reload retains one panel/indicator; dock visible at full size. Desktop later loses Ready: scoped FS lacks utimesSync; its rmSync is async. Lease repair uses owned-file rewrite and unlinkSync; regression and typecheck PASS, new native proof pending. Takeover regression: red before repair, green after. Lifecycle retires old integration/listener; Desktop helpers use CREATE_NO_WINDOW. No flashes observed during bounded startup/reload.
 
 Old test PID stopped at pending editor-update notice; editor remains 5.2.0.0. Healthy Gateway/project-affinity and authoring/persistence/visual acceptance remain NOT_EXECUTED. Compatibility remains unverified.
 
@@ -68,7 +68,7 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 
 ### Default-branch registration
 
-The historical 2026-10-10 gap was closed by main commit `1d026a1754033bb8c206b7f25660a906552ad72c`, registering ten manual-only workflow definitions without transferring product source. Future development remains on `Local`; `main` is not an ongoing synchronization target. Registered YAML does not prove a manual run was dispatched, completed, or accepted. Do not edit `main` or settings without separate authorization.
+Ten manual workflows were registered by historical main commit `1d026a1754033bb8c206b7f25660a906552ad72c`. Registration proves no execution. Development stays on Local; main/settings require separate authority.
 
 Current compatibility authority: the historical Blockbench 5.2.0 native
 test does not confer `validated` on newer LazyDesigner builds. Only
