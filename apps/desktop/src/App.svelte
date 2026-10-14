@@ -229,6 +229,7 @@
 
   async function connectBlockbench() {
     if (devFixture) return;
+    if (!status?.manager_available) return;
     if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
     closeUtilityMenu();
     busyAction = 'connect-blockbench';
@@ -692,7 +693,7 @@
 
                   <div class="resource-actions">
                     {#if productMode(status) === 'ready'}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
                       <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
                     {:else if productMode(status) === 'plugin-setup'}
