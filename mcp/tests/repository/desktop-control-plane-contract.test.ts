@@ -704,3 +704,11 @@ describe("Desktop Workspace and Support feedback integrity", () => {
     expect(ui).not.toContain("Update LazyDesigner' : action === 'rollback'");
   });
 });
+
+test("managed CLI bundles its canonical Gateway entrypoint", async () => {
+  const result = await Bun.build({
+    entrypoints: ["../distribution/cli.ts"],
+    target: "bun",
+  });
+  expect(result.success, result.logs.map(String).join("\n")).toBe(true);
+});

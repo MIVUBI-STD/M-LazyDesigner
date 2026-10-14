@@ -296,7 +296,7 @@ async function main(): Promise<void> {
       process.once("exit", () => { try { unlinkSync(lease); } catch {} });
     });
     if (!sameInstalledPath(executable, process.execPath)) process.exit(await child(executable, ["mcp", "--root", root]));
-    await import("../gateway/index"); // The existing four-tool Gateway, not a second server.
+    await import("../mcp/gateway/index"); // The existing four-tool Gateway, not a second server.
     return;
   }
   if (!["install", "update", "rollback", "recover", "repair"].includes(command)) throw new Error(`Unknown command: ${command}`);
