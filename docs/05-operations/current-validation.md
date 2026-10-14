@@ -25,19 +25,21 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Installed source fcf6617982d94a4e5ddb8162956a00f0c0d99d55: exact-SHA verify:full, Desktop verify:source (52 Rust tests), build/install PASS. Harness 6afc89893f640a093b24f946289e96f6e65bda70: exact-SHA bun run verify:full PASS; three UV-diagnostic verifier calls fixed, shipped code unchanged. Desktop 0.1.0, Blockbench 5.2.0; Runtime de0efeb7. Evidence: mcp/.cache/local-acceptance/fcf66179/acceptance-summary.json; data d824b35c.
+Installed source 4cd2fd06895a7a99c3d382c97ba27c5f856cf23f: exact-SHA verify:full, Desktop verify:source (52 Rust tests), canonical package/Desktop build and managed install PASS. Desktop 0.1.0, Blockbench 5.2.0, Runtime b436485f. Evidence: mcp/.cache/local-acceptance/4cd2fd06/; same disposable data d824b35c. Package smoke uses an isolated endpoint; a live default Runtime correctly stages install instead of overwriting it.
 
-All 12 native steps PASS: project affinity, Geometry, Texturing, Animation, Particle, persistence prepare/reopen, surface-gap, template, UV-density prepare/reopen, texture-runtime. Targeting/history/playback, thin UVs, variant isolation, stale revisions and reopen equality proven. Texturing first failure retained; clean repeat PASS after harness correction. Technical proof is not visual approval.
+Prior executable fcf66179 and harness 6afc8989 have exact-SHA full gates and all 12 main native steps PASS, indexed by fcf66179/acceptance-summary.json. This is historical bounded coverage, not twelve fresh passes on 4cd2fd06. Original LIFT and saved fixture files remain preserved. Technical proof is not visual approval.
 
-Packaged Control contexts load; profiles/references included. Native foreign snapshot isolation PASS; user completed fresh-profile permissions. Automatic app/plugin updates OFF on primary disposable profile. Normal close/Desktop Open PASS, version unchanged, automatic Desktop status updates.
+Current Desktop/native Open and Continue PASS with the new plugin. Automatic app/plugin updates remain OFF. Native foreign-title focus PASS: Notepad Blockbench.txt remained open while the actual Blockbench window became foreground; no title-based target selection. Proof: foreign-title-focus.json.
 
-Gateway35728 survives close/open, AUTHORING↔Animation, reload and disable/enable. Project/counts/two PNG hashes preserved; expired lease clears active state, keeps recent navigation. Separate detach/attach PASS: same Runtime/project, Desktop Ready → AI connected. Recovery JSONs indexed by acceptance-summary.json; fixture checkpoints preserved, original LIFT unchanged.
+Current native PASS: minimized 128s (Runtime age <3.1s, navigation <5.2s), persistence prepare/native reopen and two-Gateway project affinity. Proof: minimized-heartbeat.json and verify-*-live.log under 4cd2fd06.
 
-Supplemental native PASS: four-tool discovery/schema guards, unknown capability/invalid operation/missing Cube/search-limit rejection without geometry change; Bedrock JSON (two Cubes), PNG 32×32, overwrite rejection with unchanged file hashes. Proof: gateway-negative-contracts.json, native-export-delivery.json. Native export updates the in-memory project name/export path; original .bbmodel preserved.
+Prior recovery PASS on fcf66179: foreign-profile isolation, close/open, AUTHORING↔Animation, reload, disable/enable and Gateway detach/attach. Two issues subsequently reproduced and corrected: pending read-only status IPC retained healthy actions indefinitely; renderer timers let Runtime/navigation health expire while backgrounded. Current source uses bounded status waits and safe native timers with teardown coverage.
 
-Built Desktop frontend with isolated MOCKED IPC PASS: repeated probe rejection, failed full refresh from healthy/stale state, action lockout until full refresh succeeds, Support availability, six focus-result messages. Proof: desktop-ui-*.json; native Windows denial/IPC failure NOT_EXECUTED. No production seam added.
+Prior supplemental native PASS on fcf66179: discovery/input guards, Bedrock JSON/PNG delivery and overwrite protection with unchanged file hashes. Export updates in-memory project metadata through native lifecycle; it does not rewrite the saved .bbmodel.
 
-User has no reference: Golden F deferred; other functional checks continued. Six efficiency pairs NOT_EXECUTED pending their quality/input gates; visual acceptance UNVERIFIED, tokens null. LIFT excluded from benchmarks. verify:astra-usage-ready proves preparation only. Prior stale lease/Desktop disappearance unexplained; latest bounded recovery passed.
+Built frontend MOCKED IPC PASS: hanging probes and full refresh expire, actions lock, successful full refresh recovers. Previous rejection/Support/six-focus-result checks retained. Native IPC failure injection and Windows foreground denial remain NOT_EXECUTED; no production fault seam added.
+
+No reference: Golden F deferred by user; independent checks continued. Six efficiency pairs NOT_EXECUTED, visual acceptance UNVERIFIED, tokens null; LIFT excluded. verify:astra-usage-ready proves preparation only. Background timer expiry now reproduced; earlier Desktop disappearance remains unexplained.
 
 ## Current proof matrix
 
