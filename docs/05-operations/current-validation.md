@@ -33,7 +33,7 @@ Tested source/build: Local `d824b35cda3da0471d6934a43eedd87f342ff403`, clean che
 
 NSIS silent install and Desktop Set up succeeded in disposable data profile `mcp/.cache/local-acceptance/d824b35c` (same Windows account). Installer SHA256: `cbf4e1b4e1cdb734f4284d422b275b4efc69bc9bbdf877c94b403f1181e54da7`. Installed manifest/package/plugin match. Plugin identity: `sha256:105f3976de412843219411c20d0bedb7ba8142577e37e281b812b576cb0716ca`.
 
-Source repairs cover managed CLI import, installed-editor discovery, explicit managed `--userData` with null stdio, and Windows four-component version normalization. Native Blockbench 5.2.0 opened the disposable profile without the previous EPIPE. First plugin load now awaits the observed native trust dialog; no permission accepted by automation. Runtime connection and later native/visual acceptance remain NOT_EXECUTED; compatibility remains unverified.
+Earlier repairs cover CLI import, editor discovery, managed `--userData`/stdio and Windows version parsing. Native Blockbench 5.2.0 opened the disposable profile without the previous EPIPE. After user interaction, two panels and conflicting Ready/Needs attention statuses appeared; Desktop retained APPROVAL_REQUIRED. No healthy connection claimed. Follow-up source repair retires the previous bundle through the shared lifecycle and hides background helper consoles. 18 targeted lifecycle tests and 51 Desktop tests pass; replacement native proof remains pending.
 
 Ignored machine evidence in `mcp/.cache/`: `localtest-stage2-source-gate.log`, `localtest-desktop-launch-source.log`, `localtest-desktop-build.log`, and profile `component-identity.json`. Documentation-only continuation commits do not change the tested executable SHA. No token savings claimed.
 

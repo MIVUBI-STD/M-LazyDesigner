@@ -82,7 +82,7 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(index).toContain("onunload() {");
     expect(index).not.toContain("async onload() {");
     expect(index).not.toContain("async onunload() {");
-    expect(index).toContain("claimRuntimeGeneration(currentBuildIdentity())");
+    expect(index).toContain("claimRuntimeGeneration(currentBuildIdentity(), beginBlockItRuntimeTeardown)");
     expect(index).toContain("beginBlockItRuntimeTeardown();");
     expect(index).toContain("initializationInProgress = null;");
     expect(lifecycle).toContain("priorTeardown");

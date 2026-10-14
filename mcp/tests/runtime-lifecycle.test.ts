@@ -22,6 +22,27 @@ function deferred(): {
 }
 
 describe("BlockIT plugin lifecycle coordinator", () => {
+  test("a second bundle retires the first owner and awaits its listener cleanup", async () => {
+    const cleanup = deferred();
+    let retired = 0;
+    const first = claimRuntimeGeneration("first", () => {
+      retired++;
+      void beginRuntimeGenerationTeardown(first.generation, () => cleanup.promise);
+    });
+    const second = claimRuntimeGeneration("second");
+    expect(retired).toBe(1);
+    let ready = false;
+    void second.priorTeardown.then(() => { ready = true; });
+    await Promise.resolve();
+    expect(ready).toBe(false);
+    cleanup.resolve();
+    await second.priorTeardown;
+    expect(ready).toBe(true);
+    await beginRuntimeGenerationTeardown(second.generation, async () => {});
+    claimRuntimeGeneration("third");
+    expect(retired).toBe(1);
+  });
+
   test("a new generation receives the previous asynchronous teardown barrier", async () => {
     const first = claimRuntimeGeneration(`sha256:${"1".repeat(64)}`);
     const releaseCleanup = deferred();

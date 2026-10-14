@@ -10,6 +10,7 @@ type RuntimeLifecycleCoordinator = {
   generationCounter: number;
   ownerGeneration: number | null;
   ownerBuildIdentity: string | null;
+  ownerTeardown?: () => void;
   state: RuntimeLifecycleState;
   operationTail: Promise<void>;
   teardownTail: Promise<void>;
@@ -88,15 +89,19 @@ export type RuntimeGenerationClaim = {
  * loaded bundle can wait for the previous listener cleanup without polling.
  */
 export function claimRuntimeGeneration(
-  buildIdentity: string | null
+  buildIdentity: string | null,
+  teardown?: () => void
 ): RuntimeGenerationClaim {
   const coordinator = getCoordinator();
+  // A file import can replace the bundle without Blockbench calling onunload.
+  coordinator.ownerTeardown?.();
   const generation = coordinator.generationCounter + 1;
   const priorTeardown = coordinator.teardownTail;
 
   coordinator.generationCounter = generation;
   coordinator.ownerGeneration = generation;
   coordinator.ownerBuildIdentity = buildIdentity;
+  coordinator.ownerTeardown = teardown;
   coordinator.state = "starting";
 
   return { generation, priorTeardown };
@@ -127,6 +132,7 @@ export function beginRuntimeGenerationTeardown(
 ): Promise<void> {
   const coordinator = getCoordinator();
   if (coordinator.ownerGeneration === generation) {
+    coordinator.ownerTeardown = undefined;
     coordinator.ownerGeneration = null;
     coordinator.ownerBuildIdentity = null;
     coordinator.state = "quiescing";

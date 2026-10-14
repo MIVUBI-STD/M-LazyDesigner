@@ -6,6 +6,13 @@ pub fn run_output(command: &mut Command, timeout: Duration, label: &str) -> Resu
 
 pub fn run_output_with_stderr_lines<F>(command: &mut Command, timeout: Duration, label: &str, mut on_stderr_line: F) -> Result<Output, String>
 where F: FnMut(&str) {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        // Captured background helpers must never create a visible console.
+        command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+    command.stdin(Stdio::null());
     command.stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child = command.spawn().map_err(|error| format!("{label} could not start: {error}"))?;
     let mut stdout = child.stdout.take().ok_or_else(|| format!("{label} stdout is unavailable."))?;
@@ -35,4 +42,21 @@ where F: FnMut(&str) {
     let stdout = stdout_reader.join().map_err(|_| format!("{label} stdout reader panicked."))?.map_err(|e| format!("{label} stdout could not be collected: {e}"))?;
     let stderr = stderr_reader.join().map_err(|_| format!("{label} stderr reader panicked."))?.map_err(|e| format!("{label} stderr could not be collected: {e}"))?;
     Ok(Output { status, stdout, stderr })
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn background_powershell_has_no_console_and_keeps_captured_output() {
+        let output = run_output(
+            Command::new("powershell.exe").args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command",
+                "Add-Type -MemberDefinition '[DllImport(\"kernel32.dll\")] public static extern IntPtr GetConsoleWindow();' -Name ConsoleProbe -Namespace Test; [Console]::Out.Write([Test.ConsoleProbe]::GetConsoleWindow().ToInt64()); [Console]::Error.Write('captured')"]),
+            Duration::from_secs(20), "console probe",
+        ).unwrap();
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "0");
+        assert_eq!(String::from_utf8_lossy(&output.stderr), "captured");
+    }
 }

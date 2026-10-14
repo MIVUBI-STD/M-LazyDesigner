@@ -56,6 +56,7 @@ function currentBuildIdentity(): string | null {
 function beginBlockItRuntimeTeardown(
   generation: number | null = runtimeGeneration
 ): void {
+  if (generation === null || runtimeGeneration !== generation) return;
   if (generation !== null && runtimeGeneration === generation) {
     runtimeGeneration = null;
   }
@@ -196,10 +197,9 @@ BBPlugin.register("blockit_mcp", {
       console.info("[MCP] Blockbench version is allowed but not exact-live-validated", compatibility);
     }
 
-    registerAuthoringRecipeOwnershipProperties();
-
-    const claim = claimRuntimeGeneration(currentBuildIdentity());
+    const claim = claimRuntimeGeneration(currentBuildIdentity(), beginBlockItRuntimeTeardown);
     runtimeGeneration = claim.generation;
+    registerAuthoringRecipeOwnershipProperties();
     const initialization = initializeBlockItRuntime(claim);
     initializationInProgress = initialization;
     void initialization
@@ -230,7 +230,6 @@ BBPlugin.register("blockit_mcp", {
 
   onuninstall() {
     Blockbench.showQuickMessage("LazyDesigner removed", 2000);
-    unregisterAuthoringRecipeOwnershipProperties();
-    blockbenchIntegration.teardown();
+    beginBlockItRuntimeTeardown();
   },
 });
