@@ -61,6 +61,15 @@ export type GatewayRuntimeStatus = {
     rejected_busy: number;
     expired_before_start: number;
     cancelled_before_start: number;
+    outcome_unknown: number;
+    read_interrupted: number;
+    metric_sample_limit: number;
+    queue_wait_sample_count: number;
+    duration_sample_count: number;
+    queue_wait_p50_ms: number | null;
+    queue_wait_p95_ms: number | null;
+    duration_p50_ms: number | null;
+    duration_p95_ms: number | null;
     last_queue_wait_ms?: number | null;
     max_queue_wait_ms?: number;
     last_duration_ms?: number | null;

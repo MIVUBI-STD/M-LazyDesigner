@@ -176,6 +176,125 @@ describe("Gateway operation queue", () => {
     });
   });
 
+
+  test("does not retain cancelled callback entries under sustained abort pressure", async () => {
+    const queue = new GatewayOperationQueue(1, 1000);
+    let release!: () => void;
+    let markStarted!: () => void;
+    const started = new Promise<void>((resolve) => { markStarted = resolve; });
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const first = queue.run(async () => {
+      markStarted();
+      await gate;
+    });
+    await started;
+    let abandonedExecutions = 0;
+    try {
+      for (let index = 0; index < 150; index += 1) {
+        const controller = new AbortController();
+        const abandoned = queue.run(async () => {
+          abandonedExecutions += 1;
+        }, { signal: controller.signal });
+        controller.abort();
+        await expect(abandoned).rejects.toMatchObject({
+          code: "GATEWAY_QUEUE_CANCELLED",
+          details: { executed: false },
+        });
+      }
+      const internal = queue as unknown as { waiting: unknown[] };
+      expect(internal.waiting).toHaveLength(0);
+      expect(queue.snapshot()).toMatchObject({
+        active: 1,
+        queued: 0,
+        cancelled_before_start: 150,
+        completed: 0,
+      });
+      expect(abandonedExecutions).toBe(0);
+    } finally {
+      release();
+      await first;
+    }
+    await expect(queue.run(async () => "next")).resolves.toBe("next");
+    expect(queue.snapshot().completed).toBe(2);
+  });
+
+  test("bounded quantile windows never retain more than 64 completed operation samples", async () => {
+    const queue = new GatewayOperationQueue(0);
+    expect(queue.snapshot()).toMatchObject({
+      queue_wait_sample_count: 0,
+      duration_sample_count: 0,
+      queue_wait_p50_ms: null,
+      duration_p95_ms: null,
+      metric_sample_limit: 64,
+    });
+    for (let index = 0; index < 100; index += 1) {
+      await queue.run(async () => index);
+    }
+    const metrics = queue.snapshot();
+    expect(metrics).toMatchObject({
+      completed: 100,
+      queue_wait_sample_count: 64,
+      duration_sample_count: 64,
+      metric_sample_limit: 64,
+    });
+    expect(metrics.queue_wait_p50_ms).toBeGreaterThanOrEqual(0);
+    expect(metrics.queue_wait_p95_ms).toBeGreaterThanOrEqual(metrics.queue_wait_p50_ms ?? 0);
+    expect(metrics.duration_p50_ms).toBeGreaterThanOrEqual(0);
+    expect(metrics.duration_p95_ms).toBeGreaterThanOrEqual(metrics.duration_p50_ms ?? 0);
+    const internal = queue as unknown as { waiting: unknown[] };
+    expect(internal.waiting).toHaveLength(0);
+  });
+
+  test("counts uncertain native mutations separately from retryable interrupted reads", async () => {
+    const queue = new GatewayOperationQueue(0);
+    for (const code of ["OUTCOME_UNKNOWN", "BACKEND_CALL_INTERRUPTED"] as const) {
+      await expect(queue.run(async () => {
+        throw new GatewayBackendError(code, "simulated transport loss", code !== "OUTCOME_UNKNOWN");
+      })).rejects.toMatchObject({ code });
+    }
+    expect(queue.snapshot()).toMatchObject({
+      completed: 0,
+      failed: 2,
+      outcome_unknown: 1,
+      read_interrupted: 1,
+      duration_sample_count: 2,
+    });
+  });
+
+  test("queued request expiry physically releases a waiting slot before the first operation completes", async () => {
+    const queue = new GatewayOperationQueue(1, 15);
+    let release!: () => void;
+    let markStarted!: () => void;
+    const started = new Promise<void>((resolve) => { markStarted = resolve; });
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const first = queue.run(async () => {
+      markStarted();
+      await gate;
+    });
+    await started;
+    let expiredExecuted = false;
+    try {
+      const expired = queue.run(async () => { expiredExecuted = true; });
+      await expect(expired).rejects.toMatchObject({
+        code: "GATEWAY_QUEUE_EXPIRED",
+        details: { executed: false },
+      });
+      expect(expiredExecuted).toBe(false);
+      expect(queue.snapshot()).toMatchObject({
+        active: 1,
+        queued: 0,
+        expired_before_start: 1,
+      });
+      const replacement = queue.run(async () => "replacement");
+      release();
+      await first;
+      await expect(replacement).resolves.toBe("replacement");
+    } finally {
+      release();
+      await first;
+    }
+  });
+
   test("counts timeout-classified backend failures", async () => {
     const queue = new GatewayOperationQueue(1);
     await expect(

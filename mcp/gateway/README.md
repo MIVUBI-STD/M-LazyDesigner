@@ -228,6 +228,21 @@ failure counts grouped by machine error code. Older v1 traces without
 only; they are not provider token usage or accepted visual Blockbench results.
 No database, monitoring service, or fifth Gateway tool is added.
 
+## Bounded Queue Telemetry
+
+The Gateway operation queue uses an actual FIFO list of waiting operations.
+Cancellation and queue expiry remove the waiting entry immediately, rather
+than leaving discarded callbacks attached to a Promise chain. Native work
+already started is never cancelled or automatically replayed.
+
+Queue wait and native-operation duration each retain only the most recent
+64 **started** samples in process memory. Their nearest-rank p50/p95 metrics,
+sample counts, and separate `outcome_unknown` / `read_interrupted` counters
+are available from backend diagnostic status. Cancelled/expired jobs are
+counted independently and excluded from started-work distributions. The
+AI-facing four-tool `status` projection remains compact; no database,
+background timer, or persistent sample history is introduced.
+
 ## Reliability Invariants
 
 - Gateway startup does not require Blockbench to be open.
