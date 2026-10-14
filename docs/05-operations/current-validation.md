@@ -29,19 +29,21 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested executable: Local `ae096f7c01b9812c87cc7aefcedf93d992a35feb`. Exact-SHA `bun run verify:full`, Desktop `verify:source` (51 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Hashes match: `mcp/.cache/local-acceptance/ae096f7c/component-identity.json`. Data: `d824b35c` in that cache, same account. Desktop 0.1.0, Blockbench 5.2.0.
+Tested executable: Local `77e52fc5f22b4324ffaa4877f3dd2564615d46b9`. Exact-SHA `bun run verify:full`, Desktop `verify:source` (52 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Evidence: `mcp/.cache/local-acceptance/77e52fc5/`; data `d824b35c`, same account. Desktop 0.1.0, Blockbench 5.2.0; Runtime bundle hash unchanged.
 
-Native startup/reload: one panel; no bounded console flashes. Lease remains healthy beyond TTL (34/48 seconds). Desktop restart preserves Runtime PID/instance/current model. Plugin file reveals its folder.
+Earlier ae096f7c native proof, unchanged owners: one panel, no bounded console flashes; lease beyond TTL (34/48s); Desktop restart preserves Runtime/model; Plugin file reveals folder.
 
-Main flow PASS: nine-model search, keyboard/filter retention at 980×680 and 780×560, disclosure focus, A↔B, Smart Open preserving tabs/edits, Modified/save, Save As, close/recent. Missing last-model hides Continue; restoration resumes it. Disposable copies only.
+Prior flow PASS: search/keyboard at both sizes, A↔B, Smart Open preserving tabs/edits, Modified/save, Save As, close/recent, missing/restored Continue. Disposable copies only.
 
-Integrity PASS: modified plugin blocks native Open/Open model (PLUGIN_INTEGRITY), no overwrite; exact backup restored. Missing plugin + running editor refuses replacement/forced close. Manager rejects online repair/modified overwrite; offline missing repair restores hash. Fault copies outside plugins.
+Prior integrity PASS: modified Open refused; no overwrite/forced close; online repair refused; offline missing repair restores hash. Fault copies outside plugins.
 
-Focus PASS: background/minimized editor restored, one tab; ambiguous windows yield taskbar fallback. Missing-after-render Open fails without model change; file restored. Extra window closed. Evidence: ae096f7c/focus-missing-model.json in cache.
+Prior focus PASS: background/minimized restore, one tab; ambiguous fallback; missing-after-render refuses model change. Evidence: ae096f7c/focus-missing-model.json.
 
-Pin/Continue PASS after verified saved-fixture runner stop: older pin stays first in Recent; Continue reopens newer pin-newer, one tab, Runtime ready. Normal close deferred: pending update. Evidence: ae096f7c/integrity-pin-continue.json. Lease briefly stale despite live producer; 36-second minimized reproduction stayed fresh. Cause unresolved.
+Pin/Continue PASS after runner stop: older pin first in Recent, newer pin-newer reopened alone. Normal close deferred by updater. Evidence: ae096f7c/integrity-pin-continue.json. Brief stale lease unresolved; 36s minimized reproduction stayed fresh.
 
-Remaining: failed-status/profile/normal-close, Gateway/affinity, authoring/persistence/visual. No native sign-off, validated compatibility or token savings. Logs: `mcp/.cache/localtest-{lease,search}-*.log`. Docs-only recording preserves executable SHA.
+New native PASS: two userData profiles refuse setup, neither plugin changed (ae096f7c/profile-isolation/setup-refusal.json). Malformed installed.json originally offered setup; fixed build shows Action required, launch disabled (Tab skips to Support), Refresh/diagnostics available; bytes restored. Evidence: 77e52fc5/metadata-fault.json; logs `mcp/.cache/localtest-observation-complete-*.log`.
+
+Remaining: IPC probe failure, foreign snapshot producer, endpoint/focus matrix, normal close, Gateway/authoring/persistence/visual. No native sign-off, validated compatibility or token savings. Docs-only recording preserves executable SHA.
 
 ## Current proof matrix
 
