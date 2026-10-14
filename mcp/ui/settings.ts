@@ -104,6 +104,9 @@ export function settingsSetup(): void {
 export function settingsTeardown(): void {
   extendedProfileHandler = undefined;
   for (const setting of settings.splice(0)) {
+    // Native Setting recreation reads the startup cache, not current storage.
+    const stored = Settings.stored as unknown as Record<string, { value: Setting["master_value"] }>;
+    stored[setting.id] = { value: setting.master_value };
     setting.delete();
   }
 }
