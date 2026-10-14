@@ -76,18 +76,34 @@ describe("Gateway benchmark trace recorder", () => {
       readOnly: false,
       verificationClass: "visual",
     });
+    recorder.record({
+      startedAt: recorder.startedAt(),
+      kind: "recovery",
+      capability: "manage_cubes",
+      success: false,
+      result: {
+        content: [{ type: "text", text: "private/sensitive-result" }],
+        structuredContent: {
+          code: "OUTCOME_UNKNOWN",
+          message: "private/sensitive-result",
+        },
+      },
+    });
     await recorder.flush();
 
     const raw = await readFile(path, "utf8");
     expect(raw).not.toContain("private/reference.png");
     expect(raw).not.toContain("do-not-persist");
+    expect(raw).not.toContain("private/sensitive-result");
 
     const events = raw
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line));
-    expect(events).toHaveLength(2);
-    expect(events.map((event) => event.sequence)).toEqual([0, 1]);
+    expect(events).toHaveLength(3);
+    expect(events.map((event) => event.sequence)).toEqual([0, 1, 2]);
+    expect(events[2].error_code).toBe("OUTCOME_UNKNOWN");
+    expect(events[0].error_code).toBeNull();
     expect(events[0]).toMatchObject({
       schema: "lazydesigner-gateway-benchmark-trace-v1",
       task_id: "golden-existing-model-correction",

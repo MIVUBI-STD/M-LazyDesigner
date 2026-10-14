@@ -22,6 +22,8 @@ export type BenchmarkTraceEvent = {
   result_bytes: number | null;
   read_only: boolean | null;
   verification_class: string | null;
+  /** Optional to keep older v1 benchmark trace files readable. */
+  error_code?: string | null;
 };
 
 type BenchmarkTraceRecorderOptions = {
@@ -36,6 +38,16 @@ function payloadBytes(value: unknown): number | null {
   } catch {
     return null;
   }
+}
+
+function safeErrorCode(result: unknown): string | null {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return null;
+  const structured = (result as { structuredContent?: unknown }).structuredContent;
+  if (!structured || typeof structured !== "object" || Array.isArray(structured)) return null;
+  const code = (structured as { code?: unknown }).code;
+  return typeof code === "string" && /^[A-Z][A-Z0-9_]{0,79}$/.test(code)
+    ? code
+    : null;
 }
 
 function elapsedMs(startedAt: number): number {
@@ -105,6 +117,8 @@ export class BenchmarkTraceRecorder {
         input.result === undefined ? null : payloadBytes(input.result),
       read_only: input.readOnly ?? null,
       verification_class: input.verificationClass ?? null,
+      // Persist bounded error identifiers, never diagnostic messages or paths.
+      error_code: input.success ? null : safeErrorCode(input.result),
     };
 
     const path = this.options.path;

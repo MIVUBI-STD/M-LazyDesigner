@@ -36,7 +36,35 @@ describe("gateway benchmark trace report", () => {
     expect(report.calls.verify).toBe(1);
     expect(report.payload.result_bytes).toBe(400);
     expect(report.latency.total_ms).toBe(40);
+    expect(report.latency.p50_ms).toBe(10);
+    expect(report.latency.p95_ms).toBe(10);
+    expect(report.failures).toEqual({ by_code: {}, unclassified: 0 });
     expect(report.proof_scope).toContain("does not prove accepted-result quality");
+  });
+
+  test("computes p50/p95 and distinguishes named failures", () => {
+    const rows = [5, 10, 20, 80].map((latency, index) => ({
+      ...(JSON.parse(event(index, "mutate")) as Record<string, unknown>),
+      latency_ms: latency,
+      ...(index === 3 ? { success: false, error_code: "OUTCOME_UNKNOWN" } : {}),
+    }));
+    const report = summarizeGatewayBenchmarkTrace(rows.map(row => JSON.stringify(row)).join("\n"));
+    expect(report.latency).toMatchObject({
+      total_ms: 115, max_ms: 80, p50_ms: 10, p95_ms: 80,
+    });
+    expect(report.failures).toEqual({
+      by_code: { OUTCOME_UNKNOWN: 1 },
+      unclassified: 0,
+    });
+  });
+
+  test("rejects private paths masquerading as error codes", () => {
+    const row = {
+      ...(JSON.parse(event(0, "mutate")) as Record<string, unknown>),
+      success: false,
+      error_code: "C:/private/path",
+    };
+    expect(() => summarizeGatewayBenchmarkTrace(JSON.stringify(row))).toThrow("invalid error_code");
   });
 
   test("rejects non-contiguous sequence", () => {

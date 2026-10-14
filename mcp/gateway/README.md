@@ -215,6 +215,19 @@ Gateway's serialized operation queue now distinguishes **waiting** from **starte
 
 Once a queued operation starts, Gateway **does not** abort or replay the native mutation. Cancellation or timeout after execution starts can still produce `OUTCOME_UNKNOWN` and requires state inspection before any replay. Queued work expiry/cancellation is not treated as proof that an already-running native operation was undone. This is a bounded admission policy, not guaranteed cancellation of Blockbench's native API.
 
+## Opt-in Gateway Observability
+
+The existing benchmark trace remains disabled by default. When explicitly
+enabled with an exact source SHA and task identity, it records Gateway
+call timings, result byte counts, and bounded machine error codes without
+writing response contents, failure messages, or private file paths.
+
+The existing trace reporter now includes nearest-rank p50/p95 latency and
+failure counts grouped by machine error code. Older v1 traces without
+`error_code` remain supported. These metrics measure Gateway request timing
+only; they are not provider token usage or accepted visual Blockbench results.
+No database, monitoring service, or fifth Gateway tool is added.
+
 ## Reliability Invariants
 
 - Gateway startup does not require Blockbench to be open.

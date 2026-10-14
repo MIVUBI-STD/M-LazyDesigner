@@ -35,8 +35,26 @@ function parseTrace(text: string): BenchmarkTraceEvent[] {
     if (!/^[0-9a-f]{40}$/.test(event.source_sha)) {
       throw new Error(`Trace line ${index + 1} has an invalid source_sha.`);
     }
+    if (!Number.isFinite(event.latency_ms) || event.latency_ms < 0) {
+      throw new Error(`Trace line ${index + 1} has an invalid latency_ms.`);
+    }
+    if (typeof event.success !== "boolean") {
+      throw new Error(`Trace line ${index + 1} has an invalid success flag.`);
+    }
+    if (event.error_code !== undefined &&
+        event.error_code !== null &&
+        (typeof event.error_code !== "string" ||
+         !/^[A-Z][A-Z0-9_]{0,79}$/.test(event.error_code))) {
+      throw new Error(`Trace line ${index + 1} has an invalid error_code.`);
+    }
     return event;
   });
+}
+
+function percentile(values: readonly number[], fraction: number): number | null {
+  if (values.length === 0) return null;
+  const ordered = [...values].sort((a, b) => a - b);
+  return ordered[Math.max(0, Math.ceil(fraction * ordered.length) - 1)] ?? null;
 }
 
 function sum(values: readonly (number | null)[]): number | null {
@@ -75,6 +93,13 @@ export function summarizeGatewayBenchmarkTrace(text: string) {
   }
 
   const failed = ordered.filter((event) => !event.success);
+  const failuresByCode: Record<string, number> = {};
+  for (const event of failed) {
+    if (event.error_code) {
+      failuresByCode[event.error_code] = (failuresByCode[event.error_code] ?? 0) + 1;
+    }
+  }
+  const latencies = ordered.map((event) => event.latency_ms);
   return {
     schema: 1,
     report: "gateway-benchmark-trace",
@@ -95,9 +120,15 @@ export function summarizeGatewayBenchmarkTrace(text: string) {
     payload: {
       result_bytes: sum(ordered.map((event) => event.result_bytes)),
     },
+    failures: {
+      by_code: failuresByCode,
+      unclassified: failed.filter((event) => !event.error_code).length,
+    },
     latency: {
-      total_ms: ordered.reduce((total, event) => total + event.latency_ms, 0),
-      max_ms: Math.max(...ordered.map((event) => event.latency_ms)),
+      total_ms: latencies.reduce((total, latency) => total + latency, 0),
+      max_ms: Math.max(...latencies),
+      p50_ms: percentile(latencies, 0.5),
+      p95_ms: percentile(latencies, 0.95),
     },
     capabilities: [...new Set(
       ordered
