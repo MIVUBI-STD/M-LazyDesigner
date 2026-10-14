@@ -1,10 +1,6 @@
 # LazyDesigner Next Action
 
-This file owns **continuation only**. Stable architecture is in
-`docs/01-product/` and `docs/04-system/`; proof interpretation is in
-`docs/05-operations/current-validation.md`, and native procedures are in
-`docs/05-operations/local-acceptance-runbook.md`. Previous detailed patch
-narratives remain in Git history, not this active queue.
+This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04-system/`; proof: `current-validation.md`; native procedure: `local-acceptance-runbook.md`. Patch history remains in Git.
 
 ## Current direction
 
@@ -13,9 +9,7 @@ The persistent Gateway owns client stability and Runtime
 recovery; Control owns context/readiness; Runtime/Plugin own Blockbench.
 Retain exactly four public Gateway tools and the existing source owners.
 
-Geometry, Texture and Animation receipt/readiness corrections and recent
-Golden Session input/model/token comparability fixes are SOURCE IMPLEMENTED,
-not proven native quality or measured AI savings.
+Receipt/readiness and Golden Session comparability fixes are SOURCE IMPLEMENTED; this does not prove visual quality or AI savings.
 
 ## Next REMOTE_GITHUB work
 
@@ -31,7 +25,8 @@ Installed executable: `fcf6617982d94a4e5ddb8162956a00f0c0d99d55`, Local. Bun 1.3
 2. Stage 2 setup/relaunch and main Stage 3 flow observed: one plugin/panel, healthy lease beyond TTL, no bounded console flashes; search fixed, keyboard navigation/filter retention at both sizes, Smart Open preserves tabs/unsaved edits, Modified/save, Save As and close/recent navigation pass. Continue hides when its exact last model is missing, resumes that same model after restoration. Desktop restart retains Runtime PID/instance and reconstructs current model without approval.
 3. Native foreign snapshot isolation, normal close/Desktop Open, reload, Runtime disable/enable, AUTHORING↔Animation and Gateway detach/attach PASS. Gateway 35728 retained for recovery, then deliberately replaced by 30580 for detach/attach. Data d824b35c; automatic app/plugin updates OFF, editor 5.2.0. Main fixture checkpoints retained. Prior stale lease/Desktop disappearance unexplained; bounded latest recovery passed.
 4. Harness source 6afc8989 full gate PASS; installed fcf66179 Gateway/Runtime unchanged. All 12 native verifier steps PASS, including Texturing after explicit UV diagnostics fix, persistence and UV-density native reopen. First failure log retained. Evidence fcf66179/acceptance-summary.json; actual call/byte/time metrics in verifier logs, no token claim.
-5. Remaining: native repeated IPC rejection; foreign-executable title/no-eligible-window/foreground-denial focus cases; human visual/reference acceptance; six Golden Task baseline/zero-waste pairs. IPC rejection seam unavailable; do not add a production backdoor or substitute metadata failure. Await eligible reference for Golden Task F; LIFT excluded from quality/efficiency benchmarks. verify:astra-usage-ready PASS is preparation only. Require comparable source/build/reference/input and accepted quality; unavailable tokens null.
+5. Supplemental PASS: native discovery/input guards, Bedrock JSON/PNG delivery and overwrite protection; built frontend MOCKED IPC rejection/recovery/action gating and six focus messages. Proof: gateway-negative-contracts.json, native-export-delivery.json, desktop-ui-*.json. No executable change. Export changed in-memory name/export path; saved .bbmodel untouched.
+6. Remaining: native IPC rejection and foreign-title/no-window/Windows-denial focus cases; human visual acceptance; six efficiency pairs. User has no reference: defer Golden F, not independent functional testing. No production fault backdoor. LIFT excluded from benchmarks; usage-ready proves preparation only. Require comparable inputs and quality; tokens null.
 Use existing runbook and proof owners. Setup/UI observations above are partial. Native
 and visual checks remain NOT_EXECUTED until actually observed.
 

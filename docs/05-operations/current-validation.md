@@ -1,10 +1,6 @@
 # LazyDesigner Current Validation
 
-This file owns **current proof interpretation only**. Product workflow belongs in
-`docs/01-product/flow.md`; source ownership in
-`docs/04-system/implementation-map.md`; continuation in
-`docs/05-operations/next-action.md`; local/live procedure in
-`docs/05-operations/local-acceptance-runbook.md`.
+This file owns **current proof interpretation only**. Workflow: `docs/01-product/flow.md`; source: `docs/04-system/implementation-map.md`; continuation: `next-action.md`; local/live procedure: `local-acceptance-runbook.md`.
 
 ## Current authority
 
@@ -37,7 +33,11 @@ Packaged Control contexts load; profiles/references included. Native foreign sna
 
 Gateway35728 survives close/open, AUTHORING↔Animation, reload and disable/enable. Project/counts/two PNG hashes preserved; expired lease clears active state, keeps recent navigation. Separate detach/attach PASS: same Runtime/project, Desktop Ready → AI connected. Recovery JSONs indexed by acceptance-summary.json; fixture checkpoints preserved, original LIFT unchanged.
 
-Remaining: native IPC rejection and residual focus cases NOT_EXECUTED; visual acceptance UNVERIFIED; six Golden Task pairs NOT_EXECUTED pending eligible reference/accepted quality. LIFT excluded from quality/efficiency benchmarks. verify:astra-usage-ready PASS is preparation only; tokens null, no savings claim. Prior stale lease/Desktop disappearance unexplained; latest bounded recovery passed. Earlier proof retained; refresh native Settings search after reload.
+Supplemental native PASS: four-tool discovery/schema guards, unknown capability/invalid operation/missing Cube/search-limit rejection without geometry change; Bedrock JSON (two Cubes), PNG 32×32, overwrite rejection with unchanged file hashes. Proof: gateway-negative-contracts.json, native-export-delivery.json. Native export updates the in-memory project name/export path; original .bbmodel preserved.
+
+Built Desktop frontend with isolated MOCKED IPC PASS: repeated probe rejection, failed full refresh from healthy/stale state, action lockout until full refresh succeeds, Support availability, six focus-result messages. Proof: desktop-ui-*.json; native Windows denial/IPC failure NOT_EXECUTED. No production seam added.
+
+User has no reference: Golden F deferred; other functional checks continued. Six efficiency pairs NOT_EXECUTED pending their quality/input gates; visual acceptance UNVERIFIED, tokens null. LIFT excluded from benchmarks. verify:astra-usage-ready proves preparation only. Prior stale lease/Desktop disappearance unexplained; latest bounded recovery passed.
 
 ## Current proof matrix
 
@@ -51,10 +51,7 @@ Remaining: native IPC rejection and residual focus cases NOT_EXECUTED; visual ac
 | Installed/native Blockbench behavior | `LIVE_BLOCKBENCH` runbook | matching live execution evidence |
 | Visual/reference acceptance | live bounded review | matching live review evidence |
 
-This document does **not** mirror volatile workflow status. Read the current
-`Local` SHA and its GitHub Actions/check results directly before making a PASS,
-FAIL, MISSING, or historical-evidence claim. Only completed proof attached to
-that same exact source SHA is current-head evidence.
+Read current `Local` SHA/checks before claiming current-head PASS; only completed matching exact-SHA proof qualifies.
 
 ## Exact-SHA source acceptance
 
@@ -66,10 +63,7 @@ Narrow claims can use the appropriate targeted script. The affected-execution pl
 
 `Head Proof` is manual-only. It classifies the selected commit relative to its parent. A docs-only head classification means only that executable source did not change relative to its parent. Head Proof is source-equivalence evidence, never a fresh compiler/test/build, native or visual PASS. Source-impacting heads continue to require exact-SHA executable verification; docs-only head evidence never substitutes for that proof.
 
-Current compatibility authority: the historical Blockbench 5.2.0 native
-test does not confer `validated` on newer LazyDesigner builds. Only
-`liveValidatedBuilds` entries matching the exact editor version and
-current bundle identity can do so; none is recorded at this source HEAD.
+Compatibility requires `liveValidatedBuilds` matching editor version and bundle identity; none is recorded at this source HEAD. Historical native tests do not validate newer builds.
 The existing Control path distinguishes missing Reference Package as
 `NEEDS_ORIENTATION` (not `READY`) without denying Runtime queries.
 Benchmark-only tracing includes known-precondition rejects; it is not
@@ -77,7 +71,7 @@ evidence of reduced Codex tokens. Source/static changes here are not
 matching-Bun or live-Blockbench PASS.
 
 ## Current source contracts 
-Local source now declares an additional machine-local Runtime authorization credential on the native HTTPS listener and known-missing prerequisite enforcement for the normal four-tool Gateway invocation path. This has source regression proof at the Windows checkpoint above; native transport and Blockbench execution remain unproven.
+Local source declares machine-local Runtime authorization on native HTTPS and known-missing prerequisite enforcement for the four-tool Gateway path. Matching source and bounded native transport/execution proof are recorded above; this does not certify every capability/input.
 
 
 
@@ -154,9 +148,7 @@ describe_capability
 invoke_capability
 ```
 
-The persistent Gateway owns client stability, Runtime reconnect, project/phase
-affinity, catalog invalidation, serialized mutation dispatch and structured
-recovery. Runtime owns Blockbench execution.
+Gateway owns client stability, reconnect, project/phase affinity, catalog freshness, serialized dispatch and recovery. Runtime executes in Blockbench.
 
 Unknown mutation outcome is never automatically replayed.
 
@@ -171,13 +163,10 @@ Do not infer current-head protocol PASS from historical evidence.
 
 ## Last reusable proven source baseline
 
-The Windows checkpoint above is the reusable source baseline; older evidence does not transfer. Remaining native proof includes Runtime reconnect, Undo/Redo/persistence, playback, close/open recovery, visual acceptance and real cost-to-accepted-result telemetry. Follow the existing local acceptance runbook.
+The Windows checkpoint is the reusable source baseline; older evidence does not transfer. Remaining proof: native IPC/focus fault cases, visual acceptance and real cost-to-accepted-result telemetry. Follow the existing local acceptance runbook.
 
 ## Proof boundary
 
 Do not strengthen source/static claims into local/live/visual claims without matching evidence from the exact current source SHA.
 
-Do not combine evidence from different SHAs. Do not upgrade source-equivalence,
-prepared harnesses, generated artifacts, static fixtures, or historical live
-results into proof that the current source actually executed in that
-environment.
+Source-equivalence, prepared harnesses, static fixtures and historical results do not prove current-source execution. Do not combine proof from different SHAs.
