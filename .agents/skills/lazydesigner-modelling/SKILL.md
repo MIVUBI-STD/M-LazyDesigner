@@ -147,7 +147,8 @@ bounded local correction / convergence / evidence recovery
 ```
 
 Hot-path invariants:
-- **Difference-First Reference Fidelity Verdict**: Tool success, bounds, hierarchy, validators, or similarity scores cannot justify `PASS`;
+Surface Coverage / Negative Space; User Geometry APPROVED is required.
+- **Difference-First Reference Fidelity Verdict**: Tool success, coordinates, bounds, hierarchy, validators, or similarity scores cannot justify `PASS`;
 - fix the largest structural difference first and reject material cross-view regression; overlap alone never proves correctness;
 - production UV starts only after **user Geometry APPROVED**;
 - correction must reuse fresh state/evidence, require `IMPROVED` without regression elsewhere, never auto-retry `UNKNOWN_OUTCOME`, and the same causal correction failing twice without new evidence becomes `BLOCKED`.

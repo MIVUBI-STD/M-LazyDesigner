@@ -79,7 +79,7 @@ When no BLOCKING pixel-art unknown remains, delegate directly to `lazydesigner-p
 
 ### Particle-only exception
 
-Particle/VFX skips visual-branch pre-generation confirmation. When unblocked, delegate to `lazydesigner-particle-reference-authoring`; mark reversible non-blocking choices `PROVISIONAL`, never invent hidden geometry, runtime truth, or performance.
+No ceremonial pre-confirmation when no BLOCKING ambiguity remains. When unblocked, delegate to `lazydesigner-particle-reference-authoring`; mark reversible non-blocking choices `PROVISIONAL`, never invent hidden geometry, runtime truth, or performance.
 
 ## Prompt compiler
 
