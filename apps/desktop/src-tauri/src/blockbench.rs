@@ -163,6 +163,18 @@ foreach ($root in $roots) {
     }
   }
 }
+# An installed/portable editor may have no uninstall entry. Check only the
+# standard installation locations, and validate product metadata before launch.
+$candidates = @()
+if ($env:ProgramFiles) { $candidates += (Join-Path $env:ProgramFiles 'Blockbench\Blockbench.exe') }
+if ($env:LOCALAPPDATA) { $candidates += (Join-Path $env:LOCALAPPDATA 'Programs\Blockbench\Blockbench.exe') }
+foreach ($candidate in $candidates) {
+  if ((Test-Path -LiteralPath $candidate -PathType Leaf) -and
+      ((Get-Item -LiteralPath $candidate).VersionInfo.ProductName -eq 'Blockbench')) {
+    [Console]::Out.WriteLine((Resolve-Path -LiteralPath $candidate).Path)
+    exit 0
+  }
+}
 exit 0
 "#;
     let output = run_output(

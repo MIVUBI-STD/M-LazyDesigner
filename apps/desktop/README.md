@@ -122,7 +122,7 @@ Windows Blockbench installation is not assumed to live at a fixed path. The offi
 ```text
 running Blockbench process executable
 → Windows uninstall registry entries with DisplayName=Blockbench
-→ validated existing Blockbench.exe path
+→ validated standard installation paths (Program Files / per-user Programs)
 ```
 
 The visible `Open` action is explicit user intent, but it enters the canonical `ensure_ready` orchestration rather than invoking a second direct-launch path. Rust verifies managed/plugin readiness, launches Blockbench only when needed, waits for Runtime, and returns a bounded readiness outcome. The lower-level launcher remains an internal primitive only.
