@@ -42,6 +42,11 @@ describe("manual-only GitHub Actions", () => {
     expect(mcp).toContain("bun run verify:full");
     expect(mcp).toContain("bun install --frozen-lockfile");
     expect(mcp).toContain("write-ci");
+    expect(mcp).toContain("name: Record ChatGPT-readable non-native verification");
+    expect(mcp).toContain("schema: 'lazydesigner-cloud-source-evidence-v1'");
+    expect(mcp).toContain("native_blockbench: 'NOT_EXECUTED'");
+    expect(mcp).toContain("name: lazydesigner-cloud-source-evidence");
+    expect(mcp).toContain("if-no-files-found: warn");
     expect(release).toContain('test "$REF_NAME" = "Local"');
     expect(release).toContain("git merge-base --is-ancestor origin/main HEAD");
     expect(managed).toContain("gh release create");
