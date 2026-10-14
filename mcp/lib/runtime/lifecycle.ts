@@ -15,6 +15,20 @@ type RuntimeLifecycleCoordinator = {
   teardownTail: Promise<void>;
   /** Process-wide admission counter, retained across plugin reload generations. */
   pendingOperations?: number;
+  /** Native FIFO shared across bundle reloads; initialized after legacy work. */
+  nativeQueue?: RuntimeNativeQueue;
+};
+
+type RuntimeWaitingOperation = {
+  start: () => void;
+  cancel: () => void;
+  cleanup: () => void;
+};
+
+type RuntimeNativeQueue = {
+  active: boolean;
+  waiting: RuntimeWaitingOperation[];
+  resolveDrain: (() => void) | null;
 };
 
 /** Native Blockbench state is process-global: one active operation plus bounded waiters. */
@@ -131,47 +145,150 @@ export function beginRuntimeGenerationTeardown(
   return run;
 }
 
+export class RuntimeQueuedOperationAbandonedError extends Error {
+  constructor() {
+    super("Queued Runtime operation was abandoned before native execution.");
+    this.name = "RuntimeQueuedOperationAbandonedError";
+  }
+}
+
 /**
- * Serialize native Blockbench tool execution across sockets and plugin reloads.
- * A queued request from a retired generation is rejected before it can mutate
- * the new generation's global Project/Cube/Texture/Animation state.
+ * Retain one shared FIFO even across hot reload. A new bundle may encounter
+ * pending work from the older Promise-tail implementation: treat that tail as
+ * the running slot until it drains, rather than running native work in parallel.
+ */
+function getNativeQueue(coordinator: RuntimeLifecycleCoordinator): RuntimeNativeQueue {
+  if (coordinator.nativeQueue) return coordinator.nativeQueue;
+  const legacyPending = (coordinator.pendingOperations ?? 0) > 0;
+  const previousTail = coordinator.operationTail;
+  const queue: RuntimeNativeQueue = {
+    active: legacyPending,
+    waiting: [],
+    resolveDrain: null,
+  };
+  coordinator.nativeQueue = queue;
+  if (legacyPending) {
+    void previousTail.then(
+      () => {
+        queue.active = false;
+        startNextRuntimeOperation(coordinator, queue);
+      },
+      () => {
+        queue.active = false;
+        startNextRuntimeOperation(coordinator, queue);
+      }
+    );
+  }
+  return queue;
+}
+
+function settleNativeDrainIfIdle(
+  queue: RuntimeNativeQueue
+): void {
+  if (queue.active || queue.waiting.length > 0) return;
+  const resolve = queue.resolveDrain;
+  queue.resolveDrain = null;
+  resolve?.();
+}
+
+function startNextRuntimeOperation(
+  coordinator: RuntimeLifecycleCoordinator,
+  queue: RuntimeNativeQueue
+): void {
+  if (queue.active) return;
+  const next = queue.waiting.shift();
+  if (!next) {
+    settleNativeDrainIfIdle(queue);
+    return;
+  }
+  // From this point client cancellation cannot claim "not executed".
+  queue.active = true;
+  next.cleanup();
+  next.start();
+}
+
+/**
+ * Serialize native Blockbench work globally while physically releasing
+ * abandoned waiting slots. Aborting a started operation does NOT interrupt or
+ * replay a native mutation; its outcome must still be reconciled by the caller.
  */
 export function runRuntimeOperationExclusive<T>(
   generation: number | null,
-  operation: () => Promise<T>
+  operation: () => Promise<T>,
+  options: { signal?: AbortSignal } = {}
 ): Promise<T> {
   const coordinator = getCoordinator();
-  // Admission happens synchronously before the operation is scheduled. A
-  // second Gateway cannot bypass the first Gateway's private queue limit.
+  const signal = options.signal;
+  if (signal?.aborted) {
+    return Promise.reject(new RuntimeQueuedOperationAbandonedError());
+  }
+
+  const queue = getNativeQueue(coordinator);
+  // Pending includes one running operation (or a legacy drain barrier).
   if ((coordinator.pendingOperations ?? 0) >= MAX_RUNTIME_WAITING_OPERATIONS + 1) {
     return Promise.reject(new RuntimeOperationQueueFullError());
   }
-  coordinator.pendingOperations = (coordinator.pendingOperations ?? 0) + 1;
-  const execute = async (): Promise<T> => {
-    if (
-      generation !== null &&
-      coordinator.ownerGeneration !== generation
-    ) {
-      throw new RuntimeGenerationRetiredError(generation);
-    }
-    const result = await operation();
-    if (
-      generation !== null &&
-      coordinator.ownerGeneration !== generation
-    ) {
-      throw new RuntimeGenerationRetiredError(generation);
-    }
-    return result;
-  };
 
-  const run = coordinator.operationTail.then(execute, execute).finally(() => {
-    coordinator.pendingOperations = Math.max(0, (coordinator.pendingOperations ?? 1) - 1);
+  return new Promise<T>((resolve, reject) => {
+    if (!queue.resolveDrain) {
+      coordinator.operationTail = new Promise<void>((done) => {
+        queue.resolveDrain = done;
+      });
+    }
+
+    coordinator.pendingOperations = (coordinator.pendingOperations ?? 0) + 1;
+    const item: RuntimeWaitingOperation = {
+      cleanup: () => {
+        signal?.removeEventListener("abort", item.cancel);
+      },
+      cancel: () => {
+        const index = queue.waiting.indexOf(item);
+        if (index < 0) return;
+        queue.waiting.splice(index, 1);
+        item.cleanup();
+        coordinator.pendingOperations = Math.max(
+          0, (coordinator.pendingOperations ?? 1) - 1
+        );
+        reject(new RuntimeQueuedOperationAbandonedError());
+        startNextRuntimeOperation(coordinator, queue);
+      },
+      start: () => {
+        void (async () => {
+          try {
+            if (
+              generation !== null &&
+              coordinator.ownerGeneration !== generation
+            ) {
+              throw new RuntimeGenerationRetiredError(generation);
+            }
+            const result = await operation();
+            if (
+              generation !== null &&
+              coordinator.ownerGeneration !== generation
+            ) {
+              throw new RuntimeGenerationRetiredError(generation);
+            }
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          } finally {
+            coordinator.pendingOperations = Math.max(
+              0, (coordinator.pendingOperations ?? 1) - 1
+            );
+            queue.active = false;
+            startNextRuntimeOperation(coordinator, queue);
+          }
+        })();
+      },
+    };
+
+    queue.waiting.push(item);
+    if (signal) {
+      signal.addEventListener("abort", item.cancel, { once: true });
+      if (signal.aborted) item.cancel();
+    }
+    startNextRuntimeOperation(coordinator, queue);
   });
-  coordinator.operationTail = run.then(
-    () => undefined,
-    () => undefined
-  );
-  return run;
 }
 
 export function waitForRuntimeOperationDrain(): Promise<void> {

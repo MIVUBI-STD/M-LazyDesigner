@@ -38,6 +38,7 @@ import {
 import {
   RuntimeGenerationRetiredError,
   RuntimeOperationQueueFullError,
+  RuntimeQueuedOperationAbandonedError,
   runRuntimeOperationExclusive,
   waitForRuntimeOperationDrain
 } from '@/lib/runtime/lifecycle'
@@ -417,6 +418,15 @@ export default function createNetServer (
         const allowProjectTransition =
           capabilityEffects?.projectAffinity === 'adopt_created_project'
 
+        const nativeRequestAbort = new AbortController()
+        const onNativeRequestClosed = () => nativeRequestAbort.abort()
+        if (routedMethod === 'tools/call') {
+          request.once('aborted', onNativeRequestClosed)
+          response.once('close', onNativeRequestClosed)
+          if (request.aborted || response.destroyed || shuttingDown) {
+            nativeRequestAbort.abort()
+          }
+        }
         try {
           const execute = async () => await handleStatelessMcpRequest(
             webRequest,
@@ -441,7 +451,7 @@ export default function createNetServer (
                   throw new RuntimeRequestAbandonedError()
                 }
                 return await dispatch()
-              })
+              }, { signal: nativeRequestAbort.signal })
             : await dispatch()
 
           if (
@@ -475,6 +485,7 @@ export default function createNetServer (
           }
           if (
             error instanceof RuntimeRequestAbandonedError ||
+            error instanceof RuntimeQueuedOperationAbandonedError ||
             error instanceof RuntimeGenerationRetiredError
           ) return
           if (
@@ -499,6 +510,11 @@ export default function createNetServer (
             jsonErrorBody('Internal server error', null, -32603),
             true
           )
+        } finally {
+          if (routedMethod === 'tools/call') {
+            request.off('aborted', onNativeRequestClosed)
+            response.off('close', onNativeRequestClosed)
+          }
         }
       })().catch((error) => {
         console.error('[MCP] Unhandled HTTP request error:', error)
