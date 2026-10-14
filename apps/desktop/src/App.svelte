@@ -694,13 +694,13 @@
                     {#if productMode(status) === 'ready'}
                       <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
-                      <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
+                      <button class="primary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
                     {:else if productMode(status) === 'plugin-setup'}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {:else if productMode(status) === 'unsupported'}
                       <button class="secondary-button" onclick={refresh} disabled={loading || busyAction !== null}>Check again</button>
                     {:else}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>Open</button>
+                      <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
                     {/if}
                     <button class="secondary-button small-button" title="Show Blockbench plugin file" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Plugin file</button>
                   </div>
@@ -720,7 +720,7 @@
                       <strong>LazyDesigner is not active yet</strong>
                       <span>Desktop can open Blockbench and verify the Runtime automatically.</span>
                     </div>
-                    <button class="primary-button" onclick={connectBlockbench} disabled={busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Prepare Blockbench'}</button>
+                    <button class="primary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Prepare Blockbench'}</button>
                   {:else if readinessReason === 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING'}
                     <div>
                       <strong>Restart Blockbench to repair LazyDesigner</strong>

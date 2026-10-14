@@ -455,6 +455,13 @@ describe("Desktop Workspace First navigation contract", () => {
 });
 
 describe("Desktop stale connection action admission", () => {
+  test("every editor launch button requires an available manager", async () => {
+    const app = await Bun.file("../apps/desktop/src/App.svelte").text();
+    const launchButtons = app.split("\n").filter(line => line.includes("<button") && line.includes("onclick={connectBlockbench}"));
+    expect(launchButtons.length).toBeGreaterThan(0);
+    for (const button of launchButtons) expect(button).toContain("disabled={!status.manager_available ||");
+  });
+
   test("keeps stale status visible but guards project, launch and managed mutation", async () => {
     const app = await Bun.file("../apps/desktop/src/App.svelte").text();
     expect(app).toContain("statusProbeFailures = Math.min(statusProbeFailures + 1, 2)");
