@@ -48,3 +48,54 @@ export function productGuidance(value: SystemStatus, pluginApprovalNeeded: boole
   if (mode === 'attention') return value.gateway.action ?? value.blockbench.diagnostic ?? value.diagnostic ?? 'Open Support for troubleshooting tools.';
   return null;
 }
+
+export type ManagedAction = 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls';
+export type ManagedActionFeedback = {
+  status: string;
+  kind: 'success' | 'pending' | 'unchanged';
+  message: string;
+};
+
+/** Present only authoritative manager receipts; process exit 0 is not
+ * evidence that a staged update has been activated. */
+export function managedActionPresentation(
+  action: ManagedAction,
+  receipt: Record<string, unknown>
+): ManagedActionFeedback {
+  const status = receipt.status;
+  if (typeof status !== 'string') {
+    throw new Error('Managed action returned no verified status. Refresh and open Support.');
+  }
+  if (action === 'update') {
+    if (status === 'STAGED') return {
+      status, kind: 'pending',
+      message: 'Update staged, not installed. Close Blockbench and active AI sessions, then choose Update components again.',
+    };
+    if (status === 'NO_PENDING_UPDATE') return {
+      status, kind: 'unchanged',
+      message: 'No staged update was found. Refresh to check the installed components.',
+    };
+    if (status === 'INSTALLED') return {
+      status, kind: 'success',
+      message: 'Managed components updated. Reopen Blockbench and reconnect the AI client if needed.',
+    };
+  }
+  const expected: Record<Exclude<ManagedAction, 'update'>, string> = {
+    rollback: 'ROLLBACK_COMPLETE',
+    recover: 'RECOVER_COMPLETE',
+    repair: 'REPAIRED',
+    'setup-tls': 'TLS_READY',
+  };
+  if (action !== 'update' && status === expected[action]) {
+    return {
+      status, kind: 'success',
+      message: {
+        rollback: 'Previous managed version restored.',
+        recover: 'Interrupted installation recovered.',
+        repair: 'Managed files repaired.',
+        'setup-tls': 'Secure local connection configured.',
+      }[action],
+    };
+  }
+  throw new Error(`Unexpected managed ${action} result (${status}). Refresh and open Support.`);
+}

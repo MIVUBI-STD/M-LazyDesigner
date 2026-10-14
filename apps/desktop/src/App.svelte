@@ -12,7 +12,7 @@
     DesktopCommandError, DiagnosticExportResult, ProjectNavigationActionResult,
     ProjectPathResult, ManagedProgress,
   } from './desktopTypes';
-  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance } from './desktopPresentation';
+  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation } from './desktopPresentation';
 
   let status: SystemStatus | null = null;
   let loading = true;
@@ -21,6 +21,7 @@
   let pluginApprovalNeeded = false;
   let readinessReason = '';
   let actionMessage = '';
+  let actionMessageKind: 'success' | 'pending' | 'unchanged' = 'success';
   let progressStage = '';
   let stopProgressListener: (() => void) | null = null;
   let successToastTimer: number | null = null;
@@ -44,13 +45,13 @@
 
   type OperationRecord = {
     action: string;
-    outcome: 'success' | 'failed';
+    outcome: 'success' | 'pending' | 'unchanged' | 'failed';
     status: string;
     at: string;
   };
   let operations: OperationRecord[] = [];
 
-  function recordOperation(action: string, outcome: 'success' | 'failed', status: string) {
+  function recordOperation(action: string, outcome: 'success' | 'pending' | 'unchanged' | 'failed', status: string) {
     operations = [
       { action, outcome, status, at: new Date().toLocaleTimeString() },
       ...operations,
@@ -86,10 +87,15 @@
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
     successToastTimer = null;
     actionMessage = '';
+    actionMessageKind = 'success';
   }
 
-  function showSuccessToast(message: string) {
+  function showSuccessToast(
+    message: string,
+    kind: 'success' | 'pending' | 'unchanged' = 'success'
+  ) {
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
+    actionMessageKind = kind;
     actionMessage = message;
     successToastTimer = window.setTimeout(() => {
       actionMessage = '';
@@ -349,10 +355,10 @@
     clearSuccessToast();
     try {
       const result = await invoke<ManagedActionResult>('managed_action', { action });
-      const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'COMPLETE';
+      const feedback = managedActionPresentation(action, result.receipt);
       const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
-      showSuccessToast(`${actionLabel} completed.`);
-      recordOperation(actionLabel, 'success', receiptStatus);
+      showSuccessToast(feedback.message, feedback.kind);
+      recordOperation(actionLabel, feedback.kind, feedback.status);
       await refresh();
       if (action === 'update') updateCheck = null;
     } catch (cause) {
@@ -846,7 +852,7 @@
                 <summary><span><strong>Recent activity</strong><small>Current Desktop session</small></span><span>Show</span></summary>
                 <div class="recent-list">
                   {#each operations as operation}
-                    <div><span>{operation.action}</span><strong class:failed={operation.outcome === 'failed'}>{operation.outcome === 'success' ? 'Completed' : 'Failed'}</strong></div>
+                    <div><span>{operation.action}</span><strong class:failed={operation.outcome === 'failed'} class:pending={operation.outcome === 'pending'} class:unchanged={operation.outcome === 'unchanged'}>{operation.outcome === 'success' ? 'Completed' : operation.outcome === 'pending' ? 'Next step' : operation.outcome === 'unchanged' ? 'No change' : 'Failed'}</strong></div>
                   {/each}
                 </div>
               </details>
@@ -859,9 +865,9 @@
 {/if}
 
 {#if error || actionMessage || (busyAction && progressStage && busyAction !== 'repair')}
-  <aside class:error={Boolean(error)} class:success={Boolean(actionMessage) && !error} class="operation-attention" aria-live={error ? 'assertive' : 'polite'}>
-    <div class="attention-icon">{error ? '!' : actionMessage ? '✓' : '•'}</div>
-    <div class="attention-copy"><strong>{error ? 'Something needs attention' : actionMessage ? 'Done' : 'Working'}</strong><span>{error || actionMessage || progressLabel(progressStage)}</span></div>
+  <aside class:error={Boolean(error)} class:success={Boolean(actionMessage) && !error && actionMessageKind === 'success'} class:notice={Boolean(actionMessage) && !error && actionMessageKind !== 'success'} class="operation-attention" aria-live={error ? 'assertive' : 'polite'}>
+    <div class="attention-icon">{error ? '!' : actionMessage ? (actionMessageKind === 'success' ? '✓' : 'i') : '•'}</div>
+    <div class="attention-copy"><strong>{error ? 'Something needs attention' : actionMessage ? (actionMessageKind === 'pending' ? 'Next step' : actionMessageKind === 'unchanged' ? 'No change' : 'Done') : 'Working'}</strong><span>{error || actionMessage || progressLabel(progressStage)}</span></div>
     <div class="attention-actions">
       {#if error}<button onclick={() => navigate('Support')}>Support</button>{/if}
       {#if error || actionMessage}<button class="dismiss" aria-label="Dismiss notification" onclick={() => { error=''; clearSuccessToast(); }}>×</button>{/if}
@@ -885,8 +891,8 @@
   .message-state{max-width:760px;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:start;gap:12px;padding-top:12px}.message-icon{width:26px;height:26px;display:grid;place-items:center;border-radius:6px;background:var(--surface-2);font-size:var(--font-ui);font-weight:800}.message-icon.danger{background:var(--danger-bg);color:var(--danger)}.message-copy h2{margin:0;font-size:16px}.message-copy p{margin:5px 0 0;color:var(--muted);font-size:var(--font-sm)}
   .task-strip{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:8px 10px;border:1px solid var(--border-soft);border-radius:7px;background:var(--bg-elevated);font-size:var(--font-sm)}.task-spinner{width:9px;height:9px;border:2px solid var(--surface-4);border-top-color:var(--info);border-radius:50%;animation:spin .8s linear infinite}.task-strip small{margin-left:auto;color:var(--muted-2);font-size:var(--font-xs)}
   .support-banner{display:flex;align-items:flex-start;gap:9px;margin-bottom:24px;padding:10px 0 18px;border-bottom:1px solid var(--border-soft)}.support-banner-dot{width:7px;height:7px;margin-top:4px;border-radius:50%;background:var(--warning)}.support-banner>div{display:grid;gap:2px}.support-banner strong{font-size:var(--font-sm)}.support-banner span{color:var(--muted);font-size:var(--font-sm)}.settings-section{max-width:780px;margin-bottom:30px}.settings-section h2{margin:0 0 9px;font-size:var(--font-title)}.settings-row{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--border-soft)}.settings-row.compact{min-height:42px}.settings-row>div{display:grid;gap:2px}.settings-row strong{font-size:var(--font-sm)}.settings-row span{color:var(--muted);font-size:var(--font-sm);line-height:1.4}
-  .advanced-recovery,.recent-activity{margin-top:8px;border-top:1px solid var(--border-soft)}.advanced-recovery summary,.recent-activity summary{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0;list-style:none;cursor:pointer}.advanced-recovery summary::-webkit-details-marker,.recent-activity summary::-webkit-details-marker{display:none}.advanced-recovery summary>span:first-child,.recent-activity summary>span:first-child{display:grid;gap:2px}.advanced-recovery summary strong,.recent-activity summary strong{font-size:var(--font-sm)}.advanced-recovery summary small,.recent-activity summary small{color:var(--muted);font-size:var(--font-xs)}.advanced-recovery summary>span:last-child,.recent-activity summary>span:last-child{color:var(--muted);font-size:var(--font-sm)}.recovery-list,.recent-list{border-top:1px solid var(--border-soft)}.recovery-list>div,.recent-list>div{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border-soft)}.recovery-list>div>span{display:grid;gap:2px}.recovery-list strong{font-size:var(--font-sm)}.recovery-list small{color:var(--muted);font-size:var(--font-xs)}.recent-list span{font-size:var(--font-sm)}.recent-list strong{font-size:var(--font-xs);color:#9ee8b9}.recent-list strong.failed{color:#ff9aa2}
-  .operation-attention{position:fixed;z-index:220;right:16px;bottom:16px;width:min(360px,calc(100vw - 32px));display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:start;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.operation-attention.success{border-color:var(--accent-border)}.operation-attention.error{border-color:#705c26}.attention-icon{width:23px;height:23px;display:grid;place-items:center;border-radius:6px;background:var(--surface-3);font-size:var(--font-sm);font-weight:800}.success .attention-icon{background:var(--accent-soft);color:#9ee8b9}.error .attention-icon{background:var(--warning-bg);color:#fde68a}.attention-copy{display:grid;gap:2px}.attention-copy strong{font-size:var(--font-sm)}.attention-copy span{color:var(--muted);font-size:var(--font-xs);line-height:1.4}.attention-actions{display:flex;gap:4px}.attention-actions button{min-height:24px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface-3);font-size:var(--font-xs);font-weight:700}.attention-actions .dismiss{width:24px;padding:0;border:0;background:transparent;color:var(--muted);font-size:15px}
+  .advanced-recovery,.recent-activity{margin-top:8px;border-top:1px solid var(--border-soft)}.advanced-recovery summary,.recent-activity summary{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0;list-style:none;cursor:pointer}.advanced-recovery summary::-webkit-details-marker,.recent-activity summary::-webkit-details-marker{display:none}.advanced-recovery summary>span:first-child,.recent-activity summary>span:first-child{display:grid;gap:2px}.advanced-recovery summary strong,.recent-activity summary strong{font-size:var(--font-sm)}.advanced-recovery summary small,.recent-activity summary small{color:var(--muted);font-size:var(--font-xs)}.advanced-recovery summary>span:last-child,.recent-activity summary>span:last-child{color:var(--muted);font-size:var(--font-sm)}.recovery-list,.recent-list{border-top:1px solid var(--border-soft)}.recovery-list>div,.recent-list>div{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border-soft)}.recovery-list>div>span{display:grid;gap:2px}.recovery-list strong{font-size:var(--font-sm)}.recovery-list small{color:var(--muted);font-size:var(--font-xs)}.recent-list span{font-size:var(--font-sm)}.recent-list strong{font-size:var(--font-xs);color:#9ee8b9}.recent-list strong.failed{color:#ff9aa2}.recent-list strong.pending{color:var(--warning)}.recent-list strong.unchanged{color:var(--muted)}
+  .operation-attention{position:fixed;z-index:220;right:16px;bottom:16px;width:min(360px,calc(100vw - 32px));display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:start;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}.operation-attention.success{border-color:var(--accent-border)}.operation-attention.notice{border-color:var(--border-strong)}.operation-attention.error{border-color:#705c26}.attention-icon{width:23px;height:23px;display:grid;place-items:center;border-radius:6px;background:var(--surface-3);font-size:var(--font-sm);font-weight:800}.success .attention-icon{background:var(--accent-soft);color:#9ee8b9}.error .attention-icon{background:var(--warning-bg);color:#fde68a}.attention-copy{display:grid;gap:2px}.attention-copy strong{font-size:var(--font-sm)}.attention-copy span{color:var(--muted);font-size:var(--font-xs);line-height:1.4}.attention-actions{display:flex;gap:4px}.attention-actions button{min-height:24px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface-3);font-size:var(--font-xs);font-weight:700}.attention-actions .dismiss{width:24px;padding:0;border:0;background:transparent;color:var(--muted);font-size:15px}
   @keyframes spin{to{transform:rotate(360deg)}}
   @media(max-width:760px){.desktop-shell{grid-template-columns:62px minmax(0,1fr)}.navigation{padding-inline:7px}.navigation-brand strong,.global-nav button>span:not(.nav-icon),.support-nav>span:not(.nav-icon){display:none}.navigation-brand{justify-content:center;padding-inline:0}.global-nav button,.support-nav{justify-content:center;padding:0}.page-toolbar{padding:0 16px}.page-content{padding:20px 16px 36px}.resource-row{grid-template-columns:36px minmax(0,1fr)}.resource-actions{grid-column:1/-1;justify-content:flex-end;padding-top:2px}.setup-footer,.settings-row,.recovery-list>div{align-items:flex-start;flex-direction:column}.operation-attention{right:10px;bottom:10px;width:calc(100vw - 20px);grid-template-columns:auto minmax(0,1fr)}.attention-actions{grid-column:2}}
   /* Workspace First: preserve content width with two top-level destinations. */

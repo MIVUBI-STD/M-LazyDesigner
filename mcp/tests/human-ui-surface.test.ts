@@ -4,6 +4,28 @@ const source = (relative: string) =>
   Bun.file(new URL(`../${relative}`, import.meta.url)).text();
 
 describe("human-facing Blockbench UI", () => {
+  test("managed update notice distinguishes staged, applied, missing, and invalid receipts", async () => {
+    const { managedActionPresentation } = await import("../../apps/desktop/src/desktopPresentation");
+    const staged = managedActionPresentation("update", { status: "STAGED" });
+    expect(staged.kind).toBe("pending");
+    expect(staged.message).toContain("not installed");
+    expect(staged.message).toContain("Close Blockbench");
+
+    const installed = managedActionPresentation("update", { status: "INSTALLED" });
+    expect(installed.kind).toBe("success");
+    const noChange = managedActionPresentation("update", { status: "NO_PENDING_UPDATE" });
+    expect(noChange.kind).toBe("unchanged");
+    expect(managedActionPresentation("repair", { status: "REPAIRED" }).kind).toBe("success");
+    expect(managedActionPresentation("setup-tls", { status: "TLS_READY" }).kind).toBe("success");
+    expect(() => managedActionPresentation("update", { status: "UNKNOWN" })).toThrow("Unexpected managed");
+    expect(() => managedActionPresentation("update", {})).toThrow("no verified status");
+
+    const app = await Bun.file(new URL("../../apps/desktop/src/App.svelte", import.meta.url)).text();
+    expect(app).toContain("managedActionPresentation(action, result.receipt)");
+    expect(app).toContain("actionMessageKind === 'pending' ? 'Next step'");
+    expect(app).toContain("operation.outcome === 'unchanged' ? 'No change'");
+  });
+
   test("late-mounted plugin panels never default to false Runtime-ready status", async () => {
     const [ui, bar] = await Promise.all([source("ui/index.ts"), source("ui/statusBar.ts")]);
     expect(bar).toContain("export function getStatusBarState()");
