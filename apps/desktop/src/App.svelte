@@ -5,6 +5,7 @@
   import ProjectNavigator from './ProjectNavigator.svelte';
   import { version as desktopVersion } from '../package.json';
   import { connectionChanged } from './connectionWatch';
+  import { observeStatus } from './statusObservation';
   import type { ProjectAction } from './projectNavigationTypes';
   import type {
     SystemStatus, ConnectionStatus, PluginFileActionResult, BootstrapActionResult,
@@ -127,7 +128,7 @@
     loading = true;
     error = '';
     try {
-      status = await invoke<SystemStatus>('system_status');
+      status = await observeStatus(invoke<SystemStatus>('system_status'), 30_000);
       statusProbeFailures = 0;
       if (status && devFixture) status = applyDevFixture(status, devFixture);
     } catch (cause) {
@@ -210,10 +211,10 @@
   }
 
   async function watchSystemStatus() {
-    if (devFixture || busyAction || document.hidden || !status || statusProbeInFlight) return;
+    if (devFixture || busyAction || document.hidden || !status || statusProbeInFlight || statusProbeFailures >= 2) return;
     statusProbeInFlight = true;
     try {
-      const candidate = await invoke<ConnectionStatus>('connection_status');
+      const candidate = await observeStatus(invoke<ConnectionStatus>('connection_status'), 10_000);
       // A lightweight probe cannot validate a previously failed full status
       // observation. Keep actions disabled until the user explicitly Refreshes.
       if (statusProbeFailures >= 2) return;
