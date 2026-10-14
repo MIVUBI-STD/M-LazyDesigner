@@ -203,6 +203,12 @@ The Runtime remains complete native/debug evidence owner. Gateway may compact no
 
 No heartbeat chatter, background catalog polling, automatic confirmation reads, or automatic mutation retries are introduced.
 
+## Bounded HTTPS Connection Reuse
+
+Finite MCP responses can reuse the same authenticated loopback HTTPS connection when the client supports HTTP keep-alive. The native listener enforces a five-second idle keep-alive window and a separate 30-second socket inactivity limit, honors explicit `Connection: close`, and closes tracked sockets on Runtime teardown. Subscription streaming and conservative mutation recovery remain separate concerns.
+
+Focused Runtime tests compare reused versus fresh connections and verify HTTPS certificate/token protection. Recorded p95/sample latencies are observations, **not** guaranteed improvements or native Blockbench acceptance. Health probing before an authoring invocation is retained because Runtime generation and active-project affinity may change outside Gateway control. Do not remove that probe merely to increase a synthetic cache-hit rate.
+
 ## Reliability Invariants
 
 - Gateway startup does not require Blockbench to be open.

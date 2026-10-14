@@ -453,10 +453,10 @@ export default function createNetServer (
             requestMcpPhaseSwitch(envelope.targetAuthoringPhase)
           }
 
-          const closeMcpConnection =
-            routedMethod === 'subscriptions/listen'
-              ? connectionClose
-              : true
+          // Finite JSON/JSON-RPC responses have Content-Length and may reuse
+          // the client socket. Preserve explicit Connection: close, while
+          // subscription streams retain their existing streaming lifecycle.
+          const closeMcpConnection = connectionClose
           await sendSerializedWebResponse(
             response,
             result,
@@ -512,6 +512,10 @@ export default function createNetServer (
       })
     }
   ) as NetServer
+
+  // Keep a finite, idle-only socket reuse window. Active native MCP operations
+  // may exceed this and are still protected by the separate operation budget.
+  httpServer.keepAliveTimeout = 5_000
 
   httpServer.on('connection', (socket: Socket) => {
     if (shuttingDown) {

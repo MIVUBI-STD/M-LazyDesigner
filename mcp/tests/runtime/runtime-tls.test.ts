@@ -2,7 +2,8 @@ import { expect, test } from "bun:test";
 import { existsSync, readdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createServer } from "node:https";
+import { Agent as HttpsAgent, createServer, request as httpsRequest } from "node:https";
+import { performance } from "node:perf_hooks";
 import type { AddressInfo } from "node:net";
 import { runtimeTlsPaths, DEFAULT_RUNTIME_URL, normalizeRuntimeUrl } from "../../lib/runtime/connection";
 import { runtimeFetch } from "../../lib/runtime/fetch"; 
@@ -96,6 +97,55 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
     expect(status.runtime.online).toBe(true);
     expect(status.runtime.mcp_client_ready).toBe(true);
     expect(status.runtime.protocol_era).toBe("modern");
+
+    // Exercise the real certificate and bearer token with an independent
+    // HTTPS client: reuse must preserve TLS verification and authentication.
+    const token = readRuntimeAuthorizationToken(
+      { existsSync, readdirSync, readFileSync },
+      runtimeAuthorizationPath()
+    );
+    const agent = new HttpsAgent({ keepAlive: true, maxSockets: 1, ca: cert });
+    let secureConnections = 0;
+    const onSecureConnection = () => { secureConnections += 1; };
+    server.on("secureConnection", onSecureConnection);
+    try {
+      const samples: number[] = [];
+      for (let i = 0; i < 4; i++) {
+        const started = performance.now();
+        const observed = await new Promise<{ status: number; reusedSocket: boolean; connection: string | undefined }>((resolve, reject) => {
+          const request = httpsRequest(`${url}/health`, {
+            method: "GET",
+            agent,
+            headers: { "x-lazydesigner-runtime-auth": token },
+          }, (response) => {
+            const chunks: Buffer[] = [];
+            response.on("data", (chunk: Buffer) => chunks.push(chunk));
+            response.once("error", reject);
+            response.once("end", () => {
+              const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as { status?: string };
+              expect(body.status).toBe("ok");
+              resolve({
+                status: response.statusCode ?? 0,
+                reusedSocket: request.reusedSocket,
+                connection: response.headers.connection,
+              });
+            });
+          });
+          request.once("error", reject);
+          request.end();
+        });
+        samples.push(performance.now() - started);
+        expect(observed.status).toBe(200);
+        expect(observed.reusedSocket).toBe(i > 0);
+        expect(observed.connection).not.toBe("close");
+      }
+      expect(secureConnections).toBe(1);
+      console.log(`[tls-connection-bench] https_health_reuse=3/4 secure_connections=1 sample_ms=${samples.map(n => n.toFixed(2)).join(",")}`);
+    } finally {
+      server.off("secureConnection", onSecureConnection);
+      agent.destroy();
+    }
+
     // A different local identity must not authenticate this listener.
     process.env.BLOCKIT_TLS_DIR = join(directory, "other");
     setupRuntimeTls();

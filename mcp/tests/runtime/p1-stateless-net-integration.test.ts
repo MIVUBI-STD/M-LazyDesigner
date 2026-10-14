@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createServer as createHttpServer } from "node:http";
+import { Agent as HttpAgent, createServer as createHttpServer, request as httpRequest } from "node:http";
 import { createConnection, type AddressInfo } from "node:net";
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
@@ -171,6 +171,54 @@ async function measureRequestSequence(
   }
 
   return samples;
+}
+
+async function postMcpWithAgent(
+  agent: HttpAgent,
+  id: number,
+  method: "initialize" | "tools/list",
+  forceClose = false
+): Promise<{ status: number; reusedSocket: boolean; connection: string | undefined; result: Record<string, unknown> }> {
+  const body = JSON.stringify({
+    jsonrpc: "2.0",
+    id,
+    method,
+    params: method === "initialize"
+      ? { protocolVersion: PROTOCOL_VERSION, capabilities: {}, clientInfo: { name: "p1-agent-reuse", version: "1.0.0" } }
+      : {},
+  });
+
+  return await new Promise((resolve, reject) => {
+    const request = httpRequest(`${baseUrl}${ENDPOINT}`, {
+      method: "POST",
+      agent,
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json, text/event-stream",
+        "content-length": Buffer.byteLength(body),
+        "mcp-protocol-version": PROTOCOL_VERSION,
+        ...(forceClose ? { connection: "close" } : {}),
+      },
+    }, (response) => {
+      const chunks: Buffer[] = [];
+      response.on("data", (chunk: Buffer) => chunks.push(chunk));
+      response.once("error", reject);
+      response.once("end", () => {
+        try {
+          resolve({
+            status: response.statusCode ?? 0,
+            reusedSocket: request.reusedSocket,
+            connection: response.headers.connection,
+            result: JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>,
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+    request.once("error", reject);
+    request.end(body);
+  });
 }
 
 beforeAll(async () => {
@@ -661,28 +709,44 @@ describe("P1.4 raw-net stateless integration", () => {
     expect(socket.destroyed).toBe(true);
   });
 
-  test("finite MCP responses close the client socket while subscription streams remain long-lived", async () => {
-    const response = await fetch(`${baseUrl}${ENDPOINT}`, {
-      method: "POST",
-      headers: {
-        accept: "application/json, text/event-stream",
-        "content-type": "application/json",
-        connection: "keep-alive",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 50,
-        method: "initialize",
-        params: {
-          protocolVersion: PROTOCOL_VERSION,
-          capabilities: {},
-          clientInfo: { name: "p1-connection-reset", version: "1.0.0" },
-        },
-      }),
-    });
+  test("finite MCP requests reuse a bounded socket and explicit close still closes", async () => {
+    const agent = new HttpAgent({ keepAlive: true, maxSockets: 1 });
+    let connections = 0;
+    const onConnection = () => { connections += 1; };
+    server.on("connection", onConnection);
+    try {
+      const warmDurations: number[] = [];
+      for (let i = 0; i < 5; i++) {
+        const started = performance.now();
+        const response = await postMcpWithAgent(agent, 5000 + i, i === 0 ? "initialize" : "tools/list");
+        warmDurations.push(performance.now() - started);
+        expect(response.status).toBe(200);
+        expect(response.result).toHaveProperty("result");
+        expect(response.reusedSocket).toBe(i > 0);
+        expect(response.connection).not.toBe("close");
+      }
+      expect(connections).toBe(1);
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("connection")).toBe("close");
+      // Fresh sockets provide a comparable baseline without changing the
+      // server protocol or adding a benchmark-only production switch.
+      const coldDurations: number[] = [];
+      for (let i = 0; i < 5; i++) {
+        const started = performance.now();
+        const response = await postMcpWithAgent(agent, 5100 + i, "tools/list", true);
+        coldDurations.push(performance.now() - started);
+        expect(response.status).toBe(200);
+        expect(response.reusedSocket).toBe(false);
+        expect(response.connection).toBe("close");
+      }
+      expect(connections).toBe(6);
+      console.log(
+        `[mcp-connection-bench] warm_p95=${percentile(warmDurations, 0.95).toFixed(2)}ms cold_p95=${percentile(coldDurations, 0.95).toFixed(2)}ms warm_sockets=1 cold_sockets=5`
+      );
+      // Latency differences are observations, not CI pass/fail thresholds.
+    } finally {
+      server.off("connection", onConnection);
+      agent.destroy();
+    }
   });
 
   test("p95 request-sequence latency remains within the transport budget", async () => {
