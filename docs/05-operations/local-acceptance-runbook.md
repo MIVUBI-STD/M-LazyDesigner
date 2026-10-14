@@ -667,7 +667,7 @@ the healthy Desktop observation. Set the file to one exact value:
   stale-status gate; clear the file and Refresh to recover.
 - `focus-denied` or `focus-no-window`: explicit Open must retain the editor/model
   and offer the taskbar fallback without claiming confirmed focus.
-- `focus-delayed-real`: wait eight seconds on a worker, then call the unchanged
+- `focus-delayed-real`: wait twenty seconds on a worker, then call the unchanged
   real Windows focus owner and record `acceptance:real-focus`. This permits an
   OS menu or window-lifecycle precondition without substituting a result.
 

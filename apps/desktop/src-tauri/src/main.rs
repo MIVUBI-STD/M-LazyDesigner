@@ -71,7 +71,7 @@ fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
 async fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
     if native_acceptance::enabled("focus-delayed-real") {
         let result = tauri::async_runtime::spawn_blocking(|| {
-            std::thread::sleep(std::time::Duration::from_secs(8));
+            std::thread::sleep(std::time::Duration::from_secs(20));
             blockbench::focus_window()
         }).await.unwrap_or(blockbench::BlockbenchFocusResult { status: "UNKNOWN" });
         operation_log::record("acceptance:real-focus", result.status);
