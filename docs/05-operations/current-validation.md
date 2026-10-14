@@ -29,15 +29,17 @@ separate ANIMATION surface. Canonical Control source is
 
 ## Windows checkpoint — 2026-10-14
 
-Tested executable: Local `ae096f7c01b9812c87cc7aefcedf93d992a35feb`. Clean exact-SHA `bun run verify:full`, Desktop `verify:source` (51 Rust tests), managed build/install PASS. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Installed/bundled hashes match; identities in `mcp/.cache/local-acceptance/ae096f7c/component-identity.json`. Data profile: `d824b35c` in that cache (same account). About: Desktop 0.1.0, Blockbench 5.2.0, managed ae096f7c.
+Tested executable: Local `ae096f7c01b9812c87cc7aefcedf93d992a35feb`. Exact-SHA `bun run verify:full`, Desktop `verify:source` (51 Rust tests), build/install PASS. Bun 1.3.14 baseline, Node 24.14.1, Rust 1.98.1. Hashes match: `mcp/.cache/local-acceptance/ae096f7c/component-identity.json`. Data: `d824b35c` in that cache, same account. Desktop 0.1.0, Blockbench 5.2.0.
 
-Native startup/reload: one panel; no bounded console flashes. Lease repair 823aaf98 retains heartbeat beyond TTL (34/48 seconds); unchanged Runtime source reused. Desktop restart preserves Runtime PID/instance and reconstructs current model without approval. Plugin file reveals its folder.
+Native startup/reload: one panel; no bounded console flashes. Lease remains healthy beyond TTL (34/48 seconds). Desktop restart preserves Runtime PID/instance/current model. Plugin file reveals its folder.
 
 Main flow PASS: live nine-model search, keyboard Workspace↔Support/search retention at 980×680 and 780×560, disclosure focus, A↔B, Smart Open without duplicate/unsaved loss, Modified/save, Save As, close/recent navigation. Missing last-model hides Continue without guessing; restoring it resumes the same model. Disposable copies only; original asset unchanged.
 
-Integrity faults: modified plugin produces Action required; missing plugin + running editor yields PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING without replacement/forced close. Manager rejects online repair and offline modified-file overwrite. After verified saved-fixture editor shutdown and fault-file retention, canonical repair restores one missing plugin; exact hash matches. UI Open under modified state is NOT_EXECUTED: Computer Use failed activation after reset/reselection. Fault artifacts retained outside plugins; only canonical plugin remains.
+Integrity: modified plugin yields Action required; missing plugin + running editor yields PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING without replacement/forced close. Manager rejects online repair and offline modified overwrite; offline missing-file repair restores exact hash. Fault copies retained outside plugins. UI Open under modified state remains NOT_EXECUTED after Computer Use activation failure.
 
-Remaining: failed-status/focus/profile cases, then Gateway/affinity and authoring/persistence/visual proof. No native sign-off or validated compatibility. Logs: `mcp/.cache/localtest-{lease,search}-*.log`; profile evidence includes integrity-recovery-final.json. Docs-only recording preserves tested executable SHA. No token savings claimed.
+Focus PASS: Continue raises background editor; Open model restores minimized editor, one tab. Two eligible windows yield taskbar fallback without confirmed-focus claim. Missing-after-render Open reports unavailable and preserves active model; file restored. Extra window closed; primary Runtime ready. Evidence: ae096f7c/focus-missing-model.json under the cache above.
+
+Remaining: failed-status/profile/pin, Gateway/affinity, authoring/persistence/visual proof. No native sign-off, validated compatibility or token savings. Logs: `mcp/.cache/localtest-{lease,search}-*.log`; integrity-recovery-final.json records repair. Docs-only recording preserves executable SHA.
 
 ## Current proof matrix
 
