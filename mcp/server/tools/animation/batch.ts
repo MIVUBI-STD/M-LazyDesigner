@@ -6,6 +6,7 @@ import {
   keyframeBelongsToAnimation,
   planMirroredBatchKeyframes,
   planSmoothedBatchKeyframes,
+  requireValidPlannedBatchTrackTimes,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
   reverseBatchTimeBounds,
@@ -16,6 +17,7 @@ export {
   keyframeBelongsToAnimation,
   planMirroredBatchKeyframes,
   planSmoothedBatchKeyframes,
+  requireValidPlannedBatchTrackTimes,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
   reverseBatchTimeBounds,
@@ -331,10 +333,10 @@ export function registerAnimationBatchTools(): void {
           const plannedTimes = stretchStates.map(({ time }) =>
             Timeline.snapTime(pivot + (time - pivot) * factor, animation)
           );
-          requireValidPlannedKeyframeTimes(
+          requireValidPlannedBatchTrackTimes(
+            stretchStates.map(({ keyframe }) => keyframe),
             plannedTimes,
             "Batch keyframe scale",
-            true
           );
           const replacedKeyframes: _Keyframe[] = [];
   

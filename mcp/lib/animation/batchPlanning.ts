@@ -34,6 +34,43 @@ export function requireValidPlannedKeyframeTimes(
   }
 }
 
+/**
+ * Planned keyframe times are unique only within one animator/channel track.
+ * Distinct bones and distinct channels may share snapped timestamps.
+ */
+export function requireValidPlannedBatchTrackTimes<
+  T extends { animator: object | null | undefined; channel: string }
+>(
+  keyframes: readonly T[],
+  plannedTimes: readonly number[],
+  context: string
+): void {
+  if (keyframes.length !== plannedTimes.length) {
+    throw new Error(`${context} received mismatched keyframes and planned times.`);
+  }
+  requireValidPlannedKeyframeTimes(plannedTimes, context);
+  const tracks = new Map<object, Map<string, number[]>>();
+  keyframes.forEach((keyframe, index) => {
+    const animator = keyframe.animator;
+    if (!animator || typeof animator !== "object" || !keyframe.channel) {
+      throw new Error(`${context} requires a known animator and channel for every selected keyframe.`);
+    }
+    let channels = tracks.get(animator);
+    if (!channels) {
+      channels = new Map<string, number[]>();
+      tracks.set(animator, channels);
+    }
+    const times = channels.get(keyframe.channel) ?? [];
+    times.push(plannedTimes[index]);
+    channels.set(keyframe.channel, times);
+  });
+  for (const channels of tracks.values()) {
+    for (const times of channels.values()) {
+      requireValidPlannedKeyframeTimes(times, context, true);
+    }
+  }
+}
+
 export function requireValidPlannedPasteChannelTimes(
   channels: Readonly<Record<string, readonly number[]>>
 ): void {
