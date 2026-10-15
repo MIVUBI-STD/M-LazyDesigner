@@ -35,7 +35,7 @@ describe("Control context ownership", () => {
     expect(contexts).toContain("MODELLING_PATH");
     expect(contexts).toContain("PROFILE_PATHS");
     expect(contexts).toContain("if (domain === \"GEOMETRY\")");
-    expect(contexts).toContain("if (selectedProfile) required.push");
+    expect(contexts).toContain("if (selectedProfile) await addRequired(PROFILE_PATHS[selectedProfile])");
     expect(contexts).toContain("else if (domain === \"ANIMATION\")");
 
     for (const forbidden of [

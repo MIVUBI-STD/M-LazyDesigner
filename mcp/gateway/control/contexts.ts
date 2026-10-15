@@ -119,7 +119,7 @@ export async function contextForAuthoringDomain(
         : null;
       if (code === "ENOENT" || code === "ENOTDIR") {
         unavailable.push({ path, code: "CONTEXT_FILE_MISSING" });
-      } else if (code === "EACCES" || code === "EPERM") {
+      } else if (code === "EACCES" || code === "EPERM" || code === "EISDIR") {
         unavailable.push({ path, code: "CONTEXT_FILE_UNREADABLE" });
       } else {
         // Do not disguise programming/integrity failures as missing guidance.

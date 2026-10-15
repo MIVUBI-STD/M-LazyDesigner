@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
+import { MODELLING_PATH, TEXTURING_PATH, ANIMATION_PATH, PROFILE_PATHS } from "../gateway/control/contexts";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
 test("installation identity survives native Windows path virtualization", async () => {
@@ -47,6 +48,21 @@ test("package paths and complete required files are fail-closed", async () => sa
   assert.throws(() => parseManifest({ ...manifest, files: manifest.files.slice(1) }));
   assert.throws(() => parseManifest({ ...manifest, files: [...manifest.files, manifest.files[0]] }));
 }));
+
+test("managed package covers every Runtime-required Skill/profile context", async () => {
+  const required = [MODELLING_PATH, TEXTURING_PATH, ANIMATION_PATH, ...Object.values(PROFILE_PATHS)];
+  for (const path of required) {
+    assert.ok(PACKAGE_SOURCE_PATHS.includes(path), `Missing managed context: ${path}`);
+  }
+  await sandbox(async d => {
+    const manifest = await fixture(join(d, "pkg"));
+    for (const path of required) {
+      assert.throws(() => parseManifest({
+        ...manifest, files: manifest.files.filter(file => file.path !== path),
+      }), /Incomplete package/);
+    }
+  });
+});
 
 test("corrupt payload cannot change active installation", async () => sandbox(async (d, o) => {
   const pkg = join(d, "pkg"); await fixture(pkg); await writeFile(join(pkg, "blockit_mcp.js"), "wrong");

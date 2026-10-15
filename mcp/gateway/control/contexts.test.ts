@@ -45,6 +45,15 @@ describe("required authoring context resolution", () => {
     expect(result.unavailable[0]?.code).toBe("CONTEXT_FILE_UNREADABLE");
   });
 
+  test("a context path pointing to a directory is unreadable, not Runtime offline", async () => {
+    const result = await contextForAuthoringDomain("TEXTURING", null, async () => {
+      throw systemError("EISDIR");
+    });
+    expect(result.unavailable).toEqual([
+      { path: TEXTURING_PATH, code: "CONTEXT_FILE_UNREADABLE" },
+    ]);
+  });
+
   test("unexpected resolver failures propagate instead of being labelled missing", async () => {
     await expect(contextForAuthoringDomain("GEOMETRY", null, async () => {
       throw new Error("broken resolver");

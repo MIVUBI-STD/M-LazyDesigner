@@ -9,6 +9,7 @@ const status = {
   affinity: { project_uuid: "project-1", authoring_phase: "geometry" },
   runtime: {
     online: true,
+    mcp_client_ready: true,
     catalog_stale: false,
     catalog_count: 54,
     runtime_signature: "fixture-runtime",

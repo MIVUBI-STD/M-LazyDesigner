@@ -85,7 +85,10 @@ export function buildReadiness(
     };
   }
 
-  const runtimeReady = snapshot.runtime.online && !snapshot.runtime.catalog_stale;
+  const runtimeReady =
+    snapshot.runtime.online &&
+    !snapshot.runtime.catalog_stale &&
+    !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
   const projectReady = snapshot.project.binding === "BOUND";
   const domainReady = snapshot.authoring.domain !== null;
   const requiredContextUnavailable =
@@ -98,6 +101,8 @@ export function buildReadiness(
 
   if (!snapshot.runtime.online) reasons.push("RUNTIME_OFFLINE");
   if (snapshot.runtime.catalog_stale) reasons.push("CATALOG_STALE");
+  if (snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY")) reasons.push("RUNTIME_CLIENT_NOT_READY");
+  if (snapshot.blockers.includes("PROJECT_CONTEXT_UNVERIFIED")) reasons.push("PROJECT_CONTEXT_UNVERIFIED");
   if (!projectReady) reasons.push("PROJECT_NOT_BOUND");
   if (!domainReady) reasons.push("AUTHORING_DOMAIN_UNRESOLVED");
   if (requiredContextUnavailable) reasons.push("REQUIRED_CONTEXT_UNAVAILABLE");
@@ -109,7 +114,7 @@ export function buildReadiness(
 
   const blocked =
     !runtimeReady ||
-    snapshot.project.binding === "LOST" ||
+    (snapshot.project.affinity_uuid !== null && !projectReady) ||
     activeReferenceBlocked ||
     requiredContextUnavailable ||
     lifecycle.blocked;

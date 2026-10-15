@@ -43,12 +43,26 @@ export function buildControlSnapshot(status: GatewayRuntimeStatus): ControlSnaps
 
   let binding: ControlSnapshot["project"]["binding"] = "UNKNOWN";
   if (status.affinity.project_uuid) {
-    binding = project?.requested_project_available === false ? "LOST" : "BOUND";
+    if (project?.requested_project_available === false) {
+      binding = "LOST";
+    } else if (
+      project?.requested_project_available === true &&
+      project.requested_project_uuid === status.affinity.project_uuid
+    ) {
+      binding = "BOUND";
+    }
+    // Health without matching project proof must never claim BOUND.
   } else if (project) {
     binding = "UNBOUND";
   }
 
   if (!status.runtime.online) blockers.push("RUNTIME_OFFLINE");
+  if (status.runtime.online && !status.runtime.mcp_client_ready) {
+    blockers.push("RUNTIME_CLIENT_NOT_READY");
+  }
+  if (status.runtime.online && status.affinity.project_uuid && binding === "UNKNOWN") {
+    blockers.push("PROJECT_CONTEXT_UNVERIFIED");
+  }
   if (status.runtime.catalog_stale) blockers.push("CATALOG_STALE");
   if (binding === "LOST") blockers.push("PROJECT_CONTEXT_LOST");
   if (binding === "UNBOUND" && (project?.open_project_count ?? 0) > 1) {
