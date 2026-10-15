@@ -198,20 +198,21 @@ export function semanticMatchesForTool(
 ): CapabilitySemanticMatch[] {
   const queryTokens = expandedTokens(query);
   const entries = semanticEntriesForTool(tool.name);
+  // These inputs belong to the tool/query, not to each operation branch.
+  const genericEvidence = genericCapabilityScore(tool, queryTokens);
+  const stageAdjustment = phaseBoost(tool.name, context);
 
   if (entries.length === 0) {
-    const evidence = genericCapabilityScore(tool, queryTokens);
     return [{
       capability: tool.name,
-      score: evidence + phaseBoost(tool.name, context),
-      matched: evidence > 0,
-      reason: evidence > 0 ? "capability metadata match" : "no semantic match",
+      score: genericEvidence + stageAdjustment,
+      matched: genericEvidence > 0,
+      reason: genericEvidence > 0 ? "capability metadata match" : "no semantic match",
     }];
   }
 
   return entries.map((entry) => {
     const text = entryText(entry);
-    const genericEvidence = genericCapabilityScore(tool, queryTokens);
     const intentEvidence = overlap(queryTokens, text.intent, 12);
     const verbEvidence = overlap(queryTokens, text.verb, 9);
     const nounEvidence = overlap(queryTokens, text.noun, 7);
@@ -220,7 +221,7 @@ export function semanticMatchesForTool(
       genericEvidence + intentEvidence + verbEvidence + nounEvidence + exampleEvidence;
     let score = positiveEvidence;
     score -= overlap(queryTokens, text.exclude, 12);
-    if (positiveEvidence > 0) score += phaseBoost(tool.name, context);
+    if (positiveEvidence > 0) score += stageAdjustment;
 
     const reasonParts: string[] = [];
     if (overlap(queryTokens, text.intent, 1) > 0) reasonParts.push("intent");
@@ -229,7 +230,7 @@ export function semanticMatchesForTool(
     if (
       positiveEvidence > 0 &&
       context?.authoringPhase &&
-      phaseBoost(tool.name, context) > 0
+      stageAdjustment > 0
     ) {
       reasonParts.push("active phase");
     }

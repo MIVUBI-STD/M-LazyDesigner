@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { searchCapabilityCatalog } from "./catalog";
+import { semanticMatchesForTool } from "./intelligence";
 import type { BackendTool } from "../contracts/protocol";
 
 const tool = (name: string, description = ""): BackendTool => ({
@@ -16,6 +17,25 @@ describe("capability intelligence routing", () => {
     tool("gradient_tool", "Apply a texture gradient."),
     tool("manage_animation_timeline", "Manage animation timeline data."),
   ];
+
+  test("shared scoring retains branch order and Stage evidence for IK", () => {
+    const ikTool = tool("bone_rigging", "Advanced IK and bone mirroring.");
+    const active = semanticMatchesForTool(
+      ikTool, "set ik target", { authoringPhase: "geometry" }
+    );
+    const foreign = semanticMatchesForTool(
+      ikTool, "set ik target", { authoringPhase: "animation" }
+    );
+    expect(active.map((match) => match.branch?.value)).toEqual([
+      "set_ik", "set_ik_controller", "mirror",
+    ]);
+    expect(active[0]?.matched).toBe(true);
+    expect(active[0]?.score).toBeGreaterThan(foreign[0]?.score ?? 0);
+    expect(active[0]?.reason).toContain("active phase");
+    expect(active.map((match) => match.branch)).toEqual(
+      foreign.map((match) => match.branch)
+    );
+  });
 
   test("selects semantic operation branches without loading schemas", () => {
     const [result] = searchCapabilityCatalog(
