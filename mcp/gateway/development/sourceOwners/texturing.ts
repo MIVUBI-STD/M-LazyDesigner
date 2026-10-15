@@ -167,11 +167,6 @@ export const TEXTURING_SOURCE_OWNERS: Record<string, DevelopmentSourceOwner> = {
     specialist: TEXTURING_PATH,
     anchor_test: "mcp/tests/render-profile-binding.test.ts",
   },
-  manage_uv_layout: {
-    source: "mcp/server/runtime/uv/layoutService.ts",
-    specialist: TEXTURING_PATH,
-    anchor_test: "mcp/tests/uv-registration-readiness.test.ts",
-  },
   filter_by_material: {
     source: "mcp/server/tools/element/discovery.ts",
     specialist: TEXTURING_PATH,

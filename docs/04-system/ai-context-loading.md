@@ -259,7 +259,7 @@ pixel-art knowledge corpus after its artifact/profile has already been handed of
 PRODUCT_DEVELOPMENT Skills
 ```
 
-Texturing owns actual Blockbench atlas/UV/mapped-surface mutation even when the design language is pixel art.
+Geometry/Modelling owns production UV Layout (mapping, lock, constraints, UV PASS and corrections). Texturing owns the Blockbench atlas bitmap, Painter/mapped-surface styling, materials and texture verification, even when the design language is pixel art. The native `create_texture(type=template)` route may arrange UV inside shared AUTHORING only after the Geometry-approved UV contract; it does not transfer UV sign-off to Texturing or make unregistered `manage_uv_layout` available. Return UV defects to the Modelling owner without loading the whole Geometry history.
 
 ---
 

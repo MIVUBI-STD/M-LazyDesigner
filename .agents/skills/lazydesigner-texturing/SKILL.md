@@ -16,7 +16,7 @@ OWNER: TEXTURE_MATERIAL
 Enter when the active Control stage owns mapped texture pixels, atlas styling, materials/PBR, alpha/emissive, variants, or Texture Verify. UV/Geometry defects use a bounded upstream authoring handoff; they do not authorize Cube mutation here. A weak visual result does not justify product-development source inspection without bounded system-defect evidence.
 
 
-Geometry/UV capabilities remain callable for bounded upstream correction; Texturing **must not borrow Cube mutation**.
+Geometry/UV capabilities remain available in the shared AUTHORING Runtime Surface for **Modelling-owned** bounded upstream correction; Texturing **must not borrow Cube/UV mutation or claim UV Layout PASS**.
 
 User-authorized autonomy replaces approval waits with verified checkpoints; never claim user approval.
 
@@ -32,7 +32,7 @@ If a decision-critical item is missing, request only that exact context through 
 
 Pixel Art is conditional reference evidence, never a second Texturing workflow. When an approved Pixel Art artifact exists, consume only its compact visual handoff: identity, target grid/scale, authoritative palette/material/marking/alpha/orientation/style constraints, provenance, and blockers.
 
-Do not inherit production UV/atlas coordinates, Blockbench texture IDs, material-instance/render-profile state, mapped-surface PASS, or particle runtime semantics from Pixel Art. Actual UV mapping, atlas mutation, render/material state, and mapped-model verification remain Texturing-owned.
+Do not inherit production UV/atlas coordinates, Blockbench texture IDs, material-instance/render-profile state, mapped-surface PASS, or particle runtime semantics from Pixel Art. Production UV Layout/lock and UV PASS are Geometry/Modelling-owned. Actual atlas bitmap mutation, render/material state, and mapped-model texture verification remain Texturing-owned. A native template creation may arrange UV only within the Geometry-approved UV workflow; report altered UV for Modelling review rather than claiming UV PASS from a texture mutation.
 
 Use the active handoff facts directly. Load `docs/02-reference/pixel-art/texture-reference.md` only when the Pixel-Art→Texturing boundary or missing visual contract is materially unclear; never load the full Pixel Art corpus as reassurance.
 

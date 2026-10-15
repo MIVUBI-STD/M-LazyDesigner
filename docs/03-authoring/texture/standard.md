@@ -30,6 +30,10 @@ Hard boundaries:
 - `uv_offset`, `autouv`, `mirror_uv`, per-face UV, and `box_uv_region` are **UV Layout** state.
 - Painter operations are **Texture Styling**.
 
+## Authoring ownership
+
+Production UV Layout is a **Geometry/Modelling-owned mapping and approval gate**. This document specifies the UV constraints, native template mechanics and texture-facing audit that Texturing must respect; its title does not transfer UV Layout authorship to Texturing. After Geometry APPROVED, Modelling owns UV production, native UV lock, review and UV Layout PASS. Texturing owns the atlas pixels, style, PBR/material state and mapped-model texture evidence. A `create_texture(type=template)` operation can perform native UV arrangement on the shared AUTHORING Runtime Surface, but any resulting UV layout still needs Geometry-owned verification; it is not an implicit UV PASS or a substitute for the unregistered `manage_uv_layout` tool.
+
 ## Core Principle
 
 **Texture Styling supports geometry; it does not repair geometry.**

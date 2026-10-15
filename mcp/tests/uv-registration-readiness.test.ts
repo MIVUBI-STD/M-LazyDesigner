@@ -13,12 +13,12 @@ import { tools } from "@/lib/factories";
 import "@/server/tools";
 
 describe("UV Runtime registration readiness", () => {
-  test("future UV capability is pre-owned by Texturing without changing the Gateway surface", () => {
-    expect(classifyMcpToolPhaseByName("manage_uv_layout")).toBe("texturing");
-    expect(authoringDomainForCapability("manage_uv_layout")).toBe("TEXTURING");
+  test("future UV layout remains Geometry-owned without changing the Gateway surface", () => {
+    expect(classifyMcpToolPhaseByName("manage_uv_layout")).toBe("geometry");
+    expect(authoringDomainForCapability("manage_uv_layout")).toBe("GEOMETRY");
     expect(sourceOwnerForCapability("manage_uv_layout")).toEqual({
       source: "mcp/server/runtime/uv/layoutService.ts",
-      specialist: ".agents/skills/lazydesigner-texturing/SKILL.md",
+      specialist: ".agents/skills/lazydesigner-modelling/SKILL.md",
       anchor_test: "mcp/tests/uv-registration-readiness.test.ts",
     });
     expect(GATEWAY_TOOL_NAMES).toEqual([
@@ -27,6 +27,16 @@ describe("UV Runtime registration readiness", () => {
       "describe_capability",
       "invoke_capability",
     ]);
+  });
+
+  test("UV ownership never transfers texture atlas and Painter to Modelling", () => {
+    expect(classifyMcpToolPhaseByName("create_texture")).toBe("texturing");
+    expect(classifyMcpToolPhaseByName("paint_texture_transaction")).toBe("texturing");
+    expect(authoringDomainForCapability("create_texture")).toBe("TEXTURING");
+    expect(sourceOwnerForCapability("create_texture").specialist)
+      .toBe(".agents/skills/lazydesigner-texturing/SKILL.md");
+    // Shared AUTHORING surface does not imply shared semantic ownership.
+    expect(classifyMcpToolPhaseByName("manage_cubes")).toBe("geometry");
   });
 
   test("metadata and describe branches are ready before generator-backed catalog registration", () => {

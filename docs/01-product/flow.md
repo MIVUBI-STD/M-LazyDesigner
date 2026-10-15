@@ -138,8 +138,9 @@ REFERENCE / REQUIREMENTS
 → GEOMETRY VERIFY
 → UV READINESS PREFLIGHT
 → USER GEOMETRY APPROVAL
-→ PRODUCTION UV LAYOUT
-→ TEXTURING
+→ PRODUCTION UV LAYOUT (GEOMETRY / MODELLING OWNER)
+→ UV LAYOUT PASS
+→ TEXTURING (ATLAS / PIXEL / MATERIAL OWNER)
 → TEXTURE VERIFY
 → USER TEXTURE APPROVAL
 → ANIMATION READINESS when required
@@ -162,6 +163,8 @@ Texture Atlas / Styling / material / PBR
 Animation / motion / controllers / effects
 → Animation owner
 ```
+
+Production UV mapping, packing, lock and UV Layout PASS remain Geometry/Modelling-owned after Geometry approval. Texturing consumes that accepted mapping to create/style/verify the atlas and materials. The existing `create_texture(type=template)` may invoke Blockbench's native template/UV arrangement only as a bounded part of that approved UV workflow; using a shared Runtime Surface never transfers UV Layout approval to the Texturing specialist. The future `manage_uv_layout` capability is not registered and cannot be presented as a currently executable route.
 
 Geometry and Texturing share the AUTHORING Runtime surface. Crossing AUTHORING ↔ Animation uses the explicit phase handoff.
 
