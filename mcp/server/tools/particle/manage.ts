@@ -632,7 +632,7 @@ export function registerParticleTools(): void {
                 ? `Particle ${summary.identifier ?? "<missing identifier>"} has validation errors; no file write or preview was performed.`
                 : textureDependencyPending
                   ? `Particle ${summary.identifier} requires generated texture ${textureDependency.texture}; author it through existing Texturing tools, finalize the PNG with paint_texture_transaction, then resume manage_particle with texture_dependency.state=ready. No particle write or preview was performed yet.`
-                  : `Prepared particle ${summary.identifier}: ${summary.component_count} components${particleWrite ? "; particle write verified" : ""}${previewPath && !previewError ? "; native preview loaded" : ""}${previewError ? "; native preview failed after artifact preparation" : ""}.`,
+                  : `Prepared particle ${summary.identifier}: ${summary.component_count} components${particleWrite ? "; particle write verified" : ""}${previewPath && !previewError ? "; native preview load invoked" : ""}${previewError ? "; native preview failed after artifact preparation" : ""}.`,
             },
           ],
           structuredContent: particleMutationReceipt({
@@ -643,6 +643,14 @@ export function registerParticleTools(): void {
             wrote_to_path: particleWrite?.path ?? null,
             preview_path: previewPath,
             preview_error: previewError,
+            preview_load_call:
+              !preview ? "NOT_REQUESTED"
+                : !artifactReady ? "BLOCKED"
+                  : previewError ? "ERROR" : "INVOKED",
+            // Calling loadParticleEmitter cannot establish trigger, active
+            // emitter, PNG decode, or viewport visibility.
+            emitter_trigger: "UNVERIFIED",
+            render_visibility: "UNVERIFIED",
             byte_length: byteLength,
             operation_count: operations.length,
             texture_dependency: textureDependency,

@@ -173,6 +173,7 @@ export function animationEffectContinuationState(
             }
           : {
               effect: snapshot.effect,
+              preview_file: snapshot.file || null,
               locator: snapshot.locator || null,
               bind_to_actor:
                 snapshot.bind_to_actor === false ? false : null,

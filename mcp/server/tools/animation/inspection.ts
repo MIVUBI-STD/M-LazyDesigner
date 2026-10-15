@@ -28,6 +28,7 @@ type EffectDataPoint = KeyframeDataPoint & {
   locator?: string;
   bind_to_actor?: boolean;
   script?: string;
+  file?: string;
 };
 type InspectableAnimationItem = _Animation | AnimationController;
 type ControllerStateView = AnimationControllerState & {
@@ -337,6 +338,11 @@ function inspectParticleEffects(animation: _Animation, includeKeyframes: boolean
       return {
         data_point_index: dataPointIndex,
         effect: particle.effect || null,
+        locator: particle.locator || null,
+        // Native preview file is preserved on the data point, but it was
+        // previously invisible to inspect_animation diagnostics.
+        preview_file: typeof particle.file === "string" && particle.file.length > 0
+          ? particle.file : null,
         locator: particle.locator || null,
         bind_to_actor: particle.bind_to_actor === false ? false : null,
         pre_effect_script: normalizePreEffectScript(particle.script),
