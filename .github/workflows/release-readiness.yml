@@ -1,0 +1,30 @@
+name: Release Readiness / Source Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-readiness-local
+  cancel-in-progress: true
+
+jobs:
+  source-preflight:
+    if: github.ref == 'refs/heads/Local'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact Local source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Setup Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+      - name: Test release-readiness inspector
+        run: node --test distribution/release-readiness.test.mjs
+      - name: Inspect source policy only
+        run: node distribution/release-readiness.mjs --mode source
