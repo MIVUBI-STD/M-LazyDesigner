@@ -103,6 +103,14 @@ export type ManagedUpdateCheck = {
     published_at: string | null;
   };
 
+export type ModelBrowseResult = {
+    status: 'OPENED' | 'CANCELLED';
+  };
+
+export type BlockbenchEditorResult = {
+    status: 'STARTED' | 'ALREADY_RUNNING';
+  };
+
 export type BlockbenchFocusResult = {
     status: 'FOCUSED' | 'NO_WINDOW' | 'AMBIGUOUS' | 'DENIED' | 'UNKNOWN' | 'NOT_RUNNING' | 'UNSUPPORTED';
   };

@@ -53,6 +53,7 @@ pub struct ProjectNavigation {
     pub revision: Option<String>,
     pub session_live: bool,
     pub continue_model_id: Option<String>,
+    pub recent_model_ids: Vec<String>,
     pub preferences_issue: Option<&'static str>,
     pub active: Option<ActiveProjectNavigation>,
     pub projects: Vec<ProjectNavigationProject>,
@@ -651,10 +652,20 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
         .into_iter()
         .collect();
     let Some(snapshot) = read_navigation_snapshot(profile_id) else {
-        return ProjectNavigation { revision: None, session_live: false, continue_model_id: None, preferences_issue, active: None, projects: Vec::new() };
+        return ProjectNavigation { revision: None, session_live: false, continue_model_id: None, recent_model_ids: Vec::new(), preferences_issue, active: None, projects: Vec::new() };
     };
     let revision = Some(navigation_revision_token(&snapshot));
     let continue_model_id = continue_model_id_for_path(snapshot.last_model_path.as_deref());
+    // Preserve Blockbench's native recent-file order instead of guessing
+    // which model is newest from project/pin ordering.
+    let recent_model_ids: Vec<String> = snapshot.recent_models.iter()
+        .filter_map(|recent| {
+            let path = PathBuf::from(&recent.path);
+            (is_bbmodel_path(&path) && path.is_file())
+                .then(|| navigation_id("model", &path))
+        })
+        .take(5)
+        .collect();
     let identities = project_identity_map(&snapshot);
 
     let active_path = if session_live {
@@ -772,7 +783,7 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
     projects.sort_by_key(|project| {
         if project.active { 0 } else if project.pinned { 1 } else { 2 }
     });
-    ProjectNavigation { revision, session_live, continue_model_id, preferences_issue, active, projects }
+    ProjectNavigation { revision, session_live, continue_model_id, recent_model_ids, preferences_issue, active, projects }
 }
 
 pub(crate) fn action(action: &str, id: &str, profile_id: Option<&str>) -> Result<ProjectNavigationActionResult, String> {
@@ -849,7 +860,12 @@ pub(crate) fn action(action: &str, id: &str, profile_id: Option<&str>) -> Result
         }
         "open-model" => {
             let path = models.get(id).ok_or_else(|| "Model is no longer available.".to_string())?;
-            blockbench::open_model(path)?;
+            // The snapshot ID is re-resolved; never launch a saved model
+            // into a foreign Blockbench userData profile.
+            let expected_profile = profile_id
+                .ok_or_else(|| "A verified Blockbench profile is required for this model.".to_string())?;
+            let user_data = crate::system_status::editor_profile_for_model(Some(expected_profile))?;
+            blockbench::open_model(path, &user_data)?;
             Ok(ProjectNavigationActionResult { status: "OPENED" })
         }
         _ => Err("Unsupported project navigation action.".to_string()),

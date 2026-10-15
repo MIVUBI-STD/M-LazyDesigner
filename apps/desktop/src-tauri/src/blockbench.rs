@@ -1,5 +1,6 @@
 use crate::process::run_output;
 use serde::{Deserialize, Serialize};
+use rfd::FileDialog;
 use std::{
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -307,31 +308,85 @@ pub(crate) fn detect() -> BlockbenchState {
     }
 }
 
-// GUI children must not inherit Desktop's absent/closed console handles, and
-// must reopen the same profile that owns the managed plugin and model state.
-fn launch_command(executable: &Path) -> Result<Command, String> {
-    let user_data = crate::system_status::managed_blockbench_user_data_dir()
-        .ok_or_else(|| "Managed Blockbench profile is unavailable.".to_string())?;
+// GUI children do not inherit Desktop's console handles. All file/editor
+// launches use a resolved exact Blockbench userData profile; they do not
+// require an AI listener, plugin approval, Gateway or managed Runtime.
+fn launch_command_for_profile(executable: &Path, user_data: &Path) -> Result<Command, String> {
+    if !user_data.is_absolute() {
+        return Err("Blockbench userData profile must be absolute.".to_string());
+    }
     let mut command = Command::new(executable);
     command.arg("--userData").arg(user_data)
         .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     Ok(command)
 }
 
-pub(crate) fn open_model(path: &Path) -> Result<(), String> {
-    if !path.is_file() {
-        return Err("Model file is unavailable.".to_string());
+fn launch_command(executable: &Path) -> Result<Command, String> {
+    let user_data = crate::system_status::managed_blockbench_user_data_dir()
+        .ok_or_else(|| "Managed Blockbench profile is unavailable.".to_string())?;
+    launch_command_for_profile(executable, &user_data)
+}
+
+fn is_bbmodel_file(path: &Path) -> bool {
+    path.is_absolute()
+        && path.extension().and_then(|value| value.to_str())
+            .is_some_and(|value| value.eq_ignore_ascii_case("bbmodel"))
+        && path.is_file()
+}
+
+pub(crate) fn open_model(path: &Path, user_data: &Path) -> Result<(), String> {
+    if !is_bbmodel_file(path) {
+        return Err("Choose an existing .bbmodel file.".to_string());
     }
     let mut system = System::new_all();
     system.refresh_processes();
     let executable = discover_executable(&system)?
         .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
     version(&executable)?;
-    launch_command(&executable)?
+    launch_command_for_profile(&executable, user_data)?
         .arg(path)
         .spawn()
         .map_err(|error| format!("Unable to open the model in Blockbench: {error}"))?;
     Ok(())
+}
+
+#[derive(Debug, Serialize)]
+pub(crate) struct ModelBrowseResult {
+    pub status: &'static str,
+}
+
+pub(crate) fn browse_model() -> Result<ModelBrowseResult, String> {
+    // The native picker is user intent, not a scan of managed workspaces.
+    let Some(path) = FileDialog::new()
+        .add_filter("Blockbench model", &["bbmodel"])
+        .pick_file() else {
+        return Ok(ModelBrowseResult { status: "CANCELLED" });
+    };
+    // Resolve the editor profile after selection; a different running
+    // userData profile cannot silently inherit a stale manager profile.
+    let user_data = crate::system_status::editor_profile_for_model(None)?;
+    open_model(&path, &user_data)?;
+    Ok(ModelBrowseResult { status: "OPENED" })
+}
+
+pub(crate) fn open_editor() -> Result<BlockbenchActionResult, String> {
+    let user_data = crate::system_status::editor_profile_for_model(None)?;
+    let mut system = System::new_all();
+    system.refresh_processes();
+    let already_running = system.processes().values().any(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    });
+    if already_running {
+        return Ok(BlockbenchActionResult { status: "ALREADY_RUNNING" });
+    }
+    let executable = discover_executable(&system)?
+        .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
+    version(&executable)?;
+    launch_command_for_profile(&executable, &user_data)?
+        .spawn()
+        .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
+    Ok(BlockbenchActionResult { status: "STARTED" })
 }
 
 pub(crate) fn open() -> Result<BlockbenchActionResult, String> {
@@ -470,6 +525,22 @@ pub(crate) fn focus_window() -> BlockbenchFocusResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn editor_file_open_accepts_only_existing_bbmodel_files() {
+        let root = std::env::temp_dir().join(format!("lazydesigner-open-model-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&root);
+        let model = root.join("model.bbmodel");
+        let other = root.join("model.txt");
+        std::fs::write(&model, b"model").unwrap();
+        std::fs::write(&other, b"other").unwrap();
+        assert!(is_bbmodel_file(&model));
+        assert!(!is_bbmodel_file(&other));
+        assert!(!is_bbmodel_file(&root.join("missing.bbmodel")));
+        std::fs::remove_file(model).unwrap();
+        std::fs::remove_file(other).unwrap();
+        let _ = std::fs::remove_dir(root);
+    }
 
     #[test]
     fn historical_editor_version_does_not_validate_current_bundle() {

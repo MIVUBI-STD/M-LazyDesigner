@@ -219,6 +219,37 @@ pub fn project_navigation_path(id: &str) -> Result<ProjectPathResult, String> {
 }
 
 
+// Editor file opening is independent of AI readiness. Only the discovered
+// current Blockbench profile or a pinned managed profile may be used.
+fn verify_model_profile_binding(expected_profile: Option<&str>, resolved: &Path) -> Result<(), String> {
+    if let Some(expected) = expected_profile {
+        if !valid_navigation_profile_id(expected) || navigation_profile_id(resolved) != expected {
+            return Err("The selected model belongs to another Blockbench profile. Open the matching profile before continuing.".to_string());
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn editor_profile_for_model(expected_snapshot_profile: Option<&str>) -> Result<PathBuf, String> {
+    let discovered = blockbench_user_data_dir()?;
+    let mut system = System::new_all();
+    system.refresh_processes();
+    let editor_running = system.processes().values().any(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    });
+    // A running Blockbench instance owns its actual userData profile.
+    // Without an editor process, re-use the previously pinned managed
+    // profile rather than launching a different/default profile by accident.
+    let profile = if editor_running {
+        discovered
+    } else {
+        managed_blockbench_user_data_dir().unwrap_or(discovered)
+    };
+    verify_model_profile_binding(expected_snapshot_profile, &profile)?;
+    Ok(profile)
+}
+
 fn blockbench_user_data_dir() -> Result<PathBuf, String> {
     let script = r#"
 if (!$env:APPDATA) { exit 2 }
@@ -1061,6 +1092,17 @@ mod tests {
         }).to_string()).unwrap();
         assert_eq!(installed_build_identity(&root), None);
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn model_navigation_profile_requires_exact_session_affinity() {
+        let profile = Path::new("C:/Users/Test/AppData/Roaming/Blockbench");
+        let token = navigation_profile_id(profile);
+        assert!(verify_model_profile_binding(Some(&token), profile).is_ok());
+        assert!(verify_model_profile_binding(Some(&token), Path::new("c:\\users\\test\\appdata\\roaming\\blockbench")).is_ok());
+        assert!(verify_model_profile_binding(Some(&token), Path::new("C:/Users/Test/Other-Profile")).is_err());
+        assert!(verify_model_profile_binding(Some("invalid"), profile).is_err());
+        assert!(verify_model_profile_binding(None, profile).is_ok());
     }
 
     #[test]

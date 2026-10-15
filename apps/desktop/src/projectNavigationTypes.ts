@@ -36,6 +36,7 @@ export type ProjectNavigation = {
   revision: string | null;
   session_live: boolean;
   continue_model_id: string | null;
+  recent_model_ids: string[];
   preferences_issue: 'RECOVERABLE' | 'UNRECOVERABLE' | null;
   active: ActiveProjectNavigation | null;
   projects: ProjectNavigationProject[];

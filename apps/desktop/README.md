@@ -125,7 +125,9 @@ running Blockbench process executable
 → validated standard installation paths (Program Files / per-user Programs)
 ```
 
-The visible `Open` action is explicit user intent, but it enters the canonical `ensure_ready` orchestration rather than invoking a second direct-launch path. Rust verifies managed/plugin readiness, launches Blockbench only when needed, waits for Runtime, and returns a bounded readiness outcome. The lower-level launcher remains an internal primitive only.
+Normal **Open** and **Open Model…** actions launch the editor without starting, repairing or waiting for the AI Runtime/Gateway. **Prepare Blockbench** remains the deliberate `ensure_ready` route for AI connectivity, plugin approval and safe managed repair. Both editor and model launches use the existing Blockbench executable discovery and an exact userData profile. A running editor's discovered profile takes precedence; an idle workstation reuses the managed profile if present, otherwise the deterministic standard Blockbench profile. Opaque saved-model actions require the profile to match their validated snapshot identity, or fail without launching another profile.
+
+The **Open Model…** button uses the already-installed native `rfd::FileDialog` to select a real `.bbmodel` file. The modal executes on a user-initiated blocking worker; it adds no background daemon, file registry, database, asset scanner or external dependency. Cancellation leaves files and application state untouched. A fresh/managerless Desktop may still browse and open an explicitly chosen file with Blockbench, while AI actions remain unavailable until verified.
 
 Version and compatibility projection now also work when Blockbench is installed but closed, provided Windows exposes a valid uninstall entry.
 
@@ -350,8 +352,13 @@ Desktop opens
 → safe repair may restore a missing owned plugin while Blockbench is closed
 → Desktop does not launch Blockbench automatically
 
-user chooses Set up / Prepare Blockbench / Open
-→ backend ensure_ready owns orchestration
+user chooses Open or Open Model…
+→ resolve actual editor profile
+→ launch/focus Blockbench or open selected .bbmodel
+→ no AI setup, Gateway wait or plugin repair
+
+user chooses Set up / Prepare Blockbench
+→ backend ensure_ready owns AI-related orchestration
 → repair missing owned plugin when safe
 → launch Blockbench if needed
 → wait for Runtime
@@ -422,11 +429,17 @@ Desktop converts the raw model paths into a path-free UI projection:
 Active Project
 → active model
 
+Open Model…
+→ native Windows .bbmodel picker, independent of Gateway/Runtime
+
+Recent Models
+→ first five existing paths in Blockbench's actual recent order, direct Open
+
 Recent Projects
-→ grouped saved .bbmodel files
+→ grouped saved .bbmodel files (optional details)
 
 See details
-→ models inside the selected project
+→ additional models, folders and pin actions inside a project
 ```
 
 Project grouping is deterministic and intentionally shallow:
@@ -461,7 +474,7 @@ Exports
 
 These shortcuts appear only when the corresponding directory actually exists under the resolved Project root. Desktop does not recursively scan for similarly named folders and does not surface these shortcuts in the normal Overview row.
 
-Opening a model from Desktop first passes through the canonical `ensure_ready` flow; project navigation does not create a second Blockbench lifecycle path. Missing files remain visible as unavailable rather than triggering a drive scan or guessed relocation.
+Opening a saved model resolves its opaque ID through the existing profile-bound navigation snapshot and rechecks both model-file existence and the exact editor userData profile. It no longer calls `ensure_ready`: disconnected AI must not prevent manual file editing. A missing file or conflicting Blockbench profile fails closed, without guessed relocation or a second Runtime. The native picker is an explicit alternate path for models not yet present in the snapshot.
 
 The active-window heartbeat watches the canonical navigation token emitted by the Blockbench plugin. The token is `<profile-id>:<producer-generation>:<revision>`, so profile changes and plugin module reloads cannot accidentally reuse the same apparent revision number. Desktop also watches a separate session-live projection derived from the Blockbench process plus a bounded plugin lease; Runtime reconnects do not invalidate project-session state by themselves.
 
@@ -476,11 +489,11 @@ dirty/clean state
 recent saved models
 ```
 
-Desktop uses that state only where it changes a user decision. An already-open model is presented with `Switch`; a dirty model is marked `Modified`. Other editor-session details stay hidden. Opening an existing `.bbmodel` still goes through Blockbench's normal native file-open path, whose existing-tab guard selects the already-open project instead of creating a duplicate tab.
+Desktop uses that state only where it changes a user decision. Current Model offers `Go to Blockbench` instead of opening the active file again. Dirty models are marked `Modified`; saved models in recent files can be reopened through the ordinary native Blockbench file path. Other editor-session details stay hidden.
 
 Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those flags whenever the bounded Plugin session lease is not live, while recent saved models remain available for navigation. Runtime reconnects do not invalidate a still-live Blockbench Plugin session. A stale snapshot therefore cannot keep rendering `Switch` or `Modified` after Blockbench closes.
 
-Pinned Projects are a Desktop navigation preference only. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Legacy path Pins remain recognized at their current location; an explicit Pin migrates storage to the manifest-backed stable identity, which survives Project folder move/rename. Pinning changes Recent Projects ordering only.
+Pinned Projects are primarily a Desktop navigation preference, but an explicit first Pin may also create or upgrade a small `.lazydesigner-project.json` identity manifest in the target project folder. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Legacy path Pins remain recognized at their current location; an explicit Pin migrates storage to the manifest-backed stable identity, which survives Project folder move/rename. Pinning changes Recent Projects ordering only.
 
 `Continue` is deliberately independent from pinned/recent display ordering. The profile snapshot preserves one exact last active saved `.bbmodel` pointer across Plugin/Desktop restarts. Desktop exposes Continue only while that exact file still exists; it never guesses a replacement from pinned projects or favorite-reordered Blockbench recents.
 

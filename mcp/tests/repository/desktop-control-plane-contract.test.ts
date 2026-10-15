@@ -259,7 +259,7 @@ describe("Desktop control-plane ownership", () => {
     expect(navigator).toContain("Search projects");
     expect(navigator).toContain("Search models");
     expect(navigator).toContain("activeNavigation.saved && activeNavigation.model_id");
-    expect(navigator).toContain('disabled={!model.exists || busy}>Open</button>');
+    expect(navigator).toContain('disabled={!model.exists || busy || !canOpenModel}>Open</button>');
     expect(navigator).not.toContain("model.open ? 'Switch' : 'Open'");
     expect(navigator).toContain("Active · Modified");
     expect(navigator).toContain("activeNavigation.dirty");
@@ -313,8 +313,8 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain("project_navigation::probe(false, Some(&profile)).0");
     expect(rust).toContain("blockbench.running && manager_available");
     expect(app).toContain("Saved models are still available.");
-    expect(app).toContain("canOpenModel={current.manager_available}");
-    expect(app).toContain("canEditProjectPrefs={current.manager_available}");
+    expect(app).toContain("canOpenModel={true}");
+    expect(app).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
     expect(nav).toContain("!canOpenModel");
     expect(nav).toContain("!canEditProjectPrefs");
   });
@@ -337,6 +337,36 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).not.toContain("struct ProjectManifest");
   });
 
+  test("file browsing and recent-model opening do not depend on the AI Runtime", async () => {
+    const [app, main, backend, editor, navigator, dto] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src-tauri/src/project_navigation.rs"),
+      source("../apps/desktop/src-tauri/src/blockbench.rs"),
+      source("../apps/desktop/src/ProjectNavigator.svelte"),
+      source("../apps/desktop/src/projectNavigationTypes.ts"),
+    ]);
+    const browse = app.slice(app.indexOf("async function browseModel()"), app.indexOf("async function openBlockbenchEditor()"));
+    const recent = app.slice(app.indexOf("async function openProjectModel("), app.indexOf("async function focusCurrentEditor()"));
+    expect(browse).toContain("invoke<ModelBrowseResult>('browse_model')");
+    expect(browse).not.toContain("ensure_ready");
+    expect(recent).not.toContain("ensure_ready");
+    expect(editor).toContain('add_filter("Blockbench model", &["bbmodel"])');
+    expect(editor).toContain("is_bbmodel_file(&path)");
+    expect(editor).toContain("pub(crate) fn open_model(path: &Path, user_data: &Path)");
+    expect(backend).toContain("editor_profile_for_model(Some(expected_profile))");
+    expect(backend).toContain("recent_model_ids: Vec<String>");
+    expect(backend).toContain("snapshot.recent_models.iter()");
+    expect(dto).toContain("recent_model_ids: string[]");
+    expect(navigator).toContain("<h2>Recent Models</h2>");
+    expect(navigator).toContain("state.recent_model_ids");
+    expect(main).toContain("async fn browse_model()");
+    expect(main).toContain("async fn open_blockbench_editor()");
+    expect(main).toContain("tauri::async_runtime::spawn_blocking(blockbench::browse_model)");
+    expect(app).toContain("onFocusEditor={focusCurrentEditor}");
+    expect(app).toContain("canOpenModel={true}");
+  });
+
   test("Desktop Project Navigator UI is isolated from command orchestration", async () => {
     const [app, navigator] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
@@ -345,9 +375,11 @@ describe("Desktop control-plane ownership", () => {
 
     expect(app).toContain("<ProjectNavigator");
     expect(app).toContain("onOpenModel={openProjectModel}");
+    expect(app).toContain("onFocusEditor={focusCurrentEditor}");
     expect(app).toContain("onProjectAction={runProjectAction}");
     expect(navigator).toContain("<h2>Current Model</h2>");
     expect(navigator).toContain("Recent Projects");
+    expect(navigator).toContain("Recent Models");
     expect(navigator).toContain("Continue");
     expect(navigator).not.toContain("invoke<");
   });
@@ -365,7 +397,7 @@ describe("Desktop control-plane ownership", () => {
     expect(blockbench).toContain("BlockbenchCompatibilityManifest");
     expect(blockbench).toContain("Blockbench installation discovery");
     expect(rust).toContain("blockbench::detect()");
-    expect(projectNavigation).toContain("blockbench::open_model(path)");
+    expect(projectNavigation).toContain("blockbench::open_model(path, &user_data)");
     expect(rust).not.toContain("fn discover_blockbench_executable");
     expect(rust).not.toContain("fn evaluate_blockbench_compatibility");
   });
@@ -499,7 +531,7 @@ describe("Desktop Workspace First navigation contract", () => {
 });
 
 describe("Desktop stale connection action admission", () => {
-  test("every editor launch button requires an available manager", async () => {
+  test("AI preparation remains managed while editor launch is independent", async () => {
     const app = await Bun.file("../apps/desktop/src/App.svelte").text();
     const launchButtons = app.split("\n").filter(line => line.includes("<button") && line.includes("onclick={connectBlockbench}"));
     expect(launchButtons.length).toBeGreaterThan(0);
@@ -510,12 +542,22 @@ describe("Desktop stale connection action admission", () => {
     const app = await Bun.file("../apps/desktop/src/App.svelte").text();
     expect(app).toContain("statusProbeFailures = Math.min(statusProbeFailures + 1, 2)");
     expect(app).toContain("Status unverified · Refresh to retry");
-    expect(app).toContain("busy={busyAction !== null || statusProbeFailures >= 2}");
-    for (const action of ["runProjectAction", "openProjectModel", "connectBlockbench", "installLazyDesigner", "runManagedAction"]) {
+    expect(app).toContain("busy={busyAction !== null}");
+    expect(app).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
+    for (const action of ["connectBlockbench", "installLazyDesigner", "runManagedAction"]) {
       const start = app.indexOf(`async function ${action}`);
       expect(start).toBeGreaterThan(0);
       expect(app.slice(start, start + 300)).toContain("statusProbeFailures >= 2");
     }
+    const model = app.slice(app.indexOf("async function openProjectModel("), app.indexOf("async function focusCurrentEditor()"));
+    expect(model).not.toContain("statusProbeFailures >= 2");
+    expect(model).not.toContain("ensure_ready");
+    expect(model).not.toContain("manager_available");
+    expect(model).toContain("'project_navigation_action'");
+    const readOnly = app.slice(app.indexOf("async function runProjectAction("), app.indexOf("async function focusBlockbenchAfterOpen()"));
+    expect(readOnly).toContain("readOnlyFileAction");
+    expect(readOnly).toContain("statusProbeFailures >= 2");
+    expect(app).toContain("onclick={browseModel}");
     expect(app).toContain("disabled={loading || busyAction !== null} onclick={refresh}");
     expect(app).toContain("statusProbeFailures = 0;");
   });
@@ -529,7 +571,9 @@ describe("Desktop current-model presentation", () => {
     expect(ui).toContain('<div class="project-title">{activeNavigation.model_name}</div>');
     expect(ui).toContain('<div class="project-title">{target.model.name}</div>');
     expect(ui).toContain("activeNavigation.saved && activeNavigation.model_id");
-    expect(ui).toContain("onOpenModel(activeNavigation.model_id");
+    expect(ui).toContain("onclick={onFocusEditor}");
+    expect(ui).toContain("Go to Blockbench");
+    expect(ui).toContain("<h2>Recent Models</h2>");
     expect(ui).toContain("aria-expanded={expandedProjectId === project.id}");
   });
 });
@@ -640,7 +684,8 @@ describe("Desktop full-status freshness and nullable project revision", () => {
     expect(watcher).toContain("if (statusProbeFailures >= 2) return;");
     expect(watcher.indexOf("if (statusProbeFailures >= 2) return;"))
       .toBeLessThan(watcher.indexOf("else statusProbeFailures = 0;"));
-    expect(ui).toContain("busy={busyAction !== null || statusProbeFailures >= 2}");
+    expect(ui).toContain("busy={busyAction !== null}");
+    expect(ui).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
   });
 });
 
@@ -763,7 +808,8 @@ describe("Desktop Workspace and Support feedback integrity", () => {
     expect(support).toContain('onclick={refresh}');
     expect(support).toContain("{:else if productMode(status) !== 'ready'}");
     const copy = ui.slice(ui.indexOf("async function copyNavigationPath("), ui.indexOf("async function watchSystemStatus()"));
-    expect(copy).toContain("statusProbeFailures >= 2");
+    expect(copy).not.toContain("statusProbeFailures >= 2");
+    expect(copy).toContain("project_navigation_path");
   });
 
   test("never claims plugin approval is required from opening a file", async () => {

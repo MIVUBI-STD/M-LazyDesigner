@@ -6,6 +6,7 @@
   export let canOpenModel = true;
   export let canEditProjectPrefs = true;
   export let onOpenModel: (id: string) => void | Promise<void>;
+  export let onFocusEditor: () => void | Promise<void>;
   export let onProjectAction: (action: ProjectAction, id: string) => void | Promise<void>;
   export let onCopyPath: (id: string) => void | Promise<void>;
 
@@ -35,6 +36,16 @@
       ? project.models.filter(model => model.name.toLowerCase().includes(query))
       : project.models;
   };
+
+  // Recent-file order comes from Blockbench, not from pinned/project order.
+  const recentModelTargets = (state: ProjectNavigation) =>
+    (state.recent_model_ids ?? []).flatMap(id =>
+      state.projects.flatMap(project =>
+        project.models
+          .filter(model => model.id === id && model.exists && !model.active && model.id !== state.continue_model_id)
+          .map(model => ({ project, model }))
+      ).slice(0, 1)
+    );
 
   const continueTarget = (state: ProjectNavigation) => {
     if (state.active) return null;
@@ -107,7 +118,7 @@
         </div>
         <div class="project-actions">
           {#if activeNavigation.saved && activeNavigation.model_id}
-            <button class="primary-button small-button" onclick={() => onOpenModel(activeNavigation.model_id ?? '')} disabled={busy || !canOpenModel}>Open model</button>
+            <button class="primary-button small-button" onclick={onFocusEditor} disabled={busy}>Go to Blockbench</button>
           {/if}
           {#if activeNavigation.project_id}
             <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busy}>Open Folder</button>
@@ -163,6 +174,25 @@
           </div>
         {/if}
       {/if}
+    </div>
+  </section>
+{/if}
+
+{#if recentModelTargets(navigation).length > 0}
+  <section class="content-section">
+    <div class="section-heading"><div><h2>Recent Models</h2></div></div>
+    <div class="project-list">
+      {#each recentModelTargets(navigation) as target (target.model.id)}
+        <div class="project-row">
+          <div class="project-main">
+            <div class="project-title">{target.model.name}</div>
+            <div class="project-meta">{target.project.name}</div>
+          </div>
+          <div class="project-actions">
+            <button class="secondary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy || !canOpenModel}>Open</button>
+          </div>
+        </div>
+      {/each}
     </div>
   </section>
 {/if}

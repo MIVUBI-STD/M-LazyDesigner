@@ -11,14 +11,14 @@
     SystemStatus, ConnectionStatus, PluginFileActionResult, BootstrapActionResult,
     ManagedActionResult, ManagedUpdateCheck, BlockbenchFocusResult, EnsureReadyResult,
     DesktopCommandError, DiagnosticExportResult, ProjectNavigationActionResult,
-    ProjectPathResult, ManagedProgress,
+    ProjectPathResult, ManagedProgress, ModelBrowseResult, BlockbenchEditorResult,
   } from './desktopTypes';
   import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation, bootstrapInstallPresentation } from './desktopPresentation';
 
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
-  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | null = null;
+  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | 'open-editor' | 'browse-model' | null = null;
   let pluginApprovalNeeded = false;
   let migrationConflict = false;
   let migrationConflictKind: 'plugin' | 'client' = 'plugin';
@@ -146,10 +146,11 @@
   }
 
   async function runProjectAction(action: ProjectAction, id: string) {
-    if (devFixture || busyAction || statusProbeFailures >= 2) return;
-    // Manager-less navigation is read-only: no pin mutations or model opens.
-    if (!status?.manager_available &&
-        !['reveal-model', 'open-folder', 'open-project-folder'].includes(action)) return;
+    if (devFixture || busyAction) return;
+    const readOnlyFileAction = ['reveal-model', 'open-folder', 'open-project-folder'].includes(action);
+    // Safe file/folder reveal is revalidated by Rust using exact snapshot IDs.
+    // Stale connection monitoring cannot block it, but edits stay gated.
+    if ((statusProbeFailures >= 2 || !status?.manager_available) && !readOnlyFileAction) return;
     if (action === 'restore-project-preferences' &&
         !window.confirm('Restore the last saved project pins? The damaged settings file will be retained.')) return;
     closeActionDisclosures(true);
@@ -177,26 +178,18 @@
   }
 
   async function openProjectModel(id: string) {
-    if (devFixture || busyAction || statusProbeFailures >= 2 || !status?.manager_available) return;
+    if (devFixture || busyAction) return;
     busyAction = 'project-action';
     error = '';
     clearSuccessToast();
     try {
-      const ready = await invoke<EnsureReadyResult>('ensure_ready');
-      pluginApprovalNeeded = ready.manual_plugin_approval_recommended;
-      readinessReason = ready.reason;
-      if (ready.status === 'NEEDS_ATTENTION' || ready.status === 'APPROVAL_REQUIRED') {
-        await refresh();
-        error = ready.status === 'APPROVAL_REQUIRED'
-          ? 'Approve LazyDesigner in Blockbench once, then open the model again.'
-          : 'LazyDesigner needs attention before this model can be opened.';
-        return;
-      }
+      // Only the profile-bound snapshot and native editor file are needed.
+      // AI/Gateway setup is not a prerequisite for ordinary model editing.
       await invoke<ProjectNavigationActionResult>('project_navigation_action', { action: 'open-model', id });
       const focused = await focusBlockbenchAfterOpen();
       await refresh();
       showSuccessToast(focused
-        ? 'Model open request sent to Blockbench. Window focus confirmed.'
+        ? 'Model opened in Blockbench.'
         : 'Model open request sent. Select Blockbench from the taskbar if needed.');
     } catch (cause) {
       error = errorMessage(cause);
@@ -205,8 +198,54 @@
     }
   }
 
+  async function focusCurrentEditor() {
+    if (devFixture || busyAction) return;
+    const focused = await focusBlockbenchAfterOpen();
+    if (!focused) showSuccessToast('Select your Blockbench window from the taskbar.');
+  }
+
+  async function browseModel() {
+    if (devFixture || busyAction) return;
+    busyAction = 'browse-model';
+    error = '';
+    clearSuccessToast();
+    try {
+      const result = await invoke<ModelBrowseResult>('browse_model');
+      if (result.status === 'OPENED') {
+        const focused = await focusBlockbenchAfterOpen();
+        await refresh();
+        showSuccessToast(focused
+          ? 'Model opened in Blockbench.'
+          : 'Model open request sent. Select Blockbench from the taskbar if needed.');
+      }
+    } catch (cause) {
+      error = errorMessage(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function openBlockbenchEditor() {
+    if (devFixture || busyAction) return;
+    busyAction = 'open-editor';
+    error = '';
+    clearSuccessToast();
+    try {
+      await invoke<BlockbenchEditorResult>('open_blockbench_editor');
+      const focused = await focusBlockbenchAfterOpen();
+      await refresh();
+      showSuccessToast(focused
+        ? 'Blockbench is open.'
+        : 'Blockbench launched. Select its window from the taskbar if needed.');
+    } catch (cause) {
+      error = errorMessage(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
   async function copyNavigationPath(id: string) {
-    if (devFixture || busyAction || statusProbeFailures >= 2) return;
+    if (devFixture || busyAction) return;
     try {
       closeActionDisclosures(true);
       const result = await invoke<ProjectPathResult>('project_navigation_path', { id });
@@ -565,6 +604,7 @@
       revision: 'fixture:1',
       session_live: fixture !== 'fresh-install' && fixture !== 'runtime-offline',
       continue_model_id: fixture === 'fresh-install' ? null : 'model-fixture',
+      recent_model_ids: fixture === 'fresh-install' ? [] : ['model-fixture-2'],
       preferences_issue: null,
       active: fixture === 'fresh-install' ? null : {
         project_id: 'project-fixture',
@@ -627,10 +667,11 @@
     bind:showAllProjects
     bind:projectSearch
     bind:modelSearch
-    busy={busyAction !== null || statusProbeFailures >= 2}
-    canOpenModel={current.manager_available}
-    canEditProjectPrefs={current.manager_available}
+    busy={busyAction !== null}
+    canOpenModel={true}
+    canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}
     onOpenModel={openProjectModel}
+    onFocusEditor={focusCurrentEditor}
     onProjectAction={runProjectAction}
     onCopyPath={copyNavigationPath}
   />
@@ -693,6 +734,7 @@
               <p>Desktop could not read the local LazyDesigner state.</p>
             </div>
             <button class="primary-button" onclick={refresh} disabled={loading}>Try again</button>
+            <button class="secondary-button" onclick={browseModel} disabled={busyAction !== null}>Open Model…</button>
           </section>
         </main>
 
@@ -705,6 +747,15 @@
               <small>{progressLabel(progressStage)}</small>
             </section>
           {/if}
+
+          <section class="content-section">
+            <div class="section-heading">
+              <div><h2>Open a model</h2><p>Choose an existing .bbmodel file. AI connection is optional.</p></div>
+              <button class="primary-button" onclick={browseModel} disabled={busyAction !== null}>
+                {busyAction === 'browse-model' ? 'Opening…' : 'Open Model…'}
+              </button>
+            </div>
+          </section>
 
           {#if productMode(status) === 'welcome'}
             {#if setupStaged}
@@ -794,15 +845,15 @@
 
                   <div class="resource-actions">
                     {#if productMode(status) === 'ready'}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
+                      <button class="secondary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
-                      <button class="primary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'connect-blockbench' ? 'Preparing…' : 'Open'}</button>
+                      <button class="primary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>{busyAction === 'open-editor' ? 'Opening…' : 'Open'}</button>
                     {:else if productMode(status) === 'plugin-setup'}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
+                      <button class="secondary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>Open</button>
                     {:else if productMode(status) === 'unsupported'}
                       <button class="secondary-button" onclick={refresh} disabled={loading || busyAction !== null}>Check again</button>
                     {:else}
-                      <button class="secondary-button" onclick={connectBlockbench} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Open</button>
+                      <button class="secondary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>Open</button>
                     {/if}
                     <button class="secondary-button small-button" title="Show Blockbench plugin file" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Plugin file</button>
                   </div>

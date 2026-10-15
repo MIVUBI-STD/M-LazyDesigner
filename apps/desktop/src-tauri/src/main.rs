@@ -20,6 +20,7 @@ mod system_status;
 
 use desktop_error::DesktopError;
 use diagnostics::DiagnosticExportResult;
+use blockbench::{BlockbenchActionResult, ModelBrowseResult};
 use system_status::{BootstrapActionResult, ConnectionStatus, EnsureReadyResult, ManagedActionResult, ManagedUpdateCheck, PluginFileActionResult, ProjectNavigationActionResult, ProjectPathResult, SystemStatus};
 
 #[tauri::command]
@@ -83,6 +84,22 @@ async fn focus_blockbench_window() -> blockbench::BlockbenchFocusResult {
         }
     }
     blockbench::focus_window()
+}
+
+#[tauri::command]
+async fn open_blockbench_editor() -> Result<BlockbenchActionResult, DesktopError> {
+    tauri::async_runtime::spawn_blocking(blockbench::open_editor)
+        .await
+        .map_err(|error| DesktopError::recoverable("EDITOR_LAUNCH_FAILED", error.to_string()))?
+        .map_err(|message| DesktopError::recoverable("EDITOR_LAUNCH_FAILED", message))
+}
+
+#[tauri::command]
+async fn browse_model() -> Result<ModelBrowseResult, DesktopError> {
+    tauri::async_runtime::spawn_blocking(blockbench::browse_model)
+        .await
+        .map_err(|error| DesktopError::recoverable("MODEL_PICKER_FAILED", error.to_string()))?
+        .map_err(|message| DesktopError::recoverable("MODEL_PICKER_FAILED", message))
 }
 
 #[tauri::command]
@@ -189,6 +206,8 @@ fn main() {
             connection_status,
             ensure_ready,
             focus_blockbench_window,
+            open_blockbench_editor,
+            browse_model,
             check_managed_update,
             managed_action,
             bootstrap_install,
