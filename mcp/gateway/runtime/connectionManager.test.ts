@@ -35,6 +35,30 @@ describe("GatewayConnectionManager", () => {
     expect(manager.canAttempt()).toBe(true);
   });
 
+  test("healthy status probes preserve MCP handshake backoff until a real reconnect", () => {
+    const manager = new GatewayConnectionManager();
+    manager.beginConnect();
+    manager.markDegraded();
+    const failed = manager.snapshot();
+    expect(failed.state).toBe("degraded");
+    expect(failed.reconnect.failures).toBe(1);
+    expect(failed.reconnect.retry_after_ms).toBeGreaterThan(0);
+
+    manager.markAvailable();
+    manager.markAvailable();
+    const probed = manager.snapshot();
+    expect(probed.state).toBe("degraded");
+    expect(probed.reconnect.failures).toBe(1);
+    expect(manager.needsMcpRevalidation()).toBe(true);
+
+    manager.beginConnect();
+    manager.markReady({ catalogRefreshed: true });
+    const recovered = manager.snapshot();
+    expect(recovered.reconnect.failures).toBe(0);
+    expect(recovered.reconnect.retry_after_ms).toBe(0);
+    expect(manager.needsMcpRevalidation()).toBe(false);
+  });
+
   test("repeated recovered health probes never erase MCP failure evidence", () => {
     const manager = new GatewayConnectionManager();
     manager.beginProbe();

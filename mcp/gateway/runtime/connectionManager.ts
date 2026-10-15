@@ -30,8 +30,11 @@ export class GatewayConnectionManager {
   }
 
   markAvailable(): void {
-    this.reconnect.markSuccess();
     const state = this.session.snapshot().state;
+    // /health recovery can clear a prior *health outage* cooldown. It must
+    // not clear backoff for a failed MCP handshake: that requires a completed
+    // handshake (markReady). Status-only health polling is not recovery proof.
+    if (state !== "degraded") this.reconnect.markSuccess();
     if (state === "offline" || state === "degraded") {
       this.session.transition(
         this.unverifiedConnectionFailure ? "degraded" : "probing"
