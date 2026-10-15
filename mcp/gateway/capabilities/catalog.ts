@@ -36,8 +36,9 @@ export function summarizeCapability(
 
 
 /**
- * Generic agent/tool vocabulary may affect BM25 ranking but cannot, by
- * itself, make an authoring capability relevant to a discovery query.
+ * Remove generic agent/tool vocabulary before semantic and BM25 discovery.
+ * Preserve meaningful short authoring terms (UV, IK, 3D, UI, FX): discarding
+ * them would return a false no-match before looking at the Runtime catalog.
  */
 const NON_DECISIVE_QUERY_TERMS = new Set([
   "a", "an", "and", "apa", "are", "bagaimana", "can", "capability",
@@ -50,7 +51,7 @@ const NON_DECISIVE_QUERY_TERMS = new Set([
 function substantiveQueryTerms(query: string): string[] {
   return [...new Set(
     query.toLowerCase().split(/[^a-z0-9]+/).filter(
-      (term) => term.length > 2 && !NON_DECISIVE_QUERY_TERMS.has(term)
+      (term) => term.length >= 2 && !NON_DECISIVE_QUERY_TERMS.has(term)
     )
   )];
 }

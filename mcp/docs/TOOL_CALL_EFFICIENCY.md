@@ -1,4 +1,4 @@
-# BlockIT Authoring Tool-Call Efficiency
+# LazyDesigner Authoring Tool-Call Efficiency
 
 Canonical evaluation contract for minimum necessary authoring calls. This is **not** a Runtime planner, fifth Gateway tool, or replacement for specialist judgement.
 
@@ -19,6 +19,8 @@ same diagnosed cause twice        -> BLOCKED unless new decision-changing eviden
 ```
 
 `status`, search, describe, hierarchy detail, bounds, texture diagnostics, captures, and animation inspection are **decision tools**, not progress rituals.
+
+No-match applies only after preserving meaningful domain abbreviations such as `UV`, `IK`, `3D`, `UI`, and `FX`. Never treat an unavailable/unregistered capability as present merely because metadata or a planner exists. The scorecard below measures source-level proxy scenarios, **not** live Blockbench visual quality, actual provider tokens, or production latency.
 
 ## Geometry
 

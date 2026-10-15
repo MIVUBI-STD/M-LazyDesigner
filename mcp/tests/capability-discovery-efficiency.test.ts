@@ -80,6 +80,21 @@ describe("capability discovery efficiency", () => {
     }
   });
 
+  test("registered IK discovery retains short domain vocabulary", () => {
+    const definitions = getAllToolDefinitions();
+    const catalog = getMcpSurfaceToolNames("bedrock_entity", "geometry")
+      .map((name) => ({
+        name,
+        description: definitions[name].description,
+        annotations: definitions[name].annotations,
+      })) as BackendTool[];
+    // This checks a capability actually exposed by the current Runtime surface,
+    // unlike prewired but unregistered manage_uv_layout.
+    expect(catalog.some((item) => item.name === "bone_rigging")).toBe(true);
+    expect(searchCapabilityCatalog(catalog, "IK", 8)
+      .map((item) => item.capability_id)).toContain("bone_rigging");
+  });
+
   test("canonical semantic geometry capabilities outrank overlapping rig helper", () => {
     for (const capability of [
       "add_group",

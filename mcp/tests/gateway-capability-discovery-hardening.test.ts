@@ -32,6 +32,27 @@ describe("BlockIT Gateway capability discovery hardening", () => {
       .toEqual([]);
   });
 
+  test("short Bedrock and Blockbench terms remain searchable without inventing capabilities", () => {
+    const cases: readonly [string, BackendTool][] = [
+      ["UV", { name: "uv_fixture", description: "Inspect UV mapping." }],
+      ["IK", { name: "ik_fixture", description: "Inspect IK targets." }],
+      ["3D", { name: "three_dimensional_fixture", description: "Inspect 3D model views." }],
+      ["UI", { name: "interface_fixture", description: "Inspect UI state." }],
+      ["FX", { name: "effects_fixture", description: "Inspect FX channel." }],
+    ];
+    for (const [query, tool] of cases) {
+      expect(searchCapabilityCatalog([tool], query, 4).map((item) => item.capability_id), query)
+        .toContain(tool.name);
+      expect(searchCapabilityCatalog([tool], `tolong cari tools untuk ${query}`, 4)
+        .map((item) => item.capability_id), query)
+        .toContain(tool.name);
+    }
+    // An unsupported query must still return no candidate, not a fabricated tool.
+    expect(searchCapabilityCatalog([
+      { name: "manage_cubes", description: "Create a Bedrock cube." },
+    ], "FX", 4)).toEqual([]);
+  });
+
   test("semantic authoring examples survive generic-word filtering", () => {
     // The semantic example 'make four table legs' is not in the tool's
     // description or name. A keyword-only filter incorrectly loses this route.
