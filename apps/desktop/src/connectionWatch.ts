@@ -25,3 +25,9 @@ export function connectionChanged(candidate: ConnectionObservation, current: Con
     || candidate.project_revision !== current.project_navigation.revision
     || candidate.project_session_live !== current.project_navigation.session_live;
 }
+
+// Fewer native process and plugin-integrity scans while the user is idle.
+// Foreground/focus events still request an immediate observation.
+export function connectionCheckDelayMs(blockbenchRunning: boolean): number {
+  return blockbenchRunning ? 8_000 : 20_000;
+}

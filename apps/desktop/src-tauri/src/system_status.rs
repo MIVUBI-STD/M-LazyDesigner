@@ -610,7 +610,7 @@ fn compose_status(
         .as_deref()
         .map(managed_plugin_integrity)
         .unwrap_or("unknown");
-    let mut process_system = System::new_all();
+    let mut process_system = System::new();
     process_system.refresh_processes();
     let runtime_lease_path = runtime_session_lease_path();
     let runtime_profile_id = managed_navigation_profile_id();
@@ -715,7 +715,9 @@ fn gateway_active_fast(root: &Path, system: &System) -> Option<bool> {
 }
 
 pub fn collect_connection_status() -> ConnectionStatus {
-    let mut system = System::new_all();
+    // Only process identity is needed by the passive status watcher;
+    // avoid populating every system table on each observation.
+    let mut system = System::new();
     system.refresh_processes();
     let blockbench_running = system.processes().values().any(|process| {
         let name = process.name().to_ascii_lowercase();

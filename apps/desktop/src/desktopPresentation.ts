@@ -126,3 +126,52 @@ export function managedActionPresentation(
   }
   throw new Error(`Unexpected managed ${action} result (${status}). Refresh and open Support.`);
 }
+
+// Surface short actionable copy in Workspace. The original command output is
+// available only through Support, so incidental filesystem paths and flags
+// do not become the primary instruction for a normal user.
+export type DesktopErrorNotice = {
+  title: string;
+  message: string;
+  detail: string | null;
+};
+
+export function desktopErrorNotice(cause: unknown): DesktopErrorNotice {
+  const record = cause && typeof cause === 'object'
+    ? cause as { code?: unknown; message?: unknown }
+    : null;
+  const code = typeof record?.code === 'string' ? record.code : '';
+  const detail = typeof record?.message === 'string'
+    ? record.message
+    : cause instanceof Error ? cause.message : typeof cause === 'string' ? cause : null;
+  const known = (title: string, message: string): DesktopErrorNotice => ({
+    title, message, detail,
+  });
+  if (code === 'LEGACY_PLUGIN_MIGRATION_REQUIRED') {
+    return known('Existing plugin needs review',
+      'An older Blockbench plugin was found. No files were replaced. Open Support for safe migration steps.');
+  }
+  if (code === 'LEGACY_CLIENT_MIGRATION_REQUIRED') {
+    return known('Existing AI connection needs review',
+      'An older AI client entry was found. Your settings were preserved. Open Support for migration steps.');
+  }
+  if (code === 'BLOCKBENCH_PROFILE_UNVERIFIED' ||
+      /(?:multiple|different).*blockbench.*profile|profile.*(?:ambiguous|unavailable|another)/i.test(detail ?? '')) {
+    return known('Blockbench profile needs review',
+      'LazyDesigner could not verify which Blockbench profile to use. Keep your models open and check Support.');
+  }
+  if (/Local file is not owned or was edited|Retired BlockIT plugin exists/i.test(detail ?? '')) {
+    return known('Existing file needs review',
+      'An existing plugin or managed file was preserved rather than overwritten. Open Support to review the conflict.');
+  }
+  if (/timed out|timeout/i.test(detail ?? '')) {
+    return known('Connection check timed out',
+      'The system did not respond in time. File opening remains available; Refresh or open Support to check the AI connection.');
+  }
+  if (code === 'UPDATE_CHECK_FAILED') {
+    return known('Update check unavailable',
+      'Could not verify updates right now. You can continue using the current installation.');
+  }
+  return known('Action could not be completed',
+    'The requested action was not confirmed. Open Support for the technical details before trying again.');
+}

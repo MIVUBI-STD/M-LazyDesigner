@@ -541,7 +541,7 @@ describe("Desktop stale connection action admission", () => {
   test("keeps stale status visible but guards project, launch and managed mutation", async () => {
     const app = await Bun.file("../apps/desktop/src/App.svelte").text();
     expect(app).toContain("statusProbeFailures = Math.min(statusProbeFailures + 1, 2)");
-    expect(app).toContain("Status unverified · Refresh to retry");
+    expect(app).toContain("AI status needs verification · Files remain accessible");
     expect(app).toContain("busy={busyAction !== null}");
     expect(app).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
     for (const action of ["connectBlockbench", "installLazyDesigner", "runManagedAction"]) {
@@ -579,13 +579,67 @@ describe("Desktop current-model presentation", () => {
 });
 
 describe("Desktop calm connection summary", () => {
+  test("short actionable errors keep raw details in Support, never in Workspace notices", async () => {
+    const { desktopErrorNotice } = await import("../../../apps/desktop/src/desktopPresentation");
+    const legacy = desktopErrorNotice({
+      code: "BOOTSTRAP_INSTALL_FAILED",
+      message: "Local file is not owned or was edited: C:/User/Data/Blockbench/plugins/file.js. Use --adopt",
+    });
+    expect(legacy.title).toBe("Existing file needs review");
+    expect(legacy.message).toContain("preserved rather than overwritten");
+    expect(legacy.message).not.toContain("C:/User/Data");
+    expect(legacy.message).not.toContain("--adopt");
+    expect(legacy.detail).toContain("--adopt");
+
+    const invalidProfile = desktopErrorNotice({
+      code: "BLOCKBENCH_PROFILE_UNVERIFIED", message: "Different profiles detected",
+    });
+    expect(invalidProfile.title).toBe("Blockbench profile needs review");
+
+    const wait = desktopErrorNotice(new Error("Status request timed out. Refresh to retry."));
+    expect(wait.message).toContain("File opening remains available");
+    const unknown = desktopErrorNotice({ code: "UNEXPECTED", message: "opaque-machine-path" });
+    expect(unknown.message).not.toContain("opaque-machine-path");
+    expect(unknown.detail).toBe("opaque-machine-path");
+
+    const app = await Bun.file("../apps/desktop/src/App.svelte").text();
+    expect(app).toContain("desktopErrorNotice(cause)");
+    expect(app).toContain("error ? errorTitle");
+    expect(app).toContain("<h2>Last unsuccessful action</h2>");
+    expect(app).toContain("<code>{errorDetail}</code>");
+    expect(app).toContain("<h2>AI connection and updates</h2>");
+    expect(app).toContain("<strong>Installed Blockbench plugin</strong>");
+  });
+
+  test("passive connection polling pauses when hidden and uses a slower idle cadence", async () => {
+    const { connectionCheckDelayMs } = await import("../../../apps/desktop/src/connectionWatch");
+    expect(connectionCheckDelayMs(true)).toBe(8000);
+    expect(connectionCheckDelayMs(false)).toBe(20000);
+    const [ui, native] = await Promise.all([
+      Bun.file("../apps/desktop/src/App.svelte").text(),
+      Bun.file("../apps/desktop/src-tauri/src/system_status.rs").text(),
+    ]);
+    expect(ui).toContain("window.clearTimeout(statusWatcherTimer)");
+    expect(ui).toContain("window.setTimeout(() => {");
+    expect(ui).toContain("connectionCheckDelayMs(status.blockbench.running)");
+    expect(ui).toContain("if (document.hidden) stopConnectionWatch()");
+    expect(ui).toContain("requestConnectionRefresh()");
+    expect(ui).toContain("watchDisposed = true");
+    expect(ui).not.toContain("window.setInterval(() => { void watchSystemStatus(); }, 3000)");
+    const fast = native.slice(native.indexOf("pub fn collect_connection_status()"), native.indexOf("pub fn collect() -> SystemStatus"));
+    expect(fast).toContain("let mut system = System::new();");
+    expect(fast).not.toContain("System::new_all()");
+    expect(ui).toContain("if (statusProbeFailures >= 2) return;");
+    expect(ui).toContain("disabled={!status.maintenance.repair");
+  });
+
   test("preserves setup and error guidance and makes healthy project view primary", async () => {
     const ui = await Bun.file("../apps/desktop/src/App.svelte").text();
     expect(ui).toContain('class="workspace-connection"');
-    expect(ui).toContain("statusProbeFailures >= 2 ? 'Connection status unverified'");
+    expect(ui).toContain("statusProbeFailures >= 2 ? 'AI status unverified'");
     expect(ui).toContain("status.project_navigation.projects.length > 0");
     expect(ui).toContain("productMode(status) === 'ready' || productMode(status) === 'client-wait'");
-    expect(ui.indexOf("<ProjectNavigator")).toBeLessThan(ui.indexOf("<h2>Managed components</h2>"));
+    expect(ui.indexOf("<ProjectNavigator")).toBeLessThan(ui.indexOf("<h2>AI connection and updates</h2>"));
     expect(ui).toContain("runManagedAction('setup-tls')");
     expect(ui).toContain("Update components");
   });
@@ -805,7 +859,7 @@ describe("Desktop Workspace and Support feedback integrity", () => {
     const support = ui.slice(start, ui.indexOf("</main>", start));
     expect(start).toBeGreaterThan(0);
     expect(support).toContain("{#if statusProbeFailures >= 2}");
-    expect(support).toContain("These are the last known details.");
+    expect(support).toContain("These are the last known connection details.");
     expect(support).toContain('onclick={refresh}');
     expect(support).toContain("{:else if productMode(status) !== 'ready'}");
     const copy = ui.slice(ui.indexOf("async function copyNavigationPath("), ui.indexOf("async function watchSystemStatus()"));

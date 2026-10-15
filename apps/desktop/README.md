@@ -41,7 +41,7 @@ Desktop opens
 
 The startup check is read-only. It does not download the managed ZIP, stage files, restart processes, mutate configuration, or block normal Desktop startup. Network failure is advisory and silent: local LazyDesigner health remains usable.
 
-The check is deliberately absent from the 3-second connection heartbeat, focus handling, visibility handling, and MCP startup. There is no resident updater process, scheduled task, daemon, or background polling loop. The full package is downloaded only after explicit user Update intent. A previously staged verified update is surfaced without another network lookup.
+The update check is deliberately absent from the lightweight connection watcher, focus/visibility handlers and MCP startup. There is no resident updater process, scheduled task, daemon, or background release polling loop. The full package is downloaded only after explicit user Update intent. A previously staged verified update is surfaced without another network lookup.
 
 
 
@@ -268,7 +268,7 @@ message
 recoverable
 ```
 
-The frontend must not parse human error prose to decide control flow.
+The frontend uses structured error codes for control flow. It maps known technical failures (legacy plugin/client conflicts, profile ambiguity, timeout) to a short action-oriented message in Workspace; unrecognized errors are summarized without exposing raw paths or flags in the notification. The exact original command message is shown on request inside a collapsed **Support → Technical details** section and is not uploaded automatically. No sensitive paths should be copied into normal Workspace status text. The user can still export bounded diagnostics explicitly.
 
 External inspection/manager subprocesses are bounded. Status/discovery probes use short timeouts; explicit install/update/repair/recover actions use longer bounded timeouts. A stalled child must be terminated rather than leaving the Desktop UI busy indefinitely.
 
@@ -405,7 +405,7 @@ The Runtime session lease is created only after RuntimeHost successfully binds i
 
 Full `system_status` compares the live listener URL with the canonical Runtime URL projected by Managed Distribution from the MCP client configuration. Runtime is ready only when the profile-bound listener lease is live, the configured endpoint is reachable, and both URLs match. An unrelated process occupying port 3000 therefore cannot make Desktop report Runtime ready, and custom ports remain valid when Blockbench and the MCP client are configured consistently.
 
-The heartbeat uses process/filesystem inspection directly in Rust. It does not spawn `lazydesigner.exe status` every few seconds. Gateway uncertainty preserves the last known full Rust projection rather than translating uncertainty into offline.
+The watcher uses process/filesystem inspection directly in Rust, with `System::new()` and one process refresh instead of initializing every system data table for passive observations. It does not spawn `lazydesigner.exe status` on the heartbeat. Its single timer checks after 8 seconds while Blockbench is running or 20 seconds while idle, **pauses without a pending timer while the Desktop is hidden**, and performs an immediate check on return/focus. In-flight observations do not overlap; after two uncertain observations it stops passive checks and requires a successful explicit full Refresh before potentially mutating AI/system state. File open and safe path/folder actions remain available independently. This is an intended reduction in background work, not a measured CPU/RAM result. Gateway uncertainty preserves the last known full Rust projection instead of being classified as offline.
 
 When a known fast-probe value changes, Desktop performs one full `system_status` refresh so compatibility, maintenance availability, Gateway supervision, readiness, Runtime endpoint agreement, and `product_state` are re-projected by their owning layers.
 

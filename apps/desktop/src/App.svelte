@@ -4,7 +4,7 @@
   import { onDestroy, onMount, tick } from 'svelte';
   import ProjectNavigator from './ProjectNavigator.svelte';
   import { version as desktopVersion } from '../package.json';
-  import { connectionChanged } from './connectionWatch';
+  import { connectionChanged, connectionCheckDelayMs } from './connectionWatch';
   import { observeStatus } from './statusObservation';
   import type { ProjectAction } from './projectNavigationTypes';
   import type {
@@ -13,11 +13,13 @@
     DesktopCommandError, DiagnosticExportResult, ProjectNavigationActionResult,
     ProjectPathResult, ManagedProgress, ModelBrowseResult, BlockbenchEditorResult,
   } from './desktopTypes';
-  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation, bootstrapInstallPresentation } from './desktopPresentation';
+  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation, bootstrapInstallPresentation, desktopErrorNotice } from './desktopPresentation';
 
   let status: SystemStatus | null = null;
   let loading = true;
   let error = '';
+  let errorTitle = 'Action could not be completed';
+  let errorDetail: string | null = null;
   let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | 'open-editor' | 'browse-model' | null = null;
   let pluginApprovalNeeded = false;
   let migrationConflict = false;
@@ -32,6 +34,7 @@
   let utilityMenuOpen = false;
   let statusWatcherTimer: number | null = null;
   let statusProbeInFlight = false;
+  let watchDisposed = false;
   let statusProbeFailures = 0;
   let updateCheck: ManagedUpdateCheck | null = null;
   let updateCheckStarted = false;
@@ -116,30 +119,53 @@
     return 'FAILED';
   }
 
-  function errorMessage(cause: unknown): string {
-    if (typeof cause === 'object' && cause !== null && 'message' in cause) {
-      const candidate = cause as Partial<DesktopCommandError>;
-      if (typeof candidate.message === 'string') {
-        return candidate.message;
-      }
+  function reportError(cause: unknown) {
+    const notice = desktopErrorNotice(cause);
+    error = notice.message;
+    errorTitle = notice.title;
+    errorDetail = notice.detail;
+  }
+
+  function stopConnectionWatch() {
+    if (statusWatcherTimer !== null) {
+      window.clearTimeout(statusWatcherTimer);
+      statusWatcherTimer = null;
     }
-    return cause instanceof Error ? cause.message : String(cause);
+  }
+
+  function scheduleConnectionWatch() {
+    stopConnectionWatch();
+    if (watchDisposed || devFixture || document.hidden || !status || statusProbeFailures >= 2) return;
+    statusWatcherTimer = window.setTimeout(() => {
+      statusWatcherTimer = null;
+      void watchSystemStatus().finally(scheduleConnectionWatch);
+    }, connectionCheckDelayMs(status.blockbench.running));
+  }
+
+  function requestConnectionRefresh() {
+    if (watchDisposed || document.hidden || statusProbeInFlight) return;
+    stopConnectionWatch();
+    void watchSystemStatus().finally(scheduleConnectionWatch);
   }
 
   async function refresh() {
     closeUtilityMenu();
     loading = true;
     error = '';
+    errorDetail = null;
     try {
       status = await observeStatus(invoke<SystemStatus>('system_status'), 30_000);
       statusProbeFailures = 0;
       if (status && devFixture) status = applyDevFixture(status, devFixture);
       if (status?.manager_available) setupStaged = false;
+      if (status && statusWatcherTimer === null && !statusProbeInFlight && !document.hidden) {
+        scheduleConnectionWatch();
+      }
     } catch (cause) {
       // A failed full observation must never leave actions enabled using
       // the last successful snapshot. Only full status can clear this gate.
       if (status) statusProbeFailures = 2;
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       loading = false;
     }
@@ -156,12 +182,13 @@
     closeActionDisclosures(true);
     busyAction = 'project-action';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       await invoke<ProjectNavigationActionResult>('project_navigation_action', { action, id });
       if (action === 'pin-project' || action === 'unpin-project' || action === 'restore-project-preferences') await refresh();
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -181,6 +208,7 @@
     if (devFixture || busyAction) return;
     busyAction = 'project-action';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       // Only the profile-bound snapshot and native editor file are needed.
@@ -192,7 +220,7 @@
         ? 'Model opened in Blockbench.'
         : 'Model open request sent. Select Blockbench from the taskbar if needed.');
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -208,6 +236,7 @@
     if (devFixture || busyAction) return;
     busyAction = 'browse-model';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       const result = await invoke<ModelBrowseResult>('browse_model');
@@ -219,7 +248,7 @@
           : 'Model open request sent. Select Blockbench from the taskbar if needed.');
       }
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -229,6 +258,7 @@
     if (devFixture || busyAction) return;
     busyAction = 'open-editor';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       await invoke<BlockbenchEditorResult>('open_blockbench_editor');
@@ -238,7 +268,7 @@
         ? 'Blockbench is open.'
         : 'Blockbench launched. Select its window from the taskbar if needed.');
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -252,7 +282,7 @@
       await navigator.clipboard.writeText(result.path);
       showSuccessToast('Path copied.');
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     }
   }
 
@@ -280,6 +310,7 @@
     closeUtilityMenu();
     busyAction = 'connect-blockbench';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       const result = await invoke<EnsureReadyResult>('ensure_ready');
@@ -306,7 +337,7 @@
                   : 'LazyDesigner could not prepare Blockbench automatically.';
       }
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -318,7 +349,7 @@
       await invoke<PluginFileActionResult>('show_retired_plugin_file');
       showSuccessToast('Existing plugin file selected in File Explorer. No files were changed.');
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     }
   }
 
@@ -329,6 +360,7 @@
     migrationConflict = false;
     setupStaged = false;
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       const result = await invoke<BootstrapActionResult>('bootstrap_install');
@@ -363,8 +395,9 @@
         migrationConflictKind = errorCode(cause) === 'LEGACY_CLIENT_MIGRATION_REQUIRED' ? 'client' : 'plugin';
         migrationConflict = true;
         error = '';
+        errorDetail = null;
       } else {
-        error = errorMessage(cause);
+        reportError(cause);
       }
     } finally {
       busyAction = null;
@@ -377,13 +410,14 @@
     closeUtilityMenu();
     busyAction = 'show-plugin';
     error = '';
+    errorDetail = null;
     try {
       await invoke<PluginFileActionResult>('show_plugin_file');
       showSuccessToast(pluginApprovalNeeded && productMode(status) === 'plugin-setup'
         ? 'Plugin file highlighted. Approve it in Blockbench if prompted.'
         : 'Plugin file highlighted in File Explorer.');
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -394,13 +428,14 @@
     closeUtilityMenu();
     busyAction = 'export-diagnostics';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       const result = await invoke<DiagnosticExportResult>('export_diagnostics');
       if (result.status === 'EXPORTED') showSuccessToast('Diagnostics exported successfully.');
       else actionMessage = '';
     } catch (cause) {
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
     }
@@ -438,6 +473,7 @@
     busyAction = action;
     progressStage = 'preflight';
     error = '';
+    errorDetail = null;
     clearSuccessToast();
     try {
       const result = await invoke<ManagedActionResult>('managed_action', {
@@ -462,7 +498,7 @@
     } catch (cause) {
       const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       recordOperation(actionLabel, 'failed', errorCode(cause));
-      error = errorMessage(cause);
+      reportError(cause);
     } finally {
       busyAction = null;
       progressStage = '';
@@ -470,6 +506,7 @@
   }
 
   onMount(() => {
+    watchDisposed = false;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && document.querySelector('details.more-menu[open]')) {
         event.preventDefault();
@@ -485,9 +522,10 @@
       if (!target.closest('details.more-menu')) utilityMenuOpen = false;
     };
     const onVisibilityChange = () => {
-      if (!document.hidden) void watchSystemStatus();
+      if (document.hidden) stopConnectionWatch();
+      else requestConnectionRefresh();
     };
-    const onFocus = () => { void watchSystemStatus(); };
+    const onFocus = () => { requestConnectionRefresh(); };
     devFixture = devFixtureFromLocation();
     if (devFixture === 'approval-required') {
       pluginApprovalNeeded = true;
@@ -501,9 +539,8 @@
     document.addEventListener('visibilitychange', onVisibilityChange);
     void refresh().then(() => {
       void checkManagedUpdateOnce();
-      void watchSystemStatus();
+      requestConnectionRefresh();
     });
-    statusWatcherTimer = window.setInterval(() => { void watchSystemStatus(); }, 3000);
     let progressListenerDisposed = false;
     void listen<ManagedProgress>('managed-progress', event => {
       if (!progressListenerDisposed && busyAction && event.payload.action === busyAction) {
@@ -518,6 +555,7 @@
       // Progress messages are optional; maintenance result and refresh own truth.
     });
     return () => {
+      watchDisposed = true;
       progressListenerDisposed = true;
       stopProgressListener?.();
       stopProgressListener = null;
@@ -525,14 +563,15 @@
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibilityChange);
-      if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
+      stopConnectionWatch();
     };
   });
 
   onDestroy(() => {
+    watchDisposed = true;
     stopProgressListener?.();
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
-    if (statusWatcherTimer !== null) window.clearInterval(statusWatcherTimer);
+    stopConnectionWatch();
   });
 
   type DevFixture = 'ready' | 'fresh-install' | 'approval-required' | 'plugin-missing' | 'plugin-modified' | 'runtime-offline' | 'client-wait' | 'unsupported' | 'repair-blocked';
@@ -711,14 +750,13 @@
         <h1>{page === 'Overview' ? 'Workspace' : 'Support'}</h1>
         <div class="toolbar-actions">
           {#if devFixture}<span class="fixture-badge">Fixture · {devFixture}</span>{/if}
-          {#if statusProbeFailures >= 2}<span class="status-probe-warning" role="status">Status unverified · Refresh to retry</span>{/if}
+          {#if statusProbeFailures >= 2}<span class="status-probe-warning" role="status">AI status needs verification · Files remain accessible</span>{/if}
           {#if page === 'Overview'}
             <details class="more-menu" bind:open={utilityMenuOpen}>
               <summary aria-label="More actions">•••</summary>
               <div class="menu-popover">
                 <button disabled={loading || busyAction !== null} onclick={refresh}>Refresh</button>
-                {#if status?.manager_available}<button disabled={busyAction !== null} onclick={showPluginFile}>Show plugin file</button>{/if}
-                <button disabled={busyAction !== null} onclick={exportDiagnostics}>Export diagnostics</button>
+                <button disabled={busyAction !== null} onclick={() => navigate('Support')}>Connection & support</button>
               </div>
             </details>
           {/if}
@@ -813,8 +851,8 @@
               <section class="workspace-connection" aria-label="Connection status">
                 <span class="connection-dot" class:waiting={productMode(status) === 'client-wait'} class:unknown={statusProbeFailures >= 2} aria-hidden="true"></span>
                 <div class="connection-copy">
-                  <strong>{statusProbeFailures >= 2 ? 'Connection status unverified' : productMode(status) === 'ready' ? 'AI connected' : 'Blockbench ready'}</strong>
-                  <span>{statusProbeFailures >= 2 ? 'Refresh to verify the connection before continuing.' : productMode(status) === 'ready' ? 'Blockbench and LazyDesigner are ready.' : 'Editing is available. Connect the AI client when needed.'}</span>
+                  <strong>{statusProbeFailures >= 2 ? 'AI status unverified' : productMode(status) === 'ready' ? 'AI connected' : 'Blockbench ready'}</strong>
+                  <span>{statusProbeFailures >= 2 ? 'AI status is unverified. You can still open models; Refresh before AI or maintenance actions.' : productMode(status) === 'ready' ? 'Blockbench and LazyDesigner are ready.' : 'Editing is available. Connect the AI client when needed.'}</span>
                 </div>
                 {#if statusProbeFailures >= 2}
                   <button class="secondary-button small-button" onclick={refresh} disabled={loading || busyAction !== null}>Refresh</button>
@@ -855,7 +893,6 @@
                     {:else}
                       <button class="secondary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>Open</button>
                     {/if}
-                    <button class="secondary-button small-button" title="Show Blockbench plugin file" onclick={showPluginFile} disabled={!status.manager_available || busyAction !== null || statusProbeFailures >= 2}>Plugin file</button>
                   </div>
                 </div>
               </div>
@@ -911,14 +948,14 @@
             {#if productMode(status) !== 'ready' && productMode(status) !== 'client-wait' || status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED'}
             <section class="content-section">
               <div class="section-heading">
-                <div><h2>Managed components</h2><p>Connection and update status</p></div>
+                <div><h2>AI connection and updates</h2><p>Editing remains available independently of AI connectivity.</p></div>
               </div>
 
               <div class="definition-rows">
                 <div class="definition-row">
-                  <span>Status</span>
-                  <strong class:status-good={productMode(status) === 'ready' || productMode(status) === 'client-wait'} class:status-warning={productMode(status) !== 'ready' && productMode(status) !== 'client-wait'}>
-                    {statusProbeFailures >= 2 ? 'Status unverified' : productMode(status) === 'ready' ? 'Ready' : productMode(status) === 'client-wait' ? 'Waiting for MCP client' : productHeadline(status)}
+                  <span>AI status</span>
+                  <strong class:status-good={productMode(status) === 'ready'} class:status-warning={statusProbeFailures >= 2}>
+                    {statusProbeFailures >= 2 ? 'Check required' : productMode(status) === 'ready' ? 'Connected' : productMode(status) === 'client-wait' ? 'Not connected yet' : productHeadline(status)}
                   </strong>
                 </div>
                 {#if status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED' || updateCheck?.status === 'UPDATE_STAGED_UNVERIFIED'}
@@ -949,7 +986,7 @@
               {#if productMode(status) === 'security-setup'}
                 <div class="inline-alert"><div><strong>Finish setup</strong><span>Complete the secure local connection before using LazyDesigner.</span></div><button class="primary-button small-button" onclick={() => runManagedAction('setup-tls')} disabled={!status.maintenance.setup_tls || busyAction !== null || statusProbeFailures >= 2}>Finish setup</button></div>
               {:else if productMode(status) === 'client-wait'}
-                <div class="inline-note"><strong>Blockbench Runtime is ready.</strong><span>The MCP client owns the Gateway connection and can attach when needed.</span></div>
+                <div class="inline-note"><strong>Blockbench is ready.</strong><span>Connect AI when you need it. You can continue editing without a connection.</span></div>
               {:else if productMode(status) === 'attention'}
                 <div class="inline-alert"><div><strong>Action required</strong><span>{productGuidance(status, pluginApprovalNeeded) ?? status.readiness.summary}</span></div><button class="secondary-button small-button" onclick={() => navigate('Support')}>Open Support</button></div>
               {/if}
@@ -963,7 +1000,7 @@
           {#if statusProbeFailures >= 2}
             <section class="support-banner" role="status">
               <span class="support-banner-dot" aria-hidden="true"></span>
-              <div><strong>Connection status unverified</strong><span>These are the last known details. Refresh to verify the system before making changes.</span></div>
+              <div><strong>AI status needs verification</strong><span>These are the last known connection details. You can still open model files; Refresh before changing AI or installed components.</span></div>
               <button class="secondary-button small-button" onclick={refresh} disabled={loading || busyAction !== null}>Refresh</button>
             </section>
           {:else if productMode(status) !== 'ready'}
@@ -984,6 +1021,16 @@
               {/if}
             </section>
           {/if}
+          {#if error && errorDetail}
+            <section class="settings-section">
+              <h2>Last unsuccessful action</h2>
+              <p>{error}</p>
+              <details class="advanced-recovery">
+                <summary><span><strong>Technical details</strong><small>For troubleshooting only. No information is uploaded.</small></span><span>Show</span></summary>
+                <div class="recovery-list"><code>{errorDetail}</code></div>
+              </details>
+            </section>
+          {/if}
           <section class="settings-section">
             <h2>About</h2>
             <div class="definition-rows">
@@ -996,6 +1043,12 @@
 
           <section class="settings-section">
             <h2>Troubleshooting</h2>
+            {#if status.manager_available}
+              <div class="settings-row">
+                <div><strong>Installed Blockbench plugin</strong><span>Show the managed plugin file only when reviewing setup or trust.</span></div>
+                <button class="secondary-button" onclick={showPluginFile} disabled={busyAction !== null || statusProbeFailures >= 2}>Show file</button>
+              </div>
+            {/if}
             <div class="settings-row">
               <div><strong>Export diagnostics</strong><span>Create a local troubleshooting snapshot. Nothing is uploaded automatically.</span></div>
               <button class="secondary-button" onclick={exportDiagnostics} disabled={busyAction !== null}>{busyAction === 'export-diagnostics' ? 'Exporting…' : 'Export'}</button>
@@ -1041,7 +1094,7 @@
 {#if error || actionMessage || (busyAction && progressStage && busyAction !== 'repair')}
   <aside class:error={Boolean(error)} class:success={Boolean(actionMessage) && !error && actionMessageKind === 'success'} class:notice={Boolean(actionMessage) && !error && actionMessageKind !== 'success'} class="operation-attention" aria-live={error ? 'assertive' : 'polite'}>
     <div class="attention-icon">{error ? '!' : actionMessage ? (actionMessageKind === 'success' ? '✓' : 'i') : '•'}</div>
-    <div class="attention-copy"><strong>{error ? 'Something needs attention' : actionMessage ? (actionMessageKind === 'pending' ? 'Next step' : actionMessageKind === 'unchanged' ? 'No change' : 'Done') : 'Working'}</strong><span>{error || actionMessage || progressLabel(progressStage)}</span></div>
+    <div class="attention-copy"><strong>{error ? errorTitle : actionMessage ? (actionMessageKind === 'pending' ? 'Next step' : actionMessageKind === 'unchanged' ? 'No change' : 'Done') : 'Working'}</strong><span>{error || actionMessage || progressLabel(progressStage)}</span></div>
     <div class="attention-actions">
       {#if error}<button onclick={() => navigate('Support')}>Support</button>{/if}
       {#if error || actionMessage}<button class="dismiss" aria-label="Dismiss notification" onclick={() => { error=''; clearSuccessToast(); }}>×</button>{/if}
