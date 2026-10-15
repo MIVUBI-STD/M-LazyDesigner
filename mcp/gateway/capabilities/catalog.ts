@@ -34,6 +34,46 @@ export function summarizeCapability(
   };
 }
 
+
+/**
+ * Generic agent/tool vocabulary may affect BM25 ranking but cannot, by
+ * itself, make an authoring capability relevant to a discovery query.
+ */
+const NON_DECISIVE_QUERY_TERMS = new Set([
+  "a", "an", "and", "apa", "are", "bagaimana", "can", "capability",
+  "capabilities", "cara", "dan", "dengan", "developer", "do", "for",
+  "how", "in", "ini", "is", "me", "of", "on", "please", "saya",
+  "that", "the", "this", "to", "tolong", "tool", "tools",
+  "action", "actions", "untuk", "with", "yang", "you",
+]);
+
+function substantiveQueryTerms(query: string): string[] {
+  return [...new Set(
+    query.toLowerCase().split(/[^a-z0-9]+/).filter(
+      (term) => term.length > 2 && !NON_DECISIVE_QUERY_TERMS.has(term)
+    )
+  )];
+}
+
+function hasSubstantiveCatalogEvidence(
+  tool: BackendTool,
+  aliases: readonly string[],
+  queryTerms: readonly string[]
+): boolean {
+  const indexed = new Set(
+    [tool.name, tool.description ?? "", ...aliases]
+      .join(" ")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean)
+  );
+  return queryTerms.some(
+    (term) => indexed.has(term) ||
+      (term.endsWith("s") && indexed.has(term.slice(0, -1))) ||
+      indexed.has(`${term}s`)
+  );
+}
+
 function normalizeCapabilityQuery(query: string): string {
   return query.trim().toLowerCase();
 }
@@ -98,6 +138,7 @@ export function searchCapabilityCatalog(
     Math.min(50, Math.trunc(limit))
   );
   const hasQuery = normalizeCapabilityQuery(query).length > 0;
+  const queryTerms = substantiveQueryTerms(query);
   const bm25Scores = bm25CapabilityScores(tools, query);
   // Lexical relevance is a bounded secondary signal, not an intent override.
   const maxBm25 = Math.max(1, ...bm25Scores.values());
@@ -131,6 +172,7 @@ export function searchCapabilityCatalog(
       return {
         tool,
         tier,
+        metadata,
         semantic,
         bm25,
         nearName,
@@ -146,12 +188,20 @@ export function searchCapabilityCatalog(
           ],
       };
     })
-    .filter(({ tool, tier, semantic, bm25, nearName }) => {
-      const metadata = getCapabilityMetadata(tool.name);
+    .filter(({ tool, tier, metadata, semantic, nearName }) => {
       if (metadata.discoveryMode === "exact_only") return false;
-      return hasQuery
-        ? semantic.matched || bm25 > 0 || nearName > 0
-        : tier !== "maintenance";
+      if (!hasQuery) return tier !== "maintenance";
+      if (nearName > 0) return true;
+      // An unsupported console/DevTools-style query must yield no match;
+      // incidental occurrences of "tool" or "action" are not intent proof.
+      if (queryTerms.length === 0) return false;
+      if (hasSubstantiveCatalogEvidence(tool, metadata.searchAliases, queryTerms)) {
+        return true;
+      }
+      // A semantic intent/object match can discover synonyms not present in
+      // names, aliases or descriptions. A generic verb alone is insufficient.
+      return semantic.matched &&
+        (semantic.reason.includes("intent") || semantic.reason.includes("object"));
     })
     .sort(
       (left, right) =>

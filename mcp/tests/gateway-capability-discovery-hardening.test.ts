@@ -21,6 +21,26 @@ describe("BlockIT Gateway capability discovery hardening", () => {
     },
   ];
 
+  test("unrelated developer-console intent is not promoted by generic action metadata", () => {
+    const accidentalMatch: BackendTool[] = [
+      { name: "manage_cubes", description: "Create and update Bedrock geometry cubes; return action receipts." },
+      { name: "create_brush_preset", description: "Apply a texture brush action." },
+    ];
+    expect(searchCapabilityCatalog(accidentalMatch, "developer tools console action", 4))
+      .toEqual([]);
+    expect(searchCapabilityCatalog(accidentalMatch, "tools and actions", 4))
+      .toEqual([]);
+  });
+
+  test("specific alias, exact name and real authoring intent remain discoverable", () => {
+    expect(searchCapabilityCatalog(tools, "manage_cubes", 5))
+      .toHaveLength(1);
+    expect(searchCapabilityCatalog(tools, "buat kubus baru untuk badan model", 5)
+      .map((entry) => entry.capability_id)).toContain("manage_cubes");
+    expect(searchCapabilityCatalog(tools, "create geometry cubes", 5)
+      .map((entry) => entry.capability_id)).toContain("manage_cubes");
+  });
+
   test("exact capability name short-circuits to exactly one result", () => {
     const exact = searchCapabilityCatalog(tools, "manage_cubes", 50);
     expect(exact).toHaveLength(1);
