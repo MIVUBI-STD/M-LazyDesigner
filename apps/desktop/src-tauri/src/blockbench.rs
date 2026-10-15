@@ -69,6 +69,21 @@ struct SelectedBlockbenchExecutable {
     executable: PathBuf,
 }
 
+// The published versioned *_portable.exe is a self-extracting launcher, not
+// the stable child Blockbench.exe. Its process path can change on each launch;
+// accepting it as a pinned executable would create false profile/exe affinity.
+fn is_versioned_portable_launcher(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|item| item.to_str()) else {
+        return false;
+    };
+    let lower = name.to_ascii_lowercase();
+    let Some(core) = lower.strip_prefix("blockbench_")
+        .and_then(|item| item.strip_suffix("_portable.exe")) else {
+        return false;
+    };
+    parse_version(core).is_some()
+}
+
 fn selected_executable_path() -> Result<PathBuf, String> {
     let local = env::var_os("LOCALAPPDATA")
         .ok_or_else(|| "LOCALAPPDATA is unavailable for Blockbench selection.".to_string())?;
@@ -106,6 +121,9 @@ pub(crate) fn choose_executable() -> Result<BlockbenchActionResult, String> {
         .pick_file() else {
         return Ok(BlockbenchActionResult { status: "CANCELLED" });
     };
+    if is_versioned_portable_launcher(&executable) {
+        return Err("The Blockbench *_portable.exe launcher extracts a separate editor process. LazyDesigner cannot reliably bind that changing executable path to the managed plugin yet. Select the installed Blockbench.exe instead; no files were changed.".to_string());
+    }
     if !executable.is_absolute() || !is_executable_name(&executable)
         || !fs::symlink_metadata(&executable).is_ok_and(|meta| meta.file_type().is_file())
     {
@@ -671,6 +689,14 @@ mod tests {
         let same = PathBuf::from("c:\\apps\\blockbench.exe");
         assert_eq!(select_running_executable(&[one.clone(), same]).unwrap(), Some(one.clone()));
         assert!(select_running_executable(&[one, PathBuf::from("D:/Portable/Blockbench.exe")]).is_err());
+    }
+
+    #[test]
+    fn self_extracting_portable_wrapper_is_not_mistaken_for_the_editor() {
+        assert!(is_versioned_portable_launcher(Path::new("C:/Downloads/Blockbench_5.2.2_portable.exe")));
+        assert!(!is_versioned_portable_launcher(Path::new("C:/Apps/Blockbench.exe")));
+        assert!(!is_versioned_portable_launcher(Path::new("C:/Apps/Blockbench_5.2.2.exe")));
+        assert!(!is_executable_name(Path::new("C:/Downloads/Blockbench_5.2.2_portable.exe")));
     }
 
     #[test]

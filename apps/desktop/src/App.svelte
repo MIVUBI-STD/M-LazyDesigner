@@ -998,7 +998,7 @@
                   </div>
 
                   <div class="resource-actions">
-                    <button class="secondary-button" onclick={chooseBlockbenchExecutable} disabled={busyAction !== null} title="Choose a specific installed or portable Blockbench.exe">Select installation</button>
+                    <button class="secondary-button" onclick={chooseBlockbenchExecutable} disabled={busyAction !== null} title="Choose an installed Blockbench.exe (self-extracting portable wrappers are not supported yet)">Select installation</button>
                     {#if productMode(status) === 'ready'}
                       <button class="secondary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
@@ -1161,7 +1161,7 @@
           <section class="settings-section">
             <h2>Troubleshooting</h2>
             <div class="settings-row">
-              <div><strong>Blockbench installation</strong><span>Choose an installed or portable Blockbench.exe if it moved or multiple installations were detected. Close Blockbench before changing this. Your project files and managed plugin stay untouched.</span></div>
+              <div><strong>Blockbench installation</strong><span>Choose the real installed Blockbench.exe if it moved or multiple installations were detected. Self-extracting *_portable.exe launchers are not supported yet. Close Blockbench before changing this. Your project files and managed plugin stay untouched.</span></div>
               <button class="secondary-button" onclick={chooseBlockbenchExecutable} disabled={busyAction !== null}>{busyAction === 'choose-editor' ? 'Selecting…' : 'Choose…'}</button>
             </div>
             {#if status.manager_available}

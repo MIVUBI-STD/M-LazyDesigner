@@ -20,6 +20,7 @@ This phase changes **editor selection and status receipts only**. No change to .
 - Multiple running `Blockbench.exe` executable paths: reject; do not select the first PID.
 - Multiple installed valid Blockbench executables with editor closed: reject automatic selection, then choose Blockbench.exe explicitly in Support. Retry Open.
 - Move a selected Blockbench.exe: detect stale selection, choose the replacement in Support, verify editor metadata, then retry.
+- Select an official versioned `Blockbench_X.Y.Z_portable.exe` launcher: reject with a clear diagnostic because its extracted child executable has different identity. No plugin/profile/model file changes; portable launcher support requires separate live acceptance.
 - One valid editor, zero running: launch with exact managed userData.
 - No managed install, one valid editor: regular Open Model works independently of AI readiness.
 - Registered folder model and snapshot/recent model: return `LAUNCHED`, never a false `OPENED` receipt.
