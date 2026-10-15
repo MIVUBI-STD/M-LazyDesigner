@@ -18,7 +18,7 @@ From the repository root, using Node 24:
 
 These operations are read-only apart from synthetic test fixtures created under the OS temporary directory. They do NOT run Bun builds, Cargo builds, cleanup, signing, installer creation or publication. A source PASS proves static configuration checks only.
 
-The new manually dispatched GitHub workflow "Release Readiness / Source Only" is restricted to Local, uses read-only repository permission and runs these commands. It does not create/upload assets or releases.
+GitHub workflow "Release Readiness / Source Only" runs automatically only when relevant source/policy files change on Local, with read-only repository permission and no packaging. Manual dispatch is also declared for later use when this workflow exists on the default branch (GitHub requires the workflow file on the default branch for workflow_dispatch). It does not create/upload assets or releases.
 
 ## For a separately authorized future build only
 
