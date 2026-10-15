@@ -3,6 +3,8 @@ import {
   BlockitRuntimeBackend,
   GatewayBackendError,
 } from "@/gateway/backend";
+import { verifyRuntimeBuildIdentity } from "@/gateway/runtime/identity";
+import { PRODUCT_ID } from "@/lib/product/productIdentity";
 import {
   classifyInterruptedCall,
   createRuntimeSignature,
@@ -18,6 +20,16 @@ function deferred<T = void>() {
 }
 
 describe("Gateway deterministic fault semantics", () => {
+  test("installed Gateway rejects healthy foreign or mismatched Runtime builds", () => {
+    const expected = "sha256:" + "a".repeat(64);
+    const matching = { product: { id: PRODUCT_ID }, build_identity: expected };
+    expect(verifyRuntimeBuildIdentity(matching, expected)).toBeNull();
+    expect(verifyRuntimeBuildIdentity(matching, "sha256:" + "b".repeat(64))).toMatch(/build identity/);
+    expect(verifyRuntimeBuildIdentity({ ...matching, product: { id: "blockit" } }, expected)).toMatch(/product identity/);
+    expect(verifyRuntimeBuildIdentity({ product: { id: PRODUCT_ID } }, expected)).toMatch(/build identity/);
+    expect(verifyRuntimeBuildIdentity(matching, null)).toBeNull();
+  });
+
   test("queue saturation fails fast without entering a third serialized operation", async () => {
     const backend = new BlockitRuntimeBackend(undefined, undefined, {
       maxQueueDepth: 1,

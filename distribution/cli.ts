@@ -312,7 +312,16 @@ async function main(): Promise<void> {
       await recoverInstallation(root);
       if (await readOptional(pendingPath)) await activatePending(); // Failure-path only, never startup network polling without a pending update.
       const state = await installedState(root);
-      if (!state) throw new Error("Run BlockIT install once before connecting Codex.");
+      if (!state) throw new Error("Install LazyDesigner before connecting the AI client.");
+      const installedPackage = await verifyPackage(
+        join(root, "versions", state.source_sha)
+      );
+      if (installedPackage.source_sha !== state.source_sha) {
+        throw new Error("Installed LazyDesigner source does not match its managed package.");
+      }
+      // The Gateway inherits the exact installed plugin build identity.
+      // HTTP health cannot substitute an arbitrary Runtime on the same port.
+      process.env.LAZYDESIGNER_EXPECTED_RUNTIME_BUILD_ID = installedPackage.build_identity;
       executable = join(root, "versions", state.source_sha, "blockit.exe");
       if (!sameInstalledPath(executable, process.execPath)) return;
       await mkdir(join(root, "leases"), { recursive: true });

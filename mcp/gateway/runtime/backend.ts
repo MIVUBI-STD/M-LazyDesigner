@@ -22,6 +22,7 @@ import {
 import {
   DEFAULT_RUNTIME_URL,
   createRuntimeSignature,
+  verifyRuntimeBuildIdentity,
   normalizeRuntimeUrl,
 } from "./identity";
 import { classifyInterruptedCall } from "./interruptionPolicy";
@@ -66,6 +67,7 @@ export {
 export class BlockitRuntimeBackend {
   readonly runtimeUrl: string;
   private readonly healthTimeoutMs: number;
+  private readonly expectedRuntimeBuildIdentity: string | null;
   private readonly connectTimeoutMs: number;
   private readonly callTimeoutMs: number;
   private readonly closeTimeoutMs: number;
@@ -92,6 +94,11 @@ export class BlockitRuntimeBackend {
     this.runtimeUrl = normalizeRuntimeUrl(
       runtimeUrl ?? process.env.BLOCKIT_RUNTIME_URL ?? DEFAULT_RUNTIME_URL
     );
+    const expectedBuild = process.env.LAZYDESIGNER_EXPECTED_RUNTIME_BUILD_ID ?? null;
+    if (expectedBuild !== null && !/^sha256:[a-f0-9]{64}$/.test(expectedBuild)) {
+      throw new Error("Configured LazyDesigner Runtime build identity is invalid.");
+    }
+    this.expectedRuntimeBuildIdentity = expectedBuild;
     // The normal long-lived Gateway is configured through BLOCKIT_RUNTIME_URL.
     // Never silently downgrade that connection to cleartext HTTP. Isolated
     // protocol fixtures may still pass an explicit loopback HTTP URL in code.
@@ -192,6 +199,10 @@ export class BlockitRuntimeBackend {
         return { online: false, error: "Runtime health returned non-object JSON." };
       }
 
+      const identityIssue = verifyRuntimeBuildIdentity(body, this.expectedRuntimeBuildIdentity);
+      if (identityIssue) {
+        return { online: false, error: identityIssue };
+      }
       this.connection.markAvailable();
       return {
         online: true,

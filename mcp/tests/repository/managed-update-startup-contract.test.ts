@@ -85,6 +85,20 @@ describe("managed startup update contract", () => {
     expect(app).toContain("updateCheck?.status !== 'UPDATE_STAGED'");
   });
 
+  test("managed Gateway receives the exact installed Runtime build identity", async () => {
+    const [cli, backend, identity] = await Promise.all([
+      source("../distribution/cli.ts"),
+      source("gateway/runtime/backend.ts"),
+      source("gateway/runtime/identity.ts"),
+    ]);
+    expect(cli).toContain("process.env.LAZYDESIGNER_EXPECTED_RUNTIME_BUILD_ID = installedPackage.build_identity");
+    expect(cli).toContain("await verifyPackage(");
+    expect(backend).toContain("process.env.LAZYDESIGNER_EXPECTED_RUNTIME_BUILD_ID");
+    expect(backend).toContain("verifyRuntimeBuildIdentity(body, this.expectedRuntimeBuildIdentity)");
+    expect(identity).toContain("product.id !== PRODUCT_ID");
+    expect(identity).toContain("root.build_identity !== expectedBuildIdentity");
+  });
+
   test("Desktop backend exposes a bounded dedicated read-only check command", async () => {
     const [main, status] = await Promise.all([
       source("../apps/desktop/src-tauri/src/main.rs"),
