@@ -30,6 +30,10 @@ describe("Animation handoff readiness gate", () => {
     expect(summarizeAnimationHandoffReadiness(approved).user_approval_claim).toBe(true);
     expect(summarizeAnimationHandoffReadiness(autonomous).user_approval_claim).toBe(false);
     expect(summarizeAnimationHandoffReadiness(autonomous).evidence_present).toBe(true);
+    expect(summarizeAnimationHandoffReadiness(approved).assertion_provenance)
+      .toBe("CALLER_DECLARATION_UNVERIFIED");
+    expect(summarizeAnimationHandoffReadiness(autonomous).assertion_provenance)
+      .toBe("CALLER_DECLARATION_UNVERIFIED");
   });
 
   test("rejects incomplete readiness instead of inferring PASS", () => {
@@ -120,7 +124,13 @@ describe("Animation handoff readiness gate", () => {
     const source = await Bun.file("server/runtime/phaseControl.ts").text();
     expect(source).toContain("assertAnimationCheckpointCurrent(");
     expect(source.indexOf("assertAnimationCheckpointCurrent("))
+      .toBeLessThan(source.indexOf("nativeCheckpointChecked = true;"));
+    expect(source.indexOf("nativeCheckpointChecked = true;"))
       .toBeLessThan(source.indexOf("requestMcpStageSwitch(target_phase);"));
+    expect(source).toContain('"NATIVE_SAVED_FILE_METADATA_CHECKED"');
+    expect(source).toContain('"NOT_CHECKED"');
+    expect(source).toContain("approval and authorization are caller-declared");
+    expect(source).not.toContain("user_approval_verified: true");
   });
 
 });

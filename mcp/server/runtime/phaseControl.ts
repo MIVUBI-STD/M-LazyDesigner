@@ -69,6 +69,7 @@ export function registerPhaseControlTool(): void {
         const readinessSummary = readiness
           ? summarizeAnimationHandoffReadiness(readiness)
           : null;
+        let nativeCheckpointChecked = false;
 
         // Verify actual saved-project state, not only caller-supplied flags.
         // One native stat at AUTHORING→Animation; other stages incur no I/O.
@@ -86,6 +87,7 @@ export function registerPhaseControlTool(): void {
             if (!fs) throw new Error("Native checkpoint filesystem access unavailable.");
             return fs.statSync(checkpoint);
           });
+          nativeCheckpointChecked = true;
         }
 
         // Apply the canonical Runtime surface/focus before returning the handoff
@@ -97,7 +99,9 @@ export function registerPhaseControlTool(): void {
           content: [
             {
               type: "text" as const,
-              text: `MCP Authoring Stage switched to ${target_phase}; Runtime Surface is ${targetSurface}. Continue this task through Gateway.`,
+              text: nativeCheckpointChecked
+                ? `MCP Authoring Stage switched to ${target_phase}; Runtime Surface is ${targetSurface}. Saved-project path and file metadata checked; approval and authorization are caller-declared, not independently verified. Continue through Gateway.`
+                : `MCP Authoring Stage switched to ${target_phase}; Runtime Surface is ${targetSurface}. Continue this task through Gateway.`,
             },
           ],
           structuredContent: phaseTransitionReceipt({
@@ -106,7 +110,14 @@ export function registerPhaseControlTool(): void {
             reason,
             resume_from,
             readiness,
-            readiness_summary: readinessSummary,
+            readiness_summary: readinessSummary
+              ? {
+                  ...readinessSummary,
+                  checkpoint_evidence: nativeCheckpointChecked
+                    ? "NATIVE_SAVED_FILE_METADATA_CHECKED"
+                    : "NOT_CHECKED",
+                }
+              : null,
             surface_changed: surfaceChanged,
             reload_required: false,
             action: surfaceChanged

@@ -59,6 +59,8 @@ export function summarizeAnimationHandoffReadiness(
     uv_layout: readiness.uv_layout,
     checkpoint: readiness.checkpoint,
     no_blockers: readiness.no_blockers,
+    // Caller declarations are not independently authenticated user approval.
+    assertion_provenance: "CALLER_DECLARATION_UNVERIFIED" as const,
     user_approval_claim: mode === "USER_APPROVED",
     evidence_present:
       mode === "AUTONOMOUS_VERIFIED" && "evidence" in readiness
