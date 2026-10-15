@@ -35,6 +35,16 @@ export function requireValidPlannedKeyframeTimes(
 }
 
 /**
+ * Blockbench Keyframe.replaceOthers() removes another same-track keyframe
+ * when abs(time delta) < 0.0001. Keep the scale planner in native parity.
+ */
+export const NATIVE_KEYFRAME_REPLACE_TIME_TOLERANCE = 0.0001;
+
+export function nativeKeyframeTimesCollide(left: number, right: number): boolean {
+  return Math.abs(left - right) < NATIVE_KEYFRAME_REPLACE_TIME_TOLERANCE;
+}
+
+/**
  * Planned keyframe times are unique only within one animator/channel track.
  * Distinct bones and distinct channels may share snapped timestamps.
  */
@@ -66,9 +76,48 @@ export function requireValidPlannedBatchTrackTimes<
   });
   for (const channels of tracks.values()) {
     for (const times of channels.values()) {
-      requireValidPlannedKeyframeTimes(times, context, true);
+      const sorted = [...times].sort((a, b) => a - b);
+      for (let index = 1; index < sorted.length; index++) {
+        if (nativeKeyframeTimesCollide(sorted[index - 1], sorted[index])) {
+          throw new Error(
+            `${context} would collapse multiple selected keyframes onto the same effective time. Use a different scale factor/pivot or reduce the selection.`
+          );
+        }
+      }
     }
   }
+}
+
+/**
+ * Predict the unselected keyframes that native replaceOthers() will remove.
+ * Full-animation Undo owns these casualties even when not selected.
+ */
+export function planBatchScaleOverwriteTargets<
+  T extends { animator: object | null | undefined; channel: string; time: number }
+>(
+  selected: readonly T[],
+  all: readonly T[],
+  plannedTimes: readonly number[]
+): T[] {
+  if (selected.length !== plannedTimes.length) {
+    throw new Error("Batch scale overwrite planning received mismatched keyframes and planned times.");
+  }
+  const selectedSet = new Set(selected);
+  const casualties = new Set<T>();
+  selected.forEach((keyframe, index) => {
+    for (const candidate of all) {
+      if (
+        candidate !== keyframe &&
+        !selectedSet.has(candidate) &&
+        candidate.animator === keyframe.animator &&
+        candidate.channel === keyframe.channel &&
+        nativeKeyframeTimesCollide(candidate.time, plannedTimes[index])
+      ) {
+        casualties.add(candidate);
+      }
+    }
+  });
+  return [...casualties];
 }
 
 export function requireValidPlannedPasteChannelTimes(

@@ -388,6 +388,9 @@ describe("animation mutation contract", () => {
       scaleBlock.indexOf("Undo.initEdit")
     );
     expect(scaleBlock).toContain("keyframe.replaceOthers(replacedKeyframes);");
+    expect(scaleBlock).toContain("planBatchScaleOverwriteTargets(");
+    expect(scaleBlock).toContain("animations: [animation]");
+    expect(scaleBlock).toContain("actualOverwrites.size !== expectedOverwrites.length");
     expect(scaleBlock).toContain("source_keyframes: keyframes.length");
     expect(scaleBlock).toContain("overwritten_keyframes: replacedKeyframes.length");
     expect(scaleBlock).toContain("structuredContent: result");

@@ -6,6 +6,7 @@ import {
   keyframeBelongsToAnimation,
   planMirroredBatchKeyframes,
   planSmoothedBatchKeyframes,
+  planBatchScaleOverwriteTargets,
   requireValidPlannedBatchTrackTimes,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
@@ -17,6 +18,7 @@ export {
   keyframeBelongsToAnimation,
   planMirroredBatchKeyframes,
   planSmoothedBatchKeyframes,
+  planBatchScaleOverwriteTargets,
   requireValidPlannedBatchTrackTimes,
   requireValidPlannedKeyframeTimes,
   requireValidPlannedPasteChannelTimes,
@@ -338,6 +340,12 @@ export function registerAnimationBatchTools(): void {
             plannedTimes,
             "Batch keyframe scale",
           );
+          // Native replaceOthers can remove unselected keyframes. Full-animation
+          // Undo already snapshots their authored state; the keyframe-only
+          // casualty hook would add a redundant second Undo ownership path.
+          const expectedOverwrites = planBatchScaleOverwriteTargets(
+            keyframes, targetTimelineKeyframes, plannedTimes
+          );
           const replacedKeyframes: _Keyframe[] = [];
   
           Undo.initEdit({
@@ -363,6 +371,16 @@ export function registerAnimationBatchTools(): void {
             stretchStates.forEach(({ keyframe }) => {
               keyframe.replaceOthers(replacedKeyframes);
             });
+            const actualOverwrites = new Set(replacedKeyframes);
+            if (
+              actualOverwrites.size !== expectedOverwrites.length ||
+              replacedKeyframes.length !== expectedOverwrites.length ||
+              expectedOverwrites.some(keyframe => !actualOverwrites.has(keyframe))
+            ) {
+              throw new Error(
+                "Batch keyframe scale native overwrite identities differed from preflight; cancelling the full animation edit."
+              );
+            }
   
             animation.setLength();
             Undo.finishEdit("Batch keyframe operation: scale");
