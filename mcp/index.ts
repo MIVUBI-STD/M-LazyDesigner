@@ -47,9 +47,9 @@ function currentBuildIdentity(): string | null {
   return (
     (
       globalThis as typeof globalThis & {
-        __BLOCKIT_BUILD_ID__?: unknown;
+        __LAZYDESIGNER_BUILD_ID__?: unknown;
       }
-    ).__BLOCKIT_BUILD_ID__ as string | undefined
+    ).__LAZYDESIGNER_BUILD_ID__ as string | undefined
   ) ?? null;
 }
 
@@ -146,7 +146,7 @@ async function initializeBlockItRuntime(
   setupLocalDevAutoReload(generation, currentBuildIdentity());
 }
 
-BBPlugin.register("blockit_mcp", {
+BBPlugin.register("lazydesigner_mcp", {
   version: VERSION,
   title: "LazyDesigner",
   author: "Anonymous",

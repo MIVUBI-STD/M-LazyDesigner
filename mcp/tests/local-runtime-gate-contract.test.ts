@@ -156,7 +156,7 @@ describe("local runtime gate source contract", () => {
       source("../docs/05-operations/local-acceptance-runbook.md"),
     ]);
 
-    expect(readme).toContain("dist/blockit_mcp.js");
+    expect(readme).toContain("dist/lazydesigner_mcp.js");
     expect(readme).toContain("AUTHORING↔Animation");
     expect(readme).toContain("HANDOFF_REQUIRED");
     expect(readme).toContain("switch_authoring_phase");

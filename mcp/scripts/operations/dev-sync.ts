@@ -6,12 +6,12 @@ import { deployArtifact, resolveDeployTarget } from "./deploy-local";
 import { DEFAULT_RUNTIME_URL } from "../../lib/runtimeConnection";
 import { runtimeFetch as fetch } from "../../lib/runtimeFetch";
 import {
-  LEGACY_MCP_BUNDLE_FILENAME,
-  LEGACY_MCP_URL_ENV,
+  MCP_BUNDLE_FILENAME,
+  MCP_URL_ENV,
 } from "../../compatibility/engineering-identifiers";
 
-const ARTIFACT_PATH = resolve(import.meta.dir, "../../dist", LEGACY_MCP_BUNDLE_FILENAME);
-const localRuntimeUrl = (process.env[LEGACY_MCP_URL_ENV] ?? DEFAULT_RUNTIME_URL).replace(/\/+$/, "");
+const ARTIFACT_PATH = resolve(import.meta.dir, "../../dist", MCP_BUNDLE_FILENAME);
+const localRuntimeUrl = (process.env[MCP_URL_ENV] ?? DEFAULT_RUNTIME_URL).replace(/\/+$/, "");
 
 type LiveBuildProbe = {
   online: boolean;
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
   };
 
   const watcher = watch(resolve(import.meta.dir, "../../dist"), { persistent: true }, (_event, filename) => {
-    if (filename === LEGACY_MCP_BUNDLE_FILENAME) queueSync();
+    if (filename === MCP_BUNDLE_FILENAME) queueSync();
   });
 
   const builder = spawn(

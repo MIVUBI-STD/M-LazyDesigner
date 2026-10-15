@@ -1,13 +1,13 @@
 import { copyFile, rename, rm, stat } from "node:fs/promises";
 import { basename, dirname, isAbsolute, resolve } from "node:path";
-import { LEGACY_PLUGIN_PATH_ENV } from "../../compatibility/engineering-identifiers";
+import { PLUGIN_PATH_ENV } from "../../compatibility/engineering-identifiers";
 import {
-  extractLegacyMcpBuildIdentity,
-  LEGACY_MCP_BUNDLE_FILENAME,
+  extractPluginBuildIdentity,
+  MCP_BUNDLE_FILENAME,
 } from "../../compatibility/build-artifact";
 
-const EXPECTED_PLUGIN_FILENAME = LEGACY_MCP_BUNDLE_FILENAME;
-const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../../dist", LEGACY_MCP_BUNDLE_FILENAME);
+const EXPECTED_PLUGIN_FILENAME = MCP_BUNDLE_FILENAME;
+const DEFAULT_ARTIFACT_PATH = resolve(import.meta.dir, "../../dist", MCP_BUNDLE_FILENAME);
 
 export function resolveDeployTarget(
   args: string[],
@@ -16,14 +16,14 @@ export function resolveDeployTarget(
   const positional = args.filter((arg) => arg !== "--");
   if (positional.length > 1) {
     throw new Error(
-      `Local deploy accepts exactly one destination path. Pass it as the only argument or set ${LEGACY_PLUGIN_PATH_ENV}.`
+      `Local deploy accepts exactly one destination path. Pass it as the only argument or set ${PLUGIN_PATH_ENV}.`
     );
   }
 
-  const rawTarget = positional[0] ?? env[LEGACY_PLUGIN_PATH_ENV];
+  const rawTarget = positional[0] ?? env[PLUGIN_PATH_ENV];
   if (!rawTarget) {
     throw new Error(
-      `Missing local Blockbench plugin destination. Pass an absolute path ending in ${EXPECTED_PLUGIN_FILENAME} or set ${LEGACY_PLUGIN_PATH_ENV}.`
+      `Missing local Blockbench plugin destination. Pass an absolute path ending in ${EXPECTED_PLUGIN_FILENAME} or set ${PLUGIN_PATH_ENV}.`
     );
   }
   if (!isAbsolute(rawTarget)) {
@@ -38,7 +38,7 @@ export function resolveDeployTarget(
   return resolve(rawTarget);
 }
 
-export const extractBuildIdentity = extractLegacyMcpBuildIdentity;
+export const extractBuildIdentity = extractPluginBuildIdentity;
 
 export async function deployArtifact(
   sourcePath: string,

@@ -6,8 +6,8 @@ import {
   type JsonObject,
 } from "./live-e2e-common";
 
-const PROJECT_A = "blockit_affinity_a_disposable";
-const PROJECT_B = "blockit_affinity_b_disposable";
+const PROJECT_A = "lazydesigner_affinity_a_disposable";
+const PROJECT_B = "lazydesigner_affinity_b_disposable";
 
 requireDisposableConsent();
 
@@ -61,9 +61,9 @@ async function projectInfo(gateway: BlockitRuntimeBackend) {
 async function main() {
   try {
     const initial = await gatewayA.getStatus();
-    expect(initial.runtime.online, "BlockIT Runtime must be online.");
+    expect(initial.runtime.online, "LazyDesigner Runtime must be online.");
     const initialProject = readRuntimeProjectHealth(initial.runtime.health);
-    expect(initialProject, "Installed BlockIT Runtime has no project-affinity health contract.");
+    expect(initialProject, "Installed LazyDesigner Runtime has no project-affinity health contract.");
     expect(
       initialProject.open_project_count === 0,
       `PROJECT AFFINITY LIVE REFUSED: close all Blockbench project tabs first; found ${initialProject.open_project_count}.`

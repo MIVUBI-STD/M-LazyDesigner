@@ -67,10 +67,10 @@ jobs:
         id: verified_bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: blockit-mcp-verified
+          name: lazydesigner-mcp-verified
           path: |
-            mcp/dist/blockit_mcp.js
-            mcp/dist/blockit-build-provenance.json
+            mcp/dist/lazydesigner_mcp.js
+            mcp/dist/lazydesigner-build-provenance.json
           if-no-files-found: error
           retention-days: 14
 

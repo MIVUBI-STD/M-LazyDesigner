@@ -192,7 +192,7 @@ jobs:
 
           $checksumLines | Set-Content -Encoding ascii (Join-Path $bundle 'SHA256SUMS.txt')
 
-          $managedManifest = Join-Path $PWD 'src-tauri\resources\managed\blockit-package.json'
+          $managedManifest = Join-Path $PWD 'src-tauri\resources\managed\lazydesigner-package.json'
           $managed = Get-Content -LiteralPath $managedManifest -Raw | ConvertFrom-Json
           if ($managed.source_sha -ne $env:GITHUB_SHA) {
             throw "Bundled managed source SHA $($managed.source_sha) does not match release source SHA $env:GITHUB_SHA."

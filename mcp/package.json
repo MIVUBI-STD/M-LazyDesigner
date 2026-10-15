@@ -1,5 +1,5 @@
 {
-  "name": "blockit-bedrock-entity-mcp",
+  "name": "lazydesigner-bedrock-entity-mcp",
   "version": "0.2.0",
   "description": "Minecraft Bedrock Entity-focused MCP server plugin for Blockbench",
   "keywords": [
@@ -12,7 +12,7 @@
     "Jason J. Gardner"
   ],
   "type": "module",
-  "main": "dist/blockit_mcp.js",
+  "main": "dist/lazydesigner_mcp.js",
   "scripts": {
     "check": "bun run verify:repository && bun run typecheck && bun run typecheck:gateway",
     "verify": "bun run verify:full",

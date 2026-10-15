@@ -7,7 +7,7 @@ import type {
   CapabilityFactState,
 } from "../capabilities/types";
 
-export const GATEWAY_NAME = "blockit-gateway";
+export const GATEWAY_NAME = "lazydesigner-gateway";
 export const GATEWAY_VERSION = version;
 
 export const GATEWAY_TOOLS = {

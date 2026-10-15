@@ -12,8 +12,8 @@ export function getReloadableLazyDesignerPlugin(): ReloadableLazyDesignerPlugin 
     all?: ReloadableLazyDesignerPlugin[];
   };
   return (
-    pluginState.registered?.blockit_mcp ??
-    pluginState.all?.find((plugin) => plugin.id === "blockit_mcp") ??
+    pluginState.registered?.lazydesigner_mcp ??
+    pluginState.all?.find((plugin) => plugin.id === "lazydesigner_mcp") ??
     null
   );
 }

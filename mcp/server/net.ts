@@ -68,7 +68,7 @@ export function normalizeBuildIdentity (value: unknown): string {
 }
 
 const BUILD_IDENTITY = normalizeBuildIdentity(
-  (globalThis as { __BLOCKIT_BUILD_ID__?: unknown }).__BLOCKIT_BUILD_ID__
+  (globalThis as { __LAZYDESIGNER_BUILD_ID__?: unknown }).__LAZYDESIGNER_BUILD_ID__
 )
 
 export interface NetServer extends NodeHttpServer {

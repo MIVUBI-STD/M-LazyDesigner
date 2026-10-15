@@ -19,14 +19,14 @@ describe("verified GitHub build artifact", () => {
   });
 
   test("pins exact source SHA, bundle hash, embedded build identity, verifier and toolchain", async () => {
-    const root = mkdtempSync(join(tmpdir(), "blockit-verified-artifact-"));
+    const root = mkdtempSync(join(tmpdir(), "lazydesigner-verified-artifact-"));
     try {
       const identity = `sha256:${"a".repeat(64)}`;
       const gitSha = "b".repeat(40);
       const bundlePath = join(root, VERIFIED_BUNDLE_FILENAME);
       await Bun.write(
         bundlePath,
-        `globalThis.__BLOCKIT_BUILD_ID__ = ${JSON.stringify(identity)};\nconsole.log("verified fixture");\n`
+        `globalThis.__LAZYDESIGNER_BUILD_ID__ = ${JSON.stringify(identity)};\nconsole.log("verified fixture");\n`
       );
 
       const written = await writeVerifiedBuildProvenance({
@@ -62,14 +62,14 @@ describe("verified GitHub build artifact", () => {
   });
 
   test("rejects stale checkout provenance and tampered bundle bytes", async () => {
-    const root = mkdtempSync(join(tmpdir(), "blockit-verified-artifact-tamper-"));
+    const root = mkdtempSync(join(tmpdir(), "lazydesigner-verified-artifact-tamper-"));
     try {
       const identity = `sha256:${"c".repeat(64)}`;
       const gitSha = "d".repeat(40);
       const bundlePath = join(root, VERIFIED_BUNDLE_FILENAME);
       await Bun.write(
         bundlePath,
-        `globalThis.__BLOCKIT_BUILD_ID__ = ${JSON.stringify(identity)};\n`
+        `globalThis.__LAZYDESIGNER_BUILD_ID__ = ${JSON.stringify(identity)};\n`
       );
       await writeVerifiedBuildProvenance({
         artifact_dir: root,
@@ -89,7 +89,7 @@ describe("verified GitHub build artifact", () => {
 
       await Bun.write(
         bundlePath,
-        `globalThis.__BLOCKIT_BUILD_ID__ = ${JSON.stringify(identity)};\nconsole.log("tampered");\n`
+        `globalThis.__LAZYDESIGNER_BUILD_ID__ = ${JSON.stringify(identity)};\nconsole.log("tampered");\n`
       );
       await expect(
         verifyVerifiedBuildArtifact({

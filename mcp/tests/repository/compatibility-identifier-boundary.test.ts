@@ -19,20 +19,20 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     ]);
     const pkg = JSON.parse(pkgText) as { name: string; main: string };
 
-    expect(pkg.name).toBe("blockit-bedrock-entity-mcp");
-    expect(pkg.main).toBe("dist/blockit_mcp.js");
-    expect(protocol).toContain('GATEWAY_NAME = "blockit-gateway"');
-    expect(backend).toContain("process.env.BLOCKIT_RUNTIME_URL");
-    expect(backend).toContain("process.env.BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH");
-    expect(backend).toContain('name: "blockit-gateway-runtime-client"');
-    expect(affinity).toContain('"x-blockit-project-uuid"');
-    expect(affinity).toContain('"x-blockit-authoring-phase"');
-    expect(settings).toContain('"blockit_mcp.extended_families_enabled"');
+    expect(pkg.name).toBe("lazydesigner-bedrock-entity-mcp");
+    expect(pkg.main).toBe("dist/lazydesigner_mcp.js");
+    expect(protocol).toContain('GATEWAY_NAME = "lazydesigner-gateway"');
+    expect(backend).toContain("process.env.LAZYDESIGNER_RUNTIME_URL");
+    expect(backend).toContain("process.env.LAZYDESIGNER_GATEWAY_MAX_QUEUE_DEPTH");
+    expect(backend).toContain('name: "lazydesigner-gateway-runtime-client"');
+    expect(affinity).toContain('"x-lazydesigner-project-uuid"');
+    expect(affinity).toContain('"x-lazydesigner-authoring-phase"');
+    expect(settings).toContain('"lazydesigner_mcp.extended_families_enabled"');
     expect(authoringPhase).toContain('MCP_AUTHORING_PHASE_SETTING_ID = "mcp_authoring_phase"');
     expect(profile).toContain('"mcp_extended_families_enabled"');
-    expect(plugin).toContain('BBPlugin.register("blockit_mcp"');
-    expect(plugin).toContain("__BLOCKIT_BUILD_ID__");
-    expect(statusBar).toContain('BLOCKIT_RUNTIME_STATUS_CHANGED = "blockit-runtime-status-changed"');
+    expect(plugin).toContain('BBPlugin.register("lazydesigner_mcp"');
+    expect(plugin).toContain("__LAZYDESIGNER_BUILD_ID__");
+    expect(statusBar).toContain('"lazydesigner-runtime-status-changed"');
   });
 
   test("human-facing Runtime, Gateway and UI language uses LazyDesigner or neutral compatibility language", async () => {
@@ -85,7 +85,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
 
   test("compatibility policy explicitly forbids blind bulk rename", async () => {
     const policy = await source("../docs/04-system/compatibility-identifiers.md");
-    expect(policy).toContain("Do not bulk-replace `blockit` across the repository");
+    expect(policy).toContain("Active Decision — Canonical LazyDesigner-only Installation");
     expect(policy).toContain("Compatibility-Bound Identifiers");
     expect(policy).toContain("Presentation Identity");
     expect(policy).toContain("Migration Preconditions");

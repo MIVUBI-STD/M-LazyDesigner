@@ -17,7 +17,7 @@ let localDevReloadInProgress: Promise<void> | null = null;
 function embeddedBuildIdentity(content: string): string | null {
   return (
     content.match(
-      /globalThis\.__BLOCKIT_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
+      /globalThis\.__LAZYDESIGNER_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
     )?.[1] ?? null
   );
 }

@@ -4,12 +4,12 @@ import {
   resolveDeployTarget,
 } from "./deploy-local";
 import {
-  extractLegacyMcpBuildIdentity,
-  LEGACY_MCP_BUNDLE_FILENAME,
+  extractPluginBuildIdentity,
+  MCP_BUNDLE_FILENAME,
 } from "../../compatibility/build-artifact";
 
-export const VERIFIED_BUNDLE_FILENAME = LEGACY_MCP_BUNDLE_FILENAME;
-export const VERIFIED_PROVENANCE_FILENAME = "blockit-build-provenance.json";
+export const VERIFIED_BUNDLE_FILENAME = MCP_BUNDLE_FILENAME;
+export const VERIFIED_PROVENANCE_FILENAME = "lazydesigner-build-provenance.json";
 export const VERIFIED_REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
 // This script lives under mcp/scripts/operations. CI uploads mcp/dist/.
 export const VERIFIED_PACKAGE_ARTIFACT_DIR = resolve(import.meta.dir, "../../dist");
@@ -113,7 +113,7 @@ export async function writeVerifiedBuildProvenance(options: {
     bun_version: options.bun_version,
     bundle_filename: VERIFIED_BUNDLE_FILENAME,
     bundle_sha256: await fileSha256(bundlePath),
-    build_identity: extractLegacyMcpBuildIdentity(bundleText),
+    build_identity: extractPluginBuildIdentity(bundleText),
   };
   const provenancePath = resolve(artifactDir, VERIFIED_PROVENANCE_FILENAME);
   await Bun.write(provenancePath, `${JSON.stringify(provenance, null, 2)}\n`);
@@ -160,7 +160,7 @@ export async function verifyVerifiedBuildArtifact(options: {
     actualHash === provenance.bundle_sha256,
     `Verified artifact bundle hash mismatch: artifact=${provenance.bundle_sha256}; actual=${actualHash}.`
   );
-  const actualIdentity = extractLegacyMcpBuildIdentity(await Bun.file(bundlePath).text());
+  const actualIdentity = extractPluginBuildIdentity(await Bun.file(bundlePath).text());
   expectValue(
     actualIdentity === provenance.build_identity,
     `Verified artifact build identity mismatch: provenance=${provenance.build_identity}; bundle=${actualIdentity}.`
@@ -220,10 +220,10 @@ async function writeCi(): Promise<void> {
 }
 
 async function deployVerified(args: string[]): Promise<void> {
-  const rawArtifactDir = args[0] ?? process.env.BLOCKIT_VERIFIED_ARTIFACT_DIR;
+  const rawArtifactDir = args[0] ?? process.env.LAZYDESIGNER_VERIFIED_ARTIFACT_DIR;
   expectValue(
     rawArtifactDir,
-    "Missing verified artifact directory. Pass it as the first argument or set BLOCKIT_VERIFIED_ARTIFACT_DIR."
+    "Missing verified artifact directory. Pass it as the first argument or set LAZYDESIGNER_VERIFIED_ARTIFACT_DIR."
   );
   expectValue(
     isAbsolute(rawArtifactDir),
@@ -239,13 +239,13 @@ async function deployVerified(args: string[]): Promise<void> {
   });
   const receipt = await deployArtifact(verified.bundle_path, target);
 
-  console.log("Verified BlockIT CI artifact deployed.");
+  console.log("Verified LazyDesigner CI artifact deployed.");
   console.log(`source_sha: ${verified.provenance.git_sha}`);
   console.log(`bundle_sha256: ${verified.provenance.bundle_sha256}`);
   console.log(`target: ${receipt.target}`);
   console.log(`build_identity: ${receipt.build_identity}`);
   console.log(
-    "Reload Blockbench/BlockIT, reconnect, then run the relevant live verifier. Its shared preflight owns freshness/runtime checks; use verify:stateless-local only for diagnosis when that preflight fails."
+    "Reload Blockbench/LazyDesigner, reconnect, then run the relevant live verifier. Its shared preflight owns freshness/runtime checks; use verify:stateless-local only for diagnosis when that preflight fails."
   );
 }
 

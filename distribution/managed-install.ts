@@ -4,8 +4,8 @@ import { lstat, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { PROFILE_PATHS } from "../mcp/gateway/control/contexts";
 import {
-  extractLegacyMcpBuildIdentity,
-  LEGACY_MCP_BUNDLE_FILENAME,
+  extractPluginBuildIdentity,
+  MCP_BUNDLE_FILENAME,
 } from "../mcp/compatibility/build-artifact";
 
 export const REPOSITORY = "MIVUBI-STD/M-LazyDesigner";
@@ -31,18 +31,18 @@ export type RollbackStatus = { available: boolean; previous_source_sha: string |
 export type Edit = { path: string; bytes: Uint8Array; expected: string | null };
 type Entry = { path: string; before: string | null; after: string; index: number };
 type Journal = { schema: 1; status: "prepared" | "committed" | "rolled_back"; entries: Entry[] };
-const BEGIN = "# BEGIN BLOCKIT MANAGED";
-const END = "# END BLOCKIT MANAGED";
+const BEGIN = "# BEGIN LAZYDESIGNER MANAGED";
+const END = "# END LAZYDESIGNER MANAGED";
 
 export function allowedPackagePath(path: string): boolean {
-  return ["blockit.exe", LEGACY_MCP_BUNDLE_FILENAME, "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS].includes(path);
+  return ["lazydesigner.exe", MCP_BUNDLE_FILENAME, "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS].includes(path);
 }
 
 export function parseManifest(value: unknown): Manifest {
   const m = value as Manifest;
   if (!m || m.schema !== 1 || m.repository !== REPOSITORY || m.platform !== "windows-x64"
       || !/^[a-f0-9]{40}$/.test(m.source_sha) || !/^sha256:[a-f0-9]{64}$/.test(m.build_identity)
-      || !Array.isArray(m.files) || m.files.length > 80) throw new Error("Invalid BlockIT package manifest.");
+      || !Array.isArray(m.files) || m.files.length > 80) throw new Error("Invalid LazyDesigner package manifest.");
   const paths = new Set<string>();
   let total = 0;
   for (const f of m.files) {
@@ -52,7 +52,7 @@ export function parseManifest(value: unknown): Manifest {
     paths.add(f.path.toLowerCase()); total += f.size;
   }
   if (total > 250_000_000) throw new Error("Package exceeds the installation size limit.");
-  for (const required of ["blockit.exe", LEGACY_MCP_BUNDLE_FILENAME, "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS]) {
+  for (const required of ["lazydesigner.exe", MCP_BUNDLE_FILENAME, "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS]) {
     if (!paths.has(required.toLowerCase())) throw new Error(`Incomplete package: ${required}`);
   }
   return m;
@@ -106,7 +106,7 @@ export async function requirePlainPath(path: string): Promise<void> {
 
 export async function atomicWrite(path: string, bytes: Uint8Array): Promise<void> {
   await requirePlainPath(path); await mkdir(dirname(path), { recursive: true });
-  const temp = `${path}.blockit-${randomUUID()}`;
+  const temp = `${path}.lazydesigner-${randomUUID()}`;
   try { await writeFile(temp, bytes, { flag: "wx" }); await rename(temp, path); }
   finally { await rm(temp, { force: true }); }
 }
@@ -133,21 +133,24 @@ export function processAlive(pid: number): boolean {
 }
 
 export async function verifyPackage(directory: string): Promise<Manifest> {
-  await requirePlainPath(join(directory, "blockit-package.json"));
-  const m = parseManifest(JSON.parse((await readFile(join(directory, "blockit-package.json"))).toString()));
+  await requirePlainPath(join(directory, "lazydesigner-package.json"));
+  const m = parseManifest(JSON.parse((await readFile(join(directory, "lazydesigner-package.json"))).toString()));
   for (const file of m.files) {
     const path = join(directory, file.path); await requirePlainPath(path);
     const info = await lstat(path);
     if (!info.isFile() || info.size !== file.size || await digestAt(path) !== file.sha256) throw new Error(`Package integrity failed: ${file.path}`);
   }
-  const plugin = (await readFile(join(directory, LEGACY_MCP_BUNDLE_FILENAME))).toString();
-  if (extractLegacyMcpBuildIdentity(plugin) !== m.build_identity) throw new Error("Plugin build identity does not match the package.");
+  const plugin = (await readFile(join(directory, MCP_BUNDLE_FILENAME))).toString();
+  if (extractPluginBuildIdentity(plugin) !== m.build_identity) throw new Error("Plugin build identity does not match the package.");
   return m;
 }
 
 function managedBlock(original: string, replacement: string): string {
+  if (original.includes("# BEGIN BLOCKIT MANAGED") || original.includes("# END BLOCKIT MANAGED")) {
+    throw new Error("Retired BlockIT managed instructions were found. Explicit migration is required; existing content was preserved.");
+  }
   const start = original.indexOf(BEGIN), end = original.indexOf(END);
-  if ((start === -1) !== (end === -1) || (start >= 0 && (end < start || original.indexOf(BEGIN, start + 1) >= 0 || original.indexOf(END, end + 1) >= 0))) throw new Error("Malformed BlockIT managed section; refusing to rewrite user content.");
+  if ((start === -1) !== (end === -1) || (start >= 0 && (end < start || original.indexOf(BEGIN, start + 1) >= 0 || original.indexOf(END, end + 1) >= 0))) throw new Error("Malformed LazyDesigner managed section; refusing to rewrite user content.");
   const block = `${BEGIN}\n${replacement.trim()}\n${END}`;
   return start < 0 ? `${original}${original.endsWith("\n") || !original ? "" : "\n"}\n${block}\n` : original.slice(0, start) + block + original.slice(end + END.length);
 }
@@ -187,19 +190,24 @@ function requireTomlStatements(text: string): void {
 }
 
 // Parse both versions with Bun's TOML parser; never regex-edit unvalidated config.
-// Existing unowned BlockIT configuration needs explicit adoption, other servers do not.
+// Existing unowned LazyDesigner configuration needs explicit adoption, other servers do not.
 export function configureCodex(original: string, executable: string, parse: (text: string) => any, adopt = false): string {
   requireTomlStatements(original);
   const before = parse(original);
+  // A retired client entry is a separate, potentially active Runtime owner.
+  // Preserve it until an explicit backed-up migration; never auto-adopt.
+  if (before.mcp_servers?.blockit || original.includes("# BEGIN BLOCKIT MANAGED")) {
+    throw new Error("Retired BlockIT client configuration detected. Explicit LazyDesigner migration is required; no configuration was changed.");
+  }
   const hasManaged = original.includes(BEGIN);
   let base = original;
-  if (!hasManaged && before.mcp_servers?.blockit) {
-    if (!adopt) throw new Error("An existing blockit MCP configuration needs --adopt; it will be backed up.");
-    // Only the ordinary, explicit BlockIT table form can be adopted without guessing TOML structure.
+  if (!hasManaged && before.mcp_servers?.lazydesigner) {
+    if (!adopt) throw new Error("An existing lazydesigner MCP configuration needs --adopt; it will be backed up.");
+    // Only the ordinary, explicit LazyDesigner table form can be adopted without guessing TOML structure.
     const lines = original.split(/(?<=\n)/); let inside = false; let found = false; const kept: string[] = [];
     for (const line of lines) {
       if (/^\s*\[/.test(line)) {
-        inside = /^\s*\[mcp_servers\.blockit(?:\.[A-Za-z0-9_-]+)?\]\s*(?:#.*)?(?:\r?\n)?$/.test(line);
+        inside = /^\s*\[mcp_servers\.lazydesigner(?:\.[A-Za-z0-9_-]+)?\]\s*(?:#.*)?(?:\r?\n)?$/.test(line);
         if (inside) found = true;
       }
       if (!inside) kept.push(line);
@@ -207,27 +215,27 @@ export function configureCodex(original: string, executable: string, parse: (tex
     if (!found) throw new Error("Cannot safely adopt this nonstandard TOML table form.");
     base = kept.join("");
   }
-  const prior = before.mcp_servers?.blockit ?? {};
+  const prior = before.mcp_servers?.lazydesigner ?? {};
   // Preserve options/security decisions rather than silently re-enabling a disabled server.
-  if (prior.enabled === false) throw new Error("BlockIT is disabled in Codex; enable it explicitly before installation.");
+  if (prior.enabled === false) throw new Error("LazyDesigner is disabled in Codex; enable it explicitly before installation.");
   // Codex defaults to 60s per tool, shorter than the Gateway's 120s native
   // Runtime call budget. Give unspecified managed entries enough headroom;
   // explicit user timeouts remain authoritative and are never rewritten.
   const options = { tool_timeout_sec: 180, ...prior, command: executable, args: ["mcp"] };
-  if (Object.hasOwn(options, "url")) throw new Error("Existing blockit points to a remote server; refusing to replace it.");
+  if (Object.hasOwn(options, "url")) throw new Error("Existing lazydesigner points to a remote server; refusing to replace it.");
   const scalar = (v: unknown): string => {
     if (typeof v === "string") return JSON.stringify(v);
     if (typeof v === "boolean" || typeof v === "number" && Number.isFinite(v)) return String(v);
     if (Array.isArray(v)) return `[${v.map(scalar).join(", ")}]`;
     if (v && typeof v === "object") return `{ ${Object.entries(v).map(([k, x]) => `${JSON.stringify(k)} = ${scalar(x)}`).join(", ")} }`;
-    throw new Error("Unsupported existing BlockIT TOML value; no configuration changed.");
+    throw new Error("Unsupported existing LazyDesigner TOML value; no configuration changed.");
   };
-  const after = managedBlock(base, `[mcp_servers.blockit]\n${Object.entries(options).map(([k, v]) => `${JSON.stringify(k)} = ${scalar(v)}`).join("\n")}`);
+  const after = managedBlock(base, `[mcp_servers.lazydesigner]\n${Object.entries(options).map(([k, v]) => `${JSON.stringify(k)} = ${scalar(v)}`).join("\n")}`);
   requireTomlStatements(after);
   const parsed = parse(after);
-  const strip = (o: any) => { const copy = structuredClone(o); if (copy.mcp_servers) { delete copy.mcp_servers.blockit; if (!Object.keys(copy.mcp_servers).length) delete copy.mcp_servers; } return copy; };
+  const strip = (o: any) => { const copy = structuredClone(o); if (copy.mcp_servers) { delete copy.mcp_servers.lazydesigner; if (!Object.keys(copy.mcp_servers).length) delete copy.mcp_servers; } return copy; };
   const canonical = (v: any): any => Array.isArray(v) ? v.map(canonical) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
-  if (JSON.stringify(canonical(strip(before))) !== JSON.stringify(canonical(strip(parsed))) || JSON.stringify(canonical(parsed.mcp_servers?.blockit)) !== JSON.stringify(canonical(options))) throw new Error("Codex configuration preservation check failed.");
+  if (JSON.stringify(canonical(strip(before))) !== JSON.stringify(canonical(strip(parsed))) || JSON.stringify(canonical(parsed.mcp_servers?.lazydesigner)) !== JSON.stringify(canonical(options))) throw new Error("Codex configuration preservation check failed.");
   return after;
 }
 
@@ -333,13 +341,19 @@ export async function rollbackStatus(root: string): Promise<RollbackStatus> {
 export async function installPackage(directory: string, options: InstallOptions, parseToml: (s: string) => any, adopt = false): Promise<{ source_sha: string; changed_files: number; transaction: string | null }> {
   const m = await verifyPackage(directory);
   for (const p of Object.values(options)) await requirePlainPath(p);
-  if (basename(options.plugin) !== LEGACY_MCP_BUNDLE_FILENAME) throw new Error(`The plugin destination must be ${LEGACY_MCP_BUNDLE_FILENAME}.`);
+  if (basename(options.plugin) !== MCP_BUNDLE_FILENAME) throw new Error(`The plugin destination must be ${MCP_BUNDLE_FILENAME}.`);
   const previous = await installedState(options.root);
+  // Blockbench must not activate the old and new Runtime plugins together.
+  // This detector is read-only; the retired file is never run or overwritten.
+  const retiredPlugin = join(dirname(options.plugin), "blockit_mcp.js");
+  if (await readOptional(retiredPlugin) !== null) {
+    throw new Error("Retired BlockIT plugin exists in this Blockbench profile. Explicit migration is required; no file was replaced.");
+  }
   if (previous && JSON.stringify(previous.options) !== JSON.stringify(options)) throw new Error("Installation locations are already pinned; do not silently rebind them.");
   const version = join(options.root, "versions", m.source_sha);
   await requirePlainPath(version);
   // Immutable version directory: interrupted copies can resume, conflicting bytes cannot.
-  for (const f of [...m.files, { path: "blockit-package.json", sha256: await digestAt(join(directory, "blockit-package.json")), size: 0 }]) {
+  for (const f of [...m.files, { path: "lazydesigner-package.json", sha256: await digestAt(join(directory, "lazydesigner-package.json")), size: 0 }]) {
     const source = join(directory, f.path), dest = join(version, f.path);
     await requirePlainPath(dest); const old = await digestAt(dest);
     if (old !== null && old !== f.sha256) throw new Error(`Immutable package conflict: ${dest}`);
@@ -354,18 +368,18 @@ export async function installPackage(directory: string, options: InstallOptions,
     if (current !== desired) edits.push({ path, bytes, expected: current });
   };
   for (const f of m.files) {
-    if (f.path === "blockit.exe" || f.path === "LICENSE" || f.path === "THIRD_PARTY_NOTICES.txt") continue;
-    const path = f.path === LEGACY_MCP_BUNDLE_FILENAME ? options.plugin : join(options.workspace, f.path);
+    if (f.path === "lazydesigner.exe" || f.path === "LICENSE" || f.path === "THIRD_PARTY_NOTICES.txt") continue;
+    const path = f.path === MCP_BUNDLE_FILENAME ? options.plugin : join(options.workspace, f.path);
     const bytes = await readFile(join(version, f.path));
     if (f.path === "AGENTS.md") await plan(path, Buffer.from(managedBlock((await readOptional(path))?.toString() ?? "", bytes.toString())), true);
     else await plan(path, bytes);
   }
   const configuration = (await readOptional(options.config))?.toString() ?? "";
-  await plan(options.config, Buffer.from(configureCodex(configuration, join(version, "blockit.exe"), parseToml, adopt)), true);
+  await plan(options.config, Buffer.from(configureCodex(configuration, join(version, "lazydesigner.exe"), parseToml, adopt)), true);
   // A cmd entrypoint is for explicit maintenance only; MCP starts the executable directly.
-  const escaped = join(version, "blockit.exe");
+  const escaped = join(version, "lazydesigner.exe");
   if (/[\r\n"%!]/.test(escaped)) throw new Error("Install path contains unsupported Windows command characters.");
-  await plan(join(options.root, "blockit.cmd"), Buffer.from(`@echo off\r\n"${escaped}" %*\r\n`));
+  await plan(join(options.root, "lazydesigner.cmd"), Buffer.from(`@echo off\r\n"${escaped}" %*\r\n`));
   const state: Installed = { schema: 1, source_sha: m.source_sha, options, owned };
   const statePath = join(options.root, "installed.json"), stateBytes = jsonBytes(state);
   if (await digestAt(statePath) !== sha256(stateBytes)) edits.push({ path: statePath, bytes: stateBytes, expected: await digestAt(statePath) });

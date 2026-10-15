@@ -17,10 +17,10 @@ try {
   Pop-Location
 }
 
-if (!(Test-Path -LiteralPath (Join-Path $sourcePackage 'blockit.exe') -PathType Leaf)) {
-  throw 'Managed package did not produce blockit.exe.'
+if (!(Test-Path -LiteralPath (Join-Path $sourcePackage 'lazydesigner.exe') -PathType Leaf)) {
+  throw 'Managed package did not produce lazydesigner.exe.'
 }
-$manifestPath = Join-Path $sourcePackage 'blockit-package.json'
+$manifestPath = Join-Path $sourcePackage 'lazydesigner-package.json'
 if (!(Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
   throw 'Managed package manifest is missing.'
 }

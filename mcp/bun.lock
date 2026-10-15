@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "blockit-bedrock-entity-mcp",
+      "name": "lazydesigner-bedrock-entity-mcp",
       "dependencies": {
         "@modelcontextprotocol/client": "^2.0.0",
         "@modelcontextprotocol/server": "^2.0.0",

@@ -13,7 +13,7 @@ import { PRODUCT_ID } from "@/lib/product/productIdentity";
 
 import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../../lib/runtime/connection";
 import { runtimeFetch as fetch } from "../../lib/runtime/fetch";
-const DEFAULT_BUNDLE_PATH = "dist/blockit_mcp.js";
+const DEFAULT_BUNDLE_PATH = "dist/lazydesigner_mcp.js";
 const EXPECTED_PROFILE: McpRegistrationProfile = "bedrock_entity";
 const DEFAULT_PHASE: McpAuthoringPhase = "geometry";
 const PROTOCOL_VERSION = "2025-06-18";
@@ -54,12 +54,12 @@ export type LocalSmokeDiagnosticCode =
   | "RETIRED_PLAN_ID_EXPOSED";
 
 const DIAGNOSTICS = {
-  BLOCKBENCH_SERVER_UNREACHABLE: ["BLOCKBENCH_RUNTIME", "Start/reload BlockIT in desktop Blockbench and confirm the loopback endpoint."],
-  MCP_HEALTH_UNREADABLE: ["ENVIRONMENT / INSTALL", "Confirm the loopback port belongs to BlockIT and /health returns HTTP 200 JSON."],
-  WRONG_MCP_PRODUCT: ["ENVIRONMENT / INSTALL", "Close stale MCP owners and load only mcp/dist/blockit_mcp.js."],
+  BLOCKBENCH_SERVER_UNREACHABLE: ["BLOCKBENCH_RUNTIME", "Start/reload LazyDesigner in desktop Blockbench and confirm the loopback endpoint."],
+  MCP_HEALTH_UNREADABLE: ["ENVIRONMENT / INSTALL", "Confirm the loopback port belongs to LazyDesigner and /health returns HTTP 200 JSON."],
+  WRONG_MCP_PRODUCT: ["ENVIRONMENT / INSTALL", "Close stale MCP owners and load only mcp/dist/lazydesigner_mcp.js."],
   STALE_BUILD: ["ENVIRONMENT / INSTALL", "Reload the exact freshly built plugin; do not inspect tools/list until build_identity matches."],
-  SERVER_PROCESS_UNSTABLE: ["BLOCKBENCH_RUNTIME", "Stabilize BlockIT/Blockbench so instance_id and startup_time remain unchanged."],
-  WRONG_AUTHORING_PHASE: ["ENVIRONMENT / INSTALL", "Set the intended MCP Authoring Phase, reload BlockIT MCP, then reconnect."],
+  SERVER_PROCESS_UNSTABLE: ["BLOCKBENCH_RUNTIME", "Stabilize LazyDesigner/Blockbench so instance_id and startup_time remain unchanged."],
+  WRONG_AUTHORING_PHASE: ["ENVIRONMENT / INSTALL", "Set the intended MCP Authoring Phase, reload LazyDesigner MCP, then reconnect."],
   MCP_HEALTH_CONTRACT_MISMATCH: ["MCP_PUBLIC_CONTRACT", "The fresh bundle is running but its health transport contract differs from source."],
   MCP_INITIALIZE_CONTRACT_MISMATCH: ["MCP_PUBLIC_CONTRACT", "The fresh bundle failed initialize semantics; inspect that contract owner first."],
   SURFACE_MISMATCH: ["MCP_PUBLIC_CONTRACT", "Capture missing/unexpected live tool names and fix only the first surface owner."],
@@ -103,13 +103,13 @@ const args = process.argv.slice(2);
 const firstIsUrl = typeof args[0] === "string" && /^https?:\/\//i.test(args[0]);
 const targetUrl = (
   (firstIsUrl ? args[0] : undefined) ||
-  process.env.BLOCKIT_MCP_URL ||
+  process.env.LAZYDESIGNER_MCP_URL ||
   DEFAULT_MCP_URL
 ).replace(/\/+$/, "");
 const phaseArg = firstIsUrl ? args[1] : args[0];
 const bundlePath =
   (firstIsUrl ? args[2] : args[1]) ||
-  process.env.BLOCKIT_MCP_BUNDLE ||
+  process.env.LAZYDESIGNER_MCP_BUNDLE ||
   DEFAULT_BUNDLE_PATH;
 const checks: Check[] = [];
 
@@ -133,7 +133,7 @@ function stop(code: LocalSmokeDiagnosticCode, name: string, detail: string): voi
 }
 
 function expectedPhase(): McpAuthoringPhase {
-  const phase = phaseArg || process.env.BLOCKIT_EXPECTED_PHASE || DEFAULT_PHASE;
+  const phase = phaseArg || process.env.LAZYDESIGNER_EXPECTED_PHASE || DEFAULT_PHASE;
   if (!isMcpAuthoringPhase(phase)) {
     throw new Error(
       `Invalid expected phase "${String(phase)}". Use geometry, texturing, or animation.`
@@ -153,7 +153,7 @@ async function localBuildIdentity(): Promise<string> {
     throw new Error(`Missing ${bundlePath}. Run bun run build first.`);
   }
   const match = (await file.text()).match(
-    /globalThis\.__BLOCKIT_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
+    /globalThis\.__LAZYDESIGNER_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
   );
   if (!match?.[1]) {
     throw new Error(`${bundlePath} has no valid embedded build identity.`);
@@ -221,7 +221,7 @@ async function verify(): Promise<void> {
   registerMcpProfile(EXPECTED_PROFILE);
   let expectedNames = [...getMcpSurfaceToolNames(EXPECTED_PROFILE, phase)].sort();
 
-  console.log(`BlockIT local diagnostic gate: ${targetUrl}`);
+  console.log(`LazyDesigner local diagnostic gate: ${targetUrl}`);
   console.log(
     `Expected product=${PRODUCT_ID}; profile=${EXPECTED_PROFILE}; phase=${phase}; tools=${expectedNames.length}`
   );
@@ -251,7 +251,7 @@ async function verify(): Promise<void> {
     profile?: unknown;
     authoring_phase?: unknown;
   };
-  if (!phaseArg && !process.env.BLOCKIT_EXPECTED_PHASE && isMcpAuthoringPhase(product.authoring_phase)) {
+  if (!phaseArg && !process.env.LAZYDESIGNER_EXPECTED_PHASE && isMcpAuthoringPhase(product.authoring_phase)) {
     phase = product.authoring_phase;
     expectedNames = [...getMcpSurfaceToolNames(EXPECTED_PROFILE, phase)].sort();
   }
@@ -348,7 +348,7 @@ async function verify(): Promise<void> {
     params: {
       protocolVersion: PROTOCOL_VERSION,
       capabilities: {},
-      clientInfo: { name: "blockit-local-smoke", version: "1.0.0" },
+      clientInfo: { name: "lazydesigner-local-smoke", version: "1.0.0" },
     },
   });
   const initialize = await json(initializeResponse);

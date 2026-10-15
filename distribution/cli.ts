@@ -5,14 +5,14 @@ import { homedir } from "node:os";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { DEFAULT_RUNTIME_URL, normalizeRuntimeUrl } from "../mcp/gateway/runtime/identity";
-import { LEGACY_MCP_BUNDLE_FILENAME } from "../mcp/compatibility/build-artifact";
+import { MCP_BUNDLE_FILENAME } from "../mcp/compatibility/build-artifact";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
 import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, requireMatchingReleaseManifest, requireExpectedUpdateSource, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
 
-const RELEASE_ASSET = "blockit-windows-x64.zip";
-const RELEASE_MANIFEST_ASSET = "blockit-package.json";
+const RELEASE_ASSET = "lazydesigner-windows-x64.zip";
+const RELEASE_MANIFEST_ASSET = "lazydesigner-package.json";
 const raw = process.argv.slice(2).filter(a => a !== "--");
 const command = raw.shift() ?? "help";
 const flags = new Map<string, string>();
@@ -24,7 +24,7 @@ for (let i = 0; i < raw.length; i++) {
 }
 const executableDir = dirname(process.execPath);
 const inferredRoot = /[\\/]versions[\\/][a-f0-9]{40}$/.test(executableDir) ? dirname(dirname(executableDir)) : null;
-const root = resolve(flags.get("--root") ?? process.env.BLOCKIT_HOME ?? inferredRoot ?? join(process.env.LOCALAPPDATA ?? homedir(), "BlockIT"));
+const root = resolve(flags.get("--root") ?? process.env.LAZYDESIGNER_HOME ?? inferredRoot ?? join(process.env.LOCALAPPDATA ?? homedir(), "LazyDesigner", "managed"));
 const pendingPath = join(root, "pending.json");
 const expectedSourceSha = flags.get("--expected-source-sha") ?? null;
 if (expectedSourceSha !== null && !/^[a-f0-9]{40}$/.test(expectedSourceSha)) {
@@ -40,8 +40,8 @@ const progress = (action: string, stage: string) => { if (flags.has("--progress-
 async function runtimeStatus(config?: string): Promise<{ online: boolean; url: string }> {
   const parsed = config ? parseToml((await readOptional(config))?.toString() ?? "") as any : {};
   const endpoint = normalizeRuntimeUrl(
-    parsed.mcp_servers?.blockit?.env?.BLOCKIT_RUNTIME_URL
-      ?? process.env.BLOCKIT_RUNTIME_URL
+    parsed.mcp_servers?.lazydesigner?.env?.LAZYDESIGNER_RUNTIME_URL
+      ?? process.env.LAZYDESIGNER_RUNTIME_URL
       ?? DEFAULT_RUNTIME_URL
   );
   const url = new URL(endpoint);
@@ -65,7 +65,7 @@ async function activatePending(): Promise<unknown> {
   requireExpectedUpdateSource(await verifyPackage(pending.directory), expectedSourceSha);
   const result = await installPackage(pending.directory, pending.options, parseToml, pending.adopt);
   await rm(pendingPath);
-  await rm(dirname(pending.directory), { recursive: true, force: true }).catch(e => console.error(`BlockIT staging cleanup deferred: ${String(e)}`));
+  await rm(dirname(pending.directory), { recursive: true, force: true }).catch(e => console.error(`LazyDesigner staging cleanup deferred: ${String(e)}`));
   return { status: "INSTALLED", ...result, plugin: pending.options.plugin, workspace: pending.options.workspace, note: "First installation still requires native Blockbench plugin trust/load permission. Later updates replace the same file automatically; start Blockbench and a fresh Codex session." };
 }
 
@@ -77,7 +77,7 @@ async function child(executable: string, args: string[], env = process.env): Pro
 }
 
 async function download(url: string, max: number): Promise<Buffer> {
-  const response = await fetch(url, { signal: AbortSignal.timeout(120_000), headers: { "User-Agent": "BlockIT-Managed-Install", "Accept": "application/octet-stream" } });
+  const response = await fetch(url, { signal: AbortSignal.timeout(120_000), headers: { "User-Agent": "LazyDesigner-Managed-Install", "Accept": "application/octet-stream" } });
   const final = new URL(response.url);
   if (final.protocol !== "https:" || !["github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"].includes(final.hostname)) throw new Error("Unexpected release download origin.");
   if (!response.ok || !response.body) throw new Error(`Release download failed: ${response.status}`);
@@ -94,9 +94,9 @@ async function download(url: string, max: number): Promise<Buffer> {
 const EXTRACT = String.raw`
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$zip = [IO.Compression.ZipFile]::OpenRead($env:BLOCKIT_ARCHIVE)
+$zip = [IO.Compression.ZipFile]::OpenRead($env:LAZYDESIGNER_ARCHIVE)
 try {
-  $base = [IO.Path]::GetFullPath($env:BLOCKIT_EXTRACT) + [IO.Path]::DirectorySeparatorChar
+  $base = [IO.Path]::GetFullPath($env:LAZYDESIGNER_EXTRACT) + [IO.Path]::DirectorySeparatorChar
   $seen = @{}; $total = 0
   if ($zip.Entries.Count -gt 160) { throw 'Too many archive entries' }
   foreach ($e in $zip.Entries) {
@@ -130,18 +130,20 @@ try {
 
 async function fetchPublishedRelease(): Promise<any> {
   const tag = flags.get("--tag");
-  if (tag && !/^blockit-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(tag)) {
-    throw new Error("Use a versioned blockit-vX.Y.Z release tag.");
+  if (tag && !/^lazydesigner-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(tag)) {
+    throw new Error("Use a versioned lazydesigner-vX.Y.Z release tag.");
   }
   const preview = flags.has("--preview");
-  const endpoint = tag ? `tags/${tag}` : preview ? "?per_page=30" : "latest";
+  // The GitHub latest release may be a Desktop release, not a managed package.
+  // Select only the explicit LazyDesigner managed channel.
+  const endpoint = tag ? `tags/${tag}` : "?per_page=60";
   const api = `https://api.github.com/repos/${REPOSITORY}/releases${endpoint.startsWith("?") ? endpoint : "/" + endpoint}`;
   const response = await fetch(api, {
     redirect: "error",
     signal: AbortSignal.timeout(8_000),
     headers: {
       Accept: "application/vnd.github+json",
-      "User-Agent": "BlockIT-Managed-Install",
+      "User-Agent": "LazyDesigner-Managed-Install",
     },
   });
   if (!response.ok) {
@@ -150,14 +152,15 @@ async function fetchPublishedRelease(): Promise<any> {
   let release: any = await response.json();
   if (Array.isArray(release)) {
     release = release
-      .filter((entry) => !entry.draft && entry.prerelease && /^blockit-v/.test(entry.tag_name))
+      .filter((entry) => !entry.draft && /^lazydesigner-v/.test(entry.tag_name) &&
+        (preview ? entry.prerelease === true : entry.prerelease === false))
       .sort((a, b) => String(b.published_at).localeCompare(String(a.published_at)))[0];
   }
   if (
     !release ||
     release.draft ||
     (release.prerelease && !preview) ||
-    !/^blockit-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(release.tag_name)
+    !/^lazydesigner-v\d+\.\d+\.\d+(?:-preview\.\d+)?$/.test(release.tag_name)
   ) {
     throw new Error("Release is not published on the selected channel.");
   }
@@ -274,7 +277,7 @@ async function fetchRelease(): Promise<string> {
   const code = await child(
     "powershell.exe",
     ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", EXTRACT],
-    { ...process.env, BLOCKIT_ARCHIVE: archive, BLOCKIT_EXTRACT: directory }
+    { ...process.env, LAZYDESIGNER_ARCHIVE: archive, LAZYDESIGNER_EXTRACT: directory }
   );
   if (code !== 0) {
     throw new Error("Safe release extraction failed; the current installation is unchanged.");
@@ -286,7 +289,7 @@ async function fetchRelease(): Promise<string> {
 }
 
 async function main(): Promise<void> {
-  if (command === "help") { console.log("BlockIT: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | check-update [--tag blockit-vX.Y.Z] [--preview] | update [--tag blockit-vX.Y.Z] [--preview] | rollback | recover | repair | setup-tls | status | mcp. No app, user build, or manual file replacement."); return; }
+  if (command === "help") { console.log("LazyDesigner: install [--workspace PATH] [--plugin-path EXISTING_FILE] [--adopt] | check-update [--tag lazydesigner-vX.Y.Z] [--preview] | update [--tag lazydesigner-vX.Y.Z] [--preview] | rollback | recover | repair | setup-tls | status | mcp. No app, user build, or manual file replacement."); return; }
   if (command === "self-test") { receipt({ status: "PASS", platform: process.platform, arch: process.arch, repository: REPOSITORY }); return; }
   if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Managed installation v1 supports Windows x64; other platforms retain the existing developer workflow.");
   if (command === "status") { receipt(await buildManagedStatus(root, pendingPath, runtimeStatus, runtimeTlsStatus)); return; }
@@ -322,7 +325,7 @@ async function main(): Promise<void> {
       // The Gateway inherits the exact installed plugin build identity.
       // HTTP health cannot substitute an arbitrary Runtime on the same port.
       process.env.LAZYDESIGNER_EXPECTED_RUNTIME_BUILD_ID = installedPackage.build_identity;
-      executable = join(root, "versions", state.source_sha, "blockit.exe");
+      executable = join(root, "versions", state.source_sha, "lazydesigner.exe");
       if (!sameInstalledPath(executable, process.execPath)) return;
       await mkdir(join(root, "leases"), { recursive: true });
       const lease = join(root, "leases", `${process.pid}.json`);
@@ -363,14 +366,14 @@ async function main(): Promise<void> {
     const manifest = await verifyPackage(source);
     if (command === "update") requireExpectedUpdateSource(manifest, expectedSourceSha);
     const options: InstallOptions = previous?.options ?? {
-      root, workspace: resolve(flags.get("--workspace") ?? join(homedir(), "BlockIT-Workspace")),
-      plugin: resolve(flags.get("--plugin-path") ?? join(root, "plugin", LEGACY_MCP_BUNDLE_FILENAME)),
+      root, workspace: resolve(flags.get("--workspace") ?? join(homedir(), "LazyDesigner-Workspace")),
+      plugin: resolve(flags.get("--plugin-path") ?? join(root, "plugin", MCP_BUNDLE_FILENAME)),
       config: resolve(flags.get("--config") ?? join(process.env.CODEX_HOME ?? join(homedir(), ".codex"), "config.toml")),
     };
     // Retain the candidate under installation ownership even when a downloaded ZIP is later removed.
     const staging = command === "update" ? source : join(root, "downloads", randomUUID(), "package");
     await requirePlainPath(staging); await mkdir(staging, { recursive: true });
-    for (const f of staging === source ? [] : ["blockit-package.json", ...manifest.files.map(f => f.path)]) {
+    for (const f of staging === source ? [] : ["lazydesigner-package.json", ...manifest.files.map(f => f.path)]) {
       await mkdir(dirname(join(staging, f)), { recursive: true });
       await writeFile(join(staging, f), await readFile(join(source, f)), { flag: "wx" });
     }
@@ -383,4 +386,4 @@ async function main(): Promise<void> {
   }, command === "recover");
 }
 
-main().catch(error => { console.error(`BlockIT: ${error instanceof Error ? error.message : String(error)}`); process.exitCode = 1; });
+main().catch(error => { console.error(`LazyDesigner: ${error instanceof Error ? error.message : String(error)}`); process.exitCode = 1; });

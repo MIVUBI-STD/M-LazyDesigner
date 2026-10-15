@@ -7,9 +7,9 @@ It does not own user assets and does not create model history.
 ## Managed layout
 
 ```text
-.blockit/
-├─ versions/<source-sha>/blockit.exe
-├─ plugin/blockit_mcp.js
+%LOCALAPPDATA%/LazyDesigner/managed/
+├─ versions/<source-sha>/lazydesigner.exe
+├─ plugin/lazydesigner_mcp.js
 ├─ installed.json
 ├─ pending.json              # only when activation is deferred
 └─ transactions/
@@ -25,7 +25,7 @@ User assets remain under `workspace/active` or user-owned locations and never be
 
 ## Source / Runtime authority
 
-The package is built from one exact source SHA and records file hashes plus Runtime `build_identity`. Normal Codex launch points at the versioned Gateway executable; Blockbench loads the managed `blockit_mcp.js`.
+The package is built from one exact source SHA and records file hashes plus Runtime `build_identity`. Normal Codex launch points at the versioned Gateway executable; Blockbench loads the managed `lazydesigner_mcp.js`.
 
 LazyDesigner has one native Geometry authoring path. Retired 3D-assisted/Hunyuan/PrimitiveAnything tooling is not part of the managed package or authoring contract.
 
@@ -34,15 +34,15 @@ LazyDesigner has one native Geometry authoring path. Retired 3D-assisted/Hunyuan
 Updates are explicit, not network polling during authoring. The package is downloaded/built and verified before activation. Active Gateway process leases or a responding Runtime postpone replacement. A pending update may activate only when no conflicting Gateway/Runtime is active.
 
 
-Desktop startup discovery uses the read-only `check-update` command. Published managed releases contain a separate digest-verified `blockit-package.json` asset so availability can be determined without downloading the full Windows ZIP. The command compares its authoritative `source_sha` with the installed source SHA and returns only `UP_TO_DATE`, `UPDATE_AVAILABLE`, `UPDATE_STAGED`, or `NOT_INSTALLED`.
+Desktop startup discovery uses the read-only `check-update` command. Published managed releases contain a separate digest-verified `lazydesigner-package.json` asset so availability can be determined without downloading the full Windows ZIP. The command compares its authoritative `source_sha` with the installed source SHA and returns only `UP_TO_DATE`, `UPDATE_AVAILABLE`, `UPDATE_STAGED`, or `NOT_INSTALLED`.
 
 `check-update` never stages or activates files. Network lookup is bounded and happens only when explicitly invoked by the Desktop startup owner; it is not called by normal MCP launch or the Desktop connection heartbeat.
 
-The manager never kills applications, closes unsaved models, silently overwrites user-edited managed Skills, or mutates user assets. Transaction journals and hashes protect install/update/rollback. Local modifications require explicit adoption where supported.
+The manager never kills applications, closes unsaved models, silently overwrites user-edited managed Skills, or mutates user assets. A retired `blockit_mcp.js` file in the same Blockbench profile prevents new plugin activation until explicit migration; neither it nor its user-owned files are deleted. Transaction journals and hashes protect install/update/rollback. Local modifications require explicit adoption where supported.
 
 ## Codex configuration
 
-Only the BlockIT MCP entry is managed. Other servers, model/settings semantics, comments, explicit timeouts, disabled/remote entries, and unrelated configuration remain preserved or fail closed when safe preservation cannot be proven. If no explicit BlockIT timeout is configured, the managed entry sets `tool_timeout_sec` to 180 seconds so Codex does not hit its default 60-second timeout before the Gateway's normal 120-second native call budget. Existing explicit values, including shorter ones, remain untouched and must be reviewed for long-call local acceptance; this timeout does not guarantee that queued or interrupted native operations complete.
+Only the LazyDesigner MCP entry is managed. Old BlockIT client entries are read-only migration evidence and block a second active server until explicitly resolved. Other servers, model/settings semantics, comments, explicit timeouts, disabled/remote entries, and unrelated configuration remain preserved or fail closed when safe preservation cannot be proven. If no explicit LazyDesigner timeout is configured, the managed entry sets `tool_timeout_sec` to 180 seconds so Codex does not hit its default 60-second timeout before the Gateway's normal 120-second native call budget. Existing explicit values, including shorter ones, remain untouched and must be reviewed for long-call local acceptance; this timeout does not guarantee that queued or interrupted native operations complete.
 
 Normal MCP launch uses the installed versioned Gateway executable directly. The maintenance command wrapper exists for explicit install/update/status/recovery operations; it is not the normal authoring transport.
 
@@ -60,7 +60,7 @@ The planned LazyDesigner Desktop application must reuse this managed distributio
 Its machine-facing read contract is:
 
 ```text
-blockit.exe status
+lazydesigner.exe status
 → schema
 → installed
 → pending

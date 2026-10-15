@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   release-source:
-    if: startsWith(github.ref, 'refs/tags/blockit-v')
+    if: startsWith(github.ref, 'refs/tags/lazydesigner-v')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -62,15 +62,15 @@ jobs:
         run: bun run ../distribution/package.ts
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: blockit-managed-windows-x64
+          name: lazydesigner-managed-windows-x64
           path: |
-            mcp/dist/managed/blockit-windows-x64.zip
-            mcp/dist/managed/blockit-package.json
+            mcp/dist/managed/lazydesigner-windows-x64.zip
+            mcp/dist/managed/lazydesigner-package.json
           if-no-files-found: error
           retention-days: 14
 
   draft-release:
-    if: startsWith(github.ref, 'refs/tags/blockit-v')
+    if: startsWith(github.ref, 'refs/tags/lazydesigner-v')
     needs: [release-source, windows-package]
     runs-on: ubuntu-latest
     permissions:
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: blockit-managed-windows-x64
+          name: lazydesigner-managed-windows-x64
       - name: Prepare release assets without publishing unaccepted native behavior
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,7 +86,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          [[ "$TAG" =~ ^blockit-v[0-9]+\.[0-9]+\.[0-9]+(-preview\.[0-9]+)?$ ]]
+          [[ "$TAG" =~ ^lazydesigner-v[0-9]+\.[0-9]+\.[0-9]+(-preview\.[0-9]+)?$ ]]
           flags=(--draft)
           if [[ "$TAG" == *-preview.* ]]; then flags+=(--prerelease); fi
-          gh release create "$TAG" blockit-windows-x64.zip blockit-package.json --repo "$REPOSITORY" --verify-tag "${flags[@]}" --title "LazyDesigner $TAG" --notes "Verified source and packaged Windows smoke tests. Native Blockbench/Codex acceptance and dependency closure must be reviewed before publishing. This workflow does not publish automatically."
+          gh release create "$TAG" lazydesigner-windows-x64.zip lazydesigner-package.json --repo "$REPOSITORY" --verify-tag "${flags[@]}" --title "LazyDesigner $TAG" --notes "Verified source and packaged Windows smoke tests. Native Blockbench/Codex acceptance and dependency closure must be reviewed before publishing. This workflow does not publish automatically."

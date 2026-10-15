@@ -1,5 +1,9 @@
-export const BLOCKIT_PROJECT_AFFINITY_HEADER = "x-blockit-project-uuid";
-export const BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER = "x-blockit-authoring-phase";
+export const LAZYDESIGNER_PROJECT_AFFINITY_HEADER = "x-lazydesigner-project-uuid";
+export const LAZYDESIGNER_AUTHORING_STAGE_AFFINITY_HEADER = "x-lazydesigner-authoring-stage";
+/** @deprecated Source-only alias. Emits the canonical LazyDesigner header. */
+export const BLOCKIT_PROJECT_AFFINITY_HEADER = LAZYDESIGNER_PROJECT_AFFINITY_HEADER;
+/** @deprecated Source-only alias. Emits the canonical LazyDesigner header. */
+export const BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER = LAZYDESIGNER_AUTHORING_STAGE_AFFINITY_HEADER;
 
 export const BLOCKIT_AUTHORING_PHASES = [
   "geometry",

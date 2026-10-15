@@ -5,7 +5,7 @@ async function source(path: string): Promise<string> {
 }
 
 describe("pre-local plugin runtime cleanup", () => {
-  test("MCP ownership is request-only with BlockIT identity", async () => {
+  test("MCP ownership is request-only with LazyDesigner identity", async () => {
     const server = await source("server/server.ts");
     const factories = await source("lib/factories.ts");
 
@@ -33,11 +33,11 @@ describe("pre-local plugin runtime cleanup", () => {
     const errorHook = runtimeHost.indexOf('server.once("error"');
     const bindCleanup = runtimeHost.indexOf("candidate.closeActiveSockets()", candidateCreated);
     const failedReturn = runtimeHost.indexOf("return false;", bindCleanup);
-    const startCall = index.indexOf("if (!(await runtimeHost.start(generation))) return;");
+    const startCall = index.indexOf("if (!(await runtimeHost.start(generation, currentBuildIdentity()))) return;");
     const readyUi = runtimeHost.indexOf('setStatusBarState("running"');
     const listenerReady = runtimeHost.indexOf("await this.waitForListening(candidate)");
 
-    expect(index).toContain('BBPlugin.register("blockit_mcp"');
+    expect(index).toContain('BBPlugin.register("lazydesigner_mcp"');
     expect(candidateCreated).toBeGreaterThan(-1);
     expect(candidateOwned).toBeGreaterThan(candidateCreated);
     expect(listeningHook).toBeGreaterThan(-1);
@@ -146,7 +146,7 @@ describe("pre-local plugin runtime cleanup", () => {
     expect(i18n).not.toContain("connected_clients");
   });
 
-  test("package/runtime metadata identify BlockIT while upstream attribution remains documentation", async () => {
+  test("package/runtime metadata identify LazyDesigner while upstream attribution remains documentation", async () => {
     const pkg = JSON.parse(await source("package.json")) as {
       name: string;
       description: string;
@@ -155,7 +155,7 @@ describe("pre-local plugin runtime cleanup", () => {
     };
     const readme = await source("README.md");
 
-    expect(pkg.name).toBe("blockit-bedrock-entity-mcp");
+    expect(pkg.name).toBe("lazydesigner-bedrock-entity-mcp");
     expect(pkg.description).toContain("Minecraft Bedrock Entity");
     expect(pkg.author).toBe("Halo Karya Media");
     expect(pkg.contributors).toContain("Jason J. Gardner");

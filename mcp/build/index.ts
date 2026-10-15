@@ -11,7 +11,7 @@ import {
   type WatchAction,
 } from "./watch-policy";
 import { version } from "../package.json";
-import { LEGACY_MCP_BUNDLE_FILENAME } from "../compatibility/engineering-identifiers";
+import { MCP_BUNDLE_FILENAME } from "../compatibility/engineering-identifiers";
 
 const OUTPUT_DIR = "./dist";
 const entryFile = resolve("./index.ts");
@@ -93,7 +93,7 @@ async function buildPlugin(): Promise<boolean> {
   }
 
   const indexFile = join(OUTPUT_DIR, "index.js");
-  const mcpFile = join(OUTPUT_DIR, LEGACY_MCP_BUNDLE_FILENAME);
+  const mcpFile = join(OUTPUT_DIR, MCP_BUNDLE_FILENAME);
   const legacyMcpFile = join(OUTPUT_DIR, "mcp.js");
 
   if (await Bun.file(legacyMcpFile).exists()) {
@@ -103,7 +103,7 @@ async function buildPlugin(): Promise<boolean> {
 
   if (await Bun.file(indexFile).exists()) {
     await rename(indexFile, mcpFile);
-    log.step(`Renamed ${c.gray}index.js${c.reset} → ${c.cyan}${LEGACY_MCP_BUNDLE_FILENAME}${c.reset}`);
+    log.step(`Renamed ${c.gray}index.js${c.reset} → ${c.cyan}${MCP_BUNDLE_FILENAME}${c.reset}`);
   }
 
   const mcpBunFile = Bun.file(mcpFile);
@@ -115,7 +115,7 @@ async function buildPlugin(): Promise<boolean> {
   const mcpContent = await mcpBunFile.text();
   const buildDigest = createHash("sha256").update(mcpContent).digest("hex");
   const buildIdentity = `sha256:${buildDigest}`;
-  const banner = /* js */ `/* v${version} build ${buildDigest.slice(0, 12)} */\nglobalThis.__BLOCKIT_BUILD_ID__ = ${JSON.stringify(buildIdentity)};\nlet process = requireNativeModule('process');`;
+  const banner = /* js */ `/* v${version} build ${buildDigest.slice(0, 12)} */\nglobalThis.__LAZYDESIGNER_BUILD_ID__ = ${JSON.stringify(buildIdentity)};\nlet process = requireNativeModule('process');`;
 
   await Bun.write(mcpFile, banner + mcpContent);
   const emittedContent = await Bun.file(mcpFile).text();
@@ -126,11 +126,11 @@ async function buildPlugin(): Promise<boolean> {
   log.step(`Embedded build identity ${c.gray}${buildIdentity}${c.reset}`);
 
   const indexMapFile = join(OUTPUT_DIR, "index.js.map");
-  const mcpMapFile = join(OUTPUT_DIR, `${LEGACY_MCP_BUNDLE_FILENAME}.map`);
+  const mcpMapFile = join(OUTPUT_DIR, `${MCP_BUNDLE_FILENAME}.map`);
 
   if (await Bun.file(indexMapFile).exists()) {
     await rename(indexMapFile, mcpMapFile);
-    log.step(`Renamed ${c.gray}index.js.map${c.reset} → ${c.cyan}${LEGACY_MCP_BUNDLE_FILENAME}.map${c.reset}`);
+    log.step(`Renamed ${c.gray}index.js.map${c.reset} → ${c.cyan}${MCP_BUNDLE_FILENAME}.map${c.reset}`);
   }
 
   const readmeSource = resolve("./about.md");

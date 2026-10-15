@@ -8,7 +8,7 @@ const settings: Setting[] = [];
 let extendedProfileHandler: ((enabled: boolean) => void) | undefined;
 
 const EXTENDED_FAMILIES_STORAGE_KEY =
-  "blockit_mcp.extended_families_enabled";
+  "lazydesigner_mcp.extended_families_enabled";
 
 export function setExtendedMcpFamiliesEnabled(enabled: boolean): void {
   try {

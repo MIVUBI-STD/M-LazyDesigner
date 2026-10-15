@@ -25,7 +25,7 @@ export async function runtimeFetch(
   try {
     ca = readFileSync(cert, "utf8");
   } catch {
-    throw new Error(`Missing Runtime TLS certificate: ${cert}. Use LazyDesigner Desktop Setup Runtime Security or run blockit setup-tls.`);
+    throw new Error(`Missing Runtime TLS certificate: ${cert}. Use LazyDesigner Desktop Setup Runtime Security or run lazydesigner setup-tls.`);
   }
   const token = readRuntimeAuthorizationToken(
     { readFileSync, readdirSync, existsSync },

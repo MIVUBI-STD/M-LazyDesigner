@@ -2,7 +2,7 @@
 
 LazyDesigner uses a stable MCP **Gateway** for normal AI-client connections and a Minecraft **Bedrock Entity-focused** Runtime/plugin inside desktop Blockbench. `Local` is the development authority.
 
-Do **not** use an upstream hosted plugin as runtime authority for this repository. LazyDesigner source/builds come from this repository. The compatibility bundle filename remains `dist/blockit_mcp.js` until bundle/package identifier migration is explicitly mapped.
+Do **not** use an upstream hosted plugin as runtime authority for this repository. LazyDesigner source/builds come from this repository. The canonical production bundle filename is `dist/lazydesigner_mcp.js`. Old BlockIT binaries are never selected as a current Runtime.
 
 ## Repository Lanes
 
@@ -157,7 +157,7 @@ Normal authoring has no Standard/Extended choice. Internal `bedrock_entity | ext
 
 ## Local Development Loop
 
-`BLOCKIT_PLUGIN_PATH` remains a compatibility identifier. Configure it, or pass the destination as the optional `dev:sync` argument, then run:
+`LAZYDESIGNER_PLUGIN_PATH` selects the canonical development plugin destination. Configure it, or pass the path as the optional `dev:sync` argument, then run:
 
 ```bash
 bun run dev:sync
@@ -174,7 +174,7 @@ bun run dev:watch
 Manual deploy:
 
 ```bash
-bun run deploy:local -- /absolute/path/to/blockit_mcp.js
+bun run deploy:local -- /absolute/path/to/lazydesigner_mcp.js
 ```
 
 Gateway:
@@ -235,23 +235,21 @@ Detailed source ownership: `../docs/04-system/implementation-map.md`.
 
 Generated API/prompt artifacts follow canonical source + generator output and must never be hand-edited.
 
-## Identity Migration Boundary
+## LazyDesigner-only Installation Identity
 
-Current product-facing identity is LazyDesigner. Primary LazyDesigner Skill identities are migrated; do not recreate removed legacy Skill paths.
+New packages use `lazydesigner.exe`, `lazydesigner-package.json`,
+`lazydesigner_mcp.js` (Blockbench ID `lazydesigner_mcp`),
+`mcp_servers.lazydesigner`, canonical `LAZYDESIGNER_*` environment
+variables and `x-lazydesigner-*` headers. The manager root is
+`%LOCALAPPDATA%/LazyDesigner/managed`. The canonical owner is
+`compatibility/lazydesigner-identity.ts` and distribution owns activation.
 
-Compatibility-bound identifiers intentionally unchanged until dependency-mapped:
-
-```text
-package name / MCP server IDs
-bundle filename `blockit_mcp.js`
-BBPlugin id `blockit_mcp`
-BLOCKIT_* environment variables
-x-blockit-* affinity headers
-persisted setting identifiers
-build/provenance identities coupled to the above
-```
-
-Do not bulk-rename them.
+Retired BlockIT installed files/configuration are never run, removed,
+automatically adopted or treated as newer simply because they exist. A
+legacy client entry or retired plugin in the target Blockbench profile
+refuses activation pending an explicit, backed-up migration; existing
+user models and preferences remain untouched. Source migration still
+requires exact-SHA executable + native Windows acceptance before release.
 
 ## Proof Boundary
 

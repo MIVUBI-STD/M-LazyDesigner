@@ -1,18 +1,18 @@
 import { PRODUCT_ID } from "@/lib/product/productIdentity";
-import { BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER } from "../../lib/runtime/affinity";
+import { LAZYDESIGNER_AUTHORING_STAGE_AFFINITY_HEADER } from "../../lib/runtime/affinity";
 
 export { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../../lib/runtime/connection";
 import { DEFAULT_RUNTIME_URL as DEFAULT_MCP_URL } from "../../lib/runtime/connection";
 import { runtimeFetch as fetch } from "../../lib/runtime/fetch";
-export const DEFAULT_BUNDLE_PATH = "dist/blockit_mcp.js";
+export const DEFAULT_BUNDLE_PATH = "dist/lazydesigner_mcp.js";
 export const EXPECTED_PROFILES = new Set(["bedrock_entity", "extended"]);
 export const PROTOCOL_VERSION = "2025-06-18";
-export const AUTHORING_E2E_PROJECT_NAME = "blockit_geometry_e2e_disposable";
+export const AUTHORING_E2E_PROJECT_NAME = "lazydesigner_geometry_e2e_disposable";
 export const AUTHORING_E2E_BONE_NAME = "e2e_root";
 export const AUTHORING_E2E_CUBE_NAME = "e2e_body";
 export const AUTHORING_E2E_ATLAS_NAME = "e2e_atlas";
-export const AUTHORING_E2E_ANIMATION_A_NAME = "animation.blockit_e2e_motion_a";
-export const AUTHORING_E2E_ANIMATION_B_NAME = "animation.blockit_e2e_motion_b";
+export const AUTHORING_E2E_ANIMATION_A_NAME = "animation.lazydesigner_e2e_motion_a";
+export const AUTHORING_E2E_ANIMATION_B_NAME = "animation.lazydesigner_e2e_motion_b";
 
 const FORBIDDEN_LIVE_TOOLS = new Set(["risky_eval", "from_geo_json"]);
 
@@ -135,10 +135,10 @@ export class LiveMcpClient {
     this.expectedPhase = options.expectedPhase;
     this.requiredTools = options.requiredTools;
     this.targetUrl = (
-      options.targetUrl ?? process.env.BLOCKIT_MCP_URL ?? DEFAULT_MCP_URL
+      options.targetUrl ?? process.env.LAZYDESIGNER_MCP_URL ?? DEFAULT_MCP_URL
     ).replace(/\/+$/, "");
     this.bundlePath =
-      options.bundlePath ?? process.env.BLOCKIT_MCP_BUNDLE ?? DEFAULT_BUNDLE_PATH;
+      options.bundlePath ?? process.env.LAZYDESIGNER_MCP_BUNDLE ?? DEFAULT_BUNDLE_PATH;
   }
 
   private async responseJson(response: Response): Promise<{
@@ -152,7 +152,7 @@ export class LiveMcpClient {
       return { text, envelope: JSON.parse(text) as RpcEnvelope };
     } catch {
       throw new Error(
-        `Expected JSON from BlockIT but received HTTP ${response.status}: ${text.slice(0, 400)}`
+        `Expected JSON from LazyDesigner but received HTTP ${response.status}: ${text.slice(0, 400)}`
       );
     }
   }
@@ -166,7 +166,7 @@ export class LiveMcpClient {
       accept: "application/json, text/event-stream",
       "content-type": "application/json",
       connection: "close",
-      [BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER]: this.expectedPhase,
+      [LAZYDESIGNER_AUTHORING_STAGE_AFFINITY_HEADER]: this.expectedPhase,
     });
     if (protocolHeader) headers.set("mcp-protocol-version", PROTOCOL_VERSION);
 
@@ -201,7 +201,7 @@ export class LiveMcpClient {
     const file = Bun.file(this.bundlePath);
     expect(await file.exists(), `Missing ${this.bundlePath}. Build or deploy a verified CI artifact first.`);
     const match = (await file.text()).match(
-      /globalThis\.__BLOCKIT_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
+      /globalThis\.__LAZYDESIGNER_BUILD_ID__\s*=\s*["'](sha256:[a-f0-9]{64})["']/
     );
     expect(match?.[1], `${this.bundlePath} has no valid embedded build identity.`);
     return match[1];
@@ -210,17 +210,17 @@ export class LiveMcpClient {
   private async healthJson(): Promise<JsonObject> {
     this.metrics.http_calls += 1;
     const response = await fetch(`${this.targetUrl}/health`, {
-      headers: { connection: "close", [BLOCKIT_AUTHORING_PHASE_AFFINITY_HEADER]: this.expectedPhase },
+      headers: { connection: "close", [LAZYDESIGNER_AUTHORING_STAGE_AFFINITY_HEADER]: this.expectedPhase },
     });
     const text = await response.text();
     this.metrics.response_bytes += new TextEncoder().encode(text).length;
-    expect(response.status === 200, `BlockIT /health returned HTTP ${response.status}.`);
+    expect(response.status === 200, `LazyDesigner /health returned HTTP ${response.status}.`);
     try {
       const value = JSON.parse(text) as unknown;
-      expect(value && typeof value === "object" && !Array.isArray(value), "BlockIT /health returned non-object JSON.");
+      expect(value && typeof value === "object" && !Array.isArray(value), "LazyDesigner /health returned non-object JSON.");
       return value as JsonObject;
     } catch (error) {
-      throw new Error(`BlockIT /health returned invalid JSON: ${String(error)}`);
+      throw new Error(`LazyDesigner /health returned invalid JSON: ${String(error)}`);
     }
   }
 
@@ -241,7 +241,7 @@ export class LiveMcpClient {
     );
     expect(
       health.build_identity === buildIdentity,
-      `Stale installed BlockIT build: local=${buildIdentity}; live=${String(health.build_identity)}.`
+      `Stale installed LazyDesigner build: local=${buildIdentity}; live=${String(health.build_identity)}.`
     );
     expect(
       transport.mode === "stateless" && transport.response_mode === "auto",
@@ -257,7 +257,7 @@ export class LiveMcpClient {
       secondHealth.instance_id === health.instance_id &&
         secondHealth.startup_time === health.startup_time &&
         secondHealth.build_identity === health.build_identity,
-      `BlockIT runtime process changed during preflight: first=${String(health.instance_id)}/${String(health.startup_time)} second=${String(secondHealth.instance_id)}/${String(secondHealth.startup_time)}.`
+      `LazyDesigner runtime process changed during preflight: first=${String(health.instance_id)}/${String(health.startup_time)} second=${String(secondHealth.instance_id)}/${String(secondHealth.startup_time)}.`
     );
 
     const initialize = await this.postRpc(
@@ -266,7 +266,7 @@ export class LiveMcpClient {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: {},
         clientInfo: {
-          name: `blockit-${this.expectedPhase}-live-e2e`,
+          name: `lazydesigner-${this.expectedPhase}-live-e2e`,
           version: "1.0.0",
         },
       },

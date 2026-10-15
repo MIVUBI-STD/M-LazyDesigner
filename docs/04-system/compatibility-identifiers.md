@@ -1,6 +1,6 @@
 # LazyDesigner Compatibility Identifier Boundary
 
-Updated: 2026-09-18
+Updated: 2026-10-15
 
 This file owns the migration boundary for identifiers that still contain `BlockIT` / `blockit` after the product rename.
 
@@ -17,14 +17,14 @@ Likewise, compatibility fields containing `phase` remain serialized as-is until 
 
 User direction on 2026-10-15: **BlockIT is the retired product identity. The target installation, launched Runtime, client registration and product-facing paths must use one canonical LazyDesigner identity.** Legacy binaries/plugins/managed installations must not be silently selected as a working fallback for current LazyDesigner. This supersedes the older *indefinitely retain* priority below, but does not authorize destructive removal of user files or bypass of Blockbench trust.
 
-This is an **approved migration objective, not a completed source or installed migration**. Current production components still serialize the legacy identifiers inventoried below. Do not flip isolated filenames, plugin IDs, configuration keys, TLS paths or package contracts before all producers/consumers and generated files move together. Keep the existing build functional until a coherent new distribution and matching validation exist.
+The development branch now contains a **coordinated canonical source cutover** covering plugin registration, embedded build banner, package/manager, Codex client key, Gateway identity, TLS/Runtime configuration, Desktop paths and CI artifact naming. **This is not a completed executable/native or installed migration.** The retired identifiers inventoried below remain as read-only migration evidence. Do not install or publish the new candidate until matching Windows build, protocol, installer, rollback and profile acceptance succeeds.
 
 ### Target identity contract
 
 | Domain | Canonical target | Compatibility requirement during transition |
 | --- | --- | --- |
 | Desktop/managed executable | `lazydesigner.exe` | Never start the old executable as a substitute for the new manager |
-| Managed root | `%LOCALAPPDATA%\\LazyDesigner\\managed` (proposed; collision-check existing LazyDesigner navigation folders) | Legacy `BlockIT` root is detection/import evidence only, not an active install fallback |
+| Managed root | `%LOCALAPPDATA%\\LazyDesigner\\managed` (canonical; distinct from navigation folders) | Legacy `BlockIT` root is detection/import evidence only, not an active install fallback |
 | Blockbench plugin filename + registered ID | `lazydesigner_mcp.js`, `lazydesigner_mcp` | Do not load two Runtime plugins, bind to the same endpoint, or rewrite Blockbench installed-plugin trust state |
 | Client connection | `mcp_servers.lazydesigner` | Detect legacy client entries; never silently adopt, shadow or remove unrelated user configuration |
 | Network and authorization keys | New `LAZYDESIGNER_*` keys and canonical LazyDesigner affinity headers | Change Gateway and Runtime atomically; preserve loopback, TLS verification and credential safety |
@@ -43,9 +43,9 @@ STOP before deployment, old plugin removal, old directory deletion, config repla
 
 ## Compatibility-Bound Identifiers
 
-These values remain stable until a dedicated migration updates every producer, consumer, persisted value and recovery path.
+These are **retired, historical** values. They are not active identifiers in the canonical LazyDesigner distribution and must never be treated as a running fallback. Persistent installations using them require deliberate verified migration.
 
-| Identifier | Current value | Canonical owner | Why retained |
+| Identifier | Retired value | Historical owner | Why recorded |
 | --- | --- | --- | --- |
 | npm/package identity | `blockit-bedrock-entity-mcp` | `mcp/package.json` | package/build/dependency identity |
 | production bundle path | `dist/blockit_mcp.js` | package/build/deploy owners | installed file/update continuity |
@@ -61,9 +61,9 @@ These values remain stable until a dedicated migration updates every producer, c
 
 Primary LazyDesigner Skill paths are **not** compatibility-bound. REFERENCE_PREPARATION, ASSET_AUTHORING, and PRODUCT_DEVELOPMENT primary Skills now use canonical `lazydesigner-*` identities; removed legacy paths must not return as aliases.
 
-Internal TypeScript symbols, DOM class names, event keys, or client names may still contain `Blockit`/`BLOCKIT` when renaming them provides little current value. Never change a serialized/string compatibility value accidentally during cosmetic cleanup.
+Some deprecated TypeScript export names and historical documents may retain `Blockit`/`BLOCKIT` wording for compile-time source compatibility only; their runtime string values are canonical LazyDesigner. Do not add a second active identity, router or protocol. Remove remaining internal aliases after exhaustive source callers/tests have migrated.
 
-The following distribution/release strings are also treated as compatibility-bound until an atomic release migration maps every producer and consumer: `blockit.exe`, `blockit-package.json`, `blockit-windows-x64.zip`, GitHub artifact names beginning with `blockit-`, and the `blockit-v*` release-tag prefix. They are delivery identifiers, not the product name.
+Retired distribution names `blockit.exe`, `blockit-package.json`, `blockit-windows-x64.zip`, `blockit-*` artifacts and `blockit-v*` tags are historical evidence only. New publishing and installing paths use LazyDesigner names and must never fall back to them.
 
 ## Presentation Identity
 
@@ -127,7 +127,7 @@ For persisted/install identifiers, migration must define whether old state is re
 
 ```text
 1. deliver a complete LazyDesigner-only managed identity and distribution
-2. retain the old serialized contracts only until the atomic migration replaces them
+2. validate the canonical source cutover with full executable tests before a release
 3. preserve model files, user configuration and Blockbench trust; old state is read-only evidence
 4. eliminate legacy identifiers from the final actively installed/runtime product
 5. leave native migration and destructive cleanup unclaimed until verified and explicitly approved

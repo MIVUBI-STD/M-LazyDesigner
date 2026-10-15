@@ -26,7 +26,7 @@ test("Runtime local authorization token is outside the repository and non-overwr
     expect(runtimeAuthorizationMatches(first, "f".repeat(64))).toBe(false);
     expect(runtimeAuthorizationMatches(first, undefined)).toBe(false);
     expect(RUNTIME_AUTH_HEADER).not.toContain("blockit");
-    expect(normalize(runtimeAuthorizationPath({ BLOCKIT_TLS_DIR: directory })))
+    expect(normalize(runtimeAuthorizationPath({ LAZYDESIGNER_TLS_DIR: directory })))
       .toBe(path);
   } finally {
     rmSync(directory, { recursive: true, force: true });

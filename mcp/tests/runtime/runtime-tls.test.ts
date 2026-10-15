@@ -27,7 +27,7 @@ test("TLS paths are absolute and the production default is HTTPS", () => {
     .toBe("C:/profile/LazyDesigner/tls/cert.pem");
   expect(runtimeTlsPaths({ HOME: "/home/test" }, "linux").key)
     .toBe("/home/test/.config/LazyDesigner/tls/key.pem");
-  expect(() => runtimeTlsPaths({ BLOCKIT_TLS_DIR: "relative" })).toThrow("absolute");
+  expect(() => runtimeTlsPaths({ LAZYDESIGNER_TLS_DIR: "relative" })).toThrow("absolute");
 });
 
 
@@ -41,9 +41,9 @@ test("Runtime URL normalization is shared without loading Gateway internals", ()
 });
 
 test("normal Gateway startup rejects HTTP configuration without breaking explicit HTTP fixtures", () => {
-  const previous = process.env.BLOCKIT_RUNTIME_URL;
+  const previous = process.env.LAZYDESIGNER_RUNTIME_URL;
   try {
-    process.env.BLOCKIT_RUNTIME_URL = "http://127.0.0.1:3000/bb-mcp";
+    process.env.LAZYDESIGNER_RUNTIME_URL = "http://127.0.0.1:3000/bb-mcp";
     expect(() => new BlockitRuntimeBackend()).toThrow("requires HTTPS");
     expect(() => new BlockitRuntimeBackend(undefined)).toThrow("requires HTTPS");
 
@@ -51,20 +51,20 @@ test("normal Gateway startup rejects HTTP configuration without breaking explici
     const fixture = new BlockitRuntimeBackend("http://127.0.0.1:3000/bb-mcp");
     expect(fixture.runtimeUrl).toBe("http://127.0.0.1:3000/bb-mcp");
 
-    process.env.BLOCKIT_RUNTIME_URL = "https://localhost:3000/bb-mcp";
+    process.env.LAZYDESIGNER_RUNTIME_URL = "https://localhost:3000/bb-mcp";
     expect(new BlockitRuntimeBackend().runtimeUrl).toBe(
       "https://localhost:3000/bb-mcp"
     );
   } finally {
-    if (previous === undefined) delete process.env.BLOCKIT_RUNTIME_URL;
-    else process.env.BLOCKIT_RUNTIME_URL = previous;
+    if (previous === undefined) delete process.env.LAZYDESIGNER_RUNTIME_URL;
+    else process.env.LAZYDESIGNER_RUNTIME_URL = previous;
   }
 });
 
 test("HTTPS canonical handler and Gateway validate trust; hostile origin and untrusted peer fail", async () => {
   const directory = mkdtempSync(join(tmpdir(), "lazydesigner-tls-test-"));
-  const previous = process.env.BLOCKIT_TLS_DIR;
-  process.env.BLOCKIT_TLS_DIR = directory;
+  const previous = process.env.LAZYDESIGNER_TLS_DIR;
+  process.env.LAZYDESIGNER_TLS_DIR = directory;
   let server: ReturnType<typeof createNetServer> | undefined;
   let backend: BlockitRuntimeBackend | undefined;
   try {
@@ -150,14 +150,14 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
     }
 
     // A different local identity must not authenticate this listener.
-    process.env.BLOCKIT_TLS_DIR = join(directory, "other");
+    process.env.LAZYDESIGNER_TLS_DIR = join(directory, "other");
     setupRuntimeTls();
     await expect(runtimeFetch(`${url}/health`, { headers: { connection: "close" } })).rejects.toThrow();
   } finally {
     await backend?.close();
     await server?.closeAndWait();
-    if (previous === undefined) delete process.env.BLOCKIT_TLS_DIR;
-    else process.env.BLOCKIT_TLS_DIR = previous;
+    if (previous === undefined) delete process.env.LAZYDESIGNER_TLS_DIR;
+    else process.env.LAZYDESIGNER_TLS_DIR = previous;
     rmSync(directory, { recursive: true, force: true });
   }
 }, 20_000);
@@ -165,7 +165,7 @@ test("HTTPS canonical handler and Gateway validate trust; hostile origin and unt
 
 test("explicit TLS renewal replaces a complete invalid identity without weakening default no-overwrite", () => {
   const directory = mkdtempSync(join(tmpdir(), "lazydesigner-tls-renew-"));
-  const env = { ...process.env, BLOCKIT_TLS_DIR: directory };
+  const env = { ...process.env, LAZYDESIGNER_TLS_DIR: directory };
   try {
     const initial = ensureRuntimeTlsIdentity(env, process.platform);
     expect(initial.ready).toBe(true);
@@ -187,7 +187,7 @@ test("explicit TLS renewal replaces a complete invalid identity without weakenin
 
 test("explicit TLS renewal still refuses an incomplete pair", () => {
   const directory = mkdtempSync(join(tmpdir(), "lazydesigner-tls-incomplete-"));
-  const env = { ...process.env, BLOCKIT_TLS_DIR: directory };
+  const env = { ...process.env, LAZYDESIGNER_TLS_DIR: directory };
   try {
     const paths = runtimeTlsPaths(env, process.platform);
     writeFileSync(paths.cert, "orphan certificate");

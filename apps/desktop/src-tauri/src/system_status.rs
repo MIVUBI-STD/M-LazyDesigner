@@ -135,9 +135,9 @@ struct InstalledState {
 }
 
 fn managed_root() -> Option<PathBuf> {
-    env::var_os("BLOCKIT_HOME")
+    env::var_os("LAZYDESIGNER_HOME")
         .map(PathBuf::from)
-        .or_else(|| env::var_os("LOCALAPPDATA").map(|base| PathBuf::from(base).join("BlockIT")))
+        .or_else(|| env::var_os("LOCALAPPDATA").map(|base| PathBuf::from(base).join("LazyDesigner").join("managed")))
 }
 
 
@@ -163,7 +163,7 @@ pub(crate) fn managed_blockbench_user_data_dir() -> Option<PathBuf> {
     let bytes = fs::read(root.join("installed.json")).ok()?;
     let installed: InstalledState = serde_json::from_slice(&bytes).ok()?;
     let plugin = installed.options.plugin;
-    if plugin.file_name().and_then(|name| name.to_str()) != Some("blockit_mcp.js") {
+    if plugin.file_name().and_then(|name| name.to_str()) != Some("lazydesigner_mcp.js") {
         return None;
     }
     let plugins_dir = plugin.parent()?;
@@ -280,7 +280,7 @@ if ($distinct.Count -eq 1) {
 }
 
 fn blockbench_managed_plugin_path() -> Result<PathBuf, String> {
-    Ok(blockbench_user_data_dir()?.join("plugins").join("blockit_mcp.js"))
+    Ok(blockbench_user_data_dir()?.join("plugins").join("lazydesigner_mcp.js"))
 }
 
 fn installed_plugin_path(root: &Path) -> Result<PathBuf, String> {
@@ -289,7 +289,7 @@ fn installed_plugin_path(root: &Path) -> Result<PathBuf, String> {
     let installed: InstalledState = serde_json::from_slice(&bytes)
         .map_err(|_| "LazyDesigner installed.json is invalid.".to_string())?;
     let plugin = installed.options.plugin;
-    if plugin.file_name().and_then(|name| name.to_str()) != Some("blockit_mcp.js") {
+    if plugin.file_name().and_then(|name| name.to_str()) != Some("lazydesigner_mcp.js") {
         return Err("Managed plugin path has an unexpected filename.".to_string());
     }
     if !plugin.is_file() {
@@ -308,7 +308,7 @@ fn managed_plugin_integrity(root: &Path) -> &'static str {
         Err(_) => return "unknown",
     };
     let plugin = installed.options.plugin;
-    if plugin.file_name().and_then(|name| name.to_str()) != Some("blockit_mcp.js") {
+    if plugin.file_name().and_then(|name| name.to_str()) != Some("lazydesigner_mcp.js") {
         return "invalid";
     }
     if !plugin.is_file() {
@@ -327,7 +327,7 @@ fn managed_plugin_integrity(root: &Path) -> &'static str {
 
 pub fn show_plugin_file() -> Result<PluginFileActionResult, String> {
     let root = managed_root()
-        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+        .ok_or_else(|| "LOCALAPPDATA/LAZYDESIGNER_HOME is unavailable.".to_string())?;
     let plugin = installed_plugin_path(&root)?;
     Command::new("explorer.exe")
         .arg("/select,")
@@ -348,7 +348,7 @@ fn installed_build_identity(root: &Path) -> Option<String> {
         !installed.source_sha.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()) {
         return None;
     }
-    let manifest_path = root.join("versions").join(&installed.source_sha).join("blockit-package.json");
+    let manifest_path = root.join("versions").join(&installed.source_sha).join("lazydesigner-package.json");
     let metadata = fs::symlink_metadata(&manifest_path).ok()?;
     if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > 1_000_000 {
         return None;
@@ -364,7 +364,7 @@ fn installed_build_identity(root: &Path) -> Option<String> {
         return None;
     }
     let plugin_hash = manifest.get("files")?.as_array()?.iter()
-        .find(|entry| entry.get("path").and_then(Value::as_str) == Some("blockit_mcp.js"))?
+        .find(|entry| entry.get("path").and_then(Value::as_str) == Some("lazydesigner_mcp.js"))?
         .get("sha256")?.as_str()?;
     let owned_hash = installed.owned.get(&installed.options.plugin.to_string_lossy().to_string())?;
     if plugin_hash != owned_hash || plugin_hash.len() != 64 ||
@@ -389,7 +389,7 @@ fn manager_executable(root: &Path) -> Result<PathBuf, String> {
     let executable = root
         .join("versions")
         .join(installed.source_sha)
-        .join("blockit.exe");
+        .join("lazydesigner.exe");
     if !executable.is_file() {
         return Err("LazyDesigner managed executable is missing.".to_string());
     }
@@ -732,7 +732,7 @@ pub fn collect() -> SystemStatus {
             blockbench,
             false,
             None,
-            Some("LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string()),
+            Some("LOCALAPPDATA/LAZYDESIGNER_HOME is unavailable.".to_string()),
         );
     };
 
@@ -789,7 +789,7 @@ pub fn collect() -> SystemStatus {
 pub fn bootstrap_resource(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let manager = app
         .path()
-        .resolve("resources/managed/blockit.exe", BaseDirectory::Resource)
+        .resolve("resources/managed/lazydesigner.exe", BaseDirectory::Resource)
         .map_err(|error| format!("Unable to resolve LazyDesigner bootstrap resource: {error}"))?;
     if !manager.is_file() {
         return Err("LazyDesigner installer does not contain a managed bootstrap package.".to_string());
@@ -797,7 +797,7 @@ pub fn bootstrap_resource(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let package = manager
         .parent()
         .ok_or_else(|| "LazyDesigner bootstrap package path is invalid.".to_string())?;
-    if !package.join("blockit-package.json").is_file() {
+    if !package.join("lazydesigner-package.json").is_file() {
         return Err("LazyDesigner bootstrap package manifest is missing.".to_string());
     }
     Ok(manager)
@@ -820,7 +820,7 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
         .parent()
         .ok_or_else(|| "LazyDesigner bootstrap package path is invalid.".to_string())?;
     let root = managed_root()
-        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+        .ok_or_else(|| "LOCALAPPDATA/LAZYDESIGNER_HOME is unavailable.".to_string())?;
     let plugin = blockbench_managed_plugin_path()?;
 
     let output = run_output(
@@ -855,7 +855,7 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
 
 pub fn check_managed_update() -> Result<ManagedUpdateCheck, String> {
     let root = managed_root()
-        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+        .ok_or_else(|| "LOCALAPPDATA/LAZYDESIGNER_HOME is unavailable.".to_string())?;
     let executable = manager_executable(&root)?;
     let output = run_output(
         Command::new(&executable)
@@ -896,7 +896,7 @@ pub fn check_managed_update() -> Result<ManagedUpdateCheck, String> {
     }
     if let Some(tag) = result.tag.as_deref() {
         let valid = tag
-            .strip_prefix("blockit-v")
+            .strip_prefix("lazydesigner-v")
             .map(|version| {
                 !version.is_empty()
                     && version
@@ -917,7 +917,7 @@ pub fn run_managed_action(app: &AppHandle, action: &str, expected_source_sha: Op
     }
 
     let root = managed_root()
-        .ok_or_else(|| "LOCALAPPDATA/BLOCKIT_HOME is unavailable.".to_string())?;
+        .ok_or_else(|| "LOCALAPPDATA/LAZYDESIGNER_HOME is unavailable.".to_string())?;
     let executable = manager_executable(&root)?;
 
     let timeout = match action {
@@ -1007,16 +1007,16 @@ mod tests {
         let digest = "c".repeat(64);
         let version = root.join("versions").join(&sha);
         fs::create_dir_all(&version).unwrap();
-        let plugin = root.join("plugins").join("blockit_mcp.js");
+        let plugin = root.join("plugins").join("lazydesigner_mcp.js");
         let key = plugin.to_string_lossy().to_string();
         let owned = HashMap::from([(key.clone(), digest.clone())]);
         fs::write(root.join("installed.json"), serde_json::json!({
             "source_sha":sha, "options":{"plugin":key}, "owned":owned
         }).to_string()).unwrap();
-        fs::write(version.join("blockit-package.json"), serde_json::json!({
+        fs::write(version.join("lazydesigner-package.json"), serde_json::json!({
             "schema":1, "repository":"MIVUBI-STD/M-LazyDesigner",
             "source_sha":sha, "build_identity":build,
-            "files":[{"path":"blockit_mcp.js","sha256":digest}]
+            "files":[{"path":"lazydesigner_mcp.js","sha256":digest}]
         }).to_string()).unwrap();
         assert_eq!(installed_build_identity(&root), Some(build));
         let invalid_owned = HashMap::from([(key.clone(), "d".repeat(64))]);
@@ -1037,8 +1037,8 @@ mod tests {
 
     #[test]
     fn managed_plugin_filename_is_stable() {
-        let path = Path::new("C:/Users/test/AppData/Roaming/Blockbench/plugins/blockit_mcp.js");
-        assert_eq!(path.file_name().and_then(|name| name.to_str()), Some("blockit_mcp.js"));
+        let path = Path::new("C:/Users/test/AppData/Roaming/Blockbench/plugins/lazydesigner_mcp.js");
+        assert_eq!(path.file_name().and_then(|name| name.to_str()), Some("lazydesigner_mcp.js"));
     }
 
     #[test]

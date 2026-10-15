@@ -11,9 +11,9 @@ describe("managed startup update contract", () => {
       source("../.github/workflows/managed-distribution.yml"),
     ]);
 
-    expect(packager).toContain('join(output, "blockit-package.json")');
-    expect(workflow).toContain("mcp/dist/managed/blockit-package.json");
-    expect(workflow).toContain('gh release create "$TAG" blockit-windows-x64.zip blockit-package.json');
+    expect(packager).toContain('join(output, "lazydesigner-package.json")');
+    expect(workflow).toContain("mcp/dist/managed/lazydesigner-package.json");
+    expect(workflow).toContain('gh release create "$TAG" lazydesigner-windows-x64.zip lazydesigner-package.json');
   });
 
   test("check-update is read-only and separated from full package download", async () => {

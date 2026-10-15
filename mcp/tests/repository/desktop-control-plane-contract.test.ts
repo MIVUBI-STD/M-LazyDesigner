@@ -22,9 +22,9 @@ describe("Desktop control-plane ownership", () => {
     expect(blockbench).toContain('../../../../mcp/compatibility/blockbench.json');
     expect(rust).toContain('"update" | "rollback" | "recover" | "repair" | "setup-tls"');
     expect(rust).toContain('.arg("install")');
-    expect(rust).toContain('"resources/managed/blockit.exe"');
+    expect(rust).toContain('"resources/managed/lazydesigner.exe"');
     expect(rust).toContain('"--plugin-path"');
-    expect(rust).toContain('join("plugins").join("blockit_mcp.js")');
+    expect(rust).toContain('join("plugins").join("lazydesigner_mcp.js")');
     expect(app).toContain("ensure_ready");
     expect(app).toContain("show_plugin_file");
     expect(app).toContain("setup-tls");

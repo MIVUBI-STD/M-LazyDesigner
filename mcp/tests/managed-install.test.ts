@@ -15,25 +15,25 @@ test("installation identity survives native Windows path virtualization", async 
     await installPackage(source, options, parse);
     const physicalRoot = realpathSync.native(options.root);
     assert.equal((await installedState(physicalRoot))?.source_sha, "a".repeat(40));
-    const executable = join(options.root, "versions", "a".repeat(40), "blockit.exe");
+    const executable = join(options.root, "versions", "a".repeat(40), "lazydesigner.exe");
     assert.equal(sameInstalledPath(executable, realpathSync.native(executable)), true);
-    assert.equal(sameInstalledPath(executable, join(source, "blockit.exe")), false);
+    assert.equal(sameInstalledPath(executable, join(source, "lazydesigner.exe")), false);
   });
 });
 
 async function fixture(directory: string, digit = "a"): Promise<Manifest> {
-  const paths = ["blockit.exe", "blockit_mcp.js", "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS];
+  const paths = ["lazydesigner.exe", "lazydesigner_mcp.js", "AGENTS.md", "THIRD_PARTY_NOTICES.txt", ...PACKAGE_SOURCE_PATHS];
   const manifest: Manifest = { schema: 1, repository: REPOSITORY, source_sha: digit.repeat(40), build_identity: "sha256:" + digit.repeat(64), platform: "windows-x64", files: [] };
   for (const path of paths) {
-    const bytes = Buffer.from(path === "blockit_mcp.js" ? `globalThis.__BLOCKIT_BUILD_ID__="${manifest.build_identity}";` : `Fixture ${path} ${digit}\n`);
+    const bytes = Buffer.from(path === "lazydesigner_mcp.js" ? `globalThis.__LAZYDESIGNER_BUILD_ID__="${manifest.build_identity}";` : `Fixture ${path} ${digit}\n`);
     await mkdir(dirname(join(directory, path)), { recursive: true }); await writeFile(join(directory, path), bytes);
     manifest.files.push({ path, size: bytes.length, sha256: sha256(bytes) });
   }
-  await writeFile(join(directory, "blockit-package.json"), JSON.stringify(manifest)); return manifest;
+  await writeFile(join(directory, "lazydesigner-package.json"), JSON.stringify(manifest)); return manifest;
 }
 async function sandbox(work: (directory: string, options: InstallOptions) => Promise<void>): Promise<void> {
-  const d = await mkdtemp(join(tmpdir(), "blockit-install-"));
-  try { await work(d, { root: join(d, "installed"), workspace: join(d, "assets"), plugin: join(d, "plugins/blockit_mcp.js"), config: join(d, "codex/config.toml") }); }
+  const d = await mkdtemp(join(tmpdir(), "lazydesigner-install-"));
+  try { await work(d, { root: join(d, "installed"), workspace: join(d, "assets"), plugin: join(d, "plugins/lazydesigner_mcp.js"), config: join(d, "codex/config.toml") }); }
   finally { await rm(d, { recursive: true, force: true }); }
 }
 
@@ -104,37 +104,53 @@ test("managed package covers every Runtime-required Skill/profile context", asyn
 });
 
 test("corrupt payload cannot change active installation", async () => sandbox(async (d, o) => {
-  const pkg = join(d, "pkg"); await fixture(pkg); await writeFile(join(pkg, "blockit_mcp.js"), "wrong");
+  const pkg = join(d, "pkg"); await fixture(pkg); await writeFile(join(pkg, "lazydesigner_mcp.js"), "wrong");
   await assert.rejects(installPackage(pkg, o, parse), /integrity/);
   assert.equal(await installedState(o.root), null); assert.equal(await readOptional(o.config), null);
 }));
 
-test("Codex configuration preserves other servers, settings and BlockIT timeouts", () => {
-  const before = '# user comment\nmodel="chosen"\n[mcp_servers.other]\ncommand="other.exe"\n[mcp_servers.blockit]\ncommand="bun"\nargs=["old.ts"]\ntool_timeout_sec=120\n[mcp_servers.blockit.env]\nBLOCKIT_RUNTIME_URL="http://127.0.0.1:3100/bb-mcp"\n';
-  assert.throws(() => configureCodex(before, "C:\\BlockIT\\blockit.exe", parse), /adopt/);
-  const after = configureCodex(before, "C:\\BlockIT\\blockit.exe", parse, true);
+test("Codex configuration preserves other servers, settings and LazyDesigner timeouts", () => {
+  const before = '# user comment\nmodel="chosen"\n[mcp_servers.other]\ncommand="other.exe"\n[mcp_servers.lazydesigner]\ncommand="bun"\nargs=["old.ts"]\ntool_timeout_sec=120\n[mcp_servers.lazydesigner.env]\nLAZYDESIGNER_RUNTIME_URL="http://127.0.0.1:3100/bb-mcp"\n';
+  assert.throws(() => configureCodex(before, "C:\\LazyDesigner\\lazydesigner.exe", parse), /adopt/);
+  const after = configureCodex(before, "C:\\LazyDesigner\\lazydesigner.exe", parse, true);
   assert.ok(after.includes('# user comment')); const data = parse(after);
   assert.equal(data.model, "chosen"); assert.deepEqual(data.mcp_servers.other, parse(before).mcp_servers.other);
-  assert.equal(data.mcp_servers.blockit.tool_timeout_sec, 120);
-  assert.equal(data.mcp_servers.blockit.env.BLOCKIT_RUNTIME_URL, "http://127.0.0.1:3100/bb-mcp");
-  assert.equal(configureCodex(after, "C:\\BlockIT\\blockit.exe", parse), after);
-  assert.throws(() => configureCodex('[mcp_servers.blockit]\nenabled=false\n', "x.exe", parse, true), /disabled/);
-  assert.throws(() => configureCodex('[mcp_servers.blockit]\nurl="https://remote.invalid"\n', "x.exe", parse, true), /remote/);
+  assert.equal(data.mcp_servers.lazydesigner.tool_timeout_sec, 120);
+  assert.equal(data.mcp_servers.lazydesigner.env.LAZYDESIGNER_RUNTIME_URL, "http://127.0.0.1:3100/bb-mcp");
+  assert.equal(configureCodex(after, "C:\\LazyDesigner\\lazydesigner.exe", parse), after);
+  assert.throws(() => configureCodex('[mcp_servers.lazydesigner]\nenabled=false\n', "x.exe", parse, true), /disabled/);
+  assert.throws(() => configureCodex('[mcp_servers.lazydesigner]\nurl="https://remote.invalid"\n', "x.exe", parse, true), /remote/);
   assert.throws(() => configureCodex('not valid TOML', "x.exe", parse));
 });
 
 
+test("retired BlockIT configuration and plugin are rejected without changing files", async () => {
+  assert.throws(
+    () => configureCodex('[mcp_servers.blockit]\ncommand="old.exe"\n', "new.exe", parse, true),
+    /Retired BlockIT client configuration/
+  );
+  await sandbox(async (d, o) => {
+    const pkg = join(d, "pkg"); await fixture(pkg);
+    await mkdir(dirname(o.plugin), { recursive: true });
+    await writeFile(join(dirname(o.plugin), "blockit_mcp.js"), "USER LEGACY PLUGIN");
+    await assert.rejects(installPackage(pkg, o, parse, true), /Retired BlockIT plugin/);
+    assert.equal(await readOptional(o.plugin), null);
+    assert.equal((await readFile(join(dirname(o.plugin), "blockit_mcp.js")).toString()), "USER LEGACY PLUGIN");
+    assert.equal(await installedState(o.root), null);
+  });
+});
+
 test("Codex first install gives the Gateway enough timeout headroom without overriding an explicit value", () => {
-  const executable = "C:\\BlockIT\\blockit.exe";
+  const executable = "C:\\LazyDesigner\\lazydesigner.exe";
   const fresh = configureCodex("", executable, parse);
-  const defaultEntry = parse(fresh).mcp_servers.blockit;
+  const defaultEntry = parse(fresh).mcp_servers.lazydesigner;
   assert.equal(defaultEntry.tool_timeout_sec, 180);
   assert.equal(defaultEntry.command, executable);
   assert.deepEqual(defaultEntry.args, ["mcp"]);
   assert.equal(configureCodex(fresh, executable, parse), fresh);
 
-  const selected = '[mcp_servers.blockit]\ncommand="user-gateway"\ntool_timeout_sec=45\n';
-  const adopted = parse(configureCodex(selected, executable, parse, true)).mcp_servers.blockit;
+  const selected = '[mcp_servers.lazydesigner]\ncommand="user-gateway"\ntool_timeout_sec=45\n';
+  const adopted = parse(configureCodex(selected, executable, parse, true)).mcp_servers.lazydesigner;
   assert.equal(adopted.tool_timeout_sec, 45);
 });
 
@@ -147,7 +163,7 @@ test("install is idempotent and keeps user assets and root instructions", async 
   assert.equal((await readFile(join(o.workspace, "model.bbmodel"))).toString(), "USER MODEL");
   assert.ok((await readFile(join(o.workspace, "AGENTS.md"))).toString().startsWith("User-owned instructions\n"));
   assert.equal((await readdir(join(o.root, "transactions"))).length, 1);
-  assert.equal(parse((await readFile(o.config)).toString()).mcp_servers.blockit.command, join(o.root, "versions", "a".repeat(40), "blockit.exe"));
+  assert.equal(parse((await readFile(o.config)).toString()).mcp_servers.lazydesigner.command, join(o.root, "versions", "a".repeat(40), "lazydesigner.exe"));
 }));
 
 test("update and rollback switch the complete managed package, never user assets", async () => sandbox(async (d, o) => {
@@ -205,7 +221,7 @@ test("rollback refuses to overwrite a post-install user edit", async () => sandb
 test("concurrent writers and symlink/junction destinations are refused", async () => sandbox(async (d, o) => {
   await withInstallLock(o.root, async () => { await assert.rejects(withInstallLock(o.root, async () => {}), /active/); });
   const real = join(d, "real"), link = join(d, "link"); await mkdir(real); await symlink(real, link, process.platform === "win32" ? "junction" : "dir");
-  await assert.rejects(requirePlainPath(join(link, "blockit_mcp.js")), /linked/);
+  await assert.rejects(requirePlainPath(join(link, "lazydesigner_mcp.js")), /linked/);
   const file = join(d, "changed"); await writeFile(file, "now");
   await assert.rejects(applyTransaction(o.root, [{ path: file, bytes: Buffer.from("bad"), expected: sha256("stale") }]), /Concurrent/);
 }));
@@ -221,7 +237,7 @@ test("TOML preflight rejects parser-recovered statements and incomplete values",
 
 test("TOML preflight preserves quoted comments and multiline configuration", () => {
   const original = '# comment\nmodel="chosen"\nnote="""first # [ ignored\nsecond"""\n[ mcp_servers.other ]\nargs = [\n "one", # comma\n "two",\n]\n';
-  const after = configureCodex(original, "C:\\BlockIT\\blockit.exe", parse);
+  const after = configureCodex(original, "C:\\LazyDesigner\\lazydesigner.exe", parse);
   assert.deepEqual(parse(after).mcp_servers.other, parse(original).mcp_servers.other);
   assert.equal(parse(after).note, parse(original).note);
 });
@@ -305,7 +321,7 @@ test("Runtime TLS status is fail-closed for an absent disposable identity", asyn
   const { runtimeTlsStatus } = await import("../../distribution/runtime-tls");
   const directory = join(d, "tls");
   const status = runtimeTlsStatus(
-    { ...process.env, BLOCKIT_TLS_DIR: directory },
+    { ...process.env, LAZYDESIGNER_TLS_DIR: directory },
     process.platform
   );
   assert.equal(status.ready, false);

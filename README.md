@@ -2,7 +2,7 @@
 
 LazyDesigner is an AI-assisted **Minecraft Bedrock Entity** authoring workspace built around a local Blockbench MCP Runtime, a stable AI-client-facing Gateway, and a lightweight Control front line for context-efficient Codex work.
 
-**Former project name:** BlockIT. Internal `blockit-*` compatibility identifiers and legacy filenames may remain temporarily during the controlled migration; they are not the current product name.
+**Former project name:** BlockIT. New source/build, managed installer, plugin and Gateway identities are canonical LazyDesigner; old BlockIT machine state is detected only for safe explicit migration and is never selected as the active Runtime.
 
 **Project snapshot:** `v0.1` (separate from the MCP package version).
 
@@ -134,7 +134,7 @@ Naming contract:
 
 ## Development
 
-LazyDesigner source/builds come from this repository; do not use an upstream hosted plugin as runtime authority for this repository. Legacy output filename `dist/blockit_mcp.js` remains during the controlled identifier/file migration.
+LazyDesigner source/builds come from this repository; do not use an upstream hosted plugin as runtime authority for this repository. The canonical generated plugin bundle is `dist/lazydesigner_mcp.js`. Any retired BlockIT artifact is not a supported active installation fallback.
 
 The repository root is the developer navigation facade; package-specific implementation commands remain owned by `mcp/package.json` and `apps/desktop/package.json`.
 
@@ -169,10 +169,10 @@ Build/watch without deployment:
 bun run dev:watch
 ```
 
-Manual deployment remains explicit while legacy filenames are present:
+Manual development deployment to the canonical plugin filename remains explicit:
 
 ```bash
-bun run deploy:local -- /absolute/path/to/blockit_mcp.js
+bun run deploy:local -- /absolute/path/to/lazydesigner_mcp.js
 ```
 
 Normal AI-client use connects through Control and the Gateway. See `mcp/gateway/README.md`.

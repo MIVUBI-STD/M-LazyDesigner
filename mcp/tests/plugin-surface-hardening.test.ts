@@ -45,7 +45,7 @@ describe("LazyDesigner plugin surface hardening", () => {
     expect(indexSource).not.toContain("jasonjgardner.github.io/blockbench-mcp-plugin");
     expect(readme).toContain("runtime authority for this repository");
     expect(readme).toContain("LazyDesigner source/builds come from this repository");
-    expect(readme).toContain("compatibility bundle filename remains `dist/blockit_mcp.js`");
+    expect(readme).toContain("canonical production bundle filename is `dist/lazydesigner_mcp.js`");
   });
 
   test("panel identity stays minimal without build fingerprint state", async () => {
@@ -95,7 +95,7 @@ describe("LazyDesigner plugin surface hardening", () => {
     ]);
 
     expect(statusSource).toContain('return "LazyDesigner Runtime Ready"');
-    expect(statusSource).toContain("BLOCKIT_RUNTIME_STATUS_CHANGED");
+    expect(statusSource).toContain("LAZYDESIGNER_RUNTIME_STATUS_CHANGED");
     expect(statusSource).not.toContain("serverInfo");
     expect(statusCss).not.toContain("mcp-server-info");
     expect(statusCss).not.toContain("animation: pulse");

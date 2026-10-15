@@ -12,7 +12,9 @@ export interface BlockItRuntimeStatusDetail {
   detail?: string;
 }
 
-export const BLOCKIT_RUNTIME_STATUS_CHANGED = "blockit-runtime-status-changed";
+export const LAZYDESIGNER_RUNTIME_STATUS_CHANGED = "lazydesigner-runtime-status-changed";
+/** @deprecated Source-only alias for the canonical LazyDesigner status event. */
+export const BLOCKIT_RUNTIME_STATUS_CHANGED = LAZYDESIGNER_RUNTIME_STATUS_CHANGED;
 
 let currentStatus: BlockItRuntimeStatusDetail = { state: "starting" };
 

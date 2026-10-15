@@ -88,18 +88,18 @@ export class BlockitRuntimeBackend {
 
   constructor(
     runtimeUrl?: string,
-    healthTimeoutMs: number = Number(process.env.BLOCKIT_RUNTIME_TIMEOUT_MS ?? 1500),
+    healthTimeoutMs: number = Number(process.env.LAZYDESIGNER_RUNTIME_TIMEOUT_MS ?? 1500),
     options: BlockitRuntimeBackendOptions = {}
   ) {
     this.runtimeUrl = normalizeRuntimeUrl(
-      runtimeUrl ?? process.env.BLOCKIT_RUNTIME_URL ?? DEFAULT_RUNTIME_URL
+      runtimeUrl ?? process.env.LAZYDESIGNER_RUNTIME_URL ?? DEFAULT_RUNTIME_URL
     );
     const expectedBuild = process.env.LAZYDESIGNER_EXPECTED_RUNTIME_BUILD_ID ?? null;
     if (expectedBuild !== null && !/^sha256:[a-f0-9]{64}$/.test(expectedBuild)) {
       throw new Error("Configured LazyDesigner Runtime build identity is invalid.");
     }
     this.expectedRuntimeBuildIdentity = expectedBuild;
-    // The normal long-lived Gateway is configured through BLOCKIT_RUNTIME_URL.
+    // The normal long-lived Gateway is configured through LAZYDESIGNER_RUNTIME_URL.
     // Never silently downgrade that connection to cleartext HTTP. Isolated
     // protocol fixtures may still pass an explicit loopback HTTP URL in code.
     if (runtimeUrl === undefined && new URL(this.runtimeUrl).protocol !== "https:") {
@@ -110,38 +110,38 @@ export class BlockitRuntimeBackend {
     this.healthTimeoutMs = normalizePositiveInteger(healthTimeoutMs, 1500, 100);
     this.connectTimeoutMs = normalizePositiveInteger(
       options.connectTimeoutMs ??
-        Number(process.env.BLOCKIT_RUNTIME_CONNECT_TIMEOUT_MS ?? 5000),
+        Number(process.env.LAZYDESIGNER_RUNTIME_CONNECT_TIMEOUT_MS ?? 5000),
       5000,
       250
     );
     this.callTimeoutMs = normalizePositiveInteger(
       options.callTimeoutMs ??
-        Number(process.env.BLOCKIT_RUNTIME_CALL_TIMEOUT_MS ?? 120000),
+        Number(process.env.LAZYDESIGNER_RUNTIME_CALL_TIMEOUT_MS ?? 120000),
       120000,
       1000
     );
     this.closeTimeoutMs = normalizePositiveInteger(
       options.closeTimeoutMs ??
-        Number(process.env.BLOCKIT_RUNTIME_CLOSE_TIMEOUT_MS ?? 2000),
+        Number(process.env.LAZYDESIGNER_RUNTIME_CLOSE_TIMEOUT_MS ?? 2000),
       2000,
       100
     );
     this.operationQueue = new GatewayOperationQueue(
       normalizeNonNegativeInteger(
         options.maxQueueDepth ??
-          Number(process.env.BLOCKIT_GATEWAY_MAX_QUEUE_DEPTH ?? 8),
+          Number(process.env.LAZYDESIGNER_GATEWAY_MAX_QUEUE_DEPTH ?? 8),
         8
       ),
       normalizePositiveInteger(
         options.maxQueueWaitMs ??
-          Number(process.env.BLOCKIT_GATEWAY_MAX_QUEUE_WAIT_MS ?? 30_000),
+          Number(process.env.LAZYDESIGNER_GATEWAY_MAX_QUEUE_WAIT_MS ?? 30_000),
         30_000,
         1
       )
     );
     this.catalogLeaseMs = normalizePositiveInteger(
       options.catalogLeaseMs ??
-        Number(process.env.BLOCKIT_GATEWAY_CATALOG_LEASE_MS ?? 1000),
+        Number(process.env.LAZYDESIGNER_GATEWAY_CATALOG_LEASE_MS ?? 1000),
       1000,
       100
     );
@@ -297,7 +297,7 @@ export class BlockitRuntimeBackend {
     this.connection.beginConnect();
 
     const client = new Client(
-      { name: "blockit-gateway-runtime-client", version: GATEWAY_VERSION },
+      { name: "lazydesigner-gateway-runtime-client", version: GATEWAY_VERSION },
       {
         capabilities: {},
         versionNegotiation: { mode: "auto" },
