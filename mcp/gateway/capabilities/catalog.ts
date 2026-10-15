@@ -122,7 +122,13 @@ export function searchCapabilityCatalog(
   // Ignore generic assistant/tooling words before ranking. Preserve semantic
   // examples and synonyms by feeding the same meaningful query to BOTH rankers.
   const effectiveQuery = substantiveQueryTerms(query).join(" ");
-  const bm25Scores = bm25CapabilityScores(tools, effectiveQuery);
+  // A generic-only discovery query has no actionable intent and should not
+  // traverse the catalog or compute ranking weights.
+  if (hasQuery && effectiveQuery.length === 0) return [];
+  // Empty discovery lists non-maintenance capabilities without a BM25 query.
+  const bm25Scores = effectiveQuery.length > 0
+    ? bm25CapabilityScores(tools, effectiveQuery)
+    : new Map<string, number>();
   // Lexical relevance is a bounded secondary signal, not an intent override.
   const maxBm25 = Math.max(1, ...bm25Scores.values());
 
