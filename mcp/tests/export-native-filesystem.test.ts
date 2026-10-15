@@ -52,6 +52,33 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     await expect(run(geometry, true, "bedrock")).rejects.toThrow("existing Bedrock geometry");
     expect(fs.readFileSync(geometry, "utf8")).toBe("keep");
     expect(writes).toBe(1);
+
+    // The native write succeeded, but Blockbench Save As lifecycle failed.
+    // Keep the destination and do not claim the active project was restored.
+    const priorAfterSave = globals.Codecs.project.afterSave;
+    globals.Codecs.project.afterSave = (path: string) => {
+      project.save_path = path;
+      throw new Error("injected native save failure");
+    };
+    const uncertain = join(directory, "uncertain.bbmodel");
+    await expect(run(uncertain)).rejects.toThrow("EXPORT_LIFECYCLE_UNVERIFIED");
+    expect(fs.readFileSync(uncertain, "utf8")).toBe('{"new":true}');
+    expect(project.save_path).toBe(uncertain);
+    expect(writes).toBe(2);
+    globals.Codecs.project.afterSave = priorAfterSave;
+
+    // A native write can also throw after creating a file. Do not mask this as
+    // "no write" and do not delete the destination without proof.
+    const nativeWrite = nativeFs.writeFileSync;
+    nativeFs.writeFileSync = (...args: Parameters<typeof fs.writeFileSync>) => {
+      nativeWrite(...args);
+      throw new Error("injected interrupted write");
+    };
+    const interrupted = join(directory, "interrupted.bbmodel");
+    await expect(run(interrupted)).rejects.toThrow("EXPORT_WRITE_OUTCOME_UNKNOWN");
+    expect(fs.existsSync(interrupted)).toBe(true);
+    expect(project.save_path).toBe(uncertain);
+    nativeFs.writeFileSync = nativeWrite;
   } finally {
     for (const [key, descriptor] of saved) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor);

@@ -347,18 +347,40 @@ export function registerExportTools() {
               `Codec "${codec_id}" does not implement the native afterSave() lifecycle owner required for verified filesystem writes. Omit \`path\` to receive the compiled content in the MCP response instead.`
             );
           }
-          exportFs.writeFileSync(
-            path,
-            binaryBuffer ?? (text ?? ""),
-            { flag: destinationExisted ? "w" : "wx" }
-          );
-          const writtenStat = exportFs.statSync(path);
-          if (!writtenStat.isFile() || writtenStat.size !== byteLength) {
+          // A native filesystem write is not transactional. If it fails, the
+          // target may already have been created or partly overwritten.
+          // Never delete, retry or claim rollback from this failure path.
+          try {
+            exportFs.writeFileSync(
+              path,
+              binaryBuffer ?? (text ?? ""),
+              { flag: destinationExisted ? "w" : "wx" }
+            );
+          } catch {
             throw new Error(
-              `Export write verification failed for ${path}: expected a regular file of ${byteLength} bytes, got ${writtenStat.isFile() ? `${writtenStat.size} bytes` : "a non-file target"}. The path may exist, but export_model will not report it as a verified artifact.`
+              `EXPORT_WRITE_OUTCOME_UNKNOWN: Write to ${path} did not complete reliably. The destination may exist or be partially overwritten. Inspect file contents and current Blockbench project before any retry; do not automatically repeat export_model.`
             );
           }
-          codec.afterSave(path);
+          let writtenStat: ReturnType<ExportFilesystem["statSync"]>;
+          try {
+            writtenStat = exportFs.statSync(path);
+          } catch {
+            throw new Error(
+              `EXPORT_WRITE_OUTCOME_UNKNOWN: A write to ${path} returned, but the destination could not be verified. Inspect the file and Blockbench state before retry; no rollback or automatic retry was performed.`
+            );
+          }
+          if (!writtenStat.isFile() || writtenStat.size !== byteLength) {
+            throw new Error(
+              `EXPORT_WRITE_OUTCOME_UNKNOWN: Export write verification failed for ${path}: expected a regular file of ${byteLength} bytes, got ${writtenStat.isFile() ? `${writtenStat.size} bytes` : "a non-file target"}. The destination may exist or be incomplete. Inspect it before retry; no automatic retry or rollback was performed.`
+            );
+          }
+          try {
+            codec.afterSave(path);
+          } catch {
+            throw new Error(
+              `EXPORT_LIFECYCLE_UNVERIFIED: Artifact size was verified at ${path}, but native afterSave failed. The file may exist while the active project's name/save path/saved state is uncertain. Inspect both file and editor state before any retry; no automatic retry or rollback was performed.`
+            );
+          }
           const lifecycle = currentExportProjectLifecycle();
           const lifecycleMatches =
             codec_id === "project"
@@ -368,7 +390,7 @@ export function registerExportTools() {
                 lifecycle.saved;
           if (!lifecycleMatches) {
             throw new Error(
-              `Export artifact was written to ${path}, but native codec lifecycle state did not synchronize to that path.`
+              `EXPORT_LIFECYCLE_UNVERIFIED: Export artifact was written to ${path}, but native codec lifecycle state did not synchronize to that path. Inspect the destination and active project before retry; no automatic retry or rollback was performed.`
             );
           }
           wrote_to_path = path;
