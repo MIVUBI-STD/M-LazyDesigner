@@ -189,7 +189,7 @@ fn managed_navigation_profile_id() -> Option<String> {
 // Read-only recovery does not select or launch a legacy manager/Runtime.
 // Trust only the standard Blockbench profile when a valid existing
 // LazyDesigner profile-specific navigation snapshot proves its identity.
-fn project_navigation_profile_id() -> Option<String> {
+pub(crate) fn project_navigation_profile_id() -> Option<String> {
     if let Some(profile) = managed_navigation_profile_id() {
         return Some(profile);
     }

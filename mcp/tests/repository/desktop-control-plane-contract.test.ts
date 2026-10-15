@@ -266,7 +266,7 @@ describe("Desktop control-plane ownership", () => {
     expect(navigator).toContain("active.dirty");
     expect(navigator).toContain("folder-shortcuts");
     expect(navigator).toContain("project.pinned");
-    expect(navigator).toContain("Remove shortcut");
+    expect(navigator).toContain("Remove from Workspace");
     expect(navigator).toContain("project.pinned");
     expect(navigator).toContain("project.folders.length > 0");
     expect(navigator).toContain("project.folders.length > 0");
@@ -393,10 +393,67 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("onAddProjectFolder={addProjectFolder}");
     expect(navigator).toContain('aria-label="Search projects or models"');
     expect(navigator).toContain("<h2>Projects &amp; Models</h2>");
-    expect(navigator).toContain("Remove shortcut");
+    expect(navigator).toContain("Remove from Workspace");
     expect(navigator).not.toContain("Search models");
     expect(types).toContain("registered: boolean;");
     expect(types).toContain("available: boolean;");
+  });
+
+  test("Delete Project has a two-phase registered-folder-only Recycle Bin boundary", async () => {
+    const [app, navigator, rust, deletion, main, presentation, types] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src/ProjectNavigator.svelte"),
+      source("../apps/desktop/src-tauri/src/project_navigation.rs"),
+      source("../apps/desktop/src-tauri/src/project_deletion.rs"),
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src/desktopPresentation.ts"),
+      source("../apps/desktop/src/projectNavigationTypes.ts"),
+    ]);
+    expect(navigator).toContain("{#if project.registered}");
+    expect(navigator).toContain("Remove from Workspace");
+    expect(navigator).toContain("Delete Project…");
+    expect(navigator).toContain("onDeleteProject(project.id)");
+    expect(rust).toContain("pub(crate) fn registered_delete_target(");
+    expect(rust).toContain("pub(crate) fn unregister_recycled_folder(");
+    expect(rust).toContain("recycled_project_paths");
+    expect(rust).toContain("read_visible_navigation_snapshot");
+    expect(deletion).toContain("project_navigation::registered_delete_target(id, profile.as_deref())");
+    expect(deletion).toContain("blockbench_closed()?");
+    expect(deletion).toContain("require_fixed_local_volume(&folder)?");
+    expect(deletion).toContain("protected_environment(&folder)?");
+    expect(deletion).toContain("fingerprint_tree(&folder)?");
+    expect(deletion).toContain("prior.token != token || Instant::now() >= prior.expires");
+    expect(deletion).toContain("fingerprint != prior.fingerprint");
+    expect(deletion).toContain("fn recycle_folder(folder: &Path)");
+    expect(deletion).toContain("[Microsoft.VisualBasic.FileIO.RecycleOption]::SendToRecycleBin");
+    expect(deletion).toContain("[Microsoft.VisualBasic.FileIO.UICancelOption]::ThrowException");
+    expect(deletion).not.toContain("RecycleOption]::DeletePermanently");
+    expect(deletion).not.toContain("fs::remove_dir_all(&folder)");
+    expect(deletion).toContain("MAX_TREE_ENTRIES: usize = 10_000");
+    expect(deletion).toContain("MAX_TREE_DEPTH: usize = 32");
+    expect(main).toContain("async fn prepare_delete_project(id: String)");
+    expect(main).toContain("async fn confirm_delete_project(token: String)");
+    expect(main).toContain("fn cancel_delete_project(token: String)");
+    expect(app).toContain("invoke<ProjectDeletePreview>('prepare_delete_project', { id })");
+    expect(app).toContain("invoke<ProjectDeleteResult>('confirm_delete_project', { token: review.token })");
+    expect(app).toContain("invoke('cancel_delete_project', { token: review.token })");
+    expect(app).toContain('role="alertdialog" aria-modal="true"');
+    expect(app).toContain("Move to Recycle Bin");
+    expect(app).toContain("onDeleteProject={beginDeleteProject}");
+    expect(types).toContain("expires_in_seconds: number");
+    expect(types).toContain("RECYCLED_SHORTCUT_RETAINED");
+    expect(presentation).toContain("PROJECT_RECYCLE_FAILED");
+  });
+
+  test("destructive-operation errors explain unknown results without claiming files were preserved", async () => {
+    const { desktopErrorNotice } = await import("../../../apps/desktop/src/desktopPresentation");
+    const waiting = desktopErrorNotice({ code: "PROJECT_DELETE_REVIEW_FAILED", message: "Save and close all Blockbench windows" });
+    expect(waiting.title).toBe("Close Blockbench first");
+    const uncertain = desktopErrorNotice({ code: "PROJECT_RECYCLE_FAILED", message: "Native recycle status uncertain" });
+    expect(uncertain.title).toBe("Project deletion not confirmed");
+    expect(uncertain.message).toContain("No permanent-delete fallback was attempted");
+    const protectedPath = desktopErrorNotice({ code: "PROJECT_DELETE_REVIEW_FAILED", message: "System folder protected" });
+    expect(protectedPath.title).toBe("Folder is not safe to delete here");
   });
 
   test("Desktop Project Navigator UI is isolated from command orchestration", async () => {

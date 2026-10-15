@@ -7,6 +7,7 @@
   export let canEditProjectPrefs = true;
   export let onOpenModel: (id: string) => void | Promise<void>;
   export let onAddProjectFolder: () => void | Promise<void>;
+  export let onDeleteProject: (id: string) => void | Promise<void>;
   export let onFocusEditor: () => void | Promise<void>;
   export let onProjectAction: (action: ProjectAction, id: string) => void | Promise<void>;
   export let onCopyPath: (id: string) => void | Promise<void>;
@@ -126,6 +127,16 @@
           {#if !projectSearch.trim()}
             <button class="quiet-button" aria-expanded={expandedProjectId === project.id} onclick={() => toggleProject(project.id)}>{expandedProjectId === project.id ? 'Hide models' : 'Show models'}</button>
           {/if}
+          <details class="more-menu">
+            <summary aria-label="Project actions">•••</summary>
+            <div class="menu-popover">
+              <button onclick={() => onProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busy || !canEditProjectPrefs}>{project.pinned ? 'Unpin project' : 'Pin project'}</button>
+              {#if project.registered}
+                <button onclick={() => onProjectAction('remove-project-folder', project.id)} disabled={busy || !canEditProjectPrefs}>Remove from Workspace</button>
+                <button class="menu-danger" onclick={() => onDeleteProject(project.id)} disabled={!project.available || busy}>Delete Project…</button>
+              {/if}
+            </div>
+          </details>
         </div>
       </div>
       {#if expandedProjectId === project.id || projectSearch.trim()}
@@ -167,12 +178,6 @@
               </div>
             {/if}
           {/if}
-          <div class="project-detail-actions">
-            <button class="quiet-button" onclick={() => onProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busy || !canEditProjectPrefs}>{project.pinned ? 'Unpin' : 'Pin'}</button>
-            {#if project.registered}
-              <button class="quiet-button" onclick={() => onProjectAction('remove-project-folder', project.id)} disabled={busy || !canEditProjectPrefs}>Remove shortcut</button>
-            {/if}
-          </div>
         </div>
       {/if}
     {/each}
@@ -248,4 +253,6 @@
   .menu-popover{position:absolute;z-index:20;right:0;top:34px;width:168px;display:grid;padding:5px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);box-shadow:var(--shadow-popover)}
   .menu-popover button{width:100%;padding:7px 8px;border-radius:5px;background:transparent;color:var(--text-soft);text-align:left;cursor:pointer;font-size:var(--font-sm)}
   .menu-popover button:hover:not(:disabled){background:var(--surface-3)}
+  .menu-popover .menu-danger{color:#e28b8b;font-weight:700}
+  .menu-popover .menu-danger:hover:not(:disabled){background:rgba(192,70,70,.12)}
 </style>

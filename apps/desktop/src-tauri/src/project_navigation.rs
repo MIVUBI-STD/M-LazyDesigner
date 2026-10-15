@@ -151,8 +151,11 @@ struct ProjectNavigationPreferences {
     pinned_project_ids: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     registered_project_paths: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    recycled_project_paths: Vec<String>,
 }
 const MAX_REGISTERED_PROJECTS: usize = 16;
+const MAX_RECYCLED_PROJECT_MARKERS: usize = 32;
 const MAX_PROJECT_MODELS: usize = 64;
 const MAX_DIRECTORY_ENTRIES: usize = 128;
 
@@ -217,8 +220,31 @@ fn read_navigation_snapshot(profile_id: Option<&str>) -> Option<NavigationSnapsh
     navigation_snapshot_is_valid(&snapshot, expected_profile_id).then_some(snapshot)
 }
 
+fn hide_recycled_model_history(snapshot: &mut NavigationSnapshot, recycled_roots: &[String]) {
+    let hidden = |raw: &str| recycled_roots.iter().any(|root| {
+        let model = navigation_path_key(Path::new(raw));
+        let key = navigation_path_key(Path::new(root));
+        model.starts_with(&(key + "\\"))
+    });
+    snapshot.last_model_path = snapshot.last_model_path.take().filter(|path| !hidden(path));
+    if snapshot.active.as_ref()
+        .and_then(|active| active.model_path.as_deref()).is_some_and(|path| hidden(path)) {
+        snapshot.active = None;
+    }
+    snapshot.open_models.retain(|model| model.path.as_deref().map_or(true, |path| !hidden(path)));
+    snapshot.recent_models.retain(|model| !hidden(&model.path));
+}
+
+fn read_visible_navigation_snapshot(
+    profile_id: Option<&str>, recycled_roots: &[String],
+) -> Option<NavigationSnapshot> {
+    let mut snapshot = read_navigation_snapshot(profile_id)?;
+    hide_recycled_model_history(&mut snapshot, recycled_roots);
+    Some(snapshot)
+}
+
 fn empty_navigation_preferences() -> ProjectNavigationPreferences {
-    ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new(), registered_project_paths: Vec::new() }
+    ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new(), registered_project_paths: Vec::new(), recycled_project_paths: Vec::new() }
 }
 
 fn valid_pinned_project_id(id: &str) -> bool {
@@ -294,7 +320,7 @@ fn read_navigation_preferences_with_raw_at(path: &Path)
     };
     let mut value: ProjectNavigationPreferences = serde_json::from_slice(&raw)
         .map_err(|_| "Preferences malformed; original file preserved.".to_string())?;
-    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) || !validate_registered_paths(&value.registered_project_paths) {
+    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) || !validate_registered_paths(&value.registered_project_paths) || value.recycled_project_paths.len() > MAX_RECYCLED_PROJECT_MARKERS || !value.recycled_project_paths.iter().all(|path| valid_registered_project_path(path)) {
         return Err("Preferences use unsupported schema or IDs; original preserved.".to_string());
     }
     value.pinned_project_ids.sort();
@@ -322,7 +348,7 @@ fn load_project_navigation_preferences() -> Result<ProjectNavigationPreferences,
 fn write_navigation_preferences_expected_at(
     path: &Path, value: &ProjectNavigationPreferences, expected: Option<&[u8]>,
 ) -> Result<(), String> {
-    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) || !validate_registered_paths(&value.registered_project_paths) {
+    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) || !validate_registered_paths(&value.registered_project_paths) || value.recycled_project_paths.len() > MAX_RECYCLED_PROJECT_MARKERS || !value.recycled_project_paths.iter().all(|path| valid_registered_project_path(path)) {
         return Err("Preferences schema or project IDs are invalid.".to_string());
     }
     let data = serde_json::to_vec(value).map_err(|error| format!("Unable to encode preferences: {error}"))?;
@@ -591,11 +617,58 @@ fn register_project_folder_at(prefs_path: &Path, chosen: &Path) -> Result<&'stat
     if prefs.registered_project_paths.len() >= MAX_REGISTERED_PROJECTS {
         return Err("Project folder list is full. Remove an unused shortcut before adding another.".to_string());
     }
+    prefs.recycled_project_paths.retain(|path| navigation_path_key(Path::new(path)) != path_key);
     prefs.registered_project_paths.push(folder.to_string_lossy().into_owned());
     let parent = prefs_path.parent().ok_or_else(|| "Preference directory is invalid.".to_string())?;
     fs::create_dir_all(parent).map_err(|error| format!("Cannot prepare project preferences: {error}"))?;
     write_navigation_preferences_expected_at(prefs_path, &prefs, old.as_deref())?;
     Ok("ADDED")
+}
+
+/// Resolve ONLY user-added folders by opaque project ID. History-inferred
+/// parent directories have no permission to use the destructive operation.
+pub(crate) fn registered_delete_target(
+    id: &str, profile_id: Option<&str>,
+) -> Result<(PathBuf, String, Vec<PathBuf>), String> {
+    if !valid_pinned_project_id(id) {
+        return Err("Invalid Project identity.".to_string());
+    }
+    let (preferences, _) = load_project_navigation_preferences_with_raw()?;
+    let roots = registered_roots(&preferences);
+    let snapshot = read_navigation_snapshot(profile_id);
+    let identities = project_identity_map(snapshot.as_ref(), &roots);
+    let matches: Vec<_> = roots.iter().filter_map(|root| {
+        let identity = identities.get(&navigation_path_key(root))?;
+        (identity.id == id).then(|| (root.clone(), identity.name.clone()))
+    }).collect();
+    if matches.len() != 1 {
+        return Err("Delete Project is available only for one explicitly added folder.".to_string());
+    }
+    Ok((matches[0].0.clone(), matches[0].1.clone(), roots))
+}
+
+/// After successful recycle, remove only the matching shortcut and local Pin.
+/// This MUST NOT touch the original directory or Blockbench recent history.
+pub(crate) fn unregister_recycled_folder(path: &Path, old_id: &str) -> Result<(), String> {
+    let (mut preferences, previous) = load_project_navigation_preferences_with_raw()?;
+    let key = navigation_path_key(path);
+    let before = preferences.registered_project_paths.len();
+    preferences.registered_project_paths.retain(|saved|
+        navigation_path_key(Path::new(saved)) != key
+    );
+    if preferences.registered_project_paths.len() == before {
+        return Err("Project was recycled, but its shortcut has already changed.".to_string());
+    }
+    let path_id = navigation_id("project", path);
+    set_project_pin(&mut preferences, old_id, &path_id, false);
+    // Hide the deleted folder from Workspace without editing Blockbench recents.
+    if !preferences.recycled_project_paths.iter().any(|item| navigation_path_key(Path::new(item)) == key) {
+        preferences.recycled_project_paths.push(path.to_string_lossy().into_owned());
+        if preferences.recycled_project_paths.len() > MAX_RECYCLED_PROJECT_MARKERS {
+            preferences.recycled_project_paths.remove(0);
+        }
+    }
+    write_project_navigation_preferences(&preferences, previous.as_deref())
 }
 
 pub(crate) fn add_project_folder() -> Result<ProjectNavigationActionResult, String> {
@@ -686,9 +759,9 @@ fn navigation_paths(profile_id: Option<&str>) -> (
     HashMap<String, PathBuf>,
     HashMap<String, PathBuf>,
 ) {
-    let snapshot = read_navigation_snapshot(profile_id);
     let prefs = load_project_navigation_preferences()
         .unwrap_or_else(|_| empty_navigation_preferences());
+    let snapshot = read_visible_navigation_snapshot(profile_id, &prefs.recycled_project_paths);
     let registered = registered_roots(&prefs);
     let identities = project_identity_map(snapshot.as_ref(), &registered);
     let mut projects = HashMap::new();
@@ -738,8 +811,8 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
     let preferences = load_project_navigation_preferences()
         .unwrap_or_else(|_| empty_navigation_preferences());
     let registered = registered_roots(&preferences);
+    let snapshot = read_visible_navigation_snapshot(profile_id, &preferences.recycled_project_paths);
     let pinned: HashSet<String> = preferences.pinned_project_ids.into_iter().collect();
-    let snapshot = read_navigation_snapshot(profile_id);
     let revision = snapshot.as_ref().map(navigation_revision_token);
     let continue_model_id = continue_model_id_for_path(
         snapshot.as_ref().and_then(|state| state.last_model_path.as_deref())
@@ -1069,13 +1142,51 @@ mod tests {
     }
 
     #[test]
+    fn recycled_folder_is_hidden_in_desktop_without_touching_blockbench_recent_history() {
+        let root = temp_project("recycled-marker");
+        let other = temp_project("other-recent");
+        let removed_model = root.join("Old.bbmodel");
+        let remaining_model = other.join("StillHere.bbmodel");
+        let profile = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string();
+        let mut snapshot = NavigationSnapshot {
+            schema: 4, observed_at_unix_ms: observed_at_unix_ms(),
+            generation: "11111111-2222-4333-8444-555555555555".to_string(),
+            profile_id: profile, revision: 1,
+            last_model_path: Some(removed_model.to_string_lossy().into_owned()),
+            active: None,
+            open_models: Vec::new(),
+            recent_models: vec![
+                NavigationSnapshotRecent { name: "Old".to_string(), path: removed_model.to_string_lossy().into_owned(), day: None, favorite: false },
+                NavigationSnapshotRecent { name: "Current".to_string(), path: remaining_model.to_string_lossy().into_owned(), day: None, favorite: false },
+            ],
+        };
+        hide_recycled_model_history(&mut snapshot, &[root.to_string_lossy().into_owned()]);
+        assert!(snapshot.last_model_path.is_none());
+        assert_eq!(snapshot.recent_models.len(), 1);
+        assert_eq!(snapshot.recent_models[0].name, "Current");
+        fs::remove_dir_all(root).unwrap();
+        fs::remove_dir_all(other).unwrap();
+    }
+
+    #[test]
+    fn existing_schema_one_preferences_read_with_optional_recycle_markers() {
+        let root = temp_project("schema1-recycle");
+        let path = root.join("prefs.json");
+        fs::write(&path, br#"{"schema":1,"pinned_project_ids":[]}"#).unwrap();
+        let prefs = read_navigation_preferences_at(&path).unwrap().unwrap();
+        assert!(prefs.registered_project_paths.is_empty());
+        assert!(prefs.recycled_project_paths.is_empty());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn stale_preferences_do_not_discard_a_newer_pin_change() {
         let root = temp_project("stale-preferences"); let path = root.join("prefs.json");
         let empty = empty_navigation_preferences();
         write_navigation_preferences_at(&path, &empty).unwrap();
         let first = fs::read(&path).unwrap();
         let newer = ProjectNavigationPreferences {
-            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(),
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(), recycled_project_paths: Vec::new(),
         };
         write_navigation_preferences_at(&path, &newer).unwrap();
         assert!(write_navigation_preferences_expected_at(&path, &empty, Some(&first)).is_err());
@@ -1088,7 +1199,7 @@ mod tests {
     fn explicit_restore_keeps_damaged_original_and_valid_checkpoint() {
         let root = temp_project("restore-preferences"); let path = root.join("prefs.json");
         let old = ProjectNavigationPreferences {
-            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(),
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(), recycled_project_paths: Vec::new(),
         };
         write_navigation_preferences_at(&path, &old).unwrap();
         write_navigation_preferences_at(&path, &empty_navigation_preferences()).unwrap();
@@ -1147,7 +1258,7 @@ mod tests {
         let path = dir.join("project-preferences.json");
         write_navigation_preferences_at(&path, &empty_navigation_preferences()).unwrap();
         let updated = ProjectNavigationPreferences {
-            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(),
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(), recycled_project_paths: Vec::new(),
         };
         write_navigation_preferences_at(&path, &updated).unwrap();
         assert_eq!(read_navigation_preferences_at(&path).unwrap().unwrap().pinned_project_ids, updated.pinned_project_ids);

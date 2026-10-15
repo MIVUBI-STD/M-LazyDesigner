@@ -6,7 +6,7 @@
   import { version as desktopVersion } from '../package.json';
   import { connectionChanged, connectionCheckDelayMs } from './connectionWatch';
   import { observeStatus } from './statusObservation';
-  import type { ProjectAction } from './projectNavigationTypes';
+  import type { ProjectAction, ProjectDeletePreview, ProjectDeleteResult } from './projectNavigationTypes';
   import type {
     SystemStatus, ConnectionStatus, PluginFileActionResult, BootstrapActionResult,
     ManagedActionResult, ManagedUpdateCheck, BlockbenchFocusResult, EnsureReadyResult,
@@ -46,6 +46,9 @@
   let projectSearch = '';
   let workspaceScrollTop = 0;
   let workspaceMain: HTMLElement | undefined;
+  let deleteReview: ProjectDeletePreview | null = null;
+  let deleteDialog: HTMLElement | undefined;
+  let deleteCancelButton: HTMLButtonElement | undefined;
 
   const progressLabel = (stage: string) => stage.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 
@@ -208,6 +211,53 @@
           : 'This folder is already in your projects.');
       }
     } catch (cause) {
+      reportError(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function beginDeleteProject(id: string) {
+    if (devFixture || busyAction || deleteReview) return;
+    closeActionDisclosures(true);
+    busyAction = 'project-action';
+    error = '';
+    errorDetail = null;
+    clearSuccessToast();
+    try {
+      deleteReview = await invoke<ProjectDeletePreview>('prepare_delete_project', { id });
+      await tick();
+      deleteCancelButton?.focus();
+    } catch (cause) {
+      reportError(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  function cancelDeleteProject() {
+    const review = deleteReview;
+    deleteReview = null;
+    if (review) void invoke('cancel_delete_project', { token: review.token }).catch(() => {});
+  }
+
+  async function confirmDeleteProject() {
+    if (devFixture || busyAction || !deleteReview) return;
+    const review = deleteReview;
+    busyAction = 'project-action';
+    error = '';
+    errorDetail = null;
+    clearSuccessToast();
+    try {
+      const result = await invoke<ProjectDeleteResult>('confirm_delete_project', { token: review.token });
+      deleteReview = null;
+      expandedProjectId = null;
+      await refresh();
+      recordOperation('Move Project to Recycle Bin', 'success', result.status);
+      showSuccessToast(result.message, result.status === 'RECYCLED' ? 'success' : 'pending');
+    } catch (cause) {
+      deleteReview = null;
+      recordOperation('Move Project to Recycle Bin', 'failed', errorCode(cause));
       reportError(cause);
     } finally {
       busyAction = null;
@@ -528,6 +578,25 @@
   onMount(() => {
     watchDisposed = false;
     const onKeyDown = (event: KeyboardEvent) => {
+      if (deleteReview) {
+        if (event.key === 'Escape' && !busyAction) {
+          event.preventDefault();
+          cancelDeleteProject();
+          return;
+        }
+        if (event.key === 'Tab' && deleteDialog) {
+          const controls = Array.from(deleteDialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])'));
+          if (controls.length > 0) {
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault(); last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault(); first.focus();
+            }
+          }
+          return;
+        }
+      }
       if (event.key === 'Escape' && document.querySelector('details.more-menu[open]')) {
         event.preventDefault();
         closeActionDisclosures(true);
@@ -575,6 +644,7 @@
       // Progress messages are optional; maintenance result and refresh own truth.
     });
     return () => {
+      if (deleteReview) cancelDeleteProject();
       watchDisposed = true;
       progressListenerDisposed = true;
       stopProgressListener?.();
@@ -588,6 +658,7 @@
   });
 
   onDestroy(() => {
+    if (deleteReview) cancelDeleteProject();
     watchDisposed = true;
     stopProgressListener?.();
     if (successToastTimer !== null) window.clearTimeout(successToastTimer);
@@ -732,6 +803,7 @@
     canEditProjectPrefs={true}
     onOpenModel={openProjectModel}
     onAddProjectFolder={addProjectFolder}
+    onDeleteProject={beginDeleteProject}
     onFocusEditor={focusCurrentEditor}
     onProjectAction={runProjectAction}
     onCopyPath={copyNavigationPath}
@@ -1113,6 +1185,32 @@
   </div>
 {/if}
 
+{#if deleteReview}
+  <div class="project-delete-overlay">
+    <section class="project-delete-dialog" role="alertdialog" aria-modal="true"
+      aria-labelledby="project-delete-title" aria-describedby="project-delete-explanation"
+      tabindex="-1" bind:this={deleteDialog}>
+      <h2 id="project-delete-title">Move project to Recycle Bin?</h2>
+      <p id="project-delete-explanation">
+        This will move the entire <strong>{deleteReview.project_name}</strong> folder to Windows Recycle Bin,
+        including models, textures, references, exports and any other files inside.
+      </p>
+      <div class="project-delete-location">
+        <strong>Folder to be moved</strong>
+        <code>{deleteReview.folder_path}</code>
+      </div>
+      <p>Save your work and close every Blockbench window first. This operation does not permanently delete files,
+        but recovery depends on Windows Recycle Bin settings.</p>
+      <div class="project-delete-actions">
+        <button class="secondary-button" bind:this={deleteCancelButton} onclick={cancelDeleteProject} disabled={busyAction !== null}>Cancel</button>
+        <button class="project-delete-confirm" onclick={confirmDeleteProject} disabled={busyAction !== null}>
+          {busyAction ? 'Moving…' : 'Move to Recycle Bin'}
+        </button>
+      </div>
+    </section>
+  </div>
+{/if}
+
 {#if error || actionMessage || (busyAction && progressStage && busyAction !== 'repair')}
   <aside class:error={Boolean(error)} class:success={Boolean(actionMessage) && !error && actionMessageKind === 'success'} class:notice={Boolean(actionMessage) && !error && actionMessageKind !== 'success'} class="operation-attention" aria-live={error ? 'assertive' : 'polite'}>
     <div class="attention-icon">{error ? '!' : actionMessage ? (actionMessageKind === 'success' ? '✓' : 'i') : '•'}</div>
@@ -1125,6 +1223,17 @@
 {/if}
 
 <style>
+  .project-delete-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72)}
+  .project-delete-dialog{width:min(520px,100%);max-height:90vh;overflow:auto;display:grid;gap:14px;padding:22px;border:1px solid #765154;border-radius:12px;background:var(--bg-elevated);box-shadow:var(--shadow-popover)}
+  .project-delete-dialog h2{margin:0;font-size:19px}
+  .project-delete-dialog p{margin:0;color:var(--text-soft);font-size:var(--font-sm);line-height:1.55}
+  .project-delete-location{display:grid;gap:6px;padding:12px;background:var(--surface-2);border-radius:7px;min-width:0}
+  .project-delete-location strong{font-size:var(--font-sm)}
+  .project-delete-location code{color:var(--text-soft);font-size:var(--font-sm);overflow-wrap:anywhere}
+  .project-delete-actions{display:flex;justify-content:flex-end;gap:10px}
+  .project-delete-confirm{min-height:34px;padding:6px 14px;border:1px solid #a34950;border-radius:6px;background:#8e373e;color:white;font-weight:700;cursor:pointer}
+  .project-delete-confirm:hover:not(:disabled){background:#a2444c}
+  .project-delete-confirm:disabled{opacity:.55;cursor:default}
   .loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg);color:var(--muted);font-size:var(--font-ui)}.loading-spinner{width:12px;height:12px;border:2px solid var(--surface-4);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
   .skip-link{position:fixed;z-index:1000;top:8px;left:8px;transform:translateY(-150%);padding:8px 10px;border:1px solid var(--accent);border-radius:7px;background:var(--surface);color:var(--text);font-weight:700;text-decoration:none}.skip-link:focus{transform:translateY(0)}
   .desktop-shell{display:grid;grid-template-columns:168px minmax(0,1fr);width:100%;height:100vh;background:var(--bg)}

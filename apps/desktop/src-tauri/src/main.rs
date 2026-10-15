@@ -15,6 +15,7 @@ mod metadata_io;
 mod runtime_health;
 mod process;
 mod project_navigation;
+mod project_deletion;
 mod readiness;
 mod system_status;
 
@@ -168,6 +169,29 @@ async fn add_project_folder() -> Result<ProjectNavigationActionResult, DesktopEr
 }
 
 #[tauri::command]
+async fn prepare_delete_project(id: String) -> Result<project_deletion::ProjectDeletePreview, DesktopError> {
+    tauri::async_runtime::spawn_blocking(move || project_deletion::prepare(id))
+        .await
+        .map_err(|error| DesktopError::recoverable("PROJECT_DELETE_REVIEW_FAILED", error.to_string()))?
+        .map_err(|message| DesktopError::recoverable("PROJECT_DELETE_REVIEW_FAILED", message))
+}
+
+#[tauri::command]
+fn cancel_delete_project(token: String) {
+    project_deletion::cancel(token);
+}
+
+#[tauri::command]
+async fn confirm_delete_project(token: String) -> Result<project_deletion::ProjectDeleteResult, DesktopError> {
+    let result = tauri::async_runtime::spawn_blocking(move || project_deletion::confirm(token))
+        .await
+        .map_err(|error| DesktopError::recoverable("PROJECT_RECYCLE_FAILED", error.to_string()))?
+        .map_err(|message| DesktopError::recoverable("PROJECT_RECYCLE_FAILED", message))?;
+    operation_log::record("project:recycle", result.status);
+    Ok(result)
+}
+
+#[tauri::command]
 fn project_navigation_action(action: String, id: String) -> Result<ProjectNavigationActionResult, DesktopError> {
     let result = system_status::project_navigation_action(&action, &id);
     operation_log::record(
@@ -223,6 +247,9 @@ fn main() {
             bootstrap_install,
             project_navigation_action,
             add_project_folder,
+            prepare_delete_project,
+            cancel_delete_project,
+            confirm_delete_project,
             project_navigation_path,
             show_plugin_file,
             show_retired_plugin_file,

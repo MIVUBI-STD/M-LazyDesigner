@@ -52,3 +52,16 @@ export type ProjectAction =
   | 'unpin-project'
   | 'remove-project-folder'
   | 'restore-project-preferences';
+
+/** One-time native confirmation; the client never supplies an arbitrary path to deletion. */
+export type ProjectDeletePreview = {
+  token: string;
+  project_name: string;
+  folder_path: string;
+  expires_in_seconds: number;
+};
+
+export type ProjectDeleteResult = {
+  status: 'RECYCLED' | 'RECYCLED_SHORTCUT_RETAINED';
+  message: string;
+};

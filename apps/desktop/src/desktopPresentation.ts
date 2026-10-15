@@ -147,6 +147,18 @@ export function desktopErrorNotice(cause: unknown): DesktopErrorNotice {
   const known = (title: string, message: string): DesktopErrorNotice => ({
     title, message, detail,
   });
+  if (code === 'PROJECT_DELETE_REVIEW_FAILED' || code === 'PROJECT_RECYCLE_FAILED') {
+    if (/close all Blockbench|close Blockbench/i.test(detail ?? '')) {
+      return known('Close Blockbench first',
+        'Save your models and close every Blockbench window, then review Delete Project again.');
+    }
+    if (/protected|system|broad|overlaps|linked|special|network|fixed drive/i.test(detail ?? '')) {
+      return known('Folder is not safe to delete here',
+        'This folder cannot be recycled as a Project. Review its contents in File Explorer.');
+    }
+    return known('Project deletion not confirmed',
+      'Windows did not confirm that the entire folder was recycled. Check the folder in Explorer before retrying. No permanent-delete fallback was attempted.');
+  }
   if (code === 'LEGACY_PLUGIN_MIGRATION_REQUIRED') {
     return known('Existing plugin needs review',
       'An older Blockbench plugin was found. No files were replaced. Open Support for safe migration steps.');

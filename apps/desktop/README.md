@@ -499,6 +499,26 @@ Pinned Projects are local Desktop bookmarks. Pinning writes only the existing `p
 
 `Continue` is deliberately independent from pinned/recent display ordering. The profile snapshot preserves one exact last active saved `.bbmodel` pointer across Plugin/Desktop restarts. Desktop exposes Continue only while that exact file still exists; it never guesses a replacement from pinned projects or favorite-reordered Blockbench recents.
 
+## Delete Project — explicit Windows Recycle Bin only
+
+Project deletion is distinct from **Remove from Workspace**. Remove only edits the existing Desktop shortcut/pin preferences and does not change disk files. A **Delete Project…** item is visible only for folders explicitly added through **Add Project Folder**, never for a parent inferred from recent .bbmodel files.
+
+The frontend requests a native read-only review by opaque project ID. Rust resolves that ID against the current registered path list and returns a 90-second one-use token plus the exact folder name/path for a user-confirmed dialog. The user sees a clear statement that **all contents** (models, textures, references, exports, unrelated files) will be moved to Recycle Bin. Cancel/Escape consume the review, with no filesystem mutation. Only the token, not a frontend-supplied path, may authorize execution.
+
+Preparation and final confirmation both fail closed when:
+
+- any Blockbench process is still running (the simple conservative choice until native per-project unsaved-session proof is available);
+- the folder is not exactly one registered Project ID, has changed since review, or overlaps a second registered project;
+- the path is a disk root, system/application/home/common Windows folder, non-fixed/removable/network/UNC drive, or has symlinks, junctions or reparse/special entries;
+- the bounded tree inspection cannot inspect every entry (max 10,000 entries and 32 levels); or
+- the review expires, is cancelled, mismatches, or was already used.
+
+The Windows operation uses the existing bounded PowerShell child strictly with **Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory** and the explicit **RecycleOption.SendToRecycleBin** overload, plus **UICancelOption.ThrowException**. It does not call permanent deletion, remove_dir_all or provide any fallback. PowerShell receives the resolved path through a process-local environment variable, not through interpolated script source. A failed/unknown Recycle Bin outcome does not clear the shortcut or claim success. Actual Windows shell behavior and failure modes remain subject to native acceptance.
+
+Only after a reported successful recycle does Desktop remove the registered shortcut and Pin; if this local preference write fails, it reports that the folder was recycled but the shortcut remains. It records a bounded local marker to hide stale Blockbench recent-file references to the specifically recycled folder, without modifying Blockbench recents. A user who restores a folder from Recycle Bin can explicitly re-add it through Add Project Folder to clear that marker. No background purge, custom Trash database, automatic deletion, or restore engine is introduced.
+
+**Proof boundary:** source and negative regression fixtures exist, but actual Windows Recycle Bin interaction, large/symlinked project handling, cancellation, focus and old-folder restoration have **NOT** been executed or accepted on a Windows native build at this commit.
+
 ## Bounded local operation log
 
 Desktop writes a minimal best-effort machine log under its LocalAppData directory. Entries contain only:
