@@ -657,6 +657,7 @@ describe("Desktop full-status freshness and nullable project revision", () => {
     // This is the same ProjectNavigation type consumed by App.svelte.
     const navigation: ProjectNavigation = {
       revision: null, session_live: false, continue_model_id: null,
+      recent_model_ids: [],
       preferences_issue: null, active: null, projects: [],
     };
     const baseline: ConnectionBaseline = {
