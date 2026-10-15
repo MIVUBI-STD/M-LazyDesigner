@@ -346,6 +346,12 @@
     }
   }
 
+  async function verifyPendingUpdate() {
+    if (devFixture || busyAction || !status?.manager_available || !status.managed?.pending) return;
+    updateCheckStarted = false;
+    await checkManagedUpdateOnce();
+  }
+
   async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
     if (devFixture) return;
     if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
@@ -365,7 +371,16 @@
       showSuccessToast(feedback.message, feedback.kind);
       recordOperation(actionLabel, feedback.kind, feedback.status);
       await refresh();
-      if (action === 'update') updateCheck = null;
+      if (action === 'update') {
+        // Staging is not installation. Re-validate the local staged package
+        // after this explicit update action so the user can finish without
+        // restarting Desktop or relying on an old startup-only result.
+        updateCheck = null;
+        if (feedback.status === 'STAGED') {
+          updateCheckStarted = false;
+          await checkManagedUpdateOnce();
+        }
+      }
     } catch (cause) {
       const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       recordOperation(actionLabel, 'failed', errorCode(cause));
@@ -792,8 +807,10 @@
                           : 'Update not activated'}</strong>
                       {#if updateCheck?.status === 'UPDATE_STAGED_UNVERIFIED'}
                         <button class="secondary-button small-button" onclick={() => navigate('Support')}>Support</button>
+                      {:else if status.managed?.pending && updateCheck?.status !== 'UPDATE_STAGED'}
+                        <button class="secondary-button small-button" onclick={verifyPendingUpdate} disabled={busyAction !== null || statusProbeFailures >= 2}>Verify package</button>
                       {:else}
-                        <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2 || (status.managed?.pending === true && updateCheck?.status !== 'UPDATE_STAGED')}>{busyAction === 'update' ? 'Updating…' : status.managed?.pending ? 'Finish update' : 'Update components'}</button>
+                        <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'update' ? 'Updating…' : status.managed?.pending ? 'Finish update' : 'Update components'}</button>
                       {/if}
                     </div>
                   </div>

@@ -54,6 +54,21 @@ describe("managed startup update contract", () => {
     expect(mount).not.toMatch(/setInterval\([^\n]*checkManagedUpdateOnce/);
   });
 
+  test("a staged update revalidates in place and never offers activation without proof", async () => {
+    const app = await source("../apps/desktop/src/App.svelte");
+    const action = app.slice(
+      app.indexOf("async function runManagedAction("),
+      app.indexOf("onMount(() =>")
+    );
+    expect(action).toContain("if (feedback.status === 'STAGED')");
+    expect(action).toContain("updateCheckStarted = false;");
+    expect(action).toContain("await checkManagedUpdateOnce()");
+    expect(app).toContain("async function verifyPendingUpdate()");
+    expect(app).toContain("onclick={verifyPendingUpdate}");
+    expect(app).toContain("updateCheck?.status === 'UPDATE_STAGED_UNVERIFIED'");
+    expect(app).toContain("updateCheck?.status !== 'UPDATE_STAGED'");
+  });
+
   test("Desktop backend exposes a bounded dedicated read-only check command", async () => {
     const [main, status] = await Promise.all([
       source("../apps/desktop/src-tauri/src/main.rs"),
