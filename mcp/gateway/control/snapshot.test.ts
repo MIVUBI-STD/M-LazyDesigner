@@ -72,6 +72,30 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
     expect(snapshot.blockers).toContain("PROJECT_CONTEXT_LOST");
   });
 
+  test("first healthy Runtime probe is not mistaken for a failed MCP connection", () => {
+    const firstProbe = runtimeStatus({ clientReady: false });
+    firstProbe.runtime.connected_signature = null;
+    firstProbe.connection = {
+      state: "probing",
+      last_ready_at: null,
+    } as GatewayRuntimeStatus["connection"];
+    const snapshot = buildControlSnapshot(firstProbe);
+    expect(snapshot.system).toBe("READY");
+    expect(snapshot.project.binding).toBe("BOUND");
+    expect(snapshot.blockers).not.toContain("RUNTIME_CLIENT_NOT_READY");
+    expect(firstProbe.runtime.mcp_client_ready).toBe(false);
+  });
+
+  test("previously connected MCP becoming unavailable is degraded, not cold start", () => {
+    const later = runtimeStatus({ clientReady: false });
+    later.runtime.connected_signature = null;
+    later.connection = {
+      state: "probing",
+      last_ready_at: "2026-10-15T00:00:00.000Z",
+    } as GatewayRuntimeStatus["connection"];
+    expect(buildControlSnapshot(later).blockers).toContain("RUNTIME_CLIENT_NOT_READY");
+  });
+
   test("online health does not imply MCP client connection", () => {
     const snapshot = buildControlSnapshot(runtimeStatus({ clientReady: false }));
     expect(snapshot.system).toBe("DEGRADED");

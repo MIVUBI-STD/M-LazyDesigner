@@ -57,7 +57,16 @@ export function buildControlSnapshot(status: GatewayRuntimeStatus): ControlSnaps
   }
 
   if (!status.runtime.online) blockers.push("RUNTIME_OFFLINE");
-  if (status.runtime.online && !status.runtime.mcp_client_ready) {
+  // A healthy first probe may precede the lazy MCP catalog handshake. That
+  // is normal orientation, not a failed or disconnected client. Previously
+  // connected sessions still fail closed if the MCP client becomes unready.
+  const initialMcpHandshakePending =
+    status.runtime.online &&
+    !status.runtime.mcp_client_ready &&
+    status.runtime.connected_signature === null &&
+    status.connection.state === "probing" &&
+    status.connection.last_ready_at === null;
+  if (status.runtime.online && !status.runtime.mcp_client_ready && !initialMcpHandshakePending) {
     blockers.push("RUNTIME_CLIENT_NOT_READY");
   }
   if (status.runtime.online && status.affinity.project_uuid && binding === "UNKNOWN") {
