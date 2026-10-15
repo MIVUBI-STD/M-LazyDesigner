@@ -6,38 +6,31 @@
   export let canOpenModel = true;
   export let canEditProjectPrefs = true;
   export let onOpenModel: (id: string) => void | Promise<void>;
+  export let onAddProjectFolder: () => void | Promise<void>;
   export let onFocusEditor: () => void | Promise<void>;
   export let onProjectAction: (action: ProjectAction, id: string) => void | Promise<void>;
   export let onCopyPath: (id: string) => void | Promise<void>;
 
-  // Bound by App: avoid losing the user's place on Support navigation.
+  // Ephemeral presentation only, retained across Support navigation.
   export let expandedProjectId: string | null = null;
   export let showAllProjects = false;
   export let projectSearch = '';
-  export let modelSearch = '';
 
-  // Legacy Svelte tracks template arguments, not reads hidden inside helpers.
-  const recentProjects = (state: ProjectNavigation) =>
-    state.projects.filter(project => !project.active);
-
-  const visibleRecentProjects = (state: ProjectNavigation, search: string, showAll: boolean) => {
+  const visibleProjects = (state: ProjectNavigation, search: string, showAll: boolean) => {
     const query = search.trim().toLowerCase();
-    const projects = recentProjects(state).filter(project =>
-      !query
-      || project.name.toLowerCase().includes(query)
-      || project.models.some(model => model.name.toLowerCase().includes(query))
+    const matches = state.projects.filter(project =>
+      !query || project.name.toLowerCase().includes(query)
+        || project.models.some(model => model.name.toLowerCase().includes(query))
     );
-    return query || showAll ? projects : projects.slice(0, 5);
+    return query || showAll ? matches : matches.slice(0, 6);
   };
 
   const visibleProjectModels = (project: ProjectNavigationProject, search: string) => {
     const query = search.trim().toLowerCase();
-    return query
-      ? project.models.filter(model => model.name.toLowerCase().includes(query))
-      : project.models;
+    if (!query || project.name.toLowerCase().includes(query)) return project.models;
+    return project.models.filter(model => model.name.toLowerCase().includes(query));
   };
 
-  // Recent-file order comes from Blockbench, not from pinned/project order.
   const recentModelTargets = (state: ProjectNavigation) =>
     (state.recent_model_ids ?? []).flatMap(id =>
       state.projects.flatMap(project =>
@@ -48,55 +41,62 @@
     );
 
   const continueTarget = (state: ProjectNavigation) => {
-    if (state.active) return null;
-    const modelId = state.continue_model_id;
-    if (!modelId) return null;
+    if (state.active || !state.continue_model_id) return null;
     for (const project of state.projects) {
-      const model = project.models.find(candidate => candidate.id === modelId && candidate.exists);
+      const model = project.models.find(candidate => candidate.id === state.continue_model_id && candidate.exists);
       if (model) return { project, model };
     }
     return null;
   };
 
-  function toggleProjectDetails(id: string) {
+  function toggleProject(id: string) {
     expandedProjectId = expandedProjectId === id ? null : id;
-    modelSearch = '';
   }
 </script>
 
 {#if navigation.preferences_issue}
   <section class="preferences-recovery" role="alert">
     <div>
-      <strong>Project pins need attention</strong>
-      <span>Saved pin preferences could not be read. Model files remain untouched.</span>
+      <strong>Project shortcuts need attention</strong>
+      <span>Saved shortcuts could not be read. Your model files are unchanged.</span>
     </div>
     {#if navigation.preferences_issue === 'RECOVERABLE'}
-      <button class="secondary-button small-button" onclick={() => onProjectAction('restore-project-preferences', '')} disabled={busy || !canEditProjectPrefs}>
-        Restore saved pins
-      </button>
+      <button class="secondary-button small-button" onclick={() => onProjectAction('restore-project-preferences', '')} disabled={busy || !canEditProjectPrefs}>Restore shortcuts</button>
     {:else}
-      <span>No valid recovery copy is available. Existing data was preserved.</span>
+      <span>Open Support to review the existing preferences. Nothing was overwritten.</span>
     {/if}
   </section>
 {/if}
 
-{#if !navigation.active && continueTarget(navigation)}
+{#if navigation.active}
+  {@const active = navigation.active}
+  <section class="content-section">
+    <div class="section-heading"><div><h2>Current Model</h2></div></div>
+    <div class="project-list">
+      <div class="project-row active-project-row">
+        <div class="project-main">
+          <div class="project-title">{active.model_name}</div>
+          <div class="project-meta">{active.project_name || (active.saved ? 'Saved model' : 'Not saved yet')}{active.dirty ? ' · Modified' : ''}</div>
+        </div>
+        <div class="project-actions">
+          <button class="primary-button small-button" onclick={onFocusEditor} disabled={busy}>Go to Blockbench</button>
+        </div>
+      </div>
+    </div>
+  </section>
+{:else if continueTarget(navigation)}
   {@const target = continueTarget(navigation)}
   {#if target}
     <section class="content-section">
-      <div class="section-heading">
-        <div><h2>Continue working</h2></div>
-      </div>
+      <div class="section-heading"><div><h2>Continue working</h2></div></div>
       <div class="project-list">
         <div class="project-row">
           <div class="project-main">
             <div class="project-title">{target.model.name}</div>
-            {#if target.project.name !== target.model.name}
-              <div class="project-meta">{target.project.name}</div>
-            {/if}
+            <div class="project-meta">{target.project.name}</div>
           </div>
           <div class="project-actions">
-            <button class="primary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy || !canOpenModel}>{target.model.open ? 'Open' : 'Continue'}</button>
+            <button class="primary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy || !canOpenModel}>Continue</button>
           </div>
         </div>
       </div>
@@ -104,81 +104,90 @@
   {/if}
 {/if}
 
-{#if navigation.active}
-  {@const activeNavigation = navigation.active}
-  <section class="content-section">
-    <div class="section-heading">
-      <div><h2>Current Model</h2></div>
-    </div>
-    <div class="project-list">
-      <div class="project-row active-project-row">
+<section class="content-section" aria-label="Projects and models">
+  <div class="section-heading">
+    <div><h2>Projects &amp; Models</h2></div>
+    <button class="secondary-button small-button" onclick={onAddProjectFolder} disabled={busy || !canEditProjectPrefs}>Add Project Folder</button>
+  </div>
+  <div class="project-search-bar">
+    <input class="compact-search project-search" type="search" placeholder="Search projects or models…" aria-label="Search projects or models" bind:value={projectSearch} />
+  </div>
+  <div class="project-list">
+    {#each visibleProjects(navigation, projectSearch, showAllProjects) as project (project.id)}
+      <div class="project-row">
         <div class="project-main">
-          <div class="project-title">{activeNavigation.model_name}</div>
-          <div class="project-meta">{activeNavigation.project_name && activeNavigation.project_name !== activeNavigation.model_name ? activeNavigation.project_name : (activeNavigation.saved ? 'Saved model' : 'Not saved yet')}{activeNavigation.dirty ? ' · Modified' : ''}</div>
+          <div class="project-title" title={project.name}>{project.name}</div>
+          <div class="project-meta">
+            {project.pinned ? 'Pinned · ' : ''}{!project.available ? 'Folder unavailable' : project.model_count === 0 ? 'No models found' : project.registered ? `${project.model_count} models shown` : `${project.model_count} known models`}
+          </div>
         </div>
         <div class="project-actions">
-          {#if activeNavigation.saved && activeNavigation.model_id}
-            <button class="primary-button small-button" onclick={onFocusEditor} disabled={busy}>Go to Blockbench</button>
-          {/if}
-          {#if activeNavigation.project_id}
-            <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busy}>Open Folder</button>
-            <button class="quiet-button" aria-expanded={expandedProjectId === activeNavigation.project_id} onclick={() => toggleProjectDetails(activeNavigation.project_id ?? '')}>{expandedProjectId === activeNavigation.project_id ? 'Hide details' : 'See details'}</button>
+          <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', project.id)} disabled={!project.available || busy}>Open Folder</button>
+          {#if !projectSearch.trim()}
+            <button class="quiet-button" aria-expanded={expandedProjectId === project.id} onclick={() => toggleProject(project.id)}>{expandedProjectId === project.id ? 'Hide models' : 'Show models'}</button>
           {/if}
         </div>
       </div>
-
-      {#if activeNavigation.project_id && expandedProjectId === activeNavigation.project_id}
-        {@const activeProject = navigation.projects.find(project => project.id === activeNavigation.project_id)}
-        {#if activeProject}
-          <div class="project-details">
-            <div class="project-details-heading">
-              <span>Models</span>
-              {#if activeProject.model_count > 8}
-                <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
-              {/if}
-            </div>
-            {#each visibleProjectModels(activeProject, modelSearch) as model}
+      {#if expandedProjectId === project.id || projectSearch.trim()}
+        <div class="project-details">
+          {#if !project.available}
+            <div class="project-empty">The folder has moved or is unavailable. The shortcut was preserved.</div>
+          {:else}
+            {#each visibleProjectModels(project, projectSearch) as model (model.id)}
               <div class="model-row">
                 <div class="model-main">
                   <strong>{model.name}</strong>
-                  {#if model.active}<span>{model.dirty ? 'Active · Modified' : 'Active'}</span>{:else if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
+                  {#if model.active}<span>Active</span>{:else if model.dirty}<span>Modified</span>{:else if !model.exists}<span>File unavailable</span>{/if}
                 </div>
                 <div class="model-actions">
-                  {#if !model.active}
+                  {#if model.active}
+                    <button class="secondary-button small-button" onclick={onFocusEditor} disabled={busy}>Go to Blockbench</button>
+                  {:else}
                     <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy || !canOpenModel}>Open</button>
                   {/if}
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
                     <div class="menu-popover">
-                      <button onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Reveal model file</button>
+                      <button onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Show in Explorer</button>
                       <button onclick={() => onCopyPath(model.id)} disabled={busy}>Copy path</button>
                     </div>
                   </details>
                 </div>
               </div>
             {/each}
-            {#if visibleProjectModels(activeProject, modelSearch).length === 0}
-              <div class="project-empty">No models found.</div>
+            {#if visibleProjectModels(project, projectSearch).length === 0}
+              <div class="project-empty">{projectSearch.trim() ? 'No matching models in this folder.' : 'No .bbmodel files in the visible folder locations.'}</div>
             {/if}
-            {#if activeProject.folders.length > 0}
-              <div class="project-details-heading folder-heading"><span>Folders</span></div>
+            {#if project.folders.length > 0}
+              <div class="project-details-heading folder-heading"><span>Project folders</span></div>
               <div class="folder-shortcuts">
-                {#each activeProject.folders as folder}
+                {#each project.folders as folder (folder.id)}
                   <button class="folder-shortcut" onclick={() => onProjectAction('open-folder', folder.id)} disabled={busy}>{folder.label}</button>
                 {/each}
               </div>
             {/if}
-            <div class="project-detail-actions">
-              <button class="quiet-button" onclick={() => onProjectAction(activeProject.pinned ? 'unpin-project' : 'pin-project', activeProject.id)} disabled={busy || !canEditProjectPrefs}>{activeProject.pinned ? 'Unpin project' : 'Pin project'}</button>
-            </div>
+          {/if}
+          <div class="project-detail-actions">
+            <button class="quiet-button" onclick={() => onProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busy || !canEditProjectPrefs}>{project.pinned ? 'Unpin' : 'Pin'}</button>
+            {#if project.registered}
+              <button class="quiet-button" onclick={() => onProjectAction('remove-project-folder', project.id)} disabled={busy || !canEditProjectPrefs}>Remove shortcut</button>
+            {/if}
           </div>
-        {/if}
+        </div>
       {/if}
-    </div>
-  </section>
-{/if}
+    {/each}
+    {#if visibleProjects(navigation, projectSearch, showAllProjects).length === 0}
+      <div class="project-empty project-empty-list">
+        {#if projectSearch.trim()}No matching projects or models.{:else}Add an existing project folder to see its models here. Your files stay where they are.{/if}
+      </div>
+    {/if}
+  </div>
+  {#if navigation.projects.length > 6 && !projectSearch.trim()}
+    <button class="show-more-button" onclick={() => { showAllProjects = !showAllProjects; if (!showAllProjects) expandedProjectId = null; }}>{showAllProjects ? 'Show fewer projects' : 'Show all projects'}</button>
+  {/if}
+</section>
 
-{#if recentModelTargets(navigation).length > 0}
+{#if !projectSearch.trim() && recentModelTargets(navigation).length > 0}
   <section class="content-section">
     <div class="section-heading"><div><h2>Recent Models</h2></div></div>
     <div class="project-list">
@@ -194,79 +203,6 @@
         </div>
       {/each}
     </div>
-  </section>
-{/if}
-
-{#if recentProjects(navigation).length > 0}
-  <section class="content-section">
-    <div class="section-heading">
-      <div><h2>Recent Projects</h2></div>
-      {#if recentProjects(navigation).length > 5}
-        <input class="compact-search project-search" type="search" placeholder="Search projects" aria-label="Search projects" bind:value={projectSearch} />
-      {/if}
-    </div>
-    <div class="project-list">
-      {#each visibleRecentProjects(navigation, projectSearch, showAllProjects) as project}
-        <div class="project-row">
-          <div class="project-main">
-            <div class="project-title" title={project.name}>{project.name}</div>
-            <div class="project-meta">{project.model_count} {project.model_count === 1 ? 'model' : 'models'}{#if project.pinned}<span class="pinned-label"> · Pinned</span>{/if}</div>
-          </div>
-          <div class="project-actions">
-            <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', project.id)} disabled={busy}>Open Folder</button>
-            <button class="quiet-button" aria-expanded={expandedProjectId === project.id} onclick={() => toggleProjectDetails(project.id)}>{expandedProjectId === project.id ? 'Hide details' : 'See details'}</button>
-          </div>
-        </div>
-        {#if expandedProjectId === project.id}
-          <div class="project-details">
-            <div class="project-details-heading">
-              <span>Models</span>
-              {#if project.model_count > 8}
-                <input class="compact-search" type="search" placeholder="Search models" aria-label="Search models" bind:value={modelSearch} />
-              {/if}
-            </div>
-            {#each visibleProjectModels(project, modelSearch) as model}
-              <div class="model-row">
-                <div class="model-main">
-                  <strong>{model.name}</strong>
-                  {#if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
-                </div>
-                <div class="model-actions">
-                  <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy || !canOpenModel}>Open</button>
-                  <details class="more-menu">
-                    <summary aria-label="Model actions">•••</summary>
-                    <div class="menu-popover">
-                      <button onclick={() => onProjectAction('reveal-model', model.id)} disabled={!model.exists || busy}>Reveal model file</button>
-                      <button onclick={() => onCopyPath(model.id)} disabled={busy}>Copy path</button>
-                    </div>
-                  </details>
-                </div>
-              </div>
-            {/each}
-            {#if visibleProjectModels(project, modelSearch).length === 0}
-              <div class="project-empty">No models found.</div>
-            {/if}
-            {#if project.folders.length > 0}
-              <div class="project-details-heading folder-heading"><span>Folders</span></div>
-              <div class="folder-shortcuts">
-                {#each project.folders as folder}
-                  <button class="folder-shortcut" onclick={() => onProjectAction('open-folder', folder.id)} disabled={busy}>{folder.label}</button>
-                {/each}
-              </div>
-            {/if}
-            <div class="project-detail-actions">
-              <button class="quiet-button" onclick={() => onProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busy || !canEditProjectPrefs}>{project.pinned ? 'Unpin project' : 'Pin project'}</button>
-            </div>
-          </div>
-        {/if}
-      {/each}
-      {#if visibleRecentProjects(navigation, projectSearch, showAllProjects).length === 0}
-        <div class="project-empty project-empty-list">No projects found.</div>
-      {/if}
-    </div>
-    {#if recentProjects(navigation).length > 5 && !projectSearch.trim()}
-      <button class="show-more-button" onclick={() => { showAllProjects = !showAllProjects; if (!showAllProjects) expandedProjectId = null; }}>{showAllProjects ? 'Show less' : 'Show all projects'}</button>
-    {/if}
   </section>
 {/if}
 
@@ -297,7 +233,7 @@
   .show-more-button{margin-top:8px;padding:4px 0}
   .compact-search{width:150px;height:34px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text-soft);font:inherit;font-size:var(--font-sm)}
   .compact-search:focus{border-color:var(--info)}.compact-search::placeholder{color:var(--muted-2)}
-  .project-search{width:180px}
+  .project-search-bar{margin:0 0 10px} .project-search{width:100%;max-width:460px}
   .project-empty{padding:10px 0;color:var(--muted-2);font-size:var(--font-sm)}.project-empty-list{padding:13px 12px}
   .folder-heading{margin-top:6px;padding-top:9px;border-top:1px solid var(--border-soft)}
   .folder-shortcuts{display:flex;flex-wrap:wrap;gap:6px;padding:3px 0 6px}

@@ -423,24 +423,26 @@ The profile ID is a deterministic hash of the normalized Blockbench userData pat
 
 The projection contains bounded active/open/recent `.bbmodel` navigation state plus opaque producer/profile identity needed to determine freshness and ownership. It is a cache/projection, not authored project state. Desktop does not edit Blockbench local storage to obtain recents.
 
-Desktop converts the raw model paths into a path-free UI projection:
+Desktop uses one **Projects & Models** navigation surface, not independent file/project managers:
 
 ```text
-Active Project
-→ active model
+Current Model / Continue
+→ focus the existing editor or open the last known saved model
 
 Open Model…
 → native Windows .bbmodel picker, independent of Gateway/Runtime
 
+Projects & Models
+→ one search for project folders and model names
+→ Add Project Folder opens an explicit native folder chooser
+→ expand a Project to access its .bbmodel files and familiar asset folders
+→ Pin/Unpin/Remove shortcut affects only the Desktop preference list
+
 Recent Models
-→ first five existing paths in Blockbench's actual recent order, direct Open
-
-Recent Projects
-→ grouped saved .bbmodel files (optional details)
-
-See details
-→ additional models, folders and pin actions inside a project
+→ up to five existing paths in Blockbench's native recent-file order
 ```
+
+Projects registered through Add Project Folder are **actual user folders**, even when empty or without a Blockbench snapshot. The chooser records only their absolute folder paths in the existing `%LOCALAPPDATA%\LazyDesigner\project-preferences.json` file; no new database, authoring format or project folder is created. For each registered folder, a bounded, nonrecursive read checks the folder itself and its immediate `Models`/`Model` child (maximum 128 directory entries per directory, 64 shown models per project, 16 added folders). A displayed count says *models shown* for registered folders or *known models* for history-only projects—never an invented total count. Added folders remain visible when empty/unavailable and can be removed from the shortcut list without deleting or moving any file.
 
 Project grouping is deterministic and intentionally shallow:
 
@@ -450,7 +452,7 @@ nearest .lazydesigner-project.json marker within the bounded parent search
 → otherwise direct parent folder
 ```
 
-A non-empty marker is a bounded canonical Project manifest containing only `schema`, stable `project_uuid`, and `display_name`. Model membership is not stored there. A valid unique manifest makes Project identity and Pin stable across folder move/rename. Explicit Pin creates this minimal manifest when missing or upgrades only an empty legacy marker. Malformed/unsupported manifests are never overwritten. Duplicate UUIDs among currently observed Projects fail closed to separate path identities; Desktop does not crawl drives to resolve collisions.
+Existing `.lazydesigner-project.json` manifests are read-only identity hints containing `schema`, stable `project_uuid`, and `display_name`. Model membership is not stored there. A valid unique manifest can retain Project identity after a folder move/rename. **Pin never creates, updates or upgrades a manifest**; it only stores an opaque ID in local Desktop preferences. Therefore a project without a pre-existing manifest may lose its Pin association after an external rename/move; users can re-add the folder if needed. Malformed/unsupported manifests are never overwritten. Duplicate UUIDs among currently known Projects fail closed to path-scoped identities, without crawling drives.
 
 This supports one project such as `Furniture` containing multiple `.bbmodel` files without requiring a global project database. Paths stay hidden in the normal UI. Backend actions resolve opaque project/model IDs back through the current local projection before opening Explorer or Blockbench.
 
@@ -463,7 +465,7 @@ Reveal model file
 Copy path
 ```
 
-`See details` may additionally expose existing working folders from a small allowlist only:
+`Show models` expands the same Project entry and offers existing working folders from a small allowlist:
 
 ```text
 Models
@@ -474,7 +476,7 @@ Exports
 
 These shortcuts appear only when the corresponding directory actually exists under the resolved Project root. Desktop does not recursively scan for similarly named folders and does not surface these shortcuts in the normal Overview row.
 
-Opening a saved model resolves its opaque ID through the existing profile-bound navigation snapshot and rechecks both model-file existence and the exact editor userData profile. It no longer calls `ensure_ready`: disconnected AI must not prevent manual file editing. A missing file or conflicting Blockbench profile fails closed, without guessed relocation or a second Runtime. The native picker is an explicit alternate path for models not yet present in the snapshot.
+Opening a history-only saved model resolves its opaque ID through the profile-bound navigation snapshot and rechecks file existence and exact editor `userData` identity. Models from an explicitly registered folder are independently revalidated against a bounded folder scan, then opened via the existing editor profile resolution. Neither path calls `ensure_ready`, so disconnected AI does not prevent manual editing. Missing model files and ambiguous editor profiles fail closed, without guessing a replacement or starting another Runtime. The native `Open Model…` picker remains available for other files.
 
 The active-window heartbeat watches the canonical navigation token emitted by the Blockbench plugin. The token is `<profile-id>:<producer-generation>:<revision>`, so profile changes and plugin module reloads cannot accidentally reuse the same apparent revision number. Desktop also watches a separate session-live projection derived from the Blockbench process plus a bounded plugin lease; Runtime reconnects do not invalidate project-session state by themselves.
 
@@ -493,7 +495,7 @@ Desktop uses that state only where it changes a user decision. Current Model off
 
 Open/dirty/active are ephemeral Blockbench-session state. Desktop discards those flags whenever the bounded Plugin session lease is not live, while recent saved models remain available for navigation. Runtime reconnects do not invalidate a still-live Blockbench Plugin session. A stale snapshot therefore cannot keep rendering `Switch` or `Modified` after Blockbench closes.
 
-Pinned Projects are primarily a Desktop navigation preference, but an explicit first Pin may also create or upgrade a small `.lazydesigner-project.json` identity manifest in the target project folder. Desktop stores only deterministic opaque project IDs in `%LOCALAPPDATA%\LazyDesigner\project-preferences.json`; it does not copy project paths, model contents, or Blockbench authored state into that preference file. Legacy path Pins remain recognized at their current location; an explicit Pin migrates storage to the manifest-backed stable identity, which survives Project folder move/rename. Pinning changes Recent Projects ordering only.
+Pinned Projects are local Desktop bookmarks. Pinning writes only the existing `project-preferences.json` data, never a manifest or model file inside a user project. The same existing preferences file stores optional explicitly registered folder paths, capped and validated, with atomic compare-before-replace and recovery. Existing schema-1 preferences without registered folder paths remain valid. Unpin only changes the bookmark; Remove shortcut also unpins the selected added folder and removes its registration but does not delete the directory or erase Blockbench's own recent-file history.
 
 `Continue` is deliberately independent from pinned/recent display ordering. The profile snapshot preserves one exact last active saved `.bbmodel` pointer across Plugin/Desktop restarts. Desktop exposes Continue only while that exact file still exists; it never guesses a replacement from pinned projects or favorite-reordered Blockbench recents.
 

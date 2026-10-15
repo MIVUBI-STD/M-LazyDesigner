@@ -18,6 +18,8 @@ export type ProjectNavigationProject = {
   name: string;
   active: boolean;
   pinned: boolean;
+  registered: boolean;
+  available: boolean;
   model_count: number;
   models: ProjectNavigationModel[];
   folders: ProjectNavigationFolder[];
@@ -48,4 +50,5 @@ export type ProjectAction =
   | 'reveal-model'
   | 'pin-project'
   | 'unpin-project'
+  | 'remove-project-folder'
   | 'restore-project-preferences';

@@ -158,6 +158,16 @@ fn show_retired_plugin_file() -> Result<PluginFileActionResult, DesktopError> {
 }
 
 #[tauri::command]
+async fn add_project_folder() -> Result<ProjectNavigationActionResult, DesktopError> {
+    let result = tauri::async_runtime::spawn_blocking(project_navigation::add_project_folder)
+        .await
+        .map_err(|error| DesktopError::recoverable("PROJECT_FOLDER_PICKER_FAILED", error.to_string()))?
+        .map_err(|message| DesktopError::recoverable("PROJECT_FOLDER_PICKER_FAILED", message))?;
+    operation_log::record("project:add-folder", result.status);
+    Ok(result)
+}
+
+#[tauri::command]
 fn project_navigation_action(action: String, id: String) -> Result<ProjectNavigationActionResult, DesktopError> {
     let result = system_status::project_navigation_action(&action, &id);
     operation_log::record(
@@ -212,6 +222,7 @@ fn main() {
             managed_action,
             bootstrap_install,
             project_navigation_action,
+            add_project_folder,
             project_navigation_path,
             show_plugin_file,
             show_retired_plugin_file,

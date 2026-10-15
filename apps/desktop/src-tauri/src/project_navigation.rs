@@ -1,5 +1,7 @@
 use crate::blockbench;
+#[cfg(test)]
 use rand::RngCore;
+use rfd::FileDialog;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
@@ -33,6 +35,8 @@ pub struct ProjectNavigationProject {
     pub name: String,
     pub active: bool,
     pub pinned: bool,
+    pub registered: bool,
+    pub available: bool,
     pub model_count: usize,
     pub models: Vec<ProjectNavigationModel>,
     pub folders: Vec<ProjectNavigationFolder>,
@@ -145,7 +149,12 @@ struct ProjectIdentity {
 struct ProjectNavigationPreferences {
     schema: u8,
     pinned_project_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    registered_project_paths: Vec<String>,
 }
+const MAX_REGISTERED_PROJECTS: usize = 16;
+const MAX_PROJECT_MODELS: usize = 64;
+const MAX_DIRECTORY_ENTRIES: usize = 128;
 
 fn valid_profile_id(value: &str) -> bool {
     value.len() == 32 && value.chars().all(|ch| ch.is_ascii_hexdigit())
@@ -209,7 +218,7 @@ fn read_navigation_snapshot(profile_id: Option<&str>) -> Option<NavigationSnapsh
 }
 
 fn empty_navigation_preferences() -> ProjectNavigationPreferences {
-    ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new() }
+    ProjectNavigationPreferences { schema: 1, pinned_project_ids: Vec::new(), registered_project_paths: Vec::new() }
 }
 
 fn valid_pinned_project_id(id: &str) -> bool {
@@ -218,6 +227,61 @@ fn valid_pinned_project_id(id: &str) -> bool {
         .unwrap_or(false)
 }
 
+fn valid_registered_project_path(value: &str) -> bool {
+    value.len() <= 4096 && !value.is_empty()
+        && Path::new(value).is_absolute()
+        && Path::new(value).parent().is_some_and(|parent| parent != Path::new(value))
+}
+fn validate_registered_paths(paths: &[String]) -> bool {
+    paths.len() <= MAX_REGISTERED_PROJECTS
+        && paths.iter().all(|p| valid_registered_project_path(p))
+        && paths.iter().map(|p| navigation_path_key(Path::new(p)))
+            .collect::<HashSet<_>>().len() == paths.len()
+}
+fn registered_roots(preferences: &ProjectNavigationPreferences) -> Vec<PathBuf> {
+    preferences.registered_project_paths.iter().map(PathBuf::from).collect()
+}
+fn plain_project_folder(path: &Path) -> Result<(), String> {
+    if !path.is_absolute() || path.parent().is_none() {
+        return Err("Select an existing project folder.".to_string());
+    }
+    let meta = fs::symlink_metadata(path)
+        .map_err(|_| "Selected project folder is unavailable.".to_string())?;
+    if !meta.file_type().is_dir() {
+        return Err("Choose a normal project folder, not a linked or special location.".to_string());
+    }
+    Ok(())
+}
+fn scan_registered_models(root: &Path) -> Vec<PathBuf> {
+    if plain_project_folder(root).is_err() { return Vec::new(); }
+    let mut models = Vec::new();
+    let mut seen = HashSet::new();
+    // User-selected directory + conventional Models/Model; no recursive crawl.
+    let mut dirs = vec![root.to_path_buf()];
+    for name in ["Models", "Model"] {
+        let child = root.join(name);
+        if fs::symlink_metadata(&child).is_ok_and(|m| m.file_type().is_dir())
+            && !dirs.iter().any(|dir| navigation_path_key(dir) == navigation_path_key(&child)) {
+            dirs.push(child);
+        }
+    }
+    for dir in dirs {
+        if let Ok(iter) = fs::read_dir(dir) {
+            for entry in iter.take(MAX_DIRECTORY_ENTRIES).flatten() {
+                let path = entry.path();
+                if !is_bbmodel_path(&path)
+                    || !fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_file()) {
+                    continue;
+                }
+                if seen.insert(navigation_path_key(&path)) { models.push(path); }
+                if models.len() >= MAX_PROJECT_MODELS { break; }
+            }
+        }
+        if models.len() >= MAX_PROJECT_MODELS { break; }
+    }
+    models.sort_by_key(|p| navigation_path_key(p));
+    models
+}
 fn read_navigation_preferences_with_raw_at(path: &Path)
     -> Result<Option<(ProjectNavigationPreferences, Vec<u8>)>, String>
 {
@@ -230,7 +294,7 @@ fn read_navigation_preferences_with_raw_at(path: &Path)
     };
     let mut value: ProjectNavigationPreferences = serde_json::from_slice(&raw)
         .map_err(|_| "Preferences malformed; original file preserved.".to_string())?;
-    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) {
+    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) || !validate_registered_paths(&value.registered_project_paths) {
         return Err("Preferences use unsupported schema or IDs; original preserved.".to_string());
     }
     value.pinned_project_ids.sort();
@@ -258,7 +322,7 @@ fn load_project_navigation_preferences() -> Result<ProjectNavigationPreferences,
 fn write_navigation_preferences_expected_at(
     path: &Path, value: &ProjectNavigationPreferences, expected: Option<&[u8]>,
 ) -> Result<(), String> {
-    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) {
+    if value.schema != 1 || value.pinned_project_ids.iter().any(|id| !valid_pinned_project_id(id)) || !validate_registered_paths(&value.registered_project_paths) {
         return Err("Preferences schema or project IDs are invalid.".to_string());
     }
     let data = serde_json::to_vec(value).map_err(|error| format!("Unable to encode preferences: {error}"))?;
@@ -429,18 +493,31 @@ fn project_identity_from_state(root: &Path, state: &ProjectManifestState, collis
     ProjectIdentity { id: navigation_id("project", root), name: project_name(root) }
 }
 
-fn project_identity_map(snapshot: &NavigationSnapshot) -> HashMap<String, ProjectIdentity> {
-    let mut roots: HashMap<String, PathBuf> = HashMap::new();
+fn project_root_with_registered(path: &Path, registered: &[PathBuf]) -> Option<PathBuf> {
+    if !is_bbmodel_path(path) { return None; }
+    let key = navigation_path_key(path);
+    registered.iter()
+        .filter(|root| key.starts_with(&(navigation_path_key(root) + "\\")))
+        .max_by_key(|root| navigation_path_key(root).len())
+        .cloned()
+        .or_else(|| project_root_for_model(path))
+}
+
+fn project_identity_map(snapshot: Option<&NavigationSnapshot>, registered: &[PathBuf]) -> HashMap<String, ProjectIdentity> {
+    let mut roots: HashMap<String, PathBuf> = registered.iter()
+        .map(|root| (navigation_path_key(root), root.clone())).collect();
     let mut add = |raw: &str| {
         let path = PathBuf::from(raw);
-        if let Some(root) = project_root_for_model(&path) {
+        if let Some(root) = project_root_with_registered(&path, registered) {
             roots.entry(navigation_path_key(&root)).or_insert(root);
         }
     };
-    if let Some(last) = snapshot.last_model_path.as_deref() { add(last); }
-    if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) { add(active); }
-    for open in &snapshot.open_models { if let Some(path) = open.path.as_deref() { add(path); } }
-    for recent in &snapshot.recent_models { add(&recent.path); }
+    if let Some(snapshot) = snapshot {
+        if let Some(last) = snapshot.last_model_path.as_deref() { add(last); }
+        if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) { add(active); }
+        for open in &snapshot.open_models { if let Some(path) = open.path.as_deref() { add(path); } }
+        for recent in &snapshot.recent_models { add(&recent.path); }
+    }
 
     let states: HashMap<String, ProjectManifestState> = roots.iter()
         .map(|(key, root)| (key.clone(), read_project_manifest_state(root)))
@@ -459,6 +536,7 @@ fn project_identity_map(snapshot: &NavigationSnapshot) -> HashMap<String, Projec
     }).collect()
 }
 
+#[cfg(test)]
 fn generate_project_uuid() -> String {
     let mut bytes = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut bytes);
@@ -483,54 +561,50 @@ fn write_project_manifest(root: &Path, manifest: &ProjectManifest) -> Result<(),
     write_project_manifest_bytes_at(&path, &bytes, current.as_deref())
 }
 
+#[cfg(test)]
 fn write_project_manifest_bytes_at(path: &Path, bytes: &[u8], expected: Option<&[u8]>) -> Result<(), String> {
     crate::metadata_io::replace_metadata_if_unchanged(path, bytes, expected, true)
         .map_err(|error| format!("Unable to replace Project manifest safely: {error}"))
 }
 
-fn ensure_project_manifest_for_pin(root: &Path, occupied: &HashSet<String>) -> Result<String, String> {
-    match read_project_manifest_state(root) {
-        ProjectManifestState::Valid(manifest) => {
-            let id = stable_project_id(&manifest);
-            if occupied.contains(&id) {
-                Err("Project identity is duplicated by another visible Project.".to_string())
-            } else {
-                Ok(id)
-            }
-        }
-        ProjectManifestState::Invalid => Err("Project manifest is malformed or unsupported; LazyDesigner will not overwrite it.".to_string()),
-        ProjectManifestState::Missing | ProjectManifestState::LegacyMarker => {
-            for _ in 0..8 {
-                let manifest = ProjectManifest {
-                    schema: PROJECT_MANIFEST_SCHEMA,
-                    project_uuid: generate_project_uuid(),
-                    display_name: project_name(root),
-                };
-                let id = stable_project_id(&manifest);
-                if occupied.contains(&id) { continue; }
-                let path = root.join(PROJECT_MANIFEST_FILE);
-                let current = crate::metadata_io::read_metadata_bounded(&path)
-                    .map_err(|error| format!("Unable to inspect Project identity: {error}"))?;
-                let state_unchanged = match (&current, &read_project_manifest_state(root)) {
-                    (None, ProjectManifestState::Missing) => true,
-                    (Some(raw), ProjectManifestState::LegacyMarker) => raw.iter().all(u8::is_ascii_whitespace),
-                    _ => false,
-                };
-                if !state_unchanged {
-                    return Err("Project identity changed during pin; old data preserved.".to_string());
-                }
-                let mut bytes = serde_json::to_vec_pretty(&manifest)
-                    .map_err(|error| format!("Unable to encode Project manifest: {error}"))?;
-                bytes.push(b'\n');
-                if bytes.len() > PROJECT_MANIFEST_MAX_BYTES as usize {
-                    return Err("Project manifest exceeds bounded size.".to_string());
-                }
-                write_project_manifest_bytes_at(&path, &bytes, current.as_deref())?;
-                return Ok(id);
-            }
-            Err("Unable to allocate a unique Project identity.".to_string())
-        }
+// Pin is a Desktop-only bookmark. It must never create or rewrite
+// project-folder files or convert a legacy project marker.
+fn set_project_pin(preferences: &mut ProjectNavigationPreferences, id: &str, legacy_id: &str, pin: bool) {
+    preferences.pinned_project_ids.retain(|candidate| candidate != id && candidate != legacy_id);
+    if pin { preferences.pinned_project_ids.push(id.to_string()); }
+    preferences.pinned_project_ids.sort();
+    preferences.pinned_project_ids.dedup();
+}
+
+fn register_project_folder_at(prefs_path: &Path, chosen: &Path) -> Result<&'static str, String> {
+    plain_project_folder(chosen)?;
+    let folder = fs::canonicalize(chosen).map_err(|_| "Selected project folder is unavailable.".to_string())?;
+    plain_project_folder(&folder)?;
+    let (mut prefs, old) = match read_navigation_preferences_with_raw_at(prefs_path)? {
+        Some((value, bytes)) => (value, Some(bytes)),
+        None => (empty_navigation_preferences(), None),
+    };
+    let path_key = navigation_path_key(&folder);
+    if prefs.registered_project_paths.iter().any(|item| navigation_path_key(Path::new(item)) == path_key) {
+        return Ok("ALREADY_ADDED");
     }
+    if prefs.registered_project_paths.len() >= MAX_REGISTERED_PROJECTS {
+        return Err("Project folder list is full. Remove an unused shortcut before adding another.".to_string());
+    }
+    prefs.registered_project_paths.push(folder.to_string_lossy().into_owned());
+    let parent = prefs_path.parent().ok_or_else(|| "Preference directory is invalid.".to_string())?;
+    fs::create_dir_all(parent).map_err(|error| format!("Cannot prepare project preferences: {error}"))?;
+    write_navigation_preferences_expected_at(prefs_path, &prefs, old.as_deref())?;
+    Ok("ADDED")
+}
+
+pub(crate) fn add_project_folder() -> Result<ProjectNavigationActionResult, String> {
+    let Some(folder) = FileDialog::new().pick_folder() else {
+        return Ok(ProjectNavigationActionResult { status: "CANCELLED" });
+    };
+    let path = project_navigation_preferences_path()
+        .ok_or_else(|| "LOCALAPPDATA is unavailable.".to_string())?;
+    Ok(ProjectNavigationActionResult { status: register_project_folder_at(&path, &folder)? })
 }
 
 fn project_root_for_model(path: &Path) -> Option<PathBuf> {
@@ -612,16 +686,17 @@ fn navigation_paths(profile_id: Option<&str>) -> (
     HashMap<String, PathBuf>,
     HashMap<String, PathBuf>,
 ) {
-    let Some(snapshot) = read_navigation_snapshot(profile_id) else {
-        return (HashMap::new(), HashMap::new(), HashMap::new());
-    };
-    let identities = project_identity_map(&snapshot);
+    let snapshot = read_navigation_snapshot(profile_id);
+    let prefs = load_project_navigation_preferences()
+        .unwrap_or_else(|_| empty_navigation_preferences());
+    let registered = registered_roots(&prefs);
+    let identities = project_identity_map(snapshot.as_ref(), &registered);
     let mut projects = HashMap::new();
     let mut models = HashMap::new();
     let mut folders = HashMap::new();
     let mut add = |raw: &str| {
         let path = PathBuf::from(raw);
-        let Some(root) = project_root_for_model(&path) else { return; };
+        let Some(root) = project_root_with_registered(&path, &registered) else { return; };
         let Some(identity) = identities.get(&navigation_path_key(&root)) else { return; };
         projects.entry(identity.id.clone()).or_insert(root.clone());
         models.entry(navigation_id("model", &path)).or_insert(path);
@@ -629,10 +704,24 @@ fn navigation_paths(profile_id: Option<&str>) -> (
             folders.entry(navigation_id("folder", &folder)).or_insert(folder);
         }
     };
-    if let Some(last) = snapshot.last_model_path.as_deref() { add(last); }
-    if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) { add(active); }
-    for open in &snapshot.open_models { if let Some(path) = open.path.as_deref() { add(path); } }
-    for recent in &snapshot.recent_models { add(&recent.path); }
+    if let Some(snapshot) = snapshot.as_ref() {
+        if let Some(last) = snapshot.last_model_path.as_deref() { add(last); }
+        if let Some(active) = snapshot.active.as_ref().and_then(|value| value.model_path.as_deref()) { add(active); }
+        for open in &snapshot.open_models { if let Some(path) = open.path.as_deref() { add(path); } }
+        for recent in &snapshot.recent_models { add(&recent.path); }
+    }
+    drop(add);
+    for root in &registered {
+        if let Some(identity) = identities.get(&navigation_path_key(root)) {
+            projects.entry(identity.id.clone()).or_insert(root.clone());
+            for path in scan_registered_models(root) {
+                models.insert(navigation_id("model", &path), path);
+            }
+            for (folder, _, _) in working_folders(root) {
+                folders.entry(navigation_id("folder", &folder)).or_insert(folder);
+            }
+        }
+    }
     (projects, models, folders)
 }
 
@@ -646,19 +735,18 @@ fn continue_model_id_for_path(raw: Option<&str>) -> Option<String> {
 
 pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> ProjectNavigation {
     let preferences_issue = preferences_integrity_issue();
-    let pinned: HashSet<String> = load_project_navigation_preferences()
-        .unwrap_or_else(|_| empty_navigation_preferences())
-        .pinned_project_ids
-        .into_iter()
-        .collect();
-    let Some(snapshot) = read_navigation_snapshot(profile_id) else {
-        return ProjectNavigation { revision: None, session_live: false, continue_model_id: None, recent_model_ids: Vec::new(), preferences_issue, active: None, projects: Vec::new() };
-    };
-    let revision = Some(navigation_revision_token(&snapshot));
-    let continue_model_id = continue_model_id_for_path(snapshot.last_model_path.as_deref());
+    let preferences = load_project_navigation_preferences()
+        .unwrap_or_else(|_| empty_navigation_preferences());
+    let registered = registered_roots(&preferences);
+    let pinned: HashSet<String> = preferences.pinned_project_ids.into_iter().collect();
+    let snapshot = read_navigation_snapshot(profile_id);
+    let revision = snapshot.as_ref().map(navigation_revision_token);
+    let continue_model_id = continue_model_id_for_path(
+        snapshot.as_ref().and_then(|state| state.last_model_path.as_deref())
+    );
     // Preserve Blockbench's native recent-file order instead of guessing
     // which model is newest from project/pin ordering.
-    let recent_model_ids: Vec<String> = snapshot.recent_models.iter()
+    let recent_model_ids: Vec<String> = snapshot.iter().flat_map(|state| state.recent_models.iter())
         .filter_map(|recent| {
             let path = PathBuf::from(&recent.path);
             (is_bbmodel_path(&path) && path.is_file())
@@ -666,10 +754,10 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
         })
         .take(5)
         .collect();
-    let identities = project_identity_map(&snapshot);
+    let identities = project_identity_map(snapshot.as_ref(), &registered);
 
     let active_path = if session_live {
-        snapshot.active.as_ref()
+        snapshot.as_ref().and_then(|state| state.active.as_ref())
             .and_then(|value| value.model_path.as_ref())
             .map(PathBuf::from)
             .filter(|path| is_bbmodel_path(path))
@@ -677,13 +765,13 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
         None
     };
     let active_model_id = active_path.as_ref().map(|path| navigation_id("model", path));
-    let active_project_root = active_path.as_ref().and_then(|path| project_root_for_model(path));
+    let active_project_root = active_path.as_ref().and_then(|path| project_root_with_registered(path, &registered));
     let active_project_identity = active_project_root.as_ref()
         .and_then(|root| identities.get(&navigation_path_key(root)));
     let active_project_id = active_project_identity.map(|identity| identity.id.clone());
 
     let active = if session_live {
-        snapshot.active.as_ref().map(|value| ActiveProjectNavigation {
+        snapshot.as_ref().and_then(|state| state.active.as_ref()).map(|value| ActiveProjectNavigation {
             project_id: active_project_id.clone(),
             project_name: active_project_identity.map(|identity| identity.name.clone()),
             model_id: active_model_id.clone(),
@@ -701,7 +789,9 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
         None
     };
 
-    let live_open_models = live_open_models(&snapshot, session_live);
+    let live_open_models = snapshot.as_ref()
+        .map(|state| live_open_models(state, session_live))
+        .unwrap_or(&[]);
     let open_by_path: HashMap<String, (bool, bool)> = live_open_models.iter()
         .filter_map(|model| {
             let path = model.path.as_ref()?;
@@ -716,7 +806,7 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
 
     let mut projects: Vec<ProjectNavigationProject> = Vec::new();
     let mut add_model = |path: PathBuf, preferred: &str, active_model: bool| {
-        let Some(root) = project_root_for_model(&path) else { return; };
+        let Some(root) = project_root_with_registered(&path, &registered) else { return; };
         let Some(identity) = identities.get(&navigation_path_key(&root)) else { return; };
         let project_id = identity.id.clone();
         let legacy_project_id = navigation_id("project", &root);
@@ -732,6 +822,10 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
                     name: identity.name.clone(),
                     active: project_active,
                     pinned: pinned.contains(&project_id) || pinned.contains(&legacy_project_id),
+                    registered: registered.iter().any(|folder| navigation_path_key(folder) == navigation_path_key(&root)),
+                    available: if registered.iter().any(|folder| navigation_path_key(folder) == navigation_path_key(&root)) {
+                        plain_project_folder(&root).is_ok()
+                    } else { root.is_dir() },
                     model_count: 0,
                     models: Vec::new(),
                     folders: folder_projection(&root),
@@ -748,6 +842,7 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
             }
             return;
         }
+        if project.registered && project.models.len() >= MAX_PROJECT_MODELS { return; }
         project.models.push(ProjectNavigationModel {
             id: model_id,
             name: model_name(&path, preferred),
@@ -759,29 +854,44 @@ pub(crate) fn projection(session_live: bool, profile_id: Option<&str>) -> Projec
         project.model_count = project.models.len();
     };
 
-    if let Some(last) = snapshot.last_model_path.as_deref() {
-        add_model(PathBuf::from(last), "", false);
-    }
-    if let (Some(path), Some(active_snapshot)) = (active_path.clone(), snapshot.active.as_ref()) {
-        add_model(path, &active_snapshot.name, true);
-    }
-    for open in live_open_models {
-        let Some(raw_path) = open.path.as_ref() else { continue; };
-        let path = PathBuf::from(raw_path);
-        if !is_bbmodel_path(&path) {
-            continue;
+    if let Some(snapshot) = snapshot.as_ref() {
+        if let Some(last) = snapshot.last_model_path.as_deref() {
+            add_model(PathBuf::from(last), "", false);
         }
-        add_model(path, &open.name, open.active);
+        if let (Some(path), Some(active_snapshot)) = (active_path.clone(), snapshot.active.as_ref()) {
+            add_model(path, &active_snapshot.name, true);
+        }
+        for open in live_open_models {
+            if let Some(raw_path) = open.path.as_ref() {
+                let path = PathBuf::from(raw_path);
+                if is_bbmodel_path(&path) { add_model(path, &open.name, open.active); }
+            }
+        }
+        for recent in &snapshot.recent_models {
+            let path = PathBuf::from(&recent.path);
+            let model_id = navigation_id("model", &path);
+            add_model(path, &recent.name, active_model_id.as_deref() == Some(model_id.as_str()));
+        }
     }
-    for recent in snapshot.recent_models {
-        let path = PathBuf::from(&recent.path);
-        let model_id = navigation_id("model", &path);
-        let is_active = active_model_id.as_deref() == Some(model_id.as_str());
-        add_model(path, &recent.name, is_active);
+    for root in &registered {
+        for model in scan_registered_models(root) { add_model(model, "", false); }
     }
-
+    drop(add_model);
+    // Registered folders remain visible even if empty or moved, and without
+    // a Blockbench plugin snapshot. No drive or recursive scan is performed.
+    for root in &registered {
+        let Some(identity) = identities.get(&navigation_path_key(root)) else { continue; };
+        if projects.iter().any(|project| project.id == identity.id) { continue; }
+        let legacy_id = navigation_id("project", root);
+        projects.push(ProjectNavigationProject {
+            id: identity.id.clone(), name: identity.name.clone(), active: false,
+            pinned: pinned.contains(&identity.id) || pinned.contains(&legacy_id),
+            registered: true, available: plain_project_folder(root).is_ok(), model_count: 0,
+            models: Vec::new(), folders: folder_projection(root),
+        });
+    }
     projects.sort_by_key(|project| {
-        if project.active { 0 } else if project.pinned { 1 } else { 2 }
+        if project.active { 0 } else if project.pinned { 1 } else if project.registered { 2 } else { 3 }
     });
     ProjectNavigation { revision, session_live, continue_model_id, recent_model_ids, preferences_issue, active, projects }
 }
@@ -810,30 +920,27 @@ pub(crate) fn action(action: &str, id: &str, profile_id: Option<&str>) -> Result
         "pin-project" | "unpin-project" => {
             let root = projects.get(id).ok_or_else(|| "Project is no longer available.".to_string())?;
             let legacy_id = navigation_id("project", root);
-            let current_stable_id = match read_project_manifest_state(root) {
-                ProjectManifestState::Valid(manifest) => Some(stable_project_id(&manifest)),
-                _ => None,
-            };
-            // Refuse corrupted preferences before creating a pinned project manifest.
-            let (mut preferences, original_preferences) = load_project_navigation_preferences_with_raw()?;
-            preferences.pinned_project_ids.retain(|candidate| {
-                candidate != id && candidate != &legacy_id && current_stable_id.as_deref() != Some(candidate.as_str())
-            });
+            let (mut preferences, original) = load_project_navigation_preferences_with_raw()?;
             let pin = action == "pin-project";
-            if pin {
-                let root_key = navigation_path_key(root);
-                let occupied: HashSet<String> = projects.values()
-                    .filter(|candidate| navigation_path_key(candidate) != root_key)
-                    .filter_map(|candidate| match read_project_manifest_state(candidate) {
-                        ProjectManifestState::Valid(manifest) => Some(stable_project_id(&manifest)),
-                        _ => None,
-                    }).collect();
-                preferences.pinned_project_ids.push(ensure_project_manifest_for_pin(root, &occupied)?);
-            }
-            preferences.pinned_project_ids.sort();
-            preferences.pinned_project_ids.dedup();
-            write_project_navigation_preferences(&preferences, original_preferences.as_deref())?;
+            set_project_pin(&mut preferences, id, &legacy_id, pin);
+            write_project_navigation_preferences(&preferences, original.as_deref())?;
             Ok(ProjectNavigationActionResult { status: if pin { "PINNED" } else { "UNPINNED" } })
+        }
+        "remove-project-folder" => {
+            let root = projects.get(id).ok_or_else(|| "Project is no longer available.".to_string())?;
+            let (mut preferences, original) = load_project_navigation_preferences_with_raw()?;
+            let root_key = navigation_path_key(root);
+            let before = preferences.registered_project_paths.len();
+            preferences.registered_project_paths.retain(|saved| navigation_path_key(Path::new(saved)) != root_key);
+            if before == preferences.registered_project_paths.len() {
+                return Err("This project is not in the added-folder list.".to_string());
+            }
+            // Removing a shortcut also removes its local Pin; the actual
+            // folder, model files and Blockbench recent history are untouched.
+            let legacy_id = navigation_id("project", root);
+            set_project_pin(&mut preferences, id, &legacy_id, false);
+            write_project_navigation_preferences(&preferences, original.as_deref())?;
+            Ok(ProjectNavigationActionResult { status: "REMOVED_FROM_LIST" })
         }
         "open-folder" => {
             let path = folders.get(id).ok_or_else(|| "Folder is no longer available.".to_string())?;
@@ -860,11 +967,23 @@ pub(crate) fn action(action: &str, id: &str, profile_id: Option<&str>) -> Result
         }
         "open-model" => {
             let path = models.get(id).ok_or_else(|| "Model is no longer available.".to_string())?;
-            // The snapshot ID is re-resolved; never launch a saved model
-            // into a foreign Blockbench userData profile.
-            let expected_profile = profile_id
-                .ok_or_else(|| "A verified Blockbench profile is required for this model.".to_string())?;
-            let user_data = crate::system_status::editor_profile_for_model(Some(expected_profile))?;
+            // Models from a user-added project folder are explicitly
+            // selected by that user and may be opened without AI or plugin
+            // snapshot. History-only models retain exact snapshot affinity.
+            let registered = load_project_navigation_preferences()
+                .map(|prefs| registered_roots(&prefs))
+                .unwrap_or_default();
+            let from_folder = registered.iter().any(|root| {
+                navigation_path_key(path).starts_with(&(navigation_path_key(root) + "\\"))
+                    && scan_registered_models(root).iter().any(|model| navigation_path_key(model) == navigation_path_key(path))
+            });
+            let user_data = if from_folder {
+                crate::system_status::editor_profile_for_model(None)?
+            } else {
+                let expected = profile_id.ok_or_else(||
+                    "A verified Blockbench profile is required for this model.".to_string())?;
+                crate::system_status::editor_profile_for_model(Some(expected))?
+            };
             blockbench::open_model(path, &user_data)?;
             Ok(ProjectNavigationActionResult { status: "OPENED" })
         }
@@ -900,13 +1019,63 @@ mod tests {
 
 
     #[test]
+    fn adding_folder_is_a_shortcut_not_project_file_mutation() {
+        let root = temp_project("register");
+        let user_folder = root.join("Furniture");
+        let model_dir = user_folder.join("Models");
+        fs::create_dir_all(&model_dir).unwrap();
+        fs::write(model_dir.join("Chair.bbmodel"), b"{}").unwrap();
+        fs::write(user_folder.join("Sofa.bbmodel"), b"{}").unwrap();
+        fs::write(user_folder.join("notes.txt"), b"keep").unwrap();
+        let prefs = root.join("prefs.json");
+        assert_eq!(register_project_folder_at(&prefs, &user_folder).unwrap(), "ADDED");
+        assert_eq!(register_project_folder_at(&prefs, &user_folder).unwrap(), "ALREADY_ADDED");
+        let files = scan_registered_models(&user_folder);
+        assert_eq!(files.len(), 2);
+        assert!(!user_folder.join(PROJECT_MANIFEST_FILE).exists());
+        assert_eq!(fs::read(user_folder.join("notes.txt")).unwrap(), b"keep");
+        let saved = read_navigation_preferences_at(&prefs).unwrap().unwrap();
+        assert_eq!(saved.registered_project_paths.len(), 1);
+        assert_eq!(saved.pinned_project_ids.len(), 0);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn registered_directory_scan_is_bounded_and_never_recursive() {
+        let root = temp_project("bounded-scan");
+        fs::create_dir(root.join("Nested")).unwrap();
+        fs::write(root.join("Nested").join("Hidden.bbmodel"), b"{}").unwrap();
+        for i in 0..160 {
+            fs::write(root.join(format!("{i:03}.bbmodel")), b"{}").unwrap();
+        }
+        assert!(scan_registered_models(&root).len() <= MAX_PROJECT_MODELS);
+        assert!(!scan_registered_models(&root).iter().any(|p| p.ends_with("Hidden.bbmodel")));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn registered_paths_reject_missing_relative_and_unsupported_metadata() {
+        let root = temp_project("register-negative");
+        let prefs = root.join("prefs.json");
+        let bad = root.join("missing");
+        assert!(register_project_folder_at(&prefs, &bad).is_err());
+        assert!(register_project_folder_at(&prefs, Path::new("relative")).is_err());
+        assert!(!prefs.exists());
+        let original = br#"{"schema":1,"pinned_project_ids":[],"future":"keep"}"#;
+        fs::write(&prefs, original).unwrap();
+        assert!(register_project_folder_at(&prefs, &root).is_err());
+        assert_eq!(fs::read(&prefs).unwrap(), original);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn stale_preferences_do_not_discard_a_newer_pin_change() {
         let root = temp_project("stale-preferences"); let path = root.join("prefs.json");
         let empty = empty_navigation_preferences();
         write_navigation_preferences_at(&path, &empty).unwrap();
         let first = fs::read(&path).unwrap();
         let newer = ProjectNavigationPreferences {
-            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()],
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(),
         };
         write_navigation_preferences_at(&path, &newer).unwrap();
         assert!(write_navigation_preferences_expected_at(&path, &empty, Some(&first)).is_err());
@@ -919,7 +1088,7 @@ mod tests {
     fn explicit_restore_keeps_damaged_original_and_valid_checkpoint() {
         let root = temp_project("restore-preferences"); let path = root.join("prefs.json");
         let old = ProjectNavigationPreferences {
-            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()],
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(),
         };
         write_navigation_preferences_at(&path, &old).unwrap();
         write_navigation_preferences_at(&path, &empty_navigation_preferences()).unwrap();
@@ -978,7 +1147,7 @@ mod tests {
         let path = dir.join("project-preferences.json");
         write_navigation_preferences_at(&path, &empty_navigation_preferences()).unwrap();
         let updated = ProjectNavigationPreferences {
-            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()],
+            schema: 1, pinned_project_ids: vec!["project-12345678901234567890".to_string()], registered_project_paths: Vec::new(),
         };
         write_navigation_preferences_at(&path, &updated).unwrap();
         assert_eq!(read_navigation_preferences_at(&path).unwrap().unwrap().pinned_project_ids, updated.pinned_project_ids);
@@ -1027,7 +1196,10 @@ mod tests {
         let raw = br#"{"schema":2,"project_uuid":"11111111-2222-4333-8444-555555555555","display_name":"Future"}"#;
         fs::write(&path, raw).unwrap();
         assert_eq!(read_project_manifest_state(&root), ProjectManifestState::Invalid);
-        assert!(ensure_project_manifest_for_pin(&root, &HashSet::new()).is_err());
+        let mut bookmarks = empty_navigation_preferences();
+        let id = navigation_id("project", &root);
+        set_project_pin(&mut bookmarks, &id, &id, true);
+        assert_eq!(bookmarks.pinned_project_ids, vec![id]);
         assert_eq!(fs::read(&path).unwrap(), raw);
         fs::remove_dir_all(&root).unwrap();
     }
@@ -1046,19 +1218,24 @@ mod tests {
         let a = project_identity_from_state(&one, &read_project_manifest_state(&one), &collision);
         let b = project_identity_from_state(&two, &read_project_manifest_state(&two), &collision);
         assert_ne!(a.id, b.id);
-        assert!(ensure_project_manifest_for_pin(&one, &collision).is_err());
+        // Duplicate manifest identity never forces writing to either folder.
+        assert_eq!(fs::read(one.join(PROJECT_MANIFEST_FILE)).unwrap(),
+            fs::read(two.join(PROJECT_MANIFEST_FILE)).unwrap());
         fs::remove_dir_all(&base).unwrap();
     }
 
     #[test]
-    fn pin_upgrades_empty_legacy_marker() {
+    fn pin_does_not_modify_project_folder_or_legacy_marker() {
         let root = temp_project("legacy");
         fs::write(root.join(PROJECT_MANIFEST_FILE), b" \n").unwrap();
-        assert_eq!(read_project_manifest_state(&root), ProjectManifestState::LegacyMarker);
-        let id = ensure_project_manifest_for_pin(&root, &HashSet::new()).unwrap();
-        let ProjectManifestState::Valid(manifest) = read_project_manifest_state(&root) else { panic!("manifest not upgraded"); };
-        assert_eq!(id, stable_project_id(&manifest));
-        assert!(valid_navigation_generation(&manifest.project_uuid));
+        let mut bookmarks = empty_navigation_preferences();
+        let id = navigation_id("project", &root);
+        set_project_pin(&mut bookmarks, &id, &id, true);
+        assert!(bookmarks.pinned_project_ids.contains(&id));
+        assert_eq!(fs::read(root.join(PROJECT_MANIFEST_FILE)).unwrap(), b" \n");
+        set_project_pin(&mut bookmarks, &id, &id, false);
+        assert!(bookmarks.pinned_project_ids.is_empty());
+        assert_eq!(fs::read(root.join(PROJECT_MANIFEST_FILE)).unwrap(), b" \n");
         fs::remove_dir_all(&root).unwrap();
     }
 
@@ -1125,7 +1302,7 @@ mod tests {
                 },
             ],
         };
-        let identities = project_identity_map(&snapshot);
+        let identities = project_identity_map(Some(&snapshot), &[]);
         assert_eq!(identities.len(), 1);
         let identity = identities.values().next().unwrap();
         assert_eq!(identity.id, stable_project_id(&fixed_manifest("Furniture")));

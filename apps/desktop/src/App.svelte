@@ -44,7 +44,6 @@
   let expandedProjectId: string | null = null;
   let showAllProjects = false;
   let projectSearch = '';
-  let modelSearch = '';
   let workspaceScrollTop = 0;
   let workspaceMain: HTMLElement | undefined;
 
@@ -173,10 +172,8 @@
 
   async function runProjectAction(action: ProjectAction, id: string) {
     if (devFixture || busyAction) return;
-    const readOnlyFileAction = ['reveal-model', 'open-folder', 'open-project-folder'].includes(action);
-    // Safe file/folder reveal is revalidated by Rust using exact snapshot IDs.
-    // Stale connection monitoring cannot block it, but edits stay gated.
-    if ((statusProbeFailures >= 2 || !status?.manager_available) && !readOnlyFileAction) return;
+    // Local project bookmarks, selected-folder shortcuts and file actions
+    // are revalidated by Rust. They never require the AI manager or Gateway.
     if (action === 'restore-project-preferences' &&
         !window.confirm('Restore the last saved project pins? The damaged settings file will be retained.')) return;
     closeActionDisclosures(true);
@@ -186,7 +183,30 @@
     clearSuccessToast();
     try {
       await invoke<ProjectNavigationActionResult>('project_navigation_action', { action, id });
-      if (action === 'pin-project' || action === 'unpin-project' || action === 'restore-project-preferences') await refresh();
+      if (action === 'pin-project' || action === 'unpin-project' ||
+          action === 'remove-project-folder' || action === 'restore-project-preferences') await refresh();
+    } catch (cause) {
+      reportError(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function addProjectFolder() {
+    if (devFixture || busyAction) return;
+    closeActionDisclosures(true);
+    busyAction = 'project-action';
+    error = '';
+    errorDetail = null;
+    clearSuccessToast();
+    try {
+      const result = await invoke<ProjectNavigationActionResult>('add_project_folder');
+      if (result.status === 'ADDED' || result.status === 'ALREADY_ADDED') {
+        await refresh();
+        showSuccessToast(result.status === 'ADDED'
+          ? 'Project folder added. Your files were not changed.'
+          : 'This folder is already in your projects.');
+      }
     } catch (cause) {
       reportError(cause);
     } finally {
@@ -658,6 +678,8 @@
         name: 'Furniture',
         active: true,
         pinned: true,
+        registered: true,
+        available: true,
         model_count: 2,
         models: [
           { id: 'model-fixture', name: 'Modern Chair', active: true, open: true, dirty: false, exists: true },
@@ -705,11 +727,11 @@
     bind:expandedProjectId
     bind:showAllProjects
     bind:projectSearch
-    bind:modelSearch
     busy={busyAction !== null}
     canOpenModel={true}
-    canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}
+    canEditProjectPrefs={true}
     onOpenModel={openProjectModel}
+    onAddProjectFolder={addProjectFolder}
     onFocusEditor={focusCurrentEditor}
     onProjectAction={runProjectAction}
     onCopyPath={copyNavigationPath}
@@ -796,6 +818,13 @@
           </section>
 
           {#if productMode(status) === 'welcome'}
+            {#if status.project_navigation.projects.length > 0}
+              <div class="inline-note">
+                <strong>Models and folders stay accessible.</strong>
+                <span>Work on your files while AI setup is resolved. Browsing does not change model content.</span>
+              </div>
+            {/if}
+            {@render projectNavigator(status)}
             {#if setupStaged}
               <section class="inline-guidance" role="status">
                 <strong>Setup waiting for Blockbench</strong>
@@ -838,13 +867,6 @@
                 <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : setupStaged ? 'Finish setup' : migrationConflict ? 'Check again' : 'Set up'}</button>
               </div>
             </section>
-            {#if status.project_navigation.projects.length > 0}
-              <div class="inline-note">
-                <strong>Saved models are still available.</strong>
-                <span>These verified references are read-only until setup is restored. No model files were changed.</span>
-              </div>
-              {@render projectNavigator(status)}
-            {/if}
 
           {:else}
             {#if (productMode(status) === 'ready' || productMode(status) === 'client-wait') && (status.project_navigation.active || status.project_navigation.projects.length > 0)}

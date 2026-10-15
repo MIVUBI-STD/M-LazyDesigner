@@ -225,7 +225,7 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain("snapshot.open_models.len() <= 64");
     expect(projectNavigation).toContain("snapshot.recent_models.len() <= 128");
     expect(projectNavigation).toContain("project_navigation_revision_is_profile_aware");
-    expect(projectNavigation).toContain("live_open_models(&snapshot, session_live)");
+    expect(projectNavigation).toContain("live_open_models(state, session_live)");
     expect(projectNavigation).toContain("live_project_session_state_is_discarded_when_session_is_not_live");
     expect(projectNavigation).toContain('"open-project-folder"');
     expect(projectNavigation).toContain('"open-model"');
@@ -242,32 +242,33 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain(".lazydesigner-project.json");
     expect(projectNavigation).toContain("struct ProjectManifest");
     expect(projectNavigation).toContain("project_uuid");
-    expect(projectNavigation).toContain("ensure_project_manifest_for_pin");
+    expect(projectNavigation).toContain("fn set_project_pin(");
+    expect(projectNavigation).not.toContain("fn ensure_project_manifest_for_pin(");
     expect(projectNavigation).toContain("manifest_identity_survives_project_move");
     expect(projectNavigation).toContain("malformed_or_unsupported_manifest_is_not_overwritten");
     expect(projectNavigation).toContain("duplicate_manifest_ids_fall_back_to_distinct_path_ids");
     expect(navigator).toContain("<h2>Current Model</h2>");
-    expect(navigator).toContain("Recent Projects");
-    expect(navigator).toContain("See details");
+    expect(navigator).toContain("Projects &amp; Models");
+    expect(navigator).toContain("Show models");
     expect(app).toContain("navigation={current.project_navigation}");
     expect(app).toContain("connectionChanged(candidate, status)");
     expect(connectionWatch).toContain("candidate.project_session_live");
     expect(connectionWatch).toContain("current.project_navigation.session_live");
     expect(app).toContain("navigation={current.project_navigation}");
-    expect(navigator).toContain("recentProjects(navigation).length > 5");
-    expect(navigator).toContain("model_count > 8");
-    expect(navigator).toContain("Search projects");
-    expect(navigator).toContain("Search models");
-    expect(navigator).toContain("activeNavigation.saved && activeNavigation.model_id");
+    expect(navigator).toContain("visibleProjects(navigation, projectSearch, showAllProjects)");
+    expect(navigator).toContain("project.model_count");
+    expect(navigator).toContain("Search projects or models");
+    expect(navigator).not.toContain("Search models");
+    expect(navigator).toContain("onAddProjectFolder");
     expect(navigator).toContain('disabled={!model.exists || busy || !canOpenModel}>Open</button>');
     expect(navigator).not.toContain("model.open ? 'Switch' : 'Open'");
-    expect(navigator).toContain("Active · Modified");
-    expect(navigator).toContain("activeNavigation.dirty");
+    expect(navigator).toContain("Modified");
+    expect(navigator).toContain("active.dirty");
     expect(navigator).toContain("folder-shortcuts");
-    expect(navigator).toContain("Pin project");
-    expect(navigator).toContain("Unpin project");
     expect(navigator).toContain("project.pinned");
-    expect(navigator).toContain("activeProject.folders.length > 0");
+    expect(navigator).toContain("Remove shortcut");
+    expect(navigator).toContain("project.pinned");
+    expect(navigator).toContain("project.folders.length > 0");
     expect(navigator).toContain("project.folders.length > 0");
     expect(navigator).toContain("continueTarget");
     expect(snapshot).toContain("last_model_path");
@@ -276,8 +277,8 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain("continue_model_id");
     expect(projectNavigation).toContain("continue_model_requires_the_exact_last_saved_model_to_exist");
     expect(navigator).toContain("state.continue_model_id");
-    expect(navigator).toContain("candidate.id === modelId && candidate.exists");
-    expect(navigator).toContain("!navigation.active && continueTarget(navigation)");
+    expect(navigator).toContain("candidate.id === state.continue_model_id && candidate.exists");
+    expect(navigator).toContain("{:else if continueTarget(navigation)}");
     expect(navigator).toContain("candidate.exists");
     expect(app).not.toContain("project.root_path");
     expect(readme).toContain("Paths stay hidden in the normal UI");
@@ -312,9 +313,9 @@ describe("Desktop control-plane ownership", () => {
     expect(rust).toContain('PathBuf::from(env::var_os("APPDATA")?).join("Blockbench")');
     expect(rust).toContain("project_navigation::probe(false, Some(&profile)).0");
     expect(rust).toContain("blockbench.running && manager_available");
-    expect(app).toContain("Saved models are still available.");
+    expect(app).toContain("Models and folders stay accessible.");
     expect(app).toContain("canOpenModel={true}");
-    expect(app).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
+    expect(app).toContain("canEditProjectPrefs={true}");
     expect(nav).toContain("!canOpenModel");
     expect(nav).toContain("!canEditProjectPrefs");
   });
@@ -330,7 +331,8 @@ describe("Desktop control-plane ownership", () => {
     expect(projectNavigation).toContain("pub(crate) fn action");
     expect(projectNavigation).toContain("pub(crate) fn path");
     expect(projectNavigation).toContain("struct ProjectManifest");
-    expect(projectNavigation).toContain("ensure_project_manifest_for_pin");
+    expect(projectNavigation).toContain("fn set_project_pin(");
+    expect(projectNavigation).not.toContain("fn ensure_project_manifest_for_pin(");
     expect(projectNavigation).not.toContain("installed.json");
     expect(rust).toContain("project_navigation::probe");
     expect(rust).toContain("project_navigation::projection");
@@ -354,9 +356,9 @@ describe("Desktop control-plane ownership", () => {
     expect(editor).toContain('add_filter("Blockbench model", &["bbmodel"])');
     expect(editor).toContain("is_bbmodel_file(&path)");
     expect(editor).toContain("pub(crate) fn open_model(path: &Path, user_data: &Path)");
-    expect(backend).toContain("editor_profile_for_model(Some(expected_profile))");
+    expect(backend).toContain("editor_profile_for_model(Some(expected))");
     expect(backend).toContain("recent_model_ids: Vec<String>");
-    expect(backend).toContain("snapshot.recent_models.iter()");
+    expect(backend).toContain("state.recent_models.iter()");
     expect(dto).toContain("recent_model_ids: string[]");
     expect(navigator).toContain("<h2>Recent Models</h2>");
     expect(navigator).toContain("state.recent_model_ids");
@@ -365,6 +367,36 @@ describe("Desktop control-plane ownership", () => {
     expect(main).toContain("tauri::async_runtime::spawn_blocking(blockbench::browse_model)");
     expect(app).toContain("onFocusEditor={focusCurrentEditor}");
     expect(app).toContain("canOpenModel={true}");
+  });
+
+  test("added folder shortcuts stay local, bounded and independent of AI", async () => {
+    const [app, rust, backend, navigator, types] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src-tauri/src/project_navigation.rs"),
+      source("../apps/desktop/src/ProjectNavigator.svelte"),
+      source("../apps/desktop/src/projectNavigationTypes.ts"),
+    ]);
+    expect(backend).toContain("pub(crate) fn add_project_folder()");
+    expect(backend).toContain("FileDialog::new().pick_folder()");
+    expect(backend).toContain("registered_project_paths");
+    expect(backend).toContain("MAX_REGISTERED_PROJECTS: usize = 16");
+    expect(backend).toContain("MAX_PROJECT_MODELS: usize = 64");
+    expect(backend).toContain("fn scan_registered_models(");
+    expect(backend).toContain("fn pin_does_not_modify_project_folder_or_legacy_marker()");
+    expect(backend).toContain("fn adding_folder_is_a_shortcut_not_project_file_mutation()");
+    expect(backend).toContain('"remove-project-folder"');
+    expect(backend).not.toContain("fn ensure_project_manifest_for_pin(");
+    expect(rust).toContain("async fn add_project_folder()");
+    expect(rust).toContain("spawn_blocking(project_navigation::add_project_folder)");
+    expect(app).toContain("invoke<ProjectNavigationActionResult>('add_project_folder')");
+    expect(app).toContain("onAddProjectFolder={addProjectFolder}");
+    expect(navigator).toContain('aria-label="Search projects or models"');
+    expect(navigator).toContain("<h2>Projects &amp; Models</h2>");
+    expect(navigator).toContain("Remove shortcut");
+    expect(navigator).not.toContain("Search models");
+    expect(types).toContain("registered: boolean;");
+    expect(types).toContain("available: boolean;");
   });
 
   test("Desktop Project Navigator UI is isolated from command orchestration", async () => {
@@ -378,7 +410,7 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("onFocusEditor={focusCurrentEditor}");
     expect(app).toContain("onProjectAction={runProjectAction}");
     expect(navigator).toContain("<h2>Current Model</h2>");
-    expect(navigator).toContain("Recent Projects");
+    expect(navigator).toContain("Projects &amp; Models");
     expect(navigator).toContain("Recent Models");
     expect(navigator).toContain("Continue");
     expect(navigator).not.toContain("invoke<");
@@ -521,7 +553,7 @@ describe("Desktop Workspace First navigation contract", () => {
     expect(app).toContain("<span>Workspace</span>");
     expect(app).toContain("bind:this={workspaceMain}");
     expect(app).toContain("workspaceMain.scrollTop = workspaceScrollTop");
-    for (const field of ["expandedProjectId", "showAllProjects", "projectSearch", "modelSearch"]) {
+    for (const field of ["expandedProjectId", "showAllProjects", "projectSearch"]) {
       expect(app).toContain(`bind:${field}`);
       expect(navigator).toContain(`export let ${field}`);
     }
@@ -543,7 +575,7 @@ describe("Desktop stale connection action admission", () => {
     expect(app).toContain("statusProbeFailures = Math.min(statusProbeFailures + 1, 2)");
     expect(app).toContain("AI status needs verification · Files remain accessible");
     expect(app).toContain("busy={busyAction !== null}");
-    expect(app).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
+    expect(app).toContain("canEditProjectPrefs={true}");
     for (const action of ["connectBlockbench", "installLazyDesigner", "runManagedAction"]) {
       const start = app.indexOf(`async function ${action}`);
       expect(start).toBeGreaterThan(0);
@@ -555,8 +587,8 @@ describe("Desktop stale connection action admission", () => {
     expect(model).not.toContain("manager_available");
     expect(model).toContain("'project_navigation_action'");
     const readOnly = app.slice(app.indexOf("async function runProjectAction("), app.indexOf("async function focusBlockbenchAfterOpen()"));
-    expect(readOnly).toContain("readOnlyFileAction");
-    expect(readOnly).toContain("statusProbeFailures >= 2");
+    expect(readOnly).toContain("'project_navigation_action'");
+    expect(readOnly).not.toContain("statusProbeFailures >= 2");
     expect(app).toContain("onclick={browseModel}");
     expect(app).toContain("disabled={loading || busyAction !== null} onclick={refresh}");
     expect(app).toContain("statusProbeFailures = 0;");
@@ -568,9 +600,9 @@ describe("Desktop current-model presentation", () => {
     const ui = await Bun.file("../apps/desktop/src/ProjectNavigator.svelte").text();
     expect(ui).toContain("<h2>Current Model</h2>");
     expect(ui).toContain("<h2>Continue working</h2>");
-    expect(ui).toContain('<div class="project-title">{activeNavigation.model_name}</div>');
+    expect(ui).toContain('<div class="project-title">{active.model_name}</div>');
     expect(ui).toContain('<div class="project-title">{target.model.name}</div>');
-    expect(ui).toContain("activeNavigation.saved && activeNavigation.model_id");
+    expect(ui).toContain("onAddProjectFolder");
     expect(ui).toContain("onclick={onFocusEditor}");
     expect(ui).toContain("Go to Blockbench");
     expect(ui).toContain("<h2>Recent Models</h2>");
@@ -740,7 +772,7 @@ describe("Desktop full-status freshness and nullable project revision", () => {
     expect(watcher.indexOf("if (statusProbeFailures >= 2) return;"))
       .toBeLessThan(watcher.indexOf("else statusProbeFailures = 0;"));
     expect(ui).toContain("busy={busyAction !== null}");
-    expect(ui).toContain("canEditProjectPrefs={current.manager_available && statusProbeFailures < 2}");
+    expect(ui).toContain("canEditProjectPrefs={true}");
   });
 });
 
