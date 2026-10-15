@@ -21,6 +21,7 @@
   let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | null = null;
   let pluginApprovalNeeded = false;
   let migrationConflict = false;
+  let migrationConflictKind: 'plugin' | 'client' = 'plugin';
   let setupStaged = false;
   let readinessReason = '';
   let actionMessage = '';
@@ -318,7 +319,9 @@
       }
     } catch (cause) {
       recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
-      if (errorCode(cause) === 'LEGACY_PLUGIN_MIGRATION_REQUIRED') {
+      if (errorCode(cause) === 'LEGACY_PLUGIN_MIGRATION_REQUIRED' ||
+          errorCode(cause) === 'LEGACY_CLIENT_MIGRATION_REQUIRED') {
+        migrationConflictKind = errorCode(cause) === 'LEGACY_CLIENT_MIGRATION_REQUIRED' ? 'client' : 'plugin';
         migrationConflict = true;
         error = '';
       } else {
@@ -712,10 +715,14 @@
             {/if}
             {#if migrationConflict}
               <section class="inline-guidance" role="status">
-                <strong>Existing Blockbench plugin requires review</strong>
-                <span>LazyDesigner found an older plugin in the selected Blockbench profile. The existing file was not changed. Save your models and close Blockbench before attempting a migration.</span>
+                <strong>{migrationConflictKind === 'plugin' ? 'Existing Blockbench plugin requires review' : 'Existing AI client configuration requires review'}</strong>
+                <span>{migrationConflictKind === 'plugin'
+                  ? 'LazyDesigner found an older plugin in the selected Blockbench profile. The file was not changed. Save your models and close Blockbench before a separate migration.'
+                  : 'An older BlockIT AI client entry is present. LazyDesigner has not modified Codex settings or activated another server. Review and back up the existing configuration before migration.'}</span>
                 <div class="resource-actions">
-                  <button class="secondary-button" onclick={showRetiredPluginFile}>Show existing plugin</button>
+                  {#if migrationConflictKind === 'plugin'}
+                    <button class="secondary-button" onclick={showRetiredPluginFile}>Show existing plugin</button>
+                  {/if}
                   <button class="secondary-button" onclick={() => navigate('Support')}>Migration steps</button>
                 </div>
               </section>
@@ -917,9 +924,13 @@
 
           {#if migrationConflict}
             <section class="settings-section">
-              <h2>Review previous plugin</h2>
-              <p>Close Blockbench after saving your models. Review the existing plugin in File Explorer and retain a backup before disabling or removing it through Blockbench's own plugin controls. LazyDesigner will not delete or adopt the file automatically. Once the older plugin is no longer active, return to Workspace and choose Check again.</p>
-              <button class="secondary-button" onclick={showRetiredPluginFile}>Show existing plugin</button>
+              <h2>Review previous {migrationConflictKind === 'plugin' ? 'plugin' : 'AI client'}</h2>
+              {#if migrationConflictKind === 'plugin'}
+                <p>Save your models and close Blockbench. Review the existing plugin and keep a backup before using Blockbench's own plugin controls. LazyDesigner will not delete or adopt that file automatically. After the conflict is safely resolved, return to Workspace and choose Check again.</p>
+                <button class="secondary-button" onclick={showRetiredPluginFile}>Show existing plugin</button>
+              {:else}
+                <p>Back up your Codex configuration and review the older BlockIT MCP entry. LazyDesigner will not modify that entry or start another server automatically. Once a verified migration has resolved the conflict, return to Workspace and choose Check again.</p>
+              {/if}
             </section>
           {/if}
           <section class="settings-section">

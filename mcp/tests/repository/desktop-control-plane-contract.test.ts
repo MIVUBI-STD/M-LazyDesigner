@@ -297,6 +297,9 @@ describe("Desktop control-plane ownership", () => {
     expect(app).toContain("migrationConflict = true");
     expect(app).toContain("Existing Blockbench plugin requires review");
     expect(app).toContain("showRetiredPluginFile");
+    expect(main).toContain("LEGACY_CLIENT_MIGRATION_REQUIRED");
+    expect(app).toContain("migrationConflictKind === 'plugin'");
+    expect(app).toContain("Existing AI client configuration requires review");
   });
 
   test("manager failure retains verified read-only model selection rather than blanking Workspace", async () => {

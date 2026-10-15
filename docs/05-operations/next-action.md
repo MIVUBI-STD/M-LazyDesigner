@@ -4,6 +4,9 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Active Desktop migration direction — 2026-10-15
 
+**D02 conflict diagnostics — source patched:** Desktop distinguishes `LEGACY_PLUGIN_MIGRATION_REQUIRED` from `LEGACY_CLIENT_MIGRATION_REQUIRED` (older Codex MCP entry). Rust maps the canonical installer preflight error to a structured, bounded user-facing code and keeps other failures distinct. Workspace and Support provide conflict-specific guidance, with file-reveal only for plugin conflicts. This is a read-only UI/recovery explanation; no configuration is edited, installed, deleted or auto-adopted. Rust/source regressions added. Bun/Rust/Svelte/Windows NOT_EXECUTED on this SHA.
+
+
 **D02 early legacy-profile safety preflight — source patched:** `preflightManagedInstallTargets` now checks pinned installation targets, link-safe retired `blockit_mcp.js`, and the existing Codex TOML/legacy MCP configuration read-only **before** the CLI writes staged package files or provisions TLS. The same canonical checks repeat in `installPackage` immediately before immutable staging and transaction preparation. A user-edited old config/plugin remains untouched, and tests cover preflight refusal with no pending/installed writes. No automatic adoption or migration. SOURCE_IMPLEMENTED; exact-SHA Bun/CI/Windows native NOT_EXECUTED.
 
 

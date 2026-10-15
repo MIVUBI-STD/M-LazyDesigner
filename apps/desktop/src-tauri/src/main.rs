@@ -108,6 +108,16 @@ fn managed_action(app: tauri::AppHandle, action: String, expected_source_sha: Op
     result.map_err(|message| DesktopError::recoverable("MANAGED_ACTION_FAILED", message))
 }
 
+fn bootstrap_install_error(message: String) -> DesktopError {
+    if message.contains("Retired BlockIT client configuration detected") {
+        return DesktopError::recoverable(
+            "LEGACY_CLIENT_MIGRATION_REQUIRED",
+            "An older BlockIT AI client entry was found. The existing Codex configuration was preserved. Review and back it up before a separate LazyDesigner migration.".to_string(),
+        );
+    }
+    DesktopError::recoverable("BOOTSTRAP_INSTALL_FAILED", message)
+}
+
 #[tauri::command]
 fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, DesktopError> {
     let older_plugin = system_status::retired_plugin_for_setup()
@@ -121,7 +131,7 @@ fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, Des
     }
     let result = system_status::bootstrap_install(&app);
     operation_log::record("bootstrap_install", if result.is_ok() { "ok" } else { "error" });
-    result.map_err(|message| DesktopError::recoverable("BOOTSTRAP_INSTALL_FAILED", message))
+    result.map_err(bootstrap_install_error)
 }
 
 #[tauri::command]
@@ -203,4 +213,20 @@ fn main() {
             };
             operation_log::record(name, &pid);
         });
+}
+
+#[cfg(test)]
+mod bootstrap_migration_tests {
+    use super::*;
+
+    #[test]
+    fn retired_client_is_a_separate_actionable_error() {
+        let legacy = bootstrap_install_error(
+            "LazyDesigner: Retired BlockIT client configuration detected. No configuration changed.".to_string()
+        );
+        assert_eq!(legacy.code, "LEGACY_CLIENT_MIGRATION_REQUIRED");
+        assert!(legacy.message.contains("configuration was preserved"));
+        let other = bootstrap_install_error("Unknown installer failure".to_string());
+        assert_eq!(other.code, "BOOTSTRAP_INSTALL_FAILED");
+    }
 }
