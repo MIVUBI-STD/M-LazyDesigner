@@ -13,6 +13,34 @@ Do not bulk-replace `blockit` across the repository.
 
 Likewise, compatibility fields containing `phase` remain serialized as-is until an atomic protocol/settings migration. Human-facing and new semantic code use **Stage** for workflow position and **Runtime Surface** for capability exposure.
 
+## Active Decision — Canonical LazyDesigner-only Installation
+
+User direction on 2026-10-15: **BlockIT is the retired product identity. The target installation, launched Runtime, client registration and product-facing paths must use one canonical LazyDesigner identity.** Legacy binaries/plugins/managed installations must not be silently selected as a working fallback for current LazyDesigner. This supersedes the older *indefinitely retain* priority below, but does not authorize destructive removal of user files or bypass of Blockbench trust.
+
+This is an **approved migration objective, not a completed source or installed migration**. Current production components still serialize the legacy identifiers inventoried below. Do not flip isolated filenames, plugin IDs, configuration keys, TLS paths or package contracts before all producers/consumers and generated files move together. Keep the existing build functional until a coherent new distribution and matching validation exist.
+
+### Target identity contract
+
+| Domain | Canonical target | Compatibility requirement during transition |
+| --- | --- | --- |
+| Desktop/managed executable | `lazydesigner.exe` | Never start the old executable as a substitute for the new manager |
+| Managed root | `%LOCALAPPDATA%\\LazyDesigner\\managed` (proposed; collision-check existing LazyDesigner navigation folders) | Legacy `BlockIT` root is detection/import evidence only, not an active install fallback |
+| Blockbench plugin filename + registered ID | `lazydesigner_mcp.js`, `lazydesigner_mcp` | Do not load two Runtime plugins, bind to the same endpoint, or rewrite Blockbench installed-plugin trust state |
+| Client connection | `mcp_servers.lazydesigner` | Detect legacy client entries; never silently adopt, shadow or remove unrelated user configuration |
+| Network and authorization keys | New `LAZYDESIGNER_*` keys and canonical LazyDesigner affinity headers | Change Gateway and Runtime atomically; preserve loopback, TLS verification and credential safety |
+| Managed manifest/bundle/release tooling | `lazydesigner-package.json`, `lazydesigner_mcp.js`, consistently named verified artifacts | Match production build SHA, checksums, installer staging, rollback and exact-SHA test inputs |
+| Project navigation + native model data | Keep existing `LazyDesigner` navigation owner and `.bbmodel`/texture assets | Never make usable model selection contingent solely on legacy manager metadata; preserve matching profile identity and original files |
+
+### Required implementation order
+
+1. Map every producer, consumer and serialized/persisted identifier (plugin registration, shared library constants, manager, build scripts, CLI, Tauri resources, Codex config, HTTP affinity, TLS/auth, test/release pipeline).
+2. Implement one coherent canonical LazyDesigner package/installer and new-mode state/provenance checks. Do **not** create a permanently dual-runtime product or a second installer authority.
+3. On first run, detect legacy installation/plugin/client state **read-only** and classify it accurately. A separate explicit, user-confirmed migration may safely back up and transition recognized legacy-owned files. Unknown/modified files fail closed; never auto-delete, overwrite, or run old manager binaries. If transition cannot be verified, preserve the old state untouched and show a useful recovery path.
+4. Make Workspace/Project Navigator availability independent of a missing manager where the intended Blockbench profile/project snapshot is safely provable. Never guess a profile or treat a stale model as a live session. A failure in manager setup should disable only actions requiring the manager.
+5. Verify source/package/installer and negative collision cases at the same SHA, then verify Windows Blockbench one-plugin ownership, client reconnection, model Continue/Open, profile/TLS safety, Undo/reopen and recovery. No installed/native or performance PASS may be inferred from static source.
+
+STOP before deployment, old plugin removal, old directory deletion, config replacement or `main`/release changes without the matching target-specific verification and user authorization.
+
 ## Compatibility-Bound Identifiers
 
 These values remain stable until a dedicated migration updates every producer, consumer, persisted value and recovery path.
@@ -98,11 +126,11 @@ For persisted/install identifiers, migration must define whether old state is re
 ## Current Priority
 
 ```text
-1. keep compatibility-bound serialized values stable
-2. keep current human-facing source presentation on LazyDesigner
-3. defer generator-coupled API-doc branding until LOCAL_CODE can regenerate canonical output
-4. do not rename internal Blockit/BLOCKIT symbols merely for cosmetics
-5. rename a compatibility-bound value only as an atomic dedicated migration
+1. deliver a complete LazyDesigner-only managed identity and distribution
+2. retain the old serialized contracts only until the atomic migration replaces them
+3. preserve model files, user configuration and Blockbench trust; old state is read-only evidence
+4. eliminate legacy identifiers from the final actively installed/runtime product
+5. leave native migration and destructive cleanup unclaimed until verified and explicitly approved
 ```
 
 ## Proof Boundary

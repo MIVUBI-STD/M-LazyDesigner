@@ -2,6 +2,12 @@
 
 This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04-system/`; proof: `current-validation.md`; native procedure: `local-acceptance-runbook.md`. Patch history remains in Git.
 
+## Active Desktop migration direction — 2026-10-15
+
+The user explicitly corrected the design direction: **BlockIT is retired; LazyDesigner must not launch or depend on legacy BlockIT installs/plugins/managers as an active runtime**. Current source still hardcodes `blockit.exe`, `blockit_mcp.js`, `blockit_mcp`, `mcp_servers.blockit` and `%LOCALAPPDATA%\\BlockIT` across the production packaging/Desktop chain. The screenshot shows a welcome/setup screen with a conflict involving a pre-existing Blockbench plugin; it does not establish the plugin's binary version. The ProjectNavigator source is present but hidden in the `welcome` UI branch when manager detection fails. Treat this as a **migration-and-readiness root-cause task**, not a request to bypass the file-ownership protection.
+
+Canonical design and migration acceptance: [compatibility-identifiers.md](../04-system/compatibility-identifiers.md#active-decision--canonical-lazydesigner-only-installation). First implement one coherent new package + install identity and independently safe Workspace navigation; map dependencies, exact-SHA tests, and native residue before changing active identifiers. Do not auto-`--adopt`, execute an old manager, delete old files, edit Blockbench native plugin trust, rewrite user Codex configuration, or claim native success. User models/textures and existing working project state must remain untouched. This is a **documented active goal**, not a completed code migration. R02 source work remains recorded below; R03 and new feature authoring are deferred while Desktop migration is prioritized.
+
 ## Current direction
 
 The user authorized recovery snapshot `3.0` on 2026-10-15: backup branch and tag must point to the same snapshot commit as the saved `Local` state. Preserve that baseline before further improvements; continue normal work on `Local`, leaving `3.0` unchanged. The temporary prerelease does not close the retrospective findings or imply new native/source acceptance. Authored model workspaces are included under this explicit snapshot authorization; raw logs and private machine state remain local.
