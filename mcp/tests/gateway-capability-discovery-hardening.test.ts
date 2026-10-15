@@ -32,6 +32,15 @@ describe("BlockIT Gateway capability discovery hardening", () => {
       .toEqual([]);
   });
 
+  test("semantic authoring examples survive generic-word filtering", () => {
+    // The semantic example 'make four table legs' is not in the tool's
+    // description or name. A keyword-only filter incorrectly loses this route.
+    const result = searchCapabilityCatalog(tools, "make four table legs", 4);
+    expect(result.map((entry) => entry.capability_id)).toContain("manage_cubes");
+    expect(searchCapabilityCatalog(tools, "tool to create geometry cubes", 4)
+      .map((entry) => entry.capability_id)).toContain("manage_cubes");
+  });
+
   test("no-result discovery is not presented as Runtime failure or a suggested UI fallback", async () => {
     const source = await Bun.file("gateway/handlers/registerCoreTools.ts").text();
     expect(source).toContain("No relevant capability found.");

@@ -10,6 +10,7 @@ The objective is **Cost to Accepted Result**: remove calls that do not change th
 known capability + known arguments -> invoke directly
 unknown capability                -> one search_capabilities(limit=4)
 no relevant capability result     -> stop; do not treat weak tool/action vocabulary as permission for UI/DevTools fallback
+semantic/example route supported  -> preserve even when the query includes generic agent/tooling words
 schema materially uncertain       -> describe_capability once
 fresh mutation state              -> reuse receipt/state; no confirmation readback
 visual mutation                    -> refresh only evidence that can change the verdict

@@ -55,25 +55,6 @@ function substantiveQueryTerms(query: string): string[] {
   )];
 }
 
-function hasSubstantiveCatalogEvidence(
-  tool: BackendTool,
-  aliases: readonly string[],
-  queryTerms: readonly string[]
-): boolean {
-  const indexed = new Set(
-    [tool.name, tool.description ?? "", ...aliases]
-      .join(" ")
-      .toLowerCase()
-      .split(/[^a-z0-9]+/)
-      .filter(Boolean)
-  );
-  return queryTerms.some(
-    (term) => indexed.has(term) ||
-      (term.endsWith("s") && indexed.has(term.slice(0, -1))) ||
-      indexed.has(`${term}s`)
-  );
-}
-
 function normalizeCapabilityQuery(query: string): string {
   return query.trim().toLowerCase();
 }
@@ -138,8 +119,10 @@ export function searchCapabilityCatalog(
     Math.min(50, Math.trunc(limit))
   );
   const hasQuery = normalizeCapabilityQuery(query).length > 0;
-  const queryTerms = substantiveQueryTerms(query);
-  const bm25Scores = bm25CapabilityScores(tools, query);
+  // Ignore generic assistant/tooling words before ranking. Preserve semantic
+  // examples and synonyms by feeding the same meaningful query to BOTH rankers.
+  const effectiveQuery = substantiveQueryTerms(query).join(" ");
+  const bm25Scores = bm25CapabilityScores(tools, effectiveQuery);
   // Lexical relevance is a bounded secondary signal, not an intent override.
   const maxBm25 = Math.max(1, ...bm25Scores.values());
 
@@ -149,7 +132,7 @@ export function searchCapabilityCatalog(
       const tier = metadata.tier;
       const semantic = bestSemanticMatchForTool(
         tool,
-        query,
+        effectiveQuery,
         context
       );
       const bm25 = bm25Scores.get(tool.name) ?? 0;
@@ -172,7 +155,6 @@ export function searchCapabilityCatalog(
       return {
         tool,
         tier,
-        metadata,
         semantic,
         bm25,
         nearName,
@@ -188,22 +170,14 @@ export function searchCapabilityCatalog(
           ],
       };
     })
-    .filter(({ tool, tier, metadata, semantic, nearName }) => {
+    .filter(({ tool, tier, semantic, bm25, nearName }) => {
+      const metadata = getCapabilityMetadata(tool.name);
       if (metadata.discoveryMode === "exact_only") return false;
       if (!hasQuery) return tier !== "maintenance";
-      if (nearName > 0) return true;
-      // An unsupported console/DevTools-style query must yield no match;
-      // incidental occurrences of "tool" or "action" are not intent proof.
-      if (queryTerms.length === 0) return false;
-      // Semantic intent/object evidence avoids additional metadata tokenization
-      // on the common relevant path. A generic verb alone is insufficient.
-      if (semantic.matched &&
-        (semantic.reason.includes("intent") || semantic.reason.includes("object"))) {
-        return true;
-      }
-      return hasSubstantiveCatalogEvidence(
-        tool, metadata.searchAliases, queryTerms
-      );
+      if (effectiveQuery.length === 0) return false;
+      // Keep the original semantic/example/lexical discovery contract.
+      // No-result is appropriate only where meaningful query evidence is absent.
+      return semantic.matched || bm25 > 0 || nearName > 0;
     })
     .sort(
       (left, right) =>
