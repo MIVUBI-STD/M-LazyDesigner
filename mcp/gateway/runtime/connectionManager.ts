@@ -7,6 +7,13 @@ export class GatewayConnectionManager {
     maxBackoffMs: Number(process.env.BLOCKIT_GATEWAY_RECONNECT_MAX_MS ?? 2_000),
   });
   readonly session = new RuntimeSessionState();
+  // A recovered /health endpoint is not proof that the MCP client recovered.
+  // Retain this evidence across reconnect cooldown resets until a real handshake.
+  private unverifiedConnectionFailure = false;
+
+  needsMcpRevalidation(): boolean {
+    return this.unverifiedConnectionFailure;
+  }
 
   canAttempt(now: number = Date.now()): boolean {
     return this.reconnect.canAttempt(now);
@@ -26,7 +33,9 @@ export class GatewayConnectionManager {
     this.reconnect.markSuccess();
     const state = this.session.snapshot().state;
     if (state === "offline" || state === "degraded") {
-      this.session.transition("probing");
+      this.session.transition(
+        this.unverifiedConnectionFailure ? "degraded" : "probing"
+      );
     }
   }
 
@@ -39,6 +48,7 @@ export class GatewayConnectionManager {
     if (options.catalogRefreshed) this.session.markCatalogRefresh();
     if (wasReadyBefore) this.session.markReconnect();
     this.reconnect.markSuccess();
+    this.unverifiedConnectionFailure = false;
     this.session.transition("ready");
   }
 
@@ -48,6 +58,7 @@ export class GatewayConnectionManager {
   }
 
   markOffline(): number {
+    this.unverifiedConnectionFailure = true;
     const alreadyOffline = this.session.snapshot().state === "offline";
     this.session.transition("offline");
     return alreadyOffline
@@ -56,6 +67,7 @@ export class GatewayConnectionManager {
   }
 
   markDegraded(): number {
+    this.unverifiedConnectionFailure = true;
     const alreadyDegraded = this.session.snapshot().state === "degraded";
     this.session.transition("degraded");
     return alreadyDegraded

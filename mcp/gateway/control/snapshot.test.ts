@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { buildControlSnapshot } from "./snapshot";
 import { BlockitRuntimeBackend } from "../runtime/backend";
 import type { HealthProbe } from "../runtime/backendContract";
+import { GatewayConnectionManager } from "../runtime/connectionManager";
 import { buildReadiness, NOT_REQUIRED_LIFECYCLE } from "./readiness";
 import { emptyReference } from "./referenceParser";
 import { emptyWorkspace } from "./packetData";
@@ -158,8 +159,15 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
   test("a failed health probe cannot be reclassified as a fresh lazy handshake", async () => {
     const backend = new BlockitRuntimeBackend("http://127.0.0.1:3000/bb-mcp");
     let healthy = false;
-    const seam = backend as unknown as { probeHealth: () => Promise<HealthProbe> };
-    seam.probeHealth = async () => healthy
+    const seam = backend as unknown as {
+      probeHealth: () => Promise<HealthProbe>;
+      connection: GatewayConnectionManager;
+    };
+    // Reproduce probeHealth's existing markAvailable side effect, not just
+    // its payload: this clears the reconnect cooldown when HTTP recovers.
+    seam.probeHealth = async () => {
+      if (healthy) seam.connection.markAvailable();
+      return healthy
       ? {
           online: true,
           signature: "runtime-recovered",
@@ -174,6 +182,7 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
           },
         }
       : { online: false, error: "fixture Runtime offline" };
+    };
 
     const offline = await backend.getStatus();
     expect(offline.connection.state).toBe("offline");
@@ -183,8 +192,80 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
     const recovered = await backend.getStatus();
     expect(recovered.runtime.online).toBe(true);
     expect(recovered.runtime.mcp_client_ready).toBe(false);
-    expect(recovered.connection.reconnect.failures).toBeGreaterThan(0);
+    expect(recovered.connection.reconnect.failures).toBe(0);
+    expect(recovered.connection.state).toBe("degraded");
+    expect(seam.connection.needsMcpRevalidation()).toBe(true);
     expect(buildControlSnapshot(recovered).blockers).toContain("RUNTIME_CLIENT_NOT_READY");
+  });
+
+  test("offline then matching health signature cannot reuse an unverified MCP client or catalog", async () => {
+    const backend = new BlockitRuntimeBackend("http://127.0.0.1:3000/bb-mcp");
+    let online = true;
+    let closeCalls = 0;
+    let connectCalls = 0;
+    const seam = backend as unknown as {
+      probeHealth: () => Promise<HealthProbe>;
+      connection: GatewayConnectionManager;
+      client: { close: () => Promise<void> } | null;
+      connectedSignature: string | null;
+      connectedProtocolEra: "modern" | "legacy" | null;
+      authoringPhase: "geometry" | "texturing" | "animation" | null;
+      catalog: Map<string, { name: string }>;
+      catalogValidatedAt: number;
+      hasFreshCatalog: () => boolean;
+      ensureCatalogUnsafe: () => Promise<void>;
+      connectFreshUnsafe: (signature: string) => Promise<void>;
+    };
+    const healthy: HealthProbe = {
+      online: true,
+      signature: "same-runtime",
+      health: {
+        product: { authoring_phase: "geometry" },
+        project_context: {
+          active_project_uuid: "project-1", requested_project_uuid: null,
+          requested_project_available: null, open_project_count: 1,
+        },
+      },
+    };
+    seam.probeHealth = async () => {
+      if (!online) return { online: false, error: "fixture temporary offline" };
+      seam.connection.markAvailable();
+      return healthy;
+    };
+    seam.authoringPhase = "geometry";
+    seam.client = { close: async () => { closeCalls += 1; } };
+    seam.connectedSignature = healthy.signature;
+    seam.connectedProtocolEra = "modern";
+    seam.catalog = new Map([["inspect_elements", { name: "inspect_elements" }]]);
+    seam.catalogValidatedAt = Date.now();
+    seam.connection.markReady({ catalogRefreshed: true });
+    expect(seam.hasFreshCatalog()).toBe(true);
+    expect((await backend.getStatus()).runtime.mcp_client_ready).toBe(true);
+
+    online = false;
+    expect((await backend.getStatus()).runtime.online).toBe(false);
+    online = true;
+    const returned = await backend.getStatus();
+    expect(returned.runtime.online).toBe(true);
+    expect(returned.runtime.mcp_client_ready).toBe(false);
+    expect(returned.connection.state).toBe("degraded");
+    expect(seam.hasFreshCatalog()).toBe(false);
+    expect(buildControlSnapshot(returned).blockers).toContain("RUNTIME_CLIENT_NOT_READY");
+
+    seam.connectFreshUnsafe = async (signature) => {
+      connectCalls += 1;
+      expect(signature).toBe(healthy.signature);
+      seam.client = { close: async () => { closeCalls += 1; } };
+      seam.connectedSignature = signature;
+      seam.catalog = new Map([["inspect_elements", { name: "inspect_elements" }]]);
+      seam.catalogValidatedAt = Date.now();
+      seam.connection.markReady({ catalogRefreshed: true });
+    };
+    await seam.ensureCatalogUnsafe();
+    expect(closeCalls).toBe(1);
+    expect(connectCalls).toBe(1);
+    expect(seam.hasFreshCatalog()).toBe(true);
+    expect((await backend.getStatus()).runtime.mcp_client_ready).toBe(true);
   });
 
 });

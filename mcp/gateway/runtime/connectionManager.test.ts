@@ -28,10 +28,28 @@ describe("GatewayConnectionManager", () => {
     manager.markAvailable();
 
     const snapshot = manager.snapshot();
-    expect(snapshot.state).toBe("probing");
+    expect(snapshot.state).toBe("degraded");
     expect(snapshot.reconnect.failures).toBe(0);
+    expect(manager.needsMcpRevalidation()).toBe(true);
     expect(snapshot.reconnect.retry_after_ms).toBe(0);
     expect(manager.canAttempt()).toBe(true);
+  });
+
+  test("repeated recovered health probes never erase MCP failure evidence", () => {
+    const manager = new GatewayConnectionManager();
+    manager.beginProbe();
+    manager.markDegraded();
+    manager.markAvailable();
+    manager.markAvailable();
+    expect(manager.snapshot().state).toBe("degraded");
+    expect(manager.needsMcpRevalidation()).toBe(true);
+
+    manager.beginProbe();
+    expect(manager.needsMcpRevalidation()).toBe(true);
+    manager.beginConnect();
+    manager.markReady({ catalogRefreshed: true });
+    expect(manager.needsMcpRevalidation()).toBe(false);
+    expect(manager.snapshot().state).toBe("ready");
   });
 
   test("successful connection resets reconnect cooldown", () => {

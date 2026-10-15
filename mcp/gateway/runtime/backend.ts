@@ -153,6 +153,9 @@ export class BlockitRuntimeBackend {
   }
 
   private hasFreshCatalog(now: number = Date.now()): boolean {
+    // Do not reuse a seemingly fresh local catalog after any unverified
+    // transport failure, even when Runtime health returns the same signature.
+    if (this.connection.needsMcpRevalidation()) return false;
     return isCatalogFresh({
       clientReady: Boolean(this.client),
       connectedSignature: this.connectedSignature,
@@ -377,6 +380,11 @@ export class BlockitRuntimeBackend {
     if (affinityChanged && this.client) {
       await this.closeConnectionUnsafe();
     }
+    // Health recovery resets retry backoff but cannot revive an old MCP client.
+    // Close it in the serialized execution path before attempting a handshake.
+    if (this.connection.needsMcpRevalidation() && this.client) {
+      await this.closeConnectionUnsafe();
+    }
 
     if (
       this.client &&
@@ -418,7 +426,9 @@ export class BlockitRuntimeBackend {
     }
 
     const ready =
-      Boolean(this.client) && this.connectedSignature === probe.signature;
+      Boolean(this.client) &&
+      this.connectedSignature === probe.signature &&
+      !this.connection.needsMcpRevalidation();
     // A health-only status read can precede the first intentional lazy MCP
     // connection. Reflect this first healthy probe as "probing" rather than
     // reporting an offline client, but never erase failed reconnect evidence.
@@ -428,7 +438,8 @@ export class BlockitRuntimeBackend {
       this.connectedSignature === null &&
       session.state === "offline" &&
       session.last_ready_at === null &&
-      session.reconnect.failures === 0
+      session.reconnect.failures === 0 &&
+      !this.connection.needsMcpRevalidation()
     ) {
       this.connection.beginProbe();
     }
