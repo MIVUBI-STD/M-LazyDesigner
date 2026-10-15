@@ -104,13 +104,30 @@ export function planBatchScaleOverwriteTargets<
   }
   const selectedSet = new Set(selected);
   const casualties = new Set<T>();
+  // Build one stable candidate index per invocation. Keep original per-track
+  // order, selected-key exclusion and native collision tolerance intact.
+  const byAnimator = new Map<T["animator"], Map<string, T[]>>();
+  for (const candidate of all) {
+    const animator = candidate.animator;
+    let channels = byAnimator.get(animator);
+    if (!channels) {
+      channels = new Map<string, T[]>();
+      byAnimator.set(animator, channels);
+    }
+    let track = channels.get(candidate.channel);
+    if (!track) {
+      track = [];
+      channels.set(candidate.channel, track);
+    }
+    track.push(candidate);
+  }
+
   selected.forEach((keyframe, index) => {
-    for (const candidate of all) {
+    const track = byAnimator.get(keyframe.animator)?.get(keyframe.channel) ?? [];
+    for (const candidate of track) {
       if (
         candidate !== keyframe &&
         !selectedSet.has(candidate) &&
-        candidate.animator === keyframe.animator &&
-        candidate.channel === keyframe.channel &&
         nativeKeyframeTimesCollide(candidate.time, plannedTimes[index])
       ) {
         casualties.add(candidate);

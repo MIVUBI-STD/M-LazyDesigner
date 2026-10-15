@@ -52,6 +52,35 @@ describe("track-aware keyframe batch scale preflight", () => {
     )).toEqual([victim]);
   });
 
+  test("overwrite scan reads unrelated animator tracks only once and preserves victim order", () => {
+    const animatorA = {}, animatorB = {};
+    const selected = Array.from({ length: 10 }, (_, index) => ({
+      animator: animatorA, channel: "rotation", time: index / 10,
+    }));
+    let unrelatedTrackReads = 0;
+    const unrelated = Array.from({ length: 250 }, (_, index) => ({
+      get animator() {
+        unrelatedTrackReads += 1;
+        return animatorB;
+      },
+      channel: "rotation",
+      time: index / 10,
+    }));
+    const first = { animator: animatorA, channel: "rotation", time: 1.50005 };
+    const second = { animator: animatorA, channel: "rotation", time: 2.50005 };
+    const otherChannel = { animator: animatorA, channel: "position", time: 1.5 };
+    const times = selected.map((_, index) =>
+      index === 0 ? 1.5 : index === 1 ? 2.5 : 100 + index
+    );
+
+    expect(planBatchScaleOverwriteTargets(
+      selected, [second, ...unrelated, first, otherChannel, ...selected], times
+    )).toEqual([first, second]);
+    // The same 250 unrelated keys are not checked separately for each
+    // selected keyframe. This is a deterministic read-count bound, not latency.
+    expect(unrelatedTrackReads).toBe(250);
+  });
+
   test("invalid and mismatched planned times fail before native edit", () => {
     const keyframes = [{ animator: {}, channel: "rotation" }];
     expect(() => requireValidPlannedBatchTrackTimes(keyframes, [-1], "scale")).toThrow("0..10000");
