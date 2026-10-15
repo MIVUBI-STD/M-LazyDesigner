@@ -395,8 +395,10 @@
           ? `Blockbench window focus confirmed. ${connection}`
           : `Blockbench is ready. Select it from the taskbar if needed. ${connection}`);
       } else if (result.status === 'NEEDS_ATTENTION' && result.reason !== 'PLUGIN_MISSING_WHILE_BLOCKBENCH_RUNNING') {
-        error = result.reason === 'PLUGIN_INTEGRITY'
-          ? 'The managed Blockbench plugin was modified and needs review.'
+        error = result.reason === 'BLOCKBENCH_PROFILE_MISMATCH'
+          ? 'Blockbench is running with a different profile or its profile cannot be verified. Save your models, close that editor, and open Blockbench from LazyDesigner.'
+          : result.reason === 'PLUGIN_INTEGRITY'
+            ? 'The managed Blockbench plugin was modified and needs review.'
           : result.reason === 'BLOCKBENCH_EXITED'
             ? 'Blockbench closed before LazyDesigner could become ready.'
             : result.reason === 'RUNTIME_ENDPOINT_MISMATCH'

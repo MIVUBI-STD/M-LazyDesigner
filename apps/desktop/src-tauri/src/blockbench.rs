@@ -137,7 +137,7 @@ fn select_running_executable(paths: &[PathBuf]) -> Result<Option<PathBuf>, Strin
     }
     match unique.as_slice() {
         [] => Ok(None),
-        [path] => Ok(Some((*path).clone())),
+        [path] => Ok(Some((**path).clone())),
         _ => Err("Multiple Blockbench installations are running. Close the other installation before opening a model.".to_string()),
     }
 }

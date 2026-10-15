@@ -168,7 +168,7 @@ export function desktopErrorNotice(cause: unknown): DesktopErrorNotice {
       'An older AI client entry was found. Your settings were preserved. Open Support for migration steps.');
   }
   if (code === 'BLOCKBENCH_PROFILE_UNVERIFIED' ||
-      /(?:multiple|different).*blockbench.*profile|profile.*(?:ambiguous|unavailable|another)/i.test(detail ?? '')) {
+      /multiple Blockbench installations|different userData profile|Blockbench.*(?:profile|executable).*unavailable|(?:multiple|different).*blockbench.*profile|profile.*(?:ambiguous|unavailable|another)/i.test(detail ?? '')) {
     return known('Blockbench profile needs review',
       'LazyDesigner could not verify which Blockbench profile to use. Keep your models open and check Support.');
   }
