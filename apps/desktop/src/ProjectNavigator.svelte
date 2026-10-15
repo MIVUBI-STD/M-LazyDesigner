@@ -3,6 +3,8 @@
 
   export let navigation: ProjectNavigation;
   export let busy = false;
+  export let canOpenModel = true;
+  export let canEditProjectPrefs = true;
   export let onOpenModel: (id: string) => void | Promise<void>;
   export let onProjectAction: (action: ProjectAction, id: string) => void | Promise<void>;
   export let onCopyPath: (id: string) => void | Promise<void>;
@@ -58,7 +60,7 @@
       <span>Saved pin preferences could not be read. Model files remain untouched.</span>
     </div>
     {#if navigation.preferences_issue === 'RECOVERABLE'}
-      <button class="secondary-button small-button" onclick={() => onProjectAction('restore-project-preferences', '')} disabled={busy}>
+      <button class="secondary-button small-button" onclick={() => onProjectAction('restore-project-preferences', '')} disabled={busy || !canEditProjectPrefs}>
         Restore saved pins
       </button>
     {:else}
@@ -83,7 +85,7 @@
             {/if}
           </div>
           <div class="project-actions">
-            <button class="primary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy}>{target.model.open ? 'Open' : 'Continue'}</button>
+            <button class="primary-button small-button" onclick={() => onOpenModel(target.model.id)} disabled={busy || !canOpenModel}>{target.model.open ? 'Open' : 'Continue'}</button>
           </div>
         </div>
       </div>
@@ -105,7 +107,7 @@
         </div>
         <div class="project-actions">
           {#if activeNavigation.saved && activeNavigation.model_id}
-            <button class="primary-button small-button" onclick={() => onOpenModel(activeNavigation.model_id ?? '')} disabled={busy}>Open model</button>
+            <button class="primary-button small-button" onclick={() => onOpenModel(activeNavigation.model_id ?? '')} disabled={busy || !canOpenModel}>Open model</button>
           {/if}
           {#if activeNavigation.project_id}
             <button class="secondary-button small-button" onclick={() => onProjectAction('open-project-folder', activeNavigation.project_id ?? '')} disabled={busy}>Open Folder</button>
@@ -132,7 +134,7 @@
                 </div>
                 <div class="model-actions">
                   {#if !model.active}
-                    <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>Open</button>
+                    <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy || !canOpenModel}>Open</button>
                   {/if}
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
@@ -156,7 +158,7 @@
               </div>
             {/if}
             <div class="project-detail-actions">
-              <button class="quiet-button" onclick={() => onProjectAction(activeProject.pinned ? 'unpin-project' : 'pin-project', activeProject.id)} disabled={busy}>{activeProject.pinned ? 'Unpin project' : 'Pin project'}</button>
+              <button class="quiet-button" onclick={() => onProjectAction(activeProject.pinned ? 'unpin-project' : 'pin-project', activeProject.id)} disabled={busy || !canEditProjectPrefs}>{activeProject.pinned ? 'Unpin project' : 'Pin project'}</button>
             </div>
           </div>
         {/if}
@@ -200,7 +202,7 @@
                   {#if model.dirty}<span>Modified</span>{:else if !model.exists}<span>Location unavailable</span>{/if}
                 </div>
                 <div class="model-actions">
-                  <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy}>Open</button>
+                  <button class="secondary-button small-button" onclick={() => onOpenModel(model.id)} disabled={!model.exists || busy || !canOpenModel}>Open</button>
                   <details class="more-menu">
                     <summary aria-label="Model actions">•••</summary>
                     <div class="menu-popover">
@@ -223,7 +225,7 @@
               </div>
             {/if}
             <div class="project-detail-actions">
-              <button class="quiet-button" onclick={() => onProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busy}>{project.pinned ? 'Unpin project' : 'Pin project'}</button>
+              <button class="quiet-button" onclick={() => onProjectAction(project.pinned ? 'unpin-project' : 'pin-project', project.id)} disabled={busy || !canEditProjectPrefs}>{project.pinned ? 'Unpin project' : 'Pin project'}</button>
             </div>
           </div>
         {/if}

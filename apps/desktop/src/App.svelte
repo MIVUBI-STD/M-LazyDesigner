@@ -143,6 +143,9 @@
 
   async function runProjectAction(action: ProjectAction, id: string) {
     if (devFixture || busyAction || statusProbeFailures >= 2) return;
+    // Manager-less navigation is read-only: no pin mutations or model opens.
+    if (!status?.manager_available &&
+        !['reveal-model', 'open-folder', 'open-project-folder'].includes(action)) return;
     if (action === 'restore-project-preferences' &&
         !window.confirm('Restore the last saved project pins? The damaged settings file will be retained.')) return;
     closeActionDisclosures(true);
@@ -581,6 +584,22 @@
   {/if}
 {/snippet}
 
+{#snippet projectNavigator(current: SystemStatus)}
+  <ProjectNavigator
+    navigation={current.project_navigation}
+    bind:expandedProjectId
+    bind:showAllProjects
+    bind:projectSearch
+    bind:modelSearch
+    busy={busyAction !== null || statusProbeFailures >= 2}
+    canOpenModel={current.manager_available}
+    canEditProjectPrefs={current.manager_available}
+    onOpenModel={openProjectModel}
+    onProjectAction={runProjectAction}
+    onCopyPath={copyNavigationPath}
+  />
+{/snippet}
+
 {#snippet blockbenchIcon()}
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7.5 4.3v9.4L12 21l-7.5-4.3V7.3L12 3Z"/><path d="m4.5 7.3 7.5 4.4 7.5-4.4M12 11.7V21"/></svg>
 {/snippet}
@@ -674,6 +693,13 @@
                 <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : 'Set up'}</button>
               </div>
             </section>
+            {#if status.project_navigation.projects.length > 0}
+              <div class="inline-note">
+                <strong>Saved models are still available.</strong>
+                <span>These verified references are read-only until setup is restored. No model files were changed.</span>
+              </div>
+              {@render projectNavigator(status)}
+            {/if}
 
           {:else}
             {#if (productMode(status) === 'ready' || productMode(status) === 'client-wait') && (status.project_navigation.active || status.project_navigation.projects.length > 0)}
@@ -767,17 +793,7 @@
             </section>
             {/if}
 
-            <ProjectNavigator
-              navigation={status.project_navigation}
-              bind:expandedProjectId
-              bind:showAllProjects
-              bind:projectSearch
-              bind:modelSearch
-              busy={busyAction !== null || statusProbeFailures >= 2}
-              onOpenModel={openProjectModel}
-              onProjectAction={runProjectAction}
-              onCopyPath={copyNavigationPath}
-            />
+            {@render projectNavigator(status)}
 
             {#if productMode(status) !== 'ready' && productMode(status) !== 'client-wait' || status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED'}
             <section class="content-section">

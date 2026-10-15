@@ -241,11 +241,11 @@ describe("Desktop control-plane ownership", () => {
     expect(navigator).toContain("<h2>Current Model</h2>");
     expect(navigator).toContain("Recent Projects");
     expect(navigator).toContain("See details");
-    expect(app).toContain("navigation={status.project_navigation}");
+    expect(app).toContain("navigation={current.project_navigation}");
     expect(app).toContain("connectionChanged(candidate, status)");
     expect(connectionWatch).toContain("candidate.project_session_live");
     expect(connectionWatch).toContain("current.project_navigation.session_live");
-    expect(app).toContain("navigation={status.project_navigation}");
+    expect(app).toContain("navigation={current.project_navigation}");
     expect(navigator).toContain("recentProjects(navigation).length > 5");
     expect(navigator).toContain("model_count > 8");
     expect(navigator).toContain("Search projects");
@@ -273,6 +273,23 @@ describe("Desktop control-plane ownership", () => {
     expect(navigator).toContain("candidate.exists");
     expect(app).not.toContain("project.root_path");
     expect(readme).toContain("Paths stay hidden in the normal UI");
+  });
+
+  test("manager failure retains verified read-only model selection rather than blanking Workspace", async () => {
+    const [app, nav, rust] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src/ProjectNavigator.svelte"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+    ]);
+    expect(rust).toContain("fn project_navigation_profile_id()");
+    expect(rust).toContain('PathBuf::from(env::var_os("APPDATA")?).join("Blockbench")');
+    expect(rust).toContain("project_navigation::probe(false, Some(&profile)).0");
+    expect(rust).toContain("blockbench.running && manager_available");
+    expect(app).toContain("Saved models are still available.");
+    expect(app).toContain("canOpenModel={current.manager_available}");
+    expect(app).toContain("canEditProjectPrefs={current.manager_available}");
+    expect(nav).toContain("!canOpenModel");
+    expect(nav).toContain("!canEditProjectPrefs");
   });
 
   test("Desktop Project Navigation owner is isolated from workstation orchestration", async () => {

@@ -185,6 +185,21 @@ fn managed_navigation_profile_id() -> Option<String> {
     managed_blockbench_user_data_dir().map(|path| navigation_profile_id(&path))
 }
 
+// Read-only recovery does not select or launch a legacy manager/Runtime.
+// Trust only the standard Blockbench profile when a valid existing
+// LazyDesigner profile-specific navigation snapshot proves its identity.
+fn project_navigation_profile_id() -> Option<String> {
+    if let Some(profile) = managed_navigation_profile_id() {
+        return Some(profile);
+    }
+    let default_user_data = PathBuf::from(env::var_os("APPDATA")?).join("Blockbench");
+    if !default_user_data.is_absolute() {
+        return None;
+    }
+    let profile = navigation_profile_id(&default_user_data);
+    project_navigation::probe(false, Some(&profile)).0.map(|_| profile)
+}
+
 fn runtime_session_lease_path() -> Option<PathBuf> {
     let profile_id = managed_navigation_profile_id()?;
     env::var_os("LOCALAPPDATA")
@@ -193,12 +208,12 @@ fn runtime_session_lease_path() -> Option<PathBuf> {
 }
 
 pub fn project_navigation_action(action: &str, id: &str) -> Result<ProjectNavigationActionResult, String> {
-    let profile_id = managed_navigation_profile_id();
+    let profile_id = project_navigation_profile_id();
     project_navigation::action(action, id, profile_id.as_deref())
 }
 
 pub fn project_navigation_path(id: &str) -> Result<ProjectPathResult, String> {
-    let profile_id = managed_navigation_profile_id();
+    let profile_id = project_navigation_profile_id();
     project_navigation::path(id, profile_id.as_deref())
 }
 
@@ -528,9 +543,9 @@ fn compose_status(
         plugin_integrity,
     );
     let maintenance = readiness::maintenance(manager_available, managed.as_ref(), runtime_session.live);
-    let navigation_profile_id = managed_navigation_profile_id();
+    let navigation_profile_id = project_navigation_profile_id();
     let (_, project_session_live) = project_navigation::probe(
-        blockbench.running,
+        blockbench.running && manager_available,
         navigation_profile_id.as_deref(),
     );
     let project_navigation = project_navigation::projection(
@@ -597,9 +612,12 @@ pub fn collect_connection_status() -> ConnectionStatus {
         name == "blockbench.exe" || name == "blockbench"
     });
 
-    let navigation_profile_id = managed_navigation_profile_id();
+    let navigation_profile_id = project_navigation_profile_id();
+    let manager_known = managed_root()
+        .as_deref()
+        .is_some_and(|root| manager_executable(root).is_ok());
     let (project_revision, project_session_live) = project_navigation::probe(
-        blockbench_running,
+        blockbench_running && manager_known,
         navigation_profile_id.as_deref(),
     );
     let runtime_lease_path = runtime_session_lease_path();
