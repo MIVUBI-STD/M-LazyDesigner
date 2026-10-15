@@ -64,3 +64,19 @@ release/beta appears
 ```
 
 Do not fork Runtime implementations per Blockbench version unless a real incompatible API boundary requires a small adapter. Prefer feature/version probes at the narrowest owner over parallel Runtime trees.
+
+## Operation-level native gates
+
+The active editor version remains *advisory*, not blanket permission to mutate. Feature checks live in `mcp/lib/blockbench/nativeFeatureGates.ts` and are enforced at each native owner:
+
+- `bone_rigging(set_ik_controller)` checks native Null Object IK source/pole fields **before Undo**. Other rigging actions remain usable if those fields are absent in a newer editor.
+- `texture_layer_management(flatten_layers)` requires an actual native `flatten()` method; other operations are not globally disabled if that method changes.
+- Structural layer actions continue to use `requireFlatLayerStructure` and reject active layer-group hierarchies before mutation. Read-only and safe non-structural actions remain independent.
+- The Desktop project navigation snapshot is optional. Missing native FS, timers or changed snapshot event handlers must not prevent Runtime initialization; failures are logged for diagnosis.
+
+A feature probe proves only that an operation's minimal entrypoint appears available. It does **not** prove save/reopen, Undo/Redo, data preservation, or visual correctness. Those require live native acceptance. Do not add new accepted Blockbench versions or mark a build `validated` from static probes.
+
+## Cross-version diagnostics and lease fix
+
+The Blockbench Runtime lease is schema **2**. Heartbeat and cleanup ownership now require the same schema, product ID and instance ID used by the lease writer; otherwise Desktop can incorrectly age out an otherwise running Runtime. A cross-platform pure test catches regression, while the Windows scoped-FS lifecycle test retains native platform coverage.
+

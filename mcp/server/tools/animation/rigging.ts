@@ -12,6 +12,7 @@ export {
   wouldCreateRigHierarchyCycle,
 } from "@/lib/rig/planning";
 import { recordCurrentCapabilitySemanticHistoryEffect } from "@/lib/authoring/semanticHistory";
+import { supportsNativeIkControllerLinks } from "@/lib/blockbench/nativeFeatureGates";
 import { boneRiggingReceipt } from "@/lib/receipts/boneRigging";
 import { createTool, type ToolSpec } from "@/lib/factories";
 import { STATUS_EXPERIMENTAL } from "@/lib/constants";
@@ -193,14 +194,15 @@ type NativeIkControllerState = {
 };
 
 function assertNativeIkControllerRuntime(): void {
-  const properties = (
-    NullObject as typeof NullObject & {
-      properties?: Record<string, unknown>;
-    }
-  ).properties;
-  if (!properties || !("ik_source" in properties) || !("ik_pole" in properties)) {
+  // Feature detection, not a version table: future editors may change this
+  // API independently of their release number. Do not touch Undo on failure.
+  const properties = typeof NullObject === "undefined"
+    ? null
+    : (NullObject as typeof NullObject & { properties?: unknown }).properties;
+  if (!supportsNativeIkControllerLinks(properties)) {
     throw new Error(
-      "Native IK controller roots/poles require Blockbench 5.2 or newer. Update Blockbench or use the legacy set_ik operation."
+      "Native IK controller source/pole links are unavailable in this Blockbench build. " +
+      "Only set_ik_controller is restricted; use the independent legacy set_ik action when appropriate."
     );
   }
 }

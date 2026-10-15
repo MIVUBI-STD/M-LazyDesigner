@@ -277,7 +277,15 @@ export function teardownProjectNavigationSnapshot(): void {
   timer = null;
   if (heartbeatTimer) nativeTimers?.clearInterval(heartbeatTimer);
   heartbeatTimer = null;
-  for (const listener of listeners.splice(0)) listener.delete();
+  for (const listener of listeners.splice(0)) {
+    try {
+      listener.delete();
+    } catch (error) {
+      // Upstream event subscription disposal may change independently of the
+      // editor's authoring APIs. Keep releasing other local resources.
+      console.warn("[LazyDesigner] Project navigation listener cleanup failed", error);
+    }
+  }
   fs = null;
   nativeCrypto = null;
   outputPath = null;

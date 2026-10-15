@@ -15,6 +15,7 @@ export {
   textureSelectionParameters,
 } from "./selectionLayerSchema";
 import { morphBinaryMaskRound } from "@/lib/texture/binaryMaskMorphology";
+import { supportsNativeTextureFlatten } from "@/lib/blockbench/nativeFeatureGates";
 import { ellipseSelectionPredicate, rectangleSelectionPredicate } from "@/lib/texture/selectionPlanning";
 import { getAndActivateTexture, resolvePaintTexture } from "@/lib/texture/selection";
 import {
@@ -590,8 +591,7 @@ export function registerPaintSelectionLayerTools(): void {
                 if (!texture.layers_enabled) {
                   throw new Error("Texture has no layers to flatten.");
                 }
-                const nativeTexture = texture as Texture & { flatten?: () => void };
-                if (typeof nativeTexture.flatten !== "function") {
+                if (!supportsNativeTextureFlatten(texture)) {
                   throw new Error(
                     "Native Blockbench texture.flatten() is unavailable. Refusing approximate fallback because layer blend/alpha-mask semantics could be lost."
                   );
@@ -599,7 +599,7 @@ export function registerPaintSelectionLayerTools(): void {
                 const flattenedLayerCount = texture.layers.length;
                 Undo.initEdit({ textures: [texture], bitmap: true });
                 try {
-                  nativeTexture.flatten();
+                  texture.flatten();
                   if (texture.layers_enabled) {
                     throw new Error(
                       "Native texture flatten returned without disabling layer state."

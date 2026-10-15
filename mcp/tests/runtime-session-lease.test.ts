@@ -1,7 +1,21 @@
 import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { startRuntimeSessionLease, stopRuntimeSessionLease, type RuntimeSessionFs } from "@/plugin/runtimeSessionLease";
+import { isOwnedRuntimeSessionLease, startRuntimeSessionLease, stopRuntimeSessionLease, type RuntimeSessionFs } from "@/plugin/runtimeSessionLease";
 import { setupProjectNavigationSnapshot, teardownProjectNavigationSnapshot } from "@/plugin/projectNavigationSnapshot";
+
+test("Runtime lease owner must match schema 2, product and instance ID", () => {
+  const identity = {
+    schema: 2,
+    product_id: "lazydesigner-bedrock-entity-mcp",
+    instance_id: "owner-1",
+  };
+  expect(isOwnedRuntimeSessionLease(identity, "owner-1")).toBe(true);
+  expect(isOwnedRuntimeSessionLease({ ...identity, schema: 1 }, "owner-1")).toBe(false);
+  expect(isOwnedRuntimeSessionLease({ ...identity, product_id: "foreign" }, "owner-1")).toBe(false);
+  expect(isOwnedRuntimeSessionLease({ ...identity, instance_id: "new-owner" }, "owner-1")).toBe(false);
+  expect(isOwnedRuntimeSessionLease(null, "owner-1")).toBe(false);
+  expect(isOwnedRuntimeSessionLease(identity, "")).toBe(false);
+});
 
 test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fresh and removes only its own instance synchronously", () => {
   const originalInterval = globalThis.setInterval;
@@ -46,7 +60,7 @@ test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fres
     expect(files.size).toBe(0);
 
     expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp", build)).toBe(true);
-    files.set(path, JSON.stringify({ schema: 1, instance_id: "replacement" }));
+    files.set(path, JSON.stringify({ schema: 2, product_id: "lazydesigner-bedrock-entity-mcp", instance_id: "replacement" }));
     tick!();
     stopRuntimeSessionLease();
     expect(JSON.parse(files.get(path)!).instance_id).toBe("replacement");

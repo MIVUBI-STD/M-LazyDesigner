@@ -36,7 +36,18 @@ export class BlockbenchIntegration {
 
     setupI18n();
     settingsSetup();
-    setupProjectNavigationSnapshot();
+    // Model navigation is advisory. Native FS/timer/event changes in a new
+    // Blockbench release must not prevent the core AI Runtime from starting.
+    try {
+      setupProjectNavigationSnapshot();
+    } catch (error) {
+      try {
+        teardownProjectNavigationSnapshot();
+      } catch (cleanupError) {
+        console.warn("[LazyDesigner] Optional project navigation cleanup failed", cleanupError);
+      }
+      console.warn("[LazyDesigner] Optional project navigation unavailable; native Runtime continues", error);
+    }
 
     const profile = resolveMcpRegistrationProfile(
       isExtendedMcpFamiliesEnabled()

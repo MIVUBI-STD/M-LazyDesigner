@@ -19,6 +19,17 @@ type RuntimeSessionLease = {
 };
 
 const HEARTBEAT_MS = 5_000;
+
+/** Source-of-truth ownership for the current native lease contract.
+ * A prior lease schema must not stop the new generation's heartbeat or
+ * authorize deleting another Runtime's lease on shutdown. */
+export function isOwnedRuntimeSessionLease(value: unknown, expectedInstanceId: string): boolean {
+  if (!value || typeof value !== "object" || !expectedInstanceId) return false;
+  const lease = value as Partial<RuntimeSessionLease>;
+  return lease.schema === 2
+    && lease.product_id === PRODUCT_ID
+    && lease.instance_id === expectedInstanceId;
+}
 let fs: RuntimeSessionFs | null = null;
 let outputPath: string | null = null;
 let instanceId: string | null = null;
@@ -35,7 +46,7 @@ function currentLeaseOwned(): boolean {
   if (!fs || !outputPath || !instanceId) return false;
   try {
     const value = JSON.parse(fs.readFileSync(outputPath, "utf8")) as Partial<RuntimeSessionLease>;
-    return value.schema === 1 && value.instance_id === instanceId;
+    return isOwnedRuntimeSessionLease(value, instanceId);
   } catch {
     return false;
   }
