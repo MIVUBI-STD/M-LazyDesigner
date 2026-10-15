@@ -87,6 +87,23 @@ describe("LazyDesigner authoring quality benchmark contract", () => {
     expect(layered.critical_failures).toContain("cutout_boundary_mismatch");
   });
 
+  test("R07 decision probes cover cross-asset high-cost expansion without claiming live acceptance", () => {
+    const probes = benchmark.decision_probes;
+    expect(probes.evidence_class).toBe("synthetic_contract_fixture");
+    expect(probes.execution_state).toBe("UNMEASURED");
+    expect(probes.cases.length).toBeGreaterThanOrEqual(8);
+    expect(new Set(probes.cases.map((probe) => probe.id)).size).toBe(probes.cases.length);
+    for (const probe of probes.cases) {
+      expect(benchmark.cases.some((item) => item.profile === probe.profile)).toBe(true);
+      expect(probe.expansion.length).toBeGreaterThan(5);
+      expect(probe.observation.code.length).toBeGreaterThan(5);
+      expect(["SUPPORTED", "UNVERIFIED"]).toContain(probe.expected.state);
+      expect(probe.expected).not.toHaveProperty("quality_score");
+      expect(probe).not.toHaveProperty("accepted");
+      expect(probe).not.toHaveProperty("pass");
+    }
+  });
+
   test("efficiency is observed separately as cost to accepted result", () => {
     expect(benchmark.efficiency_observations).toEqual(expect.arrayContaining([
       "search_capability_calls",

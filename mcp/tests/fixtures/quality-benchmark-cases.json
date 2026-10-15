@@ -250,5 +250,253 @@
     "tool_calls_to_accepted_result"
   ],
   "evidence_class": "synthetic_contract_fixture",
-  "measured_baseline": false
+  "measured_baseline": false,
+  "decision_probes": {
+    "evidence_class": "synthetic_contract_fixture",
+    "execution_state": "UNMEASURED",
+    "cases": [
+      {
+        "id": "r07-character-primary-helmet",
+        "profile": "CHARACTER_MOB",
+        "expansion": "secondary_geometry",
+        "observation": {
+          "code": "HELMET_SILHOUETTE",
+          "criterion": "SILHOUETTE_PROPORTION",
+          "severity": "BLOCKING",
+          "summary": "Helmet silhouette and width conflict with the approved front reference.",
+          "evidence": {
+            "current_evidence_ref": "capture:character-front-current",
+            "reference_evidence_ref": "reference:character-front-approved",
+            "views": [
+              "front"
+            ],
+            "evidence_targets": [
+              "silhouette"
+            ]
+          },
+          "cause_family": "SIZE_MISMATCH"
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "GEOMETRY",
+          "quality_class": "PRIMARY_FORM",
+          "repair_route": "RESIZE"
+        }
+      },
+      {
+        "id": "r07-chair-attachment-before-detail",
+        "profile": "PROP_FURNITURE",
+        "expansion": "secondary_geometry",
+        "observation": {
+          "code": "CHAIR_ATTACHMENT",
+          "criterion": "TOPOLOGY_ATTACHMENT",
+          "severity": "REVIEW",
+          "summary": "Chair back attachment is separate from the seat surface.",
+          "evidence": {
+            "current_evidence_ref": "capture:chair-left",
+            "reference_evidence_ref": "reference:chair-left",
+            "views": [
+              "left"
+            ],
+            "evidence_targets": [
+              "attachment"
+            ]
+          },
+          "cause_family": "WRONG_ATTACHMENT"
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "GEOMETRY",
+          "quality_class": "TOPOLOGY_ATTACHMENT",
+          "repair_route": "REATTACH"
+        }
+      },
+      {
+        "id": "r07-vehicle-color-only-variant",
+        "profile": "VEHICLE",
+        "expansion": "texture_variant",
+        "observation": {
+          "code": "VEHICLE_PALETTE",
+          "criterion": "TEXTURE_MATERIAL_REGION",
+          "severity": "REVIEW",
+          "summary": "Blue paint variant differs from current approved material palette.",
+          "evidence": {
+            "current_evidence_ref": "capture:vehicle-mapped",
+            "reference_evidence_ref": "reference:vehicle-blue",
+            "views": [
+              "front"
+            ]
+          },
+          "cause_family": "MATERIAL_MISMATCH"
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "TEXTURE",
+          "quality_class": "TEXTURE_MATERIAL",
+          "repair_route": "TEXTURE_EDIT"
+        }
+      },
+      {
+        "id": "r07-mechanical-pivot-before-keyframes",
+        "profile": "MECHANICAL",
+        "expansion": "follower_keyframes",
+        "observation": {
+          "code": "HINGE_PIVOT",
+          "criterion": "PIVOT_MOTION_READINESS",
+          "severity": "BLOCKING",
+          "summary": "Mechanical door pivot does not align with its hinge attachment.",
+          "evidence": {
+            "current_evidence_ref": "inspect:hinge-pivot-current",
+            "views": [
+              "left"
+            ]
+          },
+          "cause_family": "PIVOT_MISMATCH"
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "RIG",
+          "quality_class": "RIG_MOTION_READINESS",
+          "repair_route": "RIG_INSPECTION"
+        }
+      },
+      {
+        "id": "r07-flower-missing-reference-view",
+        "profile": "ORGANIC_CURVED",
+        "expansion": "secondary_geometry",
+        "observation": {
+          "code": "FLOWER_DEPTH_UNKNOWN",
+          "criterion": "SILHOUETTE_PROPORTION",
+          "severity": "BLOCKING",
+          "summary": "Depth of curved petals is not visible in the provided source.",
+          "evidence": {
+            "current_evidence_ref": "capture:flower-side-current",
+            "views": [
+              "left"
+            ],
+            "evidence_targets": [
+              "depth"
+            ]
+          },
+          "cause_family": "SIZE_MISMATCH"
+        },
+        "expected": {
+          "state": "UNVERIFIED",
+          "reason": "REFERENCE_EVIDENCE_REQUIRED"
+        }
+      },
+      {
+        "id": "r07-cutout-seam-after-mapping",
+        "profile": "GENERIC",
+        "expansion": "atlas_wide_styling",
+        "observation": {
+          "code": "CUTOUT_SEAM",
+          "criterion": "TEXTURE_MAPPED_CONTINUITY",
+          "severity": "REVIEW",
+          "summary": "Mapped neighboring surfaces contain a visible seam.",
+          "evidence": {
+            "current_evidence_ref": "capture:cutout-mapped",
+            "views": [
+              "front"
+            ]
+          },
+          "cause_family": "MATERIAL_MISMATCH"
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "TEXTURE",
+          "quality_class": "TEXTURE_MATERIAL",
+          "repair_route": "TEXTURE_EDIT"
+        }
+      },
+      {
+        "id": "r07-action-beats-before-effects",
+        "profile": "CHARACTER_MOB",
+        "expansion": "follower_keyframes",
+        "observation": {
+          "code": "IMPACT_BEFORE_FALL",
+          "criterion": "ANIMATION_TIMING_PHASE",
+          "severity": "BLOCKING",
+          "summary": "Fracture occurs earlier than the requested body-ground impact.",
+          "evidence": {
+            "current_evidence_ref": "capture:action-pose-current",
+            "reference_evidence_ref": "reference:action-order",
+            "views": [
+              "left"
+            ]
+          },
+          "cause_family": "MOTION_MISMATCH"
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "ANIMATION",
+          "quality_class": "ANIMATION_MOTION",
+          "repair_route": "ANIMATION_EDIT"
+        }
+      },
+      {
+        "id": "r07-cape-contact-cause-unverified",
+        "profile": "CHARACTER_MOB",
+        "expansion": "follower_keyframes",
+        "observation": {
+          "code": "CAPE_ATTACHMENT",
+          "criterion": "ANIMATION_CONTACT",
+          "severity": "REVIEW",
+          "summary": "Cape is visibly separated during motion; cause has not been established.",
+          "evidence": {
+            "current_evidence_ref": "capture:cape-contact",
+            "views": [
+              "left"
+            ]
+          }
+        },
+        "expected": {
+          "state": "SUPPORTED",
+          "owner": "ANIMATION",
+          "quality_class": "ANIMATION_MOTION",
+          "repair_route": "MORE_EVIDENCE",
+          "evidence_action": "INSPECT_ANIMATION_STATE"
+        }
+      },
+      {
+        "id": "r07-material-missing-current",
+        "profile": "PROP_FURNITURE",
+        "expansion": "atlas_wide_styling",
+        "observation": {
+          "code": "MATERIAL_NOT_CAPTURED",
+          "criterion": "TEXTURE_MATERIAL_REGION",
+          "severity": "BLOCKING",
+          "summary": "The material sample has not been observed on the current mapped model.",
+          "evidence": {
+            "current_evidence_ref": null,
+            "reference_evidence_ref": "reference:cloth"
+          }
+        },
+        "expected": {
+          "state": "UNVERIFIED",
+          "reason": "CURRENT_EVIDENCE_REQUIRED"
+        }
+      },
+      {
+        "id": "r07-incompatible-cause-not-authority",
+        "profile": "MECHANICAL",
+        "expansion": "atlas_wide_styling",
+        "observation": {
+          "code": "WRONG_CAUSE_OWNER",
+          "criterion": "TEXTURE_MATERIAL_REGION",
+          "severity": "BLOCKING",
+          "summary": "Texture mismatch falsely attributed to animation timing.",
+          "evidence": {
+            "current_evidence_ref": "capture:machine-mapped",
+            "reference_evidence_ref": "reference:machine-color"
+          },
+          "cause_family": "MOTION_MISMATCH"
+        },
+        "expected": {
+          "state": "UNVERIFIED",
+          "reason": "OBSERVATION_INVALID"
+        }
+      }
+    ]
+  }
 }
