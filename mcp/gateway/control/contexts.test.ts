@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { contextForAuthoringDomain, PROFILE_PATHS } from "./contexts";
+import { contextFileSignature, contextForAuthoringDomain, PROFILE_PATHS } from "./contexts";
 import { MODELLING_PATH, TEXTURING_PATH } from "../context/authoring";
 import type { ControlContextHandle } from "./types";
 
@@ -17,6 +17,23 @@ function systemError(code: string): Error {
 }
 
 describe("required authoring context resolution", () => {
+  test("cache metadata rejects same-size same-mtime context rewrites", () => {
+    const before = { dev: 7, ino: 11, size: 4, mtimeMs: 1700000000000, ctimeMs: 1700000000000 };
+    const rewritten = { ...before, ctimeMs: before.ctimeMs + 1 };
+    // Old discriminator `${size}:${mtimeMs}` would reuse a stale sha256.
+    expect(before.size).toBe(rewritten.size);
+    expect(before.mtimeMs).toBe(rewritten.mtimeMs);
+    expect(contextFileSignature(before)).not.toBe(contextFileSignature(rewritten));
+    expect(contextFileSignature({ ...before })).toBe(contextFileSignature(before));
+  });
+
+  test("cache metadata invalidates a replaced context file with identical size and timestamps", () => {
+    const before = { dev: 7, ino: 11, size: 42, mtimeMs: 1700000000000, ctimeMs: 1700000000000 };
+    const replacement = { ...before, ino: 12 };
+    expect(contextFileSignature(before)).not.toBe(contextFileSignature(replacement));
+    expect(contextFileSignature(before)).not.toBe(contextFileSignature({ ...before, dev: 8 }));
+  });
+
   test("missing specialist is reported without returning a fabricated handle", async () => {
     const result = await contextForAuthoringDomain("TEXTURING", null, async () => {
       throw systemError("ENOENT");
