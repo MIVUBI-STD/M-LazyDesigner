@@ -9,7 +9,7 @@ import { MCP_BUNDLE_FILENAME } from "../mcp/compatibility/build-artifact";
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
-import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, requireMatchingReleaseManifest, requireExpectedUpdateSource, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
+import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, requireMatchingReleaseManifest, requireExpectedUpdateSource, preflightManagedInstallTargets, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
 
 const RELEASE_ASSET = "lazydesigner-windows-x64.zip";
 const RELEASE_MANIFEST_ASSET = "lazydesigner-package.json";
@@ -370,6 +370,12 @@ async function main(): Promise<void> {
       plugin: resolve(flags.get("--plugin-path") ?? join(root, "plugin", MCP_BUNDLE_FILENAME)),
       config: resolve(flags.get("--config") ?? join(process.env.CODEX_HOME ?? join(homedir(), ".codex"), "config.toml")),
     };
+    // A known old plugin or BlockIT Codex server must block before copying a
+    // staged package or provisioning TLS. Activation repeats this preflight.
+    await preflightManagedInstallTargets(
+      options, join(root, "versions", manifest.source_sha, "lazydesigner.exe"),
+      parseToml, flags.has("--adopt")
+    );
     // Retain the candidate under installation ownership even when a downloaded ZIP is later removed.
     const staging = command === "update" ? source : join(root, "downloads", randomUUID(), "package");
     await requirePlainPath(staging); await mkdir(staging, { recursive: true });

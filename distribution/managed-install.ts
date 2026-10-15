@@ -338,19 +338,40 @@ export async function rollbackStatus(root: string): Promise<RollbackStatus> {
   } catch { return { available: false, previous_source_sha: null, transaction: id }; }
 }
 
-export async function installPackage(directory: string, options: InstallOptions, parseToml: (s: string) => any, adopt = false): Promise<{ source_sha: string; changed_files: number; transaction: string | null }> {
-  const m = await verifyPackage(directory);
+/** Read-only validation before staging or provisioning Runtime security.
+ * Repeat on activation to handle edits between prepare and install.
+ * Never silently adopt legacy MCP settings, plugin bytes, or linked paths.
+ */
+export async function preflightManagedInstallTargets(
+  options: InstallOptions,
+  executable: string,
+  parseToml: (text: string) => any,
+  adopt = false
+): Promise<void> {
   for (const p of Object.values(options)) await requirePlainPath(p);
-  if (basename(options.plugin) !== MCP_BUNDLE_FILENAME) throw new Error(`The plugin destination must be ${MCP_BUNDLE_FILENAME}.`);
+  if (basename(options.plugin) !== MCP_BUNDLE_FILENAME) {
+    throw new Error(`The plugin destination must be ${MCP_BUNDLE_FILENAME}.`);
+  }
   const previous = await installedState(options.root);
-  // Blockbench must not activate the old and new Runtime plugins together.
-  // This detector is read-only; the retired file is never run or overwritten.
+  if (previous && JSON.stringify(previous.options) !== JSON.stringify(options)) {
+    throw new Error("Installation locations are already pinned; do not silently rebind them.");
+  }
   const retiredPlugin = join(dirname(options.plugin), "blockit_mcp.js");
+  await requirePlainPath(retiredPlugin);
   if (await readOptional(retiredPlugin) !== null) {
     throw new Error("Retired BlockIT plugin exists in this Blockbench profile. Explicit migration is required; no file was replaced.");
   }
-  if (previous && JSON.stringify(previous.options) !== JSON.stringify(options)) throw new Error("Installation locations are already pinned; do not silently rebind them.");
+  await requirePlainPath(options.config);
+  // Reuse the authoritative TOML preservation and retired-server rules.
+  const configuration = (await readOptional(options.config))?.toString() ?? "";
+  configureCodex(configuration, executable, parseToml, adopt);
+}
+
+export async function installPackage(directory: string, options: InstallOptions, parseToml: (s: string) => any, adopt = false): Promise<{ source_sha: string; changed_files: number; transaction: string | null }> {
+  const m = await verifyPackage(directory);
   const version = join(options.root, "versions", m.source_sha);
+  await preflightManagedInstallTargets(options, join(version, "lazydesigner.exe"), parseToml, adopt);
+  const previous = await installedState(options.root);
   await requirePlainPath(version);
   // Immutable version directory: interrupted copies can resume, conflicting bytes cannot.
   for (const f of [...m.files, { path: "lazydesigner-package.json", sha256: await digestAt(join(directory, "lazydesigner-package.json")), size: 0 }]) {

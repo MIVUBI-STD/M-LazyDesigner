@@ -16,6 +16,22 @@ describe("managed startup update contract", () => {
     expect(workflow).toContain('gh release create "$TAG" lazydesigner-windows-x64.zip lazydesigner-package.json');
   });
 
+  test("install and update reject old-profile conflicts before staging or TLS", async () => {
+    const [cli, install] = await Promise.all([
+      source("../distribution/cli.ts"),
+      source("../distribution/managed-install.ts"),
+    ]);
+    const preflight = cli.indexOf("await preflightManagedInstallTargets(");
+    const staging = cli.indexOf("const staging = command ===");
+    const provision = cli.indexOf('progress("install", "provisioning-runtime-security")');
+    expect(preflight).toBeGreaterThan(-1);
+    expect(preflight).toBeLessThan(staging);
+    expect(preflight).toBeLessThan(provision);
+    expect(install).toContain("await requirePlainPath(retiredPlugin)");
+    expect(install).toContain("configureCodex(configuration, executable, parseToml, adopt)");
+    expect(install).toContain("await preflightManagedInstallTargets(options, join(version,");
+  });
+
   test("check-update is read-only and separated from full package download", async () => {
     const cli = await source("../distribution/cli.ts");
     const checkStart = cli.indexOf("async function checkUpdate()");

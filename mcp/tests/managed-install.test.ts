@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requireMatchingReleaseManifest, requireExpectedUpdateSource, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requireMatchingReleaseManifest, requireExpectedUpdateSource, preflightManagedInstallTargets, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
 import { MODELLING_PATH, TEXTURING_PATH, ANIMATION_PATH, PROFILE_PATHS } from "../gateway/control/contexts";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
@@ -137,6 +137,31 @@ test("retired BlockIT configuration and plugin are rejected without changing fil
     assert.equal(await readOptional(o.plugin), null);
     assert.equal((await readFile(join(dirname(o.plugin), "blockit_mcp.js")).toString()), "USER LEGACY PLUGIN");
     assert.equal(await installedState(o.root), null);
+  });
+});
+
+test("preflight catches legacy blockers before package staging, without touching user files", async () => {
+  await sandbox(async (d, options) => {
+    const executable = join(options.root, "versions", "a".repeat(40), "lazydesigner.exe");
+    await mkdir(dirname(options.plugin), { recursive: true });
+    const oldPlugin = join(dirname(options.plugin), "blockit_mcp.js");
+    await writeFile(oldPlugin, "DO NOT REPLACE");
+    await assert.rejects(
+      preflightManagedInstallTargets(options, executable, parse),
+      /Retired BlockIT plugin/
+    );
+    assert.equal((await readFile(oldPlugin, "utf8")), "DO NOT REPLACE");
+    assert.equal(await readOptional(join(options.root, "pending.json")), null);
+    await rm(oldPlugin);
+    await mkdir(dirname(options.config), { recursive: true });
+    const userConfig = '[mcp_servers.blockit]\ncommand="old.exe"\n';
+    await writeFile(options.config, userConfig);
+    await assert.rejects(
+      preflightManagedInstallTargets(options, executable, parse, true),
+      /Retired BlockIT client configuration/
+    );
+    assert.equal(await readFile(options.config, "utf8"), userConfig);
+    assert.equal(await readOptional(join(options.root, "installed.json")), null);
   });
 });
 

@@ -4,6 +4,9 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Active Desktop migration direction — 2026-10-15
 
+**D02 early legacy-profile safety preflight — source patched:** `preflightManagedInstallTargets` now checks pinned installation targets, link-safe retired `blockit_mcp.js`, and the existing Codex TOML/legacy MCP configuration read-only **before** the CLI writes staged package files or provisions TLS. The same canonical checks repeat in `installPackage` immediately before immutable staging and transaction preparation. A user-edited old config/plugin remains untouched, and tests cover preflight refusal with no pending/installed writes. No automatic adoption or migration. SOURCE_IMPLEMENTED; exact-SHA Bun/CI/Windows native NOT_EXECUTED.
+
+
 **D02 bootstrap staging/receipt correction — source patched:** Desktop no longer treats a manager `STAGED` receipt as successful installation or calls `ensure_ready` before installation. It shows persistent in-Workspace pending setup guidance and a `Finish setup` action after save/close; an `INSTALLED` receipt requires a full lowercase SHA and still undergoes Runtime verification. Rust validates known bootstrap receipts; unknown/missing statuses fail closed. A pure presentation regression covers staged, installed, and malformed responses, and the stale compatibility test now expects the canonical `x-lazydesigner-authoring-stage` wire name. SOURCE_IMPLEMENTED; Bun/Rust/Svelte/Windows NOT_EXECUTED. Old profile migration remains read-only until explicit backed-up transition.
 
 
