@@ -79,20 +79,34 @@ export class BlockbenchIntegration {
   }
 
   setupUi(profile: McpRegistrationProfile, phase: McpAuthoringPhase): void {
-    uiSetup({
-      tools,
-      resources,
-      prompts,
-      profile,
-      phase,
-    });
+    // Human UI is optional for AI authoring. A changed Blockbench Panel API
+    // should degrade only the panel, not the local authoring Runtime.
+    try {
+      uiSetup({
+        tools,
+        resources,
+        prompts,
+        profile,
+        phase,
+      });
+    } catch (error) {
+      console.warn("[LazyDesigner] Optional editor panel unavailable; Runtime continues", error);
+      try {
+        uiTeardown();
+      } catch (cleanupError) {
+        console.warn("[LazyDesigner] Optional editor panel cleanup failed", cleanupError);
+      }
+    }
   }
 
   teardown(): void {
-    uiTeardown();
-    teardownProjectNavigationSnapshot();
-    // settingsTeardown owns both Setting instances and its profile callback.
-    settingsTeardown();
+    // Release independent owners even when an upstream optional API throws.
+    try { uiTeardown(); }
+    catch (error) { console.warn("[LazyDesigner] Editor panel cleanup failed", error); }
+    try { teardownProjectNavigationSnapshot(); }
+    catch (error) { console.warn("[LazyDesigner] Project navigation cleanup failed", error); }
+    try { settingsTeardown(); }
+    catch (error) { console.warn("[LazyDesigner] Settings cleanup failed", error); }
     this.generation = null;
     this.isGenerationCurrent = null;
   }

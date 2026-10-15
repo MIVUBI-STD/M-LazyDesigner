@@ -72,7 +72,8 @@ The active editor version remains *advisory*, not blanket permission to mutate. 
 - `bone_rigging(set_ik_controller)` checks native Null Object IK source/pole fields **before Undo**. Other rigging actions remain usable if those fields are absent in a newer editor.
 - `texture_layer_management(flatten_layers)` requires an actual native `flatten()` method; other operations are not globally disabled if that method changes.
 - Structural layer actions continue to use `requireFlatLayerStructure` and reject active layer-group hierarchies before mutation. Read-only and safe non-structural actions remain independent.
-- The Desktop project navigation snapshot is optional. Missing native FS, timers or changed snapshot event handlers must not prevent Runtime initialization; failures are logged for diagnosis.
+- The Desktop project navigation snapshot and human editor panel are optional. Missing native FS, timers, events or changed Panel APIs must not prevent Runtime initialization; failures are logged for diagnosis.
+- The Desktop health lease uses native timers when available. If scoped timers are unavailable, the lease is not advertised as live, but the authoring listener can continue; shutdown still releases other owners.
 
 A feature probe proves only that an operation's minimal entrypoint appears available. It does **not** prove save/reopen, Undo/Redo, data preservation, or visual correctness. Those require live native acceptance. Do not add new accepted Blockbench versions or mark a build `validated` from static probes.
 

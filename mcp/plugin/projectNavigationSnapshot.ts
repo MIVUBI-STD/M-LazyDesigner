@@ -273,9 +273,17 @@ export function setupProjectNavigationSnapshot(): void {
 }
 
 export function teardownProjectNavigationSnapshot(): void {
-  if (timer) nativeTimers?.clearTimeout(timer);
+  // Native timer methods are owned by Blockbench and may fail after an editor
+  // update. Keep releasing every event owner instead of aborting teardown.
+  if (timer && nativeTimers) {
+    try { nativeTimers.clearTimeout(timer); }
+    catch (error) { console.warn("[LazyDesigner] Navigation debounce cleanup failed", error); }
+  }
   timer = null;
-  if (heartbeatTimer) nativeTimers?.clearInterval(heartbeatTimer);
+  if (heartbeatTimer && nativeTimers) {
+    try { nativeTimers.clearInterval(heartbeatTimer); }
+    catch (error) { console.warn("[LazyDesigner] Navigation heartbeat cleanup failed", error); }
+  }
   heartbeatTimer = null;
   for (const listener of listeners.splice(0)) {
     try {

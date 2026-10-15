@@ -38,7 +38,14 @@ let nativeTimers: typeof import("node:timers") | null = null;
 let heartbeatTimer: ReturnType<typeof import("node:timers").setInterval> | null = null;
 
 function clearHeartbeat(): void {
-  if (heartbeatTimer) nativeTimers?.clearInterval(heartbeatTimer);
+  if (heartbeatTimer && nativeTimers) {
+    try {
+      nativeTimers.clearInterval(heartbeatTimer);
+    } catch (error) {
+      // Native timer cleanup cannot prevent listener shutdown.
+      console.warn("[LazyDesigner] Runtime lease timer cleanup failed", error);
+    }
+  }
   heartbeatTimer = null;
 }
 
@@ -128,9 +135,21 @@ export function startRuntimeSessionLease(
   instanceId = lease.instance_id;
   leaseContents = contents;
   // Renderer timers are throttled while Blockbench is minimized/backgrounded.
-  nativeTimers = requireNativeModule("timers");
-  heartbeatTimer = nativeTimers.setInterval(heartbeat, HEARTBEAT_MS);
-  return true;
+  // Timer availability is optional Desktop health metadata, not a precondition
+  // for the native authoring listener. Avoid writing a stale, unowned lease.
+  try {
+    nativeTimers = requireNativeModule("timers");
+    if (!nativeTimers || typeof nativeTimers.setInterval !== "function"
+      || typeof nativeTimers.clearInterval !== "function") {
+      throw new Error("Scoped native timers are unavailable.");
+    }
+    heartbeatTimer = nativeTimers.setInterval(heartbeat, HEARTBEAT_MS);
+    return true;
+  } catch (error) {
+    console.warn("[LazyDesigner] Optional Runtime lease timer unavailable", error);
+    stopRuntimeSessionLease();
+    return false;
+  }
 }
 
 export function stopRuntimeSessionLease(): void {
