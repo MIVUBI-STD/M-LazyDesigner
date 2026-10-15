@@ -109,6 +109,39 @@ describe("Control superseded context non-repetition", () => {
     expect(vehicle.context.cached_ids).toContain(modellingSkill.id);
   });
 
+  test("leaving Geometry invalidates both the old modelling skill and its profile", async () => {
+    const humanoidDir = await referenceDir("HUMANOID");
+    const geometry = await buildControlPacket(baseStatus, {
+      referencePackagePath: humanoidDir,
+    });
+    const activeIds = geometry.context.required.map((handle) => handle.id);
+    expect(activeIds).toHaveLength(2);
+
+    const texturingStatus: GatewayRuntimeStatus = {
+      ...baseStatus,
+      affinity: { ...baseStatus.affinity, authoring_phase: "texturing" },
+      runtime: {
+        ...baseStatus.runtime,
+        health: {
+          ...baseStatus.runtime.health,
+          product: { authoring_phase: "texturing" },
+        },
+      },
+    };
+    const known = [...activeIds, "ctx:doc/reference@older.version"];
+    const texture = await buildControlPacket(texturingStatus, {
+      referencePackagePath: humanoidDir,
+      knownContextIds: known,
+    });
+
+    expect(texture.context.required).toHaveLength(1);
+    expect(texture.context.required[0]?.id).toStartWith("ctx:skill/texturing@");
+    expect(texture.context.invalidated_ids).toEqual(expect.arrayContaining(activeIds));
+    expect(texture.context.invalidated_ids).not.toContain(known[2]);
+    expect(texture.context.cached_ids).not.toContain(activeIds[0]);
+    expect(texture.context.cached_ids).not.toContain(activeIds[1]);
+  });
+
   test("authoring-stage change invalidates the previous specialist family", async () => {
     const geometry = await buildControlPacket(baseStatus);
     const known = geometry.context.required.map((entry) => entry.id);

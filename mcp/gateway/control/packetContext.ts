@@ -120,7 +120,12 @@ export function filterContext(
     invalidated_ids: knownContextIds.filter(
       (id) =>
         (!currentIds.has(id) &&
-          currentFamilies.has(contextFamily(id))) ||
+          (currentFamilies.has(contextFamily(id)) ||
+            // A geometry-only profile must be discarded when Texturing or
+            // Animation no longer requires any modelling profile. Likewise,
+            // an unresolved stage must not retain the previous specialist.
+            contextFamily(id) === "ctx:profile" ||
+            contextFamily(id) === "ctx:skill")) ||
         (currentIds.has(id) && !semanticallyFreshIds.has(id))
     ),
   };
