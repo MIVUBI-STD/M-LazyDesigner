@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { runZeroWasteGoldenBenchmark } from "@/scripts/benchmark/benchmark-zero-waste-golden";
 
 describe("Zero-Waste Golden projection benchmark", () => {
-  test("all golden tasks reduce AI-client payload while preserving decision-critical semantics", () => {
+  test("synthetic projection fixtures reduce payload while preserving checked semantic fields", () => {
     const tasks = runZeroWasteGoldenBenchmark();
 
     expect(tasks.map((task) => task.task)).toEqual([
@@ -15,6 +15,7 @@ describe("Zero-Waste Golden projection benchmark", () => {
     ]);
 
     for (const task of tasks) {
+      expect(task.quality_evidence, task.task).toBe("SYNTHETIC_SEMANTIC_CHECKS_ONLY");
       expect(task.quality_preserved, task.task).toBe(true);
       expect(
         Object.values(task.semantic_checks).every(Boolean),

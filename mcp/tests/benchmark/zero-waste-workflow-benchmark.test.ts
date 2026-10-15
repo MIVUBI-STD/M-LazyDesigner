@@ -2,11 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { runZeroWasteWorkflowBenchmark } from "@/scripts/benchmark/benchmark-zero-waste-workflow";
 
 describe("Zero-Waste workflow benchmark", () => {
-  test("workflow optimization removes only non-decision calls and preserves quality gates", () => {
+  test("synthetic workflow projection preserves modeled verification steps", () => {
     const workflows = runZeroWasteWorkflowBenchmark();
 
     expect(workflows).toHaveLength(11);
     for (const workflow of workflows) {
+      expect(workflow.quality_evidence, workflow.workflow).toBe("SYNTHETIC_SEMANTIC_CHECKS_ONLY");
       expect(workflow.quality_preserved, workflow.workflow).toBe(true);
       expect(
         Object.values(workflow.quality_checks).every(Boolean),

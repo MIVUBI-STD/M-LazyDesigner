@@ -48,6 +48,8 @@ export type WorkflowGoldenResult = {
   reduction_percent: number;
   redundant_baseline_calls_removed: number;
   quality_checks: Record<string, boolean>;
+  // Contract-only fixture evidence. Not a visual or human acceptance verdict.
+  quality_evidence: "SYNTHETIC_SEMANTIC_CHECKS_ONLY";
   quality_preserved: boolean;
 };
 
@@ -132,6 +134,7 @@ function summarize(
       (item) => !item.required_for_decision
     ).length,
     quality_checks: qualityChecks,
+    quality_evidence: "SYNTHETIC_SEMANTIC_CHECKS_ONLY",
     quality_preserved: Object.values(qualityChecks).every(Boolean),
   };
 }

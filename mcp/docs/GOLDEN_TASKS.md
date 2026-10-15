@@ -4,6 +4,8 @@ This file defines the future live benchmark contract for **Cost to Accepted Resu
 
 Canonical machine-readable tasks live in `tests/fixtures/golden-task-cases.json`. Real regression incidents live separately in `tests/fixtures/regression-cases.json`.
 
+**Benchmark identity boundary:** `benchmark-zero-waste-golden.ts` and `benchmark-zero-waste-workflow.ts` are synthetic payload/step projections, **not** completed live Golden Tasks. Their `quality_preserved=true` describes checks on fixture fields and modeled verification steps only. Every returned fixture row carries `quality_evidence=SYNTHETIC_SEMANTIC_CHECKS_ONLY`, including when its tests pass. It does not establish visual correctness, human acceptance, actual Codex/model tokens, cost, native Undo, or latency. The accepted-result benchmark below remains the separate live measurement authority.
+
 ## Rule
 
 Every checked-in Golden Task remains `UNMEASURED` until the task is executed against a matching LazyDesigner source/build with:

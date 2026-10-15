@@ -17,6 +17,8 @@ export type GoldenTaskResult = {
   saved_bytes: number;
   reduction_percent: number;
   semantic_checks: Record<string, boolean>;
+  // Contract-only fixture evidence. Not a visual or human acceptance verdict.
+  quality_evidence: "SYNTHETIC_SEMANTIC_CHECKS_ONLY";
   quality_preserved: boolean;
 };
 
@@ -43,6 +45,7 @@ function result(
         ? 0
         : Number(((savedBytes / beforeBytes) * 100).toFixed(2)),
     semantic_checks: semanticChecks,
+    quality_evidence: "SYNTHETIC_SEMANTIC_CHECKS_ONLY",
     quality_preserved: Object.values(semanticChecks).every(Boolean),
   };
 }
