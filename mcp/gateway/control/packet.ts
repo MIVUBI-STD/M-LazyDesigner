@@ -3,7 +3,7 @@ import {
   resolveDevelopmentIntent,
   type DevelopmentResolution,
 } from "../development/intent";
-import { contextForAuthoringDomain } from "./contexts";
+import { contextForAuthoringDomain, type ContextResolutionIssue } from "./contexts";
 import { buildControlSnapshot } from "./snapshot";
 import {
   buildControlStageContext,
@@ -63,6 +63,8 @@ export async function buildControlPacket(
     currentUserDelta?: string | null;
     taskMode?: ControlTaskMode;
     taskIntent?: string | null;
+    /** Internal test seam; the public Gateway schema is unchanged. */
+    contextResolver?: typeof contextForAuthoringDomain;
   } = {}
 ): Promise<ControlPacket> {
   const baseSnapshot = buildControlSnapshot(status);
@@ -84,15 +86,22 @@ export async function buildControlPacket(
 
   const resolvedContext =
     mode === "ASSET_AUTHORING"
-      ? await contextForAuthoringDomain(
+      ? await (options.contextResolver ?? contextForAuthoringDomain)(
           baseSnapshot.authoring.domain,
           reference.selected_profile
         )
-      : { required: [], optional: [] };
+      : { required: [], optional: [], unavailable: [] as ContextResolutionIssue[] };
+  const contextUnavailable = resolvedContext.unavailable.length > 0;
 
   const snapshot: ControlSnapshot = {
     ...baseSnapshot,
-    context: resolvedContext,
+    context: {
+      required: resolvedContext.required,
+      optional: resolvedContext.optional,
+    },
+    blockers: contextUnavailable
+      ? [...baseSnapshot.blockers, "REQUIRED_CONTEXT_UNAVAILABLE"]
+      : baseSnapshot.blockers,
   };
 
   const stageContext =
@@ -132,12 +141,22 @@ export async function buildControlPacket(
     ),
   ];
 
+  // A missing required handle cannot be satisfied by an old client-side copy.
+  // Reissue still-available handles and explicitly invalidate old context IDs.
+  const knownContextIds = options.knownContextIds ?? [];
+  const deliveredContext = filterContext(
+    snapshot, contextUnavailable ? [] : knownContextIds, mode
+  );
+  if (contextUnavailable) {
+    deliveredContext.invalidated_ids = [...new Set(knownContextIds)];
+  }
+
   return {
     ...snapshot,
     mode,
     system:
       snapshot.system === "READY" &&
-      blockers.length > snapshot.blockers.length
+      (contextUnavailable || blockers.length > snapshot.blockers.length)
         ? "DEGRADED"
         : snapshot.system,
     task_context_id: taskContextId(
@@ -160,11 +179,10 @@ export async function buildControlPacket(
     reference: referenceSummary(reference),
     stage_context: stageContext,
     development,
-    context: filterContext(
-      snapshot,
-      options.knownContextIds ?? [],
-      mode
-    ),
+    context: {
+      ...deliveredContext,
+      ...(contextUnavailable ? { unavailable: resolvedContext.unavailable } : {}),
+    },
     blockers,
   };
 }

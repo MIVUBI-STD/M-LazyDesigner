@@ -6,7 +6,7 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 The user authorized recovery snapshot `3.0` on 2026-10-15: backup branch and tag must point to the same snapshot commit as the saved `Local` state. Preserve that baseline before further improvements; continue normal work on `Local`, leaving `3.0` unchanged. The temporary prerelease does not close the retrospective findings or imply new native/source acceptance. Authored model workspaces are included under this explicit snapshot authorization; raw logs and private machine state remain local.
 
-**Current priority:** consolidated local-test reporting is complete; retain the exact remaining evidence boundaries.
+**Current priority:** R02 context-loss status safety is source-implemented on `Local` with bounded regression fixtures. Missing/unreadable required Skill/profile files now retain Runtime health, mark authoring blocked, expose relative context diagnostics and invalidate previously cached guidance. This is not an exact-SHA executed test or a native/profile/build identity acceptance. Next R02 evidence: matching installed Gateway/Runtime/editor identity and explicit wrong-profile/TLS/credential refusal/recovery; do not bypass trust checks. Other local-test findings remain open.
 The persistent Gateway owns client stability and Runtime
 recovery; Control owns context/readiness; Runtime/Plugin own Blockbench.
 Retain exactly four public Gateway tools and the existing source owners.

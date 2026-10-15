@@ -95,6 +95,9 @@ function buildGatewayPacketWithoutStage(packet: ControlPacket) {
     ...(packet.context.invalidated_ids.length > 0
       ? { invalidated_ids: packet.context.invalidated_ids }
       : {}),
+    ...(packet.context.unavailable?.length
+      ? { unavailable: packet.context.unavailable }
+      : {}),
   };
 
   return {

@@ -8,6 +8,7 @@ import type {
   ControlSnapshot,
 } from "./types";
 import { stageReferenceSemanticFingerprint } from "./contextProjection";
+import type { ContextResolutionIssue } from "./contexts";
 import { semanticRevisionForDependencies } from "../development/semanticDependencies";
 
 export type ControlContextDelivery = {
@@ -15,6 +16,7 @@ export type ControlContextDelivery = {
   optional: ControlContextHandle[];
   cached_ids: string[];
   invalidated_ids: string[];
+  unavailable?: ContextResolutionIssue[];
 };
 
 export type ControlTaskMode = "ASSET_AUTHORING" | "SYSTEM_DEVELOPMENT";

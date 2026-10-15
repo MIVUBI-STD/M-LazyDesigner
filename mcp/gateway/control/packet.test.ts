@@ -1,0 +1,79 @@
+import { describe, expect, test } from "bun:test";
+import { buildControlPacket } from "./packet";
+import { projectControlPacketForGateway } from "./gatewayProjection";
+import type { GatewayRuntimeStatus } from "../runtime/backend";
+import type { ControlContextHandle } from "./types";
+
+const status = {
+  affinity: { project_uuid: "project-1", authoring_phase: "geometry" },
+  runtime: {
+    online: true,
+    catalog_stale: false,
+    catalog_count: 54,
+    runtime_signature: "fixture-runtime",
+    health: null,
+  },
+} as unknown as GatewayRuntimeStatus;
+
+const path = "docs/03-authoring/modelling/profiles/humanoid.md";
+const contextId = "ctx:skill/modelling@old.old";
+const profileId = "ctx:profile/humanoid@old.old";
+function handle(path: string): ControlContextHandle {
+  return {
+    id: "ctx:skill/modelling@new.new",
+    path,
+    sha256: "a".repeat(64),
+    semantic_dependencies: ["routing"],
+    semantic_revision: "b".repeat(64),
+  };
+}
+
+describe("Control packet missing context boundary", () => {
+  test("missing selected profile never masks online Runtime or declares authoring ready", async () => {
+    const packet = await buildControlPacket(status, {
+      knownContextIds: [contextId, profileId],
+      contextResolver: async () => ({
+        required: [handle("modelling")],
+        optional: [],
+        unavailable: [{ path, code: "CONTEXT_FILE_MISSING" }],
+      }),
+    });
+    expect(packet.runtime.online).toBe(true);
+    expect(packet.system).toBe("DEGRADED");
+    expect(packet.readiness).toMatchObject({
+      runtime_ready: true, context_ready: false, modelling_start: "BLOCKED",
+    });
+    expect(packet.readiness.reasons).toContain("REQUIRED_CONTEXT_UNAVAILABLE");
+    expect(packet.blockers).toContain("REQUIRED_CONTEXT_UNAVAILABLE");
+    expect(packet.context.invalidated_ids).toEqual([contextId, profileId]);
+    expect(packet.context.required).toHaveLength(1);
+    const projected = projectControlPacketForGateway(packet);
+    expect(projected.context.unavailable).toEqual([
+      { path, code: "CONTEXT_FILE_MISSING" },
+    ]);
+    expect(projected.context.invalidated_ids).toEqual([contextId, profileId]);
+  });
+
+  test("healthy resolver preserves normal cached context behavior", async () => {
+    const packet = await buildControlPacket(status, {
+      knownContextIds: [handle("modelling").id],
+      contextResolver: async () => ({
+        required: [handle("modelling")], optional: [], unavailable: [],
+      }),
+    });
+    expect(packet.context.cached_ids).toEqual([handle("modelling").id]);
+    expect(packet.context.invalidated_ids).toEqual([]);
+    expect(packet.context.unavailable).toBeUndefined();
+    expect(packet.readiness.runtime_ready).toBe(true);
+    expect(packet.readiness.context_ready).toBe(true);
+  });
+
+  test("system development routing ignores authoring context failures", async () => {
+    const packet = await buildControlPacket(status, {
+      taskMode: "SYSTEM_DEVELOPMENT",
+      contextResolver: async () => { throw new Error("must not load asset context"); },
+    });
+    expect(packet.readiness.context_ready).toBe(true);
+    expect(packet.context.unavailable).toBeUndefined();
+  });
+});

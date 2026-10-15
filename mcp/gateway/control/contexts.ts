@@ -35,6 +35,11 @@ type CachedHandle = {
   handle: ControlContextHandle;
 };
 
+export type ContextResolutionIssue = {
+  path: string;
+  code: "CONTEXT_FILE_MISSING" | "CONTEXT_FILE_UNREADABLE";
+};
+
 const contextHandleCache = new Map<string, CachedHandle>();
 
 function semanticOwnerForPath(path: string): SemanticDependencyOwner {
@@ -95,16 +100,41 @@ export async function contentHandle(path: string): Promise<ControlContextHandle>
 
 export async function contextForAuthoringDomain(
   domain: ControlAuthoringDomain | null,
-  selectedProfile: ControlProfile | null = null
-): Promise<{ required: ControlContextHandle[]; optional: ControlContextHandle[] }> {
+  selectedProfile: ControlProfile | null = null,
+  resolveHandle: (path: string) => Promise<ControlContextHandle> = contentHandle
+): Promise<{
+  required: ControlContextHandle[];
+  optional: ControlContextHandle[];
+  unavailable: ContextResolutionIssue[];
+}> {
   const required: ControlContextHandle[] = [];
-  if (domain === "GEOMETRY") {
-    required.push(await contentHandle(MODELLING_PATH));
-    if (selectedProfile) required.push(await contentHandle(PROFILE_PATHS[selectedProfile]));
-  } else if (domain === "TEXTURING") {
-    required.push(await contentHandle(TEXTURING_PATH));
-  } else if (domain === "ANIMATION") {
-    required.push(await contentHandle(ANIMATION_PATH));
+  const unavailable: ContextResolutionIssue[] = [];
+
+  async function addRequired(path: string): Promise<void> {
+    try {
+      required.push(await resolveHandle(path));
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error
+        ? (error as { code?: unknown }).code
+        : null;
+      if (code === "ENOENT" || code === "ENOTDIR") {
+        unavailable.push({ path, code: "CONTEXT_FILE_MISSING" });
+      } else if (code === "EACCES" || code === "EPERM") {
+        unavailable.push({ path, code: "CONTEXT_FILE_UNREADABLE" });
+      } else {
+        // Do not disguise programming/integrity failures as missing guidance.
+        throw error;
+      }
+    }
   }
-  return { required, optional: [] };
+
+  if (domain === "GEOMETRY") {
+    await addRequired(MODELLING_PATH);
+    if (selectedProfile) await addRequired(PROFILE_PATHS[selectedProfile]);
+  } else if (domain === "TEXTURING") {
+    await addRequired(TEXTURING_PATH);
+  } else if (domain === "ANIMATION") {
+    await addRequired(ANIMATION_PATH);
+  }
+  return { required, optional: [], unavailable };
 }

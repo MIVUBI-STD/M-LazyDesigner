@@ -88,7 +88,10 @@ export function buildReadiness(
   const runtimeReady = snapshot.runtime.online && !snapshot.runtime.catalog_stale;
   const projectReady = snapshot.project.binding === "BOUND";
   const domainReady = snapshot.authoring.domain !== null;
-  const contextReady = snapshot.context.required.length > 0;
+  const requiredContextUnavailable =
+    snapshot.blockers.includes("REQUIRED_CONTEXT_UNAVAILABLE");
+  const contextReady =
+    snapshot.context.required.length > 0 && !requiredContextUnavailable;
   const activeReferenceBlocked = activeReferenceReadiness === "BLOCKED";
   const projectionIncomplete = (reference.truncated_sections?.length ?? 0) > 0;
   const reasons: string[] = [];
@@ -97,7 +100,8 @@ export function buildReadiness(
   if (snapshot.runtime.catalog_stale) reasons.push("CATALOG_STALE");
   if (!projectReady) reasons.push("PROJECT_NOT_BOUND");
   if (!domainReady) reasons.push("AUTHORING_DOMAIN_UNRESOLVED");
-  if (!contextReady) reasons.push("REQUIRED_CONTEXT_UNRESOLVED");
+  if (requiredContextUnavailable) reasons.push("REQUIRED_CONTEXT_UNAVAILABLE");
+  else if (!contextReady) reasons.push("REQUIRED_CONTEXT_UNRESOLVED");
   if (!reference.available) reasons.push("REFERENCE_PACKAGE_UNAVAILABLE");
   if (projectionIncomplete) reasons.push("REFERENCE_PROJECTION_INCOMPLETE");
   if (activeReferenceBlocked) reasons.push("REFERENCE_STAGE_BLOCKED");
@@ -107,6 +111,7 @@ export function buildReadiness(
     !runtimeReady ||
     snapshot.project.binding === "LOST" ||
     activeReferenceBlocked ||
+    requiredContextUnavailable ||
     lifecycle.blocked;
 
   return {
