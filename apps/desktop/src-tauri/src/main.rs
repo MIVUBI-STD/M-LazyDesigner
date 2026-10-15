@@ -110,9 +110,24 @@ fn managed_action(app: tauri::AppHandle, action: String, expected_source_sha: Op
 
 #[tauri::command]
 fn bootstrap_install(app: tauri::AppHandle) -> Result<BootstrapActionResult, DesktopError> {
+    let older_plugin = system_status::retired_plugin_for_setup()
+        .map_err(|message| DesktopError::recoverable("BLOCKBENCH_PROFILE_UNVERIFIED", message))?;
+    if older_plugin {
+        operation_log::record("bootstrap_install", "LEGACY_MIGRATION_REQUIRED");
+        return Err(DesktopError::recoverable(
+            "LEGACY_PLUGIN_MIGRATION_REQUIRED",
+            "An older BlockIT plugin is present. Review and back up the old plugin before installing the new LazyDesigner Runtime.".to_string(),
+        ));
+    }
     let result = system_status::bootstrap_install(&app);
     operation_log::record("bootstrap_install", if result.is_ok() { "ok" } else { "error" });
     result.map_err(|message| DesktopError::recoverable("BOOTSTRAP_INSTALL_FAILED", message))
+}
+
+#[tauri::command]
+fn show_retired_plugin_file() -> Result<PluginFileActionResult, DesktopError> {
+    system_status::show_retired_plugin_file()
+        .map_err(|message| DesktopError::recoverable("LEGACY_PLUGIN_REVIEW_FAILED", message))
 }
 
 #[tauri::command]
@@ -170,6 +185,7 @@ fn main() {
             project_navigation_action,
             project_navigation_path,
             show_plugin_file,
+            show_retired_plugin_file,
             export_diagnostics
         ])
         .build(tauri::generate_context!())

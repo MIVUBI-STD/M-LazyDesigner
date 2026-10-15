@@ -20,6 +20,7 @@
   let error = '';
   let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | null = null;
   let pluginApprovalNeeded = false;
+  let migrationConflict = false;
   let readinessReason = '';
   let actionMessage = '';
   let actionMessageKind: 'success' | 'pending' | 'unchanged' = 'success';
@@ -269,10 +270,21 @@
     }
   }
 
+  async function showRetiredPluginFile() {
+    if (busyAction) return;
+    try {
+      await invoke<PluginFileActionResult>('show_retired_plugin_file');
+      showSuccessToast('Existing plugin file selected in File Explorer. No files were changed.');
+    } catch (cause) {
+      error = errorMessage(cause);
+    }
+  }
+
   async function installLazyDesigner() {
     if (devFixture) return;
     if (!status?.bootstrap_available || status.manager_available || busyAction || statusProbeFailures >= 2) return;
     busyAction = 'install';
+    migrationConflict = false;
     error = '';
     clearSuccessToast();
     try {
@@ -297,7 +309,12 @@
       }
     } catch (cause) {
       recordOperation('Install LazyDesigner', 'failed', errorCode(cause));
-      error = errorMessage(cause);
+      if (errorCode(cause) === 'LEGACY_PLUGIN_MIGRATION_REQUIRED') {
+        migrationConflict = true;
+        error = '';
+      } else {
+        error = errorMessage(cause);
+      }
     } finally {
       busyAction = null;
     }
@@ -678,6 +695,16 @@
           {/if}
 
           {#if productMode(status) === 'welcome'}
+            {#if migrationConflict}
+              <section class="inline-guidance" role="status">
+                <strong>Existing Blockbench plugin requires review</strong>
+                <span>LazyDesigner found an older plugin in the selected Blockbench profile. The existing file was not changed. Save your models and close Blockbench before attempting a migration.</span>
+                <div class="resource-actions">
+                  <button class="secondary-button" onclick={showRetiredPluginFile}>Show existing plugin</button>
+                  <button class="secondary-button" onclick={() => navigate('Support')}>Migration steps</button>
+                </div>
+              </section>
+            {/if}
             <section class="setup-panel">
               <div class="setup-copy">
                 <h2>Set up LazyDesigner</h2>
@@ -697,7 +724,7 @@
 
               <div class="setup-footer">
                 {#if productGuidance(status, pluginApprovalNeeded)}<span class="setup-warning">{productGuidance(status, pluginApprovalNeeded)}</span>{:else}<span></span>{/if}
-                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : 'Set up'}</button>
+                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : migrationConflict ? 'Check again' : 'Set up'}</button>
               </div>
             </section>
             {#if status.project_navigation.projects.length > 0}
@@ -873,6 +900,13 @@
             </div>
           {/if}
 
+          {#if migrationConflict}
+            <section class="settings-section">
+              <h2>Review previous plugin</h2>
+              <p>Close Blockbench after saving your models. Review the existing plugin in File Explorer and retain a backup before disabling or removing it through Blockbench's own plugin controls. LazyDesigner will not delete or adopt the file automatically. Once the older plugin is no longer active, return to Workspace and choose Check again.</p>
+              <button class="secondary-button" onclick={showRetiredPluginFile}>Show existing plugin</button>
+            </section>
+          {/if}
           <section class="settings-section">
             <h2>About</h2>
             <div class="definition-rows">

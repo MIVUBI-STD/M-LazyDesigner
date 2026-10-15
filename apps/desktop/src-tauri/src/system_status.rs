@@ -283,6 +283,35 @@ fn blockbench_managed_plugin_path() -> Result<PathBuf, String> {
     Ok(blockbench_user_data_dir()?.join("plugins").join("lazydesigner_mcp.js"))
 }
 
+// Exact, read-only legacy plugin inspection. Never follow a symlink or infer
+// that an existing file is safe to adopt, rename, delete or execute.
+fn retired_plugin_in_profile(new_plugin: &Path) -> Result<Option<PathBuf>, String> {
+    let retired = new_plugin.with_file_name("blockit_mcp.js");
+    match fs::symlink_metadata(&retired) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(format!("Cannot inspect the older Blockbench plugin safely: {error}")),
+        Ok(meta) if meta.file_type().is_file() => Ok(Some(retired)),
+        Ok(_) => Err("The older Blockbench plugin path is not a regular file. No migration was attempted.".to_string()),
+    }
+}
+
+pub fn retired_plugin_for_setup() -> Result<bool, String> {
+    let new_plugin = blockbench_managed_plugin_path()?;
+    Ok(retired_plugin_in_profile(&new_plugin)?.is_some())
+}
+
+pub fn show_retired_plugin_file() -> Result<PluginFileActionResult, String> {
+    let new_plugin = blockbench_managed_plugin_path()?;
+    let retired = retired_plugin_in_profile(&new_plugin)?
+        .ok_or_else(|| "No older plugin file was found for the selected Blockbench profile.".to_string())?;
+    Command::new("explorer.exe")
+        .arg("/select,")
+        .arg(&retired)
+        .spawn()
+        .map_err(|error| format!("Unable to show the older Blockbench plugin: {error}"))?;
+    Ok(PluginFileActionResult { status: "SHOWN" })
+}
+
 fn installed_plugin_path(root: &Path) -> Result<PathBuf, String> {
     let bytes = fs::read(root.join("installed.json"))
         .map_err(|_| "LazyDesigner managed installation state is unavailable.".to_string())?;
@@ -1039,6 +1068,22 @@ mod tests {
     fn managed_plugin_filename_is_stable() {
         let path = Path::new("C:/Users/test/AppData/Roaming/Blockbench/plugins/lazydesigner_mcp.js");
         assert_eq!(path.file_name().and_then(|name| name.to_str()), Some("lazydesigner_mcp.js"));
+    }
+
+    #[test]
+    fn retired_plugin_inspection_is_read_only_and_rejects_symlinked_files() {
+        let root = env::temp_dir().join(format!("lazydesigner-migration-{}-{}", std::process::id(), observed_at_unix_ms()));
+        fs::create_dir_all(&root).unwrap();
+        let plugin = root.join("lazydesigner_mcp.js");
+        let legacy = root.join("blockit_mcp.js");
+        assert!(retired_plugin_in_profile(&plugin).unwrap().is_none());
+        fs::write(&legacy, b"retired user bytes").unwrap();
+        assert_eq!(retired_plugin_in_profile(&plugin).unwrap(), Some(legacy.clone()));
+        assert_eq!(fs::read(&legacy).unwrap(), b"retired user bytes");
+        fs::remove_file(&legacy).unwrap();
+        fs::create_dir(&legacy).unwrap();
+        assert!(retired_plugin_in_profile(&plugin).is_err());
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

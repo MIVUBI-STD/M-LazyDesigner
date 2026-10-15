@@ -283,6 +283,22 @@ describe("Desktop control-plane ownership", () => {
     expect(readme).toContain("Paths stay hidden in the normal UI");
   });
 
+  test("legacy plugin review uses structured Desktop error and cannot auto-replace files", async () => {
+    const [main, rust, app] = await Promise.all([
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src/App.svelte"),
+    ]);
+    expect(main).toContain("LEGACY_PLUGIN_MIGRATION_REQUIRED");
+    expect(main).toContain("show_retired_plugin_file,");
+    expect(rust).toContain("fn retired_plugin_in_profile(");
+    expect(rust).toContain("fs::symlink_metadata(&retired)");
+    expect(rust).toContain("pub fn show_retired_plugin_file()");
+    expect(app).toContain("migrationConflict = true");
+    expect(app).toContain("Existing Blockbench plugin requires review");
+    expect(app).toContain("showRetiredPluginFile");
+  });
+
   test("manager failure retains verified read-only model selection rather than blanking Workspace", async () => {
     const [app, nav, rust] = await Promise.all([
       source("../apps/desktop/src/App.svelte"),
