@@ -685,6 +685,33 @@ describe("Desktop pure status presentation", () => {
     expect(compatibilityLabel(undefined)).toBe("Unavailable");
   });
 
+  test("bootstrap STAGED never triggers readiness or mislabels setup complete", async () => {
+    const { bootstrapInstallPresentation } = await import("../../../apps/desktop/src/desktopPresentation");
+    const staged = bootstrapInstallPresentation({ status: "STAGED", reason: "active Runtime" });
+    expect(staged.status).toBe("STAGED");
+    expect(staged.kind).toBe("pending");
+    expect(staged.verifyRuntime).toBe(false);
+    const installed = bootstrapInstallPresentation({
+      status: "INSTALLED", source_sha: "a".repeat(40),
+    });
+    expect(installed.kind).toBe("success");
+    expect(installed.verifyRuntime).toBe(true);
+    for (const bad of [{}, { status: "UNKNOWN" }, { status: "INSTALLED" }, { status: "INSTALLED", source_sha: "wrong" }]) {
+      expect(() => bootstrapInstallPresentation(bad)).toThrow(/unverified installation result/);
+    }
+    const [app, rust] = await Promise.all([
+      Bun.file("../apps/desktop/src/App.svelte").text(),
+      Bun.file("../apps/desktop/src-tauri/src/system_status.rs").text(),
+    ]);
+    const bootstrap = app.slice(app.indexOf("async function installLazyDesigner()"), app.indexOf("async function showPluginFile()"));
+    expect(bootstrap).toContain("bootstrapInstallPresentation(result.receipt)");
+    expect(bootstrap).toContain("if (!feedback.verifyRuntime)");
+    expect(bootstrap.indexOf("if (!feedback.verifyRuntime)")).toBeLessThan(bootstrap.indexOf("invoke<EnsureReadyResult>('ensure_ready')"));
+    expect(app).toContain("Setup waiting for Blockbench");
+    expect(app).toContain("setupStaged ? 'Finish setup'");
+    expect(rust).toContain("bootstrap returned an unverified installation receipt.");
+  });
+
   test("keeps plugin approval, mismatch, and security guidance precedence", async () => {
     const { productGuidance } = await import("../../../apps/desktop/src/desktopPresentation");
     const status = (mode: string, patch: Record<string, unknown> = {}) => ({

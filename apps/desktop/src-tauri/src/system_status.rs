@@ -876,6 +876,13 @@ pub fn bootstrap_install(app: &tauri::AppHandle) -> Result<BootstrapActionResult
 
     let receipt = serde_json::from_slice::<Value>(&output.stdout)
         .map_err(|_| "LazyDesigner bootstrap returned invalid JSON.".to_string())?;
+    match receipt.get("status").and_then(Value::as_str) {
+        Some("STAGED") => {}
+        Some("INSTALLED") if receipt.get("source_sha").and_then(Value::as_str)
+            .is_some_and(|sha| sha.len() == 40 &&
+                sha.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())) => {}
+        _ => return Err("LazyDesigner bootstrap returned an unverified installation receipt.".to_string()),
+    }
     Ok(BootstrapActionResult {
         action: "install",
         receipt,

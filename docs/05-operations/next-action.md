@@ -4,6 +4,9 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Active Desktop migration direction — 2026-10-15
 
+**D02 bootstrap staging/receipt correction — source patched:** Desktop no longer treats a manager `STAGED` receipt as successful installation or calls `ensure_ready` before installation. It shows persistent in-Workspace pending setup guidance and a `Finish setup` action after save/close; an `INSTALLED` receipt requires a full lowercase SHA and still undergoes Runtime verification. Rust validates known bootstrap receipts; unknown/missing statuses fail closed. A pure presentation regression covers staged, installed, and malformed responses, and the stale compatibility test now expects the canonical `x-lazydesigner-authoring-stage` wire name. SOURCE_IMPLEMENTED; Bun/Rust/Svelte/Windows NOT_EXECUTED. Old profile migration remains read-only until explicit backed-up transition.
+
+
 **D02.1 safe legacy conflict review — source implemented:** Desktop bootstrap now detects an existing retired `blockit_mcp.js` in the safely resolved target Blockbench profile *before* invoking the installer, returning stable error code `LEGACY_PLUGIN_MIGRATION_REQUIRED`. Workspace presents a specific migration explanation and can reveal the existing file through Explorer without changing or deleting it. Symlink/directory and ambiguous-profile cases fail closed, and a Rust unit fixture plus source contract cover the read-only behavior. This does NOT yet perform a destructive migration, alter Blockbench native trust state, or certify a new install as Ready. Bun/CI/Rust/Windows native verification NOT_EXECUTED. Future: explicit backed-up migration transaction with user consent, old Codex config detection, rollback, and one-plugin native acceptance.
 
 

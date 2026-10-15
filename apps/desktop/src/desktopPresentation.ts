@@ -50,6 +50,32 @@ export function productGuidance(value: SystemStatus, pluginApprovalNeeded: boole
   return null;
 }
 
+export type BootstrapInstallFeedback = {
+  status: 'INSTALLED' | 'STAGED';
+  kind: 'success' | 'pending';
+  message: string;
+  verifyRuntime: boolean;
+};
+
+/** A staged bootstrap is not an installed or usable product. */
+export function bootstrapInstallPresentation(receipt: Record<string, unknown>): BootstrapInstallFeedback {
+  if (receipt.status === 'STAGED') return {
+    status: 'STAGED',
+    kind: 'pending',
+    message: 'Setup is waiting for Blockbench and active AI sessions to close. Save your models first, then choose Finish setup. Nothing was replaced.',
+    verifyRuntime: false,
+  };
+  if (receipt.status === 'INSTALLED' &&
+      typeof receipt.source_sha === 'string' &&
+      /^[a-f0-9]{40}$/.test(receipt.source_sha)) return {
+    status: 'INSTALLED',
+    kind: 'success',
+    message: 'Managed files installed. Verifying Blockbench and Runtime before declaring Ready.',
+    verifyRuntime: true,
+  };
+  throw new Error('Setup returned an unverified installation result. No Ready status can be assumed.');
+}
+
 export type ManagedAction = 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls';
 export type ManagedActionFeedback = {
   status: string;

@@ -26,7 +26,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     expect(backend).toContain("process.env.LAZYDESIGNER_GATEWAY_MAX_QUEUE_DEPTH");
     expect(backend).toContain('name: "lazydesigner-gateway-runtime-client"');
     expect(affinity).toContain('"x-lazydesigner-project-uuid"');
-    expect(affinity).toContain('"x-lazydesigner-authoring-phase"');
+    expect(affinity).toContain('"x-lazydesigner-authoring-stage"');
     expect(settings).toContain('"lazydesigner_mcp.extended_families_enabled"');
     expect(authoringPhase).toContain('MCP_AUTHORING_PHASE_SETTING_ID = "mcp_authoring_phase"');
     expect(profile).toContain('"mcp_extended_families_enabled"');

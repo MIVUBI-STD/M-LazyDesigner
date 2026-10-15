@@ -13,7 +13,7 @@
     DesktopCommandError, DiagnosticExportResult, ProjectNavigationActionResult,
     ProjectPathResult, ManagedProgress,
   } from './desktopTypes';
-  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation } from './desktopPresentation';
+  import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation, bootstrapInstallPresentation } from './desktopPresentation';
 
   let status: SystemStatus | null = null;
   let loading = true;
@@ -21,6 +21,7 @@
   let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | null = null;
   let pluginApprovalNeeded = false;
   let migrationConflict = false;
+  let setupStaged = false;
   let readinessReason = '';
   let actionMessage = '';
   let actionMessageKind: 'success' | 'pending' | 'unchanged' = 'success';
@@ -132,6 +133,7 @@
       status = await observeStatus(invoke<SystemStatus>('system_status'), 30_000);
       statusProbeFailures = 0;
       if (status && devFixture) status = applyDevFixture(status, devFixture);
+      if (status?.manager_available) setupStaged = false;
     } catch (cause) {
       // A failed full observation must never leave actions enabled using
       // the last successful snapshot. Only full status can clear this gate.
@@ -285,12 +287,19 @@
     if (!status?.bootstrap_available || status.manager_available || busyAction || statusProbeFailures >= 2) return;
     busyAction = 'install';
     migrationConflict = false;
+    setupStaged = false;
     error = '';
     clearSuccessToast();
     try {
       const result = await invoke<BootstrapActionResult>('bootstrap_install');
-      const receiptStatus = typeof result.receipt.status === 'string' ? result.receipt.status : 'INSTALLED';
-      recordOperation('Install LazyDesigner', 'success', receiptStatus);
+      const feedback = bootstrapInstallPresentation(result.receipt);
+      recordOperation('Install LazyDesigner', feedback.kind, feedback.status);
+      if (!feedback.verifyRuntime) {
+        setupStaged = true;
+        await refresh();
+        showSuccessToast(feedback.message, feedback.kind);
+        return;
+      }
       await refresh();
       const ready = await invoke<EnsureReadyResult>('ensure_ready');
       pluginApprovalNeeded = ready.manual_plugin_approval_recommended;
@@ -695,6 +704,12 @@
           {/if}
 
           {#if productMode(status) === 'welcome'}
+            {#if setupStaged}
+              <section class="inline-guidance" role="status">
+                <strong>Setup waiting for Blockbench</strong>
+                <span>The verified package is staged but not installed. Save your models, close Blockbench and active AI sessions, then choose Finish setup. No model file has been changed.</span>
+              </section>
+            {/if}
             {#if migrationConflict}
               <section class="inline-guidance" role="status">
                 <strong>Existing Blockbench plugin requires review</strong>
@@ -724,7 +739,7 @@
 
               <div class="setup-footer">
                 {#if productGuidance(status, pluginApprovalNeeded)}<span class="setup-warning">{productGuidance(status, pluginApprovalNeeded)}</span>{:else}<span></span>{/if}
-                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : migrationConflict ? 'Check again' : 'Set up'}</button>
+                <button class="primary-button" onclick={installLazyDesigner} disabled={!status.bootstrap_available || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'install' ? 'Setting up…' : setupStaged ? 'Finish setup' : migrationConflict ? 'Check again' : 'Set up'}</button>
               </div>
             </section>
             {#if status.project_navigation.projects.length > 0}
