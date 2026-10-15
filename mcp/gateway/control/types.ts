@@ -80,6 +80,9 @@ export type ControlSnapshot = {
   };
   runtime: {
     online: boolean;
+    // HTTP reachability is not proof of a completed MCP handshake.
+    // Optional for legacy internal fixtures; live Control snapshots set it.
+    mcp_client_ready?: boolean;
     build_identity: string | null;
     runtime_signature: string | null;
     catalog_count: number;

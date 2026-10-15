@@ -104,6 +104,14 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
     expect(snapshot.project.binding).toBe("BOUND");
     expect(snapshot.blockers).not.toContain("RUNTIME_CLIENT_NOT_READY");
     expect(firstProbe.runtime.mcp_client_ready).toBe(false);
+    expect(snapshot.runtime.mcp_client_ready).toBe(false);
+    const readiness = buildReadiness(
+      snapshot, emptyWorkspace(),
+      { ...emptyReference("REFERENCE_PATH_UNAVAILABLE"), available: true },
+      "SYSTEM_DEVELOPMENT", NOT_REQUIRED_LIFECYCLE, null
+    );
+    expect(readiness.runtime_ready).toBe(false);
+    expect(readiness.reasons).toContain("RUNTIME_HANDSHAKE_PENDING");
   });
 
   test("previously connected MCP becoming unavailable is degraded, not cold start", () => {

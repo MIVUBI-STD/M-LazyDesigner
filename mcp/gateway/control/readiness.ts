@@ -76,8 +76,13 @@ export function buildReadiness(
   // Readiness describes the Runtime transport consistently across task modes.
   // System development may proceed independently of Runtime, but must never
   // misreport an unready MCP client as runtime_ready.
+  const handshakePending =
+    snapshot.runtime.online &&
+    snapshot.runtime.mcp_client_ready === false &&
+    !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
   const runtimeReady =
     snapshot.runtime.online &&
+    snapshot.runtime.mcp_client_ready !== false &&
     !snapshot.runtime.catalog_stale &&
     !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
 
@@ -91,6 +96,7 @@ export function buildReadiness(
       workspace_state: "NOT_REQUIRED",
       reasons: [
         "SYSTEM_DEVELOPMENT_MODE",
+        ...(handshakePending ? ["RUNTIME_HANDSHAKE_PENDING"] : []),
         ...(snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY")
           ? ["RUNTIME_CLIENT_NOT_READY"]
           : []),
@@ -109,6 +115,7 @@ export function buildReadiness(
   const reasons: string[] = [];
 
   if (!snapshot.runtime.online) reasons.push("RUNTIME_OFFLINE");
+  if (handshakePending) reasons.push("RUNTIME_HANDSHAKE_PENDING");
   if (snapshot.runtime.catalog_stale) reasons.push("CATALOG_STALE");
   if (snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY")) reasons.push("RUNTIME_CLIENT_NOT_READY");
   if (snapshot.blockers.includes("PROJECT_CONTEXT_UNVERIFIED")) reasons.push("PROJECT_CONTEXT_UNVERIFIED");
@@ -121,8 +128,10 @@ export function buildReadiness(
   if (activeReferenceBlocked) reasons.push("REFERENCE_STAGE_BLOCKED");
   reasons.push(...lifecycle.reasons.filter((reason) => !reasons.includes(reason)));
 
+  // The first healthy /health probe still needs orientation, not a false
+  // "connection failed" blocker. A previously failed MCP stays blocked.
   const blocked =
-    !runtimeReady ||
+    (!runtimeReady && !handshakePending) ||
     (snapshot.project.affinity_uuid !== null && !projectReady) ||
     activeReferenceBlocked ||
     requiredContextUnavailable ||
@@ -131,7 +140,7 @@ export function buildReadiness(
   return {
     modelling_start: blocked
       ? "BLOCKED"
-      : projectReady && domainReady && contextReady &&
+      : runtimeReady && projectReady && domainReady && contextReady &&
           reference.available && !projectionIncomplete && !lifecycle.orientation_required
         ? "READY"
         : "NEEDS_ORIENTATION",

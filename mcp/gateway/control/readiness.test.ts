@@ -25,6 +25,7 @@ const baseSnapshot = (): ControlSnapshot => ({
   },
   runtime: {
     online: true,
+    mcp_client_ready: true,
     build_identity: "build",
     runtime_signature: "runtime",
     catalog_count: 54,
@@ -99,6 +100,41 @@ describe("Control readiness policy", () => {
     expect(truncated.modelling_start).toBe("NEEDS_ORIENTATION");
     expect(truncated.runtime_ready).toBe(true);
     expect(truncated.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
+  });
+
+  test("first HTTP-only Runtime probe is orientation rather than MCP execution-ready", () => {
+    const baseline = baseSnapshot();
+    const cold = {
+      ...baseline,
+      runtime: { ...baseline.runtime, mcp_client_ready: false },
+    };
+    const reference = {
+      ...emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      available: true,
+    };
+    const asset = buildReadiness(
+      cold, emptyWorkspace(), reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(asset.runtime_ready).toBe(false);
+    expect(asset.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(asset.reasons).toContain("RUNTIME_HANDSHAKE_PENDING");
+    expect(asset.reasons).not.toContain("RUNTIME_CLIENT_NOT_READY");
+
+    const dev = buildReadiness(
+      cold, emptyWorkspace(), emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      "SYSTEM_DEVELOPMENT", NOT_REQUIRED_LIFECYCLE, null
+    );
+    expect(dev.runtime_ready).toBe(false);
+    expect(dev.context_ready).toBe(true);
+    expect(dev.reasons).toContain("RUNTIME_HANDSHAKE_PENDING");
+
+    const warm = buildReadiness(
+      baseline, emptyWorkspace(), reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(warm.runtime_ready).toBe(true);
+    expect(warm.modelling_start).toBe("READY");
   });
 
   test("system development does not report Runtime ready when the MCP client is lost", () => {

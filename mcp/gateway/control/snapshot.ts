@@ -104,6 +104,7 @@ export function buildControlSnapshot(status: GatewayRuntimeStatus): ControlSnaps
     },
     runtime: {
       online: status.runtime.online,
+      mcp_client_ready: status.runtime.mcp_client_ready,
       build_identity: health ? stringValue(health.build_identity) : null,
       runtime_signature: status.runtime.runtime_signature,
       catalog_count: status.runtime.catalog_count,
