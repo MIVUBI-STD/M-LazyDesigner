@@ -163,7 +163,7 @@ Use narrower canonical scripts for narrower claims. Generated freshness uses its
 - Do not broaden network exposure without separately reviewed authentication.
 - No alternate transports, schema/server stacks, generic importers, routers/profiles/frameworks or parallel authored-state systems without a proved requirement.
 - Keep dependencies lean; never commit secrets.
-- Compatibility-bound BlockIT package/plugin/protocol/environment identifiers remain unchanged until separately dependency-mapped.
+- Canonical LazyDesigner package/plugin/protocol/environment identifiers are now source-migrated together. The retired BlockIT strings may be inspected for **read-only migration detection**, not used as Runtime, client or installer fallback. Do not publish or change installed profiles until exact-SHA Windows build, rollback and native acceptance validates the new chain.
 
 ## Completion Rule
 

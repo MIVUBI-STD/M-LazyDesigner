@@ -541,19 +541,19 @@ Completed one-shot retirement/finalization workflows and migration scripts do no
 
 ## Compatibility Boundary
 
-Compatibility-bound BlockIT identifiers remain intentionally stable until separately dependency-mapped:
+The active **source distribution** now uses canonical LazyDesigner identities:
 
 ```text
-package/server/plugin IDs
-bundle filename blockit_mcp.js
-BBPlugin id blockit_mcp
-BLOCKIT_* environment variables
-x-blockit-* affinity headers
-persisted setting IDs
-build/provenance identities coupled to them
+manager        lazydesigner.exe
+plugin bundle  lazydesigner_mcp.js
+BBPlugin id    lazydesigner_mcp
+client config  mcp_servers.lazydesigner
+protocol/env   x-lazydesigner-*, LAZYDESIGNER_*
+package        lazydesigner-package.json
+managed root   %LOCALAPPDATA%/LazyDesigner/managed
 ```
 
-Do not interpret these as a second product architecture and do not bulk-rename them.
+The older BlockIT executable, plugin and configuration identifiers are retained only for read-only detection of pre-existing installations and explicit, consented migration. Some deprecated TypeScript symbol aliases remain source-only. Do not run a second legacy Runtime or treat a source rename as an installed/native PASS. Persisted Blockbench authoring Stage and extended-family setting IDs are separate compatibility contracts; review before changing them.
 
 ## Proof Boundary
 
