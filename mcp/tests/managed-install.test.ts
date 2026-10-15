@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requireMatchingReleaseManifest, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
 import { MODELLING_PATH, TEXTURING_PATH, ANIMATION_PATH, PROFILE_PATHS } from "../gateway/control/contexts";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
@@ -48,6 +48,35 @@ test("package paths and complete required files are fail-closed", async () => sa
   assert.throws(() => parseManifest({ ...manifest, files: manifest.files.slice(1) }));
   assert.throws(() => parseManifest({ ...manifest, files: [...manifest.files, manifest.files[0]] }));
 }));
+
+test("update refuses valid but different release package identities and inventory", async () => {
+  await sandbox(async directory => {
+    const published = await fixture(join(directory, "published"), "a");
+    const same = structuredClone(published);
+    assert.doesNotThrow(() => requireMatchingReleaseManifest(same, published));
+
+    const differentSource = structuredClone(published);
+    differentSource.source_sha = "b".repeat(40);
+    assert.throws(
+      () => requireMatchingReleaseManifest(differentSource, published),
+      /does not match the published release manifest/
+    );
+
+    const differentBuild = structuredClone(published);
+    differentBuild.build_identity = "sha256:" + "b".repeat(64);
+    assert.throws(
+      () => requireMatchingReleaseManifest(differentBuild, published),
+      /does not match the published release manifest/
+    );
+
+    const differentFile = structuredClone(published);
+    differentFile.files[0]!.sha256 = "b".repeat(64);
+    assert.throws(
+      () => requireMatchingReleaseManifest(differentFile, published),
+      /does not match the published release manifest/
+    );
+  });
+});
 
 test("managed package covers every Runtime-required Skill/profile context", async () => {
   const required = [MODELLING_PATH, TEXTURING_PATH, ANIMATION_PATH, ...Object.values(PROFILE_PATHS)];

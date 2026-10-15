@@ -58,6 +58,22 @@ export function parseManifest(value: unknown): Manifest {
   return m;
 }
 
+/** A valid ZIP by itself is not proof it contains the release we selected.
+ * Compare the complete manifest against the separately digest-verified
+ * published manifest before creating a pending activation. */
+export function requireMatchingReleaseManifest(
+  candidate: Manifest,
+  published: Manifest
+): void {
+  const actual = parseManifest(candidate);
+  const expected = parseManifest(published);
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(
+      "Update package does not match the published release manifest; the current installation is unchanged."
+    );
+  }
+}
+
 export async function readOptional(path: string): Promise<Buffer | null> {
   try { return await readFile(path); } catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT") return null; throw e; }
 }

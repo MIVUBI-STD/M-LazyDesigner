@@ -94,7 +94,7 @@ export type ManagedActionResult = {
   };
 
 export type ManagedUpdateCheck = {
-    status: 'NOT_INSTALLED' | 'UP_TO_DATE' | 'UPDATE_AVAILABLE' | 'UPDATE_STAGED';
+    status: 'NOT_INSTALLED' | 'UP_TO_DATE' | 'UPDATE_AVAILABLE' | 'UPDATE_STAGED' | 'UPDATE_STAGED_UNVERIFIED';
     installed_source_sha: string | null;
     available_source_sha: string | null;
     tag: string | null;

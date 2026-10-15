@@ -804,7 +804,7 @@ pub fn check_managed_update() -> Result<ManagedUpdateCheck, String> {
         .map_err(|_| "Managed update check returned invalid JSON.".to_string())?;
     if !matches!(
         result.status.as_str(),
-        "NOT_INSTALLED" | "UP_TO_DATE" | "UPDATE_AVAILABLE" | "UPDATE_STAGED"
+        "NOT_INSTALLED" | "UP_TO_DATE" | "UPDATE_AVAILABLE" | "UPDATE_STAGED" | "UPDATE_STAGED_UNVERIFIED"
     ) {
         return Err("Managed update check returned an unsupported status.".to_string());
     }

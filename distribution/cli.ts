@@ -9,7 +9,7 @@ import { LEGACY_MCP_BUNDLE_FILENAME } from "../mcp/compatibility/build-artifact"
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
-import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
+import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, requireMatchingReleaseManifest, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
 const RELEASE_MANIFEST_ASSET = "blockit-package.json";
@@ -203,8 +203,20 @@ async function checkUpdate(): Promise<unknown> {
   const pending = await readOptional(pendingPath);
   if (pending) {
     try {
-      const parsed = JSON.parse(pending.toString()) as { directory?: string };
-      if (typeof parsed.directory === "string") {
+      const parsed = JSON.parse(pending.toString()) as {
+        directory?: string;
+        options?: InstallOptions;
+      };
+      // A pending file alone must not prove an installable update. Match the
+      // same installation root/path envelope used by activatePending first.
+      if (
+        typeof parsed.directory === "string" &&
+        parsed.options &&
+        sameInstalledPath(parsed.options.root, root) &&
+        sameInstalledPath(dirname(dirname(resolve(parsed.directory))), join(root, "downloads")) &&
+        /^[0-9a-f-]{36}$/.test(basename(dirname(parsed.directory))) &&
+        basename(parsed.directory) === "package"
+      ) {
         const manifest = await verifyPackage(parsed.directory);
         return {
           status: "UPDATE_STAGED",
@@ -217,7 +229,7 @@ async function checkUpdate(): Promise<unknown> {
       // normal recovery/update path rather than mutated during startup check.
     }
     return {
-      status: "UPDATE_STAGED",
+      status: "UPDATE_STAGED_UNVERIFIED",
       installed_source_sha: installed.source_sha,
       available_source_sha: null,
     };
@@ -236,6 +248,9 @@ async function checkUpdate(): Promise<unknown> {
 
 async function fetchRelease(): Promise<string> {
   const release = await fetchPublishedRelease();
+  // The ZIP and published manifest must originate from this same release
+  // selection. Do not separately re-resolve "latest" halfway through update.
+  const publishedManifest = await fetchUpdateManifest(release);
   const { asset, url } = trustedReleaseAsset(release, RELEASE_ASSET, 250_000_000);
   const bytes = await download(url.href, 250_000_000);
   if (bytes.length !== asset.size || `sha256:${sha256(bytes)}` !== asset.digest) {
@@ -255,7 +270,8 @@ async function fetchRelease(): Promise<string> {
   if (code !== 0) {
     throw new Error("Safe release extraction failed; the current installation is unchanged.");
   }
-  await verifyPackage(directory);
+  const candidate = await verifyPackage(directory);
+  requireMatchingReleaseManifest(candidate, publishedManifest);
   await rm(archive);
   return directory;
 }

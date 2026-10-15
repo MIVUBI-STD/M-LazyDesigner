@@ -349,6 +349,10 @@
   async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
     if (devFixture) return;
     if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
+    // A pending file is not an installable update until the canonical manager
+    // has verified its staged package and installation-root provenance.
+    if (action === 'update' && status.managed?.pending &&
+        updateCheck?.status !== 'UPDATE_STAGED') return;
     closeUtilityMenu();
     busyAction = action;
     progressStage = 'preflight';
@@ -773,12 +777,24 @@
                     {statusProbeFailures >= 2 ? 'Status unverified' : productMode(status) === 'ready' ? 'Ready' : productMode(status) === 'client-wait' ? 'Waiting for MCP client' : productHeadline(status)}
                   </strong>
                 </div>
-                {#if status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED'}
+                {#if status.managed?.pending || updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED' || updateCheck?.status === 'UPDATE_STAGED_UNVERIFIED'}
                   <div class="definition-row update-definition">
                     <span>Update</span>
                     <div class="inline-action">
-                      <strong>{status.managed?.pending || updateCheck?.status === 'UPDATE_STAGED' ? 'Ready to install' : (updateCheck?.tag ?? 'Available')}</strong>
-                      <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'update' ? 'Updating…' : 'Update components'}</button>
+                      <strong>{status.managed?.pending
+                        ? updateCheck?.status === 'UPDATE_STAGED'
+                          ? 'Package staged · not active'
+                          : updateCheck?.status === 'UPDATE_STAGED_UNVERIFIED'
+                            ? 'Staged package unverified'
+                            : 'Checking staged package'
+                        : updateCheck?.status === 'UPDATE_AVAILABLE'
+                          ? 'Update available · not downloaded'
+                          : 'Update not activated'}</strong>
+                      {#if updateCheck?.status === 'UPDATE_STAGED_UNVERIFIED'}
+                        <button class="secondary-button small-button" onclick={() => navigate('Support')}>Support</button>
+                      {:else}
+                        <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2 || (status.managed?.pending === true && updateCheck?.status !== 'UPDATE_STAGED')}>{busyAction === 'update' ? 'Updating…' : status.managed?.pending ? 'Finish update' : 'Update components'}</button>
+                      {/if}
                     </div>
                   </div>
                 {/if}

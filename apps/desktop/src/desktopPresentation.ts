@@ -77,7 +77,7 @@ export function managedActionPresentation(
     };
     if (status === 'INSTALLED') return {
       status, kind: 'success',
-      message: 'Managed components updated. Reopen Blockbench and reconnect the AI client if needed.',
+      message: 'Managed files installed. Runtime and Blockbench are not verified yet; reconnect to confirm the new version is usable.',
     };
   }
   const expected: Record<Exclude<ManagedAction, 'update'>, string> = {
