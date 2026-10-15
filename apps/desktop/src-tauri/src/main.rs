@@ -96,6 +96,14 @@ async fn open_blockbench_editor() -> Result<BlockbenchActionResult, DesktopError
 }
 
 #[tauri::command]
+async fn choose_blockbench_executable() -> Result<BlockbenchActionResult, DesktopError> {
+    tauri::async_runtime::spawn_blocking(blockbench::choose_executable)
+        .await
+        .map_err(|error| DesktopError::recoverable("BLOCKBENCH_EXECUTABLE_SELECTION_FAILED", error.to_string()))?
+        .map_err(|message| DesktopError::recoverable("BLOCKBENCH_EXECUTABLE_SELECTION_FAILED", message))
+}
+
+#[tauri::command]
 async fn browse_model() -> Result<ModelBrowseResult, DesktopError> {
     tauri::async_runtime::spawn_blocking(blockbench::browse_model)
         .await
@@ -241,6 +249,7 @@ fn main() {
             ensure_ready,
             focus_blockbench_window,
             open_blockbench_editor,
+            choose_blockbench_executable,
             browse_model,
             check_managed_update,
             managed_action,

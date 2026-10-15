@@ -11,7 +11,7 @@
     SystemStatus, ConnectionStatus, PluginFileActionResult, BootstrapActionResult,
     ManagedActionResult, ManagedUpdateCheck, BlockbenchFocusResult, EnsureReadyResult,
     DesktopCommandError, DiagnosticExportResult, ProjectNavigationActionResult,
-    ProjectPathResult, ManagedProgress, ModelBrowseResult, BlockbenchEditorResult,
+    ProjectPathResult, ManagedProgress, ModelBrowseResult, BlockbenchEditorResult, BlockbenchSelectionResult,
   } from './desktopTypes';
   import { compatibilityLabel, productMode, productHeadline, productMessage, productGuidance, managedActionPresentation, bootstrapInstallPresentation, desktopErrorNotice } from './desktopPresentation';
 
@@ -20,7 +20,7 @@
   let error = '';
   let errorTitle = 'Action could not be completed';
   let errorDetail: string | null = null;
-  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | 'open-editor' | 'browse-model' | null = null;
+  let busyAction: 'install' | 'connect-blockbench' | 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls' | 'show-plugin' | 'export-diagnostics' | 'project-action' | 'open-editor' | 'browse-model' | 'choose-editor' | null = null;
   let pluginApprovalNeeded = false;
   let migrationConflict = false;
   let migrationConflictKind: 'plugin' | 'client' = 'plugin';
@@ -317,6 +317,25 @@
         showSuccessToast(focused
           ? 'Model open request sent. Confirm the model tab in Blockbench.'
           : 'Model open request sent. Select Blockbench from the taskbar and confirm the model tab.');
+      }
+    } catch (cause) {
+      reportError(cause);
+    } finally {
+      busyAction = null;
+    }
+  }
+
+  async function chooseBlockbenchExecutable() {
+    if (devFixture || busyAction) return;
+    busyAction = 'choose-editor';
+    error = '';
+    errorDetail = null;
+    clearSuccessToast();
+    try {
+      const result = await invoke<BlockbenchSelectionResult>('choose_blockbench_executable');
+      if (result.status === 'SELECTED') {
+        await refresh();
+        showSuccessToast('Blockbench installation selected. No model files or managed plugins were changed.');
       }
     } catch (cause) {
       reportError(cause);
@@ -979,6 +998,7 @@
                   </div>
 
                   <div class="resource-actions">
+                    <button class="secondary-button" onclick={chooseBlockbenchExecutable} disabled={busyAction !== null} title="Choose a specific installed or portable Blockbench.exe">Select installation</button>
                     {#if productMode(status) === 'ready'}
                       <button class="secondary-button" onclick={openBlockbenchEditor} disabled={busyAction !== null}>Open</button>
                     {:else if productMode(status) === 'ready-start'}
@@ -1140,6 +1160,10 @@
 
           <section class="settings-section">
             <h2>Troubleshooting</h2>
+            <div class="settings-row">
+              <div><strong>Blockbench installation</strong><span>Choose an installed or portable Blockbench.exe if it moved or multiple installations were detected. Close Blockbench before changing this. Your project files and managed plugin stay untouched.</span></div>
+              <button class="secondary-button" onclick={chooseBlockbenchExecutable} disabled={busyAction !== null}>{busyAction === 'choose-editor' ? 'Selecting…' : 'Choose…'}</button>
+            </div>
             {#if status.manager_available}
               <div class="settings-row">
                 <div><strong>Installed Blockbench plugin</strong><span>Show the managed plugin file only when reviewing setup or trust.</span></div>

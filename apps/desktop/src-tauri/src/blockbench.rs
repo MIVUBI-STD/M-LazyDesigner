@@ -2,6 +2,7 @@ use crate::process::run_output;
 use serde::{Deserialize, Serialize};
 use rfd::FileDialog;
 use std::{
+    env, fs,
     path::{Path, PathBuf},
     process::{Command, Stdio},
     time::Duration,
@@ -60,6 +61,70 @@ pub struct BlockbenchState {
 #[derive(Debug, Serialize)]
 pub struct BlockbenchActionResult {
     pub status: &'static str,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct SelectedBlockbenchExecutable {
+    schema: u8,
+    executable: PathBuf,
+}
+
+fn selected_executable_path() -> Result<PathBuf, String> {
+    let local = env::var_os("LOCALAPPDATA")
+        .ok_or_else(|| "LOCALAPPDATA is unavailable for Blockbench selection.".to_string())?;
+    Ok(PathBuf::from(local).join("LazyDesigner").join("blockbench-executable.json"))
+}
+
+fn parse_selected_executable(bytes: &[u8]) -> Result<PathBuf, String> {
+    let selected: SelectedBlockbenchExecutable = serde_json::from_slice(bytes)
+        .map_err(|_| "Saved Blockbench executable selection is invalid. Choose Blockbench again in Support.".to_string())?;
+    if selected.schema != 1 || !selected.executable.is_absolute() || !is_executable_name(&selected.executable) {
+        return Err("Saved Blockbench executable selection is invalid. Choose Blockbench again in Support.".to_string());
+    }
+    Ok(selected.executable)
+}
+
+fn selected_executable() -> Result<Option<PathBuf>, String> {
+    let bytes = crate::metadata_io::read_metadata_bounded(&selected_executable_path()?)
+        .map_err(|_| "Saved Blockbench selection could not be read safely. Choose Blockbench again in Support.".to_string())?;
+    bytes.map(|raw| parse_selected_executable(&raw)).transpose()
+}
+
+/// User-controlled recovery for portable, moved, or multiple Blockbench installations.
+/// Does not change a Blockbench profile, managed package or any model file.
+pub(crate) fn choose_executable() -> Result<BlockbenchActionResult, String> {
+    let mut system = System::new();
+    system.refresh_processes();
+    if system.processes().values().any(|process| {
+        let name = process.name().to_ascii_lowercase();
+        name == "blockbench.exe" || name == "blockbench"
+    }) {
+        return Err("Save your models and close Blockbench before choosing another editor installation.".to_string());
+    }
+    let Some(executable) = FileDialog::new()
+        .add_filter("Blockbench executable", &["exe"])
+        .pick_file() else {
+        return Ok(BlockbenchActionResult { status: "CANCELLED" });
+    };
+    if !executable.is_absolute() || !is_executable_name(&executable)
+        || !fs::symlink_metadata(&executable).is_ok_and(|meta| meta.file_type().is_file())
+    {
+        return Err("Choose a regular Blockbench.exe file, not a link or another application.".to_string());
+    }
+    version(&executable)?; // Windows product metadata must identify Blockbench.
+    let selection_path = selected_executable_path()?;
+    let parent = selection_path.parent()
+        .ok_or_else(|| "Blockbench selection directory is invalid.".to_string())?;
+    fs::create_dir_all(parent)
+        .map_err(|error| format!("Cannot create Blockbench selection directory: {error}"))?;
+    let before = crate::metadata_io::read_metadata_bounded(&selection_path)
+        .map_err(|error| format!("Cannot safely read previous Blockbench selection: {error}"))?;
+    let bytes = serde_json::to_vec(&SelectedBlockbenchExecutable { schema: 1, executable })
+        .map_err(|_| "Cannot encode Blockbench selection.".to_string())?;
+    crate::metadata_io::replace_metadata_if_unchanged(
+        &selection_path, &bytes, before.as_deref(), true,
+    ).map_err(|error| format!("Cannot save Blockbench selection: {error}"))?;
+    Ok(BlockbenchActionResult { status: "SELECTED" })
 }
 
 /// Outcome of an explicit user-requested editor-window focus attempt.
@@ -157,7 +222,22 @@ fn discover_executable(system: &System) -> Result<Option<PathBuf>, String> {
             }
             Ok(path.to_path_buf())
         }).collect();
-        return select_running_executable(&paths?);
+        let running_editor = select_running_executable(&paths?)?;
+        if let (Some(active), Some(pinned)) = (running_editor.as_ref(), selected_executable()?) {
+            if active.to_string_lossy().replace('/', "\\").to_ascii_lowercase()
+                != pinned.to_string_lossy().replace('/', "\\").to_ascii_lowercase()
+            {
+                return Err("Running Blockbench executable differs from the selected installation. Close it or reselect the correct Blockbench.exe in Support.".to_string());
+            }
+        }
+        return Ok(running_editor);
+    }
+
+    if let Some(pinned) = selected_executable()? {
+        if !pinned.is_file() {
+            return Err("Selected Blockbench installation has moved or was removed. Choose the new Blockbench.exe in Support.".to_string());
+        }
+        return Ok(Some(pinned));
     }
 
     let script = r#"
@@ -570,6 +650,18 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn selection_metadata_rejects_invalid_editor_identity() {
+        let executable = std::env::temp_dir().join("Blockbench.exe");
+        let good = serde_json::to_vec(&SelectedBlockbenchExecutable {
+            schema: 1, executable: executable.clone(),
+        }).unwrap();
+        assert_eq!(parse_selected_executable(&good).unwrap(), executable);
+        let invalid = serde_json::json!({"schema":2,"executable":executable});
+        assert!(parse_selected_executable(invalid.to_string().as_bytes()).is_err());
+        assert!(parse_selected_executable(b"{not-json").is_err());
     }
 
     #[test]

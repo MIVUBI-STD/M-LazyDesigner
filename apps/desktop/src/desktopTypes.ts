@@ -107,6 +107,10 @@ export type ModelBrowseResult = {
     status: 'LAUNCHED' | 'CANCELLED';
   };
 
+export type BlockbenchSelectionResult = {
+    status: 'SELECTED' | 'CANCELLED';
+  };
+
 export type BlockbenchEditorResult = {
     status: 'STARTED' | 'ALREADY_RUNNING';
   };
