@@ -113,6 +113,11 @@ test("navigation heartbeat and change debounce use native timers and clean them 
     });
     setupProjectNavigationSnapshot();
     expect(writes).toBe(1);
+    const initialNavigation = JSON.parse([...files.values()][0]!);
+    expect(initialNavigation.schema).toBe(4);
+    expect(initialNavigation.producer_pid).toBe(process.pid);
+    // Desktop may verify the native writer PID only after an explicit model
+    // open; no new background requester or asset mutation is involved.
     heartbeat();
     expect(writes).toBe(2);
     events.select_project!();
