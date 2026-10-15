@@ -1,0 +1,2425 @@
+{
+  "date": "2026-10-15",
+  "project_uuid": "003fe8a3-82b9-5d31-2136-a17c81be3c30",
+  "texture_revision": "sha256:512x512:847192cd9e3cd9973e2c6a7dd6b368bd79f7486c37575df9020e065ec6dc7ece",
+  "source": "reference/source-front-back.png",
+  "optimization": {
+    "before_cubes": 277,
+    "after_cubes": 181,
+    "reduction_percent": 34.66,
+    "before_base_cubes": 143,
+    "after_base_cubes": 62,
+    "before_unique_uv_rectangles": 1626,
+    "after_unique_uv_rectangles": 211,
+    "current_faces": 1086,
+    "shared_face_owners": 875,
+    "shared_regions": 205,
+    "before_model_bytes": 315538,
+    "after_model_bytes": 269999,
+    "physical_atlas": [
+      512,
+      512
+    ],
+    "logical_uv": [
+      128,
+      128
+    ]
+  },
+  "geometry": {
+    "bounds": {
+      "min": [
+        -21.999999999999996,
+        0,
+        -22
+      ],
+      "max": [
+        22,
+        73.3,
+        22
+      ],
+      "center": [
+        3.552713678800501e-15,
+        36.65,
+        0
+      ],
+      "size_xyz": [
+        44,
+        73.3,
+        44
+      ],
+      "dimensions": {
+        "width": 44,
+        "height": 73.3,
+        "length": 44
+      },
+      "footprint": {
+        "min_xz": [
+          -21.999999999999996,
+          -22
+        ],
+        "max_xz": [
+          22,
+          22
+        ],
+        "size": {
+          "width": 44,
+          "length": 44
+        }
+      }
+    },
+    "hygiene": {
+      "state": "clean",
+      "precision": {
+        "epsilon": 0.000001,
+        "drift_count": 0,
+        "affected_cube_count": 0,
+        "examples": [],
+        "examples_truncated": false
+      },
+      "plane_like_cubes": {
+        "count": 0,
+        "examples": [],
+        "examples_truncated": false
+      },
+      "degenerate_cubes": {
+        "count": 0,
+        "examples": [],
+        "examples_truncated": false
+      },
+      "duplicate_bone_names": {
+        "name_count": 0,
+        "group_count": 0,
+        "examples": [],
+        "examples_truncated": false
+      }
+    },
+    "surface_quality": {
+      "state": "review_required",
+      "visual_verdict": "not_evaluated",
+      "counts": {
+        "z_fighting": 0,
+        "micro_gap": 0,
+        "coplanar_edge_gap": 2,
+        "shallow_penetration": 6
+      },
+      "categorized_risk_count": 8,
+      "additional_warnings_omitted": 36,
+      "diagnostics_unavailable_count": 0,
+      "scan_complete": true,
+      "details_complete": false,
+      "note": "Bounded geometric review hints only; absence of reported risk is not visual PASS."
+    },
+    "surface_integrity": {
+      "state": "partial",
+      "scope": "axis_aligned_rest_pose",
+      "complete": false,
+      "checked_cube_count": 55,
+      "excluded_rotated_cube_count": 126,
+      "invalid_cube_count": 0,
+      "unsupported_transform_count": 0,
+      "unsupported_mesh_count": 0,
+      "coplanar_overlap_count": 0,
+      "coplanar_overlap_examples": [],
+      "coplanar_overlap_examples_truncated": false,
+      "positive_volume_intersection_count": 44,
+      "positive_volume_examples": [
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+            "name": "gown_core"
+          },
+          "b": {
+            "uuid": "f8586cd8-1093-191f-2c2a-bcce1d030ba5",
+            "name": "waist"
+          },
+          "overlap": [
+            11,
+            1.6,
+            7.8
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "1899372a-2b4c-e1c1-ae53-fee20afee5bd",
+            "name": "breastplate"
+          },
+          "b": {
+            "uuid": "cfc93f29-6282-1f95-56d4-ba9eb0c95496",
+            "name": "upper_chest_lip"
+          },
+          "overlap": [
+            15.4,
+            1.15,
+            8
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "1899372a-2b4c-e1c1-ae53-fee20afee5bd",
+            "name": "breastplate"
+          },
+          "b": {
+            "uuid": "f8586cd8-1093-191f-2c2a-bcce1d030ba5",
+            "name": "waist"
+          },
+          "overlap": [
+            11.88,
+            0.4,
+            7.8
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "1899372a-2b4c-e1c1-ae53-fee20afee5bd",
+            "name": "breastplate"
+          },
+          "b": {
+            "uuid": "d3859d41-d6c3-21ce-3b44-841de54f560a",
+            "name": "rear_spine"
+          },
+          "overlap": [
+            1.1,
+            5.1,
+            0.15
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "cfc93f29-6282-1f95-56d4-ba9eb0c95496",
+            "name": "upper_chest_lip"
+          },
+          "b": {
+            "uuid": "28cecaeb-2e51-3715-6b88-affe1ceba79c",
+            "name": "neck"
+          },
+          "overlap": [
+            5.3,
+            0.35,
+            4.4
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "cfc93f29-6282-1f95-56d4-ba9eb0c95496",
+            "name": "upper_chest_lip"
+          },
+          "b": {
+            "uuid": "d3859d41-d6c3-21ce-3b44-841de54f560a",
+            "name": "rear_spine"
+          },
+          "overlap": [
+            1.1,
+            1.5,
+            0.3
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "cfc93f29-6282-1f95-56d4-ba9eb0c95496",
+            "name": "upper_chest_lip"
+          },
+          "b": {
+            "uuid": "7da6d7b5-c058-2d2e-2955-54a51837eab5",
+            "name": "chest_sternum"
+          },
+          "overlap": [
+            1.166,
+            1.075,
+            0.075
+          ]
+        },
+        {
+          "code": "POSITIVE_VOLUME_INTERSECTION",
+          "severity": "warning",
+          "a": {
+            "uuid": "28cecaeb-2e51-3715-6b88-affe1ceba79c",
+            "name": "neck"
+          },
+          "b": {
+            "uuid": "81f1849a-ff58-e3f2-23a6-8c0844c7479f",
+            "name": "helmet_shell"
+          },
+          "overlap": [
+            5.3,
+            0.75,
+            4.4
+          ]
+        }
+      ],
+      "positive_volume_examples_truncated": true,
+      "note": "Evidence is intentionally partial because rotated/group-transformed/mesh or invalid geometry is outside this bounded axis-aligned scan. Partial evidence must not be promoted to a clean whole-model surface verdict."
+    }
+  },
+  "uv": {
+    "state": "available",
+    "logical_canvas": {
+      "width": 128,
+      "height": 128
+    },
+    "packing": {
+      "units": "logical_uv_units",
+      "face_area": 28766.25,
+      "occupied_area": 6532.5,
+      "occupancy_ratio": 0.398712158203125,
+      "occupied_bounds": {
+        "min": [
+          0.25,
+          0.25
+        ],
+        "max": [
+          97.75,
+          127.75
+        ]
+      },
+      "occupied_size": [
+        97.5,
+        127.5
+      ],
+      "padding": "unverified"
+    },
+    "enabled_faces": 1074,
+    "valid_uv_faces": 1074,
+    "invalid_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "out_of_bounds": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "fractional_uv": {
+      "count": 1070,
+      "examples": [
+        {
+          "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+          "cube_name": "gown_core",
+          "face": "east",
+          "uv": [
+            4.25,
+            0.25,
+            12.25,
+            30.25
+          ],
+          "box_uv": false,
+          "autouv": 0,
+          "mirror_uv": false,
+          "face_rotation": 0
+        },
+        {
+          "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+          "cube_name": "gown_core",
+          "face": "west",
+          "uv": [
+            4.25,
+            0.25,
+            12.25,
+            30.25
+          ],
+          "box_uv": false,
+          "autouv": 0,
+          "mirror_uv": false,
+          "face_rotation": 0
+        },
+        {
+          "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+          "cube_name": "flared_plate_-1_0",
+          "face": "north",
+          "uv": [
+            0.25,
+            0.25,
+            3.75,
+            30.5
+          ],
+          "box_uv": false,
+          "autouv": 0,
+          "mirror_uv": false,
+          "face_rotation": 0
+        },
+        {
+          "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+          "cube_name": "flared_plate_-1_0",
+          "face": "south",
+          "uv": [
+            0.25,
+            0.25,
+            3.75,
+            30.5
+          ],
+          "box_uv": false,
+          "autouv": 0,
+          "mirror_uv": false,
+          "face_rotation": 0
+        },
+        {
+          "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+          "cube_name": "flared_plate_-1_0",
+          "face": "east",
+          "uv": [
+            0.25,
+            31,
+            3.5,
+            61.25
+          ],
+          "box_uv": false,
+          "autouv": 0,
+          "mirror_uv": false,
+          "face_rotation": 0
+        },
+        {
+          "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+          "cube_name": "flared_plate_-1_0",
+          "face": "west",
+          "uv": [
+            0.25,
+            31,
+            3.5,
+            61.25
+          ],
+          "box_uv": false,
+          "autouv": 0,
+          "mirror_uv": false,
+          "face_rotation": 0
+        }
+      ],
+      "examples_truncated": true
+    },
+    "non_integral_pixel_mapping": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "degenerate_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "collapsed_surface_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "unlocked_box_uv_cubes": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "exact_reuse": {
+      "region_count": 203,
+      "examples": [
+        {
+          "rect": [
+            4,
+            31,
+            15,
+            61
+          ],
+          "owner_count": 2,
+          "owners": [
+            {
+              "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+              "cube_name": "gown_core",
+              "face": "north",
+              "uv": [
+                4,
+                31,
+                15,
+                61
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+              "cube_name": "gown_core",
+              "face": "south",
+              "uv": [
+                4,
+                31,
+                15,
+                61
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            }
+          ],
+          "owners_truncated": false
+        },
+        {
+          "rect": [
+            4.25,
+            0.25,
+            12.25,
+            30.25
+          ],
+          "owner_count": 2,
+          "owners": [
+            {
+              "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+              "cube_name": "gown_core",
+              "face": "east",
+              "uv": [
+                4.25,
+                0.25,
+                12.25,
+                30.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+              "cube_name": "gown_core",
+              "face": "west",
+              "uv": [
+                4.25,
+                0.25,
+                12.25,
+                30.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            }
+          ],
+          "owners_truncated": false
+        },
+        {
+          "rect": [
+            33,
+            39,
+            44,
+            47
+          ],
+          "owner_count": 2,
+          "owners": [
+            {
+              "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+              "cube_name": "gown_core",
+              "face": "up",
+              "uv": [
+                33,
+                39,
+                44,
+                47
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "3be9f6be-7d27-cca2-fd84-48ceaf45a19b",
+              "cube_name": "gown_core",
+              "face": "down",
+              "uv": [
+                33,
+                39,
+                44,
+                47
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            }
+          ],
+          "owners_truncated": false
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            3.75,
+            30.5
+          ],
+          "owner_count": 16,
+          "owners": [
+            {
+              "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+              "cube_name": "flared_plate_-1_0",
+              "face": "north",
+              "uv": [
+                0.25,
+                0.25,
+                3.75,
+                30.5
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+              "cube_name": "flared_plate_-1_0",
+              "face": "south",
+              "uv": [
+                0.25,
+                0.25,
+                3.75,
+                30.5
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+              "cube_name": "flared_plate_-1_1",
+              "face": "north",
+              "uv": [
+                0.25,
+                0.25,
+                3.75,
+                30.5
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+              "cube_name": "flared_plate_-1_1",
+              "face": "south",
+              "uv": [
+                0.25,
+                0.25,
+                3.75,
+                30.5
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+              "cube_name": "flared_plate_-1_1",
+              "face": "east",
+              "uv": [
+                0.25,
+                0.25,
+                3.75,
+                30.5
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+              "cube_name": "flared_plate_-1_1",
+              "face": "west",
+              "uv": [
+                0.25,
+                0.25,
+                3.75,
+                30.5
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            }
+          ],
+          "owners_truncated": true
+        },
+        {
+          "rect": [
+            0.25,
+            31,
+            3.5,
+            61.25
+          ],
+          "owner_count": 8,
+          "owners": [
+            {
+              "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+              "cube_name": "flared_plate_-1_0",
+              "face": "east",
+              "uv": [
+                0.25,
+                31,
+                3.5,
+                61.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+              "cube_name": "flared_plate_-1_0",
+              "face": "west",
+              "uv": [
+                0.25,
+                31,
+                3.5,
+                61.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1a085b1-3fff-e4bf-8232-8fd3cf871386",
+              "cube_name": "flared_plate_-1_2",
+              "face": "east",
+              "uv": [
+                0.25,
+                31,
+                3.5,
+                61.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1a085b1-3fff-e4bf-8232-8fd3cf871386",
+              "cube_name": "flared_plate_-1_2",
+              "face": "west",
+              "uv": [
+                0.25,
+                31,
+                3.5,
+                61.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "6afa54bb-cf25-c89b-790f-7eb0981d59f6",
+              "cube_name": "flared_plate_1_0",
+              "face": "east",
+              "uv": [
+                0.25,
+                31,
+                3.5,
+                61.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "6afa54bb-cf25-c89b-790f-7eb0981d59f6",
+              "cube_name": "flared_plate_1_0",
+              "face": "west",
+              "uv": [
+                0.25,
+                31,
+                3.5,
+                61.25
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            }
+          ],
+          "owners_truncated": true
+        },
+        {
+          "rect": [
+            47.75,
+            9.5,
+            51.25,
+            12.75
+          ],
+          "owner_count": 8,
+          "owners": [
+            {
+              "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+              "cube_name": "flared_plate_-1_0",
+              "face": "up",
+              "uv": [
+                47.75,
+                9.5,
+                51.25,
+                12.75
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+              "cube_name": "flared_plate_-1_0",
+              "face": "down",
+              "uv": [
+                47.75,
+                9.5,
+                51.25,
+                12.75
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1a085b1-3fff-e4bf-8232-8fd3cf871386",
+              "cube_name": "flared_plate_-1_2",
+              "face": "up",
+              "uv": [
+                47.75,
+                9.5,
+                51.25,
+                12.75
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "b1a085b1-3fff-e4bf-8232-8fd3cf871386",
+              "cube_name": "flared_plate_-1_2",
+              "face": "down",
+              "uv": [
+                47.75,
+                9.5,
+                51.25,
+                12.75
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "6afa54bb-cf25-c89b-790f-7eb0981d59f6",
+              "cube_name": "flared_plate_1_0",
+              "face": "up",
+              "uv": [
+                47.75,
+                9.5,
+                51.25,
+                12.75
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            },
+            {
+              "cube_uuid": "6afa54bb-cf25-c89b-790f-7eb0981d59f6",
+              "cube_name": "flared_plate_1_0",
+              "face": "down",
+              "uv": [
+                47.75,
+                9.5,
+                51.25,
+                12.75
+              ],
+              "box_uv": false,
+              "autouv": 0,
+              "mirror_uv": false,
+              "face_rotation": 0
+            }
+          ],
+          "owners_truncated": true
+        }
+      ],
+      "examples_truncated": true
+    },
+    "partial_overlap": {
+      "pair_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "production_gate": {
+      "state": "ready",
+      "reasons": []
+    }
+  },
+  "pixel_verification": {
+    "rgba_byte_mismatches": 0,
+    "embedded_png_matches": true,
+    "scope": "Full RGBA comparison to final 35-percent texture shading pass"
+  },
+  "native_coverage_scan": {
+    "state": "not_rerun_this_revision",
+    "prior_scan": "partial: native pixel budget",
+    "complementary_evidence": "full RGBA comparison and embedded PNG equality"
+  },
+  "reference_sampling": {
+    "palette": {
+      "gold": [
+        "#452c16",
+        "#51361c",
+        "#5f4223",
+        "#72502b",
+        "#836035",
+        "#9b713d",
+        "#a77e47",
+        "#b38a4f",
+        "#bf995d",
+        "#d4ad6d",
+        "#e6c182",
+        "#f5d8a0"
+      ],
+      "armor": [
+        "#1c2830",
+        "#212f37",
+        "#293942",
+        "#2e414b",
+        "#354a54",
+        "#3b515c",
+        "#3f5560",
+        "#435a65",
+        "#475e69",
+        "#4b626d",
+        "#526873",
+        "#6d838c"
+      ],
+      "stone": [
+        "#20282e",
+        "#222b31",
+        "#262f37",
+        "#2a343b",
+        "#2d3840",
+        "#313d46",
+        "#35424a",
+        "#3a4750",
+        "#43515a",
+        "#53636c",
+        "#798a94",
+        "#9cacb3"
+      ],
+      "cloth": [
+        "#320609",
+        "#4e0a10",
+        "#6a0c18",
+        "#750f1a",
+        "#88111e",
+        "#951522",
+        "#a21725",
+        "#a71927",
+        "#ac1a28",
+        "#b11c2a",
+        "#b81f2c",
+        "#ba2d34"
+      ],
+      "ruby": [
+        "#51040c",
+        "#580710",
+        "#600913",
+        "#680a15",
+        "#7c0e1a",
+        "#931220",
+        "#ae1728",
+        "#d12434",
+        "#e83545",
+        "#f25361",
+        "#f86875",
+        "#fa818b"
+      ]
+    },
+    "surface_samples": {
+      "armor": [
+        326,
+        301,
+        345,
+        356
+      ],
+      "skirt": [
+        311,
+        480,
+        339,
+        749
+      ],
+      "stone": [
+        358,
+        922,
+        477,
+        978
+      ],
+      "gold": [
+        184,
+        555,
+        200,
+        696
+      ],
+      "cloth": [
+        376,
+        680,
+        400,
+        780
+      ],
+      "ruby": [
+        176,
+        124,
+        216,
+        173
+      ]
+    },
+    "skirt_rectification": {
+      "top": [
+        [
+          323,
+          480
+        ],
+        [
+          337,
+          480
+        ]
+      ],
+      "bottom": [
+        [
+          283,
+          751
+        ],
+        [
+          311,
+          751
+        ]
+      ]
+    }
+  },
+  "visual": {
+    "state": "READY_FOR_REVIEW",
+    "user_approved": false,
+    "texture_revision": "sha256:512x512:847192cd9e3cd9973e2c6a7dd6b368bd79f7486c37575df9020e065ec6dc7ece",
+    "render_evidence": {
+      "project": {
+        "uuid": "003fe8a3-82b9-5d31-2136-a17c81be3c30",
+        "name": "crimson_sentinel",
+        "format": "bedrock"
+      },
+      "count": 5,
+      "total_png_bytes": 577170,
+      "front_direction": "-z",
+      "framing_mode": "model",
+      "framing_bounds": {
+        "min": [
+          -21.999999999999996,
+          0,
+          -22
+        ],
+        "max": [
+          22,
+          73.3,
+          22
+        ]
+      },
+      "view_selection": {
+        "mode": "explicit",
+        "requested_targets": [],
+        "verification_risk": "LOW",
+        "minimum_views": [
+          "front",
+          "back",
+          "left",
+          "top",
+          "front_left_3q"
+        ],
+        "expansion_views": [],
+        "coverage": [
+          {
+            "view": "front",
+            "targets": []
+          },
+          {
+            "view": "back",
+            "targets": []
+          },
+          {
+            "view": "left",
+            "targets": []
+          },
+          {
+            "view": "top",
+            "targets": []
+          },
+          {
+            "view": "front_left_3q",
+            "targets": []
+          }
+        ],
+        "selected_views": [
+          "front",
+          "back",
+          "left",
+          "top",
+          "front_left_3q"
+        ],
+        "uncovered_targets": []
+      },
+      "resolution_selection": {
+        "mode": "explicit_or_default",
+        "requested_size": 1024,
+        "selected_size": 1024
+      },
+      "captures": [
+        {
+          "view": "front",
+          "projection": "orthographic",
+          "width": 1024,
+          "height": 1024,
+          "png_bytes": 106323,
+          "camera_spec": {
+            "projection": "orthographic",
+            "position": [
+              3.552713678800501e-15,
+              36.65,
+              -325.2
+            ],
+            "target": [
+              3.552713678800501e-15,
+              36.65,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "zoom": 0.2816529507547419,
+            "fov": null
+          }
+        },
+        {
+          "view": "back",
+          "projection": "orthographic",
+          "width": 1024,
+          "height": 1024,
+          "png_bytes": 98992,
+          "camera_spec": {
+            "projection": "orthographic",
+            "position": [
+              3.552713678800501e-15,
+              36.65,
+              325.2
+            ],
+            "target": [
+              3.552713678800501e-15,
+              36.65,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "zoom": 0.2816529507547419,
+            "fov": null
+          }
+        },
+        {
+          "view": "left",
+          "projection": "orthographic",
+          "width": 1024,
+          "height": 1024,
+          "png_bytes": 62469,
+          "camera_spec": {
+            "projection": "orthographic",
+            "position": [
+              325.2,
+              36.65,
+              0
+            ],
+            "target": [
+              3.552713678800501e-15,
+              36.65,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "zoom": 0.2816529507547419,
+            "fov": null
+          }
+        },
+        {
+          "view": "top",
+          "projection": "orthographic",
+          "width": 1024,
+          "height": 1024,
+          "png_bytes": 157098,
+          "camera_spec": {
+            "projection": "orthographic",
+            "position": [
+              3.552713678800501e-15,
+              361.84999999999997,
+              0
+            ],
+            "target": [
+              3.552713678800501e-15,
+              36.65,
+              0
+            ],
+            "up": [
+              0,
+              0,
+              1
+            ],
+            "zoom": 0.46920821114369504,
+            "fov": null
+          }
+        },
+        {
+          "view": "front_left_3q",
+          "projection": "perspective",
+          "width": 1024,
+          "height": 1024,
+          "png_bytes": 152288,
+          "camera_spec": {
+            "projection": "perspective",
+            "position": [
+              95.3934458387611,
+              114.53842237026265,
+              -95.3934458387611
+            ],
+            "target": [
+              3.552713678800501e-15,
+              36.65,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "zoom": null,
+            "fov": 45
+          }
+        }
+      ],
+      "reference_comparison": {
+        "board_layout": "UPPER:LEFT|FRONT|BACK;LOWER:TOP|FRONT_LEFT_3Q",
+        "views": [
+          {
+            "view": "front",
+            "reference_slot": "upper_front",
+            "primary_evidence": [
+              "width",
+              "height",
+              "silhouette",
+              "count"
+            ]
+          },
+          {
+            "view": "back",
+            "reference_slot": "upper_back",
+            "primary_evidence": [
+              "width",
+              "height",
+              "rear_topology",
+              "asymmetry"
+            ]
+          },
+          {
+            "view": "left",
+            "reference_slot": "upper_left",
+            "primary_evidence": [
+              "length",
+              "height",
+              "depth",
+              "attachment"
+            ]
+          },
+          {
+            "view": "top",
+            "reference_slot": "lower_top",
+            "primary_evidence": [
+              "width",
+              "length",
+              "depth",
+              "negative_space"
+            ]
+          },
+          {
+            "view": "front_left_3q",
+            "reference_slot": "lower_front_left_3q",
+            "primary_evidence": [
+              "layering",
+              "attachment",
+              "orientation",
+              "depth"
+            ]
+          }
+        ],
+        "difference_first": true,
+        "visual_verdict": "not_evaluated"
+      },
+      "offscreen_capture": true,
+      "render_evidence": {
+        "diagnostic_missing_texture_highlight": false,
+        "shading": true,
+        "brightness": 50,
+        "view_mode": "textured",
+        "source": "blockbench_preview",
+        "camera_spec_source": "offscreen_capture_plan",
+        "native_camera_attested": false,
+        "in_game_verified": false
+      },
+      "active_editor_camera_untouched": true,
+      "warnings": 9
+    },
+    "views": [
+      "front",
+      "back",
+      "left",
+      "top",
+      "front_left_3q"
+    ],
+    "comparison": "Fresh mapped three-quarter view reviewed for controlled shadow/highlight strength and preservation of aged gold, red cloth and blue-grey steel."
+  },
+  "physical_uv_evidence": {
+    "state": "available",
+    "visual_verdict": "not_evaluated",
+    "face_count": 1086,
+    "evaluated_face_count": 1086,
+    "invalid_face_count": 0,
+    "non_uniform_density_face_count": 1002,
+    "exact_shared_region_count": 205,
+    "shared_region_physical_mismatch_count": 28,
+    "max_density_ratio": 1.416667,
+    "max_aspect_error": 0.294118,
+    "invalid_examples": [],
+    "non_uniform_examples": [
+      {
+        "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+        "cube_name": "flared_plate_-1_0",
+        "face": "north",
+        "physical": [
+          3.3999999999999995,
+          30.2502892548154
+        ],
+        "uv_size": [
+          3.5,
+          30.25
+        ],
+        "texel_density": [
+          1.029412,
+          0.99999
+        ],
+        "density_ratio": 1.029422,
+        "aspect_error": 0.029422
+      },
+      {
+        "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+        "cube_name": "flared_plate_-1_0",
+        "face": "south",
+        "physical": [
+          3.3999999999999995,
+          30.2502892548154
+        ],
+        "uv_size": [
+          3.5,
+          30.25
+        ],
+        "texel_density": [
+          1.029412,
+          0.99999
+        ],
+        "density_ratio": 1.029422,
+        "aspect_error": 0.029422
+      },
+      {
+        "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+        "cube_name": "flared_plate_-1_0",
+        "face": "east",
+        "physical": [
+          3.2,
+          30.2502892548154
+        ],
+        "uv_size": [
+          3.25,
+          30.25
+        ],
+        "texel_density": [
+          1.015625,
+          0.99999
+        ],
+        "density_ratio": 1.015635,
+        "aspect_error": 0.015635
+      },
+      {
+        "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+        "cube_name": "flared_plate_-1_0",
+        "face": "west",
+        "physical": [
+          3.2,
+          30.2502892548154
+        ],
+        "uv_size": [
+          3.25,
+          30.25
+        ],
+        "texel_density": [
+          1.015625,
+          0.99999
+        ],
+        "density_ratio": 1.015635,
+        "aspect_error": 0.015635
+      },
+      {
+        "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+        "cube_name": "flared_plate_-1_0",
+        "face": "up",
+        "physical": [
+          3.3999999999999995,
+          3.2
+        ],
+        "uv_size": [
+          3.5,
+          3.25
+        ],
+        "texel_density": [
+          1.029412,
+          1.015625
+        ],
+        "density_ratio": 1.013575,
+        "aspect_error": 0.013575
+      },
+      {
+        "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+        "cube_name": "flared_plate_-1_0",
+        "face": "down",
+        "physical": [
+          3.3999999999999995,
+          3.2
+        ],
+        "uv_size": [
+          3.5,
+          3.25
+        ],
+        "texel_density": [
+          1.029412,
+          1.015625
+        ],
+        "density_ratio": 1.013575,
+        "aspect_error": 0.013575
+      },
+      {
+        "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+        "cube_name": "flared_plate_-1_1",
+        "face": "north",
+        "physical": [
+          3.3999999999999995,
+          30.32160945596391
+        ],
+        "uv_size": [
+          3.5,
+          30.25
+        ],
+        "texel_density": [
+          1.029412,
+          0.997638
+        ],
+        "density_ratio": 1.031849,
+        "aspect_error": 0.031849
+      },
+      {
+        "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+        "cube_name": "flared_plate_-1_1",
+        "face": "south",
+        "physical": [
+          3.3999999999999995,
+          30.32160945596391
+        ],
+        "uv_size": [
+          3.5,
+          30.25
+        ],
+        "texel_density": [
+          1.029412,
+          0.997638
+        ],
+        "density_ratio": 1.031849,
+        "aspect_error": 0.031849
+      }
+    ],
+    "shared_region_mismatch_examples": [
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:0.25:0.25:3.5:30.25",
+        "a": {
+          "cube_uuid": "5c46d1b7-88eb-872b-60c8-1eb718f18088",
+          "cube_name": "flared_plate_-1_0",
+          "face": "north",
+          "physical": [
+            3.3999999999999995,
+            30.2502892548154
+          ]
+        },
+        "b": {
+          "cube_uuid": "b1fa0a71-8992-563a-e3c3-e317b2384b76",
+          "cube_name": "flared_plate_-1_1",
+          "face": "north",
+          "physical": [
+            3.3999999999999995,
+            30.32160945596391
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:19.25:113.5:1.25:3.75",
+        "a": {
+          "cube_uuid": "ee678185-b1a9-5fc7-7e64-e565c429a0f5",
+          "cube_name": "jaw_guard_-1",
+          "face": "east",
+          "physical": [
+            0.9499999999999997,
+            2.9000000000000057
+          ]
+        },
+        "b": {
+          "cube_uuid": "8bb1361d-f478-55b4-41a6-f632134cbf65",
+          "cube_name": "crown_prong_-3.8_-3.7",
+          "face": "north",
+          "physical": [
+            1.12,
+            3.25
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:28.25:115.25:1.75:1.25",
+        "a": {
+          "cube_uuid": "ee678185-b1a9-5fc7-7e64-e565c429a0f5",
+          "cube_name": "jaw_guard_-1",
+          "face": "up",
+          "physical": [
+            1.4000000000000004,
+            0.9499999999999997
+          ]
+        },
+        "b": {
+          "cube_uuid": "34a8f169-3634-0490-d469-167d1acc3f3b",
+          "cube_name": "rear_yoke_wing_-1",
+          "face": "up",
+          "physical": [
+            1.484,
+            1
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:13.5:77.75:1.25:1",
+        "a": {
+          "cube_uuid": "dc88d37e-5c09-310e-5409-4b8b6cb476ba",
+          "cube_name": "nose_bar",
+          "face": "up",
+          "physical": [
+            1,
+            0.7799999999999998
+          ]
+        },
+        "b": {
+          "cube_uuid": "8bb1361d-f478-55b4-41a6-f632134cbf65",
+          "cube_name": "crown_prong_-3.8_-3.7",
+          "face": "up",
+          "physical": [
+            1.12,
+            0.9000000000000004
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:30.5:116.75:0.75:1.25",
+        "a": {
+          "cube_uuid": "046d1983-0260-ba48-4092-a5309e286348",
+          "cube_name": "crown_band_-3.8",
+          "face": "east",
+          "physical": [
+            0.6999999999999997,
+            0.9000000000000057
+          ]
+        },
+        "b": {
+          "cube_uuid": "c3310ab6-1569-2b66-d3d2-ba372550e3b6",
+          "cube_name": "staff_cup_prong_-1",
+          "face": "north",
+          "physical": [
+            0.6499999999999986,
+            0.9500000000000028
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:15.25:77.75:2:7.25",
+        "a": {
+          "cube_uuid": "8bb1361d-f478-55b4-41a6-f632134cbf65",
+          "cube_name": "crown_prong_-3.8_-3.7",
+          "face": "east",
+          "physical": [
+            0.9000000000000004,
+            3.25
+          ]
+        },
+        "b": {
+          "cube_uuid": "f517d862-5c72-1de7-6e2c-2f0f31a10e8d",
+          "cube_name": "pauldron_gold_-1",
+          "face": "north",
+          "physical": [
+            1.5899999999999999,
+            5.755866572463262
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:29.75:125:1.5:1.25",
+        "a": {
+          "cube_uuid": "15e65378-781a-62ae-5833-4d42cac5527a",
+          "cube_name": "crown_prong_-3.8_0",
+          "face": "north",
+          "physical": [
+            1.12,
+            1
+          ]
+        },
+        "b": {
+          "cube_uuid": "15e65378-781a-62ae-5833-4d42cac5527a",
+          "cube_name": "crown_prong_-3.8_0",
+          "face": "up",
+          "physical": [
+            1.12,
+            0.9000000000000004
+          ]
+        }
+      },
+      {
+        "region": "22fff86e-830b-e737-fe06-139db5261ec4:30:122.75:1.25:1.25",
+        "a": {
+          "cube_uuid": "15e65378-781a-62ae-5833-4d42cac5527a",
+          "cube_name": "crown_prong_-3.8_0",
+          "face": "east",
+          "physical": [
+            0.9000000000000004,
+            1
+          ]
+        },
+        "b": {
+          "cube_uuid": "fec8e7fb-f378-e219-0b1b-27e8e2555e61",
+          "cube_name": "staff_shaft",
+          "face": "up",
+          "physical": [
+            0.9999999999999982,
+            1
+          ]
+        }
+      }
+    ],
+    "examples_truncated": true,
+    "note": "Physical face aspect and texel-density evidence only. Exact UV sharing can be intentional; semantic artwork/material identity and mapped-model visual fidelity still require authoring review.",
+    "cube_face_scope_complete": true,
+    "unsupported_mesh_count": 0
+  },
+  "upper_armor_revision": {
+    "head_cubes_updated": 20,
+    "cube_count_unchanged": 176,
+    "helmet_width": 8.6,
+    "previous_helmet_width": 7.6,
+    "palette": {
+      "armor": [
+        "#192631",
+        "#243543",
+        "#314756",
+        "#3d5665",
+        "#4a6574",
+        "#587585",
+        "#678695",
+        "#7897a3",
+        "#8aa7b0",
+        "#9bb6bc",
+        "#adc7c9",
+        "#c4d7d2"
+      ],
+      "gold": [
+        "#3a2c28",
+        "#51402d",
+        "#685031",
+        "#805f36",
+        "#99733e",
+        "#b08a4d",
+        "#c69c58",
+        "#d6ad69",
+        "#e3bd7b",
+        "#efce94",
+        "#f7dfac",
+        "#fff0c8"
+      ],
+      "cloth": [
+        "#2b101d",
+        "#421121",
+        "#5a1326",
+        "#71162a",
+        "#8a1b2f",
+        "#a32336",
+        "#b92d40",
+        "#cc384a",
+        "#dc4756",
+        "#e95c68",
+        "#f0777f",
+        "#f4999b"
+      ],
+      "stone": [
+        "#222933",
+        "#28323d",
+        "#303d49",
+        "#394853",
+        "#43535e",
+        "#4e606b",
+        "#5a6d78",
+        "#687d87",
+        "#78909a",
+        "#8ba2aa",
+        "#a0b6bb",
+        "#bdcdca"
+      ],
+      "ruby": [
+        "#430a1b",
+        "#5e0b23",
+        "#790d2b",
+        "#941132",
+        "#af163b",
+        "#ca2046",
+        "#e12e51",
+        "#f2415f",
+        "#ff5d74",
+        "#ff8392",
+        "#ffadb5",
+        "#ffe0da"
+      ]
+    },
+    "shared_uv_preserved": true
+  },
+  "color_harmony_revision": {
+    "reference": "reference/latest-color-target.png",
+    "supersedes": "reference/color-harmony-style.png",
+    "palette": {
+      "armor": [
+        "#151b1e",
+        "#1e2a30",
+        "#2e3c45",
+        "#3f515a",
+        "#4f626a",
+        "#5a707b",
+        "#647b85",
+        "#70858f",
+        "#80949d",
+        "#9babb1",
+        "#bec8c9",
+        "#e0dfcd"
+      ],
+      "stone": [
+        "#161d21",
+        "#1e262c",
+        "#273137",
+        "#344148",
+        "#3f4b53",
+        "#45535d",
+        "#586770",
+        "#6e7f88",
+        "#8999a2",
+        "#a6b5bb",
+        "#c0cbd0",
+        "#dce0da"
+      ],
+      "gold": [
+        "#282118",
+        "#48351e",
+        "#624827",
+        "#7c5c34",
+        "#8e6e42",
+        "#b0884f",
+        "#c2995c",
+        "#d5aa67",
+        "#e6c384",
+        "#f2d6a0",
+        "#f8dfb1",
+        "#ffedca"
+      ],
+      "cloth": [
+        "#2b0306",
+        "#44060d",
+        "#5a0913",
+        "#730d19",
+        "#85111d",
+        "#9a1321",
+        "#af192b",
+        "#c42536",
+        "#d93b47",
+        "#e65359",
+        "#f07878",
+        "#f8aaa0"
+      ],
+      "ruby": [
+        "#430a1b",
+        "#5e0b23",
+        "#790d2b",
+        "#941132",
+        "#af163b",
+        "#ca2046",
+        "#e12e51",
+        "#f2415f",
+        "#ff5d74",
+        "#ff8392",
+        "#ffadb5",
+        "#ffe0da"
+      ]
+    },
+    "sampled_ramps": {
+      "armor": [
+        "#0f1418",
+        "#10171d",
+        "#151b1e",
+        "#182227",
+        "#1e2a30",
+        "#23323a",
+        "#2e3c45",
+        "#3f515a",
+        "#4f626a",
+        "#647b85",
+        "#70858f",
+        "#80949d"
+      ],
+      "stone": [
+        "#101418",
+        "#161d21",
+        "#1e262c",
+        "#273137",
+        "#2f3b43",
+        "#344148",
+        "#38464f",
+        "#3f4b53",
+        "#45535d",
+        "#586770",
+        "#8999a2",
+        "#a6b5bb"
+      ],
+      "gold": [
+        "#282118",
+        "#48351e",
+        "#624827",
+        "#6a4e2c",
+        "#715430",
+        "#7c5c34",
+        "#8e6e42",
+        "#b0884f",
+        "#c2995c",
+        "#d5aa67",
+        "#e6c384",
+        "#f2d6a0"
+      ],
+      "cloth": [
+        "#2b0306",
+        "#44060d",
+        "#6e0c19",
+        "#730d19",
+        "#750f1a",
+        "#810f1c",
+        "#85111d",
+        "#8b111e",
+        "#911220",
+        "#931321",
+        "#9a1321",
+        "#852222"
+      ],
+      "ruby": [
+        "#50050c",
+        "#550810",
+        "#5d0811",
+        "#630913",
+        "#6a0b15",
+        "#82101d",
+        "#a91122",
+        "#ce1d2f",
+        "#e4293c",
+        "#ea3444",
+        "#f14050",
+        "#f4515d"
+      ]
+    },
+    "method": "Material-specific reference crops, then stepped ramp adjustment for Blockbench preview values. Existing artwork and mapping retained.",
+    "geometry_changed": false,
+    "uv_changed": false
+  },
+  "aged_gold_helmet_revision": {
+    "intent": "Darker aged brown gold following latest reference; user-requested imposing helmet embellishments.",
+    "palette": [
+      "#211b15",
+      "#342719",
+      "#49361f",
+      "#604725",
+      "#73552e",
+      "#89683b",
+      "#a17d48",
+      "#b48d53",
+      "#c39d61",
+      "#d1af74",
+      "#dfc18b",
+      "#ebd3a5"
+    ],
+    "added_cubes": [
+      "helm_brow_ridge_-1",
+      "helm_brow_ridge_1",
+      "crown_forehead_diamond",
+      "crown_horn_hook_-1",
+      "crown_horn_hook_1"
+    ],
+    "modified_cubes": [
+      "8bb1361d-f478-55b4-41a6-f632134cbf65",
+      "d0833e86-6247-0f15-ddae-b43698dd1dd4"
+    ],
+    "added_uv_rectangles": 0,
+    "reused_uv_assignments": [
+      {
+        "cube": "helm_brow_ridge_-1",
+        "face": "north",
+        "shared_key": "gold:27:5",
+        "physical_size": [
+          4.1,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_-1",
+        "face": "south",
+        "shared_key": "gold:27:5",
+        "physical_size": [
+          4.1,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_-1",
+        "face": "east",
+        "shared_key": "gold:6:4",
+        "physical_size": [
+          1.0500000000000003,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_-1",
+        "face": "west",
+        "shared_key": "gold:6:4",
+        "physical_size": [
+          1.0500000000000003,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_-1",
+        "face": "up",
+        "shared_key": "gold:23:6",
+        "physical_size": [
+          4.1,
+          1.0500000000000003
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_-1",
+        "face": "down",
+        "shared_key": "gold:23:6",
+        "physical_size": [
+          4.1,
+          1.0500000000000003
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_1",
+        "face": "north",
+        "shared_key": "gold:27:5",
+        "physical_size": [
+          4.1,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_1",
+        "face": "south",
+        "shared_key": "gold:27:5",
+        "physical_size": [
+          4.1,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_1",
+        "face": "east",
+        "shared_key": "gold:6:4",
+        "physical_size": [
+          1.0500000000000003,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_1",
+        "face": "west",
+        "shared_key": "gold:6:4",
+        "physical_size": [
+          1.0500000000000003,
+          0.7000000000000028
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_1",
+        "face": "up",
+        "shared_key": "gold:23:6",
+        "physical_size": [
+          4.1,
+          1.0500000000000003
+        ]
+      },
+      {
+        "cube": "helm_brow_ridge_1",
+        "face": "down",
+        "shared_key": "gold:23:6",
+        "physical_size": [
+          4.1,
+          1.0500000000000003
+        ]
+      },
+      {
+        "cube": "crown_forehead_diamond",
+        "face": "north",
+        "shared_key": "gold:8:8",
+        "physical_size": [
+          1.7,
+          1.7000000000000028
+        ]
+      },
+      {
+        "cube": "crown_forehead_diamond",
+        "face": "south",
+        "shared_key": "gold:8:8",
+        "physical_size": [
+          1.7,
+          1.7000000000000028
+        ]
+      },
+      {
+        "cube": "crown_forehead_diamond",
+        "face": "east",
+        "shared_key": "gold:5:15",
+        "physical_size": [
+          0.5999999999999996,
+          1.7000000000000028
+        ]
+      },
+      {
+        "cube": "crown_forehead_diamond",
+        "face": "west",
+        "shared_key": "gold:5:15",
+        "physical_size": [
+          0.5999999999999996,
+          1.7000000000000028
+        ]
+      },
+      {
+        "cube": "crown_forehead_diamond",
+        "face": "up",
+        "shared_key": "gold:6:3",
+        "physical_size": [
+          1.7,
+          0.5999999999999996
+        ]
+      },
+      {
+        "cube": "crown_forehead_diamond",
+        "face": "down",
+        "shared_key": "gold:6:3",
+        "physical_size": [
+          1.7,
+          0.5999999999999996
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_-3.7",
+        "face": "north",
+        "shared_key": "gold:5:15",
+        "physical_size": [
+          1.12,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_-3.7",
+        "face": "south",
+        "shared_key": "gold:5:15",
+        "physical_size": [
+          1.12,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_-3.7",
+        "face": "east",
+        "shared_key": "gold:8:29",
+        "physical_size": [
+          0.9000000000000004,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_-3.7",
+        "face": "west",
+        "shared_key": "gold:8:29",
+        "physical_size": [
+          0.9000000000000004,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_-3.7",
+        "face": "up",
+        "shared_key": "gold:5:4",
+        "physical_size": [
+          1.12,
+          0.9000000000000004
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_-3.7",
+        "face": "down",
+        "shared_key": "gold:5:4",
+        "physical_size": [
+          1.12,
+          0.9000000000000004
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_3.7",
+        "face": "north",
+        "shared_key": "gold:5:15",
+        "physical_size": [
+          1.12,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_3.7",
+        "face": "south",
+        "shared_key": "gold:5:15",
+        "physical_size": [
+          1.12,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_3.7",
+        "face": "east",
+        "shared_key": "gold:8:29",
+        "physical_size": [
+          0.9000000000000004,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_3.7",
+        "face": "west",
+        "shared_key": "gold:8:29",
+        "physical_size": [
+          0.9000000000000004,
+          3.25
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_3.7",
+        "face": "up",
+        "shared_key": "gold:5:4",
+        "physical_size": [
+          1.12,
+          0.9000000000000004
+        ]
+      },
+      {
+        "cube": "crown_prong_-3.8_3.7",
+        "face": "down",
+        "shared_key": "gold:5:4",
+        "physical_size": [
+          1.12,
+          0.9000000000000004
+        ]
+      },
+      {
+        "cube": "crown_horn_hook_-1",
+        "face": "north",
+        "shared_key": "gold:8:14"
+      },
+      {
+        "cube": "crown_horn_hook_-1",
+        "face": "south",
+        "shared_key": "gold:8:14"
+      },
+      {
+        "cube": "crown_horn_hook_-1",
+        "face": "east",
+        "shared_key": "gold:3:5"
+      },
+      {
+        "cube": "crown_horn_hook_-1",
+        "face": "west",
+        "shared_key": "gold:3:5"
+      },
+      {
+        "cube": "crown_horn_hook_-1",
+        "face": "up",
+        "shared_key": "gold:5:5"
+      },
+      {
+        "cube": "crown_horn_hook_-1",
+        "face": "down",
+        "shared_key": "gold:5:5"
+      },
+      {
+        "cube": "crown_horn_hook_1",
+        "face": "north",
+        "shared_key": "gold:8:14"
+      },
+      {
+        "cube": "crown_horn_hook_1",
+        "face": "south",
+        "shared_key": "gold:8:14"
+      },
+      {
+        "cube": "crown_horn_hook_1",
+        "face": "east",
+        "shared_key": "gold:3:5"
+      },
+      {
+        "cube": "crown_horn_hook_1",
+        "face": "west",
+        "shared_key": "gold:3:5"
+      },
+      {
+        "cube": "crown_horn_hook_1",
+        "face": "up",
+        "shared_key": "gold:5:5"
+      },
+      {
+        "cube": "crown_horn_hook_1",
+        "face": "down",
+        "shared_key": "gold:5:5"
+      }
+    ]
+  },
+  "blindspot_revision": {
+    "cause": "Dark material bypassed detailed styling, leaving neck/waist/elbow mapped faces base-only.",
+    "corrected": "Neck, waist, elbow faces now have bevels, directed plate seams and stepped wear clusters. Visor kept intentionally dark.",
+    "islands": [
+      {
+        "key": "dark:48:8",
+        "name": "waist",
+        "colors_before": 2,
+        "colors_after": 6
+      },
+      {
+        "key": "dark:31:8",
+        "name": "waist",
+        "colors_before": 2,
+        "colors_after": 6
+      },
+      {
+        "key": "dark:48:31",
+        "name": "waist",
+        "colors_before": 2,
+        "colors_after": 7
+      },
+      {
+        "key": "dark:21:8",
+        "name": "neck",
+        "colors_before": 2,
+        "colors_after": 6
+      },
+      {
+        "key": "dark:18:8",
+        "name": "neck",
+        "colors_before": 2,
+        "colors_after": 6
+      },
+      {
+        "key": "dark:21:18",
+        "name": "neck",
+        "colors_before": 2,
+        "colors_after": 7
+      },
+      {
+        "key": "dark:34:5",
+        "name": "visor_dark",
+        "colors_before": 2,
+        "colors_after": 2
+      },
+      {
+        "key": "dark:2:5",
+        "name": "visor_dark",
+        "colors_before": 1,
+        "colors_after": 2
+      },
+      {
+        "key": "dark:34:2",
+        "name": "visor_dark",
+        "colors_before": 1,
+        "colors_after": 2
+      },
+      {
+        "key": "dark:14:13",
+        "name": "elbow_-1",
+        "colors_before": 2,
+        "colors_after": 7
+      },
+      {
+        "key": "dark:15:13",
+        "name": "elbow_-1",
+        "colors_before": 2,
+        "colors_after": 7
+      },
+      {
+        "key": "dark:14:15",
+        "name": "elbow_-1",
+        "colors_before": 2,
+        "colors_after": 7
+      }
+    ],
+    "gold": "Darker brown-ochre ramp, broad highlight bands narrowed and reduced; cloth embroidery uses the same aged gold ramp.",
+    "palette": {
+      "armor": [
+        "#151b1e",
+        "#1e2a30",
+        "#2e3c45",
+        "#3f515a",
+        "#4f626a",
+        "#5a707b",
+        "#647b85",
+        "#70858f",
+        "#80949d",
+        "#9babb1",
+        "#bec8c9",
+        "#e0dfcd"
+      ],
+      "stone": [
+        "#161d21",
+        "#1e262c",
+        "#273137",
+        "#344148",
+        "#3f4b53",
+        "#45535d",
+        "#586770",
+        "#6e7f88",
+        "#8999a2",
+        "#a6b5bb",
+        "#c0cbd0",
+        "#dce0da"
+      ],
+      "gold": [
+        "#1f180f",
+        "#302215",
+        "#44301b",
+        "#574021",
+        "#6a4e28",
+        "#805d31",
+        "#95703c",
+        "#aa8249",
+        "#ba9459",
+        "#c5a167",
+        "#d1b078",
+        "#ddc191"
+      ],
+      "cloth": [
+        "#2b0306",
+        "#44060d",
+        "#5a0913",
+        "#730d19",
+        "#85111d",
+        "#9a1321",
+        "#af192b",
+        "#c42536",
+        "#d93b47",
+        "#e65359",
+        "#f07878",
+        "#f8aaa0"
+      ],
+      "ruby": [
+        "#430a1b",
+        "#5e0b23",
+        "#790d2b",
+        "#941132",
+        "#af163b",
+        "#ca2046",
+        "#e12e51",
+        "#f2415f",
+        "#ff5d74",
+        "#ff8392",
+        "#ffadb5",
+        "#ffe0da"
+      ]
+    },
+    "changed_pixels": 24311,
+    "geometry_changed": false,
+    "uv_changed": false
+  },
+  "shading_revision": {
+    "strength": 0.35,
+    "meaning": "35% blend of existing authored pixel color toward bounded material-local shadow/highlight tones, not a Blockbench light or opacity setting.",
+    "reference": "reference/shading-style-35.png",
+    "shadow": "Stepped 2-pixel clusters with restrained violet undertone; grouped form shadows and cloth folds.",
+    "highlight": "Material palette tones capped; aged gold remains brown ochre; no white wash.",
+    "geometry_changed": false,
+    "uv_changed": false,
+    "changed_pixels": 48480
+  },
+  "animation": {
+    "state": "READY_FOR_USER_REVIEW",
+    "evidence": "animation-verification.json",
+    "clip": "animation.crimson_sentinel.magic_staff_slam",
+    "duration": 4.4,
+    "impact_time": 2.48,
+    "native_playback": "TIMELINE_ADVANCE_VERIFIED_WHEN_FOREGROUND",
+    "previews": [
+      "magic-staff-slam-heavy-front.gif",
+      "magic-staff-slam-heavy-back.gif"
+    ],
+    "effects": {
+      "state": "AUTHORED_PENDING_NATIVE_VISUAL_VERIFICATION",
+      "evidence": "vfx/verification.json",
+      "magic_start": 0.55,
+      "dust_impact": 2.48
+    },
+    "spline_issue": {
+      "bone": "staff",
+      "time": 4.4,
+      "fix": "interpolation changed from isolated catmullrom to linear",
+      "isolated_smooth_keys_remaining": 0
+    }
+  }
+}

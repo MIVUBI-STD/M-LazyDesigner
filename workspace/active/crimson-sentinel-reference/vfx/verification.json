@@ -1,0 +1,201 @@
+{
+  "spline_isolated_count": 0,
+  "spline_isolated": [],
+  "particle_qa": [
+    {
+      "source_path": "D:/Work/AI Stuff/New-LazyDesigner/workspace/active/crimson-sentinel-reference/vfx/particles/crimson_sentinel_magic.particle.json",
+      "mode": "summary",
+      "validation_scope": {
+        "schema": "CURRENT_STABLE_COMPATIBILITY",
+        "target_version_verified": false,
+        "note": "Particle diagnostics validate the repository's current stable Bedrock compatibility catalog. They do not prove exact field/default availability for an arbitrary target Bedrock version unless separate target-version evidence is supplied."
+      },
+      "summary": {
+        "format_version": "1.10.0",
+        "identifier": "mivubi:crimson_sentinel_magic",
+        "material": "particles_add",
+        "texture": "textures/particle/crimson_sentinel_vfx",
+        "component_count": 9,
+        "components": [
+          "minecraft:emitter_lifetime_once",
+          "minecraft:emitter_local_space",
+          "minecraft:emitter_rate_steady",
+          "minecraft:emitter_shape_sphere",
+          "minecraft:particle_appearance_billboard",
+          "minecraft:particle_appearance_tinting",
+          "minecraft:particle_initial_speed",
+          "minecraft:particle_lifetime_expression",
+          "minecraft:particle_motion_dynamic"
+        ],
+        "component_groups": {
+          "emitter": [
+            "minecraft:emitter_lifetime_once",
+            "minecraft:emitter_local_space",
+            "minecraft:emitter_rate_steady",
+            "minecraft:emitter_shape_sphere"
+          ],
+          "particle": [
+            "minecraft:particle_initial_speed",
+            "minecraft:particle_lifetime_expression",
+            "minecraft:particle_motion_dynamic"
+          ],
+          "appearance": [
+            "minecraft:particle_appearance_billboard",
+            "minecraft:particle_appearance_tinting"
+          ],
+          "unknown": []
+        },
+        "curves": [],
+        "events": [],
+        "nested_particle_effects": [],
+        "estimated_molang_strings": 4,
+        "diagnostics": []
+      }
+    },
+    {
+      "source_path": "D:/Work/AI Stuff/New-LazyDesigner/workspace/active/crimson-sentinel-reference/vfx/particles/crimson_sentinel_impact_dust.particle.json",
+      "mode": "summary",
+      "validation_scope": {
+        "schema": "CURRENT_STABLE_COMPATIBILITY",
+        "target_version_verified": false,
+        "note": "Particle diagnostics validate the repository's current stable Bedrock compatibility catalog. They do not prove exact field/default availability for an arbitrary target Bedrock version unless separate target-version evidence is supplied."
+      },
+      "summary": {
+        "format_version": "1.10.0",
+        "identifier": "mivubi:crimson_sentinel_impact_dust",
+        "material": "particles_blend",
+        "texture": "textures/particle/crimson_sentinel_vfx",
+        "component_count": 9,
+        "components": [
+          "minecraft:emitter_lifetime_once",
+          "minecraft:emitter_rate_instant",
+          "minecraft:emitter_shape_disc",
+          "minecraft:particle_appearance_billboard",
+          "minecraft:particle_appearance_tinting",
+          "minecraft:particle_initial_speed",
+          "minecraft:particle_initial_spin",
+          "minecraft:particle_lifetime_expression",
+          "minecraft:particle_motion_dynamic"
+        ],
+        "component_groups": {
+          "emitter": [
+            "minecraft:emitter_lifetime_once",
+            "minecraft:emitter_rate_instant",
+            "minecraft:emitter_shape_disc"
+          ],
+          "particle": [
+            "minecraft:particle_initial_speed",
+            "minecraft:particle_initial_spin",
+            "minecraft:particle_lifetime_expression",
+            "minecraft:particle_motion_dynamic"
+          ],
+          "appearance": [
+            "minecraft:particle_appearance_billboard",
+            "minecraft:particle_appearance_tinting"
+          ],
+          "unknown": []
+        },
+        "curves": [],
+        "events": [],
+        "nested_particle_effects": [],
+        "estimated_molang_strings": 7,
+        "diagnostics": []
+      }
+    }
+  ],
+  "texture": {
+    "size": [
+      32,
+      16
+    ],
+    "visible_pixels": 153,
+    "transparent_pixels": 359,
+    "transparent_nonzero_rgb": 0
+  },
+  "effects": {
+    "has_animator": true,
+    "animator": {
+      "uuid": "57c2c6a5-4968-1006-739d-34aed5409bd5",
+      "name": "Effects"
+    },
+    "particle": {
+      "keyframe_count": 2,
+      "particle_count": 2,
+      "keyframes": [
+        {
+          "uuid": "dacda7b0-053e-4763-4394-64b7a45b277c",
+          "time": 0.55,
+          "particles": [
+            {
+              "data_point_index": 0,
+              "effect": "mivubi:crimson_sentinel_magic",
+              "locator": "magic_staff_crystal",
+              "bind_to_actor": null,
+              "pre_effect_script": null
+            }
+          ]
+        },
+        {
+          "uuid": "a5275b10-7c0c-8473-84fa-16a59ed54ff4",
+          "time": 2.48,
+          "particles": [
+            {
+              "data_point_index": 0,
+              "effect": "mivubi:crimson_sentinel_impact_dust",
+              "locator": "magic_staff_contact",
+              "bind_to_actor": false,
+              "pre_effect_script": null
+            }
+          ]
+        }
+      ]
+    },
+    "sound": {
+      "keyframe_count": 0,
+      "sound_count": 0,
+      "keyframes": []
+    },
+    "timeline": {
+      "keyframe_count": 0,
+      "script_count": 0,
+      "keyframes": []
+    }
+  },
+  "preview": {
+    "document_load_errors": [
+      null,
+      null
+    ],
+    "native_playback_timeline_advanced": 1.4206999999880767,
+    "particle_appearance_verified": false,
+    "local_file_binding": "pending UI verification"
+  },
+  "game_runtime_verified": false,
+  "preview_binding_repair": {
+    "date": "2026-10-14T19:33:36.814Z",
+    "source": "crimson_sentinel.bbmodel",
+    "output": "D:/Work/AI Stuff/New-LazyDesigner/workspace/active/crimson-sentinel-reference/crimson_sentinel_vfx_preview.bbmodel",
+    "original_missing_file_links": 2,
+    "bindings": [
+      {
+        "time": 0.55,
+        "effect": "mivubi:crimson_sentinel_magic",
+        "locator": "magic_staff_crystal",
+        "file": "D:\\Work\\AI Stuff\\New-LazyDesigner\\workspace\\active\\crimson-sentinel-reference\\vfx\\particles\\crimson_sentinel_magic.particle.json",
+        "texture": "D:\\Work\\AI Stuff\\New-LazyDesigner\\workspace\\active\\crimson-sentinel-reference\\vfx\\textures\\particle\\crimson_sentinel_vfx.png",
+        "texture_exists": true
+      },
+      {
+        "time": 2.48,
+        "effect": "mivubi:crimson_sentinel_impact_dust",
+        "locator": "magic_staff_contact",
+        "file": "D:\\Work\\AI Stuff\\New-LazyDesigner\\workspace\\active\\crimson-sentinel-reference\\vfx\\particles\\crimson_sentinel_impact_dust.particle.json",
+        "texture": "D:\\Work\\AI Stuff\\New-LazyDesigner\\workspace\\active\\crimson-sentinel-reference\\vfx\\textures\\particle\\crimson_sentinel_vfx.png",
+        "texture_exists": true
+      }
+    ],
+    "geometry_uv_textures_preserved": true,
+    "visual_verification": "PENDING_REOPEN_AND_PLAYBACK",
+    "canonical_unchanged": true
+  }
+}

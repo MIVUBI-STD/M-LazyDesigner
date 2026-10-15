@@ -1,0 +1,44 @@
+{
+  "converted_cubes": [
+    "helmet_brow",
+    "jaw_trim_left",
+    "chest_gold_v_left",
+    "tabard_edge_left",
+    "jaw_trim_right",
+    "chest_gold_v_right",
+    "tabard_edge_right",
+    "tabard_upper",
+    "tabard_long",
+    "chest_ruby",
+    "crystal_root_facet",
+    "crest_inset_left",
+    "crest_inset_right"
+  ],
+  "converted_count": 13,
+  "remaining_thin_box_uv": 0,
+  "collapsed_converted_faces": 0,
+  "geometry_changes": 0,
+  "atlas": [
+    256,
+    256
+  ],
+  "uv_region": "per-face repair islands in reserved rows starting V=65; uniform 2 px/model-unit on affected cubes",
+  "production_uv_layout": "PENDING",
+  "surface_quality": {
+    "state": "no_bounded_risk_reported",
+    "visual_verdict": "not_evaluated",
+    "counts": {
+      "z_fighting": 0,
+      "micro_gap": 0,
+      "coplanar_edge_gap": 0,
+      "shallow_penetration": 0
+    },
+    "categorized_risk_count": 0,
+    "additional_warnings_omitted": 0,
+    "diagnostics_unavailable_count": 0,
+    "scan_complete": true,
+    "details_complete": true,
+    "note": "Bounded geometric review hints only; absence of reported risk is not visual PASS."
+  },
+  "native_ui": "Observed updated per-face controls and no previous warning count in status bar; further Tools click interrupted by user input, so no claim of a newly invoked full native validator."
+}

@@ -6,6 +6,10 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 Branch authority: `Local`.
 
+### Recovery snapshot 3.0 — 2026-10-15
+
+The user authorized a matching backup branch `3.0`, annotated tag `3.0`, and temporary GitHub prerelease from the local working state, including the retrospective and both authored asset workspaces. This is a recovery baseline, not a new full source/native acceptance or a signed Desktop installer release. Internal component/package versions are preserved. Raw MCP logs, credentials, installed profiles, dependencies and generated build/cache directories are excluded from publication; raw asset logs remain in a separate local backup. Existing unresolved particle, visual/runtime and Golden evidence boundaries remain open.
+
 Source architecture:
 
 ```text
@@ -45,6 +49,10 @@ Historical disappearance UNKNOWN: installed e9b3bca5 survived 120 samples/120s, 
 Source 561ee8e4d906654deed8bec6fadef6f8618a88ed: exact-SHA verify:full PASS; .cache/localtest-final-focus-full.log. Earlier combined-runtime installer timeouts are retained in localtest-real-focus-full*.log. Separate Bun processes preserve all 2060 runtime tests and deadlines (2039 + 21 PASS). Installed release remains e9b3bca5; later edits affect debug testing/test composition only.
 
 Golden F lacks reference; six efficiency pairs NOT_EXECUTED, visual UNVERIFIED, tokens null; LIFT excluded. Reporting is complete; historical disappearance remains UNKNOWN.
+
+## Authoring retrospective 2026-10-15
+
+[The session retrospective](mcp-session-retrospective-2026-10-15.md) separates historical Windows acceptance from later Crimson Sentinel asset evidence. The user accepted the animation result; the saved model now contains two animations and two embedded texture variants. Particle appearance remains unresolved and was explicitly deferred. Partial custom-client logging records 492 calls and 43,017,467 bytes; this is neither complete session accounting nor token/cost proof. Later status/context resolution, profile/build mismatch, batch-scale rejection and export metadata effects are observed investigation inputs, not reproduced current-HEAD source diagnoses. No executable gates or live checks were rerun for this documentation task; LD-Q01–Q04 and Golden acceptance are not closed by it.
 
 ## Current proof matrix
 

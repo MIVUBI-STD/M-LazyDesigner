@@ -1,0 +1,77 @@
+{
+  "base_palette": {
+    "armor": [
+      "#151b1e",
+      "#1e2a30",
+      "#2e3c45",
+      "#3f515a",
+      "#4f626a",
+      "#5a707b",
+      "#647b85",
+      "#70858f",
+      "#80949d",
+      "#9babb1",
+      "#bec8c9",
+      "#e0dfcd"
+    ],
+    "stone": [
+      "#161d21",
+      "#1e262c",
+      "#273137",
+      "#344148",
+      "#3f4b53",
+      "#45535d",
+      "#586770",
+      "#6e7f88",
+      "#8999a2",
+      "#a6b5bb",
+      "#c0cbd0",
+      "#dce0da"
+    ],
+    "gold": [
+      "#1f180f",
+      "#302215",
+      "#44301b",
+      "#574021",
+      "#6a4e28",
+      "#805d31",
+      "#95703c",
+      "#aa8249",
+      "#ba9459",
+      "#c5a167",
+      "#d1b078",
+      "#ddc191"
+    ],
+    "cloth": [
+      "#2b0306",
+      "#44060d",
+      "#5a0913",
+      "#730d19",
+      "#85111d",
+      "#9a1321",
+      "#af192b",
+      "#c42536",
+      "#d93b47",
+      "#e65359",
+      "#f07878",
+      "#f8aaa0"
+    ],
+    "ruby": [
+      "#430a1b",
+      "#5e0b23",
+      "#790d2b",
+      "#941132",
+      "#af163b",
+      "#ca2046",
+      "#e12e51",
+      "#f2415f",
+      "#ff5d74",
+      "#ff8392",
+      "#ffadb5",
+      "#ffe0da"
+    ]
+  },
+  "shading_strength": 0.35,
+  "method": "35% RGB blend toward +/-2 bounded material ramp steps, with restrained violet shadow tint; stepped 2-pixel clusters. Gold highlight step cap 8; no white target.",
+  "reference": "reference/shading-style-35.png"
+}

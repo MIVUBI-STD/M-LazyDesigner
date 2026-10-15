@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-14T20:02:18.185Z",
+  "animation_id": "c8ef01d7-7c5b-6d58-bb85-1922c749b578",
+  "length": 8,
+  "loop": "hold",
+  "impact_time": 1.8,
+  "settled_by": 2.8,
+  "ground_hold_seconds": 2,
+  "hold_interval": [
+    2.8,
+    4.8
+  ],
+  "sink_interval": [
+    4.8,
+    8
+  ],
+  "cloth_position_offsets_all_zero": true,
+  "ground_hold_transform_keys_identical": true,
+  "organic_reactions": [
+    "torso bend",
+    "head focus",
+    "free arm reaction",
+    "staff shoulder/elbow lag",
+    "attached cape follow-through"
+  ],
+  "fracture_after_impact": true,
+  "endpoint": "Only stationary pedestal remains",
+  "transform_key_count": 653,
+  "out_of_range_keys": 0,
+  "geometry_preserved": true,
+  "texture_preserved": true,
+  "old_staff_slam_preserved": true,
+  "verification": "Native representative pose samples reviewed; current continuous visual playback and Minecraft integration unverified",
+  "particle_status": "Deferred, unchanged",
+  "tool_note": "Batch scale rejected overlapping times; inspected post-offset state then re-authored only post-hold keys per channel.",
+  "preview": {
+    "source_frames": 35,
+    "gif_frames": 29,
+    "path": "D:\\Work\\AI Stuff\\New-LazyDesigner\\workspace\\active\\crimson-sentinel-reference\\shatter-collapse-forward-preview.gif",
+    "view": "left",
+    "fixed_camera": true,
+    "review_pause_ms": 900
+  },
+  "user_review": {
+    "status": "APPROVED",
+    "date_local": "2026-10-15",
+    "timezone": "Asia/Jakarta",
+    "statement": "oke sudah semua. terimakasih saatnya kita simpan"
+  },
+  "native_saved": {
+    "path": "D:/Work/AI Stuff/New-LazyDesigner/workspace/active/crimson-sentinel-reference/crimson_sentinel.bbmodel",
+    "bytes": 370333,
+    "write_verified": true
+  }
+}

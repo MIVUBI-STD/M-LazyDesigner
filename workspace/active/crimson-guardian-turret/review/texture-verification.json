@@ -1,0 +1,4491 @@
+{
+  "date": "2026-10-15",
+  "project_uuid": "c4444389-ac95-b6aa-86bd-22478d94bb93",
+  "atlas_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+  "revision": "sha256:256x256:178572f28dbf77f6d54a5d73a095bee2cbf4c315a1bc15495e09b90269c18a68",
+  "geometry_changes": 0,
+  "all_cubes_per_face": 83,
+  "atlas": [
+    256,
+    256
+  ],
+  "material_zones": [
+    {
+      "family": "STONE",
+      "start": 1,
+      "end": 56
+    },
+    {
+      "family": "ARMOR",
+      "start": 58,
+      "end": 117
+    },
+    {
+      "family": "GOLD",
+      "start": 119,
+      "end": 207
+    },
+    {
+      "family": "CLOTH",
+      "start": 209,
+      "end": 239
+    },
+    {
+      "family": "CRYSTAL",
+      "start": 241,
+      "end": 249
+    }
+  ],
+  "palette": {
+    "stone": [
+      "#202b30",
+      "#303d42",
+      "#46565c",
+      "#607278",
+      "#7e8c8b"
+    ],
+    "armor": [
+      "#26383f",
+      "#3b535b",
+      "#58737b",
+      "#7e979c",
+      "#adbfbd"
+    ],
+    "gown": [
+      "#15252c",
+      "#22353d",
+      "#314a53",
+      "#46616a",
+      "#617e85"
+    ],
+    "gold": [
+      "#38301f",
+      "#625331",
+      "#8a7748",
+      "#b2a16c",
+      "#d7c68f"
+    ],
+    "cloth": [
+      "#3b1523",
+      "#601c2d",
+      "#88263b",
+      "#ae3c4c",
+      "#c96166"
+    ],
+    "crystal": [
+      "#650b1e",
+      "#a31228",
+      "#d91d32",
+      "#ff4048",
+      "#ff9977"
+    ]
+  },
+  "uv_audit": {
+    "state": "available",
+    "logical_canvas": {
+      "width": 256,
+      "height": 256
+    },
+    "packing": {
+      "units": "logical_uv_units",
+      "face_area": 17748,
+      "occupied_area": 17748,
+      "occupancy_ratio": 0.27081298828125,
+      "occupied_bounds": {
+        "min": [
+          1,
+          1
+        ],
+        "max": [
+          255,
+          248
+        ]
+      },
+      "occupied_size": [
+        254,
+        247
+      ],
+      "padding": "unverified"
+    },
+    "enabled_faces": 498,
+    "valid_uv_faces": 498,
+    "invalid_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "out_of_bounds": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "fractional_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "non_integral_pixel_mapping": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "degenerate_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "collapsed_surface_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "unlocked_box_uv_cubes": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "exact_reuse": {
+      "region_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "partial_overlap": {
+      "pair_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "production_gate": {
+      "state": "ready",
+      "reasons": []
+    }
+  },
+  "physical_uv_evidence": {
+    "state": "available",
+    "visual_verdict": "not_evaluated",
+    "face_count": 498,
+    "evaluated_face_count": 498,
+    "invalid_face_count": 0,
+    "non_uniform_density_face_count": 442,
+    "exact_shared_region_count": 0,
+    "shared_region_physical_mismatch_count": 0,
+    "max_density_ratio": 1.08,
+    "max_aspect_error": 0.074074,
+    "invalid_examples": [],
+    "non_uniform_examples": [
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "north",
+        "physical": [
+          9.4,
+          20.3
+        ],
+        "uv_size": [
+          10,
+          22
+        ],
+        "texel_density": [
+          1.06383,
+          1.083744
+        ],
+        "density_ratio": 1.018719,
+        "aspect_error": 0.018375
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "south",
+        "physical": [
+          9.4,
+          20.3
+        ],
+        "uv_size": [
+          10,
+          22
+        ],
+        "texel_density": [
+          1.06383,
+          1.083744
+        ],
+        "density_ratio": 1.018719,
+        "aspect_error": 0.018375
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "east",
+        "physical": [
+          7.6,
+          20.3
+        ],
+        "uv_size": [
+          8,
+          21
+        ],
+        "texel_density": [
+          1.052632,
+          1.034483
+        ],
+        "density_ratio": 1.017544,
+        "aspect_error": 0.017544
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "west",
+        "physical": [
+          7.6,
+          20.3
+        ],
+        "uv_size": [
+          8,
+          21
+        ],
+        "texel_density": [
+          1.052632,
+          1.034483
+        ],
+        "density_ratio": 1.017544,
+        "aspect_error": 0.017544
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "up",
+        "physical": [
+          9.4,
+          7.6
+        ],
+        "uv_size": [
+          10,
+          8
+        ],
+        "texel_density": [
+          1.06383,
+          1.052632
+        ],
+        "density_ratio": 1.010638,
+        "aspect_error": 0.010638
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "down",
+        "physical": [
+          9.4,
+          7.6
+        ],
+        "uv_size": [
+          10,
+          8
+        ],
+        "texel_density": [
+          1.06383,
+          1.052632
+        ],
+        "density_ratio": 1.010638,
+        "aspect_error": 0.010638
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube_name": "robe_flute_0",
+        "face": "north",
+        "physical": [
+          5.3,
+          20
+        ],
+        "uv_size": [
+          6,
+          23
+        ],
+        "texel_density": [
+          1.132075,
+          1.15
+        ],
+        "density_ratio": 1.015833,
+        "aspect_error": 0.015587
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube_name": "robe_flute_0",
+        "face": "south",
+        "physical": [
+          5.3,
+          20
+        ],
+        "uv_size": [
+          6,
+          23
+        ],
+        "texel_density": [
+          1.132075,
+          1.15
+        ],
+        "density_ratio": 1.015833,
+        "aspect_error": 0.015587
+      }
+    ],
+    "shared_region_mismatch_examples": [],
+    "examples_truncated": true,
+    "note": "Physical face aspect and texel-density evidence only. Exact UV sharing can be intentional; semantic artwork/material identity and mapped-model visual fidelity still require authoring review.",
+    "cube_face_scope_complete": true,
+    "unsupported_mesh_count": 0
+  },
+  "coverage": {
+    "visual_verdict": "not_evaluated",
+    "required_faces": 498,
+    "scanned_faces": 498,
+    "accounted_ratio": 1,
+    "states": {
+      "varied": 361,
+      "transparent": 0,
+      "solid_color": 111,
+      "low_variation": 26
+    },
+    "review": {
+      "candidate_face_count": 96,
+      "transparent_face_count": 0,
+      "detail_capable_solid_face_count": 70,
+      "solid_color_faces": {
+        "count": 111,
+        "examples": [
+          {
+            "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+            "cube_name": "inset_dais",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              37,
+              1,
+              20,
+              18
+            ],
+            "pixel_size": [
+              17,
+              17
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+            "cube_name": "base_paving_band_2",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              85,
+              1,
+              63,
+              9
+            ],
+            "pixel_size": [
+              22,
+              8
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+            "cube_name": "armored_chest",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              77,
+              86,
+              65,
+              95
+            ],
+            "pixel_size": [
+              12,
+              9
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+            "cube_name": "robe_core",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              133,
+              86,
+              123,
+              94
+            ],
+            "pixel_size": [
+              10,
+              8
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+            "cube_name": "base_paving_band_1",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              127,
+              1,
+              108,
+              5
+            ],
+            "pixel_size": [
+              19,
+              4
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+            "cube_name": "base_paving_band_3",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              169,
+              1,
+              150,
+              5
+            ],
+            "pixel_size": [
+              19,
+              4
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          }
+        ],
+        "examples_truncated": true
+      },
+      "low_variation_faces": {
+        "count": 26,
+        "examples": [
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "north",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              1,
+              119,
+              3,
+              187
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5074,
+            "luma_span": 0.585,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "south",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              5,
+              119,
+              7,
+              187
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5074,
+            "luma_span": 0.585,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "east",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              9,
+              119,
+              11,
+              187
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5074,
+            "luma_span": 0.585,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "west",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              13,
+              119,
+              15,
+              187
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5074,
+            "luma_span": 0.585,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+            "cube_name": "crest_inset_left",
+            "face": "north",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              41,
+              119,
+              43,
+              135
+            ],
+            "pixel_size": [
+              2,
+              16
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5313,
+            "luma_span": 0.585,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+            "cube_name": "crest_inset_left",
+            "face": "south",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              45,
+              119,
+              47,
+              135
+            ],
+            "pixel_size": [
+              2,
+              16
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5313,
+            "luma_span": 0.585,
+            "border_only_variation": true
+          }
+        ],
+        "examples_truncated": true
+      },
+      "intermediate_alpha_faces": {
+        "count": 0,
+        "examples": [],
+        "examples_truncated": false
+      }
+    },
+    "omissions": {
+      "count": 0,
+      "blocking_count": 0,
+      "budget_count": 0,
+      "counts": {
+        "blank": 0,
+        "unresolved_texture": 0,
+        "invalid_uv": 0,
+        "fractional_uv": 0,
+        "non_integral_pixel_mapping": 0,
+        "degenerate_uv": 0,
+        "budget": 0
+      },
+      "examples": [],
+      "examples_truncated": false
+    },
+    "gate": {
+      "state": "review_required",
+      "reasons": [
+        "FLAT_FACE_REVIEW"
+      ]
+    },
+    "note": "Coverage measures pixels only: varied means non-flat pixels, not authored styling, shading or reference fidelity. Ready is scan readiness, never visual acceptance. Transparent/flat/alpha candidates may be intentional; incomplete/partial scans cannot prove completion."
+  },
+  "coverage_review": {
+    "resolution": "All 498 faces accounted for; 111 flat faces reviewed as intentional undersides, slim metal strips, visor housing or dark crystal socket.",
+    "ledger": [
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube": "robe_core",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube": "robe_core",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube": "robe_core",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube": "robe_core",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube": "robe_core",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube": "robe_core",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube": "robe_flute_0",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube": "robe_flute_0",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube": "robe_flute_0",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube": "robe_flute_0",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube": "robe_flute_0",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube": "robe_flute_0",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+        "cube": "robe_flute_1",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+        "cube": "robe_flute_1",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+        "cube": "robe_flute_1",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+        "cube": "robe_flute_1",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+        "cube": "robe_flute_1",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+        "cube": "robe_flute_1",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+        "cube": "robe_flute_2",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+        "cube": "robe_flute_2",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+        "cube": "robe_flute_2",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+        "cube": "robe_flute_2",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+        "cube": "robe_flute_2",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+        "cube": "robe_flute_2",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+        "cube": "robe_flute_3",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+        "cube": "robe_flute_3",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+        "cube": "robe_flute_3",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+        "cube": "robe_flute_3",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+        "cube": "robe_flute_3",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+        "cube": "robe_flute_3",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+        "cube": "robe_flute_4",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+        "cube": "robe_flute_4",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+        "cube": "robe_flute_4",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+        "cube": "robe_flute_4",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+        "cube": "robe_flute_4",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+        "cube": "robe_flute_4",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+        "cube": "robe_flute_5",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+        "cube": "robe_flute_5",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+        "cube": "robe_flute_5",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+        "cube": "robe_flute_5",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+        "cube": "robe_flute_5",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+        "cube": "robe_flute_5",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+        "cube": "robe_flute_6",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+        "cube": "robe_flute_6",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+        "cube": "robe_flute_6",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+        "cube": "robe_flute_6",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+        "cube": "robe_flute_6",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+        "cube": "robe_flute_6",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+        "cube": "robe_flute_7",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+        "cube": "robe_flute_7",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+        "cube": "robe_flute_7",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+        "cube": "robe_flute_7",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+        "cube": "robe_flute_7",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+        "cube": "robe_flute_7",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube": "armored_chest",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube": "armored_chest",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube": "armored_chest",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube": "armored_chest",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube": "armored_chest",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube": "armored_chest",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+        "cube": "neck_shadow",
+        "face": "north",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+        "cube": "neck_shadow",
+        "face": "south",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+        "cube": "neck_shadow",
+        "face": "east",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+        "cube": "neck_shadow",
+        "face": "west",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+        "cube": "neck_shadow",
+        "face": "up",
+        "material": "gown",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+        "cube": "neck_shadow",
+        "face": "down",
+        "material": "gown",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+        "cube": "helmet_main",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+        "cube": "helmet_main",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+        "cube": "helmet_main",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+        "cube": "helmet_main",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+        "cube": "helmet_main",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+        "cube": "helmet_main",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+        "cube": "helmet_crown",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+        "cube": "helmet_crown",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+        "cube": "helmet_crown",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+        "cube": "helmet_crown",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+        "cube": "helmet_crown",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+        "cube": "helmet_crown",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+        "cube": "helmet_brow",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+        "cube": "helmet_brow",
+        "face": "south",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark visor housing"
+      },
+      {
+        "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+        "cube": "helmet_brow",
+        "face": "east",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark visor housing"
+      },
+      {
+        "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+        "cube": "helmet_brow",
+        "face": "west",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark visor housing"
+      },
+      {
+        "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+        "cube": "helmet_brow",
+        "face": "up",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark visor housing"
+      },
+      {
+        "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+        "cube": "helmet_brow",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+        "cube": "face_guard_center",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+        "cube": "face_guard_center",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+        "cube": "face_guard_center",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+        "cube": "face_guard_center",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+        "cube": "face_guard_center",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+        "cube": "face_guard_center",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+        "cube": "upper_arm_left",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+        "cube": "upper_arm_left",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+        "cube": "upper_arm_left",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+        "cube": "upper_arm_left",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+        "cube": "upper_arm_left",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+        "cube": "upper_arm_left",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+        "cube": "forearm_left",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+        "cube": "forearm_left",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+        "cube": "forearm_left",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+        "cube": "forearm_left",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+        "cube": "forearm_left",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+        "cube": "forearm_left",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+        "cube": "gauntlet_left",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+        "cube": "gauntlet_left",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+        "cube": "gauntlet_left",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+        "cube": "gauntlet_left",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+        "cube": "gauntlet_left",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+        "cube": "gauntlet_left",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+        "cube": "jaw_trim_left",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+        "cube": "jaw_trim_left",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+        "cube": "jaw_trim_left",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+        "cube": "jaw_trim_left",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+        "cube": "jaw_trim_left",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+        "cube": "jaw_trim_left",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+        "cube": "chest_gold_v_left",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+        "cube": "chest_gold_v_left",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+        "cube": "chest_gold_v_left",
+        "face": "east",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+        "cube": "chest_gold_v_left",
+        "face": "west",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+        "cube": "chest_gold_v_left",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+        "cube": "chest_gold_v_left",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+        "cube": "tabard_edge_left",
+        "face": "north",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+        "cube": "tabard_edge_left",
+        "face": "south",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+        "cube": "tabard_edge_left",
+        "face": "east",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+        "cube": "tabard_edge_left",
+        "face": "west",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+        "cube": "tabard_edge_left",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+        "cube": "tabard_edge_left",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+        "cube": "upper_arm_right",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+        "cube": "upper_arm_right",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+        "cube": "upper_arm_right",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+        "cube": "upper_arm_right",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+        "cube": "upper_arm_right",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+        "cube": "upper_arm_right",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+        "cube": "forearm_right",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+        "cube": "forearm_right",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+        "cube": "forearm_right",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+        "cube": "forearm_right",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+        "cube": "forearm_right",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+        "cube": "forearm_right",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+        "cube": "gauntlet_right",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+        "cube": "gauntlet_right",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+        "cube": "gauntlet_right",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+        "cube": "gauntlet_right",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+        "cube": "gauntlet_right",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+        "cube": "gauntlet_right",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+        "cube": "jaw_trim_right",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+        "cube": "jaw_trim_right",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+        "cube": "jaw_trim_right",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+        "cube": "jaw_trim_right",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+        "cube": "jaw_trim_right",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+        "cube": "jaw_trim_right",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+        "cube": "chest_gold_v_right",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+        "cube": "chest_gold_v_right",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+        "cube": "chest_gold_v_right",
+        "face": "east",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+        "cube": "chest_gold_v_right",
+        "face": "west",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+        "cube": "chest_gold_v_right",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+        "cube": "chest_gold_v_right",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+        "cube": "tabard_edge_right",
+        "face": "north",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+        "cube": "tabard_edge_right",
+        "face": "south",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+        "cube": "tabard_edge_right",
+        "face": "east",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+        "cube": "tabard_edge_right",
+        "face": "west",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+        "cube": "tabard_edge_right",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+        "cube": "tabard_edge_right",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+        "cube": "tabard_upper",
+        "face": "north",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+        "cube": "tabard_upper",
+        "face": "south",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+        "cube": "tabard_upper",
+        "face": "east",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+        "cube": "tabard_upper",
+        "face": "west",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+        "cube": "tabard_upper",
+        "face": "up",
+        "material": "cloth",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+        "cube": "tabard_upper",
+        "face": "down",
+        "material": "cloth",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+        "cube": "tabard_long",
+        "face": "north",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+        "cube": "tabard_long",
+        "face": "south",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+        "cube": "tabard_long",
+        "face": "east",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+        "cube": "tabard_long",
+        "face": "west",
+        "material": "cloth",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+        "cube": "tabard_long",
+        "face": "up",
+        "material": "cloth",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+        "cube": "tabard_long",
+        "face": "down",
+        "material": "cloth",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+        "cube": "chest_ruby",
+        "face": "north",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+        "cube": "chest_ruby",
+        "face": "south",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+        "cube": "chest_ruby",
+        "face": "east",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+        "cube": "chest_ruby",
+        "face": "west",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+        "cube": "chest_ruby",
+        "face": "up",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+        "cube": "chest_ruby",
+        "face": "down",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+        "cube": "staff_shaft",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+        "cube": "staff_shaft",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+        "cube": "staff_shaft",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+        "cube": "staff_shaft",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+        "cube": "staff_shaft",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+        "cube": "staff_shaft",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+        "cube": "staff_grip",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+        "cube": "staff_grip",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+        "cube": "staff_grip",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+        "cube": "staff_grip",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+        "cube": "staff_grip",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+        "cube": "staff_grip",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+        "cube": "staff_socket",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+        "cube": "staff_socket",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+        "cube": "staff_socket",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+        "cube": "staff_socket",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+        "cube": "staff_socket",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+        "cube": "staff_socket",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+        "cube": "crystal_base",
+        "face": "north",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark crystal socket/contact band"
+      },
+      {
+        "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+        "cube": "crystal_base",
+        "face": "south",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark crystal socket/contact band"
+      },
+      {
+        "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+        "cube": "crystal_base",
+        "face": "east",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark crystal socket/contact band"
+      },
+      {
+        "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+        "cube": "crystal_base",
+        "face": "west",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark crystal socket/contact band"
+      },
+      {
+        "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+        "cube": "crystal_base",
+        "face": "up",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark crystal socket/contact band"
+      },
+      {
+        "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+        "cube": "crystal_base",
+        "face": "down",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+        "cube": "crystal_main",
+        "face": "north",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+        "cube": "crystal_main",
+        "face": "south",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+        "cube": "crystal_main",
+        "face": "east",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+        "cube": "crystal_main",
+        "face": "west",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+        "cube": "crystal_main",
+        "face": "up",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+        "cube": "crystal_main",
+        "face": "down",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+        "cube": "crystal_tip",
+        "face": "north",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+        "cube": "crystal_tip",
+        "face": "south",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+        "cube": "crystal_tip",
+        "face": "east",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+        "cube": "crystal_tip",
+        "face": "west",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+        "cube": "crystal_tip",
+        "face": "up",
+        "material": "crystal",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+        "cube": "crystal_tip",
+        "face": "down",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+        "cube": "crystal_root_facet",
+        "face": "north",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT"
+      },
+      {
+        "cube_uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+        "cube": "crystal_root_facet",
+        "face": "south",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT"
+      },
+      {
+        "cube_uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+        "cube": "crystal_root_facet",
+        "face": "east",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT"
+      },
+      {
+        "cube_uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+        "cube": "crystal_root_facet",
+        "face": "west",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT"
+      },
+      {
+        "cube_uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+        "cube": "crystal_root_facet",
+        "face": "up",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+        "cube": "crystal_root_facet",
+        "face": "down",
+        "material": "crystal",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+        "cube": "base_paving_band_0",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+        "cube": "base_paving_band_0",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+        "cube": "base_paving_band_0",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+        "cube": "base_paving_band_0",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+        "cube": "base_paving_band_0",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+        "cube": "base_paving_band_0",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+        "cube": "base_paving_band_1",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+        "cube": "base_paving_band_1",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+        "cube": "base_paving_band_1",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+        "cube": "base_paving_band_1",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+        "cube": "base_paving_band_1",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+        "cube": "base_paving_band_1",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+        "cube": "base_paving_band_2",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+        "cube": "base_paving_band_2",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+        "cube": "base_paving_band_2",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+        "cube": "base_paving_band_2",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+        "cube": "base_paving_band_2",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+        "cube": "base_paving_band_2",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+        "cube": "base_paving_band_3",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+        "cube": "base_paving_band_3",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+        "cube": "base_paving_band_3",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+        "cube": "base_paving_band_3",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+        "cube": "base_paving_band_3",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+        "cube": "base_paving_band_3",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+        "cube": "base_paving_band_4",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+        "cube": "base_paving_band_4",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+        "cube": "base_paving_band_4",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+        "cube": "base_paving_band_4",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+        "cube": "base_paving_band_4",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+        "cube": "base_paving_band_4",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+        "cube": "separate_rim_block_0",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+        "cube": "separate_rim_block_0",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+        "cube": "separate_rim_block_0",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+        "cube": "separate_rim_block_0",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+        "cube": "separate_rim_block_0",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+        "cube": "separate_rim_block_0",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+        "cube": "separate_rim_block_1",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+        "cube": "separate_rim_block_1",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+        "cube": "separate_rim_block_1",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+        "cube": "separate_rim_block_1",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+        "cube": "separate_rim_block_1",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+        "cube": "separate_rim_block_1",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+        "cube": "separate_rim_block_2",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+        "cube": "separate_rim_block_2",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+        "cube": "separate_rim_block_2",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+        "cube": "separate_rim_block_2",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+        "cube": "separate_rim_block_2",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+        "cube": "separate_rim_block_2",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+        "cube": "separate_rim_block_3",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+        "cube": "separate_rim_block_3",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+        "cube": "separate_rim_block_3",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+        "cube": "separate_rim_block_3",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+        "cube": "separate_rim_block_3",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+        "cube": "separate_rim_block_3",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+        "cube": "separate_rim_block_4",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+        "cube": "separate_rim_block_4",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+        "cube": "separate_rim_block_4",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+        "cube": "separate_rim_block_4",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+        "cube": "separate_rim_block_4",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+        "cube": "separate_rim_block_4",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+        "cube": "separate_rim_block_5",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+        "cube": "separate_rim_block_5",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+        "cube": "separate_rim_block_5",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+        "cube": "separate_rim_block_5",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+        "cube": "separate_rim_block_5",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+        "cube": "separate_rim_block_5",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+        "cube": "separate_rim_block_6",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+        "cube": "separate_rim_block_6",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+        "cube": "separate_rim_block_6",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+        "cube": "separate_rim_block_6",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+        "cube": "separate_rim_block_6",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+        "cube": "separate_rim_block_6",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+        "cube": "separate_rim_block_7",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+        "cube": "separate_rim_block_7",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+        "cube": "separate_rim_block_7",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+        "cube": "separate_rim_block_7",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+        "cube": "separate_rim_block_7",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+        "cube": "separate_rim_block_7",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+        "cube": "separate_rim_block_8",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+        "cube": "separate_rim_block_8",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+        "cube": "separate_rim_block_8",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+        "cube": "separate_rim_block_8",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+        "cube": "separate_rim_block_8",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+        "cube": "separate_rim_block_8",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+        "cube": "separate_rim_block_9",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+        "cube": "separate_rim_block_9",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+        "cube": "separate_rim_block_9",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+        "cube": "separate_rim_block_9",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+        "cube": "separate_rim_block_9",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+        "cube": "separate_rim_block_9",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+        "cube": "separate_rim_block_10",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+        "cube": "separate_rim_block_10",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+        "cube": "separate_rim_block_10",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+        "cube": "separate_rim_block_10",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+        "cube": "separate_rim_block_10",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+        "cube": "separate_rim_block_10",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+        "cube": "separate_rim_block_11",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+        "cube": "separate_rim_block_11",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+        "cube": "separate_rim_block_11",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+        "cube": "separate_rim_block_11",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+        "cube": "separate_rim_block_11",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+        "cube": "separate_rim_block_11",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+        "cube": "inset_dais",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+        "cube": "inset_dais",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+        "cube": "inset_dais",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+        "cube": "inset_dais",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+        "cube": "inset_dais",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+        "cube": "inset_dais",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+        "cube": "sculpted_pauldron_left",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+        "cube": "sculpted_pauldron_left",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+        "cube": "sculpted_pauldron_left",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+        "cube": "sculpted_pauldron_left",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+        "cube": "sculpted_pauldron_left",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+        "cube": "sculpted_pauldron_left",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+        "cube": "pauldron_lame_left",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+        "cube": "pauldron_lame_left",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+        "cube": "pauldron_lame_left",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+        "cube": "pauldron_lame_left",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+        "cube": "pauldron_lame_left",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+        "cube": "pauldron_lame_left",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+        "cube": "shoulder_collar_left",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+        "cube": "shoulder_collar_left",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+        "cube": "shoulder_collar_left",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+        "cube": "shoulder_collar_left",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+        "cube": "shoulder_collar_left",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+        "cube": "shoulder_collar_left",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+        "cube": "swept_gold_crest_left_0",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+        "cube": "swept_gold_crest_left_0",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+        "cube": "swept_gold_crest_left_0",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+        "cube": "swept_gold_crest_left_0",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+        "cube": "swept_gold_crest_left_0",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+        "cube": "swept_gold_crest_left_0",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+        "cube": "swept_gold_crest_left_1",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+        "cube": "swept_gold_crest_left_1",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+        "cube": "swept_gold_crest_left_1",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+        "cube": "swept_gold_crest_left_1",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+        "cube": "swept_gold_crest_left_1",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+        "cube": "swept_gold_crest_left_1",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+        "cube": "swept_gold_crest_left_2",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+        "cube": "swept_gold_crest_left_2",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+        "cube": "swept_gold_crest_left_2",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+        "cube": "swept_gold_crest_left_2",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+        "cube": "swept_gold_crest_left_2",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+        "cube": "swept_gold_crest_left_2",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+        "cube": "swept_gold_crest_left_3",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+        "cube": "swept_gold_crest_left_3",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+        "cube": "swept_gold_crest_left_3",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+        "cube": "swept_gold_crest_left_3",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+        "cube": "swept_gold_crest_left_3",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+        "cube": "swept_gold_crest_left_3",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+        "cube": "crest_inset_left",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+        "cube": "crest_inset_left",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+        "cube": "crest_inset_left",
+        "face": "east",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+        "cube": "crest_inset_left",
+        "face": "west",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+        "cube": "crest_inset_left",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "983cd945-d354-1c14-c699-b2789994176e",
+        "cube": "crest_inset_left",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+        "cube": "sculpted_pauldron_right",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+        "cube": "sculpted_pauldron_right",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+        "cube": "sculpted_pauldron_right",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+        "cube": "sculpted_pauldron_right",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+        "cube": "sculpted_pauldron_right",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+        "cube": "sculpted_pauldron_right",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+        "cube": "pauldron_lame_right",
+        "face": "north",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+        "cube": "pauldron_lame_right",
+        "face": "south",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+        "cube": "pauldron_lame_right",
+        "face": "east",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+        "cube": "pauldron_lame_right",
+        "face": "west",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+        "cube": "pauldron_lame_right",
+        "face": "up",
+        "material": "armor",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+        "cube": "pauldron_lame_right",
+        "face": "down",
+        "material": "armor",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+        "cube": "shoulder_collar_right",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+        "cube": "shoulder_collar_right",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+        "cube": "shoulder_collar_right",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+        "cube": "shoulder_collar_right",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+        "cube": "shoulder_collar_right",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+        "cube": "shoulder_collar_right",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+        "cube": "swept_gold_crest_right_0",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+        "cube": "swept_gold_crest_right_0",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+        "cube": "swept_gold_crest_right_0",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+        "cube": "swept_gold_crest_right_0",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+        "cube": "swept_gold_crest_right_0",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+        "cube": "swept_gold_crest_right_0",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+        "cube": "swept_gold_crest_right_1",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+        "cube": "swept_gold_crest_right_1",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+        "cube": "swept_gold_crest_right_1",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+        "cube": "swept_gold_crest_right_1",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+        "cube": "swept_gold_crest_right_1",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+        "cube": "swept_gold_crest_right_1",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+        "cube": "swept_gold_crest_right_2",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+        "cube": "swept_gold_crest_right_2",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+        "cube": "swept_gold_crest_right_2",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+        "cube": "swept_gold_crest_right_2",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+        "cube": "swept_gold_crest_right_2",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+        "cube": "swept_gold_crest_right_2",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+        "cube": "swept_gold_crest_right_3",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+        "cube": "swept_gold_crest_right_3",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+        "cube": "swept_gold_crest_right_3",
+        "face": "east",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+        "cube": "swept_gold_crest_right_3",
+        "face": "west",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+        "cube": "swept_gold_crest_right_3",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+        "cube": "swept_gold_crest_right_3",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+        "cube": "crest_inset_right",
+        "face": "north",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+        "cube": "crest_inset_right",
+        "face": "south",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+        "cube": "crest_inset_right",
+        "face": "east",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+        "cube": "crest_inset_right",
+        "face": "west",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Narrow one-texel metallic trim face"
+      },
+      {
+        "cube_uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+        "cube": "crest_inset_right",
+        "face": "up",
+        "material": "gold",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+        "cube": "crest_inset_right",
+        "face": "down",
+        "material": "gold",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+        "cube": "round_foundation_stone_0",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+        "cube": "round_foundation_stone_0",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+        "cube": "round_foundation_stone_0",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+        "cube": "round_foundation_stone_0",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+        "cube": "round_foundation_stone_0",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+        "cube": "round_foundation_stone_0",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+        "cube": "round_foundation_stone_1",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+        "cube": "round_foundation_stone_1",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+        "cube": "round_foundation_stone_1",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+        "cube": "round_foundation_stone_1",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+        "cube": "round_foundation_stone_1",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+        "cube": "round_foundation_stone_1",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+        "cube": "round_foundation_stone_2",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+        "cube": "round_foundation_stone_2",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+        "cube": "round_foundation_stone_2",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+        "cube": "round_foundation_stone_2",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+        "cube": "round_foundation_stone_2",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+        "cube": "round_foundation_stone_2",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+        "cube": "round_foundation_stone_3",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+        "cube": "round_foundation_stone_3",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+        "cube": "round_foundation_stone_3",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+        "cube": "round_foundation_stone_3",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+        "cube": "round_foundation_stone_3",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+        "cube": "round_foundation_stone_3",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+        "cube": "round_foundation_stone_4",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+        "cube": "round_foundation_stone_4",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+        "cube": "round_foundation_stone_4",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+        "cube": "round_foundation_stone_4",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+        "cube": "round_foundation_stone_4",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+        "cube": "round_foundation_stone_4",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+        "cube": "round_foundation_stone_5",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+        "cube": "round_foundation_stone_5",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+        "cube": "round_foundation_stone_5",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+        "cube": "round_foundation_stone_5",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+        "cube": "round_foundation_stone_5",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+        "cube": "round_foundation_stone_5",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+        "cube": "round_foundation_stone_6",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+        "cube": "round_foundation_stone_6",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+        "cube": "round_foundation_stone_6",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+        "cube": "round_foundation_stone_6",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+        "cube": "round_foundation_stone_6",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+        "cube": "round_foundation_stone_6",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+        "cube": "round_foundation_stone_7",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+        "cube": "round_foundation_stone_7",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+        "cube": "round_foundation_stone_7",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+        "cube": "round_foundation_stone_7",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+        "cube": "round_foundation_stone_7",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+        "cube": "round_foundation_stone_7",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+        "cube": "round_foundation_stone_8",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+        "cube": "round_foundation_stone_8",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+        "cube": "round_foundation_stone_8",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+        "cube": "round_foundation_stone_8",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+        "cube": "round_foundation_stone_8",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+        "cube": "round_foundation_stone_8",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+        "cube": "round_foundation_stone_9",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+        "cube": "round_foundation_stone_9",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+        "cube": "round_foundation_stone_9",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+        "cube": "round_foundation_stone_9",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+        "cube": "round_foundation_stone_9",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+        "cube": "round_foundation_stone_9",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+        "cube": "round_foundation_stone_10",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+        "cube": "round_foundation_stone_10",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+        "cube": "round_foundation_stone_10",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+        "cube": "round_foundation_stone_10",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+        "cube": "round_foundation_stone_10",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+        "cube": "round_foundation_stone_10",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      },
+      {
+        "cube_uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+        "cube": "round_foundation_stone_11",
+        "face": "north",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+        "cube": "round_foundation_stone_11",
+        "face": "south",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+        "cube": "round_foundation_stone_11",
+        "face": "east",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+        "cube": "round_foundation_stone_11",
+        "face": "west",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+        "cube": "round_foundation_stone_11",
+        "face": "up",
+        "material": "stone",
+        "state": "STYLED"
+      },
+      {
+        "cube_uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+        "cube": "round_foundation_stone_11",
+        "face": "down",
+        "material": "stone",
+        "state": "INTENTIONAL_FLAT",
+        "reason": "Dark underside/contact surface"
+      }
+    ]
+  },
+  "seam_continuity": {
+    "state": "available",
+    "scope": "intra_cube",
+    "cross_cube_continuity": "not_evaluated",
+    "sampled_edge_count": 256,
+    "paired_seam_count": 124,
+    "unpaired_edge_count": 8,
+    "ambiguous_edge_count": 0,
+    "review": {
+      "candidate_count": 0,
+      "high_contrast_count": 0,
+      "alpha_discontinuity_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "ranked_examples": [
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "north",
+            "edge": "left"
+          },
+          {
+            "face": "east",
+            "edge": "right"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.361,
+        "max_rgb_difference": 0.361,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "north",
+            "edge": "right"
+          },
+          {
+            "face": "west",
+            "edge": "left"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.361,
+        "max_rgb_difference": 0.361,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "south",
+            "edge": "left"
+          },
+          {
+            "face": "west",
+            "edge": "right"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.361,
+        "max_rgb_difference": 0.361,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "south",
+            "edge": "right"
+          },
+          {
+            "face": "east",
+            "edge": "left"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.361,
+        "max_rgb_difference": 0.361,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "south",
+            "edge": "top"
+          },
+          {
+            "face": "up",
+            "edge": "bottom"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.361,
+        "max_rgb_difference": 0.361,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "east",
+            "edge": "top"
+          },
+          {
+            "face": "up",
+            "edge": "right"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.361,
+        "max_rgb_difference": 0.361,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      }
+    ],
+    "ranked_examples_truncated": true,
+    "gate": {
+      "state": "advisory",
+      "reasons": []
+    },
+    "note": "Only face edges within the same Cube are paired; cross-Cube continuity is not evaluated. Seam contrast is advisory evidence, not a style score or automatic failure. Intentional face lighting/material boundaries may differ; inspect ranked candidates against the approved reference.",
+    "scan": {
+      "face_budget": 64,
+      "scanned_faces": 64,
+      "skipped_animated_faces": 0,
+      "skipped_mapping_faces": 0,
+      "budget_skipped_faces": 434,
+      "samples_per_edge_max": 4
+    },
+    "efficiency": {
+      "bounded": true,
+      "full_atlas_scan": false,
+      "edge_samples_only": true
+    }
+  },
+  "render_evidence": {
+    "diagnostic_missing_texture_highlight": false,
+    "shading": true,
+    "brightness": 50,
+    "view_mode": "textured",
+    "source": "blockbench_preview",
+    "camera_spec_source": "offscreen_capture_plan",
+    "native_camera_attested": false,
+    "in_game_verified": false
+  },
+  "surface_quality": {
+    "state": "no_bounded_risk_reported",
+    "visual_verdict": "not_evaluated",
+    "counts": {
+      "z_fighting": 0,
+      "micro_gap": 0,
+      "coplanar_edge_gap": 0,
+      "shallow_penetration": 0
+    },
+    "categorized_risk_count": 0,
+    "additional_warnings_omitted": 0,
+    "diagnostics_unavailable_count": 0,
+    "scan_complete": true,
+    "details_complete": true,
+    "note": "Bounded geometric review hints only; absence of reported risk is not visual PASS."
+  },
+  "embedded_png_matches_delivery": true,
+  "visual_verdict": "READY_FOR_USER_REVIEW; not user approval",
+  "in_game_verified": false
+}

@@ -1,0 +1,98 @@
+{
+  "schema": "lazydesigner-reference-v1",
+  "asset": {
+    "name": "Crimson Sentinel Reference",
+    "kind": "MODEL",
+    "profile": "PROP_FURNITURE",
+    "task": "NEW_ASSET",
+    "intent": "New static guardian statue faithful to supplied front and rear reference. Supersedes previous asset; no reuse of rejected geometry."
+  },
+  "images": [
+    {
+      "id": "front_back",
+      "file": "source-front-back.png",
+      "role": "PRIMARY_GEOMETRY",
+      "used_by": [
+        "GEOMETRY",
+        "TEXTURE"
+      ],
+      "status": "APPROVED"
+    }
+  ],
+  "parts": [
+    {
+      "id": "three_tier_circular_masonry_pedestal",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "flared_blue_stone_lower_armor",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "burgundy_front_tabard_with_gold_heraldry",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "broad_rear_pleated_cloak_with_gold_border_and_heraldry",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "layered_arms_and_articulated_gauntlets",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "stone_helmet_with_red_eye_slit_and_gold_crown",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "paired_swept_gold_shoulder_crests_and_four_hanging_pennants",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "front_and_rear_gold_diamond_red_gem_emblems",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "tall_red_crystal_staff",
+      "role": "TEXTURE",
+      "evidence": "SUPPORTED"
+    }
+  ],
+  "unknowns": {
+    "blocking": [],
+    "non_blocking": [
+      "Absolute scale unspecified; proportions follow image",
+      "Hidden side depths inferred from two supplied oblique views",
+      "Reference lighting is not material color"
+    ]
+  },
+  "readiness": {
+    "overall": "READY",
+    "geometry": "READY",
+    "texture": "READY",
+    "animation": "UNKNOWN"
+  },
+  "requirements": {
+    "dimensions_blocks": {
+      "width": null,
+      "height": null,
+      "length": null
+    },
+    "player_relative_scale": null,
+    "animation_required": null
+  },
+  "constraints": [
+    "Reduce minor geometry and strengthen texture detail",
+    "Share UV for repeated compatible parts",
+    "Match source palette and markings; strengthen guardian silhouette",
+    "Preserve supplied front/back identity"
+  ]
+}

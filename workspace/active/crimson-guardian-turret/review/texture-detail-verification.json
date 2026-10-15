@@ -1,0 +1,5991 @@
+{
+  "date": "2026-10-15",
+  "revision": "sha256:256x256:07d715c9b71b13cef78783c2a4905e56b511390bbb1852c8dbf163f821137f06",
+  "previous_user_verdict": "REJECTED: coarse and untidy pixel art",
+  "current_verdict": "READY_FOR_USER_REVIEW; not user approval",
+  "changes": [
+    "Cloth front increased from 6x23 to 17x64 pixels",
+    "Continuous double-chevron and diamond motif in burgundy cloth",
+    "Broad material facets instead of repeated dark bars",
+    "Diagonal crystal facets replace block/cross highlights",
+    "Intentional aged-gold etching and subtle stone cuts"
+  ],
+  "atlas": [
+    256,
+    256
+  ],
+  "zones": [
+    {
+      "family": "STONE",
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 46
+    },
+    {
+      "family": "ARMOR",
+      "x": 0,
+      "y": 46,
+      "w": 128,
+      "h": 187
+    },
+    {
+      "family": "CRYSTAL",
+      "x": 0,
+      "y": 233,
+      "w": 128,
+      "h": 22
+    },
+    {
+      "family": "GOLD",
+      "x": 128,
+      "y": 46,
+      "w": 128,
+      "h": 112
+    },
+    {
+      "family": "CLOTH",
+      "x": 128,
+      "y": 158,
+      "w": 128,
+      "h": 89
+    }
+  ],
+  "palette": {
+    "stone": [
+      "#233139",
+      "#303f48",
+      "#40525c",
+      "#536771",
+      "#6b7f87",
+      "#8a9b9e",
+      "#a4b0ad"
+    ],
+    "armor": [
+      "#2e4651",
+      "#3c5965",
+      "#50717e",
+      "#698b96",
+      "#82a1a9",
+      "#9bb8bb",
+      "#bdceca"
+    ],
+    "gown": [
+      "#20343e",
+      "#2d4653",
+      "#3d5b69",
+      "#527280",
+      "#6a8b97",
+      "#829fac",
+      "#a5b8bd"
+    ],
+    "gold": [
+      "#463827",
+      "#625035",
+      "#826a40",
+      "#a48a54",
+      "#bea56d",
+      "#d6c18b",
+      "#ebdba8"
+    ],
+    "cloth": [
+      "#40192a",
+      "#5a2034",
+      "#7a2a41",
+      "#9b3851",
+      "#b94f64",
+      "#d0707e",
+      "#e69496"
+    ],
+    "crystal": [
+      "#700c23",
+      "#99102b",
+      "#bd1835",
+      "#dc2944",
+      "#f04458",
+      "#ff6d79",
+      "#ffaaa4"
+    ]
+  },
+  "face_ledger": [
+    {
+      "cube": "robe_core",
+      "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+      "face": "north",
+      "pixels": [
+        10,
+        22
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_core",
+      "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+      "face": "south",
+      "pixels": [
+        10,
+        22
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_core",
+      "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+      "face": "east",
+      "pixels": [
+        8,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_core",
+      "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+      "face": "west",
+      "pixels": [
+        8,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_core",
+      "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+      "face": "up",
+      "pixels": [
+        10,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_core",
+      "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_0",
+      "uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_0",
+      "uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_0",
+      "uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_0",
+      "uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_0",
+      "uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_0",
+      "uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_1",
+      "uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_1",
+      "uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_1",
+      "uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_1",
+      "uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_1",
+      "uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_1",
+      "uuid": "fbd9bb8c-d192-c219-74b0-22f6d41eb3bd",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_2",
+      "uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_2",
+      "uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_2",
+      "uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_2",
+      "uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_2",
+      "uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_2",
+      "uuid": "2cab3a34-61c5-85f7-aa47-320fa17c8945",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_3",
+      "uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_3",
+      "uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_3",
+      "uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_3",
+      "uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_3",
+      "uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_3",
+      "uuid": "b0f83ca5-3218-5c4b-2f30-41b6cb672aea",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_4",
+      "uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_4",
+      "uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_4",
+      "uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_4",
+      "uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_4",
+      "uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_4",
+      "uuid": "428e478b-bcb7-2d16-7440-ab07949ce5a2",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_5",
+      "uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_5",
+      "uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_5",
+      "uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_5",
+      "uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_5",
+      "uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_5",
+      "uuid": "35395188-a165-2bd6-5f2f-0e18addf6b1d",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_6",
+      "uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_6",
+      "uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_6",
+      "uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_6",
+      "uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_6",
+      "uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_6",
+      "uuid": "330a7900-75d8-dee4-fc23-297f4d5aa934",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "robe_flute_7",
+      "uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+      "face": "north",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_7",
+      "uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+      "face": "south",
+      "pixels": [
+        8,
+        30
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_7",
+      "uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+      "face": "east",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_7",
+      "uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+      "face": "west",
+      "pixels": [
+        4,
+        35
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_7",
+      "uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+      "face": "up",
+      "pixels": [
+        9,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "robe_flute_7",
+      "uuid": "8efb1549-b0aa-b2c5-da40-03e891c94c35",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "armored_chest",
+      "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+      "face": "north",
+      "pixels": [
+        35,
+        31
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "armored_chest",
+      "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+      "face": "south",
+      "pixels": [
+        18,
+        16
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "armored_chest",
+      "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+      "face": "east",
+      "pixels": [
+        13,
+        16
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "armored_chest",
+      "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+      "face": "west",
+      "pixels": [
+        13,
+        16
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "armored_chest",
+      "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+      "face": "up",
+      "pixels": [
+        18,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "armored_chest",
+      "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+      "face": "down",
+      "pixels": [
+        7,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "neck_shadow",
+      "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+      "face": "north",
+      "pixels": [
+        10,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "neck_shadow",
+      "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+      "face": "south",
+      "pixels": [
+        9,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "neck_shadow",
+      "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+      "face": "east",
+      "pixels": [
+        8,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "neck_shadow",
+      "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+      "face": "west",
+      "pixels": [
+        8,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "neck_shadow",
+      "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+      "face": "up",
+      "pixels": [
+        8,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "neck_shadow",
+      "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+      "face": "down",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "helmet_main",
+      "uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+      "face": "north",
+      "pixels": [
+        22,
+        19
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_main",
+      "uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+      "face": "south",
+      "pixels": [
+        11,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_main",
+      "uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+      "face": "east",
+      "pixels": [
+        10,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_main",
+      "uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+      "face": "west",
+      "pixels": [
+        10,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_main",
+      "uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+      "face": "up",
+      "pixels": [
+        12,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_main",
+      "uuid": "26020947-aaa3-722e-2722-0b5596e26a89",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "helmet_crown",
+      "uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+      "face": "north",
+      "pixels": [
+        20,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_crown",
+      "uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+      "face": "south",
+      "pixels": [
+        20,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_crown",
+      "uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+      "face": "east",
+      "pixels": [
+        17,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_crown",
+      "uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+      "face": "west",
+      "pixels": [
+        17,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_crown",
+      "uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+      "face": "up",
+      "pixels": [
+        16,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_crown",
+      "uuid": "eb9c5618-9677-22cc-c873-3bad7ff02d3f",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "helmet_brow",
+      "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+      "face": "north",
+      "pixels": [
+        24,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "helmet_brow",
+      "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+      "face": "south",
+      "pixels": [
+        16,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "helmet_brow",
+      "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+      "face": "east",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "helmet_brow",
+      "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+      "face": "west",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "helmet_brow",
+      "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+      "face": "up",
+      "pixels": [
+        20,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "helmet_brow",
+      "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+      "face": "down",
+      "pixels": [
+        10,
+        1
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "face_guard_center",
+      "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+      "face": "north",
+      "pixels": [
+        3,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "face_guard_center",
+      "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+      "face": "south",
+      "pixels": [
+        3,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "face_guard_center",
+      "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+      "face": "east",
+      "pixels": [
+        2,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "face_guard_center",
+      "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+      "face": "west",
+      "pixels": [
+        2,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "face_guard_center",
+      "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+      "face": "up",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "face_guard_center",
+      "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "upper_arm_left",
+      "uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+      "face": "north",
+      "pixels": [
+        6,
+        16
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_left",
+      "uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+      "face": "south",
+      "pixels": [
+        5,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_left",
+      "uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+      "face": "east",
+      "pixels": [
+        8,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_left",
+      "uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+      "face": "west",
+      "pixels": [
+        8,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_left",
+      "uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+      "face": "up",
+      "pixels": [
+        5,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_left",
+      "uuid": "ba3edf9b-3789-feda-873c-48a5eabadf7a",
+      "face": "down",
+      "pixels": [
+        3,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "forearm_left",
+      "uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+      "face": "north",
+      "pixels": [
+        7,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_left",
+      "uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+      "face": "south",
+      "pixels": [
+        6,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_left",
+      "uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+      "face": "east",
+      "pixels": [
+        8,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_left",
+      "uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+      "face": "west",
+      "pixels": [
+        8,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_left",
+      "uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+      "face": "up",
+      "pixels": [
+        6,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_left",
+      "uuid": "2b04b168-e1e9-bf6d-6019-90377cf8a19d",
+      "face": "down",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "gauntlet_left",
+      "uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+      "face": "north",
+      "pixels": [
+        8,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_left",
+      "uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+      "face": "south",
+      "pixels": [
+        7,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_left",
+      "uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+      "face": "east",
+      "pixels": [
+        7,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_left",
+      "uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+      "face": "west",
+      "pixels": [
+        7,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_left",
+      "uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+      "face": "up",
+      "pixels": [
+        6,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_left",
+      "uuid": "70da8677-3dc0-9aa0-9af3-d2ae2db5ff53",
+      "face": "down",
+      "pixels": [
+        2,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "jaw_trim_left",
+      "uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+      "face": "north",
+      "pixels": [
+        4,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_left",
+      "uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+      "face": "south",
+      "pixels": [
+        4,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_left",
+      "uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+      "face": "east",
+      "pixels": [
+        2,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_left",
+      "uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+      "face": "west",
+      "pixels": [
+        2,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_left",
+      "uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+      "face": "up",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_left",
+      "uuid": "f9f097a2-539e-670c-53e9-43b09b95ef5b",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "chest_gold_v_left",
+      "uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+      "face": "north",
+      "pixels": [
+        3,
+        22
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_left",
+      "uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+      "face": "south",
+      "pixels": [
+        3,
+        22
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_left",
+      "uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+      "face": "east",
+      "pixels": [
+        2,
+        26
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_left",
+      "uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+      "face": "west",
+      "pixels": [
+        2,
+        26
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_left",
+      "uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+      "face": "up",
+      "pixels": [
+        5,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_left",
+      "uuid": "8a5df3f5-9565-5730-4f31-618db6e099ad",
+      "face": "down",
+      "pixels": [
+        5,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "tabard_edge_left",
+      "uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+      "face": "north",
+      "pixels": [
+        2,
+        65
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_left",
+      "uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+      "face": "south",
+      "pixels": [
+        2,
+        65
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_left",
+      "uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+      "face": "east",
+      "pixels": [
+        2,
+        49
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_left",
+      "uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+      "face": "west",
+      "pixels": [
+        2,
+        49
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_left",
+      "uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+      "face": "up",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_left",
+      "uuid": "b0b9931a-5b50-b5f9-bc21-ed44a1c117e3",
+      "face": "down",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "upper_arm_right",
+      "uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+      "face": "north",
+      "pixels": [
+        6,
+        16
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_right",
+      "uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+      "face": "south",
+      "pixels": [
+        5,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_right",
+      "uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+      "face": "east",
+      "pixels": [
+        8,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_right",
+      "uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+      "face": "west",
+      "pixels": [
+        8,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_right",
+      "uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+      "face": "up",
+      "pixels": [
+        5,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "upper_arm_right",
+      "uuid": "91c81117-8553-d622-52e4-1155a8ce8269",
+      "face": "down",
+      "pixels": [
+        3,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "forearm_right",
+      "uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+      "face": "north",
+      "pixels": [
+        7,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_right",
+      "uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+      "face": "south",
+      "pixels": [
+        6,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_right",
+      "uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+      "face": "east",
+      "pixels": [
+        8,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_right",
+      "uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+      "face": "west",
+      "pixels": [
+        8,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_right",
+      "uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+      "face": "up",
+      "pixels": [
+        6,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "forearm_right",
+      "uuid": "0dece713-7883-fb58-5573-588e013f83fc",
+      "face": "down",
+      "pixels": [
+        2,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "gauntlet_right",
+      "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+      "face": "north",
+      "pixels": [
+        9,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_right",
+      "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+      "face": "south",
+      "pixels": [
+        7,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_right",
+      "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+      "face": "east",
+      "pixels": [
+        5,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_right",
+      "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+      "face": "west",
+      "pixels": [
+        5,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_right",
+      "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+      "face": "up",
+      "pixels": [
+        7,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "gauntlet_right",
+      "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+      "face": "down",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "jaw_trim_right",
+      "uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+      "face": "north",
+      "pixels": [
+        4,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_right",
+      "uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+      "face": "south",
+      "pixels": [
+        4,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_right",
+      "uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+      "face": "east",
+      "pixels": [
+        2,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_right",
+      "uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+      "face": "west",
+      "pixels": [
+        2,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_right",
+      "uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+      "face": "up",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "jaw_trim_right",
+      "uuid": "e6235662-8446-2ff8-3c07-b25eb069018f",
+      "face": "down",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "chest_gold_v_right",
+      "uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+      "face": "north",
+      "pixels": [
+        3,
+        22
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_right",
+      "uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+      "face": "south",
+      "pixels": [
+        3,
+        22
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_right",
+      "uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+      "face": "east",
+      "pixels": [
+        2,
+        26
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_right",
+      "uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+      "face": "west",
+      "pixels": [
+        2,
+        26
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_right",
+      "uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+      "face": "up",
+      "pixels": [
+        5,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_gold_v_right",
+      "uuid": "c0d8df88-e4aa-e101-e897-c8ca00f48973",
+      "face": "down",
+      "pixels": [
+        5,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "tabard_edge_right",
+      "uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+      "face": "north",
+      "pixels": [
+        2,
+        65
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_right",
+      "uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+      "face": "south",
+      "pixels": [
+        2,
+        65
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_right",
+      "uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+      "face": "east",
+      "pixels": [
+        2,
+        49
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_right",
+      "uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+      "face": "west",
+      "pixels": [
+        2,
+        49
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_right",
+      "uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+      "face": "up",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_edge_right",
+      "uuid": "680f36d5-3b4e-934f-d041-4b4417c9e1b7",
+      "face": "down",
+      "pixels": [
+        3,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "tabard_upper",
+      "uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+      "face": "north",
+      "pixels": [
+        18,
+        24
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_upper",
+      "uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+      "face": "south",
+      "pixels": [
+        18,
+        24
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_upper",
+      "uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+      "face": "east",
+      "pixels": [
+        3,
+        32
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_upper",
+      "uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+      "face": "west",
+      "pixels": [
+        3,
+        32
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_upper",
+      "uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+      "face": "up",
+      "pixels": [
+        23,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_upper",
+      "uuid": "f46eca71-4249-635e-3926-a1d092c1d1d9",
+      "face": "down",
+      "pixels": [
+        8,
+        1
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "tabard_long",
+      "uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+      "face": "north",
+      "pixels": [
+        17,
+        64
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_long",
+      "uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+      "face": "south",
+      "pixels": [
+        17,
+        64
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_long",
+      "uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+      "face": "east",
+      "pixels": [
+        3,
+        87
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_long",
+      "uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+      "face": "west",
+      "pixels": [
+        3,
+        87
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_long",
+      "uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+      "face": "up",
+      "pixels": [
+        22,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "tabard_long",
+      "uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+      "face": "down",
+      "pixels": [
+        8,
+        1
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "chest_ruby",
+      "uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+      "face": "north",
+      "pixels": [
+        5,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_ruby",
+      "uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+      "face": "south",
+      "pixels": [
+        5,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_ruby",
+      "uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+      "face": "east",
+      "pixels": [
+        3,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_ruby",
+      "uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+      "face": "west",
+      "pixels": [
+        3,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_ruby",
+      "uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+      "face": "up",
+      "pixels": [
+        5,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "chest_ruby",
+      "uuid": "be809fcb-3fd0-d233-ef61-bdef56eb7182",
+      "face": "down",
+      "pixels": [
+        5,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "staff_shaft",
+      "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+      "face": "north",
+      "pixels": [
+        2,
+        68
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_shaft",
+      "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+      "face": "south",
+      "pixels": [
+        2,
+        68
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_shaft",
+      "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+      "face": "east",
+      "pixels": [
+        2,
+        68
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_shaft",
+      "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+      "face": "west",
+      "pixels": [
+        2,
+        68
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_shaft",
+      "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+      "face": "up",
+      "pixels": [
+        2,
+        2
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_shaft",
+      "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+      "face": "down",
+      "pixels": [
+        1,
+        1
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "staff_grip",
+      "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+      "face": "north",
+      "pixels": [
+        4,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_grip",
+      "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+      "face": "south",
+      "pixels": [
+        4,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_grip",
+      "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+      "face": "east",
+      "pixels": [
+        4,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_grip",
+      "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+      "face": "west",
+      "pixels": [
+        4,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_grip",
+      "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+      "face": "up",
+      "pixels": [
+        4,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_grip",
+      "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+      "face": "down",
+      "pixels": [
+        1,
+        1
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "staff_socket",
+      "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+      "face": "north",
+      "pixels": [
+        10,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_socket",
+      "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+      "face": "south",
+      "pixels": [
+        10,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_socket",
+      "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+      "face": "east",
+      "pixels": [
+        8,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_socket",
+      "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+      "face": "west",
+      "pixels": [
+        8,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_socket",
+      "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+      "face": "up",
+      "pixels": [
+        10,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "staff_socket",
+      "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+      "face": "down",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "crystal_base",
+      "uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+      "face": "north",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "crystal_base",
+      "uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+      "face": "south",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "crystal_base",
+      "uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+      "face": "east",
+      "pixels": [
+        9,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "crystal_base",
+      "uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+      "face": "west",
+      "pixels": [
+        9,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "crystal_base",
+      "uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+      "face": "up",
+      "pixels": [
+        11,
+        9
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Slim trim or visor/socket material face"
+    },
+    {
+      "cube": "crystal_base",
+      "uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "crystal_main",
+      "uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+      "face": "north",
+      "pixels": [
+        10,
+        15
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_main",
+      "uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+      "face": "south",
+      "pixels": [
+        10,
+        15
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_main",
+      "uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+      "face": "east",
+      "pixels": [
+        10,
+        15
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_main",
+      "uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+      "face": "west",
+      "pixels": [
+        10,
+        15
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_main",
+      "uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+      "face": "up",
+      "pixels": [
+        10,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_main",
+      "uuid": "4d7be5db-42d9-2830-b379-f4f821b7ea0e",
+      "face": "down",
+      "pixels": [
+        2,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "crystal_tip",
+      "uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+      "face": "north",
+      "pixels": [
+        7,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_tip",
+      "uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+      "face": "south",
+      "pixels": [
+        7,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_tip",
+      "uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+      "face": "east",
+      "pixels": [
+        7,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_tip",
+      "uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+      "face": "west",
+      "pixels": [
+        7,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_tip",
+      "uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+      "face": "up",
+      "pixels": [
+        7,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_tip",
+      "uuid": "2fc3849d-6c6f-d29b-c147-ba90986c23b9",
+      "face": "down",
+      "pixels": [
+        2,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "crystal_root_facet",
+      "uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+      "face": "north",
+      "pixels": [
+        3,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_root_facet",
+      "uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+      "face": "south",
+      "pixels": [
+        3,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_root_facet",
+      "uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+      "face": "east",
+      "pixels": [
+        3,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_root_facet",
+      "uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+      "face": "west",
+      "pixels": [
+        3,
+        9
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_root_facet",
+      "uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+      "face": "up",
+      "pixels": [
+        3,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crystal_root_facet",
+      "uuid": "4f913b67-4fa1-b985-b628-75f69383a942",
+      "face": "down",
+      "pixels": [
+        1,
+        1
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "base_paving_band_0",
+      "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+      "face": "north",
+      "pixels": [
+        19,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_0",
+      "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+      "face": "south",
+      "pixels": [
+        19,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_0",
+      "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_0",
+      "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_0",
+      "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+      "face": "up",
+      "pixels": [
+        14,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_0",
+      "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+      "face": "down",
+      "pixels": [
+        9,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "base_paving_band_1",
+      "uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+      "face": "north",
+      "pixels": [
+        26,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_1",
+      "uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+      "face": "south",
+      "pixels": [
+        26,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_1",
+      "uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+      "face": "east",
+      "pixels": [
+        6,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_1",
+      "uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+      "face": "west",
+      "pixels": [
+        6,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_1",
+      "uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+      "face": "up",
+      "pixels": [
+        19,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_1",
+      "uuid": "41161369-6ba8-089e-43c1-b34c055a035d",
+      "face": "down",
+      "pixels": [
+        10,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "base_paving_band_2",
+      "uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+      "face": "north",
+      "pixels": [
+        30,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_2",
+      "uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+      "face": "south",
+      "pixels": [
+        30,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_2",
+      "uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+      "face": "east",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_2",
+      "uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+      "face": "west",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_2",
+      "uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+      "face": "up",
+      "pixels": [
+        22,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_2",
+      "uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+      "face": "down",
+      "pixels": [
+        11,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "base_paving_band_3",
+      "uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+      "face": "north",
+      "pixels": [
+        26,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_3",
+      "uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+      "face": "south",
+      "pixels": [
+        26,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_3",
+      "uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+      "face": "east",
+      "pixels": [
+        6,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_3",
+      "uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+      "face": "west",
+      "pixels": [
+        6,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_3",
+      "uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+      "face": "up",
+      "pixels": [
+        19,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_3",
+      "uuid": "a4413f0c-3c6c-d1d8-9094-904301a46626",
+      "face": "down",
+      "pixels": [
+        10,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "base_paving_band_4",
+      "uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+      "face": "north",
+      "pixels": [
+        19,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_4",
+      "uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+      "face": "south",
+      "pixels": [
+        19,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_4",
+      "uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_4",
+      "uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_4",
+      "uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+      "face": "up",
+      "pixels": [
+        14,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "base_paving_band_4",
+      "uuid": "e1a34d8a-7c6d-4c9c-b71b-07b63ef226f1",
+      "face": "down",
+      "pixels": [
+        9,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_0",
+      "uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_0",
+      "uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_0",
+      "uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_0",
+      "uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_0",
+      "uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_0",
+      "uuid": "587eaabd-7fc6-92ae-7031-42292af35cbf",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_1",
+      "uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_1",
+      "uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_1",
+      "uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_1",
+      "uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_1",
+      "uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_1",
+      "uuid": "e29effef-3c9c-4403-377e-0c3a9aff3de6",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_2",
+      "uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_2",
+      "uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_2",
+      "uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_2",
+      "uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_2",
+      "uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_2",
+      "uuid": "aa39db8a-3ce4-d255-daba-a6b720ee7f70",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_3",
+      "uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_3",
+      "uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_3",
+      "uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_3",
+      "uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_3",
+      "uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_3",
+      "uuid": "dea633a3-b274-deb9-c521-db00d635d6a8",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_4",
+      "uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_4",
+      "uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_4",
+      "uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_4",
+      "uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_4",
+      "uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_4",
+      "uuid": "fc60cdcd-3519-0475-1a1a-e260ca2df571",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_5",
+      "uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_5",
+      "uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_5",
+      "uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_5",
+      "uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_5",
+      "uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_5",
+      "uuid": "e03dada7-e873-5dac-eac8-7f8b5a0e133b",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_6",
+      "uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_6",
+      "uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_6",
+      "uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_6",
+      "uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_6",
+      "uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_6",
+      "uuid": "73271551-86e1-9baf-256a-1b7a7c9465c7",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_7",
+      "uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_7",
+      "uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_7",
+      "uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_7",
+      "uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_7",
+      "uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_7",
+      "uuid": "37939fc9-03d9-5073-3b6b-3835f4e78a64",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_8",
+      "uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_8",
+      "uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_8",
+      "uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_8",
+      "uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_8",
+      "uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_8",
+      "uuid": "ebb684af-d78e-74b8-30de-99540e4474ca",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_9",
+      "uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_9",
+      "uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_9",
+      "uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_9",
+      "uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_9",
+      "uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_9",
+      "uuid": "37bb4dcd-c967-658b-688e-3419cd73834d",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_10",
+      "uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_10",
+      "uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_10",
+      "uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_10",
+      "uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_10",
+      "uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_10",
+      "uuid": "9f372ad9-686e-8844-faaf-848e4746f5b5",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "separate_rim_block_11",
+      "uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_11",
+      "uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_11",
+      "uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+      "face": "east",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_11",
+      "uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+      "face": "west",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_11",
+      "uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+      "face": "up",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "separate_rim_block_11",
+      "uuid": "7844aa46-43cb-9ebc-0536-9d5688c07969",
+      "face": "down",
+      "pixels": [
+        7,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "inset_dais",
+      "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+      "face": "north",
+      "pixels": [
+        29,
+        2
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "inset_dais",
+      "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+      "face": "south",
+      "pixels": [
+        29,
+        2
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "inset_dais",
+      "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+      "face": "east",
+      "pixels": [
+        29,
+        2
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "inset_dais",
+      "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+      "face": "west",
+      "pixels": [
+        29,
+        2
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "inset_dais",
+      "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+      "face": "up",
+      "pixels": [
+        17,
+        17
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "inset_dais",
+      "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+      "face": "down",
+      "pixels": [
+        9,
+        9
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "sculpted_pauldron_left",
+      "uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+      "face": "north",
+      "pixels": [
+        16,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_left",
+      "uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+      "face": "south",
+      "pixels": [
+        12,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_left",
+      "uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+      "face": "east",
+      "pixels": [
+        13,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_left",
+      "uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+      "face": "west",
+      "pixels": [
+        13,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_left",
+      "uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+      "face": "up",
+      "pixels": [
+        12,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_left",
+      "uuid": "7c4ffe11-b1be-2016-8431-ccf53142b2ae",
+      "face": "down",
+      "pixels": [
+        4,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "pauldron_lame_left",
+      "uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+      "face": "north",
+      "pixels": [
+        14,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_left",
+      "uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+      "face": "south",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_left",
+      "uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+      "face": "east",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_left",
+      "uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+      "face": "west",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_left",
+      "uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+      "face": "up",
+      "pixels": [
+        11,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_left",
+      "uuid": "c6aa5fb0-3ed3-9b4a-7cb8-a2066aa36505",
+      "face": "down",
+      "pixels": [
+        4,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "shoulder_collar_left",
+      "uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+      "face": "north",
+      "pixels": [
+        4,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_left",
+      "uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+      "face": "south",
+      "pixels": [
+        4,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_left",
+      "uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+      "face": "east",
+      "pixels": [
+        13,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_left",
+      "uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+      "face": "west",
+      "pixels": [
+        13,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_left",
+      "uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+      "face": "up",
+      "pixels": [
+        4,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_left",
+      "uuid": "7167233e-93db-4a6f-1c86-8fa26c2cee6c",
+      "face": "down",
+      "pixels": [
+        2,
+        6
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_left_0",
+      "uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+      "face": "north",
+      "pixels": [
+        5,
+        18
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_0",
+      "uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+      "face": "south",
+      "pixels": [
+        5,
+        18
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_0",
+      "uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+      "face": "east",
+      "pixels": [
+        5,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_0",
+      "uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+      "face": "west",
+      "pixels": [
+        5,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_0",
+      "uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+      "face": "up",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_0",
+      "uuid": "809c9f13-4855-4263-bb25-81631dc590b1",
+      "face": "down",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_left_1",
+      "uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+      "face": "north",
+      "pixels": [
+        7,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_1",
+      "uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+      "face": "south",
+      "pixels": [
+        7,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_1",
+      "uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+      "face": "east",
+      "pixels": [
+        6,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_1",
+      "uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+      "face": "west",
+      "pixels": [
+        6,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_1",
+      "uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+      "face": "up",
+      "pixels": [
+        7,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_1",
+      "uuid": "3b47a2ff-a908-e68f-64d2-300e0f0ff35c",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_left_2",
+      "uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+      "face": "north",
+      "pixels": [
+        6,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_2",
+      "uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+      "face": "south",
+      "pixels": [
+        6,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_2",
+      "uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+      "face": "east",
+      "pixels": [
+        5,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_2",
+      "uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+      "face": "west",
+      "pixels": [
+        5,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_2",
+      "uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+      "face": "up",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_2",
+      "uuid": "767e5a52-f4f8-2a75-d635-e380053b44e7",
+      "face": "down",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_left_3",
+      "uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+      "face": "north",
+      "pixels": [
+        3,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_3",
+      "uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+      "face": "south",
+      "pixels": [
+        3,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_3",
+      "uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+      "face": "east",
+      "pixels": [
+        4,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_3",
+      "uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+      "face": "west",
+      "pixels": [
+        4,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_3",
+      "uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+      "face": "up",
+      "pixels": [
+        4,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_left_3",
+      "uuid": "e16472cc-8faa-bf5d-4f60-af08036f0c53",
+      "face": "down",
+      "pixels": [
+        4,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "crest_inset_left",
+      "uuid": "983cd945-d354-1c14-c699-b2789994176e",
+      "face": "north",
+      "pixels": [
+        3,
+        24
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_left",
+      "uuid": "983cd945-d354-1c14-c699-b2789994176e",
+      "face": "south",
+      "pixels": [
+        3,
+        24
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_left",
+      "uuid": "983cd945-d354-1c14-c699-b2789994176e",
+      "face": "east",
+      "pixels": [
+        2,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_left",
+      "uuid": "983cd945-d354-1c14-c699-b2789994176e",
+      "face": "west",
+      "pixels": [
+        2,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_left",
+      "uuid": "983cd945-d354-1c14-c699-b2789994176e",
+      "face": "up",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_left",
+      "uuid": "983cd945-d354-1c14-c699-b2789994176e",
+      "face": "down",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "sculpted_pauldron_right",
+      "uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+      "face": "north",
+      "pixels": [
+        16,
+        8
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_right",
+      "uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+      "face": "south",
+      "pixels": [
+        12,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_right",
+      "uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+      "face": "east",
+      "pixels": [
+        13,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_right",
+      "uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+      "face": "west",
+      "pixels": [
+        13,
+        7
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_right",
+      "uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+      "face": "up",
+      "pixels": [
+        12,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "sculpted_pauldron_right",
+      "uuid": "e5e1810a-f7f9-76b4-bd76-e57b1eda8ffa",
+      "face": "down",
+      "pixels": [
+        4,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "pauldron_lame_right",
+      "uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+      "face": "north",
+      "pixels": [
+        14,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_right",
+      "uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+      "face": "south",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_right",
+      "uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+      "face": "east",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_right",
+      "uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+      "face": "west",
+      "pixels": [
+        11,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_right",
+      "uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+      "face": "up",
+      "pixels": [
+        11,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "pauldron_lame_right",
+      "uuid": "ece5ccc8-052c-c57c-99f9-1b5caa8f000b",
+      "face": "down",
+      "pixels": [
+        4,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "shoulder_collar_right",
+      "uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+      "face": "north",
+      "pixels": [
+        4,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_right",
+      "uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+      "face": "south",
+      "pixels": [
+        4,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_right",
+      "uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+      "face": "east",
+      "pixels": [
+        13,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_right",
+      "uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+      "face": "west",
+      "pixels": [
+        13,
+        10
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_right",
+      "uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+      "face": "up",
+      "pixels": [
+        4,
+        13
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "shoulder_collar_right",
+      "uuid": "9481a937-46ba-c236-ed56-4f72a7a34546",
+      "face": "down",
+      "pixels": [
+        2,
+        6
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_right_0",
+      "uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+      "face": "north",
+      "pixels": [
+        5,
+        18
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_0",
+      "uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+      "face": "south",
+      "pixels": [
+        5,
+        18
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_0",
+      "uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+      "face": "east",
+      "pixels": [
+        5,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_0",
+      "uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+      "face": "west",
+      "pixels": [
+        5,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_0",
+      "uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+      "face": "up",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_0",
+      "uuid": "7b71857b-cf9a-057e-3372-995da37dec7b",
+      "face": "down",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_right_1",
+      "uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+      "face": "north",
+      "pixels": [
+        7,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_1",
+      "uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+      "face": "south",
+      "pixels": [
+        7,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_1",
+      "uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+      "face": "east",
+      "pixels": [
+        6,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_1",
+      "uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+      "face": "west",
+      "pixels": [
+        6,
+        14
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_1",
+      "uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+      "face": "up",
+      "pixels": [
+        7,
+        6
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_1",
+      "uuid": "98cad076-7370-99a0-5da4-47c01ef5548a",
+      "face": "down",
+      "pixels": [
+        5,
+        4
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_right_2",
+      "uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+      "face": "north",
+      "pixels": [
+        6,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_2",
+      "uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+      "face": "south",
+      "pixels": [
+        6,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_2",
+      "uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+      "face": "east",
+      "pixels": [
+        5,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_2",
+      "uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+      "face": "west",
+      "pixels": [
+        5,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_2",
+      "uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+      "face": "up",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_2",
+      "uuid": "9aef0226-5e9d-104e-33da-efb9f7b299ee",
+      "face": "down",
+      "pixels": [
+        6,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "swept_gold_crest_right_3",
+      "uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+      "face": "north",
+      "pixels": [
+        3,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_3",
+      "uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+      "face": "south",
+      "pixels": [
+        3,
+        11
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_3",
+      "uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+      "face": "east",
+      "pixels": [
+        4,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_3",
+      "uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+      "face": "west",
+      "pixels": [
+        4,
+        12
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_3",
+      "uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+      "face": "up",
+      "pixels": [
+        4,
+        5
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "swept_gold_crest_right_3",
+      "uuid": "4a59b553-040d-127d-7b61-29bcc3dfae13",
+      "face": "down",
+      "pixels": [
+        4,
+        5
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "crest_inset_right",
+      "uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+      "face": "north",
+      "pixels": [
+        3,
+        24
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_right",
+      "uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+      "face": "south",
+      "pixels": [
+        3,
+        24
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_right",
+      "uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+      "face": "east",
+      "pixels": [
+        2,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_right",
+      "uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+      "face": "west",
+      "pixels": [
+        2,
+        21
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_right",
+      "uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+      "face": "up",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "crest_inset_right",
+      "uuid": "a1e3d9ab-8eec-45c7-5938-e4b374e2a32e",
+      "face": "down",
+      "pixels": [
+        4,
+        3
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_0",
+      "uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_0",
+      "uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_0",
+      "uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_0",
+      "uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_0",
+      "uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_0",
+      "uuid": "bf8b59fd-473e-02b6-0a47-c45f8625e7b8",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_1",
+      "uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_1",
+      "uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_1",
+      "uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_1",
+      "uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_1",
+      "uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_1",
+      "uuid": "6d047d3c-6fa0-9d62-6602-4fe2ca660c15",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_2",
+      "uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_2",
+      "uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_2",
+      "uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_2",
+      "uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_2",
+      "uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_2",
+      "uuid": "dbbc8df6-bf46-1c04-fad8-5fea5f0e5743",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_3",
+      "uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_3",
+      "uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_3",
+      "uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_3",
+      "uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_3",
+      "uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_3",
+      "uuid": "569c05c8-72ff-0fa7-aceb-d984ba541a85",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_4",
+      "uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_4",
+      "uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_4",
+      "uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_4",
+      "uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_4",
+      "uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_4",
+      "uuid": "d4e72733-9e6c-222f-76bf-ea933ef29115",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_5",
+      "uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_5",
+      "uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_5",
+      "uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_5",
+      "uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_5",
+      "uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_5",
+      "uuid": "c32ab12d-d54a-e28d-e7d2-9ffa5679fbc4",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_6",
+      "uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_6",
+      "uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_6",
+      "uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_6",
+      "uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_6",
+      "uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_6",
+      "uuid": "5ea8345c-c78d-9e4d-39f4-9b5b5119e5e3",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_7",
+      "uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_7",
+      "uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_7",
+      "uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_7",
+      "uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_7",
+      "uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_7",
+      "uuid": "82fb6a2d-52dd-5336-b4e8-184d6dc9baab",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_8",
+      "uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_8",
+      "uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_8",
+      "uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_8",
+      "uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_8",
+      "uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_8",
+      "uuid": "1e0b32d5-260b-5a69-db06-d06b967a8e1c",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_9",
+      "uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_9",
+      "uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_9",
+      "uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_9",
+      "uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_9",
+      "uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_9",
+      "uuid": "b697bfb1-05b0-f7f8-2c58-b78f072886e0",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_10",
+      "uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_10",
+      "uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_10",
+      "uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_10",
+      "uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_10",
+      "uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_10",
+      "uuid": "02f6b8f5-2d47-9dd4-6d5a-f30082ed22bb",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    },
+    {
+      "cube": "round_foundation_stone_11",
+      "uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+      "face": "north",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_11",
+      "uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+      "face": "south",
+      "pixels": [
+        7,
+        3
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_11",
+      "uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+      "face": "east",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_11",
+      "uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+      "face": "west",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_11",
+      "uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+      "face": "up",
+      "pixels": [
+        6,
+        4
+      ],
+      "state": "STYLED"
+    },
+    {
+      "cube": "round_foundation_stone_11",
+      "uuid": "46c303a4-b640-e292-2e95-787fd75692fe",
+      "face": "down",
+      "pixels": [
+        3,
+        2
+      ],
+      "state": "INTENTIONAL_FLAT",
+      "reason": "Flat underside/contact surface"
+    }
+  ],
+  "uv_audit": {
+    "state": "available",
+    "logical_canvas": {
+      "width": 256,
+      "height": 256
+    },
+    "packing": {
+      "units": "logical_uv_units",
+      "face_area": 32163,
+      "occupied_area": 32163,
+      "occupancy_ratio": 0.4907684326171875,
+      "occupied_bounds": {
+        "min": [
+          1,
+          1
+        ],
+        "max": [
+          255,
+          254
+        ]
+      },
+      "occupied_size": [
+        254,
+        253
+      ],
+      "padding": "unverified"
+    },
+    "enabled_faces": 498,
+    "valid_uv_faces": 498,
+    "invalid_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "out_of_bounds": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "fractional_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "non_integral_pixel_mapping": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "degenerate_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "collapsed_surface_uv": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "unlocked_box_uv_cubes": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "exact_reuse": {
+      "region_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "partial_overlap": {
+      "pair_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "production_gate": {
+      "state": "ready",
+      "reasons": []
+    }
+  },
+  "coverage": {
+    "visual_verdict": "not_evaluated",
+    "required_faces": 498,
+    "scanned_faces": 498,
+    "accounted_ratio": 1,
+    "states": {
+      "varied": 372,
+      "transparent": 0,
+      "solid_color": 92,
+      "low_variation": 34
+    },
+    "review": {
+      "candidate_face_count": 87,
+      "transparent_face_count": 0,
+      "detail_capable_solid_face_count": 53,
+      "solid_color_faces": {
+        "count": 92,
+        "examples": [
+          {
+            "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+            "cube_name": "crystal_base",
+            "face": "up",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              96,
+              243,
+              85,
+              234
+            ],
+            "pixel_size": [
+              11,
+              9
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+            "cube_name": "inset_dais",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              81,
+              28,
+              72,
+              37
+            ],
+            "pixel_size": [
+              9,
+              9
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "669313c0-6db5-25dd-b7fa-13bbc7d6c8d4",
+            "cube_name": "base_paving_band_2",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              40,
+              37,
+              29,
+              41
+            ],
+            "pixel_size": [
+              11,
+              4
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+            "cube_name": "helmet_brow",
+            "face": "up",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              31,
+              148,
+              51,
+              150
+            ],
+            "pixel_size": [
+              20,
+              2
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+            "cube_name": "armored_chest",
+            "face": "down",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              8,
+              223,
+              1,
+              228
+            ],
+            "pixel_size": [
+              7,
+              5
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          },
+          {
+            "cube_uuid": "7b8cd3c0-ed47-64ba-cd9a-df6d9c74871b",
+            "cube_name": "crystal_base",
+            "face": "north",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              1,
+              251,
+              12,
+              254
+            ],
+            "pixel_size": [
+              11,
+              3
+            ],
+            "state": "solid_color",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 1,
+            "dominant_visible_ratio": 1,
+            "luma_span": 0,
+            "border_only_variation": false
+          }
+        ],
+        "examples_truncated": true
+      },
+      "low_variation_faces": {
+        "count": 34,
+        "examples": [
+          {
+            "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+            "cube_name": "tabard_long",
+            "face": "east",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              129,
+              159,
+              132,
+              246
+            ],
+            "pixel_size": [
+              3,
+              87
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.6667,
+            "luma_span": 0.0713,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "8a1c89af-3afe-10ea-f4fb-7ebdd1d93131",
+            "cube_name": "tabard_long",
+            "face": "west",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              134,
+              159,
+              137,
+              246
+            ],
+            "pixel_size": [
+              3,
+              87
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.6667,
+            "luma_span": 0.0713,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "north",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              129,
+              47,
+              131,
+              115
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5294,
+            "luma_span": 0.331,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "south",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              133,
+              47,
+              135,
+              115
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5294,
+            "luma_span": 0.331,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "east",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              137,
+              47,
+              139,
+              115
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5294,
+            "luma_span": 0.331,
+            "border_only_variation": true
+          },
+          {
+            "cube_uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+            "cube_name": "staff_shaft",
+            "face": "west",
+            "texture_uuid": "d61f2797-89fd-a1cb-412e-877b56fb4467",
+            "texture_name": "crimson_guardian_atlas",
+            "uv": [
+              141,
+              47,
+              143,
+              115
+            ],
+            "pixel_size": [
+              2,
+              68
+            ],
+            "state": "low_variation",
+            "detail_capacity": "detail_capable",
+            "visible_ratio": 1,
+            "translucent_ratio": 0,
+            "distinct_visible_rgba": 2,
+            "dominant_visible_ratio": 0.5294,
+            "luma_span": 0.331,
+            "border_only_variation": true
+          }
+        ],
+        "examples_truncated": true
+      },
+      "intermediate_alpha_faces": {
+        "count": 0,
+        "examples": [],
+        "examples_truncated": false
+      }
+    },
+    "omissions": {
+      "count": 0,
+      "blocking_count": 0,
+      "budget_count": 0,
+      "counts": {
+        "blank": 0,
+        "unresolved_texture": 0,
+        "invalid_uv": 0,
+        "fractional_uv": 0,
+        "non_integral_pixel_mapping": 0,
+        "degenerate_uv": 0,
+        "budget": 0
+      },
+      "examples": [],
+      "examples_truncated": false
+    },
+    "gate": {
+      "state": "review_required",
+      "reasons": [
+        "FLAT_FACE_REVIEW"
+      ]
+    },
+    "note": "Coverage measures pixels only: varied means non-flat pixels, not authored styling, shading or reference fidelity. Ready is scan readiness, never visual acceptance. Transparent/flat/alpha candidates may be intentional; incomplete/partial scans cannot prove completion."
+  },
+  "seams": {
+    "state": "available",
+    "scope": "intra_cube",
+    "cross_cube_continuity": "not_evaluated",
+    "sampled_edge_count": 256,
+    "paired_seam_count": 124,
+    "unpaired_edge_count": 8,
+    "ambiguous_edge_count": 0,
+    "review": {
+      "candidate_count": 0,
+      "high_contrast_count": 0,
+      "alpha_discontinuity_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "ranked_examples": [
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "north",
+            "edge": "bottom"
+          },
+          {
+            "face": "down",
+            "edge": "bottom"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.2338,
+        "max_rgb_difference": 0.2582,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "south",
+            "edge": "bottom"
+          },
+          {
+            "face": "down",
+            "edge": "top"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.2338,
+        "max_rgb_difference": 0.2582,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "east",
+            "edge": "bottom"
+          },
+          {
+            "face": "down",
+            "edge": "right"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.2338,
+        "max_rgb_difference": 0.2582,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "west",
+            "edge": "bottom"
+          },
+          {
+            "face": "down",
+            "edge": "left"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.2338,
+        "max_rgb_difference": 0.2582,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "north",
+            "edge": "left"
+          },
+          {
+            "face": "east",
+            "edge": "right"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.2282,
+        "max_rgb_difference": 0.2716,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      },
+      {
+        "cube_uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+        "cube_name": "armored_chest",
+        "faces": [
+          {
+            "face": "north",
+            "edge": "right"
+          },
+          {
+            "face": "west",
+            "edge": "left"
+          }
+        ],
+        "sample_count": 4,
+        "visible_pair_ratio": 1,
+        "mean_rgb_difference": 0.2282,
+        "max_rgb_difference": 0.2716,
+        "mean_alpha_difference": 0,
+        "max_alpha_difference": 0,
+        "high_contrast": false,
+        "alpha_discontinuity": false
+      }
+    ],
+    "ranked_examples_truncated": true,
+    "gate": {
+      "state": "advisory",
+      "reasons": []
+    },
+    "note": "Only face edges within the same Cube are paired; cross-Cube continuity is not evaluated. Seam contrast is advisory evidence, not a style score or automatic failure. Intentional face lighting/material boundaries may differ; inspect ranked candidates against the approved reference.",
+    "scan": {
+      "face_budget": 64,
+      "scanned_faces": 64,
+      "skipped_animated_faces": 0,
+      "skipped_mapping_faces": 0,
+      "budget_skipped_faces": 434,
+      "samples_per_edge_max": 4
+    },
+    "efficiency": {
+      "bounded": true,
+      "full_atlas_scan": false,
+      "edge_samples_only": true
+    }
+  },
+  "physical_uv": {
+    "state": "available",
+    "visual_verdict": "not_evaluated",
+    "face_count": 498,
+    "evaluated_face_count": 498,
+    "invalid_face_count": 0,
+    "non_uniform_density_face_count": 447,
+    "exact_shared_region_count": 0,
+    "shared_region_physical_mismatch_count": 0,
+    "max_density_ratio": 1.078431,
+    "max_aspect_error": 0.078431,
+    "invalid_examples": [],
+    "non_uniform_examples": [
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "north",
+        "physical": [
+          9.4,
+          20.3
+        ],
+        "uv_size": [
+          10,
+          22
+        ],
+        "texel_density": [
+          1.06383,
+          1.083744
+        ],
+        "density_ratio": 1.018719,
+        "aspect_error": 0.018375
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "south",
+        "physical": [
+          9.4,
+          20.3
+        ],
+        "uv_size": [
+          10,
+          22
+        ],
+        "texel_density": [
+          1.06383,
+          1.083744
+        ],
+        "density_ratio": 1.018719,
+        "aspect_error": 0.018375
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "east",
+        "physical": [
+          7.6,
+          20.3
+        ],
+        "uv_size": [
+          8,
+          21
+        ],
+        "texel_density": [
+          1.052632,
+          1.034483
+        ],
+        "density_ratio": 1.017544,
+        "aspect_error": 0.017544
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "west",
+        "physical": [
+          7.6,
+          20.3
+        ],
+        "uv_size": [
+          8,
+          21
+        ],
+        "texel_density": [
+          1.052632,
+          1.034483
+        ],
+        "density_ratio": 1.017544,
+        "aspect_error": 0.017544
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "up",
+        "physical": [
+          9.4,
+          7.6
+        ],
+        "uv_size": [
+          10,
+          8
+        ],
+        "texel_density": [
+          1.06383,
+          1.052632
+        ],
+        "density_ratio": 1.010638,
+        "aspect_error": 0.010638
+      },
+      {
+        "cube_uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+        "cube_name": "robe_core",
+        "face": "down",
+        "physical": [
+          9.4,
+          7.6
+        ],
+        "uv_size": [
+          5,
+          4
+        ],
+        "texel_density": [
+          0.531915,
+          0.526316
+        ],
+        "density_ratio": 1.010638,
+        "aspect_error": 0.010638
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube_name": "robe_flute_0",
+        "face": "north",
+        "physical": [
+          5.3,
+          20
+        ],
+        "uv_size": [
+          8,
+          30
+        ],
+        "texel_density": [
+          1.509434,
+          1.5
+        ],
+        "density_ratio": 1.006289,
+        "aspect_error": 0.006289
+      },
+      {
+        "cube_uuid": "056104ad-6fbb-32e4-213b-ee4cfff4fc06",
+        "cube_name": "robe_flute_0",
+        "face": "south",
+        "physical": [
+          5.3,
+          20
+        ],
+        "uv_size": [
+          8,
+          30
+        ],
+        "texel_density": [
+          1.509434,
+          1.5
+        ],
+        "density_ratio": 1.006289,
+        "aspect_error": 0.006289
+      }
+    ],
+    "shared_region_mismatch_examples": [],
+    "examples_truncated": true,
+    "note": "Physical face aspect and texel-density evidence only. Exact UV sharing can be intentional; semantic artwork/material identity and mapped-model visual fidelity still require authoring review.",
+    "cube_face_scope_complete": true,
+    "unsupported_mesh_count": 0
+  },
+  "render": {
+    "diagnostic_missing_texture_highlight": false,
+    "shading": true,
+    "brightness": 50,
+    "view_mode": "textured",
+    "source": "blockbench_preview",
+    "camera_spec_source": "offscreen_capture_plan",
+    "native_camera_attested": false,
+    "in_game_verified": false
+  },
+  "surface": {
+    "state": "no_bounded_risk_reported",
+    "visual_verdict": "not_evaluated",
+    "counts": {
+      "z_fighting": 0,
+      "micro_gap": 0,
+      "coplanar_edge_gap": 0,
+      "shallow_penetration": 0
+    },
+    "categorized_risk_count": 0,
+    "additional_warnings_omitted": 0,
+    "diagnostics_unavailable_count": 0,
+    "scan_complete": true,
+    "details_complete": true,
+    "note": "Bounded geometric review hints only; absence of reported risk is not visual PASS."
+  },
+  "geometry_changed": false,
+  "embedded_png_matches_delivery": true,
+  "diagnostic_budget_note": "Initial high-detail coverage exceeded the bounded 32768-pixel face scan. Flat underside and covered inner robe core allocation reduced; visible main detail retained. Final coverage all 498 faces/32163 pixels, no omissions.",
+  "in_game_verified": false
+}

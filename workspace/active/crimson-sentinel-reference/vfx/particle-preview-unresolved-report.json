@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-14T19:48:24.423Z",
+  "status": "DEFERRED_BY_USER",
+  "symptom": "Magic and dust are not visible during animation.",
+  "confirmed": [
+    "Both effect keyframes and locators exist in the live project.",
+    "Native export preserves both local particle file bindings.",
+    "Both JSON documents load without a reported preview error.",
+    "Visual appearance remains unverified/absent in observed viewport."
+  ],
+  "attempted_size_change": "Temporary magic size/radius increase; no confirmed improvement; restored original particle JSON.",
+  "next": "Resume from native emitter/render visibility diagnostics; do not repeat file binding instructions or claim JSON validation proves appearance."
+}

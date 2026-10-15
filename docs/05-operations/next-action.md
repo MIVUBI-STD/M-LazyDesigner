@@ -4,6 +4,8 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Current direction
 
+The user authorized recovery snapshot `3.0` on 2026-10-15: backup branch and tag must point to the same snapshot commit as the saved `Local` state. Preserve that baseline before further improvements; continue normal work on `Local`, leaving `3.0` unchanged. The temporary prerelease does not close the retrospective findings or imply new native/source acceptance. Authored model workspaces are included under this explicit snapshot authorization; raw logs and private machine state remain local.
+
 **Current priority:** consolidated local-test reporting is complete; retain the exact remaining evidence boundaries.
 The persistent Gateway owns client stability and Runtime
 recovery; Control owns context/readiness; Runtime/Plugin own Blockbench.
@@ -12,6 +14,10 @@ Retain exactly four public Gateway tools and the existing source owners.
 Receipt/readiness and Golden Session comparability fixes are SOURCE IMPLEMENTED; this does not prove visual quality or AI savings.
 
 ## Next REMOTE_GITHUB work
+
+### Deferred authoring follow-up 2026-10-15
+
+The user closed the asset session and requested an honest improvement report. [The retrospective](mcp-session-retrospective-2026-10-15.md) owns that dated observation/backlog, not architecture or new PASS claims. Resume only on a new user instruction. First establish one profile/build/editor identity and correct the stale context-path/status boundary; then diagnose particle binding/emitter/render visibility with one disposable fixture. Next investigate the observed multi-channel batch-scale rejection and export/save-path control delta, before reducing payload/revision overhead. Do not repeat file-link-only particle advice, start a broad source rewrite, rerun the full acceptance matrix, or infer token savings from log size. Existing native restoration and visual/Golden proof boundaries below remain active.
 
 The user explicitly activated Windows local testing. Remote verification remains
 optional and manual-only; do not change `main` or settings to enable workflows.

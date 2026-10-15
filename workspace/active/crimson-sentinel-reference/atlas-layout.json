@@ -1,0 +1,6517 @@
+{
+  "bitmap": [
+    512,
+    512
+  ],
+  "logical": [
+    128,
+    128
+  ],
+  "pixels_per_uv": 4,
+  "texture_uuid": "22fff86e-830b-e737-fe06-139db5261ec4",
+  "zones": [
+    {
+      "id": "armor",
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256,
+      "m": [
+        "armor"
+      ]
+    },
+    {
+      "id": "masonry",
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 180,
+      "m": [
+        "stone"
+      ]
+    },
+    {
+      "id": "metal_and_gems",
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256,
+      "m": [
+        "gold",
+        "dark",
+        "ruby",
+        "ruby_dark"
+      ]
+    },
+    {
+      "id": "cloth_and_banners",
+      "x": 256,
+      "y": 180,
+      "w": 256,
+      "h": 332,
+      "m": [
+        "cloth",
+        "rear_cloth",
+        "cape",
+        "banner"
+      ]
+    }
+  ],
+  "unique_islands": [
+    {
+      "logical_uv": [
+        4,
+        31,
+        15,
+        61
+      ],
+      "owners": [
+        {
+          "cube": "gown_core",
+          "face": "north"
+        },
+        {
+          "cube": "gown_core",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        4.25,
+        0.25,
+        12.25,
+        30.25
+      ],
+      "owners": [
+        {
+          "cube": "gown_core",
+          "face": "east"
+        },
+        {
+          "cube": "gown_core",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        33,
+        39,
+        44,
+        47
+      ],
+      "owners": [
+        {
+          "cube": "gown_core",
+          "face": "up"
+        },
+        {
+          "cube": "gown_core",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        0.25,
+        0.25,
+        3.75,
+        30.5
+      ],
+      "owners": [
+        {
+          "cube": "flared_plate_-1_0",
+          "face": "north"
+        },
+        {
+          "cube": "flared_plate_-1_0",
+          "face": "south"
+        },
+        {
+          "cube": "flared_plate_-1_1",
+          "face": "north"
+        },
+        {
+          "cube": "flared_plate_-1_1",
+          "face": "east"
+        },
+        {
+          "cube": "flared_plate_-1_1",
+          "face": "south"
+        },
+        {
+          "cube": "flared_plate_-1_1",
+          "face": "west"
+        },
+        {
+          "cube": "flared_plate_-1_2",
+          "face": "north"
+        },
+        {
+          "cube": "flared_plate_-1_2",
+          "face": "south"
+        },
+        {
+          "cube": "flared_plate_1_0",
+          "face": "north"
+        },
+        {
+          "cube": "flared_plate_1_0",
+          "face": "south"
+        },
+        {
+          "cube": "flared_plate_1_1",
+          "face": "north"
+        },
+        {
+          "cube": "flared_plate_1_1",
+          "face": "east"
+        },
+        {
+          "cube": "flared_plate_1_1",
+          "face": "south"
+        },
+        {
+          "cube": "flared_plate_1_1",
+          "face": "west"
+        },
+        {
+          "cube": "flared_plate_1_2",
+          "face": "north"
+        },
+        {
+          "cube": "flared_plate_1_2",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        0.25,
+        31,
+        3.5,
+        61.25
+      ],
+      "owners": [
+        {
+          "cube": "flared_plate_-1_0",
+          "face": "east"
+        },
+        {
+          "cube": "flared_plate_-1_0",
+          "face": "west"
+        },
+        {
+          "cube": "flared_plate_-1_2",
+          "face": "east"
+        },
+        {
+          "cube": "flared_plate_-1_2",
+          "face": "west"
+        },
+        {
+          "cube": "flared_plate_1_0",
+          "face": "east"
+        },
+        {
+          "cube": "flared_plate_1_0",
+          "face": "west"
+        },
+        {
+          "cube": "flared_plate_1_2",
+          "face": "east"
+        },
+        {
+          "cube": "flared_plate_1_2",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        47.75,
+        9.5,
+        51.25,
+        12.75
+      ],
+      "owners": [
+        {
+          "cube": "flared_plate_-1_0",
+          "face": "up"
+        },
+        {
+          "cube": "flared_plate_-1_0",
+          "face": "down"
+        },
+        {
+          "cube": "flared_plate_-1_2",
+          "face": "up"
+        },
+        {
+          "cube": "flared_plate_-1_2",
+          "face": "down"
+        },
+        {
+          "cube": "flared_plate_1_0",
+          "face": "up"
+        },
+        {
+          "cube": "flared_plate_1_0",
+          "face": "down"
+        },
+        {
+          "cube": "flared_plate_1_2",
+          "face": "up"
+        },
+        {
+          "cube": "flared_plate_1_2",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        40.5,
+        16.75,
+        44,
+        20.25
+      ],
+      "owners": [
+        {
+          "cube": "flared_plate_-1_1",
+          "face": "up"
+        },
+        {
+          "cube": "flared_plate_-1_1",
+          "face": "down"
+        },
+        {
+          "cube": "flared_plate_1_1",
+          "face": "up"
+        },
+        {
+          "cube": "flared_plate_1_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        35.25,
+        58,
+        41,
+        60.25
+      ],
+      "owners": [
+        {
+          "cube": "foot_-1",
+          "face": "north"
+        },
+        {
+          "cube": "foot_-1",
+          "face": "south"
+        },
+        {
+          "cube": "foot_1",
+          "face": "north"
+        },
+        {
+          "cube": "foot_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        56.5,
+        0.25,
+        63.5,
+        2.5
+      ],
+      "owners": [
+        {
+          "cube": "foot_-1",
+          "face": "east"
+        },
+        {
+          "cube": "foot_-1",
+          "face": "west"
+        },
+        {
+          "cube": "foot_1",
+          "face": "east"
+        },
+        {
+          "cube": "foot_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        26.25,
+        9.25,
+        32,
+        16.25
+      ],
+      "owners": [
+        {
+          "cube": "foot_-1",
+          "face": "up"
+        },
+        {
+          "cube": "foot_-1",
+          "face": "down"
+        },
+        {
+          "cube": "foot_1",
+          "face": "up"
+        },
+        {
+          "cube": "foot_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        41.5,
+        56.75,
+        44.75,
+        63.75
+      ],
+      "owners": [
+        {
+          "cube": "hip_lame_-1",
+          "face": "north"
+        },
+        {
+          "cube": "hip_lame_-1",
+          "face": "south"
+        },
+        {
+          "cube": "hip_lame_1",
+          "face": "north"
+        },
+        {
+          "cube": "hip_lame_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        45.25,
+        56.75,
+        47.25,
+        63.75
+      ],
+      "owners": [
+        {
+          "cube": "hip_lame_-1",
+          "face": "east"
+        },
+        {
+          "cube": "hip_lame_-1",
+          "face": "west"
+        },
+        {
+          "cube": "hip_lame_1",
+          "face": "east"
+        },
+        {
+          "cube": "hip_lame_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        43.5,
+        0.25,
+        46.75,
+        2.25
+      ],
+      "owners": [
+        {
+          "cube": "hip_lame_-1",
+          "face": "up"
+        },
+        {
+          "cube": "hip_lame_-1",
+          "face": "down"
+        },
+        {
+          "cube": "hip_lame_1",
+          "face": "up"
+        },
+        {
+          "cube": "hip_lame_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        2,
+        64.25,
+        2.75,
+        101.75
+      ],
+      "owners": [
+        {
+          "cube": "long_gold_rail_-1",
+          "face": "north"
+        },
+        {
+          "cube": "long_gold_rail_-1",
+          "face": "east"
+        },
+        {
+          "cube": "long_gold_rail_-1",
+          "face": "south"
+        },
+        {
+          "cube": "long_gold_rail_-1",
+          "face": "west"
+        },
+        {
+          "cube": "long_gold_rail_1",
+          "face": "north"
+        },
+        {
+          "cube": "long_gold_rail_1",
+          "face": "east"
+        },
+        {
+          "cube": "long_gold_rail_1",
+          "face": "south"
+        },
+        {
+          "cube": "long_gold_rail_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        12,
+        88.5,
+        12.75,
+        89.25
+      ],
+      "owners": [
+        {
+          "cube": "long_gold_rail_-1",
+          "face": "up"
+        },
+        {
+          "cube": "long_gold_rail_-1",
+          "face": "down"
+        },
+        {
+          "cube": "long_gold_rail_1",
+          "face": "up"
+        },
+        {
+          "cube": "long_gold_rail_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17,
+        39,
+        32.5,
+        49
+      ],
+      "owners": [
+        {
+          "cube": "breastplate",
+          "face": "north"
+        },
+        {
+          "cube": "breastplate",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        33,
+        47.5,
+        41,
+        57.5
+      ],
+      "owners": [
+        {
+          "cube": "breastplate",
+          "face": "east"
+        },
+        {
+          "cube": "breastplate",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17,
+        49.5,
+        32.5,
+        57.5
+      ],
+      "owners": [
+        {
+          "cube": "breastplate",
+          "face": "up"
+        },
+        {
+          "cube": "breastplate",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        0.25,
+        61.75,
+        17.25,
+        63.25
+      ],
+      "owners": [
+        {
+          "cube": "upper_chest_lip",
+          "face": "north"
+        },
+        {
+          "cube": "upper_chest_lip",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.25,
+        0.25,
+        26.75,
+        1.75
+      ],
+      "owners": [
+        {
+          "cube": "upper_chest_lip",
+          "face": "east"
+        },
+        {
+          "cube": "upper_chest_lip",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17,
+        30,
+        34,
+        38.5
+      ],
+      "owners": [
+        {
+          "cube": "upper_chest_lip",
+          "face": "up"
+        },
+        {
+          "cube": "upper_chest_lip",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        3.25,
+        95.75,
+        15.25,
+        97.75
+      ],
+      "owners": [
+        {
+          "cube": "waist",
+          "face": "north"
+        },
+        {
+          "cube": "waist",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        14.5,
+        120.25,
+        22.25,
+        122.25
+      ],
+      "owners": [
+        {
+          "cube": "waist",
+          "face": "east"
+        },
+        {
+          "cube": "waist",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        2,
+        119.75,
+        14,
+        127.5
+      ],
+      "owners": [
+        {
+          "cube": "waist",
+          "face": "up"
+        },
+        {
+          "cube": "waist",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.25,
+        88.5,
+        28.5,
+        90.5
+      ],
+      "owners": [
+        {
+          "cube": "neck",
+          "face": "north"
+        },
+        {
+          "cube": "neck",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        22.75,
+        120.25,
+        27.25,
+        122.25
+      ],
+      "owners": [
+        {
+          "cube": "neck",
+          "face": "east"
+        },
+        {
+          "cube": "neck",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.75,
+        71,
+        24,
+        75.5
+      ],
+      "owners": [
+        {
+          "cube": "neck",
+          "face": "up"
+        },
+        {
+          "cube": "neck",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        34.5,
+        0.25,
+        43,
+        8
+      ],
+      "owners": [
+        {
+          "cube": "helmet_shell",
+          "face": "north"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.25,
+        2.25,
+        25.75,
+        10
+      ],
+      "owners": [
+        {
+          "cube": "helmet_shell",
+          "face": "east"
+        },
+        {
+          "cube": "helmet_shell",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        34.5,
+        8.5,
+        43,
+        16.25
+      ],
+      "owners": [
+        {
+          "cube": "helmet_shell",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.25,
+        16.75,
+        26.75,
+        24.25
+      ],
+      "owners": [
+        {
+          "cube": "helmet_shell",
+          "face": "up"
+        },
+        {
+          "cube": "helmet_shell",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.75,
+        91.75,
+        15.25,
+        93
+      ],
+      "owners": [
+        {
+          "cube": "visor_dark",
+          "face": "north"
+        },
+        {
+          "cube": "visor_dark",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        30.5,
+        118.5,
+        31,
+        119.75
+      ],
+      "owners": [
+        {
+          "cube": "visor_dark",
+          "face": "east"
+        },
+        {
+          "cube": "visor_dark",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.75,
+        93.5,
+        15.25,
+        94
+      ],
+      "owners": [
+        {
+          "cube": "visor_dark",
+          "face": "up"
+        },
+        {
+          "cube": "visor_dark",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        3.25,
+        101.25,
+        6.25,
+        101.75
+      ],
+      "owners": [
+        {
+          "cube": "red_eye_-1",
+          "face": "north"
+        },
+        {
+          "cube": "red_eye_-1",
+          "face": "south"
+        },
+        {
+          "cube": "red_eye_1",
+          "face": "north"
+        },
+        {
+          "cube": "red_eye_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        22.75,
+        117.25,
+        23,
+        117.75
+      ],
+      "owners": [
+        {
+          "cube": "red_eye_-1",
+          "face": "east"
+        },
+        {
+          "cube": "red_eye_-1",
+          "face": "west"
+        },
+        {
+          "cube": "red_eye_1",
+          "face": "east"
+        },
+        {
+          "cube": "red_eye_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        29.5,
+        68,
+        32.5,
+        68.25
+      ],
+      "owners": [
+        {
+          "cube": "red_eye_-1",
+          "face": "up"
+        },
+        {
+          "cube": "red_eye_-1",
+          "face": "down"
+        },
+        {
+          "cube": "red_eye_1",
+          "face": "up"
+        },
+        {
+          "cube": "red_eye_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        19.25,
+        109.25,
+        21,
+        113
+      ],
+      "owners": [
+        {
+          "cube": "jaw_guard_-1",
+          "face": "north"
+        },
+        {
+          "cube": "jaw_guard_-1",
+          "face": "south"
+        },
+        {
+          "cube": "jaw_guard_1",
+          "face": "north"
+        },
+        {
+          "cube": "jaw_guard_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        19.25,
+        113.5,
+        20.5,
+        117.25
+      ],
+      "owners": [
+        {
+          "cube": "jaw_guard_-1",
+          "face": "east"
+        },
+        {
+          "cube": "jaw_guard_-1",
+          "face": "west"
+        },
+        {
+          "cube": "jaw_guard_1",
+          "face": "east"
+        },
+        {
+          "cube": "jaw_guard_1",
+          "face": "west"
+        },
+        {
+          "cube": "crown_prong_-3.8_-3.7",
+          "face": "north"
+        },
+        {
+          "cube": "crown_prong_-3.8_-3.7",
+          "face": "south"
+        },
+        {
+          "cube": "crown_prong_-3.8_3.7",
+          "face": "north"
+        },
+        {
+          "cube": "crown_prong_-3.8_3.7",
+          "face": "south"
+        },
+        {
+          "cube": "crown_forehead_diamond",
+          "face": "east"
+        },
+        {
+          "cube": "crown_forehead_diamond",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28.25,
+        115.25,
+        30,
+        116.5
+      ],
+      "owners": [
+        {
+          "cube": "jaw_guard_-1",
+          "face": "up"
+        },
+        {
+          "cube": "jaw_guard_-1",
+          "face": "down"
+        },
+        {
+          "cube": "jaw_guard_1",
+          "face": "up"
+        },
+        {
+          "cube": "jaw_guard_1",
+          "face": "down"
+        },
+        {
+          "cube": "rear_yoke_wing_-1",
+          "face": "up"
+        },
+        {
+          "cube": "rear_yoke_wing_-1",
+          "face": "down"
+        },
+        {
+          "cube": "rear_yoke_wing_1",
+          "face": "up"
+        },
+        {
+          "cube": "rear_yoke_wing_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        16.25,
+        64.25,
+        17,
+        69.5
+      ],
+      "owners": [
+        {
+          "cube": "helmet_side_trim_-1",
+          "face": "north"
+        },
+        {
+          "cube": "helmet_side_trim_-1",
+          "face": "south"
+        },
+        {
+          "cube": "helmet_side_trim_1",
+          "face": "north"
+        },
+        {
+          "cube": "helmet_side_trim_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.25,
+        64.25,
+        15.75,
+        69.5
+      ],
+      "owners": [
+        {
+          "cube": "helmet_side_trim_-1",
+          "face": "east"
+        },
+        {
+          "cube": "helmet_side_trim_-1",
+          "face": "west"
+        },
+        {
+          "cube": "helmet_side_trim_1",
+          "face": "east"
+        },
+        {
+          "cube": "helmet_side_trim_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        8,
+        70,
+        8.75,
+        79.5
+      ],
+      "owners": [
+        {
+          "cube": "helmet_side_trim_-1",
+          "face": "up"
+        },
+        {
+          "cube": "helmet_side_trim_-1",
+          "face": "down"
+        },
+        {
+          "cube": "helmet_side_trim_1",
+          "face": "up"
+        },
+        {
+          "cube": "helmet_side_trim_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        30.25,
+        120.25,
+        31.25,
+        121.5
+      ],
+      "owners": [
+        {
+          "cube": "crown_side_-1",
+          "face": "north"
+        },
+        {
+          "cube": "crown_side_-1",
+          "face": "south"
+        },
+        {
+          "cube": "crown_side_1",
+          "face": "north"
+        },
+        {
+          "cube": "crown_side_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.75,
+        90,
+        15.5,
+        91.25
+      ],
+      "owners": [
+        {
+          "cube": "crown_side_-1",
+          "face": "east"
+        },
+        {
+          "cube": "crown_side_-1",
+          "face": "west"
+        },
+        {
+          "cube": "crown_side_1",
+          "face": "east"
+        },
+        {
+          "cube": "crown_side_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        12,
+        70,
+        13,
+        78.75
+      ],
+      "owners": [
+        {
+          "cube": "crown_side_-1",
+          "face": "up"
+        },
+        {
+          "cube": "crown_side_-1",
+          "face": "down"
+        },
+        {
+          "cube": "crown_side_1",
+          "face": "up"
+        },
+        {
+          "cube": "crown_side_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.25,
+        70,
+        7.5,
+        79.5
+      ],
+      "owners": [
+        {
+          "cube": "nose_bar",
+          "face": "north"
+        },
+        {
+          "cube": "nose_bar",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.75,
+        80,
+        7.75,
+        89.5
+      ],
+      "owners": [
+        {
+          "cube": "nose_bar",
+          "face": "east"
+        },
+        {
+          "cube": "nose_bar",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        13.5,
+        77.75,
+        14.75,
+        78.75
+      ],
+      "owners": [
+        {
+          "cube": "nose_bar",
+          "face": "up"
+        },
+        {
+          "cube": "nose_bar",
+          "face": "down"
+        },
+        {
+          "cube": "crown_prong_-3.8_-3.7",
+          "face": "up"
+        },
+        {
+          "cube": "crown_prong_-3.8_-3.7",
+          "face": "down"
+        },
+        {
+          "cube": "crown_prong_-3.8_3.7",
+          "face": "up"
+        },
+        {
+          "cube": "crown_prong_-3.8_3.7",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        3.25,
+        98.25,
+        15.25,
+        99.5
+      ],
+      "owners": [
+        {
+          "cube": "crown_band_-3.8",
+          "face": "north"
+        },
+        {
+          "cube": "crown_band_-3.8",
+          "face": "south"
+        },
+        {
+          "cube": "crown_band_3.8",
+          "face": "north"
+        },
+        {
+          "cube": "crown_band_3.8",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        30.5,
+        116.75,
+        31.25,
+        118
+      ],
+      "owners": [
+        {
+          "cube": "crown_band_-3.8",
+          "face": "east"
+        },
+        {
+          "cube": "crown_band_-3.8",
+          "face": "west"
+        },
+        {
+          "cube": "crown_band_3.8",
+          "face": "east"
+        },
+        {
+          "cube": "crown_band_3.8",
+          "face": "west"
+        },
+        {
+          "cube": "staff_cup_prong_-1",
+          "face": "north"
+        },
+        {
+          "cube": "staff_cup_prong_-1",
+          "face": "south"
+        },
+        {
+          "cube": "staff_cup_prong_1",
+          "face": "north"
+        },
+        {
+          "cube": "staff_cup_prong_1",
+          "face": "south"
+        },
+        {
+          "cube": "crown_horn_hook_-1",
+          "face": "east"
+        },
+        {
+          "cube": "crown_horn_hook_-1",
+          "face": "west"
+        },
+        {
+          "cube": "crown_horn_hook_1",
+          "face": "east"
+        },
+        {
+          "cube": "crown_horn_hook_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        3.25,
+        100,
+        15.25,
+        100.75
+      ],
+      "owners": [
+        {
+          "cube": "crown_band_-3.8",
+          "face": "up"
+        },
+        {
+          "cube": "crown_band_-3.8",
+          "face": "down"
+        },
+        {
+          "cube": "crown_band_3.8",
+          "face": "up"
+        },
+        {
+          "cube": "crown_band_3.8",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        15.25,
+        77.75,
+        17.25,
+        85
+      ],
+      "owners": [
+        {
+          "cube": "crown_prong_-3.8_-3.7",
+          "face": "east"
+        },
+        {
+          "cube": "crown_prong_-3.8_-3.7",
+          "face": "west"
+        },
+        {
+          "cube": "crown_prong_-3.8_3.7",
+          "face": "east"
+        },
+        {
+          "cube": "crown_prong_-3.8_3.7",
+          "face": "west"
+        },
+        {
+          "cube": "pauldron_gold_-1",
+          "face": "north"
+        },
+        {
+          "cube": "pauldron_gold_-1",
+          "face": "south"
+        },
+        {
+          "cube": "pauldron_gold_1",
+          "face": "north"
+        },
+        {
+          "cube": "pauldron_gold_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        29.75,
+        125,
+        31.25,
+        126.25
+      ],
+      "owners": [
+        {
+          "cube": "crown_prong_-3.8_0",
+          "face": "north"
+        },
+        {
+          "cube": "crown_prong_-3.8_0",
+          "face": "south"
+        },
+        {
+          "cube": "crown_prong_-3.8_0",
+          "face": "up"
+        },
+        {
+          "cube": "crown_prong_-3.8_0",
+          "face": "down"
+        },
+        {
+          "cube": "crown_prong_3.8_-3.7",
+          "face": "up"
+        },
+        {
+          "cube": "crown_prong_3.8_-3.7",
+          "face": "down"
+        },
+        {
+          "cube": "crown_prong_3.8_0",
+          "face": "north"
+        },
+        {
+          "cube": "crown_prong_3.8_0",
+          "face": "south"
+        },
+        {
+          "cube": "crown_prong_3.8_0",
+          "face": "up"
+        },
+        {
+          "cube": "crown_prong_3.8_0",
+          "face": "down"
+        },
+        {
+          "cube": "crown_prong_3.8_3.7",
+          "face": "up"
+        },
+        {
+          "cube": "crown_prong_3.8_3.7",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        30,
+        122.75,
+        31.25,
+        124
+      ],
+      "owners": [
+        {
+          "cube": "crown_prong_-3.8_0",
+          "face": "east"
+        },
+        {
+          "cube": "crown_prong_-3.8_0",
+          "face": "west"
+        },
+        {
+          "cube": "crown_prong_3.8_0",
+          "face": "east"
+        },
+        {
+          "cube": "crown_prong_3.8_0",
+          "face": "west"
+        },
+        {
+          "cube": "staff_shaft",
+          "face": "up"
+        },
+        {
+          "cube": "staff_shaft",
+          "face": "down"
+        },
+        {
+          "cube": "crown_horn_hook_-1",
+          "face": "up"
+        },
+        {
+          "cube": "crown_horn_hook_-1",
+          "face": "down"
+        },
+        {
+          "cube": "crown_horn_hook_1",
+          "face": "up"
+        },
+        {
+          "cube": "crown_horn_hook_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28,
+        122.75,
+        29.5,
+        124.5
+      ],
+      "owners": [
+        {
+          "cube": "crown_prong_3.8_-3.7",
+          "face": "north"
+        },
+        {
+          "cube": "crown_prong_3.8_-3.7",
+          "face": "south"
+        },
+        {
+          "cube": "crown_prong_3.8_3.7",
+          "face": "north"
+        },
+        {
+          "cube": "crown_prong_3.8_3.7",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28,
+        125,
+        29.25,
+        126.75
+      ],
+      "owners": [
+        {
+          "cube": "crown_prong_3.8_-3.7",
+          "face": "east"
+        },
+        {
+          "cube": "crown_prong_3.8_-3.7",
+          "face": "west"
+        },
+        {
+          "cube": "crown_prong_3.8_3.7",
+          "face": "east"
+        },
+        {
+          "cube": "crown_prong_3.8_3.7",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        15.75,
+        91.75,
+        17,
+        100.5
+      ],
+      "owners": [
+        {
+          "cube": "rear_helmet_spine",
+          "face": "north"
+        },
+        {
+          "cube": "rear_helmet_spine",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        12,
+        79.25,
+        12.75,
+        88
+      ],
+      "owners": [
+        {
+          "cube": "rear_helmet_spine",
+          "face": "east"
+        },
+        {
+          "cube": "rear_helmet_spine",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        6.75,
+        94.5,
+        8,
+        95.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_helmet_spine",
+          "face": "up"
+        },
+        {
+          "cube": "rear_helmet_spine",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.5,
+        45.25,
+        88.5,
+        91.25
+      ],
+      "owners": [
+        {
+          "cube": "front_tabard",
+          "face": "north"
+        },
+        {
+          "cube": "front_tabard",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        89,
+        45.25,
+        90,
+        91.25
+      ],
+      "owners": [
+        {
+          "cube": "front_tabard",
+          "face": "east"
+        },
+        {
+          "cube": "front_tabard",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        116.75,
+        73.25,
+        117.75
+      ],
+      "owners": [
+        {
+          "cube": "front_tabard",
+          "face": "up"
+        },
+        {
+          "cube": "front_tabard",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        13.25,
+        79.25,
+        14.75,
+        86.75
+      ],
+      "owners": [
+        {
+          "cube": "chest_cross_upper_-1",
+          "face": "north"
+        },
+        {
+          "cube": "chest_cross_upper_-1",
+          "face": "south"
+        },
+        {
+          "cube": "chest_cross_upper_1",
+          "face": "north"
+        },
+        {
+          "cube": "chest_cross_upper_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        13,
+        110.75,
+        14,
+        118.25
+      ],
+      "owners": [
+        {
+          "cube": "chest_cross_upper_-1",
+          "face": "east"
+        },
+        {
+          "cube": "chest_cross_upper_-1",
+          "face": "west"
+        },
+        {
+          "cube": "chest_cross_upper_1",
+          "face": "east"
+        },
+        {
+          "cube": "chest_cross_upper_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        29.75,
+        126.75,
+        31.25,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "chest_cross_upper_-1",
+          "face": "up"
+        },
+        {
+          "cube": "chest_cross_upper_-1",
+          "face": "down"
+        },
+        {
+          "cube": "chest_cross_lower_-1",
+          "face": "up"
+        },
+        {
+          "cube": "chest_cross_lower_-1",
+          "face": "down"
+        },
+        {
+          "cube": "chest_cross_upper_1",
+          "face": "up"
+        },
+        {
+          "cube": "chest_cross_upper_1",
+          "face": "down"
+        },
+        {
+          "cube": "chest_cross_lower_1",
+          "face": "up"
+        },
+        {
+          "cube": "chest_cross_lower_1",
+          "face": "down"
+        },
+        {
+          "cube": "rear_spine",
+          "face": "up"
+        },
+        {
+          "cube": "rear_spine",
+          "face": "down"
+        },
+        {
+          "cube": "helm_brow_ridge_-1",
+          "face": "east"
+        },
+        {
+          "cube": "helm_brow_ridge_-1",
+          "face": "west"
+        },
+        {
+          "cube": "helm_brow_ridge_1",
+          "face": "east"
+        },
+        {
+          "cube": "helm_brow_ridge_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        9.5,
+        111,
+        11,
+        118.75
+      ],
+      "owners": [
+        {
+          "cube": "chest_cross_lower_-1",
+          "face": "north"
+        },
+        {
+          "cube": "chest_cross_lower_-1",
+          "face": "south"
+        },
+        {
+          "cube": "chest_cross_lower_1",
+          "face": "north"
+        },
+        {
+          "cube": "chest_cross_lower_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        11.5,
+        110.75,
+        12.5,
+        118.5
+      ],
+      "owners": [
+        {
+          "cube": "chest_cross_lower_-1",
+          "face": "east"
+        },
+        {
+          "cube": "chest_cross_lower_-1",
+          "face": "west"
+        },
+        {
+          "cube": "chest_cross_lower_1",
+          "face": "east"
+        },
+        {
+          "cube": "chest_cross_lower_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.5,
+        64.25,
+        24.25,
+        70.5
+      ],
+      "owners": [
+        {
+          "cube": "chest_diamond_frame",
+          "face": "north"
+        },
+        {
+          "cube": "chest_diamond_frame",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        0.25,
+        121.5,
+        1.5,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "chest_diamond_frame",
+          "face": "east"
+        },
+        {
+          "cube": "chest_diamond_frame",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        14.5,
+        124.75,
+        21.25,
+        126
+      ],
+      "owners": [
+        {
+          "cube": "chest_diamond_frame",
+          "face": "up"
+        },
+        {
+          "cube": "chest_diamond_frame",
+          "face": "down"
+        },
+        {
+          "cube": "helm_brow_ridge_-1",
+          "face": "north"
+        },
+        {
+          "cube": "helm_brow_ridge_-1",
+          "face": "south"
+        },
+        {
+          "cube": "helm_brow_ridge_1",
+          "face": "north"
+        },
+        {
+          "cube": "helm_brow_ridge_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        25.5,
+        106.75,
+        28.5,
+        109.5
+      ],
+      "owners": [
+        {
+          "cube": "chest_gem_dark",
+          "face": "north"
+        },
+        {
+          "cube": "chest_gem_dark",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        25.75,
+        102.75,
+        26.25,
+        105.5
+      ],
+      "owners": [
+        {
+          "cube": "chest_gem_dark",
+          "face": "east"
+        },
+        {
+          "cube": "chest_gem_dark",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        19.25,
+        117.75,
+        22.25,
+        118.25
+      ],
+      "owners": [
+        {
+          "cube": "chest_gem_dark",
+          "face": "up"
+        },
+        {
+          "cube": "chest_gem_dark",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.75,
+        110,
+        30.25,
+        112.25
+      ],
+      "owners": [
+        {
+          "cube": "chest_ruby",
+          "face": "north"
+        },
+        {
+          "cube": "chest_ruby",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        13.25,
+        87.25,
+        13.75,
+        89.5
+      ],
+      "owners": [
+        {
+          "cube": "chest_ruby",
+          "face": "east"
+        },
+        {
+          "cube": "chest_ruby",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28,
+        82.25,
+        30.5,
+        82.75
+      ],
+      "owners": [
+        {
+          "cube": "chest_ruby",
+          "face": "up"
+        },
+        {
+          "cube": "chest_ruby",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.25,
+        10.5,
+        22.75,
+        16
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_-1",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_-1",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_1",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        26.25,
+        58,
+        34.75,
+        63.5
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_-1",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_-1",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_1",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.25,
+        0.25,
+        31.75,
+        8.75
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_-1",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_-1",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_1",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        35.25,
+        60.75,
+        40.5,
+        62.75
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_lame_-1",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_lame_-1",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_lame_1",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_lame_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17,
+        58,
+        25.75,
+        60
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_lame_-1",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_lame_-1",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_lame_1",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_lame_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        41.5,
+        47.5,
+        46.75,
+        56.25
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_lame_-1",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_lame_-1",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_lame_1",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_lame_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28.75,
+        21.75,
+        32.25,
+        26.25
+      ],
+      "owners": [
+        {
+          "cube": "upper_arm_-1",
+          "face": "north"
+        },
+        {
+          "cube": "upper_arm_-1",
+          "face": "south"
+        },
+        {
+          "cube": "upper_arm_-1",
+          "face": "up"
+        },
+        {
+          "cube": "upper_arm_-1",
+          "face": "down"
+        },
+        {
+          "cube": "upper_arm_1",
+          "face": "north"
+        },
+        {
+          "cube": "upper_arm_1",
+          "face": "south"
+        },
+        {
+          "cube": "upper_arm_1",
+          "face": "up"
+        },
+        {
+          "cube": "upper_arm_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        56.5,
+        7.5,
+        61,
+        12
+      ],
+      "owners": [
+        {
+          "cube": "upper_arm_-1",
+          "face": "east"
+        },
+        {
+          "cube": "upper_arm_-1",
+          "face": "west"
+        },
+        {
+          "cube": "upper_arm_1",
+          "face": "east"
+        },
+        {
+          "cube": "upper_arm_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        21,
+        113.5,
+        24.5,
+        116.75
+      ],
+      "owners": [
+        {
+          "cube": "elbow_-1",
+          "face": "north"
+        },
+        {
+          "cube": "elbow_-1",
+          "face": "south"
+        },
+        {
+          "cube": "elbow_1",
+          "face": "north"
+        },
+        {
+          "cube": "elbow_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        29.5,
+        64.25,
+        33.25,
+        67.5
+      ],
+      "owners": [
+        {
+          "cube": "elbow_-1",
+          "face": "east"
+        },
+        {
+          "cube": "elbow_-1",
+          "face": "west"
+        },
+        {
+          "cube": "elbow_1",
+          "face": "east"
+        },
+        {
+          "cube": "elbow_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        29.25,
+        68.75,
+        32.75,
+        72.5
+      ],
+      "owners": [
+        {
+          "cube": "elbow_-1",
+          "face": "up"
+        },
+        {
+          "cube": "elbow_-1",
+          "face": "down"
+        },
+        {
+          "cube": "elbow_1",
+          "face": "up"
+        },
+        {
+          "cube": "elbow_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        52.25,
+        0.25,
+        56,
+        9
+      ],
+      "owners": [
+        {
+          "cube": "forearm_-1",
+          "face": "north"
+        },
+        {
+          "cube": "forearm_-1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        47.25,
+        0.25,
+        51.75,
+        9
+      ],
+      "owners": [
+        {
+          "cube": "forearm_-1",
+          "face": "east"
+        },
+        {
+          "cube": "forearm_-1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.25,
+        16.75,
+        31,
+        21.25
+      ],
+      "owners": [
+        {
+          "cube": "forearm_-1",
+          "face": "up"
+        },
+        {
+          "cube": "forearm_-1",
+          "face": "down"
+        },
+        {
+          "cube": "forearm_1",
+          "face": "up"
+        },
+        {
+          "cube": "forearm_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        21.5,
+        126.5,
+        27.5,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "wrist_cuff_-1",
+          "face": "north"
+        },
+        {
+          "cube": "wrist_cuff_-1",
+          "face": "south"
+        },
+        {
+          "cube": "wrist_cuff_1",
+          "face": "north"
+        },
+        {
+          "cube": "wrist_cuff_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        14.5,
+        126.5,
+        21,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "wrist_cuff_-1",
+          "face": "east"
+        },
+        {
+          "cube": "wrist_cuff_-1",
+          "face": "west"
+        },
+        {
+          "cube": "wrist_cuff_1",
+          "face": "east"
+        },
+        {
+          "cube": "wrist_cuff_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.5,
+        91.75,
+        23.5,
+        98.25
+      ],
+      "owners": [
+        {
+          "cube": "wrist_cuff_-1",
+          "face": "up"
+        },
+        {
+          "cube": "wrist_cuff_-1",
+          "face": "down"
+        },
+        {
+          "cube": "wrist_cuff_1",
+          "face": "up"
+        },
+        {
+          "cube": "wrist_cuff_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.25,
+        24.75,
+        23,
+        28.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_-1",
+          "face": "north"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        31.5,
+        16.75,
+        35.5,
+        20.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_-1",
+          "face": "east"
+        },
+        {
+          "cube": "gauntlet_palm_-1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.5,
+        24.75,
+        28.25,
+        28.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_-1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        56.5,
+        3,
+        61.25,
+        7
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_-1",
+          "face": "up"
+        },
+        {
+          "cube": "gauntlet_palm_-1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        43.5,
+        9.5,
+        44.75,
+        11.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_thumb_-1",
+          "face": "north"
+        },
+        {
+          "cube": "gauntlet_thumb_-1",
+          "face": "south"
+        },
+        {
+          "cube": "gauntlet_thumb_1",
+          "face": "north"
+        },
+        {
+          "cube": "gauntlet_thumb_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        32.25,
+        0.25,
+        34,
+        2.5
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_thumb_-1",
+          "face": "east"
+        },
+        {
+          "cube": "gauntlet_thumb_-1",
+          "face": "west"
+        },
+        {
+          "cube": "gauntlet_thumb_1",
+          "face": "east"
+        },
+        {
+          "cube": "gauntlet_thumb_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        22.75,
+        62,
+        24,
+        63.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_thumb_-1",
+          "face": "up"
+        },
+        {
+          "cube": "gauntlet_thumb_-1",
+          "face": "down"
+        },
+        {
+          "cube": "gauntlet_thumb_1",
+          "face": "up"
+        },
+        {
+          "cube": "gauntlet_thumb_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        3.25,
+        64.25,
+        5.75,
+        81.25
+      ],
+      "owners": [
+        {
+          "cube": "crest_low_-1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_low_-1",
+          "face": "south"
+        },
+        {
+          "cube": "crest_low_1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_low_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        2,
+        102.25,
+        6.5,
+        119.25
+      ],
+      "owners": [
+        {
+          "cube": "crest_low_-1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_low_-1",
+          "face": "west"
+        },
+        {
+          "cube": "crest_low_1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_low_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        24.5,
+        71,
+        27,
+        75.5
+      ],
+      "owners": [
+        {
+          "cube": "crest_low_-1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_low_-1",
+          "face": "down"
+        },
+        {
+          "cube": "crest_low_1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_low_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        14.5,
+        110.75,
+        17.5,
+        119.75
+      ],
+      "owners": [
+        {
+          "cube": "crest_mid_-1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_mid_-1",
+          "face": "south"
+        },
+        {
+          "cube": "crest_mid_1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_mid_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        11,
+        101.25,
+        14.75,
+        110.25
+      ],
+      "owners": [
+        {
+          "cube": "crest_mid_-1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_mid_-1",
+          "face": "west"
+        },
+        {
+          "cube": "crest_mid_1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_mid_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        29.25,
+        73,
+        32.25,
+        76.75
+      ],
+      "owners": [
+        {
+          "cube": "crest_mid_-1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_mid_-1",
+          "face": "down"
+        },
+        {
+          "cube": "crest_mid_1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_mid_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        9.25,
+        70,
+        11.5,
+        79.25
+      ],
+      "owners": [
+        {
+          "cube": "crest_upper_-1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_upper_-1",
+          "face": "south"
+        },
+        {
+          "cube": "crest_upper_1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_upper_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        8.25,
+        80,
+        11.5,
+        89.25
+      ],
+      "owners": [
+        {
+          "cube": "crest_upper_-1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_upper_-1",
+          "face": "west"
+        },
+        {
+          "cube": "crest_upper_1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_upper_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        25,
+        110.75,
+        27.25,
+        114
+      ],
+      "owners": [
+        {
+          "cube": "crest_upper_-1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_upper_-1",
+          "face": "down"
+        },
+        {
+          "cube": "crest_upper_1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_upper_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        24.75,
+        68.75,
+        27,
+        70.5
+      ],
+      "owners": [
+        {
+          "cube": "crest_tip_-1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_tip_-1",
+          "face": "south"
+        },
+        {
+          "cube": "crest_tip_1",
+          "face": "north"
+        },
+        {
+          "cube": "crest_tip_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.5,
+        117.25,
+        27,
+        119
+      ],
+      "owners": [
+        {
+          "cube": "crest_tip_-1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_tip_-1",
+          "face": "west"
+        },
+        {
+          "cube": "crest_tip_1",
+          "face": "east"
+        },
+        {
+          "cube": "crest_tip_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        21.5,
+        109.25,
+        23.75,
+        112.75
+      ],
+      "owners": [
+        {
+          "cube": "crest_tip_-1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_tip_-1",
+          "face": "down"
+        },
+        {
+          "cube": "crest_tip_1",
+          "face": "up"
+        },
+        {
+          "cube": "crest_tip_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        13.5,
+        70,
+        17,
+        77.25
+      ],
+      "owners": [
+        {
+          "cube": "pauldron_gold_-1",
+          "face": "east"
+        },
+        {
+          "cube": "pauldron_gold_-1",
+          "face": "west"
+        },
+        {
+          "cube": "pauldron_gold_1",
+          "face": "east"
+        },
+        {
+          "cube": "pauldron_gold_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.75,
+        98.75,
+        25.75,
+        102.25
+      ],
+      "owners": [
+        {
+          "cube": "pauldron_gold_-1",
+          "face": "up"
+        },
+        {
+          "cube": "pauldron_gold_-1",
+          "face": "down"
+        },
+        {
+          "cube": "pauldron_gold_1",
+          "face": "up"
+        },
+        {
+          "cube": "pauldron_gold_1",
+          "face": "down"
+        },
+        {
+          "cube": "crown_horn_hook_-1",
+          "face": "north"
+        },
+        {
+          "cube": "crown_horn_hook_-1",
+          "face": "south"
+        },
+        {
+          "cube": "crown_horn_hook_1",
+          "face": "north"
+        },
+        {
+          "cube": "crown_horn_hook_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        95.75,
+        69.25,
+        114.75
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_banner_-1_false",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_-1_false",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_banner_-1_true",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_-1_true",
+          "face": "south"
+        },
+        {
+          "cube": "high_pennant_-1",
+          "face": "north"
+        },
+        {
+          "cube": "high_pennant_-1",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_banner_1_false",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_1_false",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_banner_1_true",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_1_true",
+          "face": "south"
+        },
+        {
+          "cube": "high_pennant_1",
+          "face": "north"
+        },
+        {
+          "cube": "high_pennant_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        69.75,
+        95.75,
+        70.25,
+        113.5
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_banner_-1_false",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_-1_false",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_banner_-1_true",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_-1_true",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_banner_1_false",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_1_false",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_banner_1_true",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_1_true",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        86.25,
+        127.25,
+        91,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_banner_-1_false",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_-1_false",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_banner_-1_true",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_-1_true",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_banner_1_false",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_1_false",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_banner_1_true",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_1_true",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.75,
+        82.75,
+        22.75,
+        85
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_banner_rod_-1_false",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_false",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_true",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_true",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_false",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_false",
+          "face": "south"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_true",
+          "face": "north"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_true",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.5,
+        73.25,
+        28.5,
+        75.5
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_banner_rod_-1_false",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_false",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_true",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_true",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_false",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_false",
+          "face": "west"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_true",
+          "face": "east"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_true",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18,
+        118.75,
+        23,
+        119.75
+      ],
+      "owners": [
+        {
+          "cube": "shoulder_banner_rod_-1_false",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_false",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_true",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_rod_-1_true",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_false",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_false",
+          "face": "down"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_true",
+          "face": "up"
+        },
+        {
+          "cube": "shoulder_banner_rod_1_true",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        70.75,
+        95.75,
+        71.25,
+        111.75
+      ],
+      "owners": [
+        {
+          "cube": "high_pennant_-1",
+          "face": "east"
+        },
+        {
+          "cube": "high_pennant_-1",
+          "face": "west"
+        },
+        {
+          "cube": "high_pennant_1",
+          "face": "east"
+        },
+        {
+          "cube": "high_pennant_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        91.5,
+        127.25,
+        96,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "high_pennant_-1",
+          "face": "up"
+        },
+        {
+          "cube": "high_pennant_-1",
+          "face": "down"
+        },
+        {
+          "cube": "high_pennant_1",
+          "face": "up"
+        },
+        {
+          "cube": "high_pennant_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        37.25,
+        20.75,
+        41,
+        22.5
+      ],
+      "owners": [
+        {
+          "cube": "forearm_1",
+          "face": "north"
+        },
+        {
+          "cube": "forearm_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.75,
+        62,
+        22.25,
+        63.75
+      ],
+      "owners": [
+        {
+          "cube": "forearm_1",
+          "face": "east"
+        },
+        {
+          "cube": "forearm_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        32.75,
+        21.25,
+        36.75,
+        24.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_1",
+          "face": "north"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        43.5,
+        12.5,
+        47,
+        16
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_1",
+          "face": "east"
+        },
+        {
+          "cube": "gauntlet_palm_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        36,
+        16.75,
+        40,
+        20.25
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        33.5,
+        25.25,
+        37.5,
+        28.75
+      ],
+      "owners": [
+        {
+          "cube": "gauntlet_palm_1",
+          "face": "up"
+        },
+        {
+          "cube": "gauntlet_palm_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        86.25,
+        91.75,
+        88.75,
+        126.75
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-4",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_-4",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_-2",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_-2",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_0",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_0",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_2",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_2",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_4",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_4",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        93.5,
+        79,
+        94.25,
+        111.5
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-4",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_-4",
+          "face": "west"
+        },
+        {
+          "cube": "cape_pleat_4",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_4",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        70.75,
+        112.25,
+        73,
+        113
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-4",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_-4",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_-3",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_-3",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_-2",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_-2",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_-1",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_-1",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_0",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_0",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_1",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_1",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_2",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_2",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_3",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_3",
+          "face": "down"
+        },
+        {
+          "cube": "cape_pleat_4",
+          "face": "up"
+        },
+        {
+          "cube": "cape_pleat_4",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        89.25,
+        91.75,
+        91.75,
+        126.75
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-3",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_-3",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_-1",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_-1",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_1",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_1",
+          "face": "south"
+        },
+        {
+          "cube": "cape_pleat_3",
+          "face": "north"
+        },
+        {
+          "cube": "cape_pleat_3",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        93,
+        45.25,
+        93.75,
+        78.5
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-3",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_-3",
+          "face": "west"
+        },
+        {
+          "cube": "cape_pleat_3",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_3",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        92.25,
+        80.25,
+        93,
+        114
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-2",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_-2",
+          "face": "west"
+        },
+        {
+          "cube": "cape_pleat_2",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_2",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        91.75,
+        45.25,
+        92.5,
+        79.75
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_-1",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_-1",
+          "face": "west"
+        },
+        {
+          "cube": "cape_pleat_1",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        85,
+        91.75,
+        85.75,
+        127
+      ],
+      "owners": [
+        {
+          "cube": "cape_pleat_0",
+          "face": "east"
+        },
+        {
+          "cube": "cape_pleat_0",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.5,
+        91.75,
+        84.5,
+        127.75
+      ],
+      "owners": [
+        {
+          "cube": "cape_side_-1",
+          "face": "north"
+        },
+        {
+          "cube": "cape_side_-1",
+          "face": "south"
+        },
+        {
+          "cube": "cape_side_1",
+          "face": "north"
+        },
+        {
+          "cube": "cape_side_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        90.5,
+        45.25,
+        91.25,
+        80
+      ],
+      "owners": [
+        {
+          "cube": "cape_side_-1",
+          "face": "east"
+        },
+        {
+          "cube": "cape_side_-1",
+          "face": "west"
+        },
+        {
+          "cube": "cape_side_1",
+          "face": "east"
+        },
+        {
+          "cube": "cape_side_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        69.75,
+        114,
+        73.75,
+        114.75
+      ],
+      "owners": [
+        {
+          "cube": "cape_side_-1",
+          "face": "up"
+        },
+        {
+          "cube": "cape_side_-1",
+          "face": "down"
+        },
+        {
+          "cube": "cape_side_1",
+          "face": "up"
+        },
+        {
+          "cube": "cape_side_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        7,
+        101.25,
+        8.75,
+        110.5
+      ],
+      "owners": [
+        {
+          "cube": "rear_yoke_wing_-1",
+          "face": "north"
+        },
+        {
+          "cube": "rear_yoke_wing_-1",
+          "face": "south"
+        },
+        {
+          "cube": "rear_yoke_wing_1",
+          "face": "north"
+        },
+        {
+          "cube": "rear_yoke_wing_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        9.25,
+        101.25,
+        10.5,
+        110.5
+      ],
+      "owners": [
+        {
+          "cube": "rear_yoke_wing_-1",
+          "face": "east"
+        },
+        {
+          "cube": "rear_yoke_wing_-1",
+          "face": "west"
+        },
+        {
+          "cube": "rear_yoke_wing_1",
+          "face": "east"
+        },
+        {
+          "cube": "rear_yoke_wing_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        45.25,
+        77.5,
+        95.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_center_cloth",
+          "face": "north"
+        },
+        {
+          "cube": "rear_center_cloth",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        78,
+        45.25,
+        79,
+        95.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_center_cloth",
+          "face": "east"
+        },
+        {
+          "cube": "rear_center_cloth",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        115.25,
+        77.5,
+        116.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_center_cloth",
+          "face": "up"
+        },
+        {
+          "cube": "rear_center_cloth",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        3.25,
+        81.75,
+        4.75,
+        95.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_spine",
+          "face": "north"
+        },
+        {
+          "cube": "rear_spine",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        5.25,
+        81.75,
+        6.25,
+        95.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_spine",
+          "face": "east"
+        },
+        {
+          "cube": "rear_spine",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.75,
+        77.25,
+        23,
+        82.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_gem_frame",
+          "face": "north"
+        },
+        {
+          "cube": "rear_gem_frame",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        26.25,
+        77.75,
+        27.5,
+        82.75
+      ],
+      "owners": [
+        {
+          "cube": "rear_gem_frame",
+          "face": "east"
+        },
+        {
+          "cube": "rear_gem_frame",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.5,
+        76,
+        28.75,
+        77.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_gem_frame",
+          "face": "up"
+        },
+        {
+          "cube": "rear_gem_frame",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.75,
+        120.25,
+        29.75,
+        122.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_ruby",
+          "face": "north"
+        },
+        {
+          "cube": "rear_ruby",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        14.25,
+        87.25,
+        14.75,
+        89.25
+      ],
+      "owners": [
+        {
+          "cube": "rear_ruby",
+          "face": "east"
+        },
+        {
+          "cube": "rear_ruby",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18.75,
+        76,
+        20.75,
+        76.5
+      ],
+      "owners": [
+        {
+          "cube": "rear_ruby",
+          "face": "up"
+        },
+        {
+          "cube": "rear_ruby",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        0.25,
+        64.25,
+        1.5,
+        121
+      ],
+      "owners": [
+        {
+          "cube": "staff_shaft",
+          "face": "north"
+        },
+        {
+          "cube": "staff_shaft",
+          "face": "east"
+        },
+        {
+          "cube": "staff_shaft",
+          "face": "south"
+        },
+        {
+          "cube": "staff_shaft",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        15.25,
+        101.25,
+        17.25,
+        110
+      ],
+      "owners": [
+        {
+          "cube": "staff_foot",
+          "face": "north"
+        },
+        {
+          "cube": "staff_foot",
+          "face": "east"
+        },
+        {
+          "cube": "staff_foot",
+          "face": "south"
+        },
+        {
+          "cube": "staff_foot",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28.25,
+        112.75,
+        30.25,
+        114.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_foot",
+          "face": "up"
+        },
+        {
+          "cube": "staff_foot",
+          "face": "down"
+        },
+        {
+          "cube": "staff_grip_lower",
+          "face": "up"
+        },
+        {
+          "cube": "staff_grip_lower",
+          "face": "down"
+        },
+        {
+          "cube": "crown_forehead_diamond",
+          "face": "north"
+        },
+        {
+          "cube": "crown_forehead_diamond",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        7,
+        111,
+        9,
+        118.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_grip_lower",
+          "face": "north"
+        },
+        {
+          "cube": "staff_grip_lower",
+          "face": "east"
+        },
+        {
+          "cube": "staff_grip_lower",
+          "face": "south"
+        },
+        {
+          "cube": "staff_grip_lower",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.25,
+        82.75,
+        25.75,
+        88
+      ],
+      "owners": [
+        {
+          "cube": "staff_socket",
+          "face": "north"
+        },
+        {
+          "cube": "staff_socket",
+          "face": "east"
+        },
+        {
+          "cube": "staff_socket",
+          "face": "south"
+        },
+        {
+          "cube": "staff_socket",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.5,
+        117.25,
+        30,
+        119.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_socket",
+          "face": "up"
+        },
+        {
+          "cube": "staff_socket",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        14.5,
+        122.75,
+        21.25,
+        124.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_cup",
+          "face": "north"
+        },
+        {
+          "cube": "staff_cup",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        21.75,
+        122.75,
+        27.5,
+        124.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_cup",
+          "face": "east"
+        },
+        {
+          "cube": "staff_cup",
+          "face": "west"
+        },
+        {
+          "cube": "helm_brow_ridge_-1",
+          "face": "up"
+        },
+        {
+          "cube": "helm_brow_ridge_-1",
+          "face": "down"
+        },
+        {
+          "cube": "helm_brow_ridge_1",
+          "face": "up"
+        },
+        {
+          "cube": "helm_brow_ridge_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        16,
+        85.5,
+        22.75,
+        91.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_cup",
+          "face": "up"
+        },
+        {
+          "cube": "staff_cup",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        21.75,
+        124.75,
+        27.5,
+        126
+      ],
+      "owners": [
+        {
+          "cube": "staff_cup_prong_-1",
+          "face": "east"
+        },
+        {
+          "cube": "staff_cup_prong_-1",
+          "face": "west"
+        },
+        {
+          "cube": "staff_cup_prong_1",
+          "face": "east"
+        },
+        {
+          "cube": "staff_cup_prong_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.5,
+        71,
+        18.25,
+        76.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_cup_prong_-1",
+          "face": "up"
+        },
+        {
+          "cube": "staff_cup_prong_-1",
+          "face": "down"
+        },
+        {
+          "cube": "staff_cup_prong_1",
+          "face": "up"
+        },
+        {
+          "cube": "staff_cup_prong_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        26.25,
+        83.25,
+        30,
+        87.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_0",
+          "face": "north"
+        },
+        {
+          "cube": "staff_crystal_0",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28,
+        77.75,
+        31,
+        81.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_0",
+          "face": "east"
+        },
+        {
+          "cube": "staff_crystal_0",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        19.25,
+        105.75,
+        23,
+        108.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_0",
+          "face": "up"
+        },
+        {
+          "cube": "staff_crystal_0",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        24.75,
+        64.25,
+        27.5,
+        68.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_1",
+          "face": "north"
+        },
+        {
+          "cube": "staff_crystal_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.5,
+        77.75,
+        25.75,
+        81.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_1",
+          "face": "east"
+        },
+        {
+          "cube": "staff_crystal_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        25,
+        114.5,
+        27.75,
+        116.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_1",
+          "face": "up"
+        },
+        {
+          "cube": "staff_crystal_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        27.5,
+        68.75,
+        28.75,
+        72.75
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_2",
+          "face": "north"
+        },
+        {
+          "cube": "staff_crystal_2",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28,
+        64.25,
+        29,
+        68.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_2",
+          "face": "east"
+        },
+        {
+          "cube": "staff_crystal_2",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        30.5,
+        115.25,
+        31.75,
+        116.25
+      ],
+      "owners": [
+        {
+          "cube": "staff_crystal_2",
+          "face": "up"
+        },
+        {
+          "cube": "staff_crystal_2",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        12.75,
+        0.25,
+        17.75,
+        29.5
+      ],
+      "owners": [
+        {
+          "cube": "front_skirt_plate_-1",
+          "face": "north"
+        },
+        {
+          "cube": "front_skirt_plate_-1",
+          "face": "south"
+        },
+        {
+          "cube": "front_skirt_plate_1",
+          "face": "north"
+        },
+        {
+          "cube": "front_skirt_plate_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        15.5,
+        30,
+        16.5,
+        59.25
+      ],
+      "owners": [
+        {
+          "cube": "front_skirt_plate_-1",
+          "face": "east"
+        },
+        {
+          "cube": "front_skirt_plate_-1",
+          "face": "west"
+        },
+        {
+          "cube": "front_skirt_plate_1",
+          "face": "east"
+        },
+        {
+          "cube": "front_skirt_plate_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.75,
+        60.5,
+        22.75,
+        61.5
+      ],
+      "owners": [
+        {
+          "cube": "front_skirt_plate_-1",
+          "face": "up"
+        },
+        {
+          "cube": "front_skirt_plate_-1",
+          "face": "down"
+        },
+        {
+          "cube": "front_skirt_plate_1",
+          "face": "up"
+        },
+        {
+          "cube": "front_skirt_plate_1",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.75,
+        102.75,
+        25.25,
+        106.25
+      ],
+      "owners": [
+        {
+          "cube": "chest_sternum",
+          "face": "north"
+        },
+        {
+          "cube": "chest_sternum",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        24.25,
+        106.75,
+        25,
+        110.25
+      ],
+      "owners": [
+        {
+          "cube": "chest_sternum",
+          "face": "east"
+        },
+        {
+          "cube": "chest_sternum",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        21.25,
+        76,
+        22.75,
+        76.75
+      ],
+      "owners": [
+        {
+          "cube": "chest_sternum",
+          "face": "up"
+        },
+        {
+          "cube": "chest_sternum",
+          "face": "down"
+        },
+        {
+          "cube": "crown_forehead_diamond",
+          "face": "up"
+        },
+        {
+          "cube": "crown_forehead_diamond",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28.75,
+        28.5,
+        33,
+        29.5
+      ],
+      "owners": [
+        {
+          "cube": "staff_hand_knuckle_0",
+          "face": "north"
+        },
+        {
+          "cube": "staff_hand_knuckle_0",
+          "face": "south"
+        },
+        {
+          "cube": "staff_hand_knuckle_1",
+          "face": "north"
+        },
+        {
+          "cube": "staff_hand_knuckle_1",
+          "face": "south"
+        },
+        {
+          "cube": "staff_hand_knuckle_2",
+          "face": "north"
+        },
+        {
+          "cube": "staff_hand_knuckle_2",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        23.25,
+        60.5,
+        24.5,
+        61.5
+      ],
+      "owners": [
+        {
+          "cube": "staff_hand_knuckle_0",
+          "face": "east"
+        },
+        {
+          "cube": "staff_hand_knuckle_0",
+          "face": "west"
+        },
+        {
+          "cube": "staff_hand_knuckle_1",
+          "face": "east"
+        },
+        {
+          "cube": "staff_hand_knuckle_1",
+          "face": "west"
+        },
+        {
+          "cube": "staff_hand_knuckle_2",
+          "face": "east"
+        },
+        {
+          "cube": "staff_hand_knuckle_2",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        28.75,
+        26.75,
+        33,
+        28
+      ],
+      "owners": [
+        {
+          "cube": "staff_hand_knuckle_0",
+          "face": "up"
+        },
+        {
+          "cube": "staff_hand_knuckle_0",
+          "face": "down"
+        },
+        {
+          "cube": "staff_hand_knuckle_1",
+          "face": "up"
+        },
+        {
+          "cube": "staff_hand_knuckle_1",
+          "face": "down"
+        },
+        {
+          "cube": "staff_hand_knuckle_2",
+          "face": "up"
+        },
+        {
+          "cube": "staff_hand_knuckle_2",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        36.75,
+        70.5,
+        40.5
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_0_0",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_0",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_2",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_2",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_4",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_4",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_6",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_6",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_8",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_8",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_10",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_10",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_12",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_12",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_14",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_14",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        89.25,
+        34.25,
+        92.5,
+        38
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_0_0",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_0",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_2",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_2",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_4",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_4",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_6",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_6",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_8",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_8",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_10",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_10",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_12",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_12",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_14",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_14",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        71,
+        36.75,
+        77.25,
+        40
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_0_0",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_0",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_2",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_2",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_4",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_4",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_6",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_6",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_8",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_8",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_10",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_10",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_12",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_12",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_14",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_14",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        41,
+        70.5,
+        44.75
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_0_1",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_1",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_3",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_3",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_5",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_5",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_7",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_7",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_9",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_9",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_11",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_11",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_13",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_13",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_0_15",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_0_15",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        89.25,
+        38.5,
+        92.5,
+        42.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_0_1",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_1",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_3",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_3",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_5",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_5",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_7",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_7",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_9",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_9",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_11",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_11",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_13",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_13",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_0_15",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_0_15",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        71,
+        40.5,
+        77.25,
+        43.75
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_0_1",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_1",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_3",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_3",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_5",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_5",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_7",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_7",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_9",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_9",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_11",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_11",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_13",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_13",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_0_15",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_0_15",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        15.75,
+        79.25,
+        18
+      ],
+      "owners": [
+        {
+          "cube": "plinth_core_0_0",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_0_0",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_0_0",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_0_0",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_0_1",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_0_1",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_0_1",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_0_1",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_0_2",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_0_2",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_0_2",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_0_2",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_0_3",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_0_3",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_0_3",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_0_3",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        0.25,
+        79.25,
+        15.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_core_0_0",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_0_0",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_0_1",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_0_1",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_0_2",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_0_2",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_0_3",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_0_3",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        77.75,
+        34.75,
+        83.25,
+        37.75
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_1_0",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_0",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_2",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_2",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_4",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_4",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_6",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_6",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_8",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_8",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_10",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_10",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_12",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_12",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_14",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_14",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.75,
+        0.25,
+        82.5,
+        3.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_1_0",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_0",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_2",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_2",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_4",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_4",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_6",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_6",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_8",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_8",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_10",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_10",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_12",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_12",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_14",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_14",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        77.75,
+        38.25,
+        83.25,
+        41
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_1_0",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_0",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_2",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_2",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_4",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_4",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_6",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_6",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_8",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_8",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_10",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_10",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_12",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_12",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_14",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_14",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        78.25,
+        31,
+        83.75,
+        34
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_1_1",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_1",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_3",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_3",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_5",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_5",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_7",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_7",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_9",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_9",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_11",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_11",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_13",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_13",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_1_15",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_1_15",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.75,
+        3.75,
+        82.5,
+        6.75
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_1_1",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_1",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_3",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_3",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_5",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_5",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_7",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_7",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_9",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_9",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_11",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_11",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_13",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_13",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_1_15",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_1_15",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        77.75,
+        41.5,
+        83.25,
+        44.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_1_1",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_1",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_3",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_3",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_5",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_5",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_7",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_7",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_9",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_9",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_11",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_11",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_13",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_13",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_1_15",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_1_15",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        32.5,
+        77.75,
+        34.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_core_1_0",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_1_0",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_1_0",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_1_0",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_1_1",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_1_1",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_1_1",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_1_1",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_1_2",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_1_2",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_1_2",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_1_2",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_1_3",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_1_3",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_1_3",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_1_3",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        18.5,
+        77.75,
+        32
+      ],
+      "owners": [
+        {
+          "cube": "plinth_core_1_0",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_1_0",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_1_1",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_1_1",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_1_2",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_1_2",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_1_3",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_1_3",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        83.75,
+        34.5,
+        88.75,
+        37.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_0",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_0",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_2",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_2",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_6",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_6",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_8",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_8",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_12",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_12",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_14",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_14",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        89.75,
+        31,
+        92.25,
+        33.75
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_0",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_0",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_2",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_2",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_6",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_6",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_8",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_8",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_12",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_12",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_14",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_14",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        83.75,
+        37.75,
+        88.75,
+        40.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_0",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_0",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_2",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_2",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_4",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_4",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_4",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_4",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_6",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_6",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_8",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_8",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_10",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_10",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_10",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_10",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_12",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_12",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_14",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_14",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        83.75,
+        40.75,
+        88.75,
+        43.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_1",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_1",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_1",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_1",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_3",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_3",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_5",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_5",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_7",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_7",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_7",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_7",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_9",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_9",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_11",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_11",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_13",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_13",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_13",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_13",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_block_2_15",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_block_2_15",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.75,
+        10.5,
+        82.25,
+        13
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_1",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_1",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_7",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_7",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_13",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_13",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        84.25,
+        31,
+        89.25,
+        33.75
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_3",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_3",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_5",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_5",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_9",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_9",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_11",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_11",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_block_2_15",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_block_2_15",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.75,
+        7.25,
+        82.25,
+        10
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_3",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_3",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_5",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_5",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_9",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_9",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_11",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_11",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_15",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_15",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        79.75,
+        13.5,
+        82.25,
+        16
+      ],
+      "owners": [
+        {
+          "cube": "plinth_block_2_4",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_4",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_block_2_10",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_block_2_10",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        64.25,
+        34.75,
+        76.25,
+        36.25
+      ],
+      "owners": [
+        {
+          "cube": "plinth_core_2_0",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_2_0",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_2_0",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_2_0",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_2_1",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_2_1",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_2_1",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_2_1",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_2_2",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_2_2",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_2_2",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_2_2",
+          "face": "west"
+        },
+        {
+          "cube": "plinth_core_2_3",
+          "face": "north"
+        },
+        {
+          "cube": "plinth_core_2_3",
+          "face": "east"
+        },
+        {
+          "cube": "plinth_core_2_3",
+          "face": "south"
+        },
+        {
+          "cube": "plinth_core_2_3",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        78.25,
+        18.5,
+        90.25,
+        30.5
+      ],
+      "owners": [
+        {
+          "cube": "plinth_core_2_0",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_2_0",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_2_1",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_2_1",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_2_2",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_2_2",
+          "face": "down"
+        },
+        {
+          "cube": "plinth_core_2_3",
+          "face": "up"
+        },
+        {
+          "cube": "plinth_core_2_3",
+          "face": "down"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18,
+        105.75,
+        18.75,
+        112.25
+      ],
+      "owners": [
+        {
+          "cube": "pedestal_gold_joint_-1",
+          "face": "north"
+        },
+        {
+          "cube": "pedestal_gold_joint_-1",
+          "face": "south"
+        },
+        {
+          "cube": "pedestal_gold_joint_1",
+          "face": "north"
+        },
+        {
+          "cube": "pedestal_gold_joint_1",
+          "face": "south"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        17.75,
+        98.75,
+        23.25,
+        105.25
+      ],
+      "owners": [
+        {
+          "cube": "pedestal_gold_joint_-1",
+          "face": "east"
+        },
+        {
+          "cube": "pedestal_gold_joint_-1",
+          "face": "west"
+        },
+        {
+          "cube": "pedestal_gold_joint_1",
+          "face": "east"
+        },
+        {
+          "cube": "pedestal_gold_joint_1",
+          "face": "west"
+        }
+      ]
+    },
+    {
+      "logical_uv": [
+        18,
+        112.75,
+        18.75,
+        118.25
+      ],
+      "owners": [
+        {
+          "cube": "pedestal_gold_joint_-1",
+          "face": "up"
+        },
+        {
+          "cube": "pedestal_gold_joint_-1",
+          "face": "down"
+        },
+        {
+          "cube": "pedestal_gold_joint_1",
+          "face": "up"
+        },
+        {
+          "cube": "pedestal_gold_joint_1",
+          "face": "down"
+        }
+      ]
+    }
+  ],
+  "note": "Canonical face UV ownership reconstructed from final saved native project; helmet embellishments reuse existing gold islands."
+}

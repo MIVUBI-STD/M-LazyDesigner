@@ -1,0 +1,100 @@
+{
+  "schema": "lazydesigner-reference-v1",
+  "asset": {
+    "name": "crimson_guardian_turret",
+    "kind": "MODEL",
+    "profile": "PROP_FURNITURE",
+    "task": "NEW_ASSET",
+    "intent": "Redesign the guardian to the latest supplied detailed front reference, including horned crown, red heraldic banners, gem-framed chest cross, detailed armor/stone, and matching authored rear gold ornament."
+  },
+  "requirements": {
+    "dimensions_blocks": {
+      "width": null,
+      "height": null,
+      "length": null
+    },
+    "player_relative_scale": null,
+    "animation_required": null
+  },
+  "images": [
+    {
+      "id": "redesign_target",
+      "file": "redesign-target.png",
+      "role": "PRIMARY_GEOMETRY",
+      "used_by": [
+        "GEOMETRY",
+        "TEXTURE"
+      ],
+      "status": "APPROVED"
+    }
+  ],
+  "parts": [
+    {
+      "id": "stone_plinth",
+      "role": "GEOMETRY",
+      "motion": "STATIC",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "armored_guardian",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "gold_shoulder_crests",
+      "role": "GEOMETRY",
+      "symmetry": "PAIRED",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "staff_red_crystal",
+      "role": "GEOMETRY",
+      "symmetry": "NONE",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "red_front_tabard",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "engraving_and_cracks",
+      "role": "TEXTURE",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "horned_crown",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "heraldic_banners",
+      "role": "GEOMETRY",
+      "evidence": "SUPPORTED"
+    },
+    {
+      "id": "rear_gold_yoke",
+      "role": "GEOMETRY",
+      "evidence": "PROVISIONAL"
+    }
+  ],
+  "constraints": [
+    "Preserve the round stone base, broad armored shoulders, gold framing, central red cloth and asymmetric tall red crystal.",
+    "Do not claim hidden back topology or exact physical dimensions from the supplied composite.",
+    "No animation action is established by the still reference."
+  ],
+  "unknowns": {
+    "blocking": [],
+    "non_blocking": [
+      "Dimensions remain the existing working scale.",
+      "Rear ornament arrangement is an original coherent extension explicitly requested by user; no rear reference was supplied.",
+      "No animation or in-game emissive verification requested."
+    ]
+  },
+  "readiness": {
+    "overall": "READY",
+    "geometry": "READY",
+    "texture": "READY",
+    "animation": "UNKNOWN"
+  }
+}

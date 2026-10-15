@@ -1,0 +1,546 @@
+{
+  "date": "2026-10-14T19:02:36.953Z",
+  "animation_uuid": "8c5d71d3-eed7-86b1-6ba2-b4d7c6ee87c9",
+  "name": "animation.crimson_sentinel.magic_staff_slam",
+  "length_seconds": 4.4,
+  "loop": "once",
+  "snapping": 100,
+  "approved_visual_baseline": "approved-before-animation.bbmodel",
+  "user_visual_approval": "Explicit user approval before animation; animation itself ready for review, not approved",
+  "motion_contract": {
+    "activation": "Direct/manual authored clip; gameplay magic trigger not wired",
+    "intent": "Higher loaded staff lift, stronger accelerating strike, planted impact hold, delayed layered cape motion",
+    "length_seconds": 4.4,
+    "impact_seconds": 2.48,
+    "final_strike_window": [
+      2.36,
+      2.48
+    ],
+    "impact_hold": [
+      2.48,
+      2.72
+    ],
+    "peak_staff_arm_degrees": 87,
+    "phases": [
+      {
+        "time": [
+          0,
+          1.1
+        ],
+        "action": "magical awakening and focus"
+      },
+      {
+        "time": [
+          1.1,
+          2.12
+        ],
+        "action": "higher staff lift, stronger torso twist, free-hand counterbalance"
+      },
+      {
+        "time": [
+          2.12,
+          2.36
+        ],
+        "action": "loaded apex hold and release"
+      },
+      {
+        "time": [
+          2.36,
+          2.48
+        ],
+        "action": "fast accelerating downward strike"
+      },
+      {
+        "time": [
+          2.48,
+          2.72
+        ],
+        "action": "staff-arm and body planted hold, head reaction, delayed cape impulse"
+      },
+      {
+        "time": [
+          2.72,
+          4.4
+        ],
+        "action": "restrained arm recovery and damped cape sway"
+      }
+    ],
+    "fixed_parts": [
+      "pedestal",
+      "lower_armor",
+      "front_tabard",
+      "long_gold_rail_-1",
+      "long_gold_rail_1"
+    ],
+    "staff_attachment": "staff -> staff_forearm -> left_arm -> torso",
+    "cape": "rear_cloak main swing with cape_sway_left and cape_sway_right followers; side cape carriers included, small relative delays and +/-0.7 degree local X flex preserve pleat closure."
+  },
+  "preservation": {
+    "cube_count": 179,
+    "cube_transforms_and_uv_preserved": true,
+    "texture_preserved": true,
+    "new_groups": [
+      "cape_sway_left",
+      "cape_sway_right"
+    ],
+    "new_visible_cubes": 0
+  },
+  "checks": {
+    "diagnostics": {
+      "scope": "authored_animation_technical",
+      "transform_keyframe_count": 131,
+      "effect_keyframe_count": 0,
+      "keys_outside_length": 0,
+      "effects_outside_length": 0,
+      "dangling_bone_animators": 0,
+      "loop_endpoint_mismatch_candidates": 0,
+      "note": "Diagnostics identify technical review candidates only; they do not score motion quality or create PASS/FAIL."
+    },
+    "all_tracks_neutral_at_end": true,
+    "uv_mapping_unchanged": true
+  },
+  "evidence": {
+    "representative_native_pose_capture": {
+      "project": {
+        "uuid": "003fe8a3-82b9-5d31-2136-a17c81be3c30",
+        "name": "heavy-slam-cape-rig-checkpoint",
+        "format": "bedrock"
+      },
+      "total_png_bytes": 177863,
+      "front_direction": "-z",
+      "framing_mode": "explicit",
+      "framing_bounds": {
+        "min": [
+          -28,
+          0,
+          -28
+        ],
+        "max": [
+          31,
+          94,
+          29
+        ]
+      },
+      "view_selection": {
+        "mode": "explicit",
+        "requested_targets": [],
+        "verification_risk": "LOW",
+        "minimum_views": [
+          "front",
+          "back"
+        ],
+        "expansion_views": [],
+        "coverage": [
+          {
+            "view": "front",
+            "targets": []
+          },
+          {
+            "view": "back",
+            "targets": []
+          }
+        ],
+        "selected_views": [
+          "front",
+          "back"
+        ],
+        "uncovered_targets": []
+      },
+      "resolution_selection": {
+        "mode": "explicit_or_default",
+        "requested_size": 768,
+        "selected_size": 768
+      },
+      "reference_comparison": {
+        "board_layout": "UPPER:LEFT|FRONT|BACK;LOWER:TOP|FRONT_LEFT_3Q",
+        "views": [
+          {
+            "view": "front",
+            "reference_slot": "upper_front",
+            "primary_evidence": [
+              "width",
+              "height",
+              "silhouette",
+              "count"
+            ]
+          },
+          {
+            "view": "back",
+            "reference_slot": "upper_back",
+            "primary_evidence": [
+              "width",
+              "height",
+              "rear_topology",
+              "asymmetry"
+            ]
+          }
+        ],
+        "difference_first": true,
+        "visual_verdict": "not_evaluated"
+      },
+      "offscreen_capture": true,
+      "render_evidence": {
+        "diagnostic_missing_texture_highlight": false,
+        "shading": true,
+        "brightness": 50,
+        "view_mode": "textured",
+        "source": "blockbench_preview",
+        "camera_spec_source": "offscreen_capture_plan",
+        "native_camera_attested": false,
+        "in_game_verified": false
+      },
+      "active_editor_camera_untouched": true,
+      "warnings": 9,
+      "count": 8,
+      "animation_preview": {
+        "animation": {
+          "uuid": "8c5d71d3-eed7-86b1-6ba2-b4d7c6ee87c9",
+          "name": "animation.crimson_sentinel.magic_staff_slam",
+          "length": 4.4,
+          "loop": "once"
+        },
+        "times": [
+          2.12,
+          2.48,
+          2.64,
+          3.15
+        ],
+        "sample_count": 4,
+        "persistent_timeline_state_restored": true
+      },
+      "samples": [
+        {
+          "time": 2.12,
+          "captures": [
+            {
+              "view": "front",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 91336,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  -407.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            },
+            {
+              "view": "back",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 86527,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  408.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            }
+          ]
+        },
+        {
+          "time": 2.48,
+          "captures": [
+            {
+              "view": "front",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 69948,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  -407.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            },
+            {
+              "view": "back",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 65229,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  408.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            }
+          ]
+        },
+        {
+          "time": 2.64,
+          "captures": [
+            {
+              "view": "front",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 70607,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  -407.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            },
+            {
+              "view": "back",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 66119,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  408.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            }
+          ]
+        },
+        {
+          "time": 3.15,
+          "captures": [
+            {
+              "view": "front",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 69917,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  -407.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            },
+            {
+              "view": "back",
+              "projection": "orthographic",
+              "width": 768,
+              "height": 768,
+              "png_bytes": 64832,
+              "camera_spec": {
+                "projection": "orthographic",
+                "position": [
+                  1.5,
+                  47,
+                  408.5
+                ],
+                "target": [
+                  1.5,
+                  47,
+                  0.5
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "zoom": 0.16472203157172272,
+                "fov": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "frames_per_view": 62,
+    "sample_times": [
+      0,
+      0.08,
+      0.16,
+      0.24,
+      0.32,
+      0.4,
+      0.48,
+      0.56,
+      0.64,
+      0.72,
+      0.8,
+      0.88,
+      0.96,
+      1.04,
+      1.12,
+      1.2,
+      1.28,
+      1.36,
+      1.44,
+      1.52,
+      1.6,
+      1.68,
+      1.76,
+      1.84,
+      1.92,
+      2,
+      2.08,
+      2.16,
+      2.24,
+      2.28,
+      2.32,
+      2.36,
+      2.4,
+      2.42,
+      2.46,
+      2.48,
+      2.52,
+      2.56,
+      2.6,
+      2.64,
+      2.72,
+      2.8,
+      2.88,
+      2.96,
+      3.04,
+      3.12,
+      3.2,
+      3.28,
+      3.36,
+      3.44,
+      3.52,
+      3.6,
+      3.68,
+      3.76,
+      3.84,
+      3.92,
+      4,
+      4.08,
+      4.16,
+      4.24,
+      4.32,
+      4.4
+    ],
+    "impact_sample_included": true,
+    "views": [
+      "front",
+      "back"
+    ],
+    "previews": [
+      "magic-staff-slam-heavy-front.gif",
+      "magic-staff-slam-heavy-back.gif"
+    ],
+    "preview_source": "Native animation_preview renders including finer samples around impact. Authored once; GIF loops with final review pause.",
+    "native_playback": {
+      "state": "TIMELINE_ADVANCE_VERIFIED",
+      "sample_elapsed_seconds": 1.2,
+      "timeline_time": 1.4206999999880767,
+      "condition": "Blockbench foreground window; this verifies timeline advancement, not visual particle fidelity."
+    },
+    "minecraft_in_game": "NOT_TESTED",
+    "visual_state": "READY_FOR_USER_REVIEW",
+    "correction_verdict": "IMPROVED loaded pose/impact contrast and visible cape response in sampled views; final timing feel awaits user review."
+  },
+  "output": "crimson_sentinel.bbmodel",
+  "spline_fix": {
+    "bone": "staff",
+    "time": 4.4,
+    "fix": "interpolation changed from isolated catmullrom to linear",
+    "isolated_smooth_keys_remaining": 0
+  },
+  "effects": {
+    "state": "AUTHORED_PENDING_NATIVE_VISUAL_VERIFICATION",
+    "evidence": "vfx/verification.json"
+  }
+}

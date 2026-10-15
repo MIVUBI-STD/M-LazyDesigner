@@ -1,0 +1,320 @@
+{
+  "project": {
+    "uuid": "c4444389-ac95-b6aa-86bd-22478d94bb93",
+    "name": "before-redesign",
+    "format": "bedrock"
+  },
+  "has_geometry": true,
+  "cube_count": 83,
+  "rendered_cube_count": 83,
+  "hidden_cube_count": 0,
+  "bounds_basis": "rendered_current_pose",
+  "coordinate_axes": {
+    "width": "x",
+    "height": "y",
+    "length": "z"
+  },
+  "bounds": {
+    "min": [
+      -15,
+      0,
+      -15
+    ],
+    "max": [
+      15,
+      55,
+      15
+    ],
+    "center": [
+      0,
+      27.5,
+      0
+    ],
+    "size_xyz": [
+      30,
+      55,
+      30
+    ],
+    "dimensions": {
+      "width": 30,
+      "height": 55,
+      "length": 30
+    },
+    "footprint": {
+      "min_xz": [
+        -15,
+        -15
+      ],
+      "max_xz": [
+        15,
+        15
+      ],
+      "size": {
+        "width": 30,
+        "length": 30
+      }
+    }
+  },
+  "pose_context": {
+    "animation": null,
+    "timeline_time": null
+  },
+  "warnings": [],
+  "geometry_hygiene": {
+    "state": "clean",
+    "precision": {
+      "epsilon": 0.000001,
+      "drift_count": 0,
+      "affected_cube_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "plane_like_cubes": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "degenerate_cubes": {
+      "count": 0,
+      "examples": [],
+      "examples_truncated": false
+    },
+    "duplicate_bone_names": {
+      "name_count": 0,
+      "group_count": 0,
+      "examples": [],
+      "examples_truncated": false
+    }
+  },
+  "surface_quality_summary": {
+    "state": "no_bounded_risk_reported",
+    "visual_verdict": "not_evaluated",
+    "counts": {
+      "z_fighting": 0,
+      "micro_gap": 0,
+      "coplanar_edge_gap": 0,
+      "shallow_penetration": 0
+    },
+    "categorized_risk_count": 0,
+    "additional_warnings_omitted": 0,
+    "diagnostics_unavailable_count": 0,
+    "scan_complete": true,
+    "details_complete": true,
+    "note": "Bounded geometric review hints only; absence of reported risk is not visual PASS."
+  },
+  "rig_graph": {
+    "state": "valid_graph",
+    "group_count": 12,
+    "root_count": 1,
+    "leaf_count": 9,
+    "branch_group_count": 2,
+    "max_depth": 2,
+    "roots": [
+      {
+        "uuid": "24cc2f1e-c70b-6b98-4e76-54ffaf8305d6",
+        "name": "guardian_root"
+      }
+    ],
+    "roots_truncated": false,
+    "invalid_origin_count": 0,
+    "unresolved_parent_count": 0,
+    "duplicate_uuid_count": 0,
+    "cycle_group_count": 0,
+    "pivot_edges": {
+      "measured_count": 11,
+      "min": 0,
+      "median": 30.0832,
+      "mean": 19.0191,
+      "max": 35,
+      "coincident_count": 4,
+      "coincident_examples": [
+        {
+          "parent_uuid": "24cc2f1e-c70b-6b98-4e76-54ffaf8305d6",
+          "parent_name": "guardian_root",
+          "child_uuid": "aec32937-8d16-10ea-ea27-207a63e69138",
+          "child_name": "guardian_body",
+          "distance": 0
+        },
+        {
+          "parent_uuid": "aec32937-8d16-10ea-ea27-207a63e69138",
+          "parent_name": "guardian_body",
+          "child_uuid": "a44edc93-b48d-28f6-1ffd-6a02c5dac781",
+          "child_name": "tabard",
+          "distance": 0
+        },
+        {
+          "parent_uuid": "aec32937-8d16-10ea-ea27-207a63e69138",
+          "parent_name": "guardian_body",
+          "child_uuid": "22a4afa0-9ebe-b834-d0e8-17477326cf0d",
+          "child_name": "gold_ornaments",
+          "distance": 0
+        },
+        {
+          "parent_uuid": "24cc2f1e-c70b-6b98-4e76-54ffaf8305d6",
+          "parent_name": "guardian_root",
+          "child_uuid": "94aa10b1-ef82-6a2e-0f69-56bf73006cfc",
+          "child_name": "stone_plinth",
+          "distance": 0
+        }
+      ],
+      "examples_truncated": false
+    },
+    "review_hints": [
+      "COINCIDENT_PARENT_CHILD_PIVOT"
+    ]
+  },
+  "surface_integrity": {
+    "state": "partial",
+    "scope": "axis_aligned_rest_pose",
+    "complete": false,
+    "checked_cube_count": 23,
+    "excluded_rotated_cube_count": 60,
+    "invalid_cube_count": 0,
+    "unsupported_transform_count": 0,
+    "unsupported_mesh_count": 0,
+    "coplanar_overlap_count": 0,
+    "coplanar_overlap_examples": [],
+    "coplanar_overlap_examples_truncated": false,
+    "positive_volume_intersection_count": 14,
+    "positive_volume_examples": [
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "1daab90e-ccbc-07c9-4a96-d620e23df337",
+          "name": "robe_core"
+        },
+        "b": {
+          "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+          "name": "armored_chest"
+        },
+        "overlap": [
+          9.4,
+          0.2,
+          7.6
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "d006bf5f-c4be-4d98-a7f8-aabc84a1be57",
+          "name": "armored_chest"
+        },
+        "b": {
+          "uuid": "57b10f46-e19f-631f-28f1-76efcab1bf4d",
+          "name": "neck_shadow"
+        },
+        "overlap": [
+          4.8,
+          0.2,
+          3.8
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "bd82b545-0608-fc2e-cef8-3bb9ad0f0bad",
+          "name": "helmet_brow"
+        },
+        "b": {
+          "uuid": "4af029a9-7f91-caf6-2e6e-2b35ab7a09e3",
+          "name": "face_guard_center"
+        },
+        "overlap": [
+          1.2,
+          0.8,
+          0.3
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+          "name": "gauntlet_right"
+        },
+        "b": {
+          "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+          "name": "staff_shaft"
+        },
+        "overlap": [
+          0.75,
+          3,
+          1.1
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "49ef1e79-a0b5-5f83-a138-49816259defd",
+          "name": "gauntlet_right"
+        },
+        "b": {
+          "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+          "name": "staff_grip"
+        },
+        "overlap": [
+          1,
+          1.3,
+          1.6
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+          "name": "staff_shaft"
+        },
+        "b": {
+          "uuid": "162d929d-2397-bec5-bb90-2a25a8968528",
+          "name": "staff_grip"
+        },
+        "overlap": [
+          1.1,
+          4.4,
+          1.1
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "761d91f5-d2f9-a509-8553-f0e67abf75e0",
+          "name": "staff_shaft"
+        },
+        "b": {
+          "uuid": "549c1c70-15a1-5243-eed6-99cc5382addf",
+          "name": "staff_socket"
+        },
+        "overlap": [
+          1.1,
+          1.3,
+          1.1
+        ]
+      },
+      {
+        "code": "POSITIVE_VOLUME_INTERSECTION",
+        "severity": "warning",
+        "a": {
+          "uuid": "c8064bd7-5ba1-1ecc-08f5-c8f4025ce1de",
+          "name": "base_paving_band_0"
+        },
+        "b": {
+          "uuid": "4df95d15-d35c-9990-5279-697d43d7758b",
+          "name": "inset_dais"
+        },
+        "overlap": [
+          14,
+          0.3,
+          0.4
+        ]
+      }
+    ],
+    "positive_volume_examples_truncated": true,
+    "note": "Evidence is intentionally partial because rotated/group-transformed/mesh or invalid geometry is outside this bounded axis-aligned scan. Partial evidence must not be promoted to a clean whole-model surface verdict."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-14T20:12:28.353Z",
+  "authoritative_project": "crimson_sentinel.bbmodel",
+  "texture_count": 2,
+  "red_embedded_equals_approved": true,
+  "blue_embedded_equals_expected": true,
+  "blue_png_equals_embedded": true,
+  "original_red_png_unchanged": true,
+  "geometry_uv_preserved": true,
+  "animations_preserved": true,
+  "pixels_recolored": 25550,
+  "colors_replaced": 33,
+  "variant_texture_uuid": "cee70f51-9b71-225a-3059-200b8bf73973",
+  "variant_group": "85ee6e97-93a4-86f4-4e00-ee9758c3ac0c",
+  "bitmap": [
+    512,
+    512
+  ],
+  "native_color_switch": "Observed blue and red front views in the same live project using activate_texture",
+  "red_user_approval": "APPROVED previously",
+  "blue_visual_state": "READY_FOR_USER_REVIEW",
+  "minecraft_runtime": "UNVERIFIED"
+}

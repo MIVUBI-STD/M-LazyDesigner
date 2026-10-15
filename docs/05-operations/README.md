@@ -10,6 +10,8 @@ native-acceptance.md
 blockbench-5.2-native-adoption.md
 ```
 
+[Evaluasi sesi MCP dan efisiensi 15 Oktober 2026](mcp-session-retrospective-2026-10-15.md) records observed authoring failures, agent rework, partial call/payload measurements and a deferred improvement backlog. It is not a new source/native acceptance run.
+
 These files are operational state, not durable architecture authority. [Native 5.2 Adoption](blockbench-5.2-native-adoption.md) records a bounded implementation milestone, not a replacement for current proof under `current-validation.md`.
 
 AI load rule: read `next-action.md` only when continuing current repository work; read `current-validation.md` only when interpreting proof/status; read `local-acceptance-runbook.md` when executing local code acceptance; read `native-acceptance.md` only when proving the exact installed Gateway/Runtime/plugin/Blockbench chain after a fresh install or material runtime/authoring-intelligence change.
