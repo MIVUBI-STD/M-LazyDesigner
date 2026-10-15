@@ -1058,7 +1058,8 @@ pub(crate) fn action(action: &str, id: &str, profile_id: Option<&str>) -> Result
                 crate::system_status::editor_profile_for_model(Some(expected))?
             };
             blockbench::open_model(path, &user_data)?;
-            Ok(ProjectNavigationActionResult { status: "OPENED" })
+            // Process launch is not proof that Blockbench loaded the model tab.
+            Ok(ProjectNavigationActionResult { status: "LAUNCHED" })
         }
         _ => Err("Unsupported project navigation action.".to_string()),
     }

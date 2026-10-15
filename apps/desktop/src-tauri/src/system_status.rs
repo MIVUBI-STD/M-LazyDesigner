@@ -230,6 +230,21 @@ fn verify_model_profile_binding(expected_profile: Option<&str>, resolved: &Path)
     Ok(())
 }
 
+// The managed installation pins the editor profile even while Blockbench is running.
+// A foreign running profile is never silently substituted for that binding.
+fn select_bound_editor_profile(
+    managed: Option<&Path>, discovered: &Path, editor_running: bool,
+) -> Result<PathBuf, String> {
+    if let Some(pinned) = managed {
+        if editor_running && navigation_profile_id(pinned) != navigation_profile_id(discovered) {
+            return Err("Blockbench is running with a different userData profile than the installed LazyDesigner plugin. Close that Blockbench instance or use the matching managed profile before continuing.".to_string());
+        }
+        Ok(pinned.to_path_buf())
+    } else {
+        Ok(discovered.to_path_buf())
+    }
+}
+
 pub(crate) fn editor_profile_for_model(expected_snapshot_profile: Option<&str>) -> Result<PathBuf, String> {
     let discovered = blockbench_user_data_dir()?;
     let mut system = System::new_all();
@@ -238,14 +253,8 @@ pub(crate) fn editor_profile_for_model(expected_snapshot_profile: Option<&str>) 
         let name = process.name().to_ascii_lowercase();
         name == "blockbench.exe" || name == "blockbench"
     });
-    // A running Blockbench instance owns its actual userData profile.
-    // Without an editor process, re-use the previously pinned managed
-    // profile rather than launching a different/default profile by accident.
-    let profile = if editor_running {
-        discovered
-    } else {
-        managed_blockbench_user_data_dir().unwrap_or(discovered)
-    };
+    let managed = managed_blockbench_user_data_dir();
+    let profile = select_bound_editor_profile(managed.as_deref(), &discovered, editor_running)?;
     verify_model_profile_binding(expected_snapshot_profile, &profile)?;
     Ok(profile)
 }
@@ -517,7 +526,19 @@ pub fn ensure_ready(app: &AppHandle) -> Result<EnsureReadyResult, String> {
         }
     }
 
-    if !current.blockbench_running {
+    if current.blockbench_running {
+        if editor_profile_for_model(None).is_err() {
+            return Ok(EnsureReadyResult {
+                status: "NEEDS_ATTENTION",
+                reason: "BLOCKBENCH_PROFILE_MISMATCH",
+                runtime_online: false,
+                gateway_active: current.gateway_active.unwrap_or(false),
+                blockbench_running: true,
+                plugin_integrity: current.plugin_integrity,
+                manual_plugin_approval_recommended: false,
+            });
+        }
+    } else {
         blockbench::open()?;
     }
 
@@ -1105,6 +1126,22 @@ mod tests {
         assert!(verify_model_profile_binding(Some(&token), Path::new("C:/Users/Test/Other-Profile")).is_err());
         assert!(verify_model_profile_binding(Some("invalid"), profile).is_err());
         assert!(verify_model_profile_binding(None, profile).is_ok());
+    }
+
+    #[test]
+    fn managed_editor_profile_does_not_follow_a_foreign_running_instance() {
+        let pinned = Path::new("C:/Users/Test/LazyDesigner/Blockbench");
+        let default = Path::new("C:/Users/Test/AppData/Roaming/Blockbench");
+        assert_eq!(
+            select_bound_editor_profile(Some(pinned), default, false).unwrap(),
+            pinned
+        );
+        assert!(select_bound_editor_profile(Some(pinned), default, true).is_err());
+        assert_eq!(
+            select_bound_editor_profile(Some(pinned), Path::new("c:\\users\\test\\lazydesigner\\blockbench"), true).unwrap(),
+            pinned
+        );
+        assert_eq!(select_bound_editor_profile(None, default, true).unwrap(), default);
     }
 
     #[test]

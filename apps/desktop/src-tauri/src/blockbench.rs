@@ -123,16 +123,41 @@ pub(crate) fn evaluate_compatibility(version: &str) -> Result<BlockbenchCompatib
     evaluate_compatibility_for_build(version, None)
 }
 
+// A running process is authoritative only when its executable is known.
+// Multiple editor installations must be resolved by the user, never by process order.
+fn select_running_executable(paths: &[PathBuf]) -> Result<Option<PathBuf>, String> {
+    let mut unique: Vec<&PathBuf> = Vec::new();
+    for path in paths {
+        let key = path.to_string_lossy().replace('/', "\\").to_ascii_lowercase();
+        if !unique.iter().any(|existing|
+            existing.to_string_lossy().replace('/', "\\").to_ascii_lowercase() == key
+        ) {
+            unique.push(path);
+        }
+    }
+    match unique.as_slice() {
+        [] => Ok(None),
+        [path] => Ok(Some((*path).clone())),
+        _ => Err("Multiple Blockbench installations are running. Close the other installation before opening a model.".to_string()),
+    }
+}
+
 fn discover_executable(system: &System) -> Result<Option<PathBuf>, String> {
-    if let Some(process) = system.processes().values().find(|process| {
+    let running: Vec<_> = system.processes().values().filter(|process| {
         let name = process.name().to_ascii_lowercase();
         name == "blockbench.exe" || name == "blockbench"
-    }) {
-        if let Some(path) = process.exe() {
-            if path.is_file() {
-                return Ok(Some(path.to_path_buf()));
+    }).collect();
+    if !running.is_empty() {
+        let paths: Result<Vec<PathBuf>, String> = running.iter().map(|process| {
+            let path = process.exe().ok_or_else(||
+                "A running Blockbench executable path is unavailable; close it before selecting another installation.".to_string()
+            )?;
+            if !path.is_file() || !is_executable_name(path) {
+                return Err("A running Blockbench executable could not be verified.".to_string());
             }
-        }
+            Ok(path.to_path_buf())
+        }).collect();
+        return select_running_executable(&paths?);
     }
 
     let script = r#"
@@ -141,10 +166,10 @@ $roots = @(
   'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
   'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
 )
+$candidates = @()
 foreach ($root in $roots) {
   foreach ($entry in @(Get-ItemProperty -Path $root -ErrorAction SilentlyContinue)) {
     if ($entry.DisplayName -ne 'Blockbench') { continue }
-    $candidates = @()
     if ($entry.InstallLocation) { $candidates += (Join-Path $entry.InstallLocation 'Blockbench.exe') }
     if ($entry.DisplayIcon) {
       $icon = [string]$entry.DisplayIcon
@@ -156,26 +181,20 @@ foreach ($root in $roots) {
       }
       if ($icon) { $candidates += $icon }
     }
-    foreach ($candidate in $candidates) {
-      if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
-        [Console]::Out.WriteLine((Resolve-Path -LiteralPath $candidate).Path)
-        exit 0
-      }
-    }
   }
 }
-# An installed/portable editor may have no uninstall entry. Check only the
-# standard installation locations, and validate product metadata before launch.
-$candidates = @()
 if ($env:ProgramFiles) { $candidates += (Join-Path $env:ProgramFiles 'Blockbench\Blockbench.exe') }
 if ($env:LOCALAPPDATA) { $candidates += (Join-Path $env:LOCALAPPDATA 'Programs\Blockbench\Blockbench.exe') }
+$verified = @()
 foreach ($candidate in $candidates) {
   if ((Test-Path -LiteralPath $candidate -PathType Leaf) -and
       ((Get-Item -LiteralPath $candidate).VersionInfo.ProductName -eq 'Blockbench')) {
-    [Console]::Out.WriteLine((Resolve-Path -LiteralPath $candidate).Path)
-    exit 0
+    $verified += (Resolve-Path -LiteralPath $candidate).Path
   }
 }
+$unique = @($verified | Sort-Object -Unique)
+if ($unique.Count -gt 1) { exit 6 }
+if ($unique.Count -eq 1) { [Console]::Out.WriteLine($unique[0]) }
 exit 0
 "#;
     let output = run_output(
@@ -186,7 +205,11 @@ exit 0
     )?;
 
     if !output.status.success() {
-        return Err("Blockbench registry discovery failed.".to_string());
+        return Err(if output.status.code() == Some(6) {
+            "Multiple Blockbench installations were found. Close all Blockbench windows and resolve the installation conflict before continuing.".to_string()
+        } else {
+            "Blockbench registry discovery failed.".to_string()
+        });
     }
 
     let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -321,12 +344,6 @@ fn launch_command_for_profile(executable: &Path, user_data: &Path) -> Result<Com
     Ok(command)
 }
 
-fn launch_command(executable: &Path) -> Result<Command, String> {
-    let user_data = crate::system_status::managed_blockbench_user_data_dir()
-        .ok_or_else(|| "Managed Blockbench profile is unavailable.".to_string())?;
-    launch_command_for_profile(executable, &user_data)
-}
-
 fn is_bbmodel_file(path: &Path) -> bool {
     path.is_absolute()
         && path.extension().and_then(|value| value.to_str())
@@ -366,7 +383,7 @@ pub(crate) fn browse_model() -> Result<ModelBrowseResult, String> {
     // userData profile cannot silently inherit a stale manager profile.
     let user_data = crate::system_status::editor_profile_for_model(None)?;
     open_model(&path, &user_data)?;
-    Ok(ModelBrowseResult { status: "OPENED" })
+    Ok(ModelBrowseResult { status: "LAUNCHED" })
 }
 
 pub(crate) fn open_editor() -> Result<BlockbenchActionResult, String> {
@@ -377,12 +394,12 @@ pub(crate) fn open_editor() -> Result<BlockbenchActionResult, String> {
         let name = process.name().to_ascii_lowercase();
         name == "blockbench.exe" || name == "blockbench"
     });
-    if already_running {
-        return Ok(BlockbenchActionResult { status: "ALREADY_RUNNING" });
-    }
     let executable = discover_executable(&system)?
         .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
     version(&executable)?;
+    if already_running {
+        return Ok(BlockbenchActionResult { status: "ALREADY_RUNNING" });
+    }
     launch_command_for_profile(&executable, &user_data)?
         .spawn()
         .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
@@ -390,25 +407,12 @@ pub(crate) fn open_editor() -> Result<BlockbenchActionResult, String> {
 }
 
 pub(crate) fn open() -> Result<BlockbenchActionResult, String> {
-    let mut system = System::new_all();
-    system.refresh_processes();
-    let already_running = system.processes().values().any(|process| {
-        let name = process.name().to_ascii_lowercase();
-        name == "blockbench.exe" || name == "blockbench"
-    });
-    if already_running {
-        return Ok(BlockbenchActionResult { status: "ALREADY_RUNNING" });
+    // AI readiness has an installed managed profile; it uses the same
+    // profile-aware editor launch as the regular Open action.
+    if crate::system_status::managed_blockbench_user_data_dir().is_none() {
+        return Err("Managed Blockbench profile is unavailable.".to_string());
     }
-
-    let executable = discover_executable(&system)?
-        .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
-    version(&executable)?;
-
-    launch_command(&executable)?
-        .spawn()
-        .map_err(|error| format!("Unable to open Blockbench: {error}"))?;
-
-    Ok(BlockbenchActionResult { status: "STARTED" })
+    open_editor()
 }
 
 
@@ -566,6 +570,15 @@ mod tests {
     fn canonical_manifest_requires_review_at_next_family_boundary() {
         let result = evaluate_compatibility("5.3.0").unwrap();
         assert_eq!(result.status, "review-required");
+    }
+
+    #[test]
+    fn running_executable_choice_rejects_ambiguity_without_guessing() {
+        assert!(select_running_executable(&[]).unwrap().is_none());
+        let one = PathBuf::from("C:/Apps/Blockbench.exe");
+        let same = PathBuf::from("c:\\apps\\blockbench.exe");
+        assert_eq!(select_running_executable(&[one.clone(), same]).unwrap(), Some(one.clone()));
+        assert!(select_running_executable(&[one, PathBuf::from("D:/Portable/Blockbench.exe")]).is_err());
     }
 
     #[test]

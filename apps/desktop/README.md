@@ -127,6 +127,8 @@ running Blockbench process executable
 
 Normal **Open** and **Open Model…** actions launch the editor without starting, repairing or waiting for the AI Runtime/Gateway. **Prepare Blockbench** remains the deliberate `ensure_ready` route for AI connectivity, plugin approval and safe managed repair. Both editor and model launches use the existing Blockbench executable discovery and an exact userData profile. A running editor's discovered profile takes precedence; an idle workstation reuses the managed profile if present, otherwise the deterministic standard Blockbench profile. Opaque saved-model actions require the profile to match their validated snapshot identity, or fail without launching another profile.
 
+A running editor whose `userData` differs from the managed plugin profile is an explicit conflict, not an implicit profile switch. Running executables and registry candidates are deduplicated; competing installations are rejected instead of relying on enumeration order. Opening a model now returns `LAUNCHED` rather than claiming that Blockbench has loaded or selected its model tab. Native model-tab acknowledgment is separate future work.
+
 The **Open Model…** button uses the already-installed native `rfd::FileDialog` to select a real `.bbmodel` file. The modal executes on a user-initiated blocking worker; it adds no background daemon, file registry, database, asset scanner or external dependency. Cancellation leaves files and application state untouched. A fresh/managerless Desktop may still browse and open an explicitly chosen file with Blockbench, while AI actions remain unavailable until verified.
 
 Version and compatibility projection now also work when Blockbench is installed but closed, provided Windows exposes a valid uninstall entry.

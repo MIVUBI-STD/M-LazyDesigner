@@ -104,7 +104,7 @@ export type ManagedUpdateCheck = {
   };
 
 export type ModelBrowseResult = {
-    status: 'OPENED' | 'CANCELLED';
+    status: 'LAUNCHED' | 'CANCELLED';
   };
 
 export type BlockbenchEditorResult = {
@@ -137,7 +137,7 @@ export type DiagnosticExportResult = {
   };
 
 export type ProjectNavigationActionResult = {
-    status: 'OPENED' | 'REVEALED' | 'PINNED' | 'UNPINNED' | 'RESTORED';
+    status: 'OPENED' | 'LAUNCHED' | 'REVEALED' | 'PINNED' | 'UNPINNED' | 'RESTORED' | 'REMOVED_FROM_LIST' | 'ADDED' | 'ALREADY_ADDED' | 'CANCELLED';
   };
 
 export type ProjectPathResult = {

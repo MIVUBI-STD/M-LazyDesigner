@@ -283,12 +283,13 @@
     try {
       // Only the profile-bound snapshot and native editor file are needed.
       // AI/Gateway setup is not a prerequisite for ordinary model editing.
-      await invoke<ProjectNavigationActionResult>('project_navigation_action', { action: 'open-model', id });
+      const launch = await invoke<ProjectNavigationActionResult>('project_navigation_action', { action: 'open-model', id });
+      if (launch.status !== 'LAUNCHED') throw new Error('Blockbench did not acknowledge the model launch request.');
       const focused = await focusBlockbenchAfterOpen();
       await refresh();
       showSuccessToast(focused
-        ? 'Model opened in Blockbench.'
-        : 'Model open request sent. Select Blockbench from the taskbar if needed.');
+        ? 'Model open request sent. Confirm the model tab in Blockbench.'
+        : 'Model open request sent. Select Blockbench from the taskbar and confirm the model tab.');
     } catch (cause) {
       reportError(cause);
     } finally {
@@ -310,12 +311,12 @@
     clearSuccessToast();
     try {
       const result = await invoke<ModelBrowseResult>('browse_model');
-      if (result.status === 'OPENED') {
+      if (result.status === 'LAUNCHED') {
         const focused = await focusBlockbenchAfterOpen();
         await refresh();
         showSuccessToast(focused
-          ? 'Model opened in Blockbench.'
-          : 'Model open request sent. Select Blockbench from the taskbar if needed.');
+          ? 'Model open request sent. Confirm the model tab in Blockbench.'
+          : 'Model open request sent. Select Blockbench from the taskbar and confirm the model tab.');
       }
     } catch (cause) {
       reportError(cause);
