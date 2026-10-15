@@ -48,6 +48,9 @@ describe("Desktop control-plane ownership", () => {
     expect(runtimeHost).toContain("buildIdentity");
     expect(rust).toContain("installed_build_identity");
     expect(rust).toContain("runtime_build_match");
+    expect(rust).toContain("runtime_listener_live: runtime_session.live && runtime_build_match == Some(true)");
+    expect(rust).toContain("runtime_listener_live: trusted_listener");
+    expect(rust).toContain("runtime_health::matching_build_identity");
 
     // All verification workflows are deliberately manual-only. Verify the
     // real Desktop source gate rather than retired push path filters.

@@ -619,7 +619,9 @@ fn compose_status(
         maintenance,
         manager_available,
         bootstrap_available: false,
-        runtime_listener_live: runtime_session.live,
+        // Keep full and lightweight status semantics identical so a build
+        // mismatch does not trigger an expensive full refresh every heartbeat.
+        runtime_listener_live: runtime_session.live && runtime_build_match == Some(true),
         runtime_endpoint_match,
         runtime_build_match,
         runtime_ready,
