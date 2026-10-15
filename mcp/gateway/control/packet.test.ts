@@ -3,6 +3,7 @@ import { buildControlPacket } from "./packet";
 import { projectControlPacketForGateway } from "./gatewayProjection";
 import type { GatewayRuntimeStatus } from "../runtime/backend";
 import type { ControlContextHandle } from "./types";
+import { semanticRevisionForDependencies } from "../development/semanticDependencies";
 
 const status = {
   affinity: { project_uuid: "project-1", authoring_phase: "geometry" },
@@ -24,7 +25,7 @@ function handle(path: string): ControlContextHandle {
     path,
     sha256: "a".repeat(64),
     semantic_dependencies: ["routing"],
-    semantic_revision: "b".repeat(64),
+    semantic_revision: semanticRevisionForDependencies(["routing"]),
   };
 }
 
@@ -66,6 +67,22 @@ describe("Control packet missing context boundary", () => {
     expect(packet.context.unavailable).toBeUndefined();
     expect(packet.readiness.runtime_ready).toBe(true);
     expect(packet.readiness.context_ready).toBe(true);
+  });
+
+  test("Runtime offline remains OFFLINE despite a separate context failure", async () => {
+    const offline = {
+      ...status,
+      runtime: { ...status.runtime, online: false },
+    } as GatewayRuntimeStatus;
+    const packet = await buildControlPacket(offline, {
+      contextResolver: async () => ({
+        required: [], optional: [],
+        unavailable: [{ path, code: "CONTEXT_FILE_MISSING" }],
+      }),
+    });
+    expect(packet.system).toBe("OFFLINE");
+    expect(packet.readiness.runtime_ready).toBe(false);
+    expect(packet.readiness.context_ready).toBe(false);
   });
 
   test("system development routing ignores authoring context failures", async () => {

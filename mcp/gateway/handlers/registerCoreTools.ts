@@ -278,9 +278,11 @@ export function registerCoreGatewayTools(
               text:
                 task_mode === "SYSTEM_DEVELOPMENT"
                   ? "Development routing ready."
-                  : status.runtime.online
-                    ? "Control status ready."
-                    : "Control ready; Runtime offline.",
+                  : !status.runtime.online
+                    ? "Control ready; Runtime offline."
+                    : control.system === "DEGRADED"
+                      ? "Control status degraded; inspect blockers."
+                      : "Control status ready.",
             },
             ...(referenceEvidence ?? []).flatMap((image) => [
               {
