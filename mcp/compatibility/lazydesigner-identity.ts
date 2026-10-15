@@ -5,6 +5,7 @@
  */
 export const LAZYDESIGNER_IDENTITY = Object.freeze({
   product: "LazyDesigner",
+  runtimeProductId: "lazydesigner-bedrock-entity-mcp",
   managerExecutable: "lazydesigner.exe",
   pluginFilename: "lazydesigner_mcp.js",
   pluginId: "lazydesigner_mcp",
@@ -28,7 +29,7 @@ export const RETIRED_BLOCKIT_IDENTIFIERS = Object.freeze({
 } as const);
 
 export type LazyDesignerComponentIdentity = {
-  product: "LazyDesigner";
+  product_id: "lazydesigner-bedrock-entity-mcp";
   source_sha: string;
   build_identity: `sha256:${string}`;
   plugin_id: "lazydesigner_mcp";
@@ -40,7 +41,7 @@ export function requireMatchingLazyDesignerComponents(
   runtime: LazyDesignerComponentIdentity
 ): void {
   for (const candidate of [installed, runtime]) {
-    if (candidate.product !== LAZYDESIGNER_IDENTITY.product ||
+    if (candidate.product_id !== LAZYDESIGNER_IDENTITY.runtimeProductId ||
         candidate.plugin_id !== LAZYDESIGNER_IDENTITY.pluginId ||
         candidate.client_server_key !== LAZYDESIGNER_IDENTITY.clientServerKey ||
         !/^[a-f0-9]{40}$/.test(candidate.source_sha) ||

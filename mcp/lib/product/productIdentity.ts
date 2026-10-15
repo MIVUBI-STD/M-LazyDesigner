@@ -1,11 +1,12 @@
 import { VERSION } from "@/lib/constants";
+import { LAZYDESIGNER_IDENTITY } from "../../compatibility/lazydesigner-identity";
 import type { McpRegistrationProfile } from "@/lib/capabilities/registrationProfile";
 import {
   getActiveMcpAuthoringStage,
   type McpAuthoringStage,
 } from "@/lib/capabilities/authoringStage";
 
-export const PRODUCT_ID = "lazydesigner-bedrock-entity-mcp";
+export const PRODUCT_ID = LAZYDESIGNER_IDENTITY.runtimeProductId;
 export const PRODUCT_NAME = "LazyDesigner — Bedrock Entity MCP";
 export const PRODUCT_DESCRIPTION =
   "AI-assisted Minecraft Bedrock Entity authoring for Blockbench.";

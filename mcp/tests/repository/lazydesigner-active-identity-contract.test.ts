@@ -41,6 +41,17 @@ describe("single LazyDesigner managed installation identity", () => {
     expect(manager).not.toContain('process.env.BLOCKIT_HOME');
   });
 
+  test("Runtime health and plugin lease reuse the canonical product ID", async () => {
+    const [identity, runtime, lease] = await Promise.all([
+      source("compatibility/lazydesigner-identity.ts"),
+      source("lib/product/productIdentity.ts"),
+      source("plugin/runtimeSessionLease.ts"),
+    ]);
+    expect(identity).toContain('runtimeProductId: "lazydesigner-bedrock-entity-mcp"');
+    expect(runtime).toContain("PRODUCT_ID = LAZYDESIGNER_IDENTITY.runtimeProductId");
+    expect(lease).toContain("product_id: PRODUCT_ID");
+  });
+
   test("retired BlockIT may be inspected, never silently adopted as active Runtime", async () => {
     const [managed, native, gateway, affinity, tls] = await Promise.all([
       source("../distribution/managed-install.ts"),

@@ -4,6 +4,9 @@ This file owns **continuation only**. Architecture: `docs/01-product/`, `docs/04
 
 ## Active Desktop migration direction — 2026-10-15
 
+**Canonical Runtime product identity — source correction:** `LAZYDESIGNER_IDENTITY.runtimeProductId` is now the single TypeScript source of the Runtime/health product ID, reused by `lib/product/productIdentity.ts`, the plugin's schema-2 session lease and Gateway health matching. The canonical component contract compares `product_id`, not presentation name `LazyDesigner`; negative fixtures reject an older product ID. Rust's corresponding wire ID remains a literal due to language boundary and must be checked at exact-SHA Windows proof. SOURCE_IMPLEMENTED; Bun/Rust/native NOT_EXECUTED.
+
+
 **D02 conflict diagnostics — source patched:** Desktop distinguishes `LEGACY_PLUGIN_MIGRATION_REQUIRED` from `LEGACY_CLIENT_MIGRATION_REQUIRED` (older Codex MCP entry). Rust maps the canonical installer preflight error to a structured, bounded user-facing code and keeps other failures distinct. Workspace and Support provide conflict-specific guidance, with file-reveal only for plugin conflicts. This is a read-only UI/recovery explanation; no configuration is edited, installed, deleted or auto-adopted. Rust/source regressions added. Bun/Rust/Svelte/Windows NOT_EXECUTED on this SHA.
 
 
