@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { buildControlSnapshot } from "./snapshot";
+import { BlockitRuntimeBackend } from "../runtime/backend";
+import type { HealthProbe } from "../runtime/backendContract";
 import { buildReadiness, NOT_REQUIRED_LIFECYCLE } from "./readiness";
 import { emptyReference } from "./referenceParser";
 import { emptyWorkspace } from "./packetData";
@@ -122,4 +124,67 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
     expect(snapshot.system).toBe("OFFLINE");
     expect(snapshot.blockers).toContain("RUNTIME_OFFLINE");
   });
+
+  test("first healthy Gateway status starts a lazy probe without a false MCP failure", async () => {
+    const backend = new BlockitRuntimeBackend("http://127.0.0.1:3000/bb-mcp");
+    const seam = backend as unknown as { probeHealth: () => Promise<HealthProbe> };
+    seam.probeHealth = async () => ({
+      online: true,
+      signature: "runtime-fresh",
+      health: {
+        product: { authoring_phase: "geometry" },
+        project_context: {
+          active_project_uuid: "project-1",
+          requested_project_uuid: null,
+          requested_project_available: null,
+          open_project_count: 1,
+        },
+      },
+    });
+
+    const first = await backend.getStatus();
+    expect(first.runtime.online).toBe(true);
+    expect(first.runtime.mcp_client_ready).toBe(false);
+    expect(first.runtime.connected_signature).toBeNull();
+    expect(first.connection.state).toBe("probing");
+    expect(first.connection.last_ready_at).toBeNull();
+    expect(buildControlSnapshot(first).blockers).not.toContain("RUNTIME_CLIENT_NOT_READY");
+
+    const repeated = await backend.getStatus();
+    expect(repeated.connection.generation).toBe(first.connection.generation);
+    expect(repeated.connection.reconnect.failures).toBe(0);
+  });
+
+  test("a failed health probe cannot be reclassified as a fresh lazy handshake", async () => {
+    const backend = new BlockitRuntimeBackend("http://127.0.0.1:3000/bb-mcp");
+    let healthy = false;
+    const seam = backend as unknown as { probeHealth: () => Promise<HealthProbe> };
+    seam.probeHealth = async () => healthy
+      ? {
+          online: true,
+          signature: "runtime-recovered",
+          health: {
+            product: { authoring_phase: "geometry" },
+            project_context: {
+              active_project_uuid: "project-1",
+              requested_project_uuid: null,
+              requested_project_available: null,
+              open_project_count: 1,
+            },
+          },
+        }
+      : { online: false, error: "fixture Runtime offline" };
+
+    const offline = await backend.getStatus();
+    expect(offline.connection.state).toBe("offline");
+    expect(offline.connection.reconnect.failures).toBeGreaterThan(0);
+
+    healthy = true;
+    const recovered = await backend.getStatus();
+    expect(recovered.runtime.online).toBe(true);
+    expect(recovered.runtime.mcp_client_ready).toBe(false);
+    expect(recovered.connection.reconnect.failures).toBeGreaterThan(0);
+    expect(buildControlSnapshot(recovered).blockers).toContain("RUNTIME_CLIENT_NOT_READY");
+  });
+
 });

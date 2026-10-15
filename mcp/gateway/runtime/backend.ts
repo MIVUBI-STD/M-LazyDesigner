@@ -419,6 +419,19 @@ export class BlockitRuntimeBackend {
 
     const ready =
       Boolean(this.client) && this.connectedSignature === probe.signature;
+    // A health-only status read can precede the first intentional lazy MCP
+    // connection. Reflect this first healthy probe as "probing" rather than
+    // reporting an offline client, but never erase failed reconnect evidence.
+    const session = this.connection.snapshot();
+    if (
+      !ready &&
+      this.connectedSignature === null &&
+      session.state === "offline" &&
+      session.last_ready_at === null &&
+      session.reconnect.failures === 0
+    ) {
+      this.connection.beginProbe();
+    }
     if (ready) {
       this.catalogValidatedAt = Date.now();
       this.connection.markHealthy();
