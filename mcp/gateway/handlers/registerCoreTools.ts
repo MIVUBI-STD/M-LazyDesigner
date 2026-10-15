@@ -375,7 +375,9 @@ export function registerCoreGatewayTools(
           content: [
             {
               type: "text" as const,
-              text: `${capabilities.length} capabilities.`,
+              text: capabilities.length > 0
+                ? `${capabilities.length} capabilities.`
+                : "No relevant capability found. Use a more specific authoring intent or an exact known capability name.",
             },
           ],
           structuredContent: { capabilities },

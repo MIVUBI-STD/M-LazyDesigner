@@ -195,13 +195,15 @@ export function searchCapabilityCatalog(
       // An unsupported console/DevTools-style query must yield no match;
       // incidental occurrences of "tool" or "action" are not intent proof.
       if (queryTerms.length === 0) return false;
-      if (hasSubstantiveCatalogEvidence(tool, metadata.searchAliases, queryTerms)) {
+      // Semantic intent/object evidence avoids additional metadata tokenization
+      // on the common relevant path. A generic verb alone is insufficient.
+      if (semantic.matched &&
+        (semantic.reason.includes("intent") || semantic.reason.includes("object"))) {
         return true;
       }
-      // A semantic intent/object match can discover synonyms not present in
-      // names, aliases or descriptions. A generic verb alone is insufficient.
-      return semantic.matched &&
-        (semantic.reason.includes("intent") || semantic.reason.includes("object"));
+      return hasSubstantiveCatalogEvidence(
+        tool, metadata.searchAliases, queryTerms
+      );
     })
     .sort(
       (left, right) =>

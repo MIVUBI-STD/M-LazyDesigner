@@ -32,6 +32,12 @@ describe("BlockIT Gateway capability discovery hardening", () => {
       .toEqual([]);
   });
 
+  test("no-result discovery is not presented as Runtime failure or a suggested UI fallback", async () => {
+    const source = await Bun.file("gateway/handlers/registerCoreTools.ts").text();
+    expect(source).toContain("No relevant capability found.");
+    expect(source).toContain("structuredContent: { capabilities }");
+  });
+
   test("specific alias, exact name and real authoring intent remain discoverable", () => {
     expect(searchCapabilityCatalog(tools, "manage_cubes", 5))
       .toHaveLength(1);
