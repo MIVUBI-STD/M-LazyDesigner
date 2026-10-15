@@ -62,6 +62,23 @@ describe("R02 Gateway/Runtime/project identity verification", () => {
     expect(snapshot.blockers).toContain("PROJECT_CONTEXT_UNVERIFIED");
   });
 
+  test("unrelated project marked unavailable is not proof the bound project is lost", () => {
+    const snapshot = buildControlSnapshot(runtimeStatus({
+      health: {
+        project_context: {
+          active_project_uuid: "project-2",
+          requested_project_uuid: "project-2",
+          requested_project_available: false,
+          open_project_count: 2,
+        },
+      },
+    }));
+    expect(snapshot.project.binding).toBe("UNKNOWN");
+    expect(snapshot.blockers).toContain("PROJECT_CONTEXT_UNVERIFIED");
+    expect(snapshot.blockers).not.toContain("PROJECT_CONTEXT_LOST");
+    expect(snapshot.system).toBe("DEGRADED");
+  });
+
   test("explicit missing bound project stays LOST", () => {
     const snapshot = buildControlSnapshot(runtimeStatus({ health: {
       project_context: {

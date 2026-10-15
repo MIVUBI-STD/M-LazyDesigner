@@ -364,13 +364,19 @@ export class BlockitRuntimeBackend {
 
     let affinityChanged = false;
     try {
-      affinityChanged = this.syncAuthoringPhaseFromHealth(probe.health);
-      affinityChanged =
-        this.syncProjectAffinityFromHealth(
-          probe.health,
-          bindProject,
-          allowMissingBoundProject
-        ) || affinityChanged;
+      // Validate phase and project together before committing either affinity.
+      // A mismatched/missing project on the first probe must not pin an
+      // unrelated Runtime phase and block a later correct profile.
+      const phase = resolveAuthoringPhaseAffinity(this.authoringPhase, probe.health);
+      const project = resolveProjectAffinity(
+        this.projectUuid,
+        probe.health,
+        bindProject,
+        allowMissingBoundProject
+      );
+      affinityChanged = phase.changed || project.changed;
+      this.authoringPhase = phase.value;
+      this.projectUuid = project.value;
     } catch (error) {
       await this.closeConnectionUnsafe();
       this.lastError = errorMessage(error);

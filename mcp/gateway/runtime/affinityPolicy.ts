@@ -66,7 +66,14 @@ export function resolveProjectAffinity(
       projectHealth.requested_project_uuid !== current ||
       projectHealth.requested_project_available !== true
     ) {
-      if (allowMissingBoundProject) {
+      // Project creation can discard an old binding only when the Runtime
+      // explicitly confirms *that same bound UUID* is absent. A different
+      // requested UUID or unknown availability could be a wrong profile.
+      if (
+        allowMissingBoundProject &&
+        projectHealth.requested_project_uuid === current &&
+        projectHealth.requested_project_available === false
+      ) {
         return { value: null, changed: true };
       }
       throw new GatewayBackendError(

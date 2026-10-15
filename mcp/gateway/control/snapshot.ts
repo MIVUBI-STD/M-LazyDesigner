@@ -43,7 +43,10 @@ export function buildControlSnapshot(status: GatewayRuntimeStatus): ControlSnaps
 
   let binding: ControlSnapshot["project"]["binding"] = "UNKNOWN";
   if (status.affinity.project_uuid) {
-    if (project?.requested_project_available === false) {
+    if (
+      project?.requested_project_uuid === status.affinity.project_uuid &&
+      project.requested_project_available === false
+    ) {
       binding = "LOST";
     } else if (
       project?.requested_project_available === true &&
