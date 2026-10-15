@@ -204,7 +204,11 @@ export function selectBatchKeyframes<T extends { time: number }>(
       }
       result = all.filter((keyframe) => {
         const relativeTime = keyframe.time - pattern.offset;
-        return Math.abs(relativeTime % pattern.interval) < tolerance;
+        // JavaScript remainder may be almost one interval at an exact
+        // decimal multiple (e.g. 0.3 % 0.1). Compare distance to the nearest
+        // interval boundary on either side, including negative remainders.
+        const remainder = Math.abs(relativeTime % pattern.interval);
+        return Math.min(remainder, pattern.interval - remainder) < tolerance;
       });
       break;
     }

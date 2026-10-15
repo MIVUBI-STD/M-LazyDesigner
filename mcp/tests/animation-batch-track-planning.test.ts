@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   requireValidPlannedBatchTrackTimes,
   planBatchScaleOverwriteTargets,
+  selectBatchKeyframes,
 } from "../lib/animation/batchPlanning";
 
 describe("track-aware keyframe batch scale preflight", () => {
@@ -95,6 +96,29 @@ describe("track-aware keyframe batch scale preflight", () => {
       [{ animator: {}, channel: "" }], [1], "scale"
     )).toThrow("known animator and channel");
   });
+  test("pattern selection includes exact decimal multiples affected by floating-point remainder", () => {
+    const keyframes = [0.1, 0.2, 0.3, 0.6, 0.35].map((time) => ({ time }));
+    const selected = selectBatchKeyframes(keyframes, [], "pattern", {
+      pattern: { interval: 0.1, offset: 0 },
+      tolerance: 1e-9,
+    });
+    expect(selected.map((item) => item.time)).toEqual([0.1, 0.2, 0.3, 0.6]);
+  });
+
+  test("pattern tolerance is symmetric at both sides of a repetition boundary", () => {
+    const keyframes = [1.9995, 2.0005, -0.9995, 1.5].map((time) => ({ time }));
+    const selected = selectBatchKeyframes(keyframes, [], "pattern", {
+      pattern: { interval: 1, offset: 0 },
+      tolerance: 0.001,
+    });
+    expect(selected.map((item) => item.time)).toEqual([1.9995, 2.0005, -0.9995]);
+
+    expect(selectBatchKeyframes([{ time: 0.3 }], [], "pattern", {
+      pattern: { interval: 0.2, offset: 0.1 },
+      tolerance: 1e-9,
+    })).toEqual([{ time: 0.3 }]);
+  });
+
   test("preflight occurs before native Undo and rollback is retained", async () => {
     const source = await Bun.file("server/tools/animation/batch.ts").text();
     const start = source.indexOf('if (operation === "scale")');
