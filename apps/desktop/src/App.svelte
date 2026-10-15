@@ -358,17 +358,24 @@
   async function runManagedAction(action: 'update' | 'rollback' | 'recover' | 'repair' | 'setup-tls') {
     if (devFixture) return;
     if (!status?.manager_available || busyAction || statusProbeFailures >= 2) return;
-    // A pending file is not an installable update until the canonical manager
-    // has verified its staged package and installation-root provenance.
-    if (action === 'update' && status.managed?.pending &&
-        updateCheck?.status !== 'UPDATE_STAGED') return;
+    // Bind the button to exactly the source SHA verified for this screen.
+    // Never silently install whichever release happens to be latest later.
+    const expectedSourceSha = action === 'update' &&
+      (updateCheck?.status === 'UPDATE_AVAILABLE' || updateCheck?.status === 'UPDATE_STAGED')
+        ? updateCheck.available_source_sha
+        : null;
+    if (action === 'update' && (!expectedSourceSha ||
+        (status.managed?.pending && updateCheck?.status !== 'UPDATE_STAGED'))) return;
     closeUtilityMenu();
     busyAction = action;
     progressStage = 'preflight';
     error = '';
     clearSuccessToast();
     try {
-      const result = await invoke<ManagedActionResult>('managed_action', { action });
+      const result = await invoke<ManagedActionResult>('managed_action', {
+        action,
+        ...(action === 'update' ? { expectedSourceSha } : {}),
+      });
       const feedback = managedActionPresentation(action, result.receipt);
       const actionLabel = action === 'update' ? 'Update managed components' : action === 'rollback' ? 'Restore previous version' : action === 'repair' ? 'Repair LazyDesigner' : action === 'setup-tls' ? 'Finish secure setup' : 'Finish incomplete setup';
       showSuccessToast(feedback.message, feedback.kind);
@@ -826,7 +833,7 @@
                       {:else if status.managed?.pending && updateCheck?.status !== 'UPDATE_STAGED'}
                         <button class="secondary-button small-button" onclick={verifyPendingUpdate} disabled={busyAction !== null || statusProbeFailures >= 2}>Verify package</button>
                       {:else}
-                        <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2}>{busyAction === 'update' ? 'Updating…' : status.managed?.pending ? 'Finish update' : 'Update components'}</button>
+                        <button class="secondary-button small-button" onclick={() => runManagedAction('update')} disabled={!status.maintenance.update || busyAction !== null || statusProbeFailures >= 2 || !updateCheck?.available_source_sha}>{busyAction === 'update' ? 'Updating…' : status.managed?.pending ? 'Finish update' : 'Update components'}</button>
                       {/if}
                     </div>
                   </div>

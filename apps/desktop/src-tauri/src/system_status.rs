@@ -854,7 +854,7 @@ pub fn check_managed_update() -> Result<ManagedUpdateCheck, String> {
     Ok(result)
 }
 
-pub fn run_managed_action(app: &AppHandle, action: &str) -> Result<ManagedActionResult, String> {
+pub fn run_managed_action(app: &AppHandle, action: &str, expected_source_sha: Option<&str>) -> Result<ManagedActionResult, String> {
     if !matches!(action, "update" | "rollback" | "recover" | "repair" | "setup-tls") {
         return Err("Unsupported LazyDesigner desktop action.".to_string());
     }
@@ -868,8 +868,23 @@ pub fn run_managed_action(app: &AppHandle, action: &str) -> Result<ManagedAction
         "update" | "rollback" | "recover" | "repair" => Duration::from_secs(300),
         _ => Duration::from_secs(60),
     };
+    // Desktop updates must name the exact source the user chose; a published
+    // release change between discovery and download must never switch targets.
+    if action == "update" && !expected_source_sha.is_some_and(|sha| {
+        sha.len() == 40 && sha.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    }) {
+        return Err("A verified selected update source is required.".to_string());
+    }
+    if action != "update" && expected_source_sha.is_some() {
+        return Err("Update source identity is only valid for updates.".to_string());
+    }
+    let mut command = Command::new(&executable);
+    command.arg(action).arg("--root").arg(&root).arg("--progress-json");
+    if let Some(sha) = expected_source_sha {
+        command.arg("--expected-source-sha").arg(sha);
+    }
     let output = run_output_with_stderr_lines(
-        Command::new(&executable).arg(action).arg("--root").arg(&root).arg("--progress-json"),
+        &mut command,
         timeout,
         &format!("Managed {action}"),
         |line| {

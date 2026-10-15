@@ -54,6 +54,22 @@ describe("managed startup update contract", () => {
     expect(mount).not.toMatch(/setInterval\([^\n]*checkManagedUpdateOnce/);
   });
 
+  test("Desktop passes the exact selected source through Rust to the installer", async () => {
+    const [app, rust, main, cli] = await Promise.all([
+      source("../apps/desktop/src/App.svelte"),
+      source("../apps/desktop/src-tauri/src/system_status.rs"),
+      source("../apps/desktop/src-tauri/src/main.rs"),
+      source("../distribution/cli.ts"),
+    ]);
+    expect(app).toContain("updateCheck.available_source_sha");
+    expect(app).toContain("{ expectedSourceSha }");
+    expect(main).toContain("expected_source_sha: Option<String>");
+    expect(rust).toContain('command.arg("--expected-source-sha").arg(sha)');
+    expect(rust).toContain('A verified selected update source is required.');
+    expect(cli).toContain("requireExpectedUpdateSource(publishedManifest, expectedSourceSha)");
+    expect(cli).toContain("requireExpectedUpdateSource(await verifyPackage(pending.directory), expectedSourceSha)");
+  });
+
   test("a staged update revalidates in place and never offers activation without proof", async () => {
     const app = await source("../apps/desktop/src/App.svelte");
     const action = app.slice(

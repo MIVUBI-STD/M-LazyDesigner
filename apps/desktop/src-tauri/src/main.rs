@@ -92,9 +92,9 @@ fn check_managed_update() -> Result<ManagedUpdateCheck, DesktopError> {
 }
 
 #[tauri::command]
-fn managed_action(app: tauri::AppHandle, action: String) -> Result<ManagedActionResult, DesktopError> {
+fn managed_action(app: tauri::AppHandle, action: String, expected_source_sha: Option<String>) -> Result<ManagedActionResult, DesktopError> {
     let event = format!("managed:{}", action);
-    let result = system_status::run_managed_action(&app, &action);
+    let result = system_status::run_managed_action(&app, &action, expected_source_sha.as_deref());
     match &result {
         Ok(value) => {
             let outcome = value.receipt

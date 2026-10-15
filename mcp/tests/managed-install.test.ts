@@ -4,7 +4,7 @@ import { realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requireMatchingReleaseManifest, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
+import { applyTransaction, configureCodex, installPackage, installedState, parseManifest, readOptional, recoverInstallation, repairInstallation, rollbackStatus, REPOSITORY, requireMatchingReleaseManifest, requireExpectedUpdateSource, requirePlainPath, sameInstalledPath, sha256, SKILLS, PACKAGE_SOURCE_PATHS, withInstallLock, type InstallOptions, type Manifest } from "../../distribution/managed-install";
 import { MODELLING_PATH, TEXTURING_PATH, ANIMATION_PATH, PROFILE_PATHS } from "../gateway/control/contexts";
 const parse = (s: string): any => Bun.TOML.parse(s);
 
@@ -48,6 +48,16 @@ test("package paths and complete required files are fail-closed", async () => sa
   assert.throws(() => parseManifest({ ...manifest, files: manifest.files.slice(1) }));
   assert.throws(() => parseManifest({ ...manifest, files: [...manifest.files, manifest.files[0]] }));
 }));
+
+test("selected update source SHA rejects a changed candidate before writing", async () => {
+  await sandbox(async directory => {
+    const candidate = await fixture(join(directory, "new"), "a");
+    assert.doesNotThrow(() => requireExpectedUpdateSource(candidate, candidate.source_sha));
+    assert.throws(() => requireExpectedUpdateSource(candidate, "b".repeat(40)), /Selected update changed/);
+    assert.throws(() => requireExpectedUpdateSource(candidate, "unexpected"), /source identity is invalid/);
+    assert.doesNotThrow(() => requireExpectedUpdateSource(candidate, null));
+  });
+});
 
 test("update refuses valid but different release package identities and inventory", async () => {
   await sandbox(async directory => {

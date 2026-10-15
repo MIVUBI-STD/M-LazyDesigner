@@ -74,6 +74,19 @@ export function requireMatchingReleaseManifest(
   }
 }
 
+export function requireExpectedUpdateSource(
+  candidate: Manifest,
+  expectedSourceSha: string | null | undefined
+): void {
+  if (expectedSourceSha === undefined || expectedSourceSha === null) return;
+  if (!/^[a-f0-9]{40}$/.test(expectedSourceSha)) {
+    throw new Error("Selected update source identity is invalid.");
+  }
+  if (candidate.source_sha !== expectedSourceSha) {
+    throw new Error("Selected update changed before installation; active files are unchanged.");
+  }
+}
+
 export async function readOptional(path: string): Promise<Buffer | null> {
   try { return await readFile(path); } catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT") return null; throw e; }
 }

@@ -9,7 +9,7 @@ import { LEGACY_MCP_BUNDLE_FILENAME } from "../mcp/compatibility/build-artifact"
 import { probeLoopbackPort } from "./runtime-probe";
 import { buildManagedStatus } from "./status";
 import { ensureRuntimeTlsIdentity, renewRuntimeTlsIdentity, runtimeTlsStatus } from "./runtime-tls";
-import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, requireMatchingReleaseManifest, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
+import { atomicWrite, activeGateways, installedState, installPackage, parseManifest, readOptional, recoverInstallation, repairInstallation, REPOSITORY, requirePlainPath, sameInstalledPath, sha256, verifyPackage, requireMatchingReleaseManifest, requireExpectedUpdateSource, withInstallLock, type InstallOptions, type Manifest } from "./managed-install";
 
 const RELEASE_ASSET = "blockit-windows-x64.zip";
 const RELEASE_MANIFEST_ASSET = "blockit-package.json";
@@ -18,7 +18,7 @@ const command = raw.shift() ?? "help";
 const flags = new Map<string, string>();
 for (let i = 0; i < raw.length; i++) {
   const flag = raw[i]!;
-  if (!["--root", "--workspace", "--plugin-path", "--config", "--package", "--tag", "--adopt", "--preview", "--progress-json"].includes(flag) || flags.has(flag)) throw new Error(`Unknown or repeated option: ${flag}`);
+  if (!["--root", "--workspace", "--plugin-path", "--config", "--package", "--tag", "--expected-source-sha", "--adopt", "--preview", "--progress-json"].includes(flag) || flags.has(flag)) throw new Error(`Unknown or repeated option: ${flag}`);
   if (["--adopt", "--preview", "--progress-json"].includes(flag)) flags.set(flag, "true");
   else { const value = raw[++i]; if (!value || value.startsWith("--")) throw new Error(`Missing value for ${flag}`); flags.set(flag, value); }
 }
@@ -26,6 +26,13 @@ const executableDir = dirname(process.execPath);
 const inferredRoot = /[\\/]versions[\\/][a-f0-9]{40}$/.test(executableDir) ? dirname(dirname(executableDir)) : null;
 const root = resolve(flags.get("--root") ?? process.env.BLOCKIT_HOME ?? inferredRoot ?? join(process.env.LOCALAPPDATA ?? homedir(), "BlockIT"));
 const pendingPath = join(root, "pending.json");
+const expectedSourceSha = flags.get("--expected-source-sha") ?? null;
+if (expectedSourceSha !== null && !/^[a-f0-9]{40}$/.test(expectedSourceSha)) {
+  throw new Error("Selected update source identity is invalid.");
+}
+if (expectedSourceSha !== null && command !== "update") {
+  throw new Error("Selected update source may only be specified for update.");
+}
 const parseToml = (text: string) => Bun.TOML.parse(text);
 const receipt = (value: unknown) => console.log(JSON.stringify(value, null, 2));
 const progress = (action: string, stage: string) => { if (flags.has("--progress-json")) console.error(JSON.stringify({ schema: 1, kind: "progress", action, stage })); };
@@ -55,6 +62,7 @@ async function activatePending(): Promise<unknown> {
   const pending = JSON.parse(rawPending.toString()) as { directory: string; options: InstallOptions; adopt: boolean };
   if (!sameInstalledPath(pending.options.root, root) || !sameInstalledPath(dirname(dirname(resolve(pending.directory))), join(root, "downloads")) || !/^[0-9a-f-]{36}$/.test(basename(dirname(pending.directory))) || basename(pending.directory) !== "package") throw new Error("Pending update is outside its installation.");
   if (await activeGateways(root) || await runtimeOnline(pending.options.config)) return { status: "STAGED", reason: "Close Blockbench and finish existing Codex MCP sessions; then run update again. Files are replaced automatically, not manually." };
+  requireExpectedUpdateSource(await verifyPackage(pending.directory), expectedSourceSha);
   const result = await installPackage(pending.directory, pending.options, parseToml, pending.adopt);
   await rm(pendingPath);
   await rm(dirname(pending.directory), { recursive: true, force: true }).catch(e => console.error(`BlockIT staging cleanup deferred: ${String(e)}`));
@@ -251,6 +259,7 @@ async function fetchRelease(): Promise<string> {
   // The ZIP and published manifest must originate from this same release
   // selection. Do not separately re-resolve "latest" halfway through update.
   const publishedManifest = await fetchUpdateManifest(release);
+  requireExpectedUpdateSource(publishedManifest, expectedSourceSha);
   const { asset, url } = trustedReleaseAsset(release, RELEASE_ASSET, 250_000_000);
   const bytes = await download(url.href, 250_000_000);
   if (bytes.length !== asset.size || `sha256:${sha256(bytes)}` !== asset.digest) {
@@ -343,6 +352,7 @@ async function main(): Promise<void> {
     const source = command === "install" ? resolve(flags.get("--package") ?? executableDir) : await fetchRelease();
     progress(command, "verifying-package");
     const manifest = await verifyPackage(source);
+    if (command === "update") requireExpectedUpdateSource(manifest, expectedSourceSha);
     const options: InstallOptions = previous?.options ?? {
       root, workspace: resolve(flags.get("--workspace") ?? join(homedir(), "BlockIT-Workspace")),
       plugin: resolve(flags.get("--plugin-path") ?? join(root, "plugin", LEGACY_MCP_BUNDLE_FILENAME)),
