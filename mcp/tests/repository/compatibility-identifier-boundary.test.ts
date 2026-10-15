@@ -83,6 +83,17 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     expect(statusBar).not.toContain('return "BlockIT');
   });
 
+  test("runtime export failures do not advertise the retired product identity", async () => {
+    const exporter = await source("server/tools/io/export.ts");
+    expect(exporter).toContain("LazyDesigner model export requires");
+    expect(exporter).toContain("Required Blockbench codec");
+    expect(exporter).toContain("LazyDesigner export_model requested write access");
+    expect(exporter).not.toContain("Required BlockIT codec");
+    expect(exporter).not.toContain("BlockIT codec ");
+    // Compatibility-bound TS codec IDs are deliberately not bulk-renamed.
+    expect(exporter).toContain("BLOCKIT_MODEL_CODEC_IDS");
+  });
+
   test("compatibility policy explicitly forbids blind bulk rename", async () => {
     const policy = await source("../docs/04-system/compatibility-identifiers.md");
     expect(policy).toContain("Active Decision — Canonical LazyDesigner-only Installation");

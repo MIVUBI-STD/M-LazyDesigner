@@ -116,7 +116,7 @@ function requireBedrockEntityProject(): void {
   const formatId = (Format as { id?: string } | undefined)?.id;
   if (formatId !== "bedrock") {
     throw new Error(
-      `BlockIT model export requires the Minecraft Bedrock Entity format (bedrock); current format is ${formatId ?? "unknown"}.`
+      `LazyDesigner model export requires the Minecraft Bedrock Entity format (bedrock); current format is ${formatId ?? "unknown"}.`
     );
   }
 }
@@ -218,12 +218,12 @@ export function registerExportTools() {
 
         if (!codec) {
           throw new Error(
-            `Required BlockIT codec "${codec_id}" is not registered in this Blockbench build.`
+            `Required Blockbench codec "${codec_id}" is not registered in this Blockbench build.`
           );
         }
         if (typeof codec.compile !== "function") {
           throw new Error(
-            `BlockIT codec "${codec_id}" does not support programmatic compile().`
+            `Blockbench codec "${codec_id}" does not support programmatic compile().`
           );
         }
 
@@ -241,7 +241,7 @@ export function registerExportTools() {
 
           // @ts-ignore - requireNativeModule is a Blockbench desktop global.
           exportFs = requireNativeModule("fs", {
-            message: `BlockIT export_model requested write access to save ${codec_id} output to ${path}`,
+            message: `LazyDesigner export_model requested write access to save ${codec_id} output to ${path}`,
           }) as ExportFilesystem | null;
           if (!exportFs) {
             throw new Error(
@@ -334,7 +334,7 @@ export function registerExportTools() {
         const encoding: "utf-8" | "base64" = binaryBuffer ? "base64" : "utf-8";
         if (byteLength === 0) {
           throw new Error(
-            `BlockIT codec "${codec_id}" compiled an empty artifact; no file was written.`
+            `Blockbench codec "${codec_id}" compiled an empty artifact; no file was written.`
           );
         }
 

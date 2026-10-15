@@ -27,6 +27,14 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     getAllToolDefinitions().export_model.execute(exportModelParameters.parse({path, overwrite, codec_id}));
   try {
     for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, {value, configurable:true, writable:true});
+    // Runtime-facing errors use the current product name without rewriting
+    // persisted codec IDs or the Blockbench native save lifecycle.
+    const originalFormat = globals.Format.id;
+    globals.Format.id = "java_block";
+    await expect(run(join(directory, "unsupported.bbmodel")))
+      .rejects.toThrow("LazyDesigner model export requires");
+    globals.Format.id = originalFormat;
+    expect(writes).toBe(0);
     const regular = join(directory, "fixture.bbmodel");
     fs.writeFileSync(regular, "old");
     await expect(run(regular, false)).rejects.toThrow("explicit consent");
