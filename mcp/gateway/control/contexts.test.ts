@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { contextFileSignature, contextForAuthoringDomain, PROFILE_PATHS } from "./contexts";
+import { contentHandle, contextFileSignature, contextForAuthoringDomain, PROFILE_PATHS } from "./contexts";
 import { MODELLING_PATH, TEXTURING_PATH } from "../context/authoring";
+import { mkdtemp, rm, stat, utimes, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import type { ControlContextHandle } from "./types";
 
 function handle(path: string): ControlContextHandle {
@@ -32,6 +36,39 @@ describe("required authoring context resolution", () => {
     const replacement = { ...before, ino: 12 };
     expect(contextFileSignature(before)).not.toBe(contextFileSignature(replacement));
     expect(contextFileSignature(before)).not.toBe(contextFileSignature({ ...before, dev: 8 }));
+  });
+
+  test("real contentHandle invalidates a same-size rewritten context with restored mtime", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "lazydesigner-context-cache-"));
+    const path = `tests/fixtures/${basename(directory)}.md`;
+    const file = pathToFileURL(join(directory, "context.md"));
+    const fixedTime = new Date("2024-01-01T00:00:00.000Z");
+    try {
+      await writeFile(file, "ABCD");
+      await utimes(file, fixedTime, fixedTime);
+      const firstStat = await stat(file);
+      const first = await contentHandle(path, file);
+      const cacheHit = await contentHandle(path, file);
+      expect(cacheHit).toBe(first);
+
+      // Ensure the filesystem registers a distinct change time even if mtime
+      // is then explicitly restored to the previous constant value.
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      await writeFile(file, "WXYZ");
+      await utimes(file, fixedTime, fixedTime);
+      const secondStat = await stat(file);
+      expect(secondStat.size).toBe(firstStat.size);
+      expect(secondStat.mtimeMs).toBe(firstStat.mtimeMs);
+      expect(contextFileSignature(secondStat)).not.toBe(contextFileSignature(firstStat));
+
+      const second = await contentHandle(path, file);
+      expect(second.sha256).not.toBe(first.sha256);
+      expect(second.id).not.toBe(first.id);
+      expect(second.path).toBe(path);
+      expect(await contentHandle(path, file)).toBe(second);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   test("missing specialist is reported without returning a fabricated handle", async () => {

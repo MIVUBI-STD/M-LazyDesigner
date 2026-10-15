@@ -85,8 +85,11 @@ export function contextFileSignature(
   return `${info.dev}:${info.ino}:${info.size}:${info.mtimeMs}:${info.ctimeMs}`;
 }
 
-export async function contentHandle(path: string): Promise<ControlContextHandle> {
-  const file = repoFile(path);
+export async function contentHandle(
+  path: string,
+  // Internal regression seam: normal Control callers use only repoFile(path).
+  file: URL = repoFile(path)
+): Promise<ControlContextHandle> {
   const info = await stat(file);
   const signature = contextFileSignature(info);
   const cached = contextHandleCache.get(path);
