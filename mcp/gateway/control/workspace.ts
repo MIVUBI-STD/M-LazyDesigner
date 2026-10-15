@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { canonicalJson } from "../../lib/semantic/canonical";
 import { dirname, join } from "node:path";
 import { readFile, stat } from "node:fs/promises";
+import { fileMetadataSignature } from "./fileSignature";
 import type { GatewayRuntimeStatus } from "../runtime/backend";
 
 export type ControlWorkspaceProjection = {
@@ -132,7 +133,7 @@ export async function readWorkspaceProjection(
         unavailable_reason: "README_UNREADABLE",
       };
     }
-    const signature = `${info.size}:${info.mtimeMs}`;
+    const signature = fileMetadataSignature(info);
     const cached = cache.get(readmePath);
     if (cached?.signature === signature) return cached.projection;
 

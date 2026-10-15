@@ -152,7 +152,7 @@ function textCarriesExternalLocator(text: string): boolean {
 }
 
 function textCarriesDecisionSignal(text: string): boolean {
-  return /\b(warn(?:ing)?|error|failed?|blocked|unavailable|missing|stale|conflict|unsafe|unsupported|deprecated)\b/i.test(
+  return /\b(warn(?:ing)?|error|failed?|blocked|unavailable|missing|stale|conflict|unsafe|unsupported|deprecated|unverified|incomplete|partial|pending|uncertain)\b|\bnot\s+(?:verified|saved|applied|executed|supported|available)\b/i.test(
     text
   );
 }
@@ -210,6 +210,7 @@ function receiptOnlyTextIsRedundant(
   return (
     text !== null &&
     !textCarriesExternalLocator(text) &&
+    !textCarriesDecisionSignal(text) &&
     hasAuthoritativeReceiptState(structuredContent)
   );
 }
@@ -229,6 +230,15 @@ export function compactGatewayCapabilityContent(
   verificationClass?: CapabilityVerificationClass,
   readOnly = false
 ): unknown {
+  // Shortcut summaries must not erase warnings, external locators, images
+  // or mixed content. Only one plain, non-decision text item is compactable.
+  const text = singleTextContent(content);
+  if (
+    text === null ||
+    textCarriesDecisionSignal(text) ||
+    textCarriesExternalLocator(text)
+  ) return content;
+
   if (
     readOnly &&
     readOnlyTextIsRedundant(structuredContent, content)

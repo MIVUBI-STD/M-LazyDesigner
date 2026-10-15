@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import type { Stats } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileMetadataSignature } from "./fileSignature";
+export { fileMetadataSignature as contextFileSignature } from "./fileSignature";
 import type { ControlAuthoringDomain, ControlContextHandle } from "./types";
 import {
   semanticDependenciesForOwner,
@@ -74,24 +75,13 @@ function repoFile(path: string): URL {
   return new URL(`../../../${path}`, import.meta.url);
 }
 
-/**
- * Keep the cheap stat-first cache, but do not treat a same-size, restored-mtime
- * edit or same-metadata file replacement as unchanged guidance. Content SHA
- * remains authoritative whenever the metadata signature differs.
- */
-export function contextFileSignature(
-  info: Pick<Stats, "dev" | "ino" | "size" | "mtimeMs" | "ctimeMs">
-): string {
-  return `${info.dev}:${info.ino}:${info.size}:${info.mtimeMs}:${info.ctimeMs}`;
-}
-
 export async function contentHandle(
   path: string,
   // Internal regression seam: normal Control callers use only repoFile(path).
   file: URL = repoFile(path)
 ): Promise<ControlContextHandle> {
   const info = await stat(file);
-  const signature = contextFileSignature(info);
+  const signature = fileMetadataSignature(info);
   const cached = contextHandleCache.get(path);
   if (cached?.signature === signature) return cached.handle;
   const bytes = await readFile(file);

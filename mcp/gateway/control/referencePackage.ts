@@ -6,6 +6,7 @@ import {
 } from "./referenceParser";
 import type { ControlReferenceProjection } from "./referenceTypes";
 import { inspectReferenceImages } from "./referenceImageEvidence";
+import { fileMetadataSignature } from "./fileSignature";
 
 export type {
   ControlProfile,
@@ -49,7 +50,7 @@ export async function readReferencePackageProjection(
       };
     }
 
-    const signature = `${info.size}:${info.mtimeMs}`;
+    const signature = fileMetadataSignature(info);
     const cached = cache.get(sourcePath);
     if (cached?.signature === signature) {
       return inspectReferenceImages(cached.projection);
