@@ -73,22 +73,31 @@ export function buildReadiness(
   lifecycle: LifecycleProjection,
   activeReferenceReadiness: string | null
 ): ControlReadiness {
-  if (mode === "SYSTEM_DEVELOPMENT") {
-    return {
-      modelling_start: "NEEDS_ORIENTATION",
-      runtime_ready: snapshot.runtime.online && !snapshot.runtime.catalog_stale,
-      project_ready: false,
-      domain_ready: false,
-      context_ready: true,
-      workspace_state: "NOT_REQUIRED",
-      reasons: ["SYSTEM_DEVELOPMENT_MODE"],
-    };
-  }
-
+  // Readiness describes the Runtime transport consistently across task modes.
+  // System development may proceed independently of Runtime, but must never
+  // misreport an unready MCP client as runtime_ready.
   const runtimeReady =
     snapshot.runtime.online &&
     !snapshot.runtime.catalog_stale &&
     !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
+
+  if (mode === "SYSTEM_DEVELOPMENT") {
+    return {
+      modelling_start: "NEEDS_ORIENTATION",
+      runtime_ready: runtimeReady,
+      project_ready: false,
+      domain_ready: false,
+      context_ready: true,
+      workspace_state: "NOT_REQUIRED",
+      reasons: [
+        "SYSTEM_DEVELOPMENT_MODE",
+        ...(snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY")
+          ? ["RUNTIME_CLIENT_NOT_READY"]
+          : []),
+      ],
+    };
+  }
+
   const projectReady = snapshot.project.binding === "BOUND";
   const domainReady = snapshot.authoring.domain !== null;
   const requiredContextUnavailable =

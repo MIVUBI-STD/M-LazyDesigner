@@ -101,6 +101,26 @@ describe("Control readiness policy", () => {
     expect(truncated.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
   });
 
+  test("system development does not report Runtime ready when the MCP client is lost", () => {
+    const disconnected = {
+      ...baseSnapshot(),
+      blockers: ["RUNTIME_CLIENT_NOT_READY"],
+    };
+    const readiness = buildReadiness(
+      disconnected,
+      emptyWorkspace(),
+      emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      "SYSTEM_DEVELOPMENT",
+      NOT_REQUIRED_LIFECYCLE,
+      null
+    );
+    expect(readiness.runtime_ready).toBe(false);
+    expect(readiness.context_ready).toBe(true);
+    expect(readiness.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(readiness.reasons).toContain("RUNTIME_CLIENT_NOT_READY");
+    expect(readiness.reasons).toContain("SYSTEM_DEVELOPMENT_MODE");
+  });
+
   test("system development readiness does not require asset context", () => {
     const readiness = buildReadiness(
       baseSnapshot(),
