@@ -4,6 +4,8 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
+The 2026-10-15 [retrospective deep dive](mcp-session-retrospective-2026-10-15.md#pendalaman-batas-pengetahuan-dan-fondasi-diagnosis) was source-checked against snapshot `15086b69fb971dca744b637e7516a57edcabb6c0`. Batch scale flattens selected keyframe times across animator/channel identities before a global duplicate check; a Node helper probe rejected `[1,1]` and accepted `[1,2]`. This is source/helper evidence, not matching-build native reproduction or a fix. Current source already defaults texture inventory to `diagnostics=false`; historical verbose payloads require request/build/enrichment attribution. Export uses native `afterSave`; freshness `NO_CHANGE` does not itself prove all editor metadata unchanged. Particle load success still does not establish trigger/emitter/render visibility. No acceptance gate is upgraded by this documentation work.
+
 Branch authority: `Local`.
 
 ### Recovery snapshot 3.0 — 2026-10-15
