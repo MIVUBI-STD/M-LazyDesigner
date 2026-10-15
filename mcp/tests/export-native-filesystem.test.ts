@@ -31,8 +31,14 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     fs.writeFileSync(regular, "old");
     await expect(run(regular, false)).rejects.toThrow("explicit consent");
     expect(writes).toBe(0);
-    await run(regular);
+    const savedProject = await run(regular) as { structuredContent: Record<string, any>; content: Array<{ text: string }> };
     expect(fs.readFileSync(regular, "utf8")).toBe('{"new":true}');
+    expect(savedProject.structuredContent.save_behavior).toBe("NATIVE_PROJECT_SAVE_AS");
+    expect(savedProject.structuredContent.project_before.save_path).toBe("");
+    expect(savedProject.structuredContent.project.save_path).toBe(regular);
+    expect(savedProject.structuredContent.project_lifecycle_changes).toContain("save_path");
+    expect(savedProject.structuredContent.project_lifecycle_changes).toContain("saved");
+    expect(savedProject.content[0].text).toContain("not an independent diagnostic copy");
     expect(project.saved).toBe(true);
     const folder = join(directory, "folder.bbmodel");
     fs.mkdirSync(folder);

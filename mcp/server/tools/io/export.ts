@@ -288,6 +288,9 @@ export function registerExportTools() {
           }
         }
 
+        // A path-backed project export is a native Save As, not a side-effect-free copy.
+        // Keep the exact editor identity before compile and native afterSave.
+        const projectBefore = currentExportProjectLifecycle();
         const effectiveOptions =
           options ??
           (typeof codec.getExportOptions === "function"
@@ -391,8 +394,22 @@ export function registerExportTools() {
                 )
               : fullContent;
 
+        const projectAfter = currentExportProjectLifecycle();
+        const metadataKeys = ["name", "uuid", "save_path", "export_path", "export_codec", "saved"] as const;
+        const projectLifecycleChanges = metadataKeys.filter(
+          key => projectBefore[key] !== projectAfter[key]
+        );
+        const saveBehavior = !wrote_to_path
+          ? "COMPILE_ONLY"
+          : codec_id === "project"
+            ? "NATIVE_PROJECT_SAVE_AS"
+            : "NATIVE_BEDROCK_EXPORT";
+
         const result = {
           project_format: "bedrock" as const,
+          save_behavior: saveBehavior,
+          project_before: projectBefore,
+          project_lifecycle_changes: projectLifecycleChanges,
           codec: {
             id: codec_id,
             name: codec.name ?? codec_id,
@@ -407,7 +424,7 @@ export function registerExportTools() {
           byte_length: byteLength,
           encoding,
           wrote_to_path,
-          project: currentExportProjectLifecycle(),
+          project: projectAfter,
           truncated,
           content: returnedContent,
         };
@@ -417,7 +434,9 @@ export function registerExportTools() {
             {
               type: "text" as const,
               text: wrote_to_path
-                ? `Exported ${codec_id} artifact ${result.file_name} (${byteLength} bytes); file write verified.`
+                ? codec_id === "project"
+                  ? `Saved editable project ${result.file_name} (${byteLength} bytes) using native Blockbench Save As; active project save path is now ${projectAfter.save_path}. This is not an independent diagnostic copy.`
+                  : `Exported ${codec_id} artifact ${result.file_name} (${byteLength} bytes) using native Blockbench export lifecycle; metadata effects: ${projectLifecycleChanges.join(", ") || "none"}.`
                 : `Compiled ${codec_id} artifact ${result.file_name} (${byteLength} bytes); no file path was provided.`,
             },
           ],

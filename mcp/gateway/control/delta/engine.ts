@@ -14,7 +14,7 @@ import {
   verificationClassForResult,
   verificationScopeForResult,
 } from "./verification";
-import { particleTextureHandoffRequired } from "./receipts";
+import { particleTextureHandoffRequired, resultCandidates } from "./receipts";
 import { downstreamRechecksForFreshness } from "./recheck";
 
 export function buildControlDelta(input: {
@@ -29,6 +29,18 @@ export function buildControlDelta(input: {
   const changed: string[] = [];
   if (input.succeeded && input.phaseBefore !== input.phaseAfter) changed.push("authoring_phase");
   if (input.capability === "create_project" && input.succeeded) changed.push("project_affinity");
+  if (input.capability === "export_model" && input.succeeded) {
+    const receipt = resultCandidates(input.result)[0];
+    const metadataKeys = new Set(["name", "uuid", "save_path", "export_path", "export_codec", "saved"]);
+    const reported = receipt?.project_lifecycle_changes;
+    if (Array.isArray(reported)) {
+      for (const field of reported) {
+        if (typeof field === "string" && metadataKeys.has(field)) {
+          changed.push(`project.${field}`);
+        }
+      }
+    }
+  }
 
   const authoringDomain = authoringDomainForCapability(input.capability);
   const invalidates = mutationInvalidation(
