@@ -449,7 +449,7 @@ fn is_bbmodel_file(path: &Path) -> bool {
         && path.is_file()
 }
 
-pub(crate) fn open_model(path: &Path, user_data: &Path) -> Result<(), String> {
+pub(crate) fn open_model(path: &Path, user_data: &Path) -> Result<&'static str, String> {
     if !is_bbmodel_file(path) {
         return Err("Choose an existing .bbmodel file.".to_string());
     }
@@ -458,11 +458,12 @@ pub(crate) fn open_model(path: &Path, user_data: &Path) -> Result<(), String> {
     let executable = discover_executable(&system)?
         .ok_or_else(|| "Blockbench desktop installation was not found.".to_string())?;
     version(&executable)?;
+    let started_at = crate::model_open_proof::timestamp_before_launch();
     launch_command_for_profile(&executable, user_data)?
         .arg(path)
         .spawn()
         .map_err(|error| format!("Unable to open the model in Blockbench: {error}"))?;
-    Ok(())
+    Ok(crate::model_open_proof::launch_receipt(path, user_data, started_at))
 }
 
 #[derive(Debug, Serialize)]
@@ -480,8 +481,8 @@ pub(crate) fn browse_model() -> Result<ModelBrowseResult, String> {
     // Resolve the editor profile after selection; a different running
     // userData profile cannot silently inherit a stale manager profile.
     let user_data = crate::system_status::editor_profile_for_model(None)?;
-    open_model(&path, &user_data)?;
-    Ok(ModelBrowseResult { status: "LAUNCHED" })
+    let status = open_model(&path, &user_data)?;
+    Ok(ModelBrowseResult { status })
 }
 
 pub(crate) fn open_editor() -> Result<BlockbenchActionResult, String> {

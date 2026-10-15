@@ -284,12 +284,16 @@
       // Only the profile-bound snapshot and native editor file are needed.
       // AI/Gateway setup is not a prerequisite for ordinary model editing.
       const launch = await invoke<ProjectNavigationActionResult>('project_navigation_action', { action: 'open-model', id });
-      if (launch.status !== 'LAUNCHED') throw new Error('Blockbench did not acknowledge the model launch request.');
+      if (launch.status !== 'CONFIRMED_ACTIVE' && launch.status !== 'LAUNCHED_UNVERIFIED') {
+        throw new Error('Blockbench did not acknowledge the model launch request.');
+      }
       const focused = await focusBlockbenchAfterOpen();
       await refresh();
-      showSuccessToast(focused
-        ? 'Model open request sent. Confirm the model tab in Blockbench.'
-        : 'Model open request sent. Select Blockbench from the taskbar and confirm the model tab.');
+      showSuccessToast(launch.status === 'CONFIRMED_ACTIVE'
+        ? 'Confirmed: the requested model is active in the matching Blockbench session.'
+        : focused
+          ? 'Editor launch confirmed; model tab not verified. Check Blockbench.'
+          : 'Model launch sent; active tab not verified. Select Blockbench and check its model tab.');
     } catch (cause) {
       reportError(cause);
     } finally {
@@ -311,12 +315,14 @@
     clearSuccessToast();
     try {
       const result = await invoke<ModelBrowseResult>('browse_model');
-      if (result.status === 'LAUNCHED') {
+      if (result.status === 'CONFIRMED_ACTIVE' || result.status === 'LAUNCHED_UNVERIFIED') {
         const focused = await focusBlockbenchAfterOpen();
         await refresh();
-        showSuccessToast(focused
-          ? 'Model open request sent. Confirm the model tab in Blockbench.'
-          : 'Model open request sent. Select Blockbench from the taskbar and confirm the model tab.');
+        showSuccessToast(result.status === 'CONFIRMED_ACTIVE'
+          ? 'Confirmed: the requested model is active in the matching Blockbench session.'
+          : focused
+            ? 'Editor launch confirmed; model tab not verified. Check Blockbench.'
+            : 'Model launch sent; active tab not verified. Select Blockbench and check its model tab.');
       }
     } catch (cause) {
       reportError(cause);

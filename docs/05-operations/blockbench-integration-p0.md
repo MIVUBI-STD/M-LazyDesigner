@@ -30,6 +30,6 @@ This phase changes **editor selection and status receipts only**. No change to .
 
 ## Remaining planned work
 
-- Native acknowledgment that the requested path became the active loaded Blockbench model (rather than relying on a process or window focus receipt).
+- Model-open acknowledgment is implemented using a bounded, read-only profile+PID+active-path check of the native plugin snapshot. It must still pass Windows/Blockbench native acceptance. A missing plugin snapshot, timeout, conflicting model, unsaved model or stale process results in LAUNCHED_UNVERIFIED rather than a false successful-open claim.
 - Guided userData profile migration remains future work; manually selecting another editor executable does not change or migrate its plugin profile.
 - Capability-based adaptation for future Blockbench API changes, separate from this identity/path P0.

@@ -12,6 +12,8 @@ type NavigationSnapshot = {
   observed_at_unix_ms: number;
   generation: string;
   profile_id: string;
+  // Process identity required for verifiable desktop model-open acknowledgment.
+  producer_pid: number;
   revision: number;
   last_model_path: string | null;
   active: {
@@ -182,6 +184,7 @@ function buildSnapshot(): NavigationSnapshot {
     observed_at_unix_ms: Date.now(),
     generation: producerGeneration,
     profile_id: profileId,
+    producer_pid: process.pid,
     revision,
     last_model_path: lastModelPath,
     active,

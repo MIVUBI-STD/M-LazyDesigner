@@ -148,7 +148,7 @@ fn normalize_navigation_profile_path(path: &Path) -> String {
         .to_ascii_lowercase()
 }
 
-fn navigation_profile_id(path: &Path) -> String {
+pub(crate) fn navigation_profile_id(path: &Path) -> String {
     use sha2::{Digest, Sha256};
     let digest = format!("{:x}", Sha256::digest(normalize_navigation_profile_path(path).as_bytes()));
     digest[..32].to_string()

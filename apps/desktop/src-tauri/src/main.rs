@@ -12,6 +12,7 @@ mod desktop_instance;
 mod diagnostics;
 mod operation_log;
 mod metadata_io;
+mod model_open_proof;
 mod runtime_health;
 mod process;
 mod project_navigation;
@@ -200,8 +201,15 @@ async fn confirm_delete_project(token: String) -> Result<project_deletion::Proje
 }
 
 #[tauri::command]
-fn project_navigation_action(action: String, id: String) -> Result<ProjectNavigationActionResult, DesktopError> {
-    let result = system_status::project_navigation_action(&action, &id);
+async fn project_navigation_action(action: String, id: String) -> Result<ProjectNavigationActionResult, DesktopError> {
+    // Open Model performs a bounded native acknowledgment check: keep the
+    // synchronous file/proc inspection off Tauri's IPC request thread.
+    let task_action = action.clone();
+    let result = tauri::async_runtime::spawn_blocking(move ||
+        system_status::project_navigation_action(&task_action, &id)
+    ).await.map_err(|error|
+        DesktopError::recoverable("PROJECT_NAVIGATION_FAILED", error.to_string())
+    )?;
     operation_log::record(
         &format!("project:{}", action),
         if result.is_ok() { "OK" } else { "ERROR" },
