@@ -104,11 +104,11 @@ For production blank-atlas creation, pass explicit width/height from the current
 New production authoring normally targets the approved atlas/density contract; absent stronger project authority, logical **128×128 default, 256×256 opt-in** remains policy. Reuse an already-approved atlas UUID instead of recreating it.
 
 ## Workplan / Coverage
-material cohorts; palette roles `BASE | SHADOW | HIGHLIGHT | ACCENT/IDENTITY`; form/contact/occlusion/edge/identity/detail.
+Latest user correction before broad paint: verify one mapped material/seam, then propagate its cohort; palette `BASE | SHADOW | HIGHLIGHT | ACCENT/IDENTITY`.
 Face Coverage Ledger: `UNPAINTED | BASE_ONLY | STYLED | INTENTIONAL_FLAT | INTENTIONAL_TRANSPARENT | SHARED`.
 `list_textures.optimization_opportunities.coverage.gate`: `incomplete|partial` / `FACE_ACCOUNTING_INCOMPLETE` → no completion; one `list_textures`/pass; `ready` ≠ visual PASS.
 `states.varied` ≠ `STYLED`; `review.solid_color_faces` locates flat candidates, not failures.
-Variants: `list_textures.production_alignment.gate=ready`; `seam_continuity` (intra-Cube only; inspect cross-Cube contacts visually); `pbr_content`.
+Variants: color-only changes reuse the same `.bbmodel` and UVs; `list_textures.production_alignment.gate=ready`; `seam_continuity` (intra-Cube only; inspect cross-Cube contacts visually); `pbr_content`.
 
 ## Render-Format Guard
 

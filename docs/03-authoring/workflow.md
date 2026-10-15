@@ -106,6 +106,18 @@ MUTATE coherent cohort
 
 Internal PASS never equals user approval. The same causal direction failing twice without new evidence becomes `BLOCKED` rather than a third guess.
 
+### Latest correction before high-cost expansion
+
+This is a **transient decision within the existing stage and verification loop**; it is not a new stage, approval checkpoint, persisted decision register, automated quality score or Gateway tool. Apply it only when a decision would be expensive to reverse (broad secondary geometry, atlas-wide styling, many follower keyframes, a new asset variant), not after every Cube/pixel/keyframe.
+
+1. **Reconcile authority first.** The latest explicit user correction takes precedence over an earlier agent interpretation. Use current conversation intent and the existing `current_user_delta`/Reference/Workspace projection when available; a null delta on a later status call does not revoke an active user correction. Distinguish an earlier *misread requirement* from genuinely *new scope*. Do not reinterpret new requests as proof that all earlier work was wrong.
+2. **Constrain impact.** Identify the one material visual/motion relationship the correction changes, its current object/material/clip identity, the relevant approved reference and freshest comparable evidence. Withdraw only superseded assumptions. Preserve unaffected approved facts, UVs, geometry, texture layers and motion. A new durable requirement belongs in the existing approved Reference/Workspace authority at a meaningful persistence boundary, not a new persistent agent state.
+3. **Prove the smallest judgeable result before propagation.** Geometry: primary silhouette/attachment from relevant paired views before ornament. Texture: representative mapped material plus a touching seam/surface before atlas-wide treatment. Animation: driver, contact/attachment and causal action order from representative poses before broad follower keys/effects. Reuse the current bounded capture/receipt/correction loop.
+4. **Decide using existing evidence, not ceremony.** A visible material mismatch is `FAIL` and is repaired by its canonical owner. Missing/conflicting decision-critical evidence is `UNVERIFIED`/blocked for that dependent expansion, not a fabricated PASS; independent low-risk work may continue. Correctly verified work may continue autonomously within existing stage/approval rules. Do not request repeated user confirmation, impose a new gate on every mutation, or convert an internal PASS to user approval.
+5. **Reuse structure for variants.** Color/material-only alternatives first reuse the same model, hierarchy and UV atlas with an explicit texture variant; only a supported geometry, attachment, UV or motion difference justifies a changed structural branch or separate editable model. For action revisions, preserve the newly specified order of events and stationary/attached relationships before editing dependent keys.
+
+A new bulk operation is not justified by a successful tool receipt, a nice-looking single screenshot, a smaller Cube count, or a prior plan that the user has corrected. Do not reload all specialist contexts as an expansion check.
+
 ## Dependency Invalidation
 
 Invalidate only what the mutation can materially affect.

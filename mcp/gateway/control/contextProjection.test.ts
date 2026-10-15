@@ -312,6 +312,25 @@ describe("Control stage semantic projection", () => {
     );
   });
 
+  test("R07 latest correction survives stage and size-limited projection without inventing a new authority", () => {
+    const correction = "fall before breaking; keep the cape attached through impact";
+    for (const domain of ["GEOMETRY", "TEXTURING", "ANIMATION"] as const) {
+      const context = buildControlStageContext({
+        domain, reference, workspace, currentUserDelta: correction,
+      });
+      const projected = projectControlStageContextWithHeadroom(context, 64);
+      expect(projected.context.original_user_intent).toBe(reference.intent);
+      expect(projected.context.current_user_delta).toBe(correction);
+      expect(projected.context.reference_package_id_or_hash).toBe(reference.fingerprint);
+      expect(projected.context.headroom_state).toBe("REQUIRED_OVER_BUDGET");
+      expect("semantic_facts" in projected.context).toBe(false);
+      const oldDecision = buildControlStageContext({
+        domain, reference, workspace, currentUserDelta: "break before falling",
+      });
+      expect(context.context_hash).not.toBe(oldDecision.context_hash);
+    }
+  });
+
   test("Gateway projection exposes compact decisions without retransmitting raw semantic facts", () => {
     const context = buildControlStageContext({
       domain: "GEOMETRY",

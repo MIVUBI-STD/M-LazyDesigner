@@ -83,6 +83,31 @@ describe("model creation effectiveness — texture/animation sequencing", () => 
     expect(normalizedAnimation).toContain("molang");
   });
 
+  test("R07 expensive expansion is impact-scoped and not an extra approval system", async () => {
+    const [workflow, modelling, texturing, animation] = await Promise.all([
+      source("../docs/03-authoring/workflow.md"),
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-texturing/SKILL.md"),
+      source("../.agents/skills/lazydesigner-animation/SKILL.md"),
+    ]);
+    expect(workflow).toContain("### Latest correction before high-cost expansion");
+    expect(workflow).toContain("latest explicit user correction");
+    expect(workflow).toContain("misread requirement");
+    expect(workflow).toContain("new scope");
+    expect(workflow).toContain("A new durable requirement belongs in the existing approved Reference/Workspace authority");
+    expect(workflow).toContain("Missing/conflicting decision-critical evidence");
+    expect(workflow).toContain("independent low-risk work may continue");
+    expect(workflow).toContain("not a new stage, approval checkpoint");
+    expect(workflow).toContain("Color/material-only alternatives first reuse the same model");
+    expect(modelling).toContain("before detail, recheck affected form/views against latest user correction");
+    expect(modelling).toContain("Core View Triad");
+    expect(texturing).toContain("Latest user correction before broad paint");
+    expect(texturing).toContain("color-only changes reuse the same `.bbmodel` and UVs");
+    expect(animation).toContain("reconcile latest user correction's event order");
+    expect(animation).toContain("attachment/contact");
+    expect(animation).toContain("Before follower keys");
+  });
+
   test("sequencing remains instruction/stage ownership rather than a registration profile", async () => {
     const profile = await source("lib/capabilities/registrationProfile.ts");
     expect(profile).toContain('export type McpRegistrationProfile = "bedrock_entity" | "extended";');
