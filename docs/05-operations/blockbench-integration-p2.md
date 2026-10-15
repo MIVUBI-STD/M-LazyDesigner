@@ -10,7 +10,8 @@ active, not for which subprocess Desktop successfully spawned.
 - `CONFIRMED_ACTIVE` — within a bounded 4-second, user-initiated observation,
   a *new* schema 4 project snapshot written on/after the launch request is
   linked to the exact pinned userData profile, a currently running Blockbench
-  executable PID, the exact requested saved .bbmodel path, and consistent
+  executable PID with the **same executable path as the selected editor**,
+  the exact requested saved .bbmodel path, and consistent
   active/open project UUID. This proves the native plugin observed an active
   model; it is **not** a persistence/visual/Undo acceptance result.
 - `LAUNCHED_UNVERIFIED` — Windows accepted the executable launch but there is

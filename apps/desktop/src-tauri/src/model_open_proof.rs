@@ -101,14 +101,20 @@ fn snapshot_confirms_active(
     })
 }
 
-fn verified_native_producer(system: &System, pid: u32) -> bool {
+fn same_editor_executable(actual: &Path, selected: &Path) -> bool {
+    path_key(actual) == path_key(selected)
+}
+
+fn verified_native_producer(system: &System, pid: u32, selected_executable: &Path) -> bool {
     let Some(process) = system.process(Pid::from_u32(pid)) else {
         return false;
     };
     let name = process.name().to_ascii_lowercase();
     (name == "blockbench.exe" || name == "blockbench")
         && process.exe().is_some_and(|path|
-            path.is_file() && crate::blockbench::is_executable_name(path)
+            path.is_file()
+                && crate::blockbench::is_executable_name(path)
+                && same_editor_executable(path, selected_executable)
         )
 }
 
@@ -135,6 +141,7 @@ fn read_snapshot(path: &Path) -> Option<(ModelSnapshot, u64)> {
 pub(crate) fn observe_active_model(
     model: &Path,
     user_data: &Path,
+    selected_executable: &Path,
     request_at_ms: u64,
 ) -> bool {
     let Some(base) = env::var_os("LOCALAPPDATA") else { return false };
@@ -154,7 +161,7 @@ pub(crate) fn observe_active_model(
                 system.refresh_processes();
                 if snapshot_confirms_active(
                     &snapshot, &profile_id, model, request_at_ms, now,
-                    verified_native_producer(&system, snapshot.producer_pid.unwrap_or(0)),
+                    verified_native_producer(&system, snapshot.producer_pid.unwrap_or(0), selected_executable),
                 ) {
                     return true;
                 }
@@ -165,8 +172,10 @@ pub(crate) fn observe_active_model(
     }
 }
 
-pub(crate) fn launch_receipt(model: &Path, user_data: &Path, request_at_ms: u64) -> &'static str {
-    if observe_active_model(model, user_data, request_at_ms) {
+pub(crate) fn launch_receipt(
+    model: &Path, user_data: &Path, selected_executable: &Path, request_at_ms: u64,
+) -> &'static str {
+    if observe_active_model(model, user_data, selected_executable, request_at_ms) {
         "CONFIRMED_ACTIVE"
     } else {
         "LAUNCHED_UNVERIFIED"
@@ -242,6 +251,18 @@ mod tests {
         assert!(!check(&value));
         assert!(!snapshot_confirms_active(&fixture(), &"a".repeat(32),
             Path::new("C:/Projects/Models/Chair.bbmodel"), 100_000, 100_900, false));
+    }
+
+    #[test]
+    fn native_producer_must_match_the_selected_installation_path() {
+        assert!(same_editor_executable(
+            Path::new("C:/Program Files/Blockbench/Blockbench.exe"),
+            Path::new("c:\\program files\\blockbench\\blockbench.exe")
+        ));
+        assert!(!same_editor_executable(
+            Path::new("C:/Program Files/Blockbench/Blockbench.exe"),
+            Path::new("D:/Other/Blockbench.exe")
+        ));
     }
 
     #[test]

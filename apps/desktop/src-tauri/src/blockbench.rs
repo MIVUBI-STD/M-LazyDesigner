@@ -463,7 +463,7 @@ pub(crate) fn open_model(path: &Path, user_data: &Path) -> Result<&'static str, 
         .arg(path)
         .spawn()
         .map_err(|error| format!("Unable to open the model in Blockbench: {error}"))?;
-    Ok(crate::model_open_proof::launch_receipt(path, user_data, started_at))
+    Ok(crate::model_open_proof::launch_receipt(path, user_data, &executable, started_at))
 }
 
 #[derive(Debug, Serialize)]
