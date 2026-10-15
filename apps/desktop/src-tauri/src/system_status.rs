@@ -115,6 +115,7 @@ pub struct SystemStatus {
     pub bootstrap_available: bool,
     pub runtime_listener_live: bool,
     pub runtime_endpoint_match: Option<bool>,
+    pub runtime_build_match: Option<bool>,
     pub runtime_ready: bool,
     pub managed: Option<ManagedStatus>,
     pub project_navigation: ProjectNavigation,
@@ -336,6 +337,43 @@ pub fn show_plugin_file() -> Result<PluginFileActionResult, String> {
     Ok(PluginFileActionResult { status: "SHOWN" })
 }
 
+// The installed package manifest is the source of the expected Runtime
+// build. A port or plugin filename alone is never sufficient. Check the
+// package SHA and the installed plugin's owned digest before trusting it.
+fn installed_build_identity(root: &Path) -> Option<String> {
+    let installed: InstalledState = serde_json::from_slice(
+        &fs::read(root.join("installed.json")).ok()?
+    ).ok()?;
+    if installed.source_sha.len() != 40 ||
+        !installed.source_sha.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()) {
+        return None;
+    }
+    let manifest_path = root.join("versions").join(&installed.source_sha).join("blockit-package.json");
+    let metadata = fs::symlink_metadata(&manifest_path).ok()?;
+    if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > 1_000_000 {
+        return None;
+    }
+    let manifest: Value = serde_json::from_slice(&fs::read(manifest_path).ok()?).ok()?;
+    if manifest.get("schema")?.as_u64()? != 1 ||
+        manifest.get("repository")?.as_str()? != "MIVUBI-STD/M-LazyDesigner" ||
+        manifest.get("source_sha")?.as_str()? != installed.source_sha {
+        return None;
+    }
+    let build = manifest.get("build_identity")?.as_str()?;
+    if !runtime_health::valid_build_identity(build) {
+        return None;
+    }
+    let plugin_hash = manifest.get("files")?.as_array()?.iter()
+        .find(|entry| entry.get("path").and_then(Value::as_str) == Some("blockit_mcp.js"))?
+        .get("sha256")?.as_str()?;
+    let owned_hash = installed.owned.get(&installed.options.plugin.to_string_lossy().to_string())?;
+    if plugin_hash != owned_hash || plugin_hash.len() != 64 ||
+        !plugin_hash.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()) {
+        return None;
+    }
+    Some(build.to_owned())
+}
+
 fn manager_executable(root: &Path) -> Result<PathBuf, String> {
     let installed_path = root.join("installed.json");
     let bytes = fs::read(&installed_path)
@@ -523,10 +561,19 @@ fn compose_status(
         runtime_profile_id.as_deref(),
     );
     let managed_runtime_url = managed.as_ref().map(|value| value.runtime_url.as_str());
+    let expected_build = if manager_available {
+        managed_root().as_deref().and_then(installed_build_identity)
+    } else {
+        None
+    };
     let runtime_endpoint_match = runtime_health::endpoint_match(managed_runtime_url, &runtime_session);
+    let runtime_build_match = runtime_health::matching_build_identity(
+        expected_build.as_deref(), &runtime_session
+    );
     let runtime_ready = runtime_health::ready(
         managed.as_ref().map(|value| value.runtime_online).unwrap_or(false),
         managed_runtime_url,
+        expected_build.as_deref(),
         &runtime_session,
     );
     let gateway = if installation_present && managed.is_none() {
@@ -574,6 +621,7 @@ fn compose_status(
         bootstrap_available: false,
         runtime_listener_live: runtime_session.live,
         runtime_endpoint_match,
+        runtime_build_match,
         runtime_ready,
         managed,
         project_navigation,
@@ -628,13 +676,20 @@ pub fn collect_connection_status() -> ConnectionStatus {
         runtime_lease_path.as_deref(),
         runtime_profile_id.as_deref(),
     );
+    // Fast watcher notices a build swap without invoking the manager CLI.
+    // A stale/foreign Runtime lease must not make the connection appear ready.
+    let expected_build = managed_root().as_deref().and_then(installed_build_identity);
+    let trusted_listener = runtime_session.live &&
+        runtime_health::matching_build_identity(
+            expected_build.as_deref(), &runtime_session
+        ) == Some(true);
 
     let Some(root) = managed_root() else {
         return ConnectionStatus {
             schema: 1,
             observed_at_unix_ms: observed_at_unix_ms(),
             blockbench_running,
-            runtime_listener_live: runtime_session.live,
+            runtime_listener_live: trusted_listener,
             gateway_active: None,
             plugin_integrity: "unknown",
             project_revision: project_revision.clone(),
@@ -648,7 +703,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
             schema: 1,
             observed_at_unix_ms: observed_at_unix_ms(),
             blockbench_running,
-            runtime_listener_live: runtime_session.live,
+            runtime_listener_live: trusted_listener,
             gateway_active: None,
             plugin_integrity,
             project_revision: project_revision.clone(),
@@ -660,7 +715,7 @@ pub fn collect_connection_status() -> ConnectionStatus {
         schema: 1,
         observed_at_unix_ms: observed_at_unix_ms(),
         blockbench_running,
-        runtime_listener_live: runtime_session.live,
+        runtime_listener_live: trusted_listener,
         gateway_active: gateway_active_fast(&root, &system),
         plugin_integrity,
         project_revision: project_revision.clone(),
@@ -940,6 +995,34 @@ mod tests {
     fn missing_installation_is_diagnostic_not_panic() {
         let result = manager_executable(Path::new("Z:/definitely-missing-lazydesigner-root"));
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn runtime_build_proof_refuses_changed_plugin_ownership() {
+        let root = env::temp_dir().join(format!("lazydesigner-build-check-{}-{}", std::process::id(), observed_at_unix_ms()));
+        let sha = "a".repeat(40);
+        let build = format!("sha256:{}", "b".repeat(64));
+        let digest = "c".repeat(64);
+        let version = root.join("versions").join(&sha);
+        fs::create_dir_all(&version).unwrap();
+        let plugin = root.join("plugins").join("blockit_mcp.js");
+        let key = plugin.to_string_lossy().to_string();
+        let owned = HashMap::from([(key.clone(), digest.clone())]);
+        fs::write(root.join("installed.json"), serde_json::json!({
+            "source_sha":sha, "options":{"plugin":key}, "owned":owned
+        }).to_string()).unwrap();
+        fs::write(version.join("blockit-package.json"), serde_json::json!({
+            "schema":1, "repository":"MIVUBI-STD/M-LazyDesigner",
+            "source_sha":sha, "build_identity":build,
+            "files":[{"path":"blockit_mcp.js","sha256":digest}]
+        }).to_string()).unwrap();
+        assert_eq!(installed_build_identity(&root), Some(build));
+        let invalid_owned = HashMap::from([(key.clone(), "d".repeat(64))]);
+        fs::write(root.join("installed.json"), serde_json::json!({
+            "source_sha":sha, "options":{"plugin":key}, "owned":invalid_owned
+        }).to_string()).unwrap();
+        assert_eq!(installed_build_identity(&root), None);
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

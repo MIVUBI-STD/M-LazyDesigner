@@ -29,7 +29,13 @@ test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fres
       return originalInterval(() => {}, 60_000);
       }, clearInterval };
     };
-    expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp")).toBe(true);
+    const build = `sha256:${"a".repeat(64)}`;
+    expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp", null)).toBe(false);
+    expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp", build)).toBe(true);
+    const lease = JSON.parse([...files.values()][0]!);
+    expect(lease.schema).toBe(2);
+    expect(lease.product_id).toBe("lazydesigner-bedrock-entity-mcp");
+    expect(lease.build_identity).toBe(build);
     const path = [...files.keys()][0]!;
     const first = files.get(path);
     tick!();
@@ -39,7 +45,7 @@ test.skipIf(process.platform !== "win32")("Blockbench scoped FS keeps lease fres
     stopRuntimeSessionLease();
     expect(files.size).toBe(0);
 
-    expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp")).toBe(true);
+    expect(startRuntimeSessionLease(scopedFs, { createHash }, 3000, "/bb-mcp", build)).toBe(true);
     files.set(path, JSON.stringify({ schema: 1, instance_id: "replacement" }));
     tick!();
     stopRuntimeSessionLease();

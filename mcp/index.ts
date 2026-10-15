@@ -140,7 +140,7 @@ async function initializeBlockItRuntime(
     endpoint: runtimeEndpoint,
   });
 
-  if (!(await runtimeHost.start(generation))) return;
+  if (!(await runtimeHost.start(generation, currentBuildIdentity()))) return;
   if (!isRuntimeGenerationCurrent(generation)) return;
 
   setupLocalDevAutoReload(generation, currentBuildIdentity());

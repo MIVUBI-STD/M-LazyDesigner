@@ -1,4 +1,5 @@
 import { normalizeRuntimeUrl } from "@/lib/runtime/connection";
+import { PRODUCT_ID } from "@/lib/product/productIdentity";
 import { profileIdentity, type NativeCrypto } from "@/plugin/profileIdentity";
 
 export type RuntimeSessionFs = Pick<
@@ -7,7 +8,9 @@ export type RuntimeSessionFs = Pick<
 >;
 
 type RuntimeSessionLease = {
-  schema: 1;
+  schema: 2;
+  product_id: typeof PRODUCT_ID;
+  build_identity: string;
   profile_id: string;
   producer_pid: number;
   instance_id: string;
@@ -56,11 +59,15 @@ export function startRuntimeSessionLease(
   fsApi: RuntimeSessionFs,
   cryptoApi: NativeCrypto,
   port: number,
-  endpoint: string
+  endpoint: string,
+  buildIdentity: string | null
 ): boolean {
   stopRuntimeSessionLease();
 
   if (process.platform !== "win32") return true;
+  // A healthy port is not proof of the installed plugin build.
+  // An unverified plugin must not publish a Desktop-ready lease.
+  if (!buildIdentity || !/^sha256:[a-f0-9]{64}$/.test(buildIdentity)) return false;
 
   const localAppData = process.env.LOCALAPPDATA;
   const userData = typeof SystemInfo !== "undefined" ? SystemInfo.user_data_directory : "";
@@ -83,7 +90,9 @@ export function startRuntimeSessionLease(
 
   const profileId = profileIdentity(userData, cryptoApi);
   const lease: RuntimeSessionLease = {
-    schema: 1,
+    schema: 2,
+    product_id: PRODUCT_ID,
+    build_identity: buildIdentity,
     profile_id: profileId,
     producer_pid: process.pid,
     instance_id: globalThis.crypto.randomUUID().toLowerCase(),

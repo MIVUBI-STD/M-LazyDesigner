@@ -43,6 +43,11 @@ describe("Desktop control-plane ownership", () => {
     expect(runtimeLease).toContain("producer_pid");
     expect(runtimeLease).toContain("runtime_url");
     expect(runtimeLease).toContain("runtime-session");
+    expect(runtimeLease).toContain("build_identity");
+    expect(runtimeLease).toContain("schema: 2");
+    expect(runtimeHost).toContain("buildIdentity");
+    expect(rust).toContain("installed_build_identity");
+    expect(rust).toContain("runtime_build_match");
 
     // All verification workflows are deliberately manual-only. Verify the
     // real Desktop source gate rather than retired push path filters.

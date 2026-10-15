@@ -762,7 +762,13 @@
 
               {#if productMode(status) === 'plugin-setup'}
                 <div class="inline-guidance">
-                  {#if status.runtime_endpoint_match === false}
+                  {#if status.runtime_build_match === false}
+                    <div>
+                      <strong>LazyDesigner versions do not match</strong>
+                      <span>The Blockbench plugin and installed managed package have different build identities. Keep your model open; no automatic replacement will run.</span>
+                    </div>
+                    <button class="secondary-button" onclick={() => navigate('Support')}>Open Support</button>
+                  {:else if status.runtime_endpoint_match === false}
                     <div>
                       <strong>Local connection settings do not match</strong>
                       <span>Blockbench and the MCP client must use the same LazyDesigner connection settings.</span>

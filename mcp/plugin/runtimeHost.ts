@@ -127,7 +127,7 @@ export class RuntimeHost {
     });
   }
 
-  async start(generation: number): Promise<boolean> {
+  async start(generation: number, buildIdentity: string | null = null): Promise<boolean> {
     if (
       !isRuntimeGenerationCurrent(generation) ||
       !this.nativeHttp ||
@@ -179,7 +179,8 @@ export class RuntimeHost {
         this.nativeFs,
         this.nativeCrypto,
         config.port,
-        config.endpoint
+        config.endpoint,
+        buildIdentity
       );
     if (!sessionLeasePublished) {
       console.warn(

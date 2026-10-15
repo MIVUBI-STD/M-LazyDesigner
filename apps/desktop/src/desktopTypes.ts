@@ -73,6 +73,8 @@ export type SystemStatus = {
     bootstrap_available: boolean;
     runtime_listener_live: boolean;
     runtime_endpoint_match: boolean | null;
+    /** null means no version evidence; false means an observed mismatch. */
+    runtime_build_match?: boolean | null;
     runtime_ready: boolean;
     managed: ManagedStatus | null;
     project_navigation: ProjectNavigation;
