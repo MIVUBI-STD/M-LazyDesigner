@@ -1,6 +1,6 @@
 # Local Acceptance Runbook
 
-Updated: 2026-10-11  
+Updated: 2026-10-16  
 Owner: `LIVE_BLOCKBENCH` formal acceptance procedure  
 Current state: native LazyDesigner authoring path only.
 
@@ -27,7 +27,7 @@ Source/CI is not visual proof. Static Footprint is a guardrail; Authoring Effici
 
 The historical verified baseline is documented in `current-validation.md`. It is not a
 substitute for current `Local` source acceptance. Pin the exact checkout used
-for this localtest, rather than resetting the branch to an old SHA.
+for this local test, rather than resetting the branch to an old SHA.
 
 From the repository root:
 
@@ -77,8 +77,8 @@ Choose one launch authority and keep it fixed throughout a local acceptance run.
 connection; invoke Gateway `status` in the same Codex session to prove it.
 
 **A. Managed Desktop / packaged integration.** The managed installer owns the
-`[mcp_servers.blockit]` entry in the user's Codex `config.toml`. It launches
-the immutable `versions/<source-sha>/blockit.exe` with `args = ["mcp"]`.
+`[mcp_servers.lazydesigner]` entry in the user's Codex `config.toml`. It launches
+the immutable `versions/<source-sha>/lazydesigner.exe` with `args = ["mcp"]`.
 Check the installed `source_sha` against `git rev-parse HEAD` and verify the
 Blockbench plugin build identity. If the package predates HEAD, this run can
 test the **installed package**, not prove the latest source. Do not deploy a
@@ -93,7 +93,7 @@ load a *project-scoped* `.codex/config.toml` only when the repository is trusted
 For a temporary, uncommitted Windows developer configuration, use:
 
 ```toml
-[mcp_servers.blockit]
+[mcp_servers.lazydesigner]
 command = 'C:\ABSOLUTE\PATH\TO\bun.exe'
 args = ['run', 'C:\ABSOLUTE\PATH\TO\M-LazyDesigner\mcp\gateway\index.ts']
 startup_timeout_sec = 20
@@ -106,7 +106,7 @@ Keep `.codex/config.toml` out of Git and remove the override after source
 testing. Preserve or back up pre-existing project-specific settings rather than
 overwriting them. Do not separately run `bun run gateway` when Codex already
 starts that Gateway. If Codex does not trust the project or the override is
-not visible, stop and inspect its effective `blockit` MCP entry; do not assume
+not visible, stop and inspect its effective `lazydesigner` MCP entry; do not assume
 Codex used the source process.
 
 Codex's default `tool_timeout_sec` is 60 seconds. This is shorter than the
@@ -129,16 +129,16 @@ are expected: `status`, `search_capabilities`, `describe_capability` and
 
 Before the first native load, run `bun run setup:tls` from `mcp/`. The native endpoint is `https://127.0.0.1:3000/bb-mcp`; Blockbench, Gateway and live scripts must share the machine-local TLS identity. Follow [TLS setup](../../mcp/README.md#normal-client-boundary). Do not disable certificate verification or import this certificate into the system trust store. An old Gateway process must be replaced once for this transport migration; normal Runtime reload recovery remains beneath the persistent new Gateway.
 
-A successful `MCP Verify` may publish `blockit-mcp-verified` containing `blockit_mcp.js` and provenance. Prefer a matching exact-SHA artifact when available.
+A successful `MCP Verify` may publish `lazydesigner-mcp-verified` containing `lazydesigner_mcp.js` and provenance. Prefer a matching exact-SHA artifact when available.
 
 ```bash
-bun run deploy:verified -- /absolute/path/to/artifact-dir /absolute/path/to/blockit_mcp.js
+bun run deploy:verified -- /absolute/path/to/artifact-dir /absolute/path/to/lazydesigner_mcp.js
 ```
 
 Fallback for intentionally unpushed local source:
 
 ```bash
-bun run deploy:local -- /absolute/path/to/blockit_mcp.js
+bun run deploy:local -- /absolute/path/to/lazydesigner_mcp.js
 ```
 
 Preserve unsaved projects/assets/settings/credentials/other plugins. Do not use `git clean -xfd`.
@@ -330,7 +330,7 @@ Runtime offline/online
 Gateway attach/detach
 ```
 
-The UI should update without manual Refresh. A transient Gateway fast-probe failure must preserve the last known full projection rather than falsely showing offline. The heartbeat must not spawn `blockit.exe status` continuously; full status refresh is expected only when a known fast-probe value changes or an explicit action requests it.
+The UI should update without manual Refresh. A transient Gateway fast-probe failure must preserve the last known full projection rather than falsely showing offline. The heartbeat must not spawn `lazydesigner.exe status` continuously; full status refresh is expected only when a known fast-probe value changes or an explicit action requests it.
 
 Validate Runtime health authority separately:
 
@@ -338,7 +338,7 @@ Validate Runtime health authority separately:
 default Blockbench Runtime settings + default MCP client URL
 → Runtime reaches ready
 
-matching custom Blockbench port/path + matching BLOCKIT_RUNTIME_URL
+matching custom Blockbench port/path + matching LAZYDESIGNER_RUNTIME_URL
 → Runtime reaches ready on the custom endpoint
 
 Blockbench listener URL differs from the MCP client Runtime URL
@@ -481,7 +481,7 @@ bun run verify:geometry-live -- --confirm-disposable
 bun run verify:texturing-live -- --confirm-disposable
 ```
 
-Save a `.bbmodel` checkpoint whose basename is `blockit_geometry_e2e_disposable` (native export updates the project name). Perform the documented Gateway AUTHORING→Animation handoff with actual disposable-test readiness evidence, not a fabricated user-approval claim. Continue without replacing that Gateway:
+Save a `.bbmodel` checkpoint whose basename is `lazydesigner_geometry_e2e_disposable` (native export updates the project name). Perform the documented Gateway AUTHORING→Animation handoff with actual disposable-test readiness evidence, not a fabricated user-approval claim. Continue without replacing that Gateway:
 
 ```bash
 bun run verify:animation-live -- --confirm-disposable

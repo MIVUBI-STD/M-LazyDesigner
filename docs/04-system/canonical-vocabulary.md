@@ -188,11 +188,11 @@ Do not package merely to satisfy a template. When downstream authoring is reques
 
 ## Compatibility-Only Vocabulary
 
-The following names may remain in source, settings, headers, schemas or public capabilities because they are compatibility-bound:
+The following names are retained in persisted settings, TypeScript/API types or public capabilities as compatibility contracts. The **current** Runtime wire header is `x-lazydesigner-authoring-stage`; the retired `x-blockit-authoring-phase` may appear only in historical/migration evidence, never as an active request header:
 
 ~~~text
 mcp_authoring_phase
-x-blockit-authoring-phase
+x-lazydesigner-authoring-stage
 switch_authoring_phase
 McpAuthoringPhase
 phaseAffinity

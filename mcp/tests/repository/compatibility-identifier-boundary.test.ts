@@ -150,6 +150,33 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     );
   });
 
+  test("current live acceptance runbook and vocabulary never activate retired BlockIT identities", async () => {
+    const [runbook, vocabulary, routing] = await Promise.all([
+      source("../docs/05-operations/local-acceptance-runbook.md"),
+      source("../docs/04-system/canonical-vocabulary.md"),
+      source("../docs/04-system/README.md"),
+    ]);
+    for (const token of [
+      "[mcp_servers.lazydesigner]",
+      "lazydesigner.exe",
+      "lazydesigner-mcp-verified",
+      "lazydesigner_mcp.js",
+      "LAZYDESIGNER_RUNTIME_URL",
+      "lazydesigner_geometry_e2e_disposable",
+    ]) expect(runbook).toContain(token);
+    for (const retired of [
+      "[mcp_servers.blockit]",
+      "blockit.exe",
+      "blockit-mcp-verified",
+      "blockit_mcp.js",
+      "BLOCKIT_RUNTIME_URL",
+      "blockit_geometry_e2e_disposable",
+    ]) expect(runbook).not.toContain(retired);
+    expect(vocabulary).toContain("x-lazydesigner-authoring-stage");
+    expect(vocabulary).toContain("retired `x-blockit-authoring-phase`");
+    expect(routing).toContain("retired BlockIT values are only migration evidence");
+  });
+
   test("compatibility policy explicitly forbids blind bulk rename", async () => {
     const policy = await source("../docs/04-system/compatibility-identifiers.md");
     expect(policy).toContain("Active Decision — Canonical LazyDesigner-only Installation");

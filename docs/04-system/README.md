@@ -63,7 +63,7 @@ What development discipline, permission and STOP checks apply?
 Which Skill category/semantic owner applies?
 → skill-taxonomy.md
 
-Which legacy BlockIT identifier must remain stable during migration?
+Which active LazyDesigner identifiers are canonical, and which retired BlockIT values are only migration evidence?
 → compatibility-identifiers.md
 ```
 
