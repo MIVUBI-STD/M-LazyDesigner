@@ -85,6 +85,12 @@ export function buildReadiness(
     snapshot.runtime.mcp_client_ready === true &&
     !snapshot.runtime.catalog_stale &&
     !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
+  // Missing internal evidence differs from an initial handshake or known
+  // failure: do not claim readiness and give the caller an actionable reason.
+  const clientStateUnknown =
+    snapshot.runtime.online &&
+    snapshot.runtime.mcp_client_ready === undefined &&
+    !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
 
   if (mode === "SYSTEM_DEVELOPMENT") {
     return {
@@ -97,6 +103,7 @@ export function buildReadiness(
       reasons: [
         "SYSTEM_DEVELOPMENT_MODE",
         ...(handshakePending ? ["RUNTIME_HANDSHAKE_PENDING"] : []),
+        ...(clientStateUnknown ? ["RUNTIME_CLIENT_STATE_UNKNOWN"] : []),
         ...(snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY")
           ? ["RUNTIME_CLIENT_NOT_READY"]
           : []),
@@ -116,6 +123,7 @@ export function buildReadiness(
 
   if (!snapshot.runtime.online) reasons.push("RUNTIME_OFFLINE");
   if (handshakePending) reasons.push("RUNTIME_HANDSHAKE_PENDING");
+  if (clientStateUnknown) reasons.push("RUNTIME_CLIENT_STATE_UNKNOWN");
   if (snapshot.runtime.catalog_stale) reasons.push("CATALOG_STALE");
   if (snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY")) reasons.push("RUNTIME_CLIENT_NOT_READY");
   if (snapshot.blockers.includes("PROJECT_CONTEXT_UNVERIFIED")) reasons.push("PROJECT_CONTEXT_UNVERIFIED");

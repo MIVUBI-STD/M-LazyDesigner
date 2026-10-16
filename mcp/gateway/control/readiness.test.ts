@@ -155,6 +155,7 @@ describe("Control readiness policy", () => {
     expect(asset.runtime_ready).toBe(false);
     expect(asset.modelling_start).toBe("BLOCKED");
     expect(asset.reasons).not.toContain("RUNTIME_HANDSHAKE_PENDING");
+    expect(asset.reasons).toContain("RUNTIME_CLIENT_STATE_UNKNOWN");
 
     const dev = buildReadiness(
       unknown, emptyWorkspace(), emptyReference("REFERENCE_PATH_UNAVAILABLE"),
@@ -163,6 +164,7 @@ describe("Control readiness policy", () => {
     expect(dev.runtime_ready).toBe(false);
     expect(dev.modelling_start).toBe("NEEDS_ORIENTATION");
     expect(dev.context_ready).toBe(true);
+    expect(dev.reasons).toContain("RUNTIME_CLIENT_STATE_UNKNOWN");
     // Explicitly confirmed MCP readiness still works in the next request.
     expect(buildReadiness(
       baseline, emptyWorkspace(), reference,
