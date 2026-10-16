@@ -92,21 +92,26 @@ Safe presentation migration includes:
 
 Do not expose compatibility residue as a second product name.
 
+## Active Runtime Configuration Boundary
+
+The canonical Gateway reconnect settings are `LAZYDESIGNER_GATEWAY_RECONNECT_MIN_MS` and `LAZYDESIGNER_GATEWAY_RECONNECT_MAX_MS`. The optional local Asset Browser cache override is `LAZYDESIGNER_VANILLA_ASSET_CACHE_DIR`. Retired `BLOCKIT_*` configuration must not silently control the active LazyDesigner Runtime. The vanilla asset cache directory itself retains Blockbench's actual `minecraft_assets_cache` name; this is a third-party filesystem convention, not a retired product identity.
+
 ## Generated Documentation Boundary
 
-`mcp/scripts/generate/generate-docs.ts` owns generated API HTML presentation and currently has stale pre-rename display strings in its generated template. `mcp/docs/api.json` / `mcp/docs/index.html` are generated outputs and must not be hand-edited.
+`mcp/scripts/generate/generate-docs.ts` owns the API HTML presentation. The generator template and its prompt/export/install source descriptions now use LazyDesigner, but checked-in `mcp/docs/api.json` and `mcp/docs/index.html` still contain pre-rename generated output. Those files remain generator-owned; never hand-edit them.
 
 Because the current context is `REMOTE_GITHUB` and canonical generated output requires `LOCAL_CODE` generator execution, treat this as one bounded source+generation residue:
 
 ```text
 LOCAL_CODE
-→ update `mcp/scripts/generate/generate-docs.ts`
-→ bun run docs:build
-→ bun run docs:check
-→ commit source + generated output together
+→ use current canonical generator source on one exact Local SHA
+→ bun run generate:owned-artifacts
+→ inspect generated API/HTML, prompt manifest and Hybrid-4 schema diffs
+→ commit only generator-produced outputs from that same source state
+→ bun run docs:check and matching-SHA source verification
 ```
 
-Do not mutate the generator into a state that leaves committed generated output knowingly stale.
+The source/output mismatch is an OPEN generator-coupled residue, not a passing documentation gate. Do not claim docs:check or release readiness until the output is regenerated and verified.
 
 ## Migration Preconditions
 

@@ -170,7 +170,7 @@ function uniquePaths(paths: Array<string | undefined>): string[] {
 
 export function defaultAssetBrowserCacheDirectories(): string[] {
   const home = process.env.HOME?.trim() || homedir();
-  const override = process.env.BLOCKIT_VANILLA_ASSET_CACHE_DIR;
+  const override = process.env.LAZYDESIGNER_VANILLA_ASSET_CACHE_DIR;
   const appData = process.env.APPDATA?.trim();
   const xdgConfig = process.env.XDG_CONFIG_HOME?.trim();
   const cacheName = "minecraft_assets_cache";
@@ -811,7 +811,7 @@ export class VanillaEntityReferenceProvider {
         {
           source: "asset_browser",
           action:
-            "Open a Bedrock release once in Asset Browser, or set BLOCKIT_VANILLA_ASSET_CACHE_DIR to its minecraft_assets_cache directory.",
+            "Open a Bedrock release once in Asset Browser, or set LAZYDESIGNER_VANILLA_ASSET_CACHE_DIR to its minecraft_assets_cache directory.",
         },
         true
       );

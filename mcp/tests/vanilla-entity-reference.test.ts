@@ -215,6 +215,9 @@ describe("lazy vanilla Bedrock entity reference", () => {
     expect(await provider.isAvailable()).toBe(false);
     await expect(provider.invoke({ entity: "cow" })).rejects.toMatchObject({
       code: "REFERENCE_SOURCE_UNAVAILABLE",
+      details: {
+        action: expect.stringContaining("LAZYDESIGNER_VANILLA_ASSET_CACHE_DIR"),
+      },
     } satisfies Partial<VanillaEntityReferenceError>);
   });
 

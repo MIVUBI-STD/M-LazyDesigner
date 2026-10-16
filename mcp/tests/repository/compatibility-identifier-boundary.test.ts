@@ -133,6 +133,23 @@ describe("LazyDesigner compatibility identifier boundary", () => {
 
   });
 
+  test("active Gateway reconnect and cached vanilla reference configuration are LazyDesigner-only", async () => {
+    const [manager, referenceProvider] = await Promise.all([
+      source("gateway/runtime/connectionManager.ts"),
+      source("gateway/providers/vanillaEntityReference.ts"),
+    ]);
+    for (const key of [
+      "LAZYDESIGNER_GATEWAY_RECONNECT_MIN_MS",
+      "LAZYDESIGNER_GATEWAY_RECONNECT_MAX_MS",
+    ]) expect(manager).toContain(`process.env.${key}`);
+    expect(manager).not.toContain("process.env.BLOCKIT_GATEWAY_RECONNECT_");
+    expect(referenceProvider).toContain("process.env.LAZYDESIGNER_VANILLA_ASSET_CACHE_DIR");
+    expect(referenceProvider).not.toContain("BLOCKIT_VANILLA_ASSET_CACHE_DIR");
+    expect(referenceProvider).toContain(
+      "set LAZYDESIGNER_VANILLA_ASSET_CACHE_DIR"
+    );
+  });
+
   test("compatibility policy explicitly forbids blind bulk rename", async () => {
     const policy = await source("../docs/04-system/compatibility-identifiers.md");
     expect(policy).toContain("Active Decision — Canonical LazyDesigner-only Installation");

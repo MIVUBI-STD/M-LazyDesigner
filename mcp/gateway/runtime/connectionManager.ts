@@ -3,8 +3,8 @@ import { RuntimeSessionState } from "./runtimeSession";
 
 export class GatewayConnectionManager {
   readonly reconnect = new ReconnectPolicy({
-    minBackoffMs: Number(process.env.BLOCKIT_GATEWAY_RECONNECT_MIN_MS ?? 250),
-    maxBackoffMs: Number(process.env.BLOCKIT_GATEWAY_RECONNECT_MAX_MS ?? 2_000),
+    minBackoffMs: Number(process.env.LAZYDESIGNER_GATEWAY_RECONNECT_MIN_MS ?? 250),
+    maxBackoffMs: Number(process.env.LAZYDESIGNER_GATEWAY_RECONNECT_MAX_MS ?? 2_000),
   });
   readonly session = new RuntimeSessionState();
   // A recovered /health endpoint is not proof that the MCP client recovered.
