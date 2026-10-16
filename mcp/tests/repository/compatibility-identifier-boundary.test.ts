@@ -115,6 +115,22 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     expect(install).toContain("mcp/dist/lazydesigner_mcp.js");
     expect(install).not.toContain("mcp/dist/blockit_mcp.js");
     expect(install).toContain("Legacy Compatibility (Developer)");
+    const [camera, keyframe, textureRevision, knowledge, paint] = await Promise.all([
+      source("server/tools/inspection/camera.ts"),
+      source("server/tools/animation/keyframeSchema.ts"),
+      source("lib/texture/evidence.ts"),
+      source("server/resources/texture-authoring-knowledge.ts"),
+      source("server/tools/paint/textureTransaction.ts"),
+    ]);
+    expect(camera).not.toContain("normal BlockIT Bedrock Entity surface");
+    expect(camera).toContain("normal LazyDesigner Bedrock Entity surface");
+    expect(keyframe).toContain("never evaluated by LazyDesigner.");
+    expect(textureRevision).toContain("Full decoded-RGBA texture revision returned by LazyDesigner.");
+    expect(knowledge).toContain("On-demand LazyDesigner texture treatment knowledge:");
+    expect(paint).toContain("LazyDesigner requested write access to save texture PNG");
+    // Temporary file naming is not product presentation or a persisted wire ID.
+    expect(paint).toContain(".blockit-");
+
   });
 
   test("compatibility policy explicitly forbids blind bulk rename", async () => {

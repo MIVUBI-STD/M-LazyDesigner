@@ -10,7 +10,7 @@ import {
 export const textureRevisionSchema = z
   .string()
   .regex(/^sha256:\d+x\d+:[0-9a-f]{64}$/)
-  .describe("Full decoded-RGBA texture revision returned by BlockIT.");
+  .describe("Full decoded-RGBA texture revision returned by LazyDesigner.");
 
 export const textureEvidenceRegionSchema = z
   .object({

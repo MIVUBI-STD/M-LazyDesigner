@@ -23,7 +23,7 @@ export const textureAuthoringKnowledgeResourceDocs: ResourceSpec = {
   uriTemplate: "texture-authoring://{topic}",
   title: "Texture Authoring Knowledge",
   description:
-    "On-demand BlockIT texture treatment knowledge: surface-pattern recipes, Vanilla pixel/render principles, known entity render profiles, and treatment-plan structure. Read only the topic needed for the current texture decision.",
+    "On-demand LazyDesigner texture treatment knowledge: surface-pattern recipes, Vanilla pixel/render principles, known entity render profiles, and treatment-plan structure. Read only the topic needed for the current texture decision.",
 };
 
 function isTopic(value: string | undefined): value is TextureKnowledgeTopic {

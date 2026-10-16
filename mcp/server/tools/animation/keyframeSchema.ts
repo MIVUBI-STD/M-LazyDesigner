@@ -35,7 +35,7 @@ const manageKeyframeDataSchema = z.object({
   values: z
     .union([manageTransformVector3Schema, manageTransformValueSchema])
     .optional()
-    .describe("Authored [x,y,z] or uniform transform value. Each axis may be a finite number or explicit non-empty Molang string; strings are preserved, never evaluated by BlockIT."),
+    .describe("Authored [x,y,z] or uniform transform value. Each axis may be a finite number or explicit non-empty Molang string; strings are preserved, never evaluated by LazyDesigner."),
   interpolation: interpolationEnum
     .optional()
     .describe("Optional interpolation change. Omit on edit to preserve the existing interpolation."),

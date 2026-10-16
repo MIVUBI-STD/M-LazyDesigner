@@ -495,7 +495,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "capture_app_screenshot",
     description:
-      "Source-preserved generic Blockbench full-application screenshot helper. It is disabled in the normal BlockIT Bedrock Entity surface; use `capture_model_views` or `capture_screenshot` for model evidence.",
+      "Source-preserved generic Blockbench full-application screenshot helper. It is disabled in the normal LazyDesigner Bedrock Entity surface; use `capture_model_views` or `capture_screenshot` for model evidence.",
     annotations: {
       title: "Capture App Screenshot",
       readOnlyHint: true,
@@ -506,7 +506,7 @@ export const cameraToolDocs: ToolSpec[] = [
   {
     name: "set_camera_angle",
     description:
-      "Source-preserved generic editor-camera mutation helper. It is disabled in the normal BlockIT Bedrock Entity surface because `capture_model_views` provides deterministic observation without mutating the active editor camera.",
+      "Source-preserved generic editor-camera mutation helper. It is disabled in the normal LazyDesigner Bedrock Entity surface because `capture_model_views` provides deterministic observation without mutating the active editor camera.",
     annotations: {
       title: "Set Camera Angle",
       destructiveHint: true,

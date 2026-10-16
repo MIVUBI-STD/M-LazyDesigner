@@ -57,7 +57,7 @@ type PreparedTexturePngWrite = {
 function requireTexturePngFilesystem(path: string): TexturePngFilesystem {
   // @ts-ignore - Blockbench desktop provides fs through requireNativeModule.
   const fs = requireNativeModule("fs", {
-    message: `BlockIT requested write access to save texture PNG ${path}`,
+    message: `LazyDesigner requested write access to save texture PNG ${path}`,
   }) as TexturePngFilesystem | undefined;
   if (!fs) throw new Error("File system access was denied for texture PNG output.");
   return fs;
