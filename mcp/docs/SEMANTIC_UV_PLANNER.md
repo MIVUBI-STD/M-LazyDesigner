@@ -1,7 +1,7 @@
 # Semantic UV Planner
 
-Status: SOURCE FOUNDATION
-Updated: 2026-09-21
+Status: SEMANTIC PLANNER SOURCE IMPLEMENTED; end-to-end native registration pending
+Updated: 2026-10-16
 Branch: Local
 
 ## Goal
@@ -18,7 +18,7 @@ surface/world extent
 + affected IDs
 → bounded atlas plan
 → semantic diff
-→ future native affected-only UV transaction
+→ intended native affected-only UV integration (not wired to the public Runtime yet)
 ```
 
 ## Implemented source foundation
@@ -32,7 +32,7 @@ surface/world extent
 
 ## Important limits
 
-This layer does not yet mutate Blockbench faces. It also does not infer Cube face islands automatically from geometry. Native UV extraction/application must remain owned by the existing UV/Texturing surface and must prove Undo, pixel-grid correctness, Box-UV/native rotation semantics and save/reopen behavior before public registration.
+This layer does not yet mutate Blockbench faces. It also does not infer Cube face islands automatically from geometry. Native UV extraction/application is Geometry/Modelling-owned inside the shared AUTHORING Runtime surface. Native source/apply/rollback components now exist under `mcp/lib/uv/` and `mcp/server/runtime/uv/`, but the semantic planner is not yet a registered MCP executor. Undo, pixel-grid correctness, Box-UV/native rotation and save/reopen still need matching native proof before registration.
 
 Shared UV is explicit. The planner never guesses reuse from equal dimensions alone.
 
@@ -43,5 +43,5 @@ Locked regions are treated as authored authority and cannot be displaced by incr
 1. derive semantic island candidates from existing face/Box-UV state and Authoring Recipe symmetry policy;
 2. preserve exact pixel-grid mapping and cohort density contracts;
 3. compile a native affected-only UV apply plan;
-4. expose through the existing UV/Texturing owner rather than adding another public tool family;
+4. integrate through the existing Geometry/Modelling UV owner rather than adding another public tool family;
 5. benchmark changed-island count, payload, wall-clock and correction rounds against explicit UV editing.

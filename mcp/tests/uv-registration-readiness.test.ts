@@ -63,6 +63,25 @@ describe("UV Runtime registration readiness", () => {
     ]);
   });
 
+  test("UV engine documents reflect current source implementation without claiming Runtime registration", async () => {
+    const engine = await Bun.file("docs/UV_AUTHORING_ENGINE.md").text();
+    const planner = await Bun.file("docs/SEMANTIC_UV_PLANNER.md").text();
+    for (const source of [
+      "lib/uv/stacking.ts",
+      "lib/uv/receipt.ts",
+      "lib/uv/invalidation.ts",
+      "lib/uv/planRegistry.ts",
+      "lib/uv/transaction.ts",
+      "lib/uv/service.ts",
+      "lib/uv/adapters/blockbenchCubeUv.ts",
+    ]) expect(await Bun.file(source).exists(), source).toBe(true);
+    expect(engine).toContain("Geometry/Modelling owner");
+    expect(engine).toContain("source implemented");
+    expect(engine).toContain("does NOT register a new Runtime capability");
+    expect(planner).toContain("Geometry/Modelling-owned");
+    expect(planner).toContain("not yet a registered MCP executor");
+  });
+
   test("remote prewiring does not register manage_uv_layout before generated docs can be refreshed", () => {
     expect(tools).not.toHaveProperty("manage_uv_layout");
   });

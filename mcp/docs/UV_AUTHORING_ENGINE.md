@@ -1,7 +1,7 @@
 # LazyDesigner UV Authoring Engine
 
-Status: SOURCE FOUNDATION IN PROGRESS  
-Updated: 2026-09-21  
+Status: SOURCE IMPLEMENTED BELOW REGISTRATION; Bun/Blockbench acceptance pending  
+Updated: 2026-10-16  
 Branch: `Local`
 
 ## Purpose
@@ -48,7 +48,7 @@ Runtime/native ownership remains at the adapter/apply boundary.
 
 ## Source Layout
 
-Current / intended ownership:
+Current source ownership (only `orientation.ts` and `blockbenchTemplate.ts` below are planned):
 
 ```text
 mcp/lib/uv/
@@ -61,16 +61,19 @@ mcp/lib/uv/
 │   ├── maxRects.ts
 │   ├── scorer.ts
 │   └── planner.ts
-├── stacking.ts              future
-├── orientation.ts           future
-├── receipt.ts               future
-├── invalidation.ts          future
+├── stacking.ts              source implemented
+├── receipt.ts               source implemented
+├── invalidation.ts          source implemented
+├── planRegistry.ts          source implemented
+├── transaction.ts           source implemented
+├── service.ts               source implemented
+├── orientation.ts           planned, not present
 └── adapters/
-    ├── blockbenchCubeUv.ts  future
-    └── blockbenchTemplate.ts future
+    ├── blockbenchCubeUv.ts  source implemented
+    └── blockbenchTemplate.ts planned, not present
 ```
 
-Legacy owners remain authoritative until the adapter/apply stage is explicitly integrated:
+Existing registered Runtime operations remain the active native UV authority until source-implemented planner/apply wiring is registered, generator-backed and verified:
 
 - `mcp/lib/boxUvLayout.ts`
 - `mcp/lib/uvPhysicalEvidence.ts`
@@ -114,7 +117,7 @@ Conflicting rules fail closed. Packer order must never decide semantic intent.
 
 ### Versioning
 
-Every applied future plan/receipt must retain:
+Every applied UV plan/receipt must retain:
 
 ```text
 planner_version
@@ -297,7 +300,7 @@ Implemented source contracts now include:
 12. Blockbench read/apply/restore/Undo adapter;
 13. plan/apply request schemas for future manage_uv_layout registration.
 
-The source-ready integration intentionally does NOT register a new Runtime capability yet. Registration changes generated MCP API documentation, and repository policy forbids hand-editing generated outputs. LOCAL_CODE must run the canonical docs generator when the capability is wired into the Texturing family.
+The source-ready integration intentionally does NOT register a new Runtime capability yet. Registration changes generated MCP API documentation, and repository policy forbids hand-editing generated outputs. LOCAL_CODE must run the canonical docs generator when `manage_uv_layout` is wired to the Geometry/Modelling owner on the shared AUTHORING Runtime surface. Source presence alone is not native acceptance or UV Layout PASS.
 
 Planned runtime surface after that generator-backed integration:
 
