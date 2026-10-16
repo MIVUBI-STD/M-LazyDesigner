@@ -73,15 +73,15 @@ mcp/lib/uv/
     └── blockbenchTemplate.ts planned, not present
 ```
 
-Existing registered Runtime operations remain the active native UV authority until source-implemented planner/apply wiring is registered, generator-backed and verified:
+Registered Runtime operations remain the active native UV authority until the source-implemented planner/apply service is explicitly registered, generator-backed and verified. Their canonical implementation owners are:
 
-- `mcp/lib/boxUvLayout.ts`
-- `mcp/lib/uvPhysicalEvidence.ts`
-- `mcp/server/tools/texture-atlas.ts`
-- `mcp/server/tools/texture-create.ts`
-- `manage_cubes` native UV fields
+- `mcp/lib/uv/boxLayout.ts` — existing Box UV layout helper;
+- `mcp/lib/uv/physicalEvidence.ts` — physical UV evidence;
+- `mcp/server/tools/texture/atlas.ts` — current atlas/UV inventory;
+- `mcp/server/tools/texture/create.ts` — native template creation;
+- `mcp/server/tools/geometry/cubes.ts` — `manage_cubes` native UV fields.
 
-Do not silently redirect current production mutations to the new planner before atomic apply + rollback + receipt tests exist.
+The former root paths `mcp/lib/boxUvLayout.ts`, `mcp/lib/uvPhysicalEvidence.ts`, `mcp/server/tools/texture-atlas.ts` and `mcp/server/tools/texture-create.ts` are compatibility **re-export facades**, not implementation owners. Preserve them for existing consumers; do not create a parallel engine. Source transaction/receipt tests exist, but matching-SHA Bun and native apply/Undo/reopen verification plus Runtime registration are still required before switching production to `manage_uv_layout`.
 
 ## Data Model
 
@@ -117,16 +117,17 @@ Conflicting rules fail closed. Packer order must never decide semantic intent.
 
 ### Versioning
 
-Every applied UV plan/receipt must retain:
+Current `UvLayoutPlan` and `UvLayoutReceipt` source types retain:
 
 ```text
+schema
 planner_version
-packing_backend
-packing_backend_version
-constraint schema/version
+backend
+backend_version
+mode
 ```
 
-Changing a backend implementation must not silently rewrite established project layouts.
+The contract uses `backend` and `backend_version` (not `packing_backend` or `packing_backend_version`). A separate constraint-schema version field is **not currently recorded** in these plan/receipt types; it remains a future migration consideration, not an implemented guarantee. Changing a backend implementation must not silently rewrite established project layouts.
 
 ## Density Contract
 

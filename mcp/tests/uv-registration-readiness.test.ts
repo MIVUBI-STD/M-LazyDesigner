@@ -82,6 +82,34 @@ describe("UV Runtime registration readiness", () => {
     expect(planner).toContain("not yet a registered MCP executor");
   });
 
+  test("UV documentation distinguishes canonical implementations from compatibility facades", async () => {
+    const [document, receipt, contracts] = await Promise.all([
+      Bun.file("docs/UV_AUTHORING_ENGINE.md").text(),
+      Bun.file("lib/uv/receipt.ts").text(),
+      Bun.file("lib/uv/contracts.ts").text(),
+    ]);
+    for (const path of [
+      "lib/uv/boxLayout.ts",
+      "lib/uv/physicalEvidence.ts",
+      "server/tools/texture/atlas.ts",
+      "server/tools/texture/create.ts",
+      "server/tools/geometry/cubes.ts",
+    ]) expect(await Bun.file(path).exists(), path).toBe(true);
+    expect(document).toContain("compatibility **re-export facades**");
+    expect(document).toContain("lib/uv/boxLayout.ts");
+    expect(document).toContain("lib/uv/physicalEvidence.ts");
+    expect(document).toContain("server/tools/texture/atlas.ts");
+    expect(document).toContain("server/tools/texture/create.ts");
+    expect(document).toContain("server/tools/geometry/cubes.ts");
+    for (const field of ["schema", "planner_version", "backend", "backend_version", "mode"]) {
+      expect(document).toContain(field);
+      expect(contracts).toContain(`${field}:`);
+    }
+    expect(receipt).toContain("backend: plan.backend");
+    expect(document).toContain("constraint-schema version field is **not currently recorded**");
+    expect(document).toContain("matching-SHA Bun and native apply/Undo/reopen verification");
+  });
+
   test("remote prewiring does not register manage_uv_layout before generated docs can be refreshed", () => {
     expect(tools).not.toHaveProperty("manage_uv_layout");
   });
