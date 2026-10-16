@@ -1,5 +1,6 @@
 import { open, readdir, stat } from "node:fs/promises";
 import { homedir } from "node:os";
+import type { Stats } from "node:fs";
 import { basename, join } from "node:path";
 import { inflateRawSync } from "node:zlib";
 import type { BackendTool, JsonRecord } from "../contracts/protocol";
@@ -97,7 +98,7 @@ type ZipEntry = {
 
 type ZipIndex = {
   archivePath: string;
-  mtimeMs: number;
+  signature: string;
   entries: ZipEntry[];
 };
 
@@ -264,6 +265,15 @@ async function readExact(
   return buffer;
 }
 
+// The Asset Browser may replace a downloaded ZIP while restoring its mtime.
+// A path+mtime-only cache would keep both an obsolete entry index and the
+// decoded geometry cache from the previous archive.
+function archiveIndexSignature(
+  info: Pick<Stats, "dev" | "ino" | "size" | "mtimeMs" | "ctimeMs">
+): string {
+  return `${info.dev}:${info.ino}:${info.size}:${info.mtimeMs}:${info.ctimeMs}`;
+}
+
 async function buildZipIndex(archivePath: string): Promise<ZipIndex> {
   const archiveStat = await stat(archivePath);
   const handle = await open(archivePath, "r");
@@ -353,7 +363,7 @@ async function buildZipIndex(archivePath: string): Promise<ZipIndex> {
 
     return {
       archivePath,
-      mtimeMs: archiveStat.mtimeMs,
+      signature: archiveIndexSignature(archiveStat),
       entries,
     };
   } finally {
@@ -749,7 +759,7 @@ export class VanillaEntityReferenceProvider {
     if (
       this.zipIndex &&
       this.zipIndex.archivePath === archivePath &&
-      this.zipIndex.mtimeMs === archiveStat.mtimeMs
+      this.zipIndex.signature === archiveIndexSignature(archiveStat)
     ) {
       return this.zipIndex;
     }

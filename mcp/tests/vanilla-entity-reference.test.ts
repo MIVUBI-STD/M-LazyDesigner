@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rename, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { deflateRawSync } from "node:zlib";
@@ -76,7 +76,7 @@ function deflatedZip(entries: Record<string, string>): Buffer {
   return Buffer.concat([...localParts, centralDirectory, eocd]);
 }
 
-async function fixtureArchive(): Promise<string> {
+async function fixtureArchive(headBoneName = "head"): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), "blockit-vanilla-reference-"));
   cleanupPaths.push(directory);
   const archivePath = join(directory, "v1.26.40.05.zip");
@@ -99,7 +99,7 @@ async function fixtureArchive(): Promise<string> {
             cubes: [{ origin: [-6, 6, -8], size: [12, 10, 16], uv: [0, 0] }],
           },
           {
-            name: "head",
+            name: headBoneName,
             parent: "body",
             pivot: [0, 12, -8],
             cubes: [{ origin: [-4, 10, -14], size: [8, 8, 6], uv: [0, 26] }],
@@ -192,6 +192,32 @@ describe("lazy vanilla Bedrock entity reference", () => {
       size: [8, 8, 6],
       uv: [0, 26],
     });
+  });
+
+  test("replaced cached ZIP with restored mtime refreshes geometry instead of replaying stale definitions", async () => {
+    const archivePath = await fixtureArchive();
+    const replacementPath = await fixtureArchive("tail");
+    const fixedTime = new Date("2024-01-01T00:00:00.000Z");
+    await utimes(archivePath, fixedTime, fixedTime);
+    const provider = new VanillaEntityReferenceProvider({ archivePath });
+
+    const first = await provider.invoke({ entity: "cow", detail: "rig" });
+    const firstBones = first.structuredContent.bones as Array<{ name: string }>;
+    expect(firstBones.map((bone) => bone.name)).toContain("head");
+    // Warm both the ZIP index and its decoded geometry cache.
+    expect((await provider.invoke({ entity: "cow", detail: "rig" }))
+      .structuredContent).toEqual(first.structuredContent);
+    const before = await stat(archivePath);
+
+    await utimes(replacementPath, fixedTime, fixedTime);
+    await rename(replacementPath, archivePath);
+    const after = await stat(archivePath);
+    expect(after.mtimeMs).toBe(before.mtimeMs);
+
+    const refreshed = await provider.invoke({ entity: "cow", detail: "rig" });
+    const refreshedBones = refreshed.structuredContent.bones as Array<{ name: string }>;
+    expect(refreshedBones.map((bone) => bone.name)).toContain("tail");
+    expect(refreshedBones.map((bone) => bone.name)).not.toContain("head");
   });
 
   test("selects an internal geometry variant without requiring a second model file", async () => {
