@@ -16,7 +16,7 @@ export const exportModelParameters = z.object({
     .optional()
     .default("bedrock")
     .describe(
-      "BlockIT output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`."
+      "LazyDesigner output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`."
     ),
   options: z
     .record(z.string(), z.unknown())
@@ -55,9 +55,9 @@ export const exportToolDocs: ToolSpec[] = [
   {
     name: "list_export_formats",
     description:
-      "Lists the model outputs intentionally exposed by BlockIT for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.",
+      "Lists the model outputs intentionally exposed by LazyDesigner for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.",
     annotations: {
-      title: "List BlockIT Model Outputs",
+      title: "List LazyDesigner Model Outputs",
       readOnlyHint: true,
     },
     parameters: listExportFormatsParameters,

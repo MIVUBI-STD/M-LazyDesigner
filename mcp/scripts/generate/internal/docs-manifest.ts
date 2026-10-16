@@ -78,7 +78,7 @@ export const promptDocs: PromptSpec[] = [
     name: "bedrock_entity_workflow",
     title: "Minecraft Bedrock Entity Workflow",
     description:
-      "Compact BlockIT workflow for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, protected native gaps, and Bedrock/.bbmodel export.",
+      "Compact LazyDesigner workflow for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, protected native gaps, and Bedrock/.bbmodel export.",
     argsSchema: z.object({}),
     status: "stable",
   },

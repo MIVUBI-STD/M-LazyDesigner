@@ -94,6 +94,29 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     expect(exporter).toContain("BLOCKIT_MODEL_CODEC_IDS");
   });
 
+  test("canonical generators own current product branding, not the active Stage catalog", async () => {
+    const [generator, manifest, exporter, install] = await Promise.all([
+      source("scripts/generate/generate-docs.ts"),
+      source("scripts/generate/internal/docs-manifest.ts"),
+      source("server/tools/io/export.ts"),
+      source("docs/llms/install.md"),
+    ]);
+    expect(generator).toContain('import { PRODUCT_NAME } from "../../lib/product/productIdentity"');
+    expect(generator).toContain("<title>${escapeHtml(PRODUCT_NAME)} — API Reference</title>");
+    expect(generator.match(/<h1>\$\{escapeHtml\(PRODUCT_NAME\)\}<\/h1>/g)).toHaveLength(2);
+    expect(generator).toContain("not the active Runtime tool surface");
+    expect(generator).not.toContain("BlockIT — Bedrock Entity MCP");
+    expect(manifest).toContain("Compact LazyDesigner workflow");
+    expect(manifest).not.toContain("Compact BlockIT workflow");
+    expect(exporter).toContain("List LazyDesigner Model Outputs");
+    expect(exporter).toContain("Lists the model outputs intentionally exposed by LazyDesigner");
+    expect(exporter).toContain("LazyDesigner output: `bedrock`");
+    expect(exporter).toContain("BLOCKIT_MODEL_CODEC_IDS"); // compatibility type only
+    expect(install).toContain("mcp/dist/lazydesigner_mcp.js");
+    expect(install).not.toContain("mcp/dist/blockit_mcp.js");
+    expect(install).toContain("Legacy Compatibility (Developer)");
+  });
+
   test("compatibility policy explicitly forbids blind bulk rename", async () => {
     const policy = await source("../docs/04-system/compatibility-identifiers.md");
     expect(policy).toContain("Active Decision — Canonical LazyDesigner-only Installation");
