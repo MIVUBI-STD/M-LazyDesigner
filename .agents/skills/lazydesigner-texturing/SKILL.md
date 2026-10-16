@@ -13,7 +13,7 @@ CLASS: SPECIALIST
 OWNER: TEXTURE_MATERIAL
 ```
 
-Enter when the active Control stage owns mapped texture pixels, atlas styling, materials/PBR, alpha/emissive, variants, or Texture Verify. UV/Geometry defects use a bounded upstream authoring handoff; they do not authorize Cube mutation here. A weak visual result does not justify product-development source inspection without bounded system-defect evidence.
+Enter for mapped atlas pixels, styling, PBR/materials, alpha/emissive, variants, or Texture Verify. Geometry/UV defects need bounded Modelling correction, not Cube mutation here. Escalate to product development only with concrete Runtime/system evidence.
 
 
 Geometry/UV capabilities remain available in the shared AUTHORING Runtime Surface for **Modelling-owned** bounded upstream correction; Texturing **must not borrow Cube/UV mutation or claim UV Layout PASS**.
@@ -24,7 +24,7 @@ User-authorized autonomy replaces approval waits with verified checkpoints; neve
 
 Start from LazyDesigner Control's stage-specific Texturing projection; do not reload the complete Modelling Profile or Reference Package.
 
-Keep only decision-relevant context: current texture request, asset/profile label, Geometry APPROVED + UV Layout PASS, affected semantic/material IDs, identity markings/palette, render/PBR/alpha/emissive requirements, relevant approved reference views, current atlas/UV identity, and texture-stage blockers.
+Keep texture intent, asset/profile, Geometry APPROVED + UV Layout PASS, material IDs, palette/identity, render/PBR/alpha constraints, approved reference views, current atlas/UV identity, and blockers.
 
 If a decision-critical item is missing, request only that exact context through Control. Do not broaden into full-profile/reference loading as reassurance.
 
@@ -32,7 +32,7 @@ If a decision-critical item is missing, request only that exact context through 
 
 Pixel Art is conditional reference evidence, never a second Texturing workflow. When an approved Pixel Art artifact exists, consume only its compact visual handoff: identity, target grid/scale, authoritative palette/material/marking/alpha/orientation/style constraints, provenance, and blockers.
 
-Do not inherit production UV/atlas coordinates, Blockbench texture IDs, material-instance/render-profile state, mapped-surface PASS, or particle runtime semantics from Pixel Art. Production UV Layout/lock and UV PASS are Geometry/Modelling-owned. Actual atlas bitmap mutation, render/material state, and mapped-model texture verification remain Texturing-owned. A native template creation may arrange UV only within the Geometry-approved UV workflow; report altered UV for Modelling review rather than claiming UV PASS from a texture mutation.
+Pixel Art supplies visual constraints, not production UV/atlas coordinates, Blockbench texture IDs, material/render state, mapped-surface PASS, or particle semantics. Geometry owns UV Layout/lock/PASS; Texturing owns atlas pixels, materials and mapped-model verification. If native template creation rearranges UV, return it for Modelling review; never infer UV PASS.
 
 Use the active handoff facts directly. Load `docs/02-reference/pixel-art/texture-reference.md` only when the Pixel-Art→Texturing boundary or missing visual contract is materially unclear; never load the full Pixel Art corpus as reassurance.
 

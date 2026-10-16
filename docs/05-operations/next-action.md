@@ -16,6 +16,8 @@ This file owns **current continuation only**, not the patch history. Canonical w
 
 **R02 missing-client diagnostic (2026-10-16):** When internal `mcp_client_ready` is absent, existing fail-closed readiness now returns `RUNTIME_CLIENT_STATE_UNKNOWN` in both Asset Authoring and System Development. Cold HTTP-only probes remain `RUNTIME_HANDSHAKE_PENDING`; known failures remain `RUNTIME_CLIENT_NOT_READY`. Source regression authored, Bun/CI/native NOT_EXECUTED. No new Runtime requests or retries.
 
+**Repository-gate fixes:** Canonical LazyDesigner artifact names replace retired BlockIT expectations in the SHA-pinning test; redundant Texturing Skill prose was trimmed below 9,800 characters without weakening UV ownership. Source checks only; Bun/CI NOT_EXECUTED.
+
 ## MCP boundaries still open
 
 - **Animation permission:** `geometry_approved`, `texture_approved`, `autonomous_authorized`, `no_blockers`, and evidence text originate with the caller; truthful receipt labels do not prove real user consent. Native file stat confirms a nonempty file and matching saved project path, not model content checksum, approved reference, or whole-asset quality. Independent authorization evidence remains unresolved; do not invent an approval registry, new MCP tool, or a false user approval claim.

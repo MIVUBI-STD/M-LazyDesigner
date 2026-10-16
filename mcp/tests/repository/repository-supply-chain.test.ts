@@ -94,9 +94,9 @@ describe("repository workflow supply chain", () => {
     const workflow = await source("../.github/workflows/mcp-verify.yml");
     expect(workflow).toContain("bun run ./scripts/operations/verified-build-artifact.ts write-ci");
     expect(workflow).toContain("bun run verify:full");
-    expect(workflow).toContain("name: blockit-mcp-verified");
-    expect(workflow).toContain("mcp/dist/blockit_mcp.js");
-    expect(workflow).toContain("mcp/dist/blockit-build-provenance.json");
+    expect(workflow).toContain("name: lazydesigner-mcp-verified");
+    expect(workflow).toContain("mcp/dist/lazydesigner_mcp.js");
+    expect(workflow).toContain("mcp/dist/lazydesigner-build-provenance.json");
     expect(workflow).toContain("if-no-files-found: error");
     expect(workflow).not.toMatch(/contents:\s*write/i);
     expect(workflow).not.toContain("git push");
