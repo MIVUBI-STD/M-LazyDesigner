@@ -82,7 +82,7 @@ export function buildReadiness(
     !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
   const runtimeReady =
     snapshot.runtime.online &&
-    snapshot.runtime.mcp_client_ready !== false &&
+    snapshot.runtime.mcp_client_ready === true &&
     !snapshot.runtime.catalog_stale &&
     !snapshot.blockers.includes("RUNTIME_CLIENT_NOT_READY");
 

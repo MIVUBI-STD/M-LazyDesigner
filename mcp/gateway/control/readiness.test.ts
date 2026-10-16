@@ -137,6 +137,39 @@ describe("Control readiness policy", () => {
     expect(warm.modelling_start).toBe("READY");
   });
 
+
+  test("missing MCP readiness evidence cannot be treated as a successful handshake", () => {
+    const baseline = baseSnapshot();
+    const unknown = {
+      ...baseline,
+      runtime: { ...baseline.runtime, mcp_client_ready: undefined },
+    };
+    const reference = {
+      ...emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      available: true,
+    };
+    const asset = buildReadiness(
+      unknown, emptyWorkspace(), reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(asset.runtime_ready).toBe(false);
+    expect(asset.modelling_start).toBe("BLOCKED");
+    expect(asset.reasons).not.toContain("RUNTIME_HANDSHAKE_PENDING");
+
+    const dev = buildReadiness(
+      unknown, emptyWorkspace(), emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      "SYSTEM_DEVELOPMENT", NOT_REQUIRED_LIFECYCLE, null
+    );
+    expect(dev.runtime_ready).toBe(false);
+    expect(dev.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(dev.context_ready).toBe(true);
+    // Explicitly confirmed MCP readiness still works in the next request.
+    expect(buildReadiness(
+      baseline, emptyWorkspace(), reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    ).runtime_ready).toBe(true);
+  });
+
   test("system development does not report Runtime ready when the MCP client is lost", () => {
     const disconnected = {
       ...baseSnapshot(),
