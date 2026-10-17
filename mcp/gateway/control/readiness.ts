@@ -6,6 +6,7 @@ import type {
   ControlSnapshot,
 } from "./types";
 import type { ControlTaskMode } from "./packetContext";
+import { relevantTruncatedSectionsForAuthoringDomain } from "./contextProjection";
 
 export type LifecycleProjection = {
   ready: boolean;
@@ -121,7 +122,8 @@ export function buildReadiness(
   const contextReady =
     snapshot.context.required.length > 0 && !requiredContextUnavailable;
   const activeReferenceBlocked = activeReferenceReadiness === "BLOCKED";
-  const projectionIncomplete = (reference.truncated_sections?.length ?? 0) > 0;
+  const projectionIncomplete =
+    relevantTruncatedSectionsForAuthoringDomain(snapshot.authoring.domain, reference).length > 0;
   const reasons: string[] = [];
 
   if (!snapshot.runtime.online) reasons.push("RUNTIME_OFFLINE");

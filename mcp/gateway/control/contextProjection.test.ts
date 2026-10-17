@@ -279,6 +279,38 @@ describe("Control stage semantic projection", () => {
     ).not.toBe(base);
   });
 
+  test("omitted future-stage material facts do not block Geometry or alter its context identity", () => {
+    const baseline = stageReferenceSemanticFingerprint("GEOMETRY", reference);
+    const unrelated = {
+      ...reference,
+      fingerprint: "source|new-material-tail",
+      truncated_sections: ["materials"] as NonNullable<ControlReferenceProjection["truncated_sections"]>,
+    };
+    expect(stageReferenceSemanticFingerprint("GEOMETRY", unrelated)).toBe(baseline);
+    const geometry = buildControlStageContext({ domain: "GEOMETRY", reference: unrelated, workspace });
+    expect(geometry.reference_recovery).toBeUndefined();
+    const texturing = buildControlStageContext({ domain: "TEXTURING", reference: unrelated, workspace });
+    expect(texturing.reference_recovery?.omitted_sections).toEqual(["materials"]);
+  });
+
+  test("omitted current-stage facts preserve recovery provenance and invalidate stage identity", () => {
+    const incomplete = {
+      ...reference,
+      source_path: "/test/REFERENCE.json",
+      fingerprint: "source|original",
+      truncated_sections: ["parts", "materials"] as NonNullable<ControlReferenceProjection["truncated_sections"]>,
+    };
+    const changed = { ...incomplete, fingerprint: "source|updated-tail" };
+    expect(stageReferenceSemanticFingerprint("GEOMETRY", incomplete))
+      .not.toBe(stageReferenceSemanticFingerprint("GEOMETRY", changed));
+    const geometry = buildControlStageContext({ domain: "GEOMETRY", reference: incomplete, workspace });
+    expect(geometry.reference_recovery).toEqual({
+      source_path: "/test/REFERENCE.json", omitted_sections: ["parts"],
+    });
+    const projected = projectControlStageContextWithHeadroom(geometry, 1);
+    expect(projected.context.reference_recovery).toEqual(geometry.reference_recovery);
+  });
+
   test("stage context carries internal facts plus the compact Codex decision packet", () => {
     const context = buildControlStageContext({
       domain: "GEOMETRY",

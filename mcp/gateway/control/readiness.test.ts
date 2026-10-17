@@ -7,6 +7,7 @@ import {
 import { emptyReference, parseReferencePackage } from "./referenceParser";
 import { emptyWorkspace } from "./packetData";
 import type { ControlSnapshot } from "./types";
+import type { ControlReferenceProjection } from "./referenceTypes";
 
 const baseSnapshot = (): ControlSnapshot => ({
   protocol: "lazydesigner-control-v1",
@@ -100,6 +101,29 @@ describe("Control readiness policy", () => {
     expect(truncated.modelling_start).toBe("NEEDS_ORIENTATION");
     expect(truncated.runtime_ready).toBe(true);
     expect(truncated.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
+  });
+
+  test("unrelated future-stage omissions do not block an otherwise ready Geometry decision", () => {
+    const reference = {
+      ...emptyReference("REFERENCE_PATH_UNAVAILABLE"),
+      available: true,
+      truncated_sections: ["materials"] as NonNullable<ControlReferenceProjection["truncated_sections"]>,
+    };
+    const readiness = buildReadiness(
+      baseSnapshot(), emptyWorkspace(), reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(readiness.modelling_start).toBe("READY");
+    expect(readiness.reasons).not.toContain("REFERENCE_PROJECTION_INCOMPLETE");
+
+    const textureSnapshot = baseSnapshot();
+    textureSnapshot.authoring.domain = "TEXTURING";
+    textureSnapshot.authoring.phase = "texturing";
+    const textureReadiness = buildReadiness(
+      textureSnapshot, emptyWorkspace(), reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(textureReadiness.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
   });
 
   test("hidden structured-fact omissions cannot produce a false READY stage", () => {

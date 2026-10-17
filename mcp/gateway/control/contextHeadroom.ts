@@ -37,6 +37,7 @@ export type ProjectedControlStageContext = {
   requirements: ControlStageContext["requirements"];
   decision_packet?: ControlStageContext["decision_packet"];
   asset_health: ControlStageContext["asset_health"];
+  reference_recovery?: ControlStageContext["reference_recovery"];
   reference_image_ids: string[];
   workspace: {
     asset: string | null;
@@ -105,6 +106,10 @@ function requiredProjection(
       ? { decision_packet: context.decision_packet }
       : {}),
     asset_health: context.asset_health,
+    // Never hide a relevant source-recovery route to satisfy the byte proxy.
+    ...(context.reference_recovery
+      ? { reference_recovery: context.reference_recovery }
+      : {}),
     // These IDs identify the stage-approved visual evidence set. Dropping them
     // based only on size can silently reduce reference fidelity.
     reference_image_ids: [...context.reference_image_ids],

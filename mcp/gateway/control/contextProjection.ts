@@ -54,6 +54,12 @@ export type ControlStageContext = {
   semantic_facts: ControlStageSemanticFacts;
   decision_packet: ControlStageDecisionPacket;
   asset_health: AssetHealthSummary;
+  // Present only when the current stage has omitted source reference facts.
+  // This points to canonical data, not to another Control-owned copy.
+  reference_recovery?: {
+    source_path: string | null;
+    omitted_sections: NonNullable<ControlReferenceProjection["truncated_sections"]>;
+  };
   reference_document: string | null;
   reference_image_ids: string[];
   workspace: {
@@ -293,12 +299,30 @@ export function decisionPacketForAuthoringDomain(
   return packet;
 }
 
+const OMITTED_SECTIONS_BY_DOMAIN = {
+  GEOMETRY: ["parts", "articulation", "constraints", "unknowns.blocking", "unknowns.non_blocking"],
+  TEXTURING: ["materials", "constraints", "unknowns.blocking", "unknowns.non_blocking"],
+  ANIMATION: ["parts", "articulation", "animation_guidance", "constraints", "unknowns.blocking", "unknowns.non_blocking"],
+} as const;
+
+/** Report omissions only when they affect the current specialist's decision input. */
+export function relevantTruncatedSectionsForAuthoringDomain(
+  domain: ControlAuthoringDomain | null,
+  reference: ControlReferenceProjection
+): NonNullable<ControlReferenceProjection["truncated_sections"]> {
+  const omitted = reference.truncated_sections ?? [];
+  if (!domain || domain === "CORE") return [...omitted];
+  const relevant: readonly string[] = OMITTED_SECTIONS_BY_DOMAIN[domain];
+  return omitted.filter((section) => relevant.includes(section));
+}
+
 export function stageReferenceSemanticFingerprint(
   domain: ControlAuthoringDomain | null,
   reference: ControlReferenceProjection
 ): string {
   const stage = referenceStage(domain);
   const images = imagesForStage(stage, reference);
+  const omitted = relevantTruncatedSectionsForAuthoringDomain(domain, reference);
   const payload = canonicalJson({
     asset_name: reference.asset_name,
     asset_kind: reference.asset_kind,
@@ -314,6 +338,11 @@ export function stageReferenceSemanticFingerprint(
     document: stage ? reference.documents[stage] ?? null : null,
     images,
     semantic_facts: semanticFactsForAuthoringDomain(domain, reference),
+    // Source facts beyond the bounded projection must still invalidate the
+    // stage when changed. Keep unaffected complete-stage reuse unchanged.
+    ...(omitted.length > 0
+      ? { omitted_sections: omitted, incomplete_source_revision: reference.fingerprint }
+      : {}),
   });
   return createHash("sha256").update(payload).digest("hex");
 }
@@ -339,6 +368,10 @@ export function buildControlStageContext(input: {
     input.reference
   );
   const decisionPacket = decisionPacketForAuthoringDomain(
+    input.domain,
+    input.reference
+  );
+  const omitted = relevantTruncatedSectionsForAuthoringDomain(
     input.domain,
     input.reference
   );
@@ -375,6 +408,12 @@ export function buildControlStageContext(input: {
     semantic_facts: semanticFacts,
     decision_packet: decisionPacket,
     asset_health: assetHealth,
+    ...(omitted.length > 0
+      ? { reference_recovery: {
+          source_path: input.reference.source_path,
+          omitted_sections: omitted,
+        } }
+      : {}),
     reference_document: referenceDocument,
     reference_image_ids: referenceImageIds,
     workspace: {

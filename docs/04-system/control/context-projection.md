@@ -329,6 +329,23 @@ BLOCKED
 
 A future-stage missing detail must not block an earlier legal stage.
 
+For a bounded `REFERENCE.json` projection, only omissions relevant to the
+active specialist require `REFERENCE_PROJECTION_INCOMPLETE`. Geometry does
+not lose readiness solely because there are more than 24 material entries.
+Control includes `stage_context.reference_recovery` (canonical source path
+and affected section names) only for active-stage omissions. This is a route
+to exact source facts, not a substitute for reading them. The AI client must
+inspect the relevant complete section/part in the canonical Reference Package
+before making a dependent high-cost decision; do not guess omitted values or
+treat projected subsets as a complete part/material inventory. Work independent
+of the missing facts may continue when its other gates allow it.
+
+When the active-stage projection is incomplete, its source fingerprint
+participates in stage-context identity so changes outside the first projected
+entries cannot be silently mistaken for an unchanged task. This conservative
+fallback can invalidate on unrelated Reference Package changes while omissions
+remain; it intentionally favors correct re-orientation over unsafe reuse.
+
 ## Context Identity / Reuse
 
 Control uses content-addressed handles and `context_hash` so unchanged Skill/profile/context can be reused rather than retransmitted.

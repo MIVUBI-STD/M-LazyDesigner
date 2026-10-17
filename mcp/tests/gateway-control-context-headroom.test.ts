@@ -156,6 +156,19 @@ describe("Control stage-context headroom", () => {
     expect(result.diagnostics.after_bytes).toBeLessThanOrEqual(requiredBytes + 120);
   });
 
+  test("reference recovery provenance is REQUIRED even when the proxy budget is exceeded", () => {
+    const recovery = {
+      source_path: "/pkg/REFERENCE.json",
+      omitted_sections: ["parts"] as const,
+    };
+    const context = fixture({ reference_recovery: {
+      ...recovery, omitted_sections: ["parts"],
+    } });
+    const projected = projectControlStageContextWithHeadroom(context, 64);
+    expect(projected.context.reference_recovery).toEqual(context.reference_recovery);
+    expect(projected.diagnostics.required_over_budget).toBe(true);
+  });
+
   test("projection is deterministic and does not mutate canonical context", () => {
     const input = fixture({
       non_blocking_unknowns_relevant_to_stage: Array.from(
