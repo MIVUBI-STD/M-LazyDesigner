@@ -4,6 +4,10 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
+**2026-10-17 source-only bounded continuation:** `1712e999` implements active-stage, revision-checked canonical Reference fact paging inside existing Gateway `status` (`reference_fact_request`; ≤24 entries; ≤16 KiB/page; no silent clipping) and adds focused fixture tests. `6ab7dada` improves Geometry Skill/reference/standard guidance for numeric size preflight and native-format differentiation, with a source-policy regression test. `c420fc82` records exact verification steps. **GitHub source committed; tests/typecheck/docs-check/CI/native/model quality NOT EXECUTED** for these changes. No evidence yet of reduced Geometry warnings or client-side Skill reload across compaction. See [next-action](next-action.md#current-bounded-delivery--reference-paging-and-geometry-preflight).
+
+
+
 **2026-10-17 stage-scoped reference recovery (source-only):** `8b1c547` adds active-stage-only omission readiness and revision-safe `reference_recovery` metadata, with tests; commit `0497c62` aligns the Gateway client hint and adds source-tail invalidation regression; `534a3fe` strengthens that fixture. The public four-tool surface remains unchanged. This reports missing source data, not successful automatic retrieval or observed agent compliance. **Exact-SHA Bun/CI, client-loading, native and visual proof remain NOT EXECUTED.**
 
 
