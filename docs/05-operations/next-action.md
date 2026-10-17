@@ -6,6 +6,12 @@ This file owns **current continuation only**, not the patch history. Canonical w
 
 ## Current bounded work — One-Flow context integrity (ChatGPT / GitHub)
 
+**2026-10-18 Animation capture source hardening (`8f11e41`, `8874d3f`):** `animationAwareCaptureModelViewsParameters` now budgets actual resolved camera views (including implicit evidence-target/risk expansion), preview times and possible second silhouette PNGs against eight images; uses safe schema extension to keep inherited capture restrictions; multi-time aggregation rejects missing native view receipts/media rather than reporting a partial-success batch. Focused contract fixtures exist in `mcp/tests/animation-runtime-optimization.test.ts`. The old wrapper still restores editor animation state per sample: do **not** optimize its lifecycle until native full-state restoration is proven. No extra capture capability or screenshot-per-frame workflow was introduced.
+
+**Source proof boundary:** Two commits verified at `Local` head `8874d3f`; ten targeted string assertions about source/test presence were inspected. Bun tests, typecheck, CI exact-SHA, installed Blockbench view capture, actual media-byte budget, and full animation preview restoration have **NOT EXECUTED**. The observed build 3.0 screenshot overhead is historical and cannot be used to claim measured reduction. On an available cloud checkout run `cd mcp && bun install --frozen-lockfile && bun test tests/animation-runtime-optimization.test.ts tests/animation-preview-state.test.ts tests/camera-framing-contract.test.ts` followed by `bun run typecheck`, `bun run typecheck:gateway` and relevant source gates; leave live proof pending without asking the user to localtest.
+
+
+
 **Working HEAD before this continuity update:** `ef6cdb22` on `Local`.
 Source-only changes, no installation/localtest/release and no changes to historical `3.0` or `main`.
 

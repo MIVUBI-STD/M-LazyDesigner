@@ -4,6 +4,10 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
+**2026-10-18 Animation evidence source patch:** Commits `8f11e41` and `8874d3f` cap *potential* image count using resolved views × preview times × optional silhouette image; reject partial/missing per-time native image receipts; and preserve base capture-schema refinements via safe extension. Source+fixture text was inspected at `8874d3f` (ten scoped checks). **No exact-SHA Bun/CI/native verification; no measured saved images or proven full pose-state restoration.** The existing native restoration checklist remains an unresolved acceptance boundary. See [next-action](next-action.md#current-bounded-work--one-flow-context-integrity-chatgpt--github).
+
+
+
 **Local source HEAD (before this continuity update):** `ef6cdb22a3b00b7ade7865cba8382cc588807447` (ChatGPT/GitHub). One-Flow hardening through `ef6cdb22` covers loss-aware Reference parsing, active-stage source-tail recovery/paging, explicit client Skill retention semantics, and fail-oriented Workspace blocker overflow handling. Geometry specialist numeric/format preflight guidance and regression fixtures are committed. The public Gateway remains the stable four tools; no native Blockbench asset, installed client or model visual was changed or observed in this phase.
 
 **Completed evidence:** exact branch HEAD/commit ancestry and twelve scoped source-string consistency checks at `ef6cdb22`. These checks establish only that specified code branches and fixture text exist; they are not Bun, compiler, schema, end-to-end or artistic acceptance tests.
