@@ -39,9 +39,9 @@ A native model containing an animation does not satisfy a separately requested a
 
 ### Current Export Routes
 
-`export_model(codec_id=project)` saves editable `.bbmodel`; `codec_id=bedrock` exports geometry JSON. Neither exports a separate animation/controller file or PNG.
+`export_model(codec_id=project)` saves editable `.bbmodel`; `codec_id=bedrock` exports geometry JSON. `codec_id=bedrock_animation` compiles all authored clips through native `AnimationCodec` and returns separate Bedrock animation JSON as content only. Omit `path` and compile options, verify `truncated=false`, then persist the returned JSON through the authorized filesystem owner. This route does not export animation controllers or PNGs.
 
-For a separately requested animation/controller file, use the actual native Blockbench AnimationCodec export/save route; for a PNG use the native texture save/export route. These are explicit native steps, not additional Gateway capabilities. Do not invent codec IDs, substitute `.bbmodel`, or bypass through generic UI/eval. If the required native step is unavailable, report that output as pending and keep its finalization blocked. Existing Bedrock geometry files require native overwrite/merge or a new path; `.bbmodel` replacement requires explicit overwrite consent.
+For a separately requested animation controller, use its actual native Blockbench export/save route; for a PNG use the native texture save/export route. Do not invent additional codec IDs, substitute `.bbmodel`, or bypass through generic UI/eval. If the required native step is unavailable, report that output as pending and keep its finalization blocked. Existing Bedrock geometry files require native overwrite/merge or a new path; `.bbmodel` replacement requires explicit overwrite consent. Animation content compilation does not constitute a native file save or Minecraft playback proof.
 
 ## Identifier / Reference Integrity
 

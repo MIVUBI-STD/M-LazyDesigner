@@ -109,7 +109,7 @@ describe("LazyDesigner compatibility identifier boundary", () => {
     expect(manifest).toContain("Compact LazyDesigner workflow");
     expect(manifest).not.toContain("Compact BlockIT workflow");
     expect(exporter).toContain("List LazyDesigner Model Outputs");
-    expect(exporter).toContain("Lists the model outputs intentionally exposed by LazyDesigner");
+    expect(exporter).toContain("Lists native Bedrock geometry and editable project codecs plus content-only Bedrock animation compilation through AnimationCodec");
     expect(exporter).toContain("LazyDesigner output: `bedrock`");
     expect(exporter).toContain("BLOCKIT_MODEL_CODEC_IDS"); // compatibility type only
     expect(install).toContain("mcp/dist/lazydesigner_mcp.js");

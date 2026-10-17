@@ -17,7 +17,7 @@ export const createTextureParameters = z
   .object({
     name: z.string().min(1).describe("Non-empty texture name."),
     texture_id: textureIdOptionalSchema.describe(
-      "Template rebuild only: UUID of the existing single base atlas to repack in place, preserving its identity and mapped pixels."
+      "Existing base atlas UUID for template repack or resize."
     ),
     type: z
       .enum(["blank", "template"])
@@ -43,7 +43,7 @@ export const createTextureParameters = z
     rearrange_uv: z
       .boolean()
       .default(true)
-      .describe("Generate a fresh UV arrangement. With texture_id and false, resize the mapped base atlas and matching variants/PBR at pixel_density while preserving logical UVs and texture UUIDs."),
+      .describe("Repack UVs; false with texture_id resizes matching atlases at pixel_density, retaining logical UVs and UUIDs."),
     power_of_two: z
       .boolean()
       .default(true)

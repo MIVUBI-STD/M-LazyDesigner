@@ -743,7 +743,7 @@ export const HYBRID_4_GENERATED_SCHEMAS = {
               "description": "Non-empty texture name."
             },
             "texture_id": {
-              "description": "Template rebuild only: UUID of the existing single base atlas to repack in place, preserving its identity and mapped pixels.",
+              "description": "Existing base atlas UUID for template repack or resize.",
               "type": "string",
               "minLength": 1
             },
@@ -800,7 +800,7 @@ export const HYBRID_4_GENERATED_SCHEMAS = {
             },
             "rearrange_uv": {
               "default": true,
-              "description": "Generate a fresh UV arrangement. With texture_id and false, resize the mapped base atlas and matching variants/PBR at pixel_density while preserving logical UVs and texture UUIDs.",
+              "description": "Repack UVs; false with texture_id resizes matching atlases at pixel_density, retaining logical UVs and UUIDs.",
               "type": "boolean"
             },
             "power_of_two": {

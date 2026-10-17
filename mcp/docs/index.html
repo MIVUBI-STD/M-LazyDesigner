@@ -935,7 +935,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">List LazyDesigner Model Outputs</p>
-      <p class="card-desc">Lists the model outputs intentionally exposed by LazyDesigner for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.</p>
+      <p class="card-desc">Lists native Bedrock geometry and editable project codecs plus content-only Bedrock animation compilation through AnimationCodec. Does not enumerate arbitrary registered codecs or export animation controllers.</p>
       <div class="overflow-x">
         <p class="empty-params">No parameters</p>
       </div>
@@ -949,7 +949,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Export Bedrock Model</p>
-      <p class="card-desc">Compiles the active Bedrock Entity project as Bedrock geometry JSON or editable `.bbmodel` with verified filesystem writes; `overwrite` consents to replacing an existing `.bbmodel`, and existing Bedrock geometry files are always refused.</p>
+      <p class="card-desc">Compiles Bedrock geometry JSON or editable `.bbmodel` with verified filesystem writes. `bedrock_animation` uses native AnimationCodec for all authored clips and returns JSON content only; omit path/options and persist the returned content separately. Project overwrite requires consent; existing geometry files are refused.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -962,9 +962,9 @@ bun run docs:check
       </thead>
       <tbody><tr>
       <td class="col-name">codec_id</td>
-      <td class="col-type">&quot;bedrock&quot; | &quot;project&quot;</td>
+      <td class="col-type">&quot;bedrock&quot; | &quot;project&quot; | &quot;bedrock_animation&quot;</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">LazyDesigner output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`. <span class="param-meta">(default: <code>&quot;bedrock&quot;</code>)</span></td>
+      <td class="col-desc">LazyDesigner output: `bedrock` = geometry JSON, `project` = editable `.bbmodel`, `bedrock_animation` = native AnimationCodec JSON returned as content only (no path/options). <span class="param-meta">(default: <code>&quot;bedrock&quot;</code>)</span></td>
     </tr><tr>
       <td class="col-name">options</td>
       <td class="col-type">Record&lt;string, unknown&gt;</td>
@@ -2573,7 +2573,7 @@ bun run docs:check
       </section>
 
       <footer class="page-footer">
-        Generated 2026-10-17T11:13:46.138Z from Zod schemas
+        Generated 2026-10-17T11:17:11.540Z from Zod schemas
       </footer>
     </main>
   </div>

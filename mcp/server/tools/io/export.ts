@@ -6,7 +6,7 @@ import { STATUS_EXPERIMENTAL, STATUS_STABLE } from "@/lib/constants";
 import { isAbsoluteFilesystemPath } from "@/lib/core/path";
 
 export const BLOCKIT_MODEL_CODEC_IDS = ["bedrock", "project"] as const;
-const blockitModelCodecEnum = z.enum(BLOCKIT_MODEL_CODEC_IDS);
+const blockitModelCodecEnum = z.enum([...BLOCKIT_MODEL_CODEC_IDS, "bedrock_animation"]);
 
 export const listExportFormatsParameters = z.object({});
 
@@ -16,7 +16,7 @@ export const exportModelParameters = z.object({
     .optional()
     .default("bedrock")
     .describe(
-      "LazyDesigner output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`."
+      "LazyDesigner output: `bedrock` = geometry JSON, `project` = editable `.bbmodel`, `bedrock_animation` = native AnimationCodec JSON returned as content only (no path/options)."
     ),
   options: z
     .record(z.string(), z.unknown())
@@ -55,7 +55,7 @@ export const exportToolDocs: ToolSpec[] = [
   {
     name: "list_export_formats",
     description:
-      "Lists the model outputs intentionally exposed by LazyDesigner for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.",
+      "Lists native Bedrock geometry and editable project codecs plus content-only Bedrock animation compilation through AnimationCodec. Does not enumerate arbitrary registered codecs or export animation controllers.",
     annotations: {
       title: "List LazyDesigner Model Outputs",
       readOnlyHint: true,
@@ -66,7 +66,7 @@ export const exportToolDocs: ToolSpec[] = [
   {
     name: "export_model",
     description:
-      "Compiles the active Bedrock Entity project as Bedrock geometry JSON or editable `.bbmodel` with verified filesystem writes; `overwrite` consents to replacing an existing `.bbmodel`, and existing Bedrock geometry files are always refused.",
+      "Compiles Bedrock geometry JSON or editable `.bbmodel` with verified filesystem writes. `bedrock_animation` uses native AnimationCodec for all authored clips and returns JSON content only; omit path/options and persist the returned content separately. Project overwrite requires consent; existing geometry files are refused.",
     annotations: {
       title: "Export Bedrock Model",
       destructiveHint: true,
@@ -138,6 +138,22 @@ function codecRegistry(): Record<string, BlockITCodec> {
   return Codecs as Record<string, BlockITCodec>;
 }
 
+function nativeBedrockAnimationCodec(): BlockITCodec | undefined {
+  const native = (globalThis as unknown as {
+    AnimationCodec?: { codecs?: { bedrock?: { compileFile?: (clips: unknown[]) => unknown } } };
+  }).AnimationCodec?.codecs?.bedrock;
+  if (typeof native?.compileFile !== "function") return undefined;
+  return {
+    name: "Bedrock Animations (native AnimationCodec)",
+    extension: "json",
+    compile() {
+      const clips = (globalThis as unknown as { Animation?: { all?: unknown[] } }).Animation?.all;
+      if (!Array.isArray(clips)) throw new Error("Native Animation.all is unavailable.");
+      return native.compileFile!(clips.slice());
+    },
+  };
+}
+
 
 function filesystemFileName(path: string): string {
   return path.split(/[\\/]/).pop() || path;
@@ -193,13 +209,19 @@ export function registerExportTools() {
             purpose: id === "bedrock" ? "bedrock_geometry" : "editable_blockbench_project",
           };
         });
+        const animationCodec = nativeBedrockAnimationCodec();
 
         return JSON.stringify({
           current_format: "bedrock",
-          count: codecs.length,
-          codecs,
+          count: codecs.length + 1,
+          codecs: [...codecs, {
+            id: "bedrock_animation", name: animationCodec?.name,
+            extension: "json", available: !!animationCodec,
+            has_compile: !!animationCodec, supports_partial_export: false,
+            purpose: "bedrock_animations", content_only: true,
+          }],
           note:
-            "Bedrock animation/controller files are owned by Blockbench's separate AnimationCodec and are not arbitrary model codec exports.",
+            "Bedrock animations compile through native AnimationCodec without changing clip paths or saved state. Controller export is not included.",
         });
       },
     },
@@ -213,8 +235,14 @@ export function registerExportTools() {
       ...exportToolDocs[1],
       async execute({ codec_id, options, path, overwrite, max_content_length }) {
         requireBedrockEntityProject();
+        if (codec_id === "bedrock_animation" &&
+            (path !== undefined || (options && Object.keys(options).length > 0))) {
+          throw new Error("bedrock_animation is content-only: omit path/options; persist the returned native JSON separately.");
+        }
         const registry = codecRegistry();
-        const codec = registry[codec_id];
+        const codec = codec_id === "bedrock_animation"
+          ? nativeBedrockAnimationCodec()
+          : registry[codec_id];
 
         if (!codec) {
           throw new Error(
