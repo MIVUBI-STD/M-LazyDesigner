@@ -297,7 +297,16 @@ describe("Control stage semantic projection", () => {
       source_path: "/pkg/REFERENCE.json", omitted_sections: ["parts"],
     });
     expect(stage.decision_packet.parts?.some((part) => part.id === "part_24")).toBe(false);
-    expect(JSON.parse(JSON.stringify(doc)).parts[24].id).toBe("part_24");
+    const changedDoc = {
+      ...doc,
+      parts: doc.parts.map((part, i) =>
+        i === 24 ? { ...part, importance: "CHANGED" } : part
+      ),
+    };
+    const changed = parseReferencePackage(JSON.stringify(changedDoc), "/pkg/REFERENCE.json", "/pkg");
+    expect(changed?.semantic_facts?.parts).toEqual(parsed?.semantic_facts?.parts);
+    expect(stageReferenceSemanticFingerprint("GEOMETRY", changed!))
+      .not.toBe(stageReferenceSemanticFingerprint("GEOMETRY", parsed!));
   });
 
   test("omitted future-stage material facts do not block Geometry or alter its context identity", () => {
