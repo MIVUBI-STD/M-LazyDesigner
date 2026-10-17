@@ -152,6 +152,9 @@ describe("Control reference parser", () => {
       },
     });
     expect(result?.images[0]?.used_by).toEqual(["GEOMETRY", "TEXTURE"]);
+    // Nonempty nested facts are available in the canonical source, not the
+    // flattened stage projection. Signal recovery instead of silent loss.
+    expect(result?.truncated_sections).toContain("parts");
     expect(result?.fingerprint).toHaveLength(64);
   });
 
@@ -317,6 +320,39 @@ describe("Control reference parser", () => {
     expect(parsed?.semantic_facts?.parts[0]?.related_parts).toHaveLength(12);
     expect(parsed?.semantic_facts?.materials[0]?.detail_15).toBeUndefined();
     expect(parsed?.truncated_sections).toEqual(["parts", "materials"]);
+  });
+
+  test("signals non-flat and malformed fact fields without altering the source", () => {
+    const model = {
+      schema: "lazydesigner-reference-v1",
+      materials: [{
+        id: "coat",
+        appearance: { hue: "warm", finish: "matte" },
+        affected_parts: ["torso", 17, "head"],
+      }],
+      animation_guidance: [{
+        name: "attack",
+        key_poses: ["anticipation", "", "impact"],
+      }],
+      parts: [{ id: "main", parent: null }],
+    };
+    const parsed = parseReferencePackage(JSON.stringify(model), "/pkg/REFERENCE.json", "/pkg");
+    expect(parsed?.semantic_facts?.materials[0]).toEqual({
+      id: "coat", affected_parts: ["torso", "head"],
+    });
+    expect(parsed?.semantic_facts?.animation_guidance[0]?.key_poses)
+      .toEqual(["anticipation", "impact"]);
+    expect(parsed?.truncated_sections).toEqual(["materials", "animation_guidance"]);
+  });
+
+  test("rejects wrong section types instead of reporting an empty valid inventory", () => {
+    for (const section of ["articulation", "materials", "animation_guidance", "constraints"]) {
+      const parsed = parseReferencePackage(JSON.stringify({
+        schema: "lazydesigner-reference-v1",
+        [section]: { unexpected: "not-an-array" },
+      }), "/pkg/REFERENCE.json", "/pkg");
+      expect(parsed).toBeNull();
+    }
   });
 
   test("rejects malformed and duplicate source identities instead of silently omitting them", () => {

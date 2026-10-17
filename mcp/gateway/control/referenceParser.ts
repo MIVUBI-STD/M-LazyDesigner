@@ -170,7 +170,11 @@ export function parseReferencePackage(
   const root = record(parsed);
   if (!root || stringValue(root.schema) !== "lazydesigner-reference-v1" ||
       (root.images !== undefined && !Array.isArray(root.images)) ||
-      (root.parts !== undefined && !Array.isArray(root.parts))) {
+      (root.parts !== undefined && !Array.isArray(root.parts)) ||
+      (root.articulation !== undefined && !Array.isArray(root.articulation)) ||
+      (root.materials !== undefined && !Array.isArray(root.materials)) ||
+      (root.animation_guidance !== undefined && !Array.isArray(root.animation_guidance)) ||
+      (root.constraints !== undefined && !Array.isArray(root.constraints))) {
     return null;
   }
 
@@ -277,9 +281,18 @@ export function parseReferencePackage(
       if (!fact) return false;
       const fields = Object.entries(fact);
       return fields.length > 16 ||
-        fields.slice(0, 16).some(([, value]) =>
-          Array.isArray(value) && stringList(value, 13).length > 12
-        );
+        fields.slice(0, 16).some(([, value]) => {
+          if (Array.isArray(value)) {
+            // The projection accepts only nonempty strings, up to 12 per
+            // field. A mixed, malformed or oversized list is incomplete.
+            return stringList(value, 12).length !== value.length;
+          }
+          // A nonempty nested object cannot be represented by the flat
+          // structured-fact projection. Do not mistake omission for absence.
+          const nested = record(value);
+          if (nested) return Object.keys(nested).length > 0;
+          return false;
+        });
     });
     if (innerOmission && !truncatedSections.includes(section)) {
       truncatedSections.push(section);
