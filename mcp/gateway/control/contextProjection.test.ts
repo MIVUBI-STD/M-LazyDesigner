@@ -10,6 +10,7 @@ import {
   serializedUtf8Bytes,
 } from "./contextHeadroom";
 import type { ControlReferenceProjection } from "./referenceTypes";
+import { parseReferencePackage } from "./referenceParser";
 import type { ControlWorkspaceProjection } from "./workspace";
 
 const workspace: ControlWorkspaceProjection = {
@@ -277,6 +278,26 @@ describe("Control stage semantic projection", () => {
     expect(
       stageReferenceSemanticFingerprint("GEOMETRY", imageChanged)
     ).not.toBe(base);
+  });
+
+  test("actual 25th source part is recoverable from canonical revision instead of being invented", () => {
+    const doc = {
+      schema: "lazydesigner-reference-v1",
+      asset: { name: "Large model", kind: "MODEL" },
+      parts: Array.from({ length: 25 }, (_, i) => ({
+        id: `part_${i}`, role: "GEOMETRY", importance: i === 24 ? "CRITICAL" : "NORMAL",
+      })),
+    };
+    const parsed = parseReferencePackage(JSON.stringify(doc), "/pkg/REFERENCE.json", "/pkg");
+    expect(parsed?.semantic_facts?.parts).toHaveLength(24);
+    const stage = buildControlStageContext({
+      domain: "GEOMETRY", reference: parsed!, workspace,
+    });
+    expect(stage.reference_recovery).toEqual({
+      source_path: "/pkg/REFERENCE.json", omitted_sections: ["parts"],
+    });
+    expect(stage.decision_packet.parts?.some((part) => part.id === "part_24")).toBe(false);
+    expect(JSON.parse(JSON.stringify(doc)).parts[24].id).toBe("part_24");
   });
 
   test("omitted future-stage material facts do not block Geometry or alter its context identity", () => {

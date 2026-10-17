@@ -4,6 +4,10 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
+**2026-10-17 stage-scoped reference recovery (source-only):** `8b1c547` adds active-stage-only omission readiness and revision-safe `reference_recovery` metadata, with tests; a bounded Gateway client hint is being aligned separately. This reports missing source data, not successful automatic retrieval or observed agent compliance. **Exact-SHA Bun/CI, client-loading, native and visual proof remain NOT EXECUTED.**
+
+
+
 **2026-10-17 One-Flow source hardening (Local; commits `9d5c5fa`, `f2199f0`, `e02ad6d`):** Reference field/nested-list omissions now flag a projection incomplete, bounded optional context skips oversized items rather than starving later short ones, and Gateway client instructions explicitly distinguish Skill handles from loaded Skill content and require a judgeable sample before costly authoring expansion. Focused regressions are committed. GitHub commit ancestry was checked, but **Bun tests, typechecks, docs/source gates, installed client behavior, Blockbench native behavior, and visual acceptance were NOT EXECUTED** for these new changes. This is source implementation, not matching-build proof. Continuation and exact commands: [next-action.md](next-action.md#active-one-flow--context-integrity-hardening).
 
 

@@ -85,6 +85,7 @@ describe("LazyDesigner Control active contract", () => {
     expect(source).toContain("Skill/profile handles, not Skill contents");
     expect(source).toContain("content survives compaction");
     expect(source).toContain("smallest judgeable sample");
+    expect(source).toContain("stage_context.reference_recovery");
     expect(source).toContain("not use a successful receipt as visual approval");
   });
 
