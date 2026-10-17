@@ -4,48 +4,11 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
-**2026-10-17 source-only bounded continuation:** `1712e999` implements active-stage, revision-checked canonical Reference fact paging inside existing Gateway `status` (`reference_fact_request`; ≤24 entries; ≤16 KiB/page; no silent clipping) and adds focused fixture tests. `6ab7dada` improves Geometry Skill/reference/standard guidance for numeric size preflight and native-format differentiation, with a source-policy regression test. `c420fc82` records exact verification steps. **GitHub source committed; tests/typecheck/docs-check/CI/native/model quality NOT EXECUTED** for these changes. No evidence yet of reduced Geometry warnings or client-side Skill reload across compaction. See [next-action](next-action.md#current-bounded-delivery--reference-paging-and-geometry-preflight).
+**Local source HEAD (before this continuity update):** `ef6cdb22a3b00b7ade7865cba8382cc588807447` (ChatGPT/GitHub). One-Flow hardening through `ef6cdb22` covers loss-aware Reference parsing, active-stage source-tail recovery/paging, explicit client Skill retention semantics, and fail-oriented Workspace blocker overflow handling. Geometry specialist numeric/format preflight guidance and regression fixtures are committed. The public Gateway remains the stable four tools; no native Blockbench asset, installed client or model visual was changed or observed in this phase.
 
+**Completed evidence:** exact branch HEAD/commit ancestry and twelve scoped source-string consistency checks at `ef6cdb22`. These checks establish only that specified code branches and fixture text exist; they are not Bun, compiler, schema, end-to-end or artistic acceptance tests.
 
-
-**2026-10-17 stage-scoped reference recovery (source-only):** `8b1c547` adds active-stage-only omission readiness and revision-safe `reference_recovery` metadata, with tests; commit `0497c62` aligns the Gateway client hint and adds source-tail invalidation regression; `534a3fe` strengthens that fixture. The public four-tool surface remains unchanged. This reports missing source data, not successful automatic retrieval or observed agent compliance. **Exact-SHA Bun/CI, client-loading, native and visual proof remain NOT EXECUTED.**
-
-
-
-**2026-10-17 One-Flow source hardening (Local; commits `9d5c5fa`, `f2199f0`, `e02ad6d`):** Reference field/nested-list omissions now flag a projection incomplete, bounded optional context skips oversized items rather than starving later short ones, and Gateway client instructions explicitly distinguish Skill handles from loaded Skill content and require a judgeable sample before costly authoring expansion. Focused regressions are committed. GitHub commit ancestry was checked, but **Bun tests, typechecks, docs/source gates, installed client behavior, Blockbench native behavior, and visual acceptance were NOT EXECUTED** for these new changes. This is source implementation, not matching-build proof. Continuation and exact commands: [next-action.md](next-action.md#active-one-flow--context-integrity-hardening).
-
-
-
-**2026-10-17 LOCAL_CODE bounded port on `72e075f`:** commits `727bcee6`, `12f8bb29`, `63b2985b` implement mapped-atlas resize, explicit clip deletion and native content-only Bedrock animation export. Bun **1.3.14**: 13 focused tests, build, Gateway typecheck, generators/docs freshness and surface budget PASS. Full typecheck FAIL retains eight diagnostics identical to baseline; repository suite before report: 259 PASS/10 FAIL, not full acceptance. Native matching-build Undo/rollback/export lifecycle and Minecraft remain unproved; no plugin deployment. [Citadel report](mcp-session-retrospective-2026-10-17.md#matriks-proof-source-dan-native) owns detailed evidence and limitations. Historical asset approval and package hashes do not upgrade current-source native proof.
-
-The 2026-10-15 [retrospective deep dive](mcp-session-retrospective-2026-10-15.md#pendalaman-batas-pengetahuan-dan-fondasi-diagnosis) was source-checked against snapshot `15086b69fb971dca744b637e7516a57edcabb6c0`. **Historical snapshot behavior:** batch scale flattened keyframe times across animator/channel identities and used a global duplicate check; a Node helper probe rejected `[1,1]` and accepted `[1,2]`. Those observations describe the snapshot, not current `Local`. **Current source correction:** `mcp/server/tools/animation/batch.ts` calls `requireValidPlannedBatchTrackTimes` to distinguish animator/channel tracks, checks native-time collisions and expected same-track overwrites before one full-animation Undo. Focused Bun regression fixtures exist, but no matching-HEAD Bun/CI or `LIVE_BLOCKBENCH` proof was executed, so this is SOURCE_IMPLEMENTED, not an accepted native fix. Current source already defaults texture inventory to `diagnostics=false`; historical verbose payloads require request/build/enrichment attribution. Export uses native `afterSave`; freshness `NO_CHANGE` does not itself prove all editor metadata unchanged. Particle load success still does not establish trigger/emitter/render visibility. No acceptance gate is upgraded by this documentation work.
-
-Branch authority: `Local`.
-
-**Historical cloud-only source checkpoint through `a8878ff7aeecefe18040efe0b8b8697812cb8588` (2026-10-16; not current HEAD):** Discovery retains two-character authoring terms (`UV`, `IK`, `3D`, `UI`, `FX`), canonical Runtime export errors no longer use retired BlockIT branding, and Zero-Waste projection rows explicitly identify synthetic semantic evidence. At that checkpoint, the semantic matcher change hoisted branch-invariant tool/query and Stage scoring; a source-extracted V8 comparison with mocked helpers preserved outputs on four cases and reduced duplicate calls for a three-branch fixture. This evidence is narrower than actual Bun/full-catalog/source CI or Windows/native acceptance. No `MCP Verify` run for the changed HEAD is recorded. GitHub remains the source authority; no user's local PC or Blockbench session is required for these cloud-source edits.
-
-
-
-### Recovery snapshot 3.0 — 2026-10-15
-
-The user authorized a matching backup branch `3.0`, annotated tag `3.0`, and temporary GitHub prerelease from the local working state, including the retrospective and both authored asset workspaces. This is a recovery baseline, not a new full source/native acceptance or a signed Desktop installer release. Internal component/package versions are preserved. Raw MCP logs, credentials, installed profiles, dependencies and generated build/cache directories are excluded from publication; raw asset logs remain in a separate local backup. Existing unresolved particle, visual/runtime and Golden evidence boundaries remain open.
-
-Source architecture:
-
-```text
-ChatGPT Reference Preparation
-→ Reference Package
-→ LazyDesigner Control
-→ Codex
-→ persistent Gateway
-→ Runtime
-→ Plugin
-→ Blockbench
-```
-
-Geometry and Texturing share the AUTHORING Runtime surface. Animation is the
-separate ANIMATION surface. Canonical Control source is
-`mcp/gateway/control/`. The retired Navigator source remains removed.
+**Missing evidence:** Bun test execution, Gateway TypeScript typecheck, generated artifact freshness, source/CI exact-SHA gates, actual client Skill reload after compaction, native geometry warnings, project save/export side effects, animation playback/screenshot economy and user visual quality are all **NOT EXECUTED / UNVERIFIED** for these commits. Historical build `3.0` observations are not evidence for current code. [Exact bounded next actions](next-action.md#current-bounded-work--one-flow-context-integrity-chatgpt--github).
 
 ## Windows checkpoint — 2026-10-14
 
