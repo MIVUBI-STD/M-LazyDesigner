@@ -57,7 +57,9 @@ const animationPreviewParameters = z
   })
   .strict();
 
-const captureModelViewsWithAnimationBase = captureModelViewsParameters.extend({
+// Preserve base capture validation (explicit views or evidence targets,
+// paired landmarks, and view identities) across the Animation extension.
+const captureModelViewsWithAnimationBase = captureModelViewsParameters.safeExtend({
   animation_preview: animationPreviewParameters
     .optional()
     .describe(
@@ -74,12 +76,15 @@ export const animationAwareCaptureModelViewsParameters =
     const actualViewCount = resolveCaptureViewSelection(
       request.views, request.evidence_targets, request.verification_risk
     ).views.length;
-    if (actualViewCount * sampleCount > 8) {
+    // Optional native Cube-silhouette evidence can add a second PNG for
+    // every shaded view. Reserve the worst-case media budget before capture.
+    const possibleImagesPerView = request.evidence_targets?.includes("silhouette") ? 2 : 1;
+    if (actualViewCount * sampleCount * possibleImagesPerView > 8) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["animation_preview", "times"],
         message:
-          "Animation visual evidence is bounded to at most 8 images per call (resolved views × times <= 8). Reduce sample times, selected evidence targets/risk, or explicit views.",
+          "Animation visual evidence is bounded to at most 8 images per call (resolved views × times × optional silhouette images <= 8). Reduce sample times, evidence targets/risk, or explicit views.",
       });
     }
   });
@@ -260,6 +265,37 @@ function captureContinuationContent(result: unknown): unknown[] {
   });
 }
 
+/**
+ * Native capture must yield a complete set for each requested time.
+ * Never turn an inner tool failure or partial media/metadata into a successful
+ * multi-time receipt; a retry would require fresh state inspection.
+ */
+export function requireCompleteAnimationCaptureSample(
+  result: unknown,
+  expectedViewCount: number
+): JsonRecord & { captures: unknown[] } {
+  if (!Number.isInteger(expectedViewCount) || expectedViewCount < 1 ||
+      !isRecord(result) || result.isError === true ||
+      !isRecord(result.structuredContent) ||
+      !Array.isArray(result.structuredContent.captures) ||
+      result.structuredContent.captures.length !== expectedViewCount ||
+      !Array.isArray(result.content)) {
+    throw new Error(
+      "ANIMATION_CAPTURE_INCOMPLETE: native capture failed or returned fewer view receipts than requested; no batch evidence is accepted."
+    );
+  }
+  const mediaCount = result.content.filter(
+    (item) => isRecord(item) && item.type === "image" &&
+      typeof item.data === "string" && item.data.length > 0
+  ).length;
+  if (mediaCount < expectedViewCount) {
+    throw new Error(
+      "ANIMATION_CAPTURE_INCOMPLETE: missing PNG image content for one or more requested views; no batch evidence is accepted."
+    );
+  }
+  return result.structuredContent as JsonRecord & { captures: unknown[] };
+}
+
 async function captureAnimationSamples(
   definition: RuntimeToolDefinition,
   request: z.infer<typeof animationAwareCaptureModelViewsParameters>,
@@ -278,6 +314,9 @@ async function captureAnimationSamples(
   preview.times.forEach((time) => requireAnimationSampleTime(animation, time));
 
   const { animation_preview: _animationPreview, ...baseRequest } = request;
+  const expectedViewCount = resolveCaptureViewSelection(
+    request.views, request.evidence_targets, request.verification_risk
+  ).views.length;
   const content: unknown[] = [
     {
       type: "text" as const,
@@ -302,21 +341,14 @@ async function captureAnimationSamples(
         )
     );
 
+    const structured = requireCompleteAnimationCaptureSample(observed, expectedViewCount);
     content.push({ type: "text" as const, text: `ANIMATION_TIME ${time}` });
     content.push(...captureContinuationContent(observed));
-
-    if (isRecord(observed) && isRecord(observed.structuredContent)) {
-      const structured = observed.structuredContent;
-      const captures = Array.isArray(structured.captures)
-        ? structured.captures
-        : [];
-      samples.push({ time, captures });
-      if (Object.keys(commonStructured).length === 0) {
-        const { captures: _captures, count: _count, ...rest } = structured;
-        commonStructured = rest;
-      }
-    } else {
-      samples.push({ time, captures: [] });
+    const captures = structured.captures as unknown[];
+    samples.push({ time, captures });
+    if (Object.keys(commonStructured).length === 0) {
+      const { captures: _captures, count: _count, ...rest } = structured;
+      commonStructured = rest;
     }
   }
 
