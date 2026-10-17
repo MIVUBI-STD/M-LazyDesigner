@@ -4,4 +4,8 @@ Each directory under `workspace/active/` is one currently editable persistent as
 
 When a project is already named, open that project only; this directory index is not project memory. The package's own compact `README.md` owns its current resume facts.
 
-When work is completed or intentionally parked, move the package to `workspace/saved/` according to the workspace contract.
+Completion, a checkpoint, or temporary inactivity does **not** move a
+project to `workspace/saved/`. Keep it under `active/` until the user
+explicitly requests archiving/parking; then follow the workspace contract.
+Do not duplicate `.bbmodel` revisions in the active folder as a substitute
+for the canonical save.

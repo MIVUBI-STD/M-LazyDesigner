@@ -452,7 +452,9 @@ export function registerExportTools() {
         const saveBehavior = !wrote_to_path
           ? "COMPILE_ONLY"
           : codec_id === "project"
-            ? "NATIVE_PROJECT_SAVE_AS"
+            ? projectBefore.save_path === wrote_to_path
+              ? "NATIVE_PROJECT_SAVE"
+              : "NATIVE_PROJECT_SAVE_AS"
             : "NATIVE_BEDROCK_EXPORT";
 
         const result = {
@@ -485,7 +487,7 @@ export function registerExportTools() {
               type: "text" as const,
               text: wrote_to_path
                 ? codec_id === "project"
-                  ? `Saved editable project ${result.file_name} (${byteLength} bytes) using native Blockbench Save As; active project save path is now ${projectAfter.save_path}. This is not an independent diagnostic copy.`
+                  ? `Saved editable project ${result.file_name} (${byteLength} bytes) using native Blockbench ${saveBehavior === "NATIVE_PROJECT_SAVE" ? "Save" : "Save As"}; active project save path is now ${projectAfter.save_path}. This is not an independent diagnostic copy.`
                   : `Exported ${codec_id} artifact ${result.file_name} (${byteLength} bytes) using native Blockbench export lifecycle; metadata effects: ${projectLifecycleChanges.join(", ") || "none"}.`
                 : `Compiled ${codec_id} artifact ${result.file_name} (${byteLength} bytes); no file path was provided.`,
             },

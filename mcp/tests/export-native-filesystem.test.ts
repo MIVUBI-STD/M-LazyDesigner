@@ -48,6 +48,20 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     expect(savedProject.structuredContent.project_lifecycle_changes).toContain("saved");
     expect(savedProject.content[0].text).toContain("not an independent diagnostic copy");
     expect(project.saved).toBe(true);
+    // Subsequent authorized save to the same canonical file is a native
+    // Save, not another Save As or a diagnostic backup file.
+    const currentSave = await run(regular) as {
+      structuredContent: Record<string, any>; content: Array<{ text: string }>;
+    };
+    expect(currentSave.structuredContent.save_behavior).toBe("NATIVE_PROJECT_SAVE");
+    expect(currentSave.structuredContent.project_before.save_path).toBe(regular);
+    expect(currentSave.structuredContent.project.save_path).toBe(regular);
+    expect(currentSave.structuredContent.project_lifecycle_changes).toEqual([]);
+    expect(currentSave.content[0].text).toContain("using native Blockbench Save;");
+    expect(writes).toBe(2);
+    // Same-path overwrite still requires affirmative consent.
+    await expect(run(regular, false)).rejects.toThrow("explicit consent");
+    expect(writes).toBe(2);
     const folder = join(directory, "folder.bbmodel");
     fs.mkdirSync(folder);
     await expect(run(folder)).rejects.toThrow("non-file");
@@ -59,7 +73,7 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     fs.writeFileSync(geometry, "keep");
     await expect(run(geometry, true, "bedrock")).rejects.toThrow("existing Bedrock geometry");
     expect(fs.readFileSync(geometry, "utf8")).toBe("keep");
-    expect(writes).toBe(1);
+    expect(writes).toBe(2);
 
     // The native write succeeded, but Blockbench Save As lifecycle failed.
     // Keep the destination and do not claim the active project was restored.
@@ -72,7 +86,7 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     await expect(run(uncertain)).rejects.toThrow("EXPORT_LIFECYCLE_UNVERIFIED");
     expect(fs.readFileSync(uncertain, "utf8")).toBe('{"new":true}');
     expect(project.save_path).toBe(uncertain);
-    expect(writes).toBe(2);
+    expect(writes).toBe(3);
     globals.Codecs.project.afterSave = priorAfterSave;
 
     // A native write can also throw after creating a file. Do not mask this as
@@ -95,3 +109,17 @@ test("native restricted fs can overwrite regular projects but rejects symlinks a
     fs.rmSync(directory, {recursive:true, force:true});
   }
 });
+
+test("workspace policy keeps one current model and archives only on explicit request", async () => {
+  const [policy, active] = await Promise.all([
+    Bun.file("../workspace/README.md").text(),
+    Bun.file("../workspace/active/README.md").text(),
+  ]);
+  expect(policy).toContain("NATIVE_PROJECT_SAVE");
+  expect(policy).toContain("NATIVE_PROJECT_SAVE_AS");
+  expect(policy).toContain("existing explicit overwrite-consent check");
+  expect(policy).toContain("User-owned historic backups are preserved");
+  expect(active).toContain("does **not** move");
+  expect(active).toContain("explicitly requests archiving/parking");
+});
+

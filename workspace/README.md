@@ -99,6 +99,26 @@ Do not turn README into a decision log, per-Cube plan, UUID registry, or tool tr
 
 Prefer **one current editable `.bbmodel`** per project. Git history owns older iterations.
 
+### Save / Save As distinction
+
+Use the same active, authoritative `.bbmodel` path for an explicitly needed
+checkpoint or final save. `export_model(codec_id=project, path=...)` is a
+**native save lifecycle operation**, not a side-effect-free snapshot. When
+`path` exactly matches the active native project `save_path`, the receipt
+reports `NATIVE_PROJECT_SAVE`; a changed path reports
+`NATIVE_PROJECT_SAVE_AS` and may change the editor's active project identity.
+A case/alias-different path is not automatically assumed identical. Both
+path-backed operations keep their existing explicit overwrite-consent check
+when the target exists.
+
+Do not invent `before-*`, `checkpoint-v2`, `final-final`, or diagnostic
+`.bbmodel` variants after every mutation. For a read-only diagnostic compile,
+omit `path` and treat the result as compiled content, **not** a saved
+checkpoint. A saved checkpoint must still satisfy the stage's actual
+native/persistence requirements; a compile receipt alone cannot authorize
+Animation handoff. User-owned historic backups are preserved unless the
+user explicitly authorizes cleanup.
+
 ## Meaningful Persistence
 
 Persist/checkpoint the current `.bbmodel` and update README at meaningful approval/resume/park/completion boundaries:
