@@ -4,7 +4,9 @@ import type { ControlWorkspaceProjection } from "./workspace";
 export type ControlWorkspaceSummary = Pick<
   ControlWorkspaceProjection,
   "available" | "fingerprint" | "asset" | "unavailable_reason"
->;
+> & {
+  blocker_recovery?: { source_path: string | null; omitted_count: number };
+};
 
 export type ControlReferenceSummary = Pick<
   ControlReferenceProjection,
@@ -43,6 +45,12 @@ export function workspaceSummary(
     available: workspace.available,
     fingerprint: workspace.fingerprint,
     asset: workspace.asset,
+    ...((workspace.blockers_omitted_count ?? 0) > 0
+      ? { blocker_recovery: {
+          source_path: workspace.source_path,
+          omitted_count: workspace.blockers_omitted_count!,
+        } }
+      : {}),
     ...(workspace.unavailable_reason
       ? { unavailable_reason: workspace.unavailable_reason }
       : {}),

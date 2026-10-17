@@ -124,6 +124,7 @@ export function buildReadiness(
   const activeReferenceBlocked = activeReferenceReadiness === "BLOCKED";
   const projectionIncomplete =
     relevantTruncatedSectionsForAuthoringDomain(snapshot.authoring.domain, reference).length > 0;
+  const workspaceIncomplete = (workspace.blockers_omitted_count ?? 0) > 0;
   const reasons: string[] = [];
 
   if (!snapshot.runtime.online) reasons.push("RUNTIME_OFFLINE");
@@ -138,6 +139,7 @@ export function buildReadiness(
   else if (!contextReady) reasons.push("REQUIRED_CONTEXT_UNRESOLVED");
   if (!reference.available) reasons.push("REFERENCE_PACKAGE_UNAVAILABLE");
   if (projectionIncomplete) reasons.push("REFERENCE_PROJECTION_INCOMPLETE");
+  if (workspaceIncomplete) reasons.push("WORKSPACE_PROJECTION_INCOMPLETE");
   if (activeReferenceBlocked) reasons.push("REFERENCE_STAGE_BLOCKED");
   reasons.push(...lifecycle.reasons.filter((reason) => !reasons.includes(reason)));
 
@@ -154,7 +156,8 @@ export function buildReadiness(
     modelling_start: blocked
       ? "BLOCKED"
       : runtimeReady && projectReady && domainReady && contextReady &&
-          reference.available && !projectionIncomplete && !lifecycle.orientation_required
+          reference.available && !projectionIncomplete && !workspaceIncomplete &&
+          !lifecycle.orientation_required
         ? "READY"
         : "NEEDS_ORIENTATION",
     runtime_ready: runtimeReady,

@@ -19,6 +19,9 @@ export type ControlWorkspaceProjection = {
   };
   next_step: string | null;
   blockers: string[];
+  /** Bounded display omitted additional blocker entries; read the current README. */
+  blockers_omitted_count?: number;
+  blockers_omitted_sha256?: string;
   unavailable_reason?: "PROJECT_PATH_UNAVAILABLE" | "README_NOT_FOUND" | "README_UNREADABLE";
 };
 
@@ -39,8 +42,8 @@ function field(text: string, label: string): string | null {
 
 function parseBlockers(text: string): string[] {
   const value = field(text, "Known blocker(s)");
-  if (!value || /^none\b/i.test(value)) return [];
-  return value.split(/[;,]/).map((entry) => entry.trim()).filter(Boolean).slice(0, 8);
+  if (!value || /^none$/i.test(value)) return [];
+  return value.split(/[;,]/).map((entry) => entry.trim()).filter(Boolean);
 }
 
 
@@ -50,9 +53,13 @@ export type WorkspaceSemanticState = {
   gates: ControlWorkspaceProjection["gates"];
   next_step: string | null;
   blockers: string[];
+  blockers_omitted_count?: number;
+  blockers_omitted_sha256?: string;
 };
 
 export function workspaceSemanticState(text: string): WorkspaceSemanticState {
+  const allBlockers = parseBlockers(text);
+  const omitted = allBlockers.slice(8);
   return {
     asset: text.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? null,
     current_stage: field(text, "Current Stage"),
@@ -63,7 +70,12 @@ export function workspaceSemanticState(text: string): WorkspaceSemanticState {
       animation: field(text, "Animation"),
     },
     next_step: field(text, "Current next step"),
-    blockers: parseBlockers(text),
+    blockers: allBlockers.slice(0, 8),
+    ...(omitted.length > 0 ? {
+      blockers_omitted_count: omitted.length,
+      blockers_omitted_sha256: createHash("sha256")
+        .update(canonicalJson(omitted)).digest("hex"),
+    } : {}),
   };
 }
 

@@ -54,6 +54,27 @@ describe("workspace semantic fingerprint", () => {
     );
   });
 
+  test("preserves bounded blocker recovery and fingerprints a changed hidden blocker", () => {
+    const withBlockers = (last: string) => [
+      "# Chair",
+      "Current Stage: Geometry",
+      "Known blocker(s): " +
+        [...Array.from({ length: 8 }, (_, i) => `blocker ${i}`), last].join("; "),
+    ].join("\n");
+    const first = workspaceSemanticState(withBlockers("unverified wing pivot"));
+    const updated = workspaceSemanticState(withBlockers("unverified cape contact"));
+    expect(first.blockers).toHaveLength(8);
+    expect(first.blockers_omitted_count).toBe(1);
+    expect(first.blockers_omitted_sha256).toHaveLength(64);
+    expect(first.blockers_omitted_sha256).not.toBe(updated.blockers_omitted_sha256);
+    expect(workspaceSemanticFingerprint(withBlockers("unverified wing pivot")))
+      .not.toBe(workspaceSemanticFingerprint(withBlockers("unverified cape contact")));
+    const mixed = workspaceSemanticState(
+      "# Chair\nKnown blocker(s): none; critical rig misalignment"
+    );
+    expect(mixed.blockers).toEqual(["none", "critical rig misalignment"]);
+  });
+
   test("same-size same-mtime README replacement invalidates cached approval gates", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lazydesigner-workspace-refresh-"));
     const readme = join(dir, "README.md");

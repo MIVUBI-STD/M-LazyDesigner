@@ -126,6 +126,26 @@ describe("Control readiness policy", () => {
     expect(textureReadiness.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
   });
 
+  test("a ninth hidden workspace blocker requires orientation without claiming Runtime failure", () => {
+    const workspace = {
+      ...emptyWorkspace(),
+      available: true,
+      blockers: Array.from({ length: 8 }, (_, i) => `blocker ${i}`),
+      blockers_omitted_count: 1,
+      blockers_omitted_sha256: "a".repeat(64),
+    };
+    const reference = {
+      ...emptyReference("REFERENCE_PATH_UNAVAILABLE"), available: true,
+    };
+    const readiness = buildReadiness(
+      baseSnapshot(), workspace, reference,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(readiness.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(readiness.runtime_ready).toBe(true);
+    expect(readiness.reasons).toContain("WORKSPACE_PROJECTION_INCOMPLETE");
+  });
+
   test("hidden structured-fact omissions cannot produce a false READY stage", () => {
     const reference = parseReferencePackage(JSON.stringify({
       schema: "lazydesigner-reference-v1",

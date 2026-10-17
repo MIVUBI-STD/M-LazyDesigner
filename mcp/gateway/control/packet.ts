@@ -134,6 +134,9 @@ export async function buildControlPacket(
     : [];
   const blockers = [
     ...snapshot.blockers,
+    ...((workspace.blockers_omitted_count ?? 0) > 0
+      ? ["WORKSPACE_PROJECTION_INCOMPLETE"]
+      : []),
     ...workspaceBlockers,
     ...referenceBlockers,
     ...lifecycleBlockers.filter(

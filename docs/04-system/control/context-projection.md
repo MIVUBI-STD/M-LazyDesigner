@@ -329,6 +329,15 @@ BLOCKED
 
 A future-stage missing detail must not block an earlier legal stage.
 
+Active Workspace README blocker lists are bounded to eight display entries.
+When more are present, Control reports `WORKSPACE_PROJECTION_INCOMPLETE`
+and `workspace.blocker_recovery` with the canonical README path and omitted
+count. It does not claim READY until those additional blockers are reviewed.
+The fingerprint includes a hash of the omitted tail, so changing the ninth
+blocker cannot silently reuse the previous workspace revision. This is
+orientation debt, not an instruction to destroy approved work or repeatedly
+save a new project copy.
+
 For a bounded `REFERENCE.json` projection, only omissions relevant to the
 active specialist require `REFERENCE_PROJECTION_INCOMPLETE`. Geometry does
 not lose readiness solely because there are more than 24 material entries.
