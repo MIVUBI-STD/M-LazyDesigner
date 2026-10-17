@@ -35,6 +35,7 @@ export function registerAnimationTimelineTool(): void {
       ...animationTimelineToolDoc,
       parameters: animationTimelineParameters,
       async execute({ animation_id, action, time, length, fps, loop_mode, range, molang, bone_ids, easing }) {
+        if (action === "delete" && !animation_id) throw new Error("Deleting a clip requires explicit animation_id.");
         const animation = resolveAnimationClip(animation_id);
         const timelineGroups = bone_ids?.map(resolveAnimationRigGroup);
         // Timeline is native global state. Resolve explicit identity before changing
@@ -71,6 +72,16 @@ export function registerAnimationTimelineTool(): void {
         let result = "";
   
         switch (action) {
+          case "delete": {
+            Timeline.pause();
+            animation.remove(true, false);
+            Animator.preview();
+            recordCurrentCapabilitySemanticHistoryEffect("animation_timeline");
+            return {
+              content: [{ type: "text" as const, text: `Deleted animation "${animation.name}" from this project.` }],
+              structuredContent: { action, deleted_animation_id: animation.uuid },
+            };
+          }
           case "set_easing": {
             if (typeof Format === "undefined" || Format.id !== "bedrock") {
               throw new Error("Easings supports only Minecraft Bedrock Entity (bedrock) projects.");

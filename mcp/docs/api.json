@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-10-17T11:13:07.716Z",
+  "generatedAt": "2026-10-17T11:13:46.138Z",
   "semantic": {
     "semantic_revision_schema": 1,
     "revisions": {
@@ -1470,6 +1470,7 @@
                       "play",
                       "pause",
                       "stop",
+                      "delete",
                       "set_time",
                       "set_length",
                       "set_fps",
@@ -1481,7 +1482,7 @@
                       "collapse_bones",
                       "set_easing"
                     ],
-                    "description": "Timeline or persistent authored-Animation property action."
+                    "description": "Timeline or persistent authored-Animation property action. delete removes an explicit animation_id from this project with Undo, preserving external files."
                   },
                   "time": {
                     "description": "Time in seconds for set_time; finite, within Timeline.setTime() range 0..1000, not clamped to animation.length.",

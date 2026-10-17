@@ -44,6 +44,7 @@ export const animationTimelineParameters = z
         "play",
         "pause",
         "stop",
+        "delete",
         "set_time",
         "set_length",
         "set_fps",
@@ -55,7 +56,7 @@ export const animationTimelineParameters = z
         "collapse_bones",
         "set_easing",
       ])
-      .describe("Timeline or persistent authored-Animation property action."),
+      .describe("Timeline or persistent authored-Animation property action. delete removes an explicit animation_id from this project with Undo, preserving external files."),
     time: z
       .number()
       .finite()
