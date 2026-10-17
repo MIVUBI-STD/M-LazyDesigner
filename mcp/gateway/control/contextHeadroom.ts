@@ -132,7 +132,9 @@ function addStringItemsWithinBudget(
   for (const value of values) {
     const current = projected[field] ?? [];
     const candidate = { ...projected, [field]: [...current, value] };
-    if (!fitsBudget(candidate, budgetBytes)) break;
+    // A long optional item must not prevent later, shorter useful items from
+    // fitting. Preserve original order among accepted items.
+    if (!fitsBudget(candidate, budgetBytes)) continue;
     projected = candidate;
     accepted += 1;
   }

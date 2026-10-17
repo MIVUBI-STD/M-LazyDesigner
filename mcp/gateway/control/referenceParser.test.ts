@@ -299,6 +299,26 @@ describe("Control reference parser", () => {
     expect(parsed?.truncated_sections).toEqual(["parts", "unknowns.blocking"]);
   });
 
+  test("signals field and nested-list omissions even below the row cap", () => {
+    const doc = {
+      schema: "lazydesigner-reference-v1",
+      parts: [{
+        id: "body",
+        related_parts: Array.from({ length: 13 }, (_, i) => `part-${i}`),
+      }],
+      materials: [{
+        id: "gold",
+        ...Object.fromEntries(Array.from({ length: 16 },
+          (_, i) => [`detail_${i}`, `value_${i}`])),
+      }],
+      articulation: [{ id: "hinge", related_parts: ["body"] }],
+    };
+    const parsed = parseReferencePackage(JSON.stringify(doc), "/pkg/REFERENCE.json", "/pkg");
+    expect(parsed?.semantic_facts?.parts[0]?.related_parts).toHaveLength(12);
+    expect(parsed?.semantic_facts?.materials[0]?.detail_15).toBeUndefined();
+    expect(parsed?.truncated_sections).toEqual(["parts", "materials"]);
+  });
+
   test("rejects malformed and duplicate source identities instead of silently omitting them", () => {
     const parse = (value: unknown) =>
       parseReferencePackage(JSON.stringify(value), "/pkg/REFERENCE.json", "/pkg");

@@ -128,6 +128,25 @@ minimum implementation context
 
 Control must not become a second knowledge base, second Runtime, or creative modelling engine.
 
+### One-flow context integrity before authoring
+
+Control identifies the active specialist and selected Geometry profile by content
+hash and semantic revision. A resolvable context handle is **not** proof that
+the client actually loaded the Skill or that the agent applied its instructions.
+The AI client must load the applicable current Skill content (and only the
+decision-relevant deeper guidance) before relying on its procedures. It may
+reuse a previously loaded copy only while that content is still available in
+the active client context and its handle remains valid; after compaction or
+restart without retained content, omit the stale `known_context_ids` and
+reload the required guidance.
+
+If the Control Reference projection reports
+`REFERENCE_PROJECTION_INCOMPLETE`, the projected facts must not be used as
+a complete design inventory. Reorient from the unchanged canonical Reference
+Package and the exact stage document/part relationship needed for the next
+decision. This is an evidence gap, not permission to invent facts or to stop
+independent low-risk work.
+
 ## 4. Asset Lifecycle
 
 Canonical authoring progression:

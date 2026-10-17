@@ -141,6 +141,21 @@ describe("Control stage-context headroom", () => {
     expect(projected.context.requirements).toEqual(input.requirements);
   });
 
+  test("one oversized optional fact does not starve later smaller facts", () => {
+    const source = fixture({
+      non_blocking_unknowns_relevant_to_stage: ["x".repeat(2000), "check rear attachment"],
+      reference_document: null,
+      workspace: { ...fixture().workspace, next_step: null },
+    });
+    const requiredBytes = projectControlStageContextWithHeadroom(source, 1).diagnostics.required_bytes;
+    const result = projectControlStageContextWithHeadroom(source, requiredBytes + 120);
+    expect(result.context.non_blocking_unknowns_relevant_to_stage).toEqual([
+      "check rear attachment",
+    ]);
+    expect(result.diagnostics.dropped_useful_items).toBe(1);
+    expect(result.diagnostics.after_bytes).toBeLessThanOrEqual(requiredBytes + 120);
+  });
+
   test("projection is deterministic and does not mutate canonical context", () => {
     const input = fixture({
       non_blocking_unknowns_relevant_to_stage: Array.from(

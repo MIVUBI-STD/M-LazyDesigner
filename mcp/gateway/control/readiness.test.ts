@@ -4,7 +4,7 @@ import {
   lifecycleForDomain,
   NOT_REQUIRED_LIFECYCLE,
 } from "./readiness";
-import { emptyReference } from "./referenceParser";
+import { emptyReference, parseReferencePackage } from "./referenceParser";
 import { emptyWorkspace } from "./packetData";
 import type { ControlSnapshot } from "./types";
 
@@ -100,6 +100,21 @@ describe("Control readiness policy", () => {
     expect(truncated.modelling_start).toBe("NEEDS_ORIENTATION");
     expect(truncated.runtime_ready).toBe(true);
     expect(truncated.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
+  });
+
+  test("hidden structured-fact omissions cannot produce a false READY stage", () => {
+    const reference = parseReferencePackage(JSON.stringify({
+      schema: "lazydesigner-reference-v1",
+      parts: [{ id: "body", components: Array.from({ length: 13 }, (_, i) => `part_${i}`) }],
+    }), "/pkg/REFERENCE.json", "/pkg");
+    expect(reference?.truncated_sections).toEqual(["parts"]);
+    const readiness = buildReadiness(
+      baseSnapshot(), emptyWorkspace(), reference!,
+      "ASSET_AUTHORING", NOT_REQUIRED_LIFECYCLE, "READY"
+    );
+    expect(readiness.modelling_start).toBe("NEEDS_ORIENTATION");
+    expect(readiness.runtime_ready).toBe(true);
+    expect(readiness.reasons).toContain("REFERENCE_PROJECTION_INCOMPLETE");
   });
 
   test("first HTTP-only Runtime probe is orientation rather than MCP execution-ready", () => {

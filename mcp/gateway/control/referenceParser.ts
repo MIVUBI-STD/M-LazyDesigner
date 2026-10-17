@@ -266,6 +266,26 @@ export function parseReferencePackage(
     if (Array.isArray(values) && values.length > cap) truncatedSections.push(section);
   }
 
+  // Row caps are not the only source of incomplete context. A structured fact
+  // can also lose its 17th field or 13th string-list member. Keep the bounded
+  // projection, but never present such a partial projection as complete.
+  for (const section of ["parts", "articulation", "materials", "animation_guidance"] as const) {
+    const entries = root[section];
+    if (!Array.isArray(entries)) continue;
+    const innerOmission = entries.slice(0, 24).some((entry) => {
+      const fact = record(entry);
+      if (!fact) return false;
+      const fields = Object.entries(fact);
+      return fields.length > 16 ||
+        fields.slice(0, 16).some(([, value]) =>
+          Array.isArray(value) && stringList(value, 13).length > 12
+        );
+    });
+    if (innerOmission && !truncatedSections.includes(section)) {
+      truncatedSections.push(section);
+    }
+  }
+
   return {
     available: true,
     source_path: sourcePath,

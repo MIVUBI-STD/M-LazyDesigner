@@ -115,6 +115,9 @@ export function buildReadiness(
   const domainReady = snapshot.authoring.domain !== null;
   const requiredContextUnavailable =
     snapshot.blockers.includes("REQUIRED_CONTEXT_UNAVAILABLE");
+  // This only proves required Skill/Profile handles are resolvable in Control.
+  // The client is responsible for actually loading their contents; a handle
+  // hash alone is not evidence that the AI has read or applied the guidance.
   const contextReady =
     snapshot.context.required.length > 0 && !requiredContextUnavailable;
   const activeReferenceBlocked = activeReferenceReadiness === "BLOCKED";

@@ -98,7 +98,11 @@ export type ControlReferenceProjection = {
    * subset rather than retransmitting every semantic section.
    */
   semantic_facts?: ControlReferenceSemanticFacts;
-  /** Sections omitted by bounded Control projection; source REFERENCE.json is still intact. */
+  /**
+   * Sections with omitted rows, structured-fact fields, or nested list items.
+   * A nonempty set requires source re-orientation before relying on the
+   * projected facts as complete. The canonical REFERENCE.json remains intact.
+   */
   truncated_sections?: Array<
     | "parts"
     | "articulation"

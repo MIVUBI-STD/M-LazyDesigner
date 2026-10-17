@@ -52,6 +52,25 @@ Animation / motion / effects / controllers
 
 Control projects only the active-stage context. Geometry may load exactly one selected modelling profile. Do not load sibling specialists or the shared stage contract as reassurance.
 
+## Decision-to-execution contract
+
+A single active semantic owner decides each material change. Before a
+high-cost propagation (secondary form, atlas-wide style, many follower keys,
+or structural variant), reconcile the current user correction, approved source,
+active Skill and the smallest judgeable target. Verify that target before
+expanding. This is a **decision within the existing stage**, not an added
+user-approval step or a new state machine.
+
+For a bounded correction, recover only affected evidence and preserve unrelated
+approved structure. A current Skill handle alone does not prove that the
+client still has the instructions: reload missing content at the client boundary
+instead of treating a hash or summary as executable guidance.
+
+Do not add routine status/search/describe, file saves, capture-per-mutation,
+or per-key/per-Cube approvals. Keep existing Runtime validation, checkpoint,
+and handoff safety gates. A capability receipt proves execution, not visual
+quality or permission to bypass the next stage's prerequisites.
+
 ## Minimum Necessary Evidence
 
 Reuse fresh exact identity/authored state returned by prior calls when sufficient.
