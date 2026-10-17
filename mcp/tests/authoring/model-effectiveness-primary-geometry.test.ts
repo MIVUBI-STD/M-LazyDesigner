@@ -29,6 +29,23 @@ describe("model creation effectiveness — primary geometry", () => {
     expect(workflow).toMatch(/After primary `PASS`, add (?:only )?identity-weighted detail/);
   });
 
+  test("geometry size-warning guidance distinguishes approved scale from native format limits", async () => {
+    const [skill, verification, standard] = await Promise.all([
+      source("../.agents/skills/lazydesigner-modelling/SKILL.md"),
+      source("../.agents/skills/lazydesigner-modelling/references/verification.md"),
+      source("../docs/03-authoring/modelling/standard.md"),
+    ]);
+    expect(skill).toContain("scale/format warnings");
+    expect(verification).toContain("Format.cube_size_limiter");
+    expect(verification).toContain("Bedrock Entity");
+    expect(verification).toContain("Bedrock Block");
+    expect(verification).toContain("one Undo");
+    expect(verification).toContain("16 Blockbench units");
+    expect(verification).toContain("relevant total");
+    expect(standard).toContain("whole-form envelope");
+    expect(standard).toContain("not a universal Bedrock Entity size box");
+  });
+
   test("under-constrained geometry remains provisional rather than success-by-placement", async () => {
     const modelling = await Promise.all([source("../.agents/skills/lazydesigner-modelling/SKILL.md"), source("../.agents/skills/lazydesigner-modelling/references/correction.md"), source("../.agents/skills/lazydesigner-modelling/references/uv-layout.md"), source("../.agents/skills/lazydesigner-modelling/references/verification.md")]).then((parts) => parts.join("\n"));
     expect(modelling).toContain("PROVISIONAL");

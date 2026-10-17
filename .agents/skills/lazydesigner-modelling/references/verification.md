@@ -3,7 +3,52 @@
 This file is loaded only for its named modelling decision. Durable Geometry policy remains in `docs/03-authoring/modelling/standard.md`; the modelling Skill owns hot-path execution triggers.
 
 
-Load only when fresh Geometry evidence is being judged against the approved reference or a Geometry verdict is required.
+Load only for a material scale/format-warning decision, fresh Geometry/reference comparison, or a Geometry verdict. Do not load at every Cube edit.
+
+## Dimension / Native Format Warning Preflight
+
+Use this once before a meaningful primary-cohort create/resize when the
+approved numeric envelope or editor warning can change the construction. It
+is not an extra persisted stage or screenshot-per-Cube checklist.
+
+1. **Identify actual format, not the word Minecraft.** Bedrock Entity
+   (`Format.id=bedrock`) and Bedrock Block have different restrictions.
+   Query the active native format/limit only when a warning makes it material.
+   `Format.cube_size_limiter` is optional: never assume a block's coordinate
+   box, 30-unit size, or Java model constraints apply to Bedrock Entity.
+2. **Convert explicit authority to native units.** For ordinary Bedrock
+   entity scale, 1 Minecraft block = 16 Blockbench units; map
+   width→X, height→Y, length→Z. If dimensions are absent, do not invent
+   them from the pixel width of a reference sheet. Establish an explicit
+   player-relative scale when required for the task.
+3. **Validate the proposed cohort before one Undo.** Every intended Cube
+   has finite `from/to` and derived spans; each `to` coordinate is
+   ≥ `from`. Inflate modifies the rendered span on both sides.
+   A solid form has three positive rendered axes; one zero axis may
+   intentionally represent a plane. A reversed, nonfinite, negative
+   rendered, or two-axis-collapsed Cube requires correction before mutation.
+   Preserve legitimate thin/fractional geometry; do not round away a
+   meaningful feature to satisfy provisional Box UV.
+4. **Check the relevant total, not isolated cube widths.** Compare
+   the planned visible silhouette/overall X/Y/Z envelope against the
+   approved dimensions, including unchanged masses affected by the cohort.
+   Group transforms, authored cube bounds, and rotated world-space
+   extents are distinct quantities. Native size-limit warnings can use
+   unrotated raw `from/to`; a visually fitting rotated Cube may still
+   trigger a format warning. Do not move a pivot or inflate every Cube to
+   disguise the cause. Use `inspect_model_bounds` only if that envelope
+   cannot be established from fresh existing evidence.
+5. **Classify the warning before fixing it.** Separate invalid authored
+   span, format-specific native size limit, mismatch with approved target
+   size, Box-UV quantization/packing, and a purely visual proportion
+   discrepancy. Fix the first proven owner and recheck the affected cohort.
+   One warning is not authorization for whole-model rescale, silent atlas
+   enlargement, or full multi-view recapture.
+
+**Acceptance:** no avoidable geometry/format warning remains for the scoped
+cohort, numerical dimensions satisfy explicit approved constraints,
+and appropriate comparable reference/model views preserve form. Preflight
+success alone never grants Geometry visual PASS.
 
 ## Primary Build / Difference-First Reference Fidelity Verdict
 `requirement → source evidence → selected profile guidance → simplest recognizable Blockbench-buildable interpretation → PRIMARY BLOCKOUT + required hierarchy/pivots → primary PASS → identity-weighted secondary geometry`.

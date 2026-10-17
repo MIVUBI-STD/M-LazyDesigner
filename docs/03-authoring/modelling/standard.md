@@ -145,6 +145,20 @@ ground relationship = explicit
 
 Approved dimensions are numeric target authority. Reference pixels/panel size are not geometry calibration.
 
+Before a significant Cube cohort is applied, convert any approved
+block dimensions to native units (16 units per Minecraft block), derive
+each actual `to-from` span and rendered span after `inflate`, then
+compare the **relevant whole-form envelope** with the approved X/Y/Z
+size. A valid plane may have one zero axis; do not round away valid
+fractional/plane-like geometry. Native format restrictions are
+format-specific: an optional `Format.cube_size_limiter` is not a
+universal Bedrock Entity size box. Do not borrow Bedrock Block bounds
+for Bedrock Entity or mistake rotated visible extents for raw Cube
+coordinate limits. For material ambiguity use the named Modelling
+`references/verification.md` preflight, not repetitive per-Cube
+inspection. Classify geometry-span, native format-limit, scale-target,
+and UV packing warnings separately before correcting them.
+
 ## Rotation
 
 **Rotation is justified when** the reference visibly requires an angled orientation/slope, a rotated Cuboid represents that orientation more coherently than an intentional stepped construction, or articulation/shared segment motion requires it.
