@@ -80,6 +80,14 @@ describe("LazyDesigner Control active contract", () => {
     expect(delta.invalidates.authoring_domains).toEqual(["GEOMETRY", "TEXTURING", "ANIMATION"]);
   });
 
+  test("Gateway bootstrap states client Skill-content and quality boundaries", async () => {
+    const source = await Bun.file("gateway/index.ts").text();
+    expect(source).toContain("Skill/profile handles, not Skill contents");
+    expect(source).toContain("content survives compaction");
+    expect(source).toContain("smallest judgeable sample");
+    expect(source).toContain("not use a successful receipt as visual approval");
+  });
+
   test("routing policy remains direct-first and bounded without being retransmitted in every packet", async () => {
     expect(CONTROL_ROUTING_POLICY.strategy).toBe("DIRECT_FIRST");
     expect(CONTROL_ROUTING_POLICY.known_capability).toBe("INVOKE_CAPABILITY");
