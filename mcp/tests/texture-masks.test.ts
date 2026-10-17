@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { edgeMask } from "@/lib/texture/masks";
+import { applyMaskedColor } from "@/lib/texture/maskedOps";
+import { applyGeometryAwareMaterialTreatment } from "@/lib/texture/geometryAwareTreatment";
 import { renderTextureSourceRecipe } from "@/lib/texture/sourceComposer";
 
 describe("procedural texture masks",()=>{
@@ -13,5 +15,56 @@ describe("procedural texture masks",()=>{
     });
     expect(rendered[0]).toBe(100);
     expect(rendered[(2*5+2)*4]).toBe(20);
+  });
+});
+
+describe("geometry-aware texture alpha boundaries", () => {
+  test("wear and grime preserve transparent atlas islands, cutout alpha and original input", () => {
+    const src = new Uint8Array([
+      60, 90, 120, 0,    70, 90, 120, 128,
+      80, 90, 120, 255,  90, 90, 120, 255,
+    ]);
+    const original = Array.from(src);
+    const full = { width: 2, height: 2, values: new Float32Array([1, 1, 1, 1]) };
+    const corner = { width: 2, height: 2, values: new Float32Array([0, 1, 0, 0]) };
+    const result = applyGeometryAwareMaterialTreatment(src, 2, 2, {
+      edge: full,
+      contact: corner,
+    }, {
+      wear: { color: [240, 20, 20, 255], strength: 1 },
+      contact_dirt: { color: [5, 5, 5, 0], strength: 1 },
+    });
+    expect(Array.from(src)).toEqual(original);
+    expect(Array.from(result.slice(0, 4))).toEqual(original.slice(0, 4));
+    expect(Array.from(result.filter((_, i) => i % 4 === 3))).toEqual([0, 128, 255, 255]);
+    expect(Array.from(result.slice(4, 8))).toEqual([5, 5, 5, 128]);
+    expect(Array.from(result.slice(8, 12))).toEqual([240, 20, 20, 255]);
+  });
+
+  test("composed edge and directional wear cannot paint transparent pixels or erase semi-alpha", () => {
+    const blank = renderTextureSourceRecipe({
+      material: { kind: "PLASTIC", width: 3, height: 3, base: [20, 30, 40, 0], variation: 0 },
+      edge_treatment: { color: [250, 0, 0, 255], strength: 1, falloff: 2 },
+      directional_wear: { color: [255, 255, 0, 255], strength: 1, falloff: 2, axis: "y" },
+    });
+    for (let i = 3; i < blank.length; i += 4) expect(blank[i]).toBe(0);
+
+    const translucent = renderTextureSourceRecipe({
+      material: { kind: "PLASTIC", width: 3, height: 3, base: [20, 30, 40, 128], variation: 0 },
+      edge_treatment: { color: [250, 0, 0, 0], strength: 1, falloff: 2 },
+      directional_wear: { color: [255, 255, 0, 0], strength: 1, falloff: 2, axis: "y" },
+    });
+    for (let i = 3; i < translucent.length; i += 4) expect(translucent[i]).toBe(128);
+    expect(translucent[0]).not.toBe(20);
+  });
+
+  test("general masked color remains RGBA-capable unless preservation is explicitly requested", () => {
+    const source = new Uint8Array([10, 20, 30, 0]);
+    const mask = { width: 1, height: 1, values: new Float32Array([1]) };
+    expect(Array.from(applyMaskedColor(source, 1, 1, mask, [90, 90, 90, 255], 1)))
+      .toEqual([90, 90, 90, 255]);
+    expect(Array.from(applyMaskedColor(source, 1, 1, mask, [90, 90, 90, 255], 1,
+      { preserveAlpha: true, skipTransparent: true })))
+      .toEqual([10, 20, 30, 0]);
   });
 });

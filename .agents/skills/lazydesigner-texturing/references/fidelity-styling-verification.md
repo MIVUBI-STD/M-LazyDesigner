@@ -47,7 +47,7 @@ If verification reveals Geometry/UV ownership, stop Texturing correction and ret
 
 ### Reference-Grounded Palette / Atlas-Island Discipline
 Integer texels; **pixels per UV unit** owns detail scale. Build stepped hue/value ramps, contact shadows and highlights from observed form. Surface coordinates keep shading continuous across Cubes; UV edges do not invent seams.
-Unused atlas pixels stay transparent; opaque material does not authorize full-canvas fill. Paint mapped islands plus deliberate bounded padding only.
+Unused atlas pixels stay transparent; opaque material does not authorize full-canvas fill. Paint mapped islands plus deliberate bounded padding only. Geometry-aware wear/cavity/contact/exposure color treatment must preserve the original alpha channel (including cutout/emissive masks) and skip fully transparent atlas pixels. Change alpha only under an explicit render/alpha-owned edit, not as a side effect of color styling.
 Pixel art must read as deliberate clusters at normal model scale with Shading ON: distinct shadow/base/light masses, folds and identity accents. Barely visible noise or smooth formula variation is BASE_ONLY, never STYLED.
 
 ## Texture Styling

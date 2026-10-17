@@ -4,6 +4,10 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
+**2026-10-18 Texturing alpha-safety source patch:** RGB-only style overlays in geometry-aware and source-composed edge/directional treatments are explicitly restricted to previously nontransparent pixels and preserve their alpha. The base masked-color helper retains its legacy RGBA default for explicit alpha effects. Focused fixtures check transparent islands, intermediate cutout alpha, repeated treatment and backward compatibility. **GitHub source only: Bun, typecheck, CI, native Blockbench, visual and Minecraft proof NOT EXECUTED.** No measured quality or performance gains claimed.
+
+
+
 **2026-10-18 Save Lifecycle / Workspace source change `d72120df`:** differentiates
 same-path `NATIVE_PROJECT_SAVE` from path-changing `NATIVE_PROJECT_SAVE_AS`
 in the export receipt. Overwrite consent and native Save As side effects are

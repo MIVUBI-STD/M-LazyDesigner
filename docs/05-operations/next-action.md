@@ -6,6 +6,12 @@ This file owns **current continuation only**, not the patch history. Canonical w
 
 ## Current bounded work — One-Flow context integrity (ChatGPT / GitHub)
 
+**2026-10-18 Texturing alpha-safety source change (pending matching-SHA proof):** geometry-aware wear/cavity/contact/exposure treatments and source-composed edge/directional wear now use RGB-only masked blending, skipping fully transparent atlas pixels and retaining original opacity/cutout/emissive alpha. General-purpose `applyMaskedColor` retains legacy RGBA behavior unless explicitly passed the preservation options. Affected owners: `mcp/lib/texture/maskedOps.ts`, `geometryAwareTreatment.ts`, `sourceComposer.ts`, with focused behavioral fixtures in `mcp/tests/texture-masks.test.ts`. This prevents an identified source-level alpha corruption path; it does **not** certify artistic Texture PASS or Minecraft renderer fidelity. No assets were edited, deleted or re-exported.
+
+**Next evidence:** on an actual cloud checkout with Bun, run `cd mcp && bun install --frozen-lockfile && bun test tests/texture-masks.test.ts tests/texture-treatment-intelligence.test.ts tests/authoring/texture-production-discipline.test.ts`, then source typecheck/docs/source gates. Native mapped preview and in-game alpha behavior remain **NOT EXECUTED**; the user's PC/localtest is not required for remote source work.
+
+
+
 **2026-10-18 canonical save/Workspace semantics — SOURCE_IMPLEMENTED `d72120df`:**
 `export_model(codec_id=project,path=...)` now reports `NATIVE_PROJECT_SAVE`
 when the target exactly equals the currently bound project `save_path`, and

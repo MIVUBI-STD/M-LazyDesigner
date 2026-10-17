@@ -56,7 +56,11 @@ export function applyGeometryAwareMaterialTreatment(
   ];
   for (const [mask, treatment, label] of steps) {
     if (!mask || !treatment) continue;
-    out = applyMaskedColor(out, width, height, mask, treatment.color, requireStrength(treatment.strength, label));
+    // Geometry-driven material color must not create pixels on unused atlas
+    // islands or modify the alpha semantics of cutout/emissive textures.
+    out = applyMaskedColor(out, width, height, mask, treatment.color,
+      requireStrength(treatment.strength, label),
+      { preserveAlpha: true, skipTransparent: true });
   }
   return out;
 }

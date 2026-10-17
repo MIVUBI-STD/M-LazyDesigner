@@ -2,6 +2,10 @@ import type { MaterialRecipe } from "@/lib/texture/materialRecipe";
 import { renderMaterialRecipe } from "@/lib/texture/materialRecipe";
 import { edgeMask } from "@/lib/texture/masks";
 import { applyDirectionalWear, applyMaskedColor } from "@/lib/texture/maskedOps";
+
+// Surface wear is color styling, not a hidden render-alpha or UV-island edit.
+// Alpha-changing patterns remain a separate, explicitly authored operation.
+const SURFACE_COLOR_ONLY = { preserveAlpha: true, skipTransparent: true } as const;
 import type { Rgba } from "@/lib/texture/proceduralOps";
 import type { SurfacePattern } from "@/lib/texture/surfacePatterns";
 import { renderSurfacePattern } from "@/lib/texture/surfacePatterns";
@@ -30,13 +34,13 @@ export function renderTextureSourceRecipe(recipe:TextureSourceRecipe):Uint8Array
   }
   if(recipe.edge_treatment){
     const mask=edgeMask(recipe.material.width,recipe.material.height,recipe.edge_treatment.falloff);
-    out=applyMaskedColor(out,recipe.material.width,recipe.material.height,mask,recipe.edge_treatment.color,recipe.edge_treatment.strength);
+    out=applyMaskedColor(out,recipe.material.width,recipe.material.height,mask,recipe.edge_treatment.color,recipe.edge_treatment.strength,SURFACE_COLOR_ONLY);
   }
   if(recipe.directional_wear){
     const mask=edgeMask(recipe.material.width,recipe.material.height,recipe.directional_wear.falloff);
     out=applyDirectionalWear(
       out,recipe.material.width,recipe.material.height,mask,
-      recipe.directional_wear.color,recipe.directional_wear.axis,recipe.directional_wear.strength
+      recipe.directional_wear.color,recipe.directional_wear.axis,recipe.directional_wear.strength,SURFACE_COLOR_ONLY
     );
   }
   return out;
