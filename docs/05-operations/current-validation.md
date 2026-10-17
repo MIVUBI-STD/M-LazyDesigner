@@ -4,6 +4,16 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
+**2026-10-18 Save Lifecycle / Workspace source change `d72120df`:** differentiates
+same-path `NATIVE_PROJECT_SAVE` from path-changing `NATIVE_PROJECT_SAVE_AS`
+in the export receipt. Overwrite consent and native Save As side effects are
+preserved, no file was moved/deleted. Updated fixture assertions and workspace
+policy. GitHub branch + diff and 10 targeted static source checks passed.
+**Bun/tests/typecheck/CI and native save/reopen NOT EXECUTED;** no quantitative
+improvement or production acceptance claim. Continuation: [next-action](next-action.md#current-bounded-work--one-flow-context-integrity-chatgpt--github).
+
+
+
 **2026-10-18 Animation evidence source patch:** Commits `8f11e41` and `8874d3f` cap *potential* image count using resolved views × preview times × optional silhouette image; reject partial/missing per-time native image receipts; and preserve base capture-schema refinements via safe extension. Source+fixture text was inspected at `8874d3f` (ten scoped checks). **No exact-SHA Bun/CI/native verification; no measured saved images or proven full pose-state restoration.** The existing native restoration checklist remains an unresolved acceptance boundary. See [next-action](next-action.md#current-bounded-work--one-flow-context-integrity-chatgpt--github).
 
 

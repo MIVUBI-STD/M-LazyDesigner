@@ -6,6 +6,35 @@ This file owns **current continuation only**, not the patch history. Canonical w
 
 ## Current bounded work — One-Flow context integrity (ChatGPT / GitHub)
 
+**2026-10-18 canonical save/Workspace semantics — SOURCE_IMPLEMENTED `d72120df`:**
+`export_model(codec_id=project,path=...)` now reports `NATIVE_PROJECT_SAVE`
+when the target exactly equals the currently bound project `save_path`, and
+`NATIVE_PROJECT_SAVE_AS` for a changed target path. Both preserve explicit
+overwrite consent, native `afterSave` lifecycle validation, failure recovery,
+and no automatic retry. Regression: existing native filesystem fixture covers
+same-path saves, lack of metadata identity changes, consent enforcement, and
+existing Save As/error cases. Workspace root and active-index instructions now
+agree: one canonical editable `.bbmodel`, checkpoint only at meaningful
+boundaries, no automatic archive without the user's explicit direction; do not
+rename or delete historical user files.
+
+**Proof:** at `d72120df`, GitHub HEAD/one-commit diff and 10 source
+consistency checks were observed. Matching-sha Bun tests, Gateway typecheck,
+`docs:check`, CI, native Blockbench save/reopen and persistence **NOT
+EXECUTED**. No demonstrated reduction in actual save count or disk usage.
+
+**Next independent REMOTE_GITHUB work:** audit whether other concrete
+save/checkpoint callers bypass this canonical path; inspect Workspace files
+read-only and avoid bulk moves/deletes. Review exact owner code and add tests
+only for reproduced source defects. On an available authenticated cloud
+checkout, run `cd mcp && bun install --frozen-lockfile && bun test
+tests/export-native-filesystem.test.ts tests/export-lifecycle-control-delta.test.ts`
+plus `bun run typecheck` and owning repository gate; do not require the
+user's PC. Native matching-build Save/Save As and user-owned historical
+workspace cleanup remain separate deferred proof.
+
+
+
 **2026-10-18 Animation capture source hardening (`8f11e41`, `8874d3f`):** `animationAwareCaptureModelViewsParameters` now budgets actual resolved camera views (including implicit evidence-target/risk expansion), preview times and possible second silhouette PNGs against eight images; uses safe schema extension to keep inherited capture restrictions; multi-time aggregation rejects missing native view receipts/media rather than reporting a partial-success batch. Focused contract fixtures exist in `mcp/tests/animation-runtime-optimization.test.ts`. The old wrapper still restores editor animation state per sample: do **not** optimize its lifecycle until native full-state restoration is proven. No extra capture capability or screenshot-per-frame workflow was introduced.
 
 **Source proof boundary:** Two commits verified at `Local` head `8874d3f`; ten targeted string assertions about source/test presence were inspected. Bun tests, typecheck, CI exact-SHA, installed Blockbench view capture, actual media-byte budget, and full animation preview restoration have **NOT EXECUTED**. The observed build 3.0 screenshot overhead is historical and cannot be used to claim measured reduction. On an available cloud checkout run `cd mcp && bun install --frozen-lockfile && bun test tests/animation-runtime-optimization.test.ts tests/animation-preview-state.test.ts tests/camera-framing-contract.test.ts` followed by `bun run typecheck`, `bun run typecheck:gateway` and relevant source gates; leave live proof pending without asking the user to localtest.
