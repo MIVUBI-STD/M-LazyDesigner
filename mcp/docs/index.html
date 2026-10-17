@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BlockIT — Bedrock Entity MCP — API Reference</title>
+  <title>LazyDesigner — Bedrock Entity MCP — API Reference</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="layout">
     <nav class="sidebar">
       <div class="sidebar-brand">
-        <h1>BlockIT — Bedrock Entity MCP</h1>
+        <h1>LazyDesigner — Bedrock Entity MCP</h1>
         <p>v0.2.0 — API Reference</p>
       </div>
 
@@ -42,8 +42,9 @@
 
     <main class="main">
       <header class="page-header">
-        <h1>BlockIT — Bedrock Entity MCP</h1>
+        <h1>LazyDesigner — Bedrock Entity MCP</h1>
         <p class="subtitle">API Reference — v0.2.0</p>
+        <p class="subtitle">This lists documented capability definitions, not the active Runtime tool surface. Use Gateway search_capabilities and describe_capability for current availability and schemas.</p>
         <nav class="stats">
           <a href="#tools"><strong>66</strong> tools (30 stable, 36 experimental)</a>
           <a href="#prompts"><strong>1</strong> prompts</a>
@@ -63,14 +64,14 @@ bun run build
 bun run docs:check
 </code></pre>
 <p>Load the generated compatibility bundle in desktop Blockbench:</p>
-<pre><code class="language-text">mcp/dist/blockit_mcp.js
+<pre><code class="language-text">mcp/dist/lazydesigner_mcp.js
 </code></pre>
-<p><code>blockit_mcp.js</code> is a retained compatibility filename, not the current product name.</p>
+<p>The plugin bundle and registration identity are now LazyDesigner-only. Older BlockIT installs are migration evidence, not a supported active fallback.</p>
 <p>Native Blockbench Runtime HTTPS endpoint after the plugin is running (diagnostics only):</p>
 <pre><code class="language-text">https://127.0.0.1:3000/bb-mcp
 </code></pre>
 <p>It requires the machine-local TLS certificate and Runtime authorization credential. Do not point Codex directly at this native endpoint. Codex uses the persistent four-tool stdio Gateway; select a source-checkout or exact-SHA managed Gateway as described in the <a href="../../../docs/05-operations/local-acceptance-runbook.md#3a-choose-the-codex-mcp-gateway-to-test">local acceptance runbook</a>.</p>
-<p>Keep <strong>Legacy UI Fallbacks (Debug)</strong> disabled for normal Bedrock Entity authoring. <code>risky_eval</code> and <code>from_geo_json</code> remain disabled.</p>
+<p>Keep <strong>Legacy Compatibility (Developer)</strong> disabled for normal Bedrock Entity authoring. <code>risky_eval</code> and <code>from_geo_json</code> remain disabled.</p>
 <p>For the current repository acceptance procedure, follow root <code>docs/05-operations/next-action.md</code> and <code>docs/05-operations/local-acceptance-runbook.md</code>. This install fragment only owns local build/load guidance; it does not replace repository task routing.</p>
 
       </section>
@@ -119,7 +120,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Capture App Screenshot</p>
-      <p class="card-desc">Source-preserved generic Blockbench full-application screenshot helper. It is disabled in the normal BlockIT Bedrock Entity surface; use `capture_model_views` or `capture_screenshot` for model evidence.</p>
+      <p class="card-desc">Source-preserved generic Blockbench full-application screenshot helper. It is disabled in the normal LazyDesigner Bedrock Entity surface; use `capture_model_views` or `capture_screenshot` for model evidence.</p>
       <div class="overflow-x">
         <p class="empty-params">No parameters</p>
       </div>
@@ -133,7 +134,7 @@ bun run docs:check
         </div>
       </div>
       <p class="card-title">Set Camera Angle</p>
-      <p class="card-desc">Source-preserved generic editor-camera mutation helper. It is disabled in the normal BlockIT Bedrock Entity surface because `capture_model_views` provides deterministic observation without mutating the active editor camera.</p>
+      <p class="card-desc">Source-preserved generic editor-camera mutation helper. It is disabled in the normal LazyDesigner Bedrock Entity surface because `capture_model_views` provides deterministic observation without mutating the active editor camera.</p>
       <div class="overflow-x">
         <table class="param-table">
       <thead>
@@ -933,8 +934,8 @@ bun run docs:check
           <span class="badge badge-readonly">read-only</span>
         </div>
       </div>
-      <p class="card-title">List BlockIT Model Outputs</p>
-      <p class="card-desc">Lists the model outputs intentionally exposed by BlockIT for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.</p>
+      <p class="card-title">List LazyDesigner Model Outputs</p>
+      <p class="card-desc">Lists the model outputs intentionally exposed by LazyDesigner for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.</p>
       <div class="overflow-x">
         <p class="empty-params">No parameters</p>
       </div>
@@ -963,7 +964,7 @@ bun run docs:check
       <td class="col-name">codec_id</td>
       <td class="col-type">&quot;bedrock&quot; | &quot;project&quot;</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">BlockIT output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`. <span class="param-meta">(default: <code>&quot;bedrock&quot;</code>)</span></td>
+      <td class="col-desc">LazyDesigner output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`. <span class="param-meta">(default: <code>&quot;bedrock&quot;</code>)</span></td>
     </tr><tr>
       <td class="col-name">options</td>
       <td class="col-type">Record&lt;string, unknown&gt;</td>
@@ -1886,7 +1887,7 @@ bun run docs:check
       <td class="col-name">expected_revision</td>
       <td class="col-type">string</td>
       <td><span class="param-required">required</span></td>
-      <td class="col-desc">Full decoded-RGBA texture revision returned by BlockIT.</td>
+      <td class="col-desc">Full decoded-RGBA texture revision returned by LazyDesigner.</td>
     </tr><tr>
       <td class="col-name">operations</td>
       <td class="col-type">object | object | object | object | object[]</td>
@@ -2216,7 +2217,7 @@ bun run docs:check
       <td class="col-name">expected_revision</td>
       <td class="col-type">string</td>
       <td><span class="param-optional">optional</span></td>
-      <td class="col-desc">Full decoded-RGBA texture revision returned by BlockIT.</td>
+      <td class="col-desc">Full decoded-RGBA texture revision returned by LazyDesigner.</td>
     </tr><tr>
       <td class="col-name">render_profile</td>
       <td class="col-type">&quot;opaque&quot; | &quot;opaque_nocull&quot; | &quot;cutout&quot; | &quot;translucent&quot; | &quot;color_mask&quot; | &quot;emissive_mask&quot; | &quot;emissive_translucent&quot; | &quot;emissive_translucent_one_sided&quot; | &quot;emissive_layer&quot; | &quot;glint&quot; | &quot;cutout_glint&quot; | &quot;custom&quot;</td>
@@ -2482,7 +2483,7 @@ bun run docs:check
         <div class="card-badges"><span class="badge badge-stable">stable</span></div>
       </div>
       <p class="card-title">Minecraft Bedrock Entity Workflow</p>
-      <p class="card-desc">Compact BlockIT workflow for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, protected native gaps, and Bedrock/.bbmodel export.</p>
+      <p class="card-desc">Compact LazyDesigner workflow for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, protected native gaps, and Bedrock/.bbmodel export.</p>
       <div class="overflow-x"><p class="empty-params">No parameters</p></div>
     </div>
       </section>
@@ -2567,12 +2568,12 @@ bun run docs:check
       </div>
       <p class="card-title">Texture Authoring Knowledge</p>
       <p class="uri-template">texture-authoring://{topic}</p>
-      <p class="card-desc">On-demand BlockIT texture treatment knowledge: surface-pattern recipes, Vanilla pixel/render principles, known entity render profiles, and treatment-plan structure. Read only the topic needed for the current texture decision.</p>
+      <p class="card-desc">On-demand LazyDesigner texture treatment knowledge: surface-pattern recipes, Vanilla pixel/render principles, known entity render profiles, and treatment-plan structure. Read only the topic needed for the current texture decision.</p>
     </div>
       </section>
 
       <footer class="page-footer">
-        Generated 2026-10-14T10:30:16.948Z from Zod schemas
+        Generated 2026-10-17T11:13:07.716Z from Zod schemas
       </footer>
     </main>
   </div>

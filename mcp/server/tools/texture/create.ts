@@ -68,6 +68,58 @@ export async function runNativeTemplateEdit<T>(generate: () => Promise<void>, ac
   }
 }
 
+export async function resizeMappedAtlas(base: Texture, width: number, height: number) {
+  const textures = [...Texture.all];
+  if (Undo.current_save) throw new Error("Finish the current edit before resizing an atlas.");
+  for (const texture of textures) {
+    if (texture.width !== base.width || texture.height !== base.height ||
+        texture.getUVWidth() !== base.getUVWidth() || texture.getUVHeight() !== base.getUVHeight()) {
+      throw new Error("Atlas resize requires matching bitmap and logical UV dimensions for every dependent texture.");
+    }
+    if (texture.layers_enabled || (texture.frameCount ?? 1) > 1) {
+      throw new Error("Atlas resize requires flattened, non-animated textures.");
+    }
+  }
+  if (textures.every(texture => texture.width === width && texture.height === height)) {
+    throw new Error("Atlas already has the requested bitmap dimensions.");
+  }
+  const plans = textures.map(texture => {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Atlas resize requires a 2D canvas context.");
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(texture.canvas, 0, 0, width, height);
+    return { texture, source: canvas.toDataURL("image/png"), uv: [texture.uv_width, texture.uv_height] };
+  });
+  Undo.initEdit({ textures, bitmap: true, uv_mode: true });
+  try {
+    for (const { texture, source, uv } of plans) {
+      texture.updateSource(source);
+      await texture.img.decode();
+      texture.width = width;
+      texture.height = height;
+      [texture.uv_width, texture.uv_height] = uv;
+    }
+    Canvas.updateAll();
+    Undo.finishEdit("Resize mapped atlas and variants");
+  } catch (error) {
+    Undo.cancelEdit();
+    Canvas.updateAll();
+    throw error;
+  }
+  return {
+    content: [{ type: "text" as const, text: `Resized ${textures.length} mapped texture(s) to ${width}×${height}; UUIDs and logical UV layout preserved.` }],
+    structuredContent: {
+      texture: textureInventoryEntry(base),
+      resized_textures: textures.map(textureInventoryEntry),
+      rebuilt: true,
+      template: { rearranged_uv: false, bitmap_resize: true },
+    },
+  };
+}
+
 
 export function registerCreateTextureTool(): void {
   createTool(createTextureToolDoc.name, {
@@ -100,6 +152,14 @@ export function registerCreateTextureTool(): void {
           const baseAtlases = Texture.all.filter(texture => textureProductionRole(texture) === "base_color_candidate");
           if (baseAtlases.length !== 1 || baseAtlases[0] !== rebuildTexture) {
             throw new Error("Template rebuild requires the single existing base-color atlas.");
+          }
+          if (type === "template" && !rearrange_uv) {
+            if (group !== undefined || fill_color !== undefined || padding) {
+              throw new Error("Mapped atlas resize preserves existing pixels and groups; omit group, fill_color and padding.");
+            }
+            return resizeMappedAtlas(rebuildTexture,
+              Math.round(rebuildTexture.getUVWidth() * pixel_density / 16),
+              Math.round(rebuildTexture.getUVHeight() * pixel_density / 16));
           }
           if (Texture.all.some(texture => texture !== rebuildTexture)) {
             throw new Error("Rebuild UV before adding variants or PBR channels; dependent atlases require matching remapping.");

@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "generatedAt": "2026-10-14T10:30:16.948Z",
+  "generatedAt": "2026-10-17T11:13:07.716Z",
   "semantic": {
     "semantic_revision_schema": 1,
     "revisions": {
@@ -601,7 +601,7 @@
     {
       "name": "capture_app_screenshot",
       "title": "Capture App Screenshot",
-      "description": "Source-preserved generic Blockbench full-application screenshot helper. It is disabled in the normal BlockIT Bedrock Entity surface; use `capture_model_views` or `capture_screenshot` for model evidence.",
+      "description": "Source-preserved generic Blockbench full-application screenshot helper. It is disabled in the normal LazyDesigner Bedrock Entity surface; use `capture_model_views` or `capture_screenshot` for model evidence.",
       "status": "experimental",
       "category": "Camera & Screenshots",
       "annotations": {
@@ -616,7 +616,7 @@
     {
       "name": "set_camera_angle",
       "title": "Set Camera Angle",
-      "description": "Source-preserved generic editor-camera mutation helper. It is disabled in the normal BlockIT Bedrock Entity surface because `capture_model_views` provides deterministic observation without mutating the active editor camera.",
+      "description": "Source-preserved generic editor-camera mutation helper. It is disabled in the normal LazyDesigner Bedrock Entity surface because `capture_model_views` provides deterministic observation without mutating the active editor camera.",
       "status": "experimental",
       "category": "Camera & Screenshots",
       "annotations": {
@@ -1243,7 +1243,7 @@
                           "description": "Finite non-negative keyframe time in seconds."
                         },
                         "values": {
-                          "description": "Authored [x,y,z] or uniform transform value. Each axis may be a finite number or explicit non-empty Molang string; strings are preserved, never evaluated by BlockIT.",
+                          "description": "Authored [x,y,z] or uniform transform value. Each axis may be a finite number or explicit non-empty Molang string; strings are preserved, never evaluated by LazyDesigner.",
                           "anyOf": [
                             {
                               "minItems": 3,
@@ -4623,8 +4623,8 @@
     },
     {
       "name": "list_export_formats",
-      "title": "List BlockIT Model Outputs",
-      "description": "Lists the model outputs intentionally exposed by BlockIT for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.",
+      "title": "List LazyDesigner Model Outputs",
+      "description": "Lists the model outputs intentionally exposed by LazyDesigner for an active Bedrock Entity project: native Bedrock geometry JSON (`bedrock`) and editable Blockbench project (`project`). It does not enumerate arbitrary registered Blockbench codecs. Bedrock animation files/controllers use Blockbench's separate AnimationCodec surface and are not represented as generic model codecs here.",
       "status": "stable",
       "category": "Export",
       "annotations": {
@@ -4652,7 +4652,7 @@
         "properties": {
           "codec_id": {
             "default": "bedrock",
-            "description": "BlockIT output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`.",
+            "description": "LazyDesigner output: `bedrock` = Bedrock geometry JSON, `project` = editable `.bbmodel`.",
             "type": "string",
             "enum": [
               "bedrock",
@@ -6135,7 +6135,7 @@
           "expected_revision": {
             "type": "string",
             "pattern": "^sha256:\\d+x\\d+:[0-9a-f]{64}$",
-            "description": "Full decoded-RGBA texture revision returned by BlockIT."
+            "description": "Full decoded-RGBA texture revision returned by LazyDesigner."
           },
           "operations": {
             "minItems": 1,
@@ -7402,7 +7402,7 @@
               },
               "rearrange_uv": {
                 "default": true,
-                "description": "Generate and assign a fresh UV arrangement for template mode.",
+                "description": "Generate a fresh UV arrangement. With texture_id and false, resize the mapped base atlas and matching variants/PBR at pixel_density while preserving logical UVs and texture UUIDs.",
                 "type": "boolean"
               },
               "power_of_two": {
@@ -7693,7 +7693,7 @@
           "expected_revision": {
             "type": "string",
             "pattern": "^sha256:\\d+x\\d+:[0-9a-f]{64}$",
-            "description": "Full decoded-RGBA texture revision returned by BlockIT."
+            "description": "Full decoded-RGBA texture revision returned by LazyDesigner."
           },
           "render_profile": {
             "description": "Optional Vanilla render intent for interpreting alpha in this evidence region. Use minecraft_material_code instead for custom materials.",
@@ -7975,7 +7975,7 @@
     {
       "name": "bedrock_entity_workflow",
       "title": "Minecraft Bedrock Entity Workflow",
-      "description": "Compact BlockIT workflow for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, protected native gaps, and Bedrock/.bbmodel export.",
+      "description": "Compact LazyDesigner workflow for Bedrock Entity authoring: minimum evidence, visual gates, bounded correction, downstream readiness, protected native gaps, and Bedrock/.bbmodel export.",
       "status": "stable",
       "arguments": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -8042,7 +8042,7 @@
     {
       "name": "texture-authoring-knowledge",
       "title": "Texture Authoring Knowledge",
-      "description": "On-demand BlockIT texture treatment knowledge: surface-pattern recipes, Vanilla pixel/render principles, known entity render profiles, and treatment-plan structure. Read only the topic needed for the current texture decision.",
+      "description": "On-demand LazyDesigner texture treatment knowledge: surface-pattern recipes, Vanilla pixel/render principles, known entity render profiles, and treatment-plan structure. Read only the topic needed for the current texture decision.",
       "uriTemplate": "texture-authoring://{topic}"
     }
   ]

@@ -800,7 +800,7 @@ export const HYBRID_4_GENERATED_SCHEMAS = {
             },
             "rearrange_uv": {
               "default": true,
-              "description": "Generate and assign a fresh UV arrangement for template mode.",
+              "description": "Generate a fresh UV arrangement. With texture_id and false, resize the mapped base atlas and matching variants/PBR at pixel_density while preserving logical UVs and texture UUIDs.",
               "type": "boolean"
             },
             "power_of_two": {

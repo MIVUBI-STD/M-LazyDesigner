@@ -43,7 +43,7 @@ export const createTextureParameters = z
     rearrange_uv: z
       .boolean()
       .default(true)
-      .describe("Generate and assign a fresh UV arrangement for template mode."),
+      .describe("Generate a fresh UV arrangement. With texture_id and false, resize the mapped base atlas and matching variants/PBR at pixel_density while preserving logical UVs and texture UUIDs."),
     power_of_two: z
       .boolean()
       .default(true)
