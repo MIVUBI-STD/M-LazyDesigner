@@ -92,7 +92,7 @@ const statusInput = z.object({
     .array(z.string().min(1).max(160))
     .max(16)
     .default([])
-    .describe("Already-loaded Control context IDs."),
+    .describe("IDs only for current Skill/Profile contents still present in the client's active context. If compaction/restart removed the contents, omit those IDs so Control reissues their handles; a handle is not the instructions."),
   workspace_path: z
     .string()
     .min(1)

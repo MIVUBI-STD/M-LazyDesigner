@@ -178,6 +178,16 @@ export function parseReferencePackage(
     return null;
   }
 
+  // An invalid manifest row must not disappear from the projected inventory.
+  for (const section of ["parts", "articulation", "materials", "animation_guidance"] as const) {
+    const entries = root[section];
+    if (Array.isArray(entries) && entries.some((entry) => record(entry) === null)) return null;
+  }
+  if (Array.isArray(root.constraints) &&
+      root.constraints.some((entry) => typeof entry !== "string" || !entry.trim())) {
+    return null;
+  }
+
   const asset = record(root.asset);
   const requirements = record(root.requirements);
   const dimensions = record(requirements?.dimensions_blocks);

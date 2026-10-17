@@ -360,7 +360,7 @@ remain; it intentionally favors correct re-orientation over unsafe reuse.
 
 Control uses content-addressed handles and `context_hash` so unchanged Skill/profile/context can be reused rather than retransmitted.
 
-Hash/identity is an efficiency aid, not live-state proof. Workspace/Runtime freshness rules still apply.
+Hash/identity is an efficiency aid, not live-state proof. Workspace/Runtime freshness rules still apply. `readiness.context_ready` only means required Skill/Profile handles are resolvable in Control, not that their prose is loaded in the current AI client. Pass `known_context_ids` only for content actually retained and usable in the active client context. After compaction/restart that discards the text, omit the discarded IDs and reload the returned current Skill/Profile from the managed source; a repeated handle is not the actual instruction body.
 
 ## Non-Goals
 

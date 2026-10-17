@@ -58,6 +58,7 @@ export type ControlReadiness = {
   runtime_ready: boolean;
   project_ready: boolean;
   domain_ready: boolean;
+  /** Required Skill/Profile handles exist; not proof the client loaded their text. */
   context_ready: boolean;
   workspace_state: "AVAILABLE" | "UNAVAILABLE" | "NOT_REQUIRED";
   reasons: string[];

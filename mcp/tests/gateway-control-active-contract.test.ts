@@ -91,6 +91,8 @@ describe("LazyDesigner Control active contract", () => {
     expect(handler).toContain("readReferenceFactPage");
     expect(handler).toContain("REFERENCE_FACT_REVISION_CHANGED");
     expect(handler).toContain("REFERENCE_FACT_NOT_OMITTED");
+    expect(handler).toContain("contents still present in the client's active context");
+    expect(handler).toContain("compaction/restart");
     expect(source).toContain("not use a successful receipt as visual approval");
   });
 

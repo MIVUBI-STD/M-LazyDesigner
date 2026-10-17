@@ -367,6 +367,11 @@ describe("Control reference parser", () => {
     expect(parse({ ...base, parts: [{ id: "left" }, { id: "left" }] })).toBeNull();
     expect(parse({ ...base, parts: [{ id: "left" }, {}] })).toBeNull();
     expect(parse({ ...base, unknowns: { blocking: ["known", null] } })).toBeNull();
+    expect(parse({ ...base, materials: [{ id: "coat" }, null] })).toBeNull();
+    expect(parse({ ...base, articulation: ["misplaced text"] })).toBeNull();
+    expect(parse({ ...base, animation_guidance: [{ name: "walk" }, 42] })).toBeNull();
+    expect(parse({ ...base, constraints: ["keep legs attached", null] })).toBeNull();
+    expect(parse({ ...base, constraints: [""] })).toBeNull();
     expect(parse({ ...base, images: "front.png" })).toBeNull();
   });
 
