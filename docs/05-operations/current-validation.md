@@ -4,7 +4,7 @@ This file owns **current proof interpretation only**. Workflow: `docs/01-product
 
 ## Current authority
 
-**2026-10-17 stage-scoped reference recovery (source-only):** `8b1c547` adds active-stage-only omission readiness and revision-safe `reference_recovery` metadata, with tests; a bounded Gateway client hint is being aligned separately. This reports missing source data, not successful automatic retrieval or observed agent compliance. **Exact-SHA Bun/CI, client-loading, native and visual proof remain NOT EXECUTED.**
+**2026-10-17 stage-scoped reference recovery (source-only):** `8b1c547` adds active-stage-only omission readiness and revision-safe `reference_recovery` metadata, with tests; commit `0497c62` aligns the Gateway client hint and adds source-tail invalidation regression; `534a3fe` strengthens that fixture. The public four-tool surface remains unchanged. This reports missing source data, not successful automatic retrieval or observed agent compliance. **Exact-SHA Bun/CI, client-loading, native and visual proof remain NOT EXECUTED.**
 
 
 
