@@ -334,7 +334,17 @@ active specialist require `REFERENCE_PROJECTION_INCOMPLETE`. Geometry does
 not lose readiness solely because there are more than 24 material entries.
 Control includes `stage_context.reference_recovery` (canonical source path
 and affected section names) only for active-stage omissions. This is a route
-to exact source facts, not a substitute for reading them. The AI client must
+to exact source facts, not a substitute for reading them. The AI client may use the existing Gateway `status(reference_fact_request={section, offset, limit, expected_reference_fingerprint}, reference_package_path=...)`
+to request bounded original entries of a section specifically omitted for
+the active stage. The page reports `total_count`, `returned_count`,
+`has_more`, and the pinned source fingerprint; ask for subsequent pages
+only when relevant. Stale fingerprints refuse the read. Pages larger than
+16 KiB refuse instead of silently clipping the values. When a single entry
+cannot fit, read the canonical file section directly through the authorized
+client filesystem route. This is explicit evidence recovery, never a second
+reference database or automatic full-source retransmission.
+
+The AI client must
 inspect the relevant complete section/part in the canonical Reference Package
 before making a dependent high-cost decision; do not guess omitted values or
 treat projected subsets as a complete part/material inventory. Work independent

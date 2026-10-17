@@ -86,6 +86,11 @@ describe("LazyDesigner Control active contract", () => {
     expect(source).toContain("content survives compaction");
     expect(source).toContain("smallest judgeable sample");
     expect(source).toContain("stage_context.reference_recovery");
+    const handler = await Bun.file("gateway/handlers/registerCoreTools.ts").text();
+    expect(handler).toContain("reference_fact_request");
+    expect(handler).toContain("readReferenceFactPage");
+    expect(handler).toContain("REFERENCE_FACT_REVISION_CHANGED");
+    expect(handler).toContain("REFERENCE_FACT_NOT_OMITTED");
     expect(source).toContain("not use a successful receipt as visual approval");
   });
 

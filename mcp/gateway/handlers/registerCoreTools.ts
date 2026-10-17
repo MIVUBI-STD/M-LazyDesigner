@@ -19,7 +19,11 @@ import {
 } from "../development/sourceOwners";
 import type { LocalCapabilityRegistry } from "../providers/registry";
 import { projectGatewayStatus } from "../presentation/statusProjection";
-import { readReferencePackageProjection } from "../control/referencePackage";
+import {
+  readReferencePackageProjection,
+  readReferenceFactPage,
+  REFERENCE_FACT_PAGE_SECTIONS,
+} from "../control/referencePackage";
 import { readReferenceImageEvidence, summarizeReferenceAlphaSilhouette } from "../control/referenceImageEvidence";
 import { summarizeReferencePartRegions } from "../../lib/reference/imageRegionEvidence";
 import {
@@ -103,6 +107,16 @@ const statusInput = z.object({
     .boolean()
     .default(false)
     .describe("Explicitly attach original source images as MCP image content for review; normal status remains text-only."),
+  reference_fact_request: z
+    .object({
+      section: z.enum(REFERENCE_FACT_PAGE_SECTIONS),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(24).default(8),
+      expected_reference_fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+    })
+    .strict()
+    .optional()
+    .describe("Explicit bounded page of omitted active-stage canonical REFERENCE.json facts. Requires current fingerprint; no automatic bulk loading."),
   reference_image_ids: z
     .array(z.string().min(1).max(160))
     .min(1)
@@ -218,6 +232,7 @@ export function registerCoreGatewayTools(
           reference_package_path,
           include_reference_images,
           reference_image_ids,
+          reference_fact_request,
           current_user_delta,
           task_mode,
           task_intent,
@@ -241,6 +256,30 @@ export function registerCoreGatewayTools(
         // canonical view labels for manual image-pair review.
         let referenceEvidence: Awaited<ReturnType<typeof readReferenceImageEvidence>> | null = null;
         let referencePartRoles: Array<{ id: string; role: string | null }> = [];
+        let referenceFactEvidence: Awaited<ReturnType<typeof readReferenceFactPage>> | null = null;
+        if (reference_fact_request) {
+          if (include_reference_images || task_mode !== "ASSET_AUTHORING" ||
+              !reference_package_path || !control.reference.available) {
+            throw new Error("REFERENCE_FACT_CONTEXT_REQUIRED: use a bound asset Reference Package without image batching.");
+          }
+          if (control.reference.fingerprint !==
+              reference_fact_request.expected_reference_fingerprint) {
+            throw new Error("REFERENCE_FACT_REVISION_CHANGED: refresh Control status before requesting facts.");
+          }
+          const omitted = control.stage_context?.reference_recovery?.omitted_sections ?? [];
+          if (!omitted.includes(reference_fact_request.section)) {
+            throw new Error("REFERENCE_FACT_NOT_OMITTED: request only a section omitted by the active-stage projection.");
+          }
+          referenceFactEvidence = await readReferenceFactPage(
+            reference_package_path,
+            {
+              section: reference_fact_request.section,
+              offset: reference_fact_request.offset,
+              limit: reference_fact_request.limit,
+              expectedFingerprint: reference_fact_request.expected_reference_fingerprint,
+            }
+          );
+        }
         if (!include_reference_images && reference_image_ids !== undefined) {
           throw new Error("REFERENCE_IMAGE_SELECTION_INVALID: set include_reference_images=true.");
         }
@@ -306,6 +345,9 @@ export function registerCoreGatewayTools(
                 4 + registeredExperimentalTools.length,
             },
             control: projectControlPacketForGateway(control),
+            ...(referenceFactEvidence
+              ? { reference_fact_evidence: referenceFactEvidence }
+              : {}),
             ...(referenceEvidence ? {
               reference_image_evidence: {
                 reference_fingerprint: control.reference.fingerprint,
