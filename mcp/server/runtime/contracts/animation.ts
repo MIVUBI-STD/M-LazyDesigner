@@ -11,7 +11,10 @@ import { resolveCoreAnimation } from "@/lib/core/identity";
 import { withTemporaryAnimationPreview } from "@/lib/animation/previewState";
 import { animationChannelEnum } from "@/lib/schemas/animation";
 import { animationIdOptionalSchema } from "@/lib/schemas/ids";
-import { captureModelViewsParameters } from "../../tools/inspection/camera";
+import {
+  captureModelViewsParameters,
+  resolveCaptureViewSelection,
+} from "../../tools/inspection/camera";
 import { inspectAnimationParameters } from "../../tools/animation/inspectionSchema";
 import {
   animationCopyPasteParameters,
@@ -65,12 +68,18 @@ const captureModelViewsWithAnimationBase = captureModelViewsParameters.extend({
 export const animationAwareCaptureModelViewsParameters =
   captureModelViewsWithAnimationBase.superRefine((request, ctx) => {
     const sampleCount = request.animation_preview?.times.length ?? 1;
-    if (request.views && request.views.length * sampleCount > 8) {
+    // Evidence targets are expanded to actual canonical views at capture time.
+    // Apply the same eight-image limit before native posing/screenshot work,
+    // including implicit MEDIUM/HIGH verification-risk expansion.
+    const actualViewCount = resolveCaptureViewSelection(
+      request.views, request.evidence_targets, request.verification_risk
+    ).views.length;
+    if (actualViewCount * sampleCount > 8) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["animation_preview", "times"],
         message:
-          "Animation visual evidence is bounded to at most 8 images per call (views × times <= 8).",
+          "Animation visual evidence is bounded to at most 8 images per call (resolved views × times <= 8). Reduce sample times, selected evidence targets/risk, or explicit views.",
       });
     }
   });

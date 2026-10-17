@@ -40,6 +40,42 @@ describe("Animation runtime efficiency contracts", () => {
     ).toBe(false);
   });
 
+  test("evidence-target-driven captures respect eight-image limit after view selection", () => {
+    // MEDIUM adds one orthogonal view to width: 2 views × 4 samples.
+    expect(animationAwareCaptureModelViewsParameters.safeParse({
+      evidence_targets: ["width"], verification_risk: "MEDIUM",
+      front_direction: "+z",
+      animation_preview: { animation_id: "anim-walk", times: [0, 0.25, 0.5, 0.75] },
+    }).success).toBe(true);
+
+    // HIGH expands width to front/left/top: 3 views × 3 samples > 8.
+    const tooMany = animationAwareCaptureModelViewsParameters.safeParse({
+      evidence_targets: ["width"], verification_risk: "HIGH",
+      front_direction: "+z",
+      animation_preview: { animation_id: "anim-walk", times: [0, 0.5, 1] },
+    });
+    expect(tooMany.success).toBe(false);
+    if (!tooMany.success) {
+      expect(tooMany.error.issues.some((issue) =>
+        issue.message.includes("resolved views × times <= 8")
+      )).toBe(true);
+    }
+
+    // Explicit single-view intent is authoritative even when evidence targets
+    // and HIGH risk are also supplied: 1 view × 5 samples stays in budget.
+    expect(animationAwareCaptureModelViewsParameters.safeParse({
+      views: ["front"], evidence_targets: ["width"], verification_risk: "HIGH",
+      front_direction: "+z",
+      animation_preview: { animation_id: "anim-walk", times: [0, 0.25, 0.5, 0.75, 1] },
+    }).success).toBe(true);
+
+    // Non-animation captures retain the ordinary canonical-view limit.
+    expect(animationAwareCaptureModelViewsParameters.safeParse({
+      evidence_targets: ["width"], verification_risk: "HIGH",
+      front_direction: "+z",
+    }).success).toBe(true);
+  });
+
   test("focused Animation inspection can narrow one bone by channel and time range", () => {
     const accepted = focusedInspectAnimationParameters.parse({
       animation_id: "anim-walk",
